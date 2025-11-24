@@ -5,7 +5,7 @@ import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Check, Trophy, Clapperboard, Landmark, User as UserIcon, Building2, Instagram, Facebook, Linkedin, Twitter, Youtube, Music, CheckSquare, DollarSign, TrendingUp, CreditCard, Wallet, Info, Edit2, MessageSquare, FileText, Rss } from "lucide-react";
+import { Loader2, Check, Trophy, Clapperboard, Landmark, User as UserIcon, Building2, Instagram, Facebook, Linkedin, Twitter, Youtube, Music, CheckSquare, DollarSign, TrendingUp, CreditCard, Wallet, Info, Edit2, MessageSquare, FileText, Rss, CalendarDays, ClipboardList, BarChart3, QrCode } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -44,6 +44,10 @@ const Integrations = () => {
     rss_podcast_posting: false,
     my_page: false,
     advertiser: false,
+    events: false,
+    signup_sheets: false,
+    polls: false,
+    qr_codes: false,
   });
   const [socialConnections, setSocialConnections] = useState<any[]>([]);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -112,6 +116,10 @@ const Integrations = () => {
           rss_podcast_posting: (prefs as any).module_rss_podcast_posting_enabled || false,
           my_page: (prefs as any).my_page_enabled !== false,
           advertiser: (prefs as any).module_advertiser_enabled || false,
+          events: (prefs as any).module_events_enabled || false,
+          signup_sheets: (prefs as any).module_signup_sheets_enabled || false,
+          polls: (prefs as any).module_polls_enabled || false,
+          qr_codes: (prefs as any).module_qr_codes_enabled || false,
         });
       }
 
@@ -448,6 +456,58 @@ const Integrations = () => {
                 isAdmin={isAdmin}
                 onToggle={() => toggleModule('my_page')}
                 onEdit={() => handleEditMetadata('my_page')}
+              />
+
+              <IntegrationCard
+                id="events"
+                icon={CalendarDays}
+                iconGradient="from-violet-500 to-purple-600"
+                title="Events"
+                description="Create and manage events with ticketing, registrations, RSVPs, and automated reminders."
+                tooltip="Enable to create events and manage attendees"
+                isActive={modules.events}
+                isAdmin={isAdmin}
+                onToggle={() => toggleModule('events')}
+                onEdit={() => handleEditMetadata('events')}
+              />
+
+              <IntegrationCard
+                id="signup_sheets"
+                icon={ClipboardList}
+                iconGradient="from-sky-500 to-blue-600"
+                title="Sign-up Sheets"
+                description="Create volunteer sign-up sheets with time slots, capacity limits, and automated confirmations."
+                tooltip="Enable to create and manage volunteer sign-up sheets"
+                isActive={modules.signup_sheets}
+                isAdmin={isAdmin}
+                onToggle={() => toggleModule('signup_sheets')}
+                onEdit={() => handleEditMetadata('signup_sheets')}
+              />
+
+              <IntegrationCard
+                id="polls"
+                icon={BarChart3}
+                iconGradient="from-emerald-500 to-green-600"
+                title="Polls"
+                description="Create interactive polls and surveys with real-time results, voting analytics, and shareable links."
+                tooltip="Enable to create polls and collect feedback"
+                isActive={modules.polls}
+                isAdmin={isAdmin}
+                onToggle={() => toggleModule('polls')}
+                onEdit={() => handleEditMetadata('polls')}
+              />
+
+              <IntegrationCard
+                id="qr_codes"
+                icon={QrCode}
+                iconGradient="from-rose-500 to-pink-600"
+                title="QR Codes"
+                description="Generate QR codes for events, links, contact info, and more. Track scans and engagement."
+                tooltip="Enable to create and manage QR codes"
+                isActive={modules.qr_codes}
+                isAdmin={isAdmin}
+                onToggle={() => toggleModule('qr_codes')}
+                onEdit={() => handleEditMetadata('qr_codes')}
               />
 
               <IntegrationCard

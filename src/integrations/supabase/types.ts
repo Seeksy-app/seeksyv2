@@ -6286,11 +6286,15 @@ export type Database = {
           module_awards_enabled: boolean | null
           module_blog_enabled: boolean | null
           module_civic_enabled: boolean | null
+          module_events_enabled: boolean | null
           module_influencer_enabled: boolean | null
           module_media_enabled: boolean | null
           module_monetization_enabled: boolean | null
+          module_polls_enabled: boolean | null
           module_project_management_enabled: boolean | null
+          module_qr_codes_enabled: boolean | null
           module_rss_podcast_posting_enabled: boolean | null
+          module_signup_sheets_enabled: boolean | null
           module_team_chat_enabled: boolean | null
           my_page_enabled: boolean | null
           my_page_visited: boolean | null
@@ -6310,11 +6314,15 @@ export type Database = {
           module_awards_enabled?: boolean | null
           module_blog_enabled?: boolean | null
           module_civic_enabled?: boolean | null
+          module_events_enabled?: boolean | null
           module_influencer_enabled?: boolean | null
           module_media_enabled?: boolean | null
           module_monetization_enabled?: boolean | null
+          module_polls_enabled?: boolean | null
           module_project_management_enabled?: boolean | null
+          module_qr_codes_enabled?: boolean | null
           module_rss_podcast_posting_enabled?: boolean | null
+          module_signup_sheets_enabled?: boolean | null
           module_team_chat_enabled?: boolean | null
           my_page_enabled?: boolean | null
           my_page_visited?: boolean | null
@@ -6334,11 +6342,15 @@ export type Database = {
           module_awards_enabled?: boolean | null
           module_blog_enabled?: boolean | null
           module_civic_enabled?: boolean | null
+          module_events_enabled?: boolean | null
           module_influencer_enabled?: boolean | null
           module_media_enabled?: boolean | null
           module_monetization_enabled?: boolean | null
+          module_polls_enabled?: boolean | null
           module_project_management_enabled?: boolean | null
+          module_qr_codes_enabled?: boolean | null
           module_rss_podcast_posting_enabled?: boolean | null
+          module_signup_sheets_enabled?: boolean | null
           module_team_chat_enabled?: boolean | null
           my_page_enabled?: boolean | null
           my_page_visited?: boolean | null
