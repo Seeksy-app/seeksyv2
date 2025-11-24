@@ -108,6 +108,7 @@ import SupportChat from "./pages/SupportChat";
 import CFODashboard from "./pages/CFODashboard";
 import CFOCalculators from "./pages/CFOCalculators";
 import ProForma from "./pages/ProForma";
+import TechStack from "./pages/TechStack";
 import SalesDashboard from "./pages/SalesDashboard";
 import SalesAdLibrary from "./pages/SalesAdLibrary";
 import AdminMasterBlog from "./pages/AdminMasterBlog";
@@ -316,6 +317,7 @@ const AppContent = () => {
             <Route path="/cfo-dashboard" element={<CFODashboard />} />
             <Route path="/cfo-calculators" element={<CFOCalculators />} />
             <Route path="/pro-forma" element={<ProForma />} />
+            <Route path="/tech-stack" element={<TechStack />} />
             <Route path="/sales-dashboard" element={<SalesDashboard />} />
             <Route path="/sales/ad-library" element={<SalesAdLibrary />} />
             <Route path="/creator/campaigns" element={<CreatorCampaignBrowser />} />

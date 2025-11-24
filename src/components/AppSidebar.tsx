@@ -380,7 +380,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     { title: "Integrations", url: "/integrations", icon: Puzzle },
     { title: "System Status", url: "/system-status", icon: Activity },
     { title: "Architecture", url: "/seeksy-architecture", icon: Network },
-    { title: "Tech Stack", url: "/cfo-calculators", icon: Code },
+    { title: "Tech Stack", url: "/tech-stack", icon: Code },
   ];
 
   // Advertisers see the same settings items
