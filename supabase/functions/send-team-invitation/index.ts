@@ -82,45 +82,40 @@ serve(async (req) => {
       
       const inviterName = inviterProfile?.account_full_name || inviterProfile?.username || "A team member";
       
-      // Construct proper app URL for signup
+      // Construct proper app URL for dashboard
       const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
       const projectId = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1];
-      const signupUrl = projectId 
-        ? `https://${projectId}.lovableproject.com/auth`
-        : `${supabaseUrl}/auth`;
+      const dashboardUrl = projectId 
+        ? `https://${projectId}.lovableproject.com/dashboard`
+        : `${supabaseUrl}/dashboard`;
       
       try {
         await resend.emails.send({
           from: Deno.env.get("SENDER_EMAIL") || "Seeksy <noreply@seeksy.app>",
           to: [invitee_email],
-          subject: `${inviterName} invited you to join their team on Seeksy`,
+          subject: `🎉 Welcome to the Seeksy Team!`,
           html: `
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
               <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0;">
-                <h1 style="color: white; margin: 0; font-size: 28px;">You're Invited to Seeksy!</h1>
+                <h1 style="color: white; margin: 0; font-size: 32px;">🎉 Welcome to the Team!</h1>
               </div>
               <div style="background: #ffffff; padding: 40px 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
-                <p style="font-size: 18px; color: #111827; margin-bottom: 20px;">
-                  Hi there! 👋
+                <p style="font-size: 18px; color: #111827; margin-bottom: 20px; line-height: 1.6;">
+                  Hey! <strong>${inviterName}</strong> just added you to their Seeksy team as a <strong style="color: #667eea;">${role}</strong>. Let's get you set up! 🚀
                 </p>
-                <p style="font-size: 16px; color: #374151; line-height: 1.6; margin-bottom: 20px;">
-                  <strong>${inviterName}</strong> has invited you to join their team on Seeksy as a <strong style="color: #667eea;">${role}</strong>.
-                </p>
+                
                 <p style="font-size: 16px; color: #374151; line-height: 1.6; margin-bottom: 30px;">
-                  Seeksy helps creators manage content, collaborate with teams, and grow their audience—all in one place.
+                  Click below to jump into your dashboard, update your password, and customize your settings.
                 </p>
+                
                 <div style="text-align: center; margin: 40px 0;">
-                  <a href="${signupUrl}" style="background-color: #667eea; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; display: inline-block; font-size: 16px; font-weight: 600; box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);">
-                    Accept Invitation
+                  <a href="${dashboardUrl}" style="background-color: #667eea; color: white; padding: 16px 40px; text-decoration: none; border-radius: 8px; display: inline-block; font-size: 18px; font-weight: 600; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);">
+                    Let's Go! →
                   </a>
                 </div>
-                <p style="font-size: 14px; color: #6b7280; line-height: 1.5; margin-top: 30px;">
-                  If you have any questions, our support team is here to help.
-                </p>
-                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
-                <p style="font-size: 13px; color: #9ca3af; margin: 0;">
-                  Best regards,<br>
-                  <strong>The Seeksy Team</strong>
+                
+                <p style="font-size: 14px; color: #6b7280; text-align: center; margin-top: 30px;">
+                  Excited to have you on board! 🎊
                 </p>
               </div>
             </div>
