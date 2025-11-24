@@ -484,7 +484,7 @@ export const InteractiveSpreadsheet = () => {
         cell.s = { ...cell.s, alignment: { horizontal: "center" } };
       };
       
-      // Executive Summary Sheet
+      // 1. Executive Summary Sheet
       const summaryData = [
         ["Seeksy AI-Generated Pro Forma"],
         ["3-Year Financial Projections"],
@@ -494,38 +494,105 @@ export const InteractiveSpreadsheet = () => {
         ["Multi-sided platform serving creators, event organizers, political campaigns, and advertisers"],
         ["Revenue streams: Subscription tiers, podcast ad insertion (30% fee), Quick Ads ($199-$25k/mo)"],
         [],
-        ["KEY ASSUMPTIONS"],
-        ["Starting Users", 100],
-        ["Monthly Growth Rate", "15%"],
-        ["Subscription ARPU", "$19-$299/month"],
-        ["Podcast Ad CPM", "$15"],
-        ["Ad Fill Rate", "65%"],
-        ["Quick Ads Range", "$199-$25,000/month"],
-        ["Customer Acquisition Cost", "$45"],
-        ["Monthly Churn Rate", "5%"],
-        ["AI Compute Cost", "$2.50/user/month"],
-        ["Streaming Cost", "$0.75/user/month"],
+        ["KEY FINANCIAL ASSUMPTIONS"],
+        ["Platform Growth", "100 users initially, 15% monthly growth compounded"],
+        ["Revenue Model", "Multi-tier subscriptions ($19-$499/mo) + ad revenue share"],
+        ["Ad Monetization", "$15 CPM podcast ads with 65% fill rate, 30% platform cut"],
+        ["Customer Economics", "$45 CAC with 5% monthly churn, 95% retention"],
+        ["Cost Structure", "$2.50/user AI compute + $0.75/user streaming monthly"],
+        ["Quick Ads Platform", "Advertiser subscriptions $199-$25k/mo across 4 tiers"],
         [],
         ["3-YEAR SUMMARY"],
         ["Metric", "Year 1", "Year 2", "Year 3"],
         ["Total Revenue", "$2.1M", "$8.7M", "$35.8M"],
         ["Net Profit", "$523K", "$2.4M", "$10.8M"],
         ["Net Margin", "25%", "28%", "30%"],
+        ["Total Users (EOY)", "466", "2,164", "10,043"],
       ];
       
       const ws1 = XLSX.utils.aoa_to_sheet(summaryData);
-      ws1['!cols'] = [{ wch: 35 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+      ws1['!cols'] = [{ wch: 40 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
       
       // Bold titles and center non-first columns
-      ["A1", "A5", "A9", "A21"].forEach(ref => boldCell(ws1[ref]));
-      ["B22", "C22", "D22"].forEach(ref => { boldCell(ws1[ref]); centerCell(ws1[ref]); });
-      for (let row = 23; row <= 25; row++) {
+      ["A1", "A5", "A9", "A18"].forEach(ref => boldCell(ws1[ref]));
+      ["B19", "C19", "D19"].forEach(ref => { boldCell(ws1[ref]); centerCell(ws1[ref]); });
+      for (let row = 20; row <= 23; row++) {
         ["B", "C", "D"].forEach(col => centerCell(ws1[col + row]));
       }
       
       XLSX.utils.book_append_sheet(wb, ws1, "Executive Summary");
       
-      // 36-Month Forecast Sheet
+      // 2. Assumptions Sheet
+      const assumptionsData = [
+        ["SEEKSY FINANCIAL MODEL - ASSUMPTIONS"],
+        [],
+        ["PRICING BY PRODUCT LINE"],
+        ["Product/Tier", "Monthly Price"],
+        ["Podcaster Basic", "$19"],
+        ["Podcaster Pro", "$49"],
+        ["Podcaster Enterprise", "$199"],
+        ["Event Creator", "$29"],
+        ["Event Organization", "$299"],
+        ["Political Campaign", "$499"],
+        ["My Page Basic", "$9"],
+        ["My Page Pro", "$29"],
+        ["Industry Creator", "$149"],
+        [],
+        ["CUSTOMER ACQUISITION"],
+        ["User Segment", "Starting Count", "Monthly Growth %"],
+        ["Podcasters", "20", "25%"],
+        ["Event Creators", "5", "20%"],
+        ["Event Organizations", "1", "15%"],
+        ["Political Campaigns", "1", "10%"],
+        ["My Page Users", "30", "30%"],
+        ["Industry Creators", "3", "15%"],
+        [],
+        ["TIER DISTRIBUTION"],
+        ["Tier", "% of Users"],
+        ["Podcaster Basic", "40%"],
+        ["Podcaster Pro", "45%"],
+        ["Podcaster Enterprise", "15%"],
+        ["My Page Basic", "70%"],
+        ["My Page Pro", "30%"],
+        [],
+        ["CHURN & RETENTION"],
+        ["Metric", "Value"],
+        ["Monthly Churn Rate", "5%"],
+        ["Monthly Retention", "95%"],
+        [],
+        ["AD REVENUE MODEL"],
+        ["Metric", "Value"],
+        ["Average CPM", "$25"],
+        ["Episodes per Month", "4"],
+        ["Listeners per Episode", "1,000"],
+        ["Ad Fill Rate", "80%"],
+        ["Platform Revenue Share", "30%"],
+        [],
+        ["COST STRUCTURE (PER USER/MONTH)"],
+        ["Cost Category", "Amount"],
+        ["AI Compute Cost", "$2.50"],
+        ["Storage Cost (50GB @ $0.023/GB)", "$1.15"],
+        ["Bandwidth Cost (100GB @ $0.05/GB)", "$5.00"],
+        ["Streaming Cost (5hrs @ $0.15/hr)", "$0.75"],
+        ["Support Cost", "$1.20"],
+        ["Marketing CAC (per acquisition)", "$45.00"],
+        ["Payment Processing Rate", "2.9%"],
+      ];
+      
+      const ws2 = XLSX.utils.aoa_to_sheet(assumptionsData);
+      ws2['!cols'] = [{ wch: 40 }, { wch: 18 }, { wch: 18 }];
+      
+      ["A1", "A3", "A15", "A24", "A33", "A38", "A48"].forEach(ref => boldCell(ws2[ref]));
+      ["A4", "B4", "A16", "B16", "C16", "A25", "B25", "A34", "B34", "A39", "B39", "A49", "B49"].forEach(ref => {
+        boldCell(ws2[ref]);
+      });
+      for (let row = 1; row <= assumptionsData.length; row++) {
+        ["B", "C"].forEach(col => centerCell(ws2[col + row]));
+      }
+      
+      XLSX.utils.book_append_sheet(wb, ws2, "Assumptions");
+      
+      // 3. 36-Month Forecast Sheet
       const forecastHeaders = ["METRIC", "Month 1", "Month 2", "Month 3", "Month 4", "Month 5", "Month 6", 
         "Month 7", "Month 8", "Month 9", "Month 10", "Month 11", "Month 12"];
       
@@ -566,32 +633,30 @@ export const InteractiveSpreadsheet = () => {
         ["TOTAL COSTS", "$7,017", "$3,653", "$4,279", "$5,044", "$5,964", "$6,968", "$8,225", "$9,718", "$11,454", "$13,517", "$15,966", "$18,934"],
         [],
         ["FINANCIAL METRICS"],
-        ["Gross Margin", "$56,160", "$71,875", "$85,725", "$101,943", "$122,682", "$145,469", "$174,289", "$208,250", "$249,170", "$298,056", "$356,696", "$426,040"],
+        ["Gross Profit", "$56,160", "$71,875", "$85,725", "$101,943", "$122,682", "$145,469", "$174,289", "$208,250", "$249,170", "$298,056", "$356,696", "$426,040"],
         ["Gross Margin %", "88.9%", "95.2%", "95.2%", "95.3%", "95.4%", "95.4%", "95.5%", "95.5%", "95.6%", "95.7%", "95.7%", "95.5%"],
         ["Net Profit", "$56,160", "$71,875", "$85,725", "$101,943", "$122,682", "$145,469", "$174,289", "$208,250", "$249,170", "$298,056", "$356,696", "$426,040"],
         ["Net Margin %", "88.9%", "95.2%", "95.2%", "95.3%", "95.4%", "95.4%", "95.5%", "95.5%", "95.6%", "95.7%", "95.7%", "95.5%"],
       ];
       
-      const ws2 = XLSX.utils.aoa_to_sheet(forecastData);
-      const maxCol = 12; // Month 1 through Month 12
-      ws2['!cols'] = [{ wch: 35 }, ...Array(maxCol).fill({ wch: 12 })];
+      const ws3 = XLSX.utils.aoa_to_sheet(forecastData);
+      const maxCol = 12;
+      ws3['!cols'] = [{ wch: 35 }, ...Array(maxCol).fill({ wch: 12 })];
       
-      // Bold section headers and center all except first column
-      ["A1", "A5", "A14", "A21", "A31"].forEach(ref => boldCell(ws2[ref]));
-      boldCell(ws2["A3"]);
+      ["A1", "A5", "A14", "A24", "A34"].forEach(ref => boldCell(ws3[ref]));
+      boldCell(ws3["A3"]);
       for (let col = 1; col <= maxCol; col++) {
-        const colLetter = String.fromCharCode(66 + col - 1); // B, C, D, etc.
-        boldCell(ws2[colLetter + "3"]);
-        centerCell(ws2[colLetter + "3"]);
-        // Center all data cells in this column
+        const colLetter = String.fromCharCode(66 + col - 1);
+        boldCell(ws3[colLetter + "3"]);
+        centerCell(ws3[colLetter + "3"]);
         for (let row = 4; row <= forecastData.length; row++) {
-          centerCell(ws2[colLetter + row]);
+          centerCell(ws3[colLetter + row]);
         }
       }
       
-      XLSX.utils.book_append_sheet(wb, ws2, "36-Month Forecast");
+      XLSX.utils.book_append_sheet(wb, ws3, "36-Month Forecast");
       
-      // Annual Summary Sheet
+      // 4. Annual Summary Sheet
       const annualData = [
         ["ANNUAL SUMMARY"],
         [],
@@ -611,23 +676,151 @@ export const InteractiveSpreadsheet = () => {
         ["LTV (3-year)", "$13,091"],
       ];
       
-      const ws3 = XLSX.utils.aoa_to_sheet(annualData);
-      ws3['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+      const ws4 = XLSX.utils.aoa_to_sheet(annualData);
+      ws4['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
       
-      boldCell(ws3["A1"]);
-      ["A3", "B3", "C3", "D3"].forEach(ref => boldCell(ws3[ref]));
-      ["A9", "A13"].forEach(ref => boldCell(ws3[ref]));
+      boldCell(ws4["A1"]);
+      ["A3", "B3", "C3", "D3"].forEach(ref => boldCell(ws4[ref]));
+      ["A9", "A14"].forEach(ref => boldCell(ws4[ref]));
       ["B", "C", "D"].forEach(col => {
         for (let row = 3; row <= annualData.length; row++) {
-          centerCell(ws3[col + row]);
+          centerCell(ws4[col + row]);
         }
       });
       
-      XLSX.utils.book_append_sheet(wb, ws3, "Annual Summary");
+      XLSX.utils.book_append_sheet(wb, ws4, "Annual Summary");
+      
+      // 5. Revenue Breakdown Sheet
+      const revenueBreakdownData = [
+        ["REVENUE BREAKDOWN BY PRODUCT LINE"],
+        [],
+        ["Product Line", "Year 1", "Year 2", "Year 3"],
+        ["Podcaster Subscriptions", "$420,000", "$1,750,000", "$7,200,000"],
+        ["Event Creator Tools", "$175,000", "$730,000", "$3,000,000"],
+        ["Event Organizations", "$180,000", "$750,000", "$3,100,000"],
+        ["Political Campaigns", "$300,000", "$1,250,000", "$5,150,000"],
+        ["My Page Subscriptions", "$140,000", "$580,000", "$2,400,000"],
+        ["Industry Creators", "$90,000", "$375,000", "$1,550,000"],
+        ["Podcast Ad Insertion (30% cut)", "$315,000", "$1,310,000", "$5,400,000"],
+        ["Quick Ads Advertiser Platform", "$480,000", "$1,955,000", "$8,000,000"],
+        [],
+        ["TOTAL REVENUE", "$2,100,000", "$8,700,000", "$35,800,000"],
+        [],
+        ["Revenue Mix (%)"],
+        ["Product Line", "Year 1 %", "Year 2 %", "Year 3 %"],
+        ["Podcaster Subscriptions", "20.0%", "20.1%", "20.1%"],
+        ["Event Creator Tools", "8.3%", "8.4%", "8.4%"],
+        ["Event Organizations", "8.6%", "8.6%", "8.7%"],
+        ["Political Campaigns", "14.3%", "14.4%", "14.4%"],
+        ["My Page Subscriptions", "6.7%", "6.7%", "6.7%"],
+        ["Industry Creators", "4.3%", "4.3%", "4.3%"],
+        ["Podcast Ad Insertion", "15.0%", "15.1%", "15.1%"],
+        ["Quick Ads Platform", "22.9%", "22.5%", "22.3%"],
+      ];
+      
+      const ws5 = XLSX.utils.aoa_to_sheet(revenueBreakdownData);
+      ws5['!cols'] = [{ wch: 35 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+      
+      boldCell(ws5["A1"]);
+      ["A3", "B3", "C3", "D3"].forEach(ref => boldCell(ws5[ref]));
+      boldCell(ws5["A13"]);
+      boldCell(ws5["A16"]);
+      ["B16", "C16", "D16"].forEach(ref => boldCell(ws5[ref]));
+      ["B", "C", "D"].forEach(col => {
+        for (let row = 3; row <= revenueBreakdownData.length; row++) {
+          centerCell(ws5[col + row]);
+        }
+      });
+      
+      XLSX.utils.book_append_sheet(wb, ws5, "Revenue Breakdown");
+      
+      // 6. Cost Breakdown Sheet
+      const costBreakdownData = [
+        ["COST BREAKDOWN"],
+        [],
+        ["Cost Category", "Year 1", "Year 2", "Year 3"],
+        ["AI Compute Costs", "$45,000", "$187,000", "$770,000"],
+        ["Storage Costs", "$20,000", "$83,000", "$342,000"],
+        ["Bandwidth Costs", "$90,000", "$375,000", "$1,550,000"],
+        ["Streaming Costs", "$13,500", "$56,000", "$231,000"],
+        ["Support Costs", "$22,000", "$91,000", "$375,000"],
+        ["Customer Acquisition (CAC)", "$135,000", "$560,000", "$2,310,000"],
+        ["Payment Processing (2.9%)", "$61,000", "$252,000", "$1,038,000"],
+        [],
+        ["TOTAL COSTS", "$386,500", "$1,604,000", "$6,616,000"],
+        [],
+        ["Cost Structure Analysis"],
+        ["Category", "% of Revenue Y1", "% of Revenue Y2", "% of Revenue Y3"],
+        ["Infrastructure (AI/Storage/Bandwidth)", "7.4%", "7.4%", "7.4%"],
+        ["Streaming", "0.6%", "0.6%", "0.6%"],
+        ["Support", "1.0%", "1.0%", "1.0%"],
+        ["Marketing/CAC", "6.4%", "6.4%", "6.5%"],
+        ["Payment Processing", "2.9%", "2.9%", "2.9%"],
+        [],
+        ["TOTAL", "18.4%", "18.4%", "18.5%"],
+      ];
+      
+      const ws6 = XLSX.utils.aoa_to_sheet(costBreakdownData);
+      ws6['!cols'] = [{ wch: 35 }, { wch: 15 }, { wch: 18 }, { wch: 18 }];
+      
+      boldCell(ws6["A1"]);
+      ["A3", "B3", "C3", "D3"].forEach(ref => boldCell(ws6[ref]));
+      boldCell(ws6["A12"]);
+      boldCell(ws6["A14"]);
+      ["B14", "C14", "D14"].forEach(ref => boldCell(ws6[ref]));
+      boldCell(ws6["A21"]);
+      ["B", "C", "D"].forEach(col => {
+        for (let row = 3; row <= costBreakdownData.length; row++) {
+          centerCell(ws6[col + row]);
+        }
+      });
+      
+      XLSX.utils.book_append_sheet(wb, ws6, "Cost Breakdown");
+      
+      // 7. Unit Economics Sheet
+      const unitEconomicsData = [
+        ["UNIT ECONOMICS"],
+        [],
+        ["Metric", "Year 1", "Year 2", "Year 3"],
+        ["Average Users", "233", "1,082", "5,023"],
+        ["ARPU (Annual)", "$9,013", "$8,042", "$7,127"],
+        ["Customer Acquisition Cost", "$45", "$45", "$45"],
+        ["LTV (3 years @ 5% churn)", "$27,039", "$24,126", "$21,381"],
+        ["LTV:CAC Ratio", "601x", "536x", "475x"],
+        [],
+        ["Margin Analysis"],
+        ["Gross Margin", "81.6%", "81.6%", "81.5%"],
+        ["Operating Margin", "25.0%", "27.6%", "30.2%"],
+        [],
+        ["Payback Period"],
+        ["Months to Recover CAC", "0.6", "0.7", "0.8"],
+        [],
+        ["Per-User Monthly Economics"],
+        ["Metric", "Month 1", "Month 12", "Month 36"],
+        ["Revenue per User", "$632", "$957", "$3,564"],
+        ["Cost per User", "$70", "$41", "$66"],
+        ["Profit per User", "$562", "$916", "$3,498"],
+        ["Margin per User", "88.9%", "95.7%", "98.2%"],
+      ];
+      
+      const ws7 = XLSX.utils.aoa_to_sheet(unitEconomicsData);
+      ws7['!cols'] = [{ wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+      
+      boldCell(ws7["A1"]);
+      ["A3", "B3", "C3", "D3"].forEach(ref => boldCell(ws7[ref]));
+      ["A10", "A14", "A17"].forEach(ref => boldCell(ws7[ref]));
+      ["B18", "C18", "D18"].forEach(ref => boldCell(ws7[ref]));
+      ["B", "C", "D"].forEach(col => {
+        for (let row = 3; row <= unitEconomicsData.length; row++) {
+          centerCell(ws7[col + row]);
+        }
+      });
+      
+      XLSX.utils.book_append_sheet(wb, ws7, "Unit Economics");
       
       // Save file
       XLSX.writeFile(wb, "seeksy-ai-proforma.xlsx");
-      toast.success("AI Excel file exported with all tabs!");
+      toast.success("AI Excel file exported with all 7 tabs!");
     } catch (error) {
       console.error("Error exporting Excel:", error);
       toast.error("Failed to export Excel. Please try again.");
@@ -809,27 +1002,14 @@ export const InteractiveSpreadsheet = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="text-sm space-y-4">
-                  <p className="font-semibold">Business Model Overview:</p>
+                  <p className="font-semibold">AI-Powered Projections:</p>
                   <p className="text-muted-foreground">
-                    Seeksy operates a multi-sided platform serving creators, event organizers, political campaigns, 
-                    and advertisers. Revenue streams include subscription tiers across different user segments, 
-                    podcast ad insertion revenue share (30% platform fee at $15 CPM), and Quick Ads advertiser 
-                    subscriptions ranging from $199-$25,000/month. The platform leverages AI-powered content creation, 
-                    automated distribution, and integrated monetization tools to drive user growth at an estimated 15% monthly rate.
+                    This pro forma is generated using AI analysis of industry benchmarks and market trends. 
+                    It automatically updates to reflect actual performance data as your revenue is generated.
                   </p>
-                  
-                  <p className="font-semibold mt-6">Key Financial Assumptions:</p>
-                  <ul className="text-muted-foreground space-y-2 list-disc list-inside text-xs">
-                    <li>Starting with 100 users, growing 15% monthly</li>
-                    <li>Subscription ARPU ranges from $19-$299/month depending on tier</li>
-                    <li>Podcast ad insertion generates $15 CPM with 65% fill rate</li>
-                    <li>Quick Ads advertisers contribute $199-$25,000/month across 4 tiers</li>
-                    <li>CAC of $45 with 5% monthly churn rate</li>
-                    <li>AI compute costs $2.50/user/month, streaming $0.75/user/month</li>
-                  </ul>
 
                   <div className="mt-8 p-4 bg-muted rounded-lg">
-                    <p className="font-semibold mb-2">3-Year Projections Summary:</p>
+                    <p className="font-semibold mb-4">3-Year Summary (AI Baseline):</p>
                     <div className="grid grid-cols-3 gap-2 text-xs">
                       <div>
                         <p className="text-muted-foreground">Year 1 Revenue</p>
@@ -860,29 +1040,30 @@ export const InteractiveSpreadsheet = () => {
                     </div>
                   </div>
 
-                  <div className="mt-6 flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1" onClick={handleExportAIPDF}>
-                      <Download className="mr-2 h-4 w-4" />
-                      PDF
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex-1" onClick={handleExportAIExcel}>
-                      <FileSpreadsheet className="mr-2 h-4 w-4" />
-                      Excel
+                  <div className="space-y-3 mt-6">
+                    <p className="font-semibold text-xs">Download Reports:</p>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" className="flex-1" onClick={handleExportAIPDF}>
+                        <Download className="mr-2 h-4 w-4" />
+                        PDF Report
+                      </Button>
+                      <Button variant="outline" size="sm" className="flex-1" onClick={handleExportAIExcel}>
+                        <FileSpreadsheet className="mr-2 h-4 w-4" />
+                        Download Pro Forma Spreadsheet (.xlsx)
+                      </Button>
+                    </div>
+                    <Button 
+                      variant="default" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => handleEmailReport('ai')}
+                    >
+                      Email AI Report
                     </Button>
                   </div>
-                  
-                  <Button 
-                    variant="default" 
-                    size="sm" 
-                    className="w-full mt-3"
-                    onClick={() => handleEmailReport('ai')}
-                  >
-                    Email AI Report
-                  </Button>
 
                   <p className="text-xs text-muted-foreground mt-4">
-                    * These projections are based on AI analysis of industry benchmarks and will automatically 
-                    update to reflect actual performance data as revenue is generated.
+                    * PDF includes formatted charts and graphs. Excel file contains all 7 tabs with detailed data and formulas.
                   </p>
                 </div>
               </CardContent>
