@@ -4,11 +4,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Download, FileSpreadsheet } from "lucide-react";
+import { Download, FileSpreadsheet, Share2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { ProFormaSpreadsheetGenerator } from "./ProFormaSpreadsheetGenerator";
+import { ShareInvestorDialog } from "./ShareInvestorDialog";
 import jsPDF from "jspdf";
 import * as XLSX from "xlsx";
 
@@ -80,6 +81,7 @@ interface SpreadsheetAssumptions {
 export const InteractiveSpreadsheet = () => {
   const [showAssumptions, setShowAssumptions] = useState(false);
   const [selectedScenario, setSelectedScenario] = useState<'baseline' | 'conservative' | 'growth' | 'aggressive'>('baseline');
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [assumptions, setAssumptions] = useState<SpreadsheetAssumptions>({
     // Pricing
     podcasterBasicPrice: 19,
@@ -1602,9 +1604,15 @@ export const InteractiveSpreadsheet = () => {
             Compare AI-generated projections with your custom financial scenarios
           </p>
         </div>
-        <Button variant="outline" onClick={() => setShowAssumptions(!showAssumptions)}>
-          {showAssumptions ? "Hide" : "Edit"} Assumptions
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowAssumptions(!showAssumptions)}>
+            {showAssumptions ? "Hide" : "Edit"} Assumptions
+          </Button>
+          <Button onClick={() => setShareDialogOpen(true)}>
+            <Share2 className="h-4 w-4 mr-2" />
+            Share with Investors
+          </Button>
+        </div>
       </div>
 
       {/* Assumptions Editor */}
@@ -1969,6 +1977,11 @@ export const InteractiveSpreadsheet = () => {
               </CardContent>
             </Card>
           </div>
+
+      <ShareInvestorDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+      />
     </div>
   );
 };
