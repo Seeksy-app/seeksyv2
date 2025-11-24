@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Check, Trophy, Clapperboard, Landmark, User as UserIcon, Building2, Instagram, Facebook, Linkedin, Twitter, Youtube, Music, CheckSquare, DollarSign, TrendingUp, CreditCard, Wallet, Info, Edit2, MessageSquare, FileText, Rss, CalendarDays, ClipboardList, BarChart3, QrCode, Mail, Smartphone, Search, Mic, Sparkles } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -59,6 +60,8 @@ const Integrations = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingModule, setEditingModule] = useState<{ id: string; title: string; description: string; tooltip: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
+  const [moduleToDeactivate, setModuleToDeactivate] = useState<keyof ModuleStatus | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -155,14 +158,36 @@ const Integrations = () => {
     if (!user) return;
 
     const newValue = !modules[moduleName];
+    
+    // If deactivating, show confirmation dialog
+    if (!newValue) {
+      setModuleToDeactivate(moduleName);
+      setDeactivateDialogOpen(true);
+      return;
+    }
+    
+    // If activating, proceed directly
+    await performToggle(moduleName, newValue);
+  };
+
+  const performToggle = async (moduleName: keyof ModuleStatus, newValue: boolean) => {
+    if (!user) return;
+
     setModules({ ...modules, [moduleName]: newValue });
 
     try {
+      // Core apps use different column names (no "module_" prefix)
+      const coreApps = ['my_page', 'ai_assistant', 'meetings', 'contacts', 'podcasts'];
+      const moduleNameStr = String(moduleName);
+      const columnName = coreApps.includes(moduleNameStr) 
+        ? `${moduleNameStr}_enabled`
+        : `module_${moduleNameStr}_enabled`;
+
       const { error } = await supabase
         .from("user_preferences")
         .upsert({
           user_id: user.id,
-          [`module_${moduleName}_enabled`]: newValue,
+          [columnName]: newValue,
         }, {
           onConflict: 'user_id'
         });
@@ -170,17 +195,28 @@ const Integrations = () => {
       if (error) throw error;
 
       toast({
-        title: newValue ? "Module Activated" : "Module Deactivated",
-        description: `${String(moduleName).charAt(0).toUpperCase() + String(moduleName).slice(1)} module has been ${newValue ? 'activated' : 'deactivated'}.`,
+        title: newValue ? "App Activated" : "App Deactivated",
+        description: `${moduleNameStr.charAt(0).toUpperCase() + moduleNameStr.slice(1).replace(/_/g, ' ')} has been ${newValue ? 'activated' : 'deactivated'}.`,
       });
+      
+      // Trigger sidebar refresh
+      window.dispatchEvent(new Event("pinnedModulesChanged"));
     } catch (error: any) {
       toast({
-        title: "Error updating module",
+        title: "Error updating app",
         description: error.message,
         variant: "destructive",
       });
       // Revert on error
       setModules({ ...modules, [moduleName]: !newValue });
+    }
+  };
+
+  const handleConfirmDeactivate = async () => {
+    if (moduleToDeactivate) {
+      await performToggle(moduleToDeactivate, false);
+      setDeactivateDialogOpen(false);
+      setModuleToDeactivate(null);
     }
   };
 
@@ -1044,6 +1080,29 @@ const Integrations = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Deactivate Confirmation Dialog */}
+      <AlertDialog open={deactivateDialogOpen} onOpenChange={setDeactivateDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deactivate App?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your data won't be deleted by deactivating this app. You can reactivate it anytime and your data will still be there.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setDeactivateDialogOpen(false);
+              setModuleToDeactivate(null);
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDeactivate}>
+              Deactivate
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
