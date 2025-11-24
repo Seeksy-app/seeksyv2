@@ -29,6 +29,18 @@ const Auth = () => {
     const mode = searchParams.get("mode");
     if (mode === "signup") {
       setIsLogin(false);
+      
+      // Check for advertiser signup data
+      const advertiserData = localStorage.getItem("advertiserSignupData");
+      if (advertiserData) {
+        try {
+          const data = JSON.parse(advertiserData);
+          setFullName(data.contact_name || "");
+          setEmail(data.contact_email || "");
+        } catch (e) {
+          console.error("Failed to parse advertiser data:", e);
+        }
+      }
     } else if (mode === "login") {
       setIsLogin(true);
     }
@@ -145,8 +157,16 @@ const Auth = () => {
         // Mark that user just signed up to show welcome modal on first login
         localStorage.setItem("justSignedUp", "true");
         
-        // Redirect new users to onboarding
-        navigate("/onboarding");
+        // Check if this was an advertiser signup
+        const advertiserData = localStorage.getItem("advertiserSignupData");
+        if (advertiserData) {
+          // Keep the advertiser data for the advertiser signup page to process
+          // The advertiser signup page will complete the advertiser record creation
+          navigate("/advertiser/signup");
+        } else {
+          // Redirect new users to onboarding
+          navigate("/onboarding");
+        }
       }
     } catch (error: any) {
       toast({
@@ -225,9 +245,24 @@ const Auth = () => {
     }
   };
 
+  const isAdvertiserSignup = !isLogin && localStorage.getItem("advertiserSignupData");
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md p-8 shadow-soft">
+        {/* Prominent banner for advertiser signup final step */}
+        {isAdvertiserSignup && (
+          <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border-2 border-primary rounded-lg">
+            <div className="text-center space-y-2">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/20 mb-2">
+                <span className="text-2xl">🎉</span>
+              </div>
+              <h3 className="text-xl font-bold text-primary">Last Step!</h3>
+              <p className="text-sm font-medium">Create your password to complete your advertiser account</p>
+            </div>
+          </div>
+        )}
+        
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary">
             Seeksy

@@ -107,6 +107,24 @@ export default function AdvertiserSignup() {
     },
   });
 
+  // Auto-submit advertiser data if user just signed up
+  useEffect(() => {
+    if (user && !existingAdvertiser) {
+      const advertiserData = localStorage.getItem("advertiserSignupData");
+      if (advertiserData) {
+        try {
+          const data = JSON.parse(advertiserData);
+          // Clear the data immediately to prevent re-submission
+          localStorage.removeItem("advertiserSignupData");
+          // Submit the advertiser application
+          signupMutation.mutate(data);
+        } catch (e) {
+          console.error("Failed to process advertiser data:", e);
+        }
+      }
+    }
+  }, [user, existingAdvertiser]);
+
   const handleComplete = (formData: any) => {
     if (!user) {
       toast.error("Please create an account first to continue");
