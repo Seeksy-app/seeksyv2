@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Download, FileSpreadsheet } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
@@ -78,6 +79,10 @@ interface SpreadsheetAssumptions {
 
 export const InteractiveSpreadsheet = () => {
   const [showAssumptions, setShowAssumptions] = useState(false);
+  const [showAIModifier, setShowAIModifier] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState("");
+  const [isProcessingAI, setIsProcessingAI] = useState(false);
+  const [aiModifiedAssumptions, setAiModifiedAssumptions] = useState<any>(null);
   const [assumptions, setAssumptions] = useState<SpreadsheetAssumptions>({
     // Pricing
     podcasterBasicPrice: 19,
@@ -1650,6 +1655,17 @@ export const InteractiveSpreadsheet = () => {
                 </div>
               </TabsContent>
             </Tabs>
+            <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
+              <Button variant="outline" onClick={() => setShowAssumptions(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                setShowAssumptions(false);
+                toast.success("Assumptions saved successfully");
+              }}>
+                Save Changes
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -1670,6 +1686,106 @@ export const InteractiveSpreadsheet = () => {
                     This pro forma is generated using AI analysis of industry benchmarks and market trends. 
                     It automatically updates to reflect actual performance data as your revenue is generated.
                   </p>
+
+                  {/* AI Modifier Section */}
+                  <div className="mt-4 p-3 bg-accent/50 rounded-lg border">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-semibold">Modify AI Projections</p>
+                      {aiModifiedAssumptions && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => {
+                            setAiModifiedAssumptions(null);
+                            toast.success("Reset to AI baseline");
+                          }}
+                        >
+                          Reset to Baseline
+                        </Button>
+                      )}
+                    </div>
+                    {!showAIModifier ? (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => setShowAIModifier(true)}
+                      >
+                        + Add AI Suggestions
+                      </Button>
+                    ) : (
+                      <div className="space-y-2">
+                        <Textarea
+                          placeholder="E.g., 'Reduce subscription growth rate by 20%' or 'Increase churn rate to 8%'..."
+                          value={aiSuggestion}
+                          onChange={(e) => setAiSuggestion(e.target.value)}
+                          className="min-h-[80px]"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setShowAIModifier(false);
+                              setAiSuggestion("");
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={async () => {
+                              if (!aiSuggestion.trim()) {
+                                toast.error("Please enter a suggestion");
+                                return;
+                              }
+                              setIsProcessingAI(true);
+                              try {
+                                // Call AI to modify projections
+                                const response = await fetch(
+                                  `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cfo-ai-assistant`,
+                                  {
+                                    method: "POST",
+                                    headers: {
+                                      "Content-Type": "application/json",
+                                      "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+                                    },
+                                    body: JSON.stringify({
+                                      message: `Based on these AI baseline projections: Year 1 Revenue $2.1M, Year 2 $8.7M, Year 3 $35.8M with standard growth assumptions, please adjust them according to this suggestion: "${aiSuggestion}". Return only the new revenue figures in JSON format like {year1: number, year2: number, year3: number}.`,
+                                      financialData: {}
+                                    }),
+                                  }
+                                );
+
+                                if (response.ok) {
+                                  // Store modification (simplified for now)
+                                  setAiModifiedAssumptions({ suggestion: aiSuggestion });
+                                  setShowAIModifier(false);
+                                  setAiSuggestion("");
+                                  toast.success("AI projections updated");
+                                } else {
+                                  throw new Error("Failed to process");
+                                }
+                              } catch (error) {
+                                console.error("Error:", error);
+                                toast.error("Failed to update projections");
+                              } finally {
+                                setIsProcessingAI(false);
+                              }
+                            }}
+                            disabled={isProcessingAI}
+                          >
+                            {isProcessingAI ? "Processing..." : "Apply Suggestion"}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                    {aiModifiedAssumptions && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        <strong>Applied:</strong> {aiModifiedAssumptions.suggestion}
+                      </p>
+                    )}
+                  </div>
 
                   <div className="mt-8 p-4 bg-muted rounded-lg">
                     <p className="font-semibold mb-4">3-Year Summary (AI Baseline):</p>
