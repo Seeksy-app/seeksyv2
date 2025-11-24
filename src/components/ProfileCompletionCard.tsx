@@ -24,7 +24,7 @@ export const ProfileCompletionCard = ({ fullName, phone, avatarUrl, bio }: Profi
     { name: "Full Name", value: fullName, icon: User, page: "settings", fieldId: "full_name" },
     { name: "Phone Number", value: phone, icon: Phone, page: "settings", fieldId: "phone" },
     { name: "Profile Picture", value: avatarUrl, icon: ImageIcon, page: "settings", fieldId: "avatar" },
-    { name: "Create My Page", value: bio, icon: Layout, page: "settings", fieldId: "bio", isMyPage: true },
+    { name: "Create My Page", value: bio, icon: Layout, page: "profile-edit", fieldId: "bio", isMyPage: true },
   ];
 
   // More robust check: consider field complete if it has a truthy value with actual content
@@ -110,13 +110,18 @@ export const ProfileCompletionCard = ({ fullName, phone, avatarUrl, bio }: Profi
                       e.preventDefault();
                       e.stopPropagation();
                       
-                      // Show welcome dialog for My Page
+                      // Show welcome dialog for My Page but don't navigate yet
                       if (field.isMyPage) {
                         setShowMyPageWelcome(true);
-                        navigate(`/${field.page}`);
                       } else if (field.fieldId) {
-                        // Navigate with hash to scroll to field
-                        navigate(`/${field.page}#${field.fieldId}`);
+                        // Only navigate if not already on the target page
+                        if (window.location.pathname !== `/${field.page}`) {
+                          navigate(`/${field.page}#${field.fieldId}`);
+                        } else {
+                          // Already on settings, just scroll to field
+                          const element = document.getElementById(field.fieldId);
+                          element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
                       } else {
                         navigate(`/${field.page}`);
                       }

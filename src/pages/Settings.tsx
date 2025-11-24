@@ -372,11 +372,12 @@ const Settings = () => {
               <CardTitle>Account Information</CardTitle>
               <CardDescription>Update your personal details</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <ImageUpload
-                label="Profile Photo"
-                currentImage={profileData.avatar_url || ""}
-                onImageUploaded={async (url) => {
+             <CardContent className="space-y-4">
+              <div id="avatar">
+                <ImageUpload
+                  label="Profile Photo"
+                  currentImage={profileData.avatar_url || ""}
+                  onImageUploaded={async (url) => {
                   setProfileData(prev => ({ ...prev, avatar_url: url }));
                   // Save immediately after image upload
                   if (user) {
@@ -417,6 +418,7 @@ const Settings = () => {
                 }}
                 bucket="avatars"
               />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="full_name">Full Name</Label>
                 <div className="relative">
