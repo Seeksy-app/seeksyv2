@@ -389,8 +389,8 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   const engagementItems = [
     { title: "Contacts", url: "/crm", icon: Users },
     { title: "Email", url: "/email-history", icon: Mail },
-    { title: "Marketing", url: "#", icon: Send, comingSoon: true },
-    { title: "SMS", url: "#", icon: Smartphone, comingSoon: true },
+    ...(modulePrefs.marketing ? [{ title: "Marketing", url: "/crm", icon: Send }] : []),
+    ...(modulePrefs.sms ? [{ title: "SMS", url: "/sms", icon: Smartphone }] : []),
     ...(modulePrefs.team_chat ? [{ title: "Team Chat", url: "/team-chat", icon: MessageSquare }] : []),
   ];
 
@@ -829,51 +829,28 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
               <SidebarMenu className="space-y-0">
                 {engagementItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    {item.comingSoon ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="flex items-center gap-2 px-2 py-0.5 text-sm opacity-60 cursor-not-allowed h-8">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <SidebarMenuButton asChild>
+                            <NavLink 
+                              to={item.url}
+                              end
+                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8"
+                              activeClassName="bg-accent text-accent-foreground font-medium"
+                            >
                               <item.icon className="h-4 w-4" />
-                              {!collapsed && (
-                                <span className="flex items-center gap-1.5">
-                                  {item.title}
-                                  <span className="text-xs text-muted-foreground">(Soon)</span>
-                                </span>
-                              )}
-                            </div>
-                          </TooltipTrigger>
-                          {collapsed && (
-                            <TooltipContent side="right">
-                              <p>{item.title} (Coming Soon)</p>
-                            </TooltipContent>
-                          )}
-                        </Tooltip>
-                      </TooltipProvider>
-                    ) : (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <SidebarMenuButton asChild>
-                              <NavLink 
-                                to={item.url}
-                                end
-                                className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8"
-                                activeClassName="bg-accent text-accent-foreground font-medium"
-                              >
-                                <item.icon className="h-4 w-4" />
-                                {!collapsed && <span>{item.title}</span>}
-                              </NavLink>
-                            </SidebarMenuButton>
-                          </TooltipTrigger>
-                          {collapsed && (
-                            <TooltipContent side="right">
-                              <p>{item.title}</p>
-                            </TooltipContent>
-                          )}
-                        </Tooltip>
-                      </TooltipProvider>
-                    )}
+                              {!collapsed && <span>{item.title}</span>}
+                            </NavLink>
+                          </SidebarMenuButton>
+                        </TooltipTrigger>
+                        {collapsed && (
+                          <TooltipContent side="right">
+                            <p>{item.title}</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
