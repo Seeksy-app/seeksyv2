@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, FileSpreadsheet } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 
@@ -584,14 +584,9 @@ export function ProFormaSpreadsheetGenerator() {
   };
 
   return (
-    <Button 
-      onClick={generateSpreadsheet}
-      disabled={generating}
-      className="w-full"
-      size="lg"
-    >
-      <Download className="h-4 w-4 mr-2" />
-      {generating ? "Generating..." : "Download Pro Forma Spreadsheet (.xlsx)"}
+    <Button onClick={generateSpreadsheet} disabled={generating} variant="outline" size="sm" className="w-full justify-start">
+      <FileSpreadsheet className="h-4 w-4 mr-2" />
+      {generating ? "Generating..." : "Excel (.xlsx)"}
     </Button>
   );
 }

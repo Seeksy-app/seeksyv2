@@ -887,6 +887,17 @@ const CFODashboard = () => {
 
         {/* Forecast Tab */}
         <TabsContent value="forecast" className="space-y-6">
+          <Card className="mb-4">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">Data Source</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                This forecast is based on <strong>custom assumptions</strong> configured by the CFO team. 
+                These projections reflect Seeksy's specific growth strategy, pricing models, and cost structures.
+              </p>
+            </CardContent>
+          </Card>
           <div className="grid lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <ForecastTab assumptions={assumptions} />

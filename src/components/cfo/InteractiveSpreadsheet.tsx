@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Download, FileSpreadsheet } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -76,6 +77,7 @@ interface SpreadsheetAssumptions {
 }
 
 export const InteractiveSpreadsheet = () => {
+  const [showAssumptions, setShowAssumptions] = useState(false);
   const [assumptions, setAssumptions] = useState<SpreadsheetAssumptions>({
     // Pricing
     podcasterBasicPrice: 19,
@@ -1536,6 +1538,7 @@ export const InteractiveSpreadsheet = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header with Edit Assumptions Button */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
@@ -1546,7 +1549,110 @@ export const InteractiveSpreadsheet = () => {
             Compare AI-generated projections with your custom financial scenarios
           </p>
         </div>
+        <Button variant="outline" onClick={() => setShowAssumptions(!showAssumptions)}>
+          {showAssumptions ? "Hide" : "Edit"} Assumptions
+        </Button>
       </div>
+
+      {/* Assumptions Editor */}
+      {showAssumptions && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Edit Custom Assumptions</CardTitle>
+            <CardDescription>Modify these values to see updated projections in the Custom Pro Forma</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="pricing" className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="pricing">Pricing</TabsTrigger>
+                <TabsTrigger value="growth">Growth & Users</TabsTrigger>
+                <TabsTrigger value="costs">Costs</TabsTrigger>
+                <TabsTrigger value="ads">Ad Revenue</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="pricing" className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label>Podcaster Basic ($)</Label>
+                    <Input type="number" value={assumptions.podcasterBasicPrice} onChange={(e) => updateAssumption('podcasterBasicPrice', Number(e.target.value))} />
+                  </div>
+                  <div>
+                    <Label>Podcaster Pro ($)</Label>
+                    <Input type="number" value={assumptions.podcasterProPrice} onChange={(e) => updateAssumption('podcasterProPrice', Number(e.target.value))} />
+                  </div>
+                  <div>
+                    <Label>Podcaster Enterprise ($)</Label>
+                    <Input type="number" value={assumptions.podcasterEnterprisePrice} onChange={(e) => updateAssumption('podcasterEnterprisePrice', Number(e.target.value))} />
+                  </div>
+                  <div>
+                    <Label>Event Creator ($)</Label>
+                    <Input type="number" value={assumptions.eventCreatorPrice} onChange={(e) => updateAssumption('eventCreatorPrice', Number(e.target.value))} />
+                  </div>
+                  <div>
+                    <Label>My Page Basic ($)</Label>
+                    <Input type="number" value={assumptions.myPageBasicPrice} onChange={(e) => updateAssumption('myPageBasicPrice', Number(e.target.value))} />
+                  </div>
+                  <div>
+                    <Label>My Page Pro ($)</Label>
+                    <Input type="number" value={assumptions.myPageProPrice} onChange={(e) => updateAssumption('myPageProPrice', Number(e.target.value))} />
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="growth" className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label>Starting Podcasters</Label>
+                    <Input type="number" value={assumptions.startingPodcasters} onChange={(e) => updateAssumption('startingPodcasters', Number(e.target.value))} />
+                  </div>
+                  <div>
+                    <Label>Podcaster Growth (%)</Label>
+                    <Input type="number" value={assumptions.podcasterGrowthRate} onChange={(e) => updateAssumption('podcasterGrowthRate', Number(e.target.value))} />
+                  </div>
+                  <div>
+                    <Label>Monthly Churn (%)</Label>
+                    <Input type="number" value={assumptions.monthlyChurnRate} onChange={(e) => updateAssumption('monthlyChurnRate', Number(e.target.value))} />
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="costs" className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label>AI Compute ($/user)</Label>
+                    <Input type="number" step="0.1" value={assumptions.aiComputeCost} onChange={(e) => updateAssumption('aiComputeCost', Number(e.target.value))} />
+                  </div>
+                  <div>
+                    <Label>Storage ($/GB)</Label>
+                    <Input type="number" step="0.001" value={assumptions.storageCostPerGB} onChange={(e) => updateAssumption('storageCostPerGB', Number(e.target.value))} />
+                  </div>
+                  <div>
+                    <Label>Marketing CAC ($)</Label>
+                    <Input type="number" value={assumptions.marketingCAC} onChange={(e) => updateAssumption('marketingCAC', Number(e.target.value))} />
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="ads" className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label>Average CPM ($)</Label>
+                    <Input type="number" value={assumptions.avgCPM} onChange={(e) => updateAssumption('avgCPM', Number(e.target.value))} />
+                  </div>
+                  <div>
+                    <Label>Ad Fill Rate (%)</Label>
+                    <Input type="number" value={assumptions.adFillRate} onChange={(e) => updateAssumption('adFillRate', Number(e.target.value))} />
+                  </div>
+                  <div>
+                    <Label>Platform Ad Share (%)</Label>
+                    <Input type="number" value={assumptions.platformAdRevShare} onChange={(e) => updateAssumption('platformAdRevShare', Number(e.target.value))} />
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* AI Proforma */}
@@ -1599,12 +1705,12 @@ export const InteractiveSpreadsheet = () => {
 
                   <div className="space-y-3 mt-6">
                     <p className="font-semibold text-xs">Download Reports:</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button variant="outline" size="sm" onClick={handleExportAIPDF}>
+                    <div className="space-y-2">
+                      <Button variant="outline" size="sm" className="w-full justify-start" onClick={handleExportAIPDF}>
                         <Download className="mr-2 h-4 w-4" />
                         PDF Report
                       </Button>
-                      <Button variant="outline" size="sm" onClick={handleExportAIExcel}>
+                      <Button variant="outline" size="sm" className="w-full justify-start" onClick={handleExportAIExcel}>
                         <FileSpreadsheet className="mr-2 h-4 w-4" />
                         Excel (.xlsx)
                       </Button>
@@ -1682,10 +1788,11 @@ export const InteractiveSpreadsheet = () => {
 
                   <div className="space-y-3 mt-6">
                     <p className="font-semibold text-xs">Download Reports:</p>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-2">
                       <Button 
                         variant="outline" 
                         size="sm"
+                        className="w-full justify-start"
                         onClick={handleExportCustomPDF}
                       >
                         <Download className="mr-2 h-4 w-4" />
