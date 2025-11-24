@@ -42,6 +42,7 @@ const Integrations = () => {
     team_chat: false,
     blog: false,
     rss_podcast_posting: false,
+    my_page: false,
   });
   const [socialConnections, setSocialConnections] = useState<any[]>([]);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -431,6 +432,19 @@ const Integrations = () => {
                 isAdmin={isAdmin}
                 onToggle={() => toggleModule('rss_podcast_posting')}
                 onEdit={() => handleEditMetadata('rss_podcast_posting')}
+              />
+
+              <IntegrationCard
+                id="my_page"
+                icon={UserIcon}
+                iconGradient="from-teal-500 to-cyan-600"
+                title="My Page"
+                description="Create your shareable digital identity page with social links, videos, bookings, and more. Perfect for creators and influencers."
+                tooltip="Enable to create your customizable public profile page"
+                isActive={modules.my_page}
+                isAdmin={isAdmin}
+                onToggle={() => toggleModule('my_page')}
+                onEdit={() => handleEditMetadata('my_page')}
               />
             </div>
           </section>

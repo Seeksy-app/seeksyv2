@@ -109,6 +109,7 @@ import CFODashboard from "./pages/CFODashboard";
 import CFOCalculators from "./pages/CFOCalculators";
 import ProForma from "./pages/ProForma";
 import TechStack from "./pages/TechStack";
+import Onboarding from "./pages/Onboarding";
 import SalesDashboard from "./pages/SalesDashboard";
 import SalesAdLibrary from "./pages/SalesAdLibrary";
 import AdminMasterBlog from "./pages/AdminMasterBlog";
@@ -216,6 +217,7 @@ const AppContent = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
