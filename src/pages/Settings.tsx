@@ -146,11 +146,38 @@ const Settings = () => {
 
     setSaving(true);
     try {
+      // Generate username from email if not set
+      let usernameToUse = profileData.username;
+      if (!usernameToUse && user.email) {
+        const baseUsername = user.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+        usernameToUse = baseUsername;
+        
+        // Check if username exists and make it unique
+        let counter = 0;
+        let isUnique = false;
+        while (!isUnique && counter < 100) {
+          const testUsername = counter === 0 ? usernameToUse : `${usernameToUse}${counter}`;
+          const { data } = await supabase
+            .from("profiles")
+            .select("username")
+            .eq("username", testUsername)
+            .single();
+          
+          if (!data) {
+            usernameToUse = testUsername;
+            isUnique = true;
+          } else {
+            counter++;
+          }
+        }
+      }
+
       // Update or insert account profile (not public profile)
       const { error: profileError } = await supabase
         .from("profiles")
         .upsert({ 
           id: user.id,
+          username: usernameToUse,
           account_full_name: formData.full_name,
           account_avatar_url: profileData.avatar_url,
           account_phone: formData.phone
@@ -354,10 +381,17 @@ const Settings = () => {
                   // Save immediately after image upload
                   if (user) {
                     try {
+                      // Get current username or generate one
+                      let usernameToUse = profileData.username;
+                      if (!usernameToUse && user.email) {
+                        usernameToUse = user.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+                      }
+                      
                       const { error } = await supabase
                         .from("profiles")
                         .upsert({ 
                           id: user.id,
+                          username: usernameToUse,
                           account_avatar_url: url 
                         } as any, {
                           onConflict: 'id'
