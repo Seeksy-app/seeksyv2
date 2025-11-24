@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, User as UserIcon, Phone, Lock, Bell, FileText, Puzzle, Shield, Palette, Check } from "lucide-react";
+import { Loader2, Mail, User as UserIcon, Phone, Lock, Bell, FileText, Puzzle, Shield, Palette, Check, Eye } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ProfileCompletionCard } from "@/components/ProfileCompletionCard";
@@ -48,6 +48,7 @@ const Settings = () => {
   const [profileData, setProfileData] = useState({
     avatar_url: null as string | null,
     bio: null as string | null,
+    username: null as string | null,
   });
   const [notificationPrefs, setNotificationPrefs] = useState({
     task_reminder_enabled: false,
@@ -89,7 +90,7 @@ const Settings = () => {
       // Load profile data (account-level, not public profile)
       const { data: profile } = await supabase
         .from("profiles")
-        .select("account_full_name, account_avatar_url, bio, account_phone")
+        .select("account_full_name, account_avatar_url, bio, account_phone, username")
         .eq("id", authUser.id)
         .single();
 
@@ -102,6 +103,7 @@ const Settings = () => {
       setProfileData({
         avatar_url: profile?.account_avatar_url || null,
         bio: profile?.bio || null,
+        username: profile?.username || null,
       });
 
       // Load notification preferences
@@ -279,30 +281,54 @@ const Settings = () => {
               <h1 className="text-4xl font-bold mb-2">Account Settings</h1>
               <p className="text-muted-foreground">Manage your account information and security</p>
             </div>
-            {(saving || justSaved) && (
-              <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg bg-muted/50 border border-border animate-in fade-in slide-in-from-right-5 duration-300">
-                {saving ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                    <span className="text-sm font-medium text-foreground">Saving changes...</span>
-                  </>
-                ) : (
-                  <>
-                    <div className="relative">
-                      <Check className="h-5 w-5 text-green-600 dark:text-green-500 animate-in zoom-in duration-200" />
-                      <div className="absolute inset-0 animate-ping opacity-75">
-                        <Check className="h-5 w-5 text-green-600 dark:text-green-500" />
+            <div className="flex items-center gap-3">
+              {(saving || justSaved) && (
+                <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg bg-muted/50 border border-border animate-in fade-in slide-in-from-right-5 duration-300">
+                  {saving ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                      <span className="text-sm font-medium text-foreground">Saving changes...</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="relative">
+                        <Check className="h-5 w-5 text-green-600 dark:text-green-500 animate-in zoom-in duration-200" />
+                        <div className="absolute inset-0 animate-ping opacity-75">
+                          <Check className="h-5 w-5 text-green-600 dark:text-green-500" />
+                        </div>
                       </div>
-                    </div>
-                    <span className="text-sm font-medium text-green-600 dark:text-green-500">Saved successfully ✓</span>
-                  </>
-                )}
-              </div>
-            )}
+                      <span className="text-sm font-medium text-green-600 dark:text-green-500">Saved successfully ✓</span>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         <div className="space-y-6">
+          {/* My Page Preview Link */}
+          {profileData.username && profileData.bio && (
+            <Card className="bg-primary/5 border-primary/20">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <p className="font-medium">Your My Page is ready!</p>
+                    <p className="text-sm text-muted-foreground">
+                      View your public profile at /{profileData.username}
+                    </p>
+                  </div>
+                  <Button asChild>
+                    <a href={`/${profileData.username}`} target="_blank" rel="noopener noreferrer">
+                      <Eye className="mr-2 h-4 w-4" />
+                      View My Page
+                    </a>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Profile Completion */}
           <ProfileCompletionCard
             fullName={formData.full_name}
