@@ -125,22 +125,20 @@ export default function Admin() {
 
   const toggleRole = async (userId: string, newRole: string) => {
     try {
-      const { error: deleteError } = await supabase
-        .from("user_roles")
-        .delete()
-        .eq("user_id", userId);
-
-      if (deleteError) {
-        toast.error("Failed to update role");
-        return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("Not authenticated");
       }
 
-      const { error: insertError } = await supabase
-        .from("user_roles")
-        .insert([{ user_id: userId, role: newRole as any }]);
+      const { data, error } = await supabase.functions.invoke('manage-user-role', {
+        body: { targetUserId: userId, newRole },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
 
-      if (insertError) {
-        toast.error("Failed to assign role");
+      if (error) {
+        toast.error("Failed to update role: " + error.message);
         return;
       }
 
