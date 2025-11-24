@@ -304,19 +304,42 @@ export default function MediaLibrary() {
 
       console.log('Uploading directly to R2...');
 
-      // Upload directly to R2 using presigned URL (no size limits!)
-      const uploadResponse = await fetch(urlData.presignedUrl, {
-        method: 'PUT',
-        body: file,
-        headers: {
-          'Content-Type': file.type,
-          'Content-Length': file.size.toString(),
-        }
-      });
+      // Upload directly to R2 using XMLHttpRequest for better reliability with large files
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) {
+            const percentComplete = (e.loaded / e.total) * 100;
+            setUploadProgress(Math.round(percentComplete));
+          }
+        });
 
-      if (!uploadResponse.ok) {
-        throw new Error(`Upload failed: ${uploadResponse.statusText}`);
-      }
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve();
+          } else {
+            reject(new Error(`Upload failed with status ${xhr.status}`));
+          }
+        });
+
+        xhr.addEventListener('error', () => {
+          reject(new Error('Network error during upload'));
+        });
+
+        xhr.addEventListener('timeout', () => {
+          reject(new Error('Upload timed out'));
+        });
+
+        xhr.addEventListener('abort', () => {
+          reject(new Error('Upload cancelled'));
+        });
+
+        xhr.open('PUT', urlData.presignedUrl);
+        xhr.setRequestHeader('Content-Type', file.type);
+        xhr.timeout = 600000; // 10 minute timeout for large files
+        xhr.send(file);
+      });
 
       console.log('R2 upload complete, creating database record...');
 
