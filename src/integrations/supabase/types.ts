@@ -3410,6 +3410,45 @@ export type Database = {
         }
         Relationships: []
       }
+      investor_access: {
+        Row: {
+          access_code: string
+          access_count: number | null
+          allowed_paths: string[]
+          created_at: string | null
+          email: string
+          expires_at: string
+          id: string
+          is_active: boolean | null
+          last_accessed_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_code: string
+          access_count?: number | null
+          allowed_paths?: string[]
+          created_at?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          is_active?: boolean | null
+          last_accessed_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_code?: string
+          access_count?: number | null
+          allowed_paths?: string[]
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_accessed_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       investor_talking_points: {
         Row: {
           assumptions_used: Json | null
@@ -6123,6 +6162,7 @@ export type Database = {
         Args: { _email: string; _name: string; _owner_id: string }
         Returns: string
       }
+      generate_investor_code: { Args: never; Returns: string }
       get_current_usage: {
         Args: { _feature_type: string; _user_id: string }
         Returns: number
