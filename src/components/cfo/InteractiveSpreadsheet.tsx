@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -394,6 +394,14 @@ export const InteractiveSpreadsheet = () => {
     });
   };
 
+  const handleExportAIPDF = () => {
+    toast.info("PDF export feature coming soon! For now, use the Excel download.");
+  };
+
+  const handleExportAIExcel = () => {
+    toast.info("AI Pro Forma Excel download coming soon! Use the Custom Pro Forma spreadsheet below.");
+  };
+
   const annualSummaries = getAnnualSummaries();
 
   return (
@@ -481,11 +489,11 @@ export const InteractiveSpreadsheet = () => {
                   </div>
 
                   <div className="mt-6 flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button variant="outline" size="sm" className="flex-1" onClick={handleExportAIPDF}>
                       <Download className="mr-2 h-4 w-4" />
                       PDF
                     </Button>
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button variant="outline" size="sm" className="flex-1" onClick={handleExportAIExcel}>
                       <FileSpreadsheet className="mr-2 h-4 w-4" />
                       Excel
                     </Button>

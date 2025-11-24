@@ -166,7 +166,7 @@ export function ProFormaSpreadsheetGenerator() {
     return months;
   };
 
-  // Format worksheet with styling
+  // Format worksheet with column widths and number formatting
   const formatWorksheet = (ws: any, data: any[][]) => {
     const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
     
@@ -182,11 +182,11 @@ export function ProFormaSpreadsheetGenerator() {
           maxWidth = Math.max(maxWidth, cellValue.length);
         }
       }
-      colWidths.push(maxWidth + 2);
+      colWidths.push(Math.min(maxWidth + 2, 50)); // Cap at 50 characters
     }
     ws['!cols'] = colWidths.map(w => ({ wch: w }));
 
-    // Apply cell formatting
+    // Apply number formatting for currency values
     for (let R = range.s.r; R <= range.e.r; ++R) {
       for (let C = range.s.c; C <= range.e.c; ++C) {
         const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
@@ -194,28 +194,14 @@ export function ProFormaSpreadsheetGenerator() {
         
         const cell = ws[cellAddress];
         
-        // Initialize cell style
-        if (!cell.s) cell.s = {};
-        
-        // Center alignment for all cells
-        cell.s.alignment = { horizontal: "center", vertical: "center" };
-        
-        // Bold for headers (first 3 rows typically, or rows with section labels)
-        if (R < 3 || (cell.v && typeof cell.v === 'string' && 
-            (cell.v.includes('SEEKSY') || cell.v.includes('METRIC') || 
-             cell.v.includes('USER') || cell.v.includes('REVENUE') || 
-             cell.v.includes('COST') || cell.v.includes('KEY')))) {
-          cell.s.font = { bold: true };
-        }
-        
         // Currency formatting for numeric values (except percentages)
         if (typeof cell.v === 'number' && cell.v !== 0) {
           const cellValue = data[R] && data[R][C];
           const isPercentage = cellValue && typeof cellValue === 'string' && cellValue.includes('%');
           
           if (!isPercentage) {
+            // Apply currency format
             cell.z = '$#,##0';
-            cell.t = 'n';
           }
         }
       }
