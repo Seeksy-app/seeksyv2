@@ -472,6 +472,18 @@ export const InteractiveSpreadsheet = () => {
     try {
       const wb = XLSX.utils.book_new();
       
+      // Helper function to apply bold formatting
+      const boldCell = (cell: any) => {
+        if (!cell) return;
+        cell.s = { font: { bold: true } };
+      };
+      
+      // Helper function to center align cells
+      const centerCell = (cell: any) => {
+        if (!cell) return;
+        cell.s = { ...cell.s, alignment: { horizontal: "center" } };
+      };
+      
       // Executive Summary Sheet
       const summaryData = [
         ["Seeksy AI-Generated Pro Forma"],
@@ -501,22 +513,121 @@ export const InteractiveSpreadsheet = () => {
         ["Net Margin", "25%", "28%", "30%"],
       ];
       
-      const ws = XLSX.utils.aoa_to_sheet(summaryData);
+      const ws1 = XLSX.utils.aoa_to_sheet(summaryData);
+      ws1['!cols'] = [{ wch: 35 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
       
-      // Auto-size columns
-      const colWidths = [
-        { wch: 30 },
-        { wch: 15 },
-        { wch: 15 },
-        { wch: 15 }
+      // Bold titles and center non-first columns
+      ["A1", "A5", "A9", "A21"].forEach(ref => boldCell(ws1[ref]));
+      ["B22", "C22", "D22"].forEach(ref => { boldCell(ws1[ref]); centerCell(ws1[ref]); });
+      for (let row = 23; row <= 25; row++) {
+        ["B", "C", "D"].forEach(col => centerCell(ws1[col + row]));
+      }
+      
+      XLSX.utils.book_append_sheet(wb, ws1, "Executive Summary");
+      
+      // 36-Month Forecast Sheet
+      const forecastHeaders = ["METRIC", "Month 1", "Month 2", "Month 3", "Month 4", "Month 5", "Month 6", 
+        "Month 7", "Month 8", "Month 9", "Month 10", "Month 11", "Month 12"];
+      
+      const forecastData = [
+        ["SEEKSY - 36 MONTH FORECAST"],
+        [],
+        forecastHeaders,
+        [],
+        ["USER COUNTS"],
+        ["Total Users", 100, 115, 132, 152, 175, 201, 231, 266, 306, 352, 405, 466],
+        ["Podcasters", 35, 40, 46, 53, 61, 70, 81, 93, 107, 123, 142, 163],
+        ["Event Creators", 20, 23, 26, 30, 35, 40, 46, 53, 61, 70, 81, 93],
+        ["Event Organizations", 10, 12, 13, 15, 18, 20, 23, 27, 31, 35, 41, 47],
+        ["Political Campaigns", 5, 6, 7, 8, 9, 10, 12, 13, 15, 18, 20, 23],
+        ["My Page Users", 25, 29, 33, 38, 44, 50, 58, 67, 77, 88, 101, 116],
+        ["Industry Creators", 5, 6, 7, 8, 9, 10, 12, 13, 15, 18, 20, 23],
+        [],
+        ["REVENUE"],
+        ["Podcaster Subscriptions", "$2,905", "$3,320", "$3,818", "$4,399", "$5,063", "$5,810", "$6,723", "$7,719", "$8,881", "$10,209", "$11,786", "$13,567"],
+        ["Event Tools Revenue", "$2,470", "$2,915", "$3,211", "$3,705", "$4,397", "$4,940", "$5,681", "$6,620", "$7,608", "$8,645", "$10,078", "$11,555"],
+        ["Political Campaign Revenue", "$1,495", "$1,794", "$2,093", "$2,392", "$2,691", "$2,990", "$3,588", "$3,887", "$4,485", "$5,382", "$5,980", "$6,877"],
+        ["My Page Revenue", "$700", "$812", "$924", "$1,064", "$1,232", "$1,400", "$1,624", "$1,876", "$2,156", "$2,464", "$2,828", "$3,248"],
+        ["Industry Creator Revenue", "$495", "$594", "$693", "$792", "$891", "$990", "$1,188", "$1,287", "$1,485", "$1,782", "$1,980", "$2,277"],
+        ["Podcast Ad Insertion Revenue", "$2,905", "$3,534", "$2,269", "$310", "$357", "$410", "$474", "$544", "$626", "$720", "$831", "$955"],
+        ["Quick Ads Advertiser Revenue", "$54,328", "$65,193", "$78,232", "$93,443", "$113,001", "$134,732", "$161,896", "$194,492", "$233,608", "$280,330", "$336,831", "$404,197"],
+        [],
+        ["TOTAL REVENUE", "$63,177", "$75,528", "$90,005", "$106,986", "$128,646", "$152,436", "$182,514", "$217,968", "$260,624", "$311,572", "$372,663", "$445,995"],
+        [],
+        ["COSTS"],
+        ["AI Compute Costs", "$250", "$288", "$330", "$380", "$438", "$503", "$578", "$665", "$765", "$880", "$1,013", "$1,165"],
+        ["Storage Costs", "$10", "$12", "$13", "$15", "$18", "$20", "$23", "$27", "$31", "$35", "$41", "$47"],
+        ["Bandwidth Costs", "$80", "$92", "$106", "$122", "$140", "$161", "$185", "$213", "$245", "$282", "$324", "$373"],
+        ["Streaming Costs", "$75", "$86", "$99", "$114", "$131", "$151", "$173", "$200", "$230", "$264", "$304", "$350"],
+        ["Support Costs", "$150", "$173", "$198", "$228", "$263", "$302", "$347", "$399", "$459", "$528", "$608", "$699"],
+        ["CAC (New Users)", "$4,500", "$675", "$765", "$900", "$1,035", "$1,170", "$1,350", "$1,575", "$1,800", "$2,070", "$2,385", "$2,745"],
+        ["Payment Processing", "$1,832", "$2,190", "$2,610", "$3,103", "$3,731", "$4,421", "$5,293", "$6,321", "$7,558", "$9,036", "$10,807", "$12,934"],
+        [],
+        ["TOTAL COSTS", "$7,017", "$3,653", "$4,279", "$5,044", "$5,964", "$6,968", "$8,225", "$9,718", "$11,454", "$13,517", "$15,966", "$18,934"],
+        [],
+        ["FINANCIAL METRICS"],
+        ["Gross Margin", "$56,160", "$71,875", "$85,725", "$101,943", "$122,682", "$145,469", "$174,289", "$208,250", "$249,170", "$298,056", "$356,696", "$426,040"],
+        ["Gross Margin %", "88.9%", "95.2%", "95.2%", "95.3%", "95.4%", "95.4%", "95.5%", "95.5%", "95.6%", "95.7%", "95.7%", "95.5%"],
+        ["Net Profit", "$56,160", "$71,875", "$85,725", "$101,943", "$122,682", "$145,469", "$174,289", "$208,250", "$249,170", "$298,056", "$356,696", "$426,040"],
+        ["Net Margin %", "88.9%", "95.2%", "95.2%", "95.3%", "95.4%", "95.4%", "95.5%", "95.5%", "95.6%", "95.7%", "95.7%", "95.5%"],
       ];
-      ws['!cols'] = colWidths;
       
-      XLSX.utils.book_append_sheet(wb, ws, "Executive Summary");
+      const ws2 = XLSX.utils.aoa_to_sheet(forecastData);
+      const maxCol = 12; // Month 1 through Month 12
+      ws2['!cols'] = [{ wch: 35 }, ...Array(maxCol).fill({ wch: 12 })];
+      
+      // Bold section headers and center all except first column
+      ["A1", "A5", "A14", "A21", "A31"].forEach(ref => boldCell(ws2[ref]));
+      boldCell(ws2["A3"]);
+      for (let col = 1; col <= maxCol; col++) {
+        const colLetter = String.fromCharCode(66 + col - 1); // B, C, D, etc.
+        boldCell(ws2[colLetter + "3"]);
+        centerCell(ws2[colLetter + "3"]);
+        // Center all data cells in this column
+        for (let row = 4; row <= forecastData.length; row++) {
+          centerCell(ws2[colLetter + row]);
+        }
+      }
+      
+      XLSX.utils.book_append_sheet(wb, ws2, "36-Month Forecast");
+      
+      // Annual Summary Sheet
+      const annualData = [
+        ["ANNUAL SUMMARY"],
+        [],
+        ["Metric", "Year 1", "Year 2", "Year 3"],
+        ["Total Revenue", "$2,100,000", "$8,700,000", "$35,800,000"],
+        ["Total Costs", "$350,000", "$1,200,000", "$4,500,000"],
+        ["Net Profit", "$523,000", "$2,400,000", "$10,800,000"],
+        ["Net Margin", "25%", "28%", "30%"],
+        [],
+        ["User Growth"],
+        ["Starting Users", "100", "466", "2,164"],
+        ["Ending Users", "466", "2,164", "10,043"],
+        ["Growth Rate", "366%", "364%", "364%"],
+        [],
+        ["Revenue per User"],
+        ["ARPU (Annual)", "$4,506", "$4,021", "$3,564"],
+        ["LTV (3-year)", "$13,091"],
+      ];
+      
+      const ws3 = XLSX.utils.aoa_to_sheet(annualData);
+      ws3['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+      
+      boldCell(ws3["A1"]);
+      ["A3", "B3", "C3", "D3"].forEach(ref => boldCell(ws3[ref]));
+      ["A9", "A13"].forEach(ref => boldCell(ws3[ref]));
+      ["B", "C", "D"].forEach(col => {
+        for (let row = 3; row <= annualData.length; row++) {
+          centerCell(ws3[col + row]);
+        }
+      });
+      
+      XLSX.utils.book_append_sheet(wb, ws3, "Annual Summary");
       
       // Save file
       XLSX.writeFile(wb, "seeksy-ai-proforma.xlsx");
-      toast.success("Excel file exported successfully!");
+      toast.success("AI Excel file exported with all tabs!");
     } catch (error) {
       console.error("Error exporting Excel:", error);
       toast.error("Failed to export Excel. Please try again.");
