@@ -198,10 +198,10 @@ export const ModuleLauncher = ({ open, onOpenChange }: ModuleLauncherProps) => {
       <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Active Seekies
+            Active Apps
           </DialogTitle>
           <DialogDescription className="text-base">
-            Select a Seeky to open. Pin or unpin Seekies to customize your sidebar.
+            Select an app to open. Pin or unpin apps to customize your sidebar.
           </DialogDescription>
         </DialogHeader>
 
@@ -279,6 +279,19 @@ export const ModuleLauncher = ({ open, onOpenChange }: ModuleLauncherProps) => {
                 </Button>
               </Alert>
             )}
+
+            <div className="mt-6 pt-4 border-t border-border">
+              <Button
+                variant="link"
+                className="w-full justify-center text-primary hover:text-primary/80"
+                onClick={() => {
+                  navigate("/integrations");
+                  onOpenChange(false);
+                }}
+              >
+                See all Seekies and Tools →
+              </Button>
+            </div>
           </>
         )}
       </DialogContent>
