@@ -15,6 +15,7 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -131,6 +132,7 @@ export default function MediaLibrary() {
   const [previewItem, setPreviewItem] = useState<{ original: string; edited?: string; name: string; fileType: string } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadingFileName, setUploadingFileName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [renameItemId, setRenameItemId] = useState<string | null>(null);
   const [newFileName, setNewFileName] = useState("");
@@ -270,17 +272,11 @@ export default function MediaLibrary() {
       return;
     }
     
-    // Warn for large files
-    if (fileSizeMB > 100) {
-      toast({
-        title: "Large file detected",
-        description: `Uploading ${fileSizeMB > 1024 ? fileSizeGB.toFixed(2) + 'GB' : fileSizeMB.toFixed(0) + 'MB'} - this may take several minutes`,
-        duration: 5000,
-      });
-    }
-
+    
+    // For large files, the progress dialog will show status
     setIsUploading(true);
     setUploadProgress(0);
+    setUploadingFileName(file.name);
 
     try {
       console.log(`Starting upload for ${file.name} (${fileSizeMB.toFixed(2)}MB)`);
@@ -408,6 +404,7 @@ export default function MediaLibrary() {
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
+      setUploadingFileName("");
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -784,6 +781,30 @@ export default function MediaLibrary() {
           </div>
         </div>
       </div>
+
+      {/* Upload Progress Dialog */}
+      <Dialog open={isUploading}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Uploading File</DialogTitle>
+            <DialogDescription>
+              {uploadingFileName}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Progress</span>
+                <span className="font-semibold">{uploadProgress}%</span>
+              </div>
+              <Progress value={uploadProgress} className="h-2" />
+            </div>
+            <p className="text-xs text-muted-foreground text-center">
+              This may take several minutes for large files. Please don't close this window.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Tabs Navigation */}
       <div className="border-b border-border">
