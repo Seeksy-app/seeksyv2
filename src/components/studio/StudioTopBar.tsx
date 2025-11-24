@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar, Radio, ChevronLeft, Edit2 } from "lucide-react";
 import { useState } from "react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface StudioTopBarProps {
   sessionName: string;
@@ -62,6 +63,8 @@ export function StudioTopBar({
       </div>
 
       <div className="flex items-center gap-3">
+        <ThemeToggle />
+        
         <Button variant="outline" size="sm">
           <Calendar className="h-4 w-4 mr-2" />
           Schedule

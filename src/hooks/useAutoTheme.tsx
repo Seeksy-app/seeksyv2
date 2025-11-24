@@ -9,17 +9,22 @@ export function useAutoTheme() {
   const isStudio = location.pathname.includes('/studio');
   const previousTheme = useRef<string | null>(null);
   const wasInStudio = useRef(false);
+  const hasSetStudioTheme = useRef(false);
 
   useEffect(() => {
-    // Always force dark mode in Studio
+    // Set dark mode on Studio entry (but allow manual changes)
     if (isStudio) {
       if (!wasInStudio.current) {
-        // Entering Studio - save current theme
+        // Entering Studio - save current theme and switch to dark
         previousTheme.current = theme;
         wasInStudio.current = true;
+        hasSetStudioTheme.current = false;
       }
-      if (resolvedTheme !== 'dark') {
+      
+      // Only force dark mode once on entry, then respect user's choice
+      if (!hasSetStudioTheme.current && resolvedTheme !== 'dark') {
         setTheme('dark');
+        hasSetStudioTheme.current = true;
       }
       return;
     }
@@ -27,6 +32,7 @@ export function useAutoTheme() {
     // Leaving Studio - restore user's preference from database
     if (wasInStudio.current && !isStudio) {
       wasInStudio.current = false;
+      hasSetStudioTheme.current = false;
       
       const restoreTheme = async () => {
         const { data: { user } } = await supabase.auth.getUser();
