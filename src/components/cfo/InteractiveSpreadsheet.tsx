@@ -4,7 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Download, FileSpreadsheet } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
@@ -79,10 +78,7 @@ interface SpreadsheetAssumptions {
 
 export const InteractiveSpreadsheet = () => {
   const [showAssumptions, setShowAssumptions] = useState(false);
-  const [showAIModifier, setShowAIModifier] = useState(false);
-  const [aiSuggestion, setAiSuggestion] = useState("");
-  const [isProcessingAI, setIsProcessingAI] = useState(false);
-  const [aiModifiedAssumptions, setAiModifiedAssumptions] = useState<any>(null);
+  const [selectedScenario, setSelectedScenario] = useState<'baseline' | 'conservative' | 'growth' | 'aggressive'>('baseline');
   const [assumptions, setAssumptions] = useState<SpreadsheetAssumptions>({
     // Pricing
     podcasterBasicPrice: 19,
@@ -291,6 +287,59 @@ export const InteractiveSpreadsheet = () => {
   };
 
   const forecast = calculateForecast();
+
+  // Calculate scenario-adjusted AI projections
+  const getScenarioProjections = () => {
+    const baseline = {
+      year1Revenue: 2100000,
+      year2Revenue: 8700000,
+      year3Revenue: 35800000,
+      year1Profit: 523000,
+      year2Profit: 2400000,
+      year3Profit: 10800000,
+    };
+
+    switch (selectedScenario) {
+      case 'conservative':
+        return {
+          year1Revenue: baseline.year1Revenue * 0.7,
+          year2Revenue: baseline.year2Revenue * 0.65,
+          year3Revenue: baseline.year3Revenue * 0.6,
+          year1Profit: baseline.year1Profit * 0.5,
+          year2Profit: baseline.year2Profit * 0.55,
+          year3Profit: baseline.year3Profit * 0.6,
+        };
+      case 'growth':
+        return {
+          year1Revenue: baseline.year1Revenue * 1.15,
+          year2Revenue: baseline.year2Revenue * 1.2,
+          year3Revenue: baseline.year3Revenue * 1.25,
+          year1Profit: baseline.year1Profit * 1.2,
+          year2Profit: baseline.year2Profit * 1.25,
+          year3Profit: baseline.year3Profit * 1.3,
+        };
+      case 'aggressive':
+        return {
+          year1Revenue: baseline.year1Revenue * 1.5,
+          year2Revenue: baseline.year2Revenue * 1.7,
+          year3Revenue: baseline.year3Revenue * 2.0,
+          year1Profit: baseline.year1Profit * 1.8,
+          year2Profit: baseline.year2Profit * 2.0,
+          year3Profit: baseline.year3Profit * 2.2,
+        };
+      default:
+        return baseline;
+    }
+  };
+
+  const scenarioProjections = getScenarioProjections();
+
+  const formatCurrency = (value: number) => {
+    if (value >= 1000000) {
+      return `$${(value / 1000000).toFixed(1)}M`;
+    }
+    return `$${Math.round(value / 1000)}K`;
+  };
 
   const exportToCSV = (tabName: string) => {
     let csv = '';
@@ -1687,16 +1736,16 @@ export const InteractiveSpreadsheet = () => {
                     It automatically updates to reflect actual performance data as your revenue is generated.
                   </p>
 
-                  {/* AI Modifier Section */}
+                  {/* Scenario Selection */}
                   <div className="mt-4 p-3 bg-accent/50 rounded-lg border">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-semibold">Modify AI Projections</p>
-                      {aiModifiedAssumptions && (
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm font-semibold">Projection Scenarios</p>
+                      {selectedScenario !== 'baseline' && (
                         <Button 
                           variant="ghost" 
                           size="sm" 
                           onClick={() => {
-                            setAiModifiedAssumptions(null);
+                            setSelectedScenario('baseline');
                             toast.success("Reset to AI baseline");
                           }}
                         >
@@ -1704,117 +1753,84 @@ export const InteractiveSpreadsheet = () => {
                         </Button>
                       )}
                     </div>
-                    {!showAIModifier ? (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button
+                        variant={selectedScenario === 'conservative' ? 'default' : 'outline'}
+                        size="sm"
                         className="w-full"
-                        onClick={() => setShowAIModifier(true)}
+                        onClick={() => {
+                          setSelectedScenario('conservative');
+                          toast.success("Conservative scenario applied");
+                        }}
                       >
-                        + Add AI Suggestions
+                        Conservative
                       </Button>
-                    ) : (
-                      <div className="space-y-2">
-                        <Textarea
-                          placeholder="E.g., 'Reduce subscription growth rate by 20%' or 'Increase churn rate to 8%'..."
-                          value={aiSuggestion}
-                          onChange={(e) => setAiSuggestion(e.target.value)}
-                          className="min-h-[80px]"
-                        />
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setShowAIModifier(false);
-                              setAiSuggestion("");
-                            }}
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={async () => {
-                              if (!aiSuggestion.trim()) {
-                                toast.error("Please enter a suggestion");
-                                return;
-                              }
-                              setIsProcessingAI(true);
-                              try {
-                                // Call AI to modify projections
-                                const response = await fetch(
-                                  `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cfo-ai-assistant`,
-                                  {
-                                    method: "POST",
-                                    headers: {
-                                      "Content-Type": "application/json",
-                                      "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-                                    },
-                                    body: JSON.stringify({
-                                      message: `Based on these AI baseline projections: Year 1 Revenue $2.1M, Year 2 $8.7M, Year 3 $35.8M with standard growth assumptions, please adjust them according to this suggestion: "${aiSuggestion}". Return only the new revenue figures in JSON format like {year1: number, year2: number, year3: number}.`,
-                                      financialData: {}
-                                    }),
-                                  }
-                                );
-
-                                if (response.ok) {
-                                  // Store modification (simplified for now)
-                                  setAiModifiedAssumptions({ suggestion: aiSuggestion });
-                                  setShowAIModifier(false);
-                                  setAiSuggestion("");
-                                  toast.success("AI projections updated");
-                                } else {
-                                  throw new Error("Failed to process");
-                                }
-                              } catch (error) {
-                                console.error("Error:", error);
-                                toast.error("Failed to update projections");
-                              } finally {
-                                setIsProcessingAI(false);
-                              }
-                            }}
-                            disabled={isProcessingAI}
-                          >
-                            {isProcessingAI ? "Processing..." : "Apply Suggestion"}
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                    {aiModifiedAssumptions && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        <strong>Applied:</strong> {aiModifiedAssumptions.suggestion}
+                      <Button
+                        variant={selectedScenario === 'growth' ? 'default' : 'outline'}
+                        size="sm"
+                        className="w-full"
+                        onClick={() => {
+                          setSelectedScenario('growth');
+                          toast.success("Growth scenario applied");
+                        }}
+                      >
+                        Growth
+                      </Button>
+                      <Button
+                        variant={selectedScenario === 'aggressive' ? 'default' : 'outline'}
+                        size="sm"
+                        className="w-full"
+                        onClick={() => {
+                          setSelectedScenario('aggressive');
+                          toast.success("Aggressive scenario applied");
+                        }}
+                      >
+                        Aggressive
+                      </Button>
+                    </div>
+                    {selectedScenario !== 'baseline' && (
+                      <p className="text-xs text-muted-foreground mt-3">
+                        {selectedScenario === 'conservative' && '📉 Lower growth rates, higher churn, reduced revenue projections'}
+                        {selectedScenario === 'growth' && '📈 Moderate growth increase, industry-standard assumptions'}
+                        {selectedScenario === 'aggressive' && '🚀 High growth rates, optimistic market conditions, maximum expansion'}
                       </p>
                     )}
                   </div>
 
                   <div className="mt-8 p-4 bg-muted rounded-lg">
-                    <p className="font-semibold mb-4">3-Year Summary (AI Baseline):</p>
+                    <p className="font-semibold mb-4">3-Year Summary ({selectedScenario === 'baseline' ? 'AI Baseline' : selectedScenario.charAt(0).toUpperCase() + selectedScenario.slice(1)}):</p>
                     <div className="grid grid-cols-3 gap-2 text-xs">
                       <div>
                         <p className="text-muted-foreground">Year 1 Revenue</p>
-                        <p className="text-lg font-bold">$2.1M</p>
+                        <p className="text-lg font-bold">{formatCurrency(scenarioProjections.year1Revenue)}</p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Year 2 Revenue</p>
-                        <p className="text-lg font-bold">$8.7M</p>
+                        <p className="text-lg font-bold">{formatCurrency(scenarioProjections.year2Revenue)}</p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Year 3 Revenue</p>
-                        <p className="text-lg font-bold">$35.8M</p>
+                        <p className="text-lg font-bold">{formatCurrency(scenarioProjections.year3Revenue)}</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-xs mt-3">
                       <div>
                         <p className="text-muted-foreground">Year 1 Net Profit</p>
-                        <p className="text-lg font-bold text-green-600">$523K</p>
+                        <p className={`text-lg font-bold ${scenarioProjections.year1Profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {formatCurrency(scenarioProjections.year1Profit)}
+                        </p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Year 2 Net Profit</p>
-                        <p className="text-lg font-bold text-green-600">$2.4M</p>
+                        <p className={`text-lg font-bold ${scenarioProjections.year2Profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {formatCurrency(scenarioProjections.year2Profit)}
+                        </p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Year 3 Net Profit</p>
-                        <p className="text-lg font-bold text-green-600">$10.8M</p>
+                        <p className={`text-lg font-bold ${scenarioProjections.year3Profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {formatCurrency(scenarioProjections.year3Profit)}
+                        </p>
                       </div>
                     </div>
                   </div>
