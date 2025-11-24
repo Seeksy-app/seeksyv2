@@ -5,7 +5,7 @@ import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Check, Trophy, Clapperboard, Landmark, User as UserIcon, Building2, Instagram, Facebook, Linkedin, Twitter, Youtube, Music, CheckSquare, DollarSign, TrendingUp, CreditCard, Wallet, Info, Edit2, MessageSquare, FileText, Rss, CalendarDays, ClipboardList, BarChart3, QrCode, Mail, Smartphone } from "lucide-react";
+import { Loader2, Check, Trophy, Clapperboard, Landmark, User as UserIcon, Building2, Instagram, Facebook, Linkedin, Twitter, Youtube, Music, CheckSquare, DollarSign, TrendingUp, CreditCard, Wallet, Info, Edit2, MessageSquare, FileText, Rss, CalendarDays, ClipboardList, BarChart3, QrCode, Mail, Smartphone, Search } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -54,6 +54,7 @@ const Integrations = () => {
   const [socialConnections, setSocialConnections] = useState<any[]>([]);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingModule, setEditingModule] = useState<{ id: string; title: string; description: string; tooltip: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -273,6 +274,15 @@ const Integrations = () => {
     return colors[platform.toLowerCase()] || "from-gray-500 to-gray-600";
   };
 
+  const matchesSearch = (title: string, description: string) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      title.toLowerCase().includes(query) ||
+      description.toLowerCase().includes(query)
+    );
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -299,16 +309,27 @@ const Integrations = () => {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Integrations</BreadcrumbPage>
+              <BreadcrumbPage>Apps</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-3">Integrations</h1>
-          <p className="text-muted-foreground text-lg">
-            Connect your tools and activate modules
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-3">Apps</h1>
+          <p className="text-muted-foreground text-lg mb-6">
+            Connect your tools and activate apps
           </p>
+          
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search apps..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
         </div>
 
         <div className="space-y-12">
@@ -319,245 +340,281 @@ const Integrations = () => {
             </h2>
             
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              <IntegrationCard
-                id="awards"
-                icon={Trophy}
-                iconGradient="from-yellow-500 to-orange-600"
-                title={getMetadata('awards')?.title || 'Awards'}
-                description={getMetadata('awards')?.description || 'Create and manage award programs with voting, sponsorships, and live ceremony streaming.'}
-                tooltip={getMetadata('awards')?.tooltip_text}
-                isActive={modules.awards}
-                isAdmin={isAdmin}
-                onToggle={() => toggleModule('awards')}
-                onEdit={() => handleEditMetadata('awards')}
-              />
+              {matchesSearch('Awards', 'Create and manage award programs with voting, sponsorships, and live ceremony streaming.') && (
+                <IntegrationCard
+                  id="awards"
+                  icon={Trophy}
+                  iconGradient="from-yellow-500 to-orange-600"
+                  title={getMetadata('awards')?.title || 'Awards'}
+                  description={getMetadata('awards')?.description || 'Create and manage award programs with voting, sponsorships, and live ceremony streaming.'}
+                  tooltip={getMetadata('awards')?.tooltip_text}
+                  isActive={modules.awards}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('awards')}
+                  onEdit={() => handleEditMetadata('awards')}
+                />
+              )}
               
-              <IntegrationCard
-                id="media"
-                icon={Clapperboard}
-                iconGradient="from-purple-500 to-pink-600"
-                title={getMetadata('media')?.title || 'Media'}
-                description={getMetadata('media')?.description || 'Complete content creation suite with podcasts, blogs, live studio, and media library with AI-powered editing.'}
-                tooltip={getMetadata('media')?.tooltip_text}
-                isActive={modules.media}
-                isAdmin={isAdmin}
-                onToggle={() => toggleModule('media')}
-                onEdit={() => handleEditMetadata('media')}
-              />
+              {matchesSearch('Media', 'Complete content creation suite with podcasts, blogs, live studio, and media library with AI-powered editing.') && (
+                <IntegrationCard
+                  id="media"
+                  icon={Clapperboard}
+                  iconGradient="from-purple-500 to-pink-600"
+                  title={getMetadata('media')?.title || 'Media'}
+                  description={getMetadata('media')?.description || 'Complete content creation suite with podcasts, blogs, live studio, and media library with AI-powered editing.'}
+                  tooltip={getMetadata('media')?.tooltip_text}
+                  isActive={modules.media}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('media')}
+                  onEdit={() => handleEditMetadata('media')}
+                />
+              )}
 
-              <IntegrationCard
-                id="civic"
-                icon={Landmark}
-                iconGradient="from-blue-500 to-cyan-600"
-                title={getMetadata('civic')?.title || 'Civic'}
-                description={getMetadata('civic')?.description || 'Platform for elected officials and public offices. Manage civic events, constituent requests, and transparency reports.'}
-                tooltip={getMetadata('civic')?.tooltip_text}
-                isActive={modules.civic}
-                isAdmin={isAdmin}
-                onToggle={() => toggleModule('civic')}
-                onEdit={() => handleEditMetadata('civic')}
-              />
+              {matchesSearch('Civic', 'Platform for elected officials and public offices. Manage civic events, constituent requests, and transparency reports.') && (
+                <IntegrationCard
+                  id="civic"
+                  icon={Landmark}
+                  iconGradient="from-blue-500 to-cyan-600"
+                  title={getMetadata('civic')?.title || 'Civic'}
+                  description={getMetadata('civic')?.description || 'Platform for elected officials and public offices. Manage civic events, constituent requests, and transparency reports.'}
+                  tooltip={getMetadata('civic')?.tooltip_text}
+                  isActive={modules.civic}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('civic')}
+                  onEdit={() => handleEditMetadata('civic')}
+                />
+              )}
 
-              <IntegrationCard
-                id="influencer"
-                icon={UserIcon}
-                iconGradient="from-green-500 to-emerald-600"
-                title={getMetadata('influencer')?.title || 'Influencer'}
-                description={getMetadata('influencer')?.description || 'Build your influencer profile, showcase your portfolio, connect with brands, and manage campaign responses.'}
-                tooltip={getMetadata('influencer')?.tooltip_text}
-                isActive={modules.influencer}
-                isAdmin={isAdmin}
-                onToggle={() => toggleModule('influencer')}
-                onEdit={() => handleEditMetadata('influencer')}
-              />
+              {matchesSearch('Influencer', 'Build your influencer profile, showcase your portfolio, connect with brands, and manage campaign responses.') && (
+                <IntegrationCard
+                  id="influencer"
+                  icon={UserIcon}
+                  iconGradient="from-green-500 to-emerald-600"
+                  title={getMetadata('influencer')?.title || 'Influencer'}
+                  description={getMetadata('influencer')?.description || 'Build your influencer profile, showcase your portfolio, connect with brands, and manage campaign responses.'}
+                  tooltip={getMetadata('influencer')?.tooltip_text}
+                  isActive={modules.influencer}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('influencer')}
+                  onEdit={() => handleEditMetadata('influencer')}
+                />
+              )}
 
-              <IntegrationCard
-                id="agency"
-                icon={Building2}
-                iconGradient="from-indigo-500 to-purple-600"
-                title={getMetadata('agency')?.title || 'Agency'}
-                description={getMetadata('agency')?.description || 'Search and discover influencers, manage multi-channel campaigns, track performance metrics, and build creator partnerships.'}
-                tooltip={getMetadata('agency')?.tooltip_text}
-                isActive={modules.agency}
-                isAdmin={isAdmin}
-                onToggle={() => toggleModule('agency')}
-                onEdit={() => handleEditMetadata('agency')}
-              />
+              {matchesSearch('Agency', 'Search and discover influencers, manage multi-channel campaigns, track performance metrics, and build creator partnerships.') && (
+                <IntegrationCard
+                  id="agency"
+                  icon={Building2}
+                  iconGradient="from-indigo-500 to-purple-600"
+                  title={getMetadata('agency')?.title || 'Agency'}
+                  description={getMetadata('agency')?.description || 'Search and discover influencers, manage multi-channel campaigns, track performance metrics, and build creator partnerships.'}
+                  tooltip={getMetadata('agency')?.tooltip_text}
+                  isActive={modules.agency}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('agency')}
+                  onEdit={() => handleEditMetadata('agency')}
+                />
+              )}
 
-              <IntegrationCard
-                id="project_management"
-                icon={CheckSquare}
-                iconGradient="from-slate-500 to-slate-600"
-                title={getMetadata('project_management')?.title || 'Project Management'}
-                description={getMetadata('project_management')?.description || 'Manage tasks, tickets, proposals, and invoices all in one place.'}
-                tooltip={getMetadata('project_management')?.tooltip_text}
-                isActive={modules.project_management}
-                isAdmin={isAdmin}
-                onToggle={() => toggleModule('project_management')}
-                onEdit={() => handleEditMetadata('project_management')}
-              />
+              {matchesSearch('Project Management', 'Manage tasks, tickets, proposals, and invoices all in one place.') && (
+                <IntegrationCard
+                  id="project_management"
+                  icon={CheckSquare}
+                  iconGradient="from-slate-500 to-slate-600"
+                  title={getMetadata('project_management')?.title || 'Project Management'}
+                  description={getMetadata('project_management')?.description || 'Manage tasks, tickets, proposals, and invoices all in one place.'}
+                  tooltip={getMetadata('project_management')?.tooltip_text}
+                  isActive={modules.project_management}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('project_management')}
+                  onEdit={() => handleEditMetadata('project_management')}
+                />
+              )}
 
-              <IntegrationCard
-                id="monetization"
-                icon={DollarSign}
-                iconGradient="from-green-500 to-green-600"
-                title={getMetadata('monetization')?.title || 'Monetization'}
-                description={getMetadata('monetization')?.description || 'Enable tipping, donations, subscriptions, and revenue tracking.'}
-                tooltip={getMetadata('monetization')?.tooltip_text}
-                isActive={modules.monetization}
-                isAdmin={isAdmin}
-                onToggle={() => toggleModule('monetization')}
-                onEdit={() => handleEditMetadata('monetization')}
-              />
+              {matchesSearch('Monetization', 'Enable tipping, donations, subscriptions, and revenue tracking.') && (
+                <IntegrationCard
+                  id="monetization"
+                  icon={DollarSign}
+                  iconGradient="from-green-500 to-green-600"
+                  title={getMetadata('monetization')?.title || 'Monetization'}
+                  description={getMetadata('monetization')?.description || 'Enable tipping, donations, subscriptions, and revenue tracking.'}
+                  tooltip={getMetadata('monetization')?.tooltip_text}
+                  isActive={modules.monetization}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('monetization')}
+                  onEdit={() => handleEditMetadata('monetization')}
+                />
+              )}
 
-              <IntegrationCard
-                id="team_chat"
-                icon={MessageSquare}
-                iconGradient="from-cyan-500 to-blue-600"
-                title={getMetadata('team_chat')?.title || 'Team Chat'}
-                description={getMetadata('team_chat')?.description || 'Real-time team messaging and collaboration. Connect with your team members instantly.'}
-                tooltip={getMetadata('team_chat')?.tooltip_text}
-                isActive={modules.team_chat}
-                isAdmin={isAdmin}
-                onToggle={() => toggleModule('team_chat')}
-                onEdit={() => handleEditMetadata('team_chat')}
-              />
+              {matchesSearch('Team Chat', 'Real-time team messaging and collaboration. Connect with your team members instantly.') && (
+                <IntegrationCard
+                  id="team_chat"
+                  icon={MessageSquare}
+                  iconGradient="from-cyan-500 to-blue-600"
+                  title={getMetadata('team_chat')?.title || 'Team Chat'}
+                  description={getMetadata('team_chat')?.description || 'Real-time team messaging and collaboration. Connect with your team members instantly.'}
+                  tooltip={getMetadata('team_chat')?.tooltip_text}
+                  isActive={modules.team_chat}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('team_chat')}
+                  onEdit={() => handleEditMetadata('team_chat')}
+                />
+              )}
 
-              <IntegrationCard
-                id="blog"
-                icon={FileText}
-                iconGradient="from-orange-500 to-red-600"
-                title={getMetadata('blog')?.title || 'Blog'}
-                description={getMetadata('blog')?.description || 'Create and publish blog posts with AI assistance, RSS import, and SEO optimization.'}
-                tooltip={getMetadata('blog')?.tooltip_text}
-                isActive={modules.blog}
-                isAdmin={isAdmin}
-                onToggle={() => toggleModule('blog')}
-                onEdit={() => handleEditMetadata('blog')}
-              />
+              {matchesSearch('Blog', 'Create and publish blog posts with AI assistance, RSS import, and SEO optimization.') && (
+                <IntegrationCard
+                  id="blog"
+                  icon={FileText}
+                  iconGradient="from-orange-500 to-red-600"
+                  title={getMetadata('blog')?.title || 'Blog'}
+                  description={getMetadata('blog')?.description || 'Create and publish blog posts with AI assistance, RSS import, and SEO optimization.'}
+                  tooltip={getMetadata('blog')?.tooltip_text}
+                  isActive={modules.blog}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('blog')}
+                  onEdit={() => handleEditMetadata('blog')}
+                />
+              )}
 
-              <IntegrationCard
-                id="rss_podcast_posting"
-                icon={Rss}
-                iconGradient="from-amber-500 to-orange-600"
-                title={getMetadata('rss_podcast_posting')?.title || 'RSS Podcast Posting'}
-                description={getMetadata('rss_podcast_posting')?.description || 'Automatically sync and publish podcast episodes from RSS feeds to your podcast library.'}
-                tooltip={getMetadata('rss_podcast_posting')?.tooltip_text}
-                isActive={modules.rss_podcast_posting}
-                isAdmin={isAdmin}
-                onToggle={() => toggleModule('rss_podcast_posting')}
-                onEdit={() => handleEditMetadata('rss_podcast_posting')}
-              />
+              {matchesSearch('RSS Podcast Posting', 'Automatically sync and publish podcast episodes from RSS feeds to your podcast library.') && (
+                <IntegrationCard
+                  id="rss_podcast_posting"
+                  icon={Rss}
+                  iconGradient="from-amber-500 to-orange-600"
+                  title={getMetadata('rss_podcast_posting')?.title || 'RSS Podcast Posting'}
+                  description={getMetadata('rss_podcast_posting')?.description || 'Automatically sync and publish podcast episodes from RSS feeds to your podcast library.'}
+                  tooltip={getMetadata('rss_podcast_posting')?.tooltip_text}
+                  isActive={modules.rss_podcast_posting}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('rss_podcast_posting')}
+                  onEdit={() => handleEditMetadata('rss_podcast_posting')}
+                />
+              )}
 
-              <IntegrationCard
-                id="my_page"
-                icon={UserIcon}
-                iconGradient="from-teal-500 to-cyan-600"
-                title="My Page"
-                description="Create your shareable digital identity page with social links, videos, bookings, and more. Perfect for creators and influencers."
-                tooltip="Enable to create your customizable public profile page"
-                isActive={modules.my_page}
-                isAdmin={isAdmin}
-                onToggle={() => toggleModule('my_page')}
-                onEdit={() => handleEditMetadata('my_page')}
-              />
+              {matchesSearch('My Page', 'Create your shareable digital identity page with social links, videos, bookings, and more. Perfect for creators and influencers.') && (
+                <IntegrationCard
+                  id="my_page"
+                  icon={UserIcon}
+                  iconGradient="from-teal-500 to-cyan-600"
+                  title="My Page"
+                  description="Create your shareable digital identity page with social links, videos, bookings, and more. Perfect for creators and influencers."
+                  tooltip="Enable to create your customizable public profile page"
+                  isActive={modules.my_page}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('my_page')}
+                  onEdit={() => handleEditMetadata('my_page')}
+                />
+              )}
 
-              <IntegrationCard
-                id="events"
-                icon={CalendarDays}
-                iconGradient="from-violet-500 to-purple-600"
-                title="Events"
-                description="Create and manage events with ticketing, registrations, RSVPs, and automated reminders."
-                tooltip="Enable to create events and manage attendees"
-                isActive={modules.events}
-                isAdmin={isAdmin}
-                onToggle={() => toggleModule('events')}
-                onEdit={() => handleEditMetadata('events')}
-              />
+              {matchesSearch('Events', 'Create and manage events with ticketing, registrations, RSVPs, and automated reminders.') && (
+                <IntegrationCard
+                  id="events"
+                  icon={CalendarDays}
+                  iconGradient="from-violet-500 to-purple-600"
+                  title="Events"
+                  description="Create and manage events with ticketing, registrations, RSVPs, and automated reminders."
+                  tooltip="Enable to create events and manage attendees"
+                  isActive={modules.events}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('events')}
+                  onEdit={() => handleEditMetadata('events')}
+                />
+              )}
 
-              <IntegrationCard
-                id="signup_sheets"
-                icon={ClipboardList}
-                iconGradient="from-sky-500 to-blue-600"
-                title="Sign-up Sheets"
-                description="Create volunteer sign-up sheets with time slots, capacity limits, and automated confirmations."
-                tooltip="Enable to create and manage volunteer sign-up sheets"
-                isActive={modules.signup_sheets}
-                isAdmin={isAdmin}
-                onToggle={() => toggleModule('signup_sheets')}
-                onEdit={() => handleEditMetadata('signup_sheets')}
-              />
+              {matchesSearch('Sign-up Sheets', 'Create volunteer sign-up sheets with time slots, capacity limits, and automated confirmations.') && (
+                <IntegrationCard
+                  id="signup_sheets"
+                  icon={ClipboardList}
+                  iconGradient="from-sky-500 to-blue-600"
+                  title="Sign-up Sheets"
+                  description="Create volunteer sign-up sheets with time slots, capacity limits, and automated confirmations."
+                  tooltip="Enable to create and manage volunteer sign-up sheets"
+                  isActive={modules.signup_sheets}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('signup_sheets')}
+                  onEdit={() => handleEditMetadata('signup_sheets')}
+                />
+              )}
 
-              <IntegrationCard
-                id="polls"
-                icon={BarChart3}
-                iconGradient="from-emerald-500 to-green-600"
-                title="Polls"
-                description="Create interactive polls and surveys with real-time results, voting analytics, and shareable links."
-                tooltip="Enable to create polls and collect feedback"
-                isActive={modules.polls}
-                isAdmin={isAdmin}
-                onToggle={() => toggleModule('polls')}
-                onEdit={() => handleEditMetadata('polls')}
-              />
+              {matchesSearch('Polls', 'Create interactive polls and surveys with real-time results, voting analytics, and shareable links.') && (
+                <IntegrationCard
+                  id="polls"
+                  icon={BarChart3}
+                  iconGradient="from-emerald-500 to-green-600"
+                  title="Polls"
+                  description="Create interactive polls and surveys with real-time results, voting analytics, and shareable links."
+                  tooltip="Enable to create polls and collect feedback"
+                  isActive={modules.polls}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('polls')}
+                  onEdit={() => handleEditMetadata('polls')}
+                />
+              )}
 
-              <IntegrationCard
-                id="qr_codes"
-                icon={QrCode}
-                iconGradient="from-rose-500 to-pink-600"
-                title="QR Codes"
-                description="Generate QR codes for events, links, contact info, and more. Track scans and engagement."
-                tooltip="Enable to create and manage QR codes"
-                isActive={modules.qr_codes}
-                isAdmin={isAdmin}
-                onToggle={() => toggleModule('qr_codes')}
-                onEdit={() => handleEditMetadata('qr_codes')}
-              />
+              {matchesSearch('QR Codes', 'Generate QR codes for events, links, contact info, and more. Track scans and engagement.') && (
+                <IntegrationCard
+                  id="qr_codes"
+                  icon={QrCode}
+                  iconGradient="from-rose-500 to-pink-600"
+                  title="QR Codes"
+                  description="Generate QR codes for events, links, contact info, and more. Track scans and engagement."
+                  tooltip="Enable to create and manage QR codes"
+                  isActive={modules.qr_codes}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('qr_codes')}
+                  onEdit={() => handleEditMetadata('qr_codes')}
+                />
+              )}
 
-              <IntegrationCard
-                id="advertiser"
-                icon={TrendingUp}
-                iconGradient="from-orange-500 to-red-600"
-                title="Advertiser Account"
-                description="Create an advertiser account to run campaigns, manage ad budgets, and reach engaged podcast audiences."
-                tooltip="Enable to access advertiser features and campaign management"
-                isActive={modules.advertiser}
-                isAdmin={isAdmin}
-                onToggle={() => {
-                  if (!modules.advertiser) {
-                    navigate('/advertiser/signup');
-                  } else {
-                    toggleModule('advertiser');
-                  }
-                }}
-                onEdit={() => handleEditMetadata('advertiser')}
-              />
+              {matchesSearch('Advertiser Account', 'Create an advertiser account to run campaigns, manage ad budgets, and reach engaged podcast audiences.') && (
+                <IntegrationCard
+                  id="advertiser"
+                  icon={TrendingUp}
+                  iconGradient="from-orange-500 to-red-600"
+                  title="Advertiser Account"
+                  description="Create an advertiser account to run campaigns, manage ad budgets, and reach engaged podcast audiences."
+                  tooltip="Enable to access advertiser features and campaign management"
+                  isActive={modules.advertiser}
+                  isAdmin={isAdmin}
+                  onToggle={() => {
+                    if (!modules.advertiser) {
+                      navigate('/advertiser/signup');
+                    } else {
+                      toggleModule('advertiser');
+                    }
+                  }}
+                  onEdit={() => handleEditMetadata('advertiser')}
+                />
+              )}
 
-              <IntegrationCard
-                id="marketing"
-                icon={Mail}
-                iconGradient="from-blue-500 to-indigo-600"
-                title="Marketing"
-                description="Email campaigns, contact management, and marketing automation. Build and nurture your audience with powerful marketing tools."
-                tooltip="Enable to access email marketing and CRM features"
-                isActive={modules.marketing}
-                isAdmin={isAdmin}
-                onToggle={() => toggleModule('marketing')}
-                onEdit={() => handleEditMetadata('marketing')}
-              />
+              {matchesSearch('Marketing', 'Email campaigns, contact management, and marketing automation. Build and nurture your audience with powerful marketing tools.') && (
+                <IntegrationCard
+                  id="marketing"
+                  icon={Mail}
+                  iconGradient="from-blue-500 to-indigo-600"
+                  title="Marketing"
+                  description="Email campaigns, contact management, and marketing automation. Build and nurture your audience with powerful marketing tools."
+                  tooltip="Enable to access email marketing and CRM features"
+                  isActive={modules.marketing}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('marketing')}
+                  onEdit={() => handleEditMetadata('marketing')}
+                />
+              )}
 
-              <IntegrationCard
-                id="sms"
-                icon={Smartphone}
-                iconGradient="from-green-500 to-teal-600"
-                title="SMS"
-                description="Send SMS campaigns, automate text message reminders, and engage your audience directly on their mobile devices."
-                tooltip="Enable to send SMS messages and notifications"
-                isActive={modules.sms}
-                isAdmin={isAdmin}
-                onToggle={() => toggleModule('sms')}
-                onEdit={() => handleEditMetadata('sms')}
-              />
+              {matchesSearch('SMS', 'Send SMS campaigns, automate text message reminders, and engage your audience directly on their mobile devices.') && (
+                <IntegrationCard
+                  id="sms"
+                  icon={Smartphone}
+                  iconGradient="from-green-500 to-teal-600"
+                  title="SMS"
+                  description="Send SMS campaigns, automate text message reminders, and engage your audience directly on their mobile devices."
+                  tooltip="Enable to send SMS messages and notifications"
+                  isActive={modules.sms}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('sms')}
+                  onEdit={() => handleEditMetadata('sms')}
+                />
+              )}
             </div>
           </section>
 
