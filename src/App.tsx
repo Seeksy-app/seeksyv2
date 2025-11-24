@@ -140,6 +140,7 @@ import Proposals from "./pages/Proposals";
 import CreateProposal from "./pages/CreateProposal";
 import Invoices from "./pages/Invoices";
 import CreateInvoice from "./pages/CreateInvoice";
+import InvestorPortal from "./pages/InvestorPortal";
 
 const queryClient = new QueryClient();
 
@@ -219,6 +220,7 @@ const AppContent = () => {
               <Route path="/auth" element={<Auth />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/pricing" element={<Pricing />} />
+              <Route path="/investor" element={<InvestorPortal />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/cookies" element={<Cookies />} />

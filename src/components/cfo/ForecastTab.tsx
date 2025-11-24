@@ -2,8 +2,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Download, TrendingUp } from "lucide-react";
+import { Download, TrendingUp, Printer, Share2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import jsPDF from "jspdf";
+import { toast } from "sonner";
+import { ShareInvestorDialog } from "./ShareInvestorDialog";
+import { useState } from "react";
 
 interface ForecastTabProps {
   assumptions: {
@@ -24,6 +28,8 @@ interface ForecastTabProps {
 }
 
 export const ForecastTab = ({ assumptions }: ForecastTabProps) => {
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  
   // Market growth assumptions (research-based)
   const marketGrowth = {
     podcasting: 0.22, // 22% CAGR
@@ -114,8 +120,186 @@ export const ForecastTab = ({ assumptions }: ForecastTabProps) => {
 
   const forecast = calculate3YearForecast();
 
-  const handleDownload = () => {
+  const handleDownloadPDF = () => {
+    try {
+      const doc = new jsPDF();
+      let yPos = 20;
+      
+      // Title
+      doc.setFontSize(24);
+      doc.setFont("helvetica", "bold");
+      doc.text("3-Year Financial Forecast (2026-2028)", 20, yPos);
+      yPos += 8;
+      
+      // Subtitle
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 100, 100);
+      doc.text("Investment-ready pro forma using your custom assumptions", 20, yPos);
+      yPos += 15;
+      
+      // Forecast Assumptions Section
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text("Forecast Assumptions", 20, yPos);
+      yPos += 6;
+      
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 100, 100);
+      doc.text("These values drive all projections below", 20, yPos);
+      yPos += 10;
+      
+      // Assumptions grid
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      doc.text("Monthly User Growth", 20, yPos);
+      doc.text("Conversion Rate", 70, yPos);
+      doc.text("Churn Rate", 120, yPos);
+      doc.text("Avg Subscription", 170, yPos);
+      yPos += 4;
+      
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text(`${assumptions.monthlyUserGrowth}%`, 20, yPos);
+      doc.text(`${assumptions.conversionRate}%`, 70, yPos);
+      doc.text(`${assumptions.churnRate}%`, 120, yPos);
+      doc.text(`$${assumptions.avgSubscriptionPrice}`, 170, yPos);
+      yPos += 15;
+      
+      // Annual Summaries
+      forecast.forEach((year, index) => {
+        const xPos = 20 + (index * 60);
+        const cardY = yPos;
+        
+        // Card background
+        doc.setFillColor(248, 249, 250);
+        doc.rect(xPos - 3, cardY - 3, 55, 50, 'F');
+        
+        // Year title
+        doc.setFontSize(18);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(0, 0, 0);
+        doc.text(year.year.toString(), xPos, cardY + 5);
+        
+        // Description
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(100, 100, 100);
+        doc.text("Annual financial summary", xPos, cardY + 10);
+        
+        // Total Revenue
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        doc.text("Total Revenue", xPos, cardY + 18);
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(0, 0, 0);
+        doc.text(`$${Math.round(year.totalRevenue).toLocaleString()}`, xPos, cardY + 24);
+        
+        // Net Profit
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(100, 100, 100);
+        doc.text("Net Profit", xPos, cardY + 31);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        const profitColor = year.netProfit >= 0 ? [34, 197, 94] : [239, 68, 68];
+        doc.setTextColor(profitColor[0], profitColor[1], profitColor[2]);
+        doc.text(`$${Math.round(year.netProfit).toLocaleString()}`, xPos, cardY + 37);
+        
+        // Metrics
+        doc.setFontSize(7);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(100, 100, 100);
+        doc.text(`Total Users: ${year.users.toLocaleString()}`, xPos, cardY + 43);
+        doc.text(`Paid Users: ${year.paidUsers.toLocaleString()}`, xPos, cardY + 47);
+      });
+      
+      yPos += 60;
+      
+      // Revenue Breakdown
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text("Revenue Breakdown", 20, yPos);
+      yPos += 6;
+      
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 100, 100);
+      doc.text("Annual revenue streams", 20, yPos);
+      yPos += 10;
+      
+      // Table headers
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.text("Year", 20, yPos);
+      doc.text("Subscription", 80, yPos, { align: "right" });
+      doc.text("Ad Revenue", 140, yPos, { align: "right" });
+      doc.text("Total Revenue", 190, yPos, { align: "right" });
+      yPos += 2;
+      
+      // Separator line
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, yPos, 190, yPos);
+      yPos += 5;
+      
+      // Table data
+      doc.setFont("helvetica", "normal");
+      forecast.forEach((year) => {
+        doc.text(year.year.toString(), 20, yPos);
+        doc.text(`$${Math.round(year.subscriptionRevenue).toLocaleString()}`, 80, yPos, { align: "right" });
+        doc.text(`$${Math.round(year.adRevenue).toLocaleString()}`, 140, yPos, { align: "right" });
+        doc.setFont("helvetica", "bold");
+        doc.text(`$${Math.round(year.totalRevenue).toLocaleString()}`, 190, yPos, { align: "right" });
+        doc.setFont("helvetica", "normal");
+        yPos += 6;
+      });
+      
+      yPos += 10;
+      
+      // Key Metrics
+      if (yPos > 240) {
+        doc.addPage();
+        yPos = 20;
+      }
+      
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text("Key Financial Metrics", 20, yPos);
+      yPos += 10;
+      
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      
+      forecast.forEach((year) => {
+        doc.text(`${year.year}: Net Margin ${year.netMargin.toFixed(1)}% | LTV:CAC ${year.ltvCacRatio.toFixed(1)}:1 | Payback ${year.paybackMonths.toFixed(1)} months`, 20, yPos);
+        yPos += 6;
+      });
+      
+      // Footer
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(`Generated by Seeksy Financial Models | ${new Date().toLocaleDateString()}`, 20, 285);
+      
+      doc.save("seeksy-3year-forecast.pdf");
+      toast.success("PDF downloaded successfully!");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Failed to generate PDF. Please try again.");
+    }
+  };
+
+  const handlePrint = () => {
     window.print();
+  };
+
+  const handleShareInvestor = () => {
+    setShareDialogOpen(true);
   };
 
   return (
@@ -128,10 +312,20 @@ export const ForecastTab = ({ assumptions }: ForecastTabProps) => {
             Investment-ready pro forma using your custom assumptions
           </p>
         </div>
-        <Button onClick={handleDownload} variant="outline" size="sm">
-          <Download className="h-4 w-4 mr-2" />
-          Download PDF
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleDownloadPDF} variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Download PDF
+          </Button>
+          <Button onClick={handlePrint} variant="outline" size="sm">
+            <Printer className="h-4 w-4 mr-2" />
+            Print
+          </Button>
+          <Button onClick={handleShareInvestor} variant="default" size="sm">
+            <Share2 className="h-4 w-4 mr-2" />
+            Share with Investors
+          </Button>
+        </div>
       </div>
 
       {/* Key Assumptions Card */}
@@ -381,6 +575,8 @@ export const ForecastTab = ({ assumptions }: ForecastTabProps) => {
           </div>
         </CardContent>
       </Card>
+      
+      <ShareInvestorDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} />
     </div>
   );
 };

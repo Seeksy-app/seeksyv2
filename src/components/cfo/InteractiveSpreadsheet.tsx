@@ -399,66 +399,157 @@ export const InteractiveSpreadsheet = () => {
   const handleExportAIPDF = () => {
     try {
       const doc = new jsPDF();
+      let yPos = 20;
       
       // Title
-      doc.setFontSize(20);
-      doc.text("Seeksy AI-Generated Pro Forma", 20, 20);
+      doc.setFontSize(24);
+      doc.setFont("helvetica", "bold");
+      doc.text("AI-Generated Pro Forma", 20, yPos);
+      yPos += 8;
       
       // Subtitle
-      doc.setFontSize(12);
-      doc.text("3-Year Financial Projections", 20, 30);
-      doc.setFontSize(10);
-      doc.text("Based on industry benchmarks and AI analysis", 20, 36);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 100, 100);
+      doc.text("Based on Seeksy's market research and industry benchmarks", 20, yPos);
+      yPos += 15;
       
-      // Business Model Overview
-      doc.setFontSize(12);
-      doc.text("Business Model Overview", 20, 50);
-      doc.setFontSize(9);
-      const overviewText = "Seeksy operates a multi-sided platform serving creators, event organizers, political campaigns, and advertisers. Revenue streams include subscription tiers, podcast ad insertion (30% platform fee at $15 CPM), and Quick Ads advertiser subscriptions ($199-$25,000/month).";
-      const splitOverview = doc.splitTextToSize(overviewText, 170);
-      doc.text(splitOverview, 20, 56);
+      // 3-Year Summary Section
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text("3-Year Summary", 20, yPos);
+      yPos += 10;
       
-      // Key Assumptions
-      doc.setFontSize(12);
-      doc.text("Key Financial Assumptions", 20, 80);
-      doc.setFontSize(9);
-      const assumptions = [
-        "• Starting with 100 users, growing 15% monthly",
-        "• Subscription ARPU: $19-$299/month depending on tier",
-        "• Podcast ad insertion: $15 CPM with 65% fill rate",
-        "• Quick Ads: $199-$25,000/month across 4 tiers",
-        "• CAC: $45 with 5% monthly churn",
-        "• AI compute: $2.50/user/month, streaming: $0.75/user/month"
+      // Year cards
+      const years = [
+        { year: 2026, revenue: "$2.1M", profit: "$523K", margin: "25%" },
+        { year: 2027, revenue: "$8.7M", profit: "$2.4M", margin: "28%" },
+        { year: 2028, revenue: "$35.8M", profit: "$10.8M", margin: "30%" }
       ];
-      let yPos = 86;
-      assumptions.forEach(line => {
-        doc.text(line, 20, yPos);
-        yPos += 6;
+      
+      years.forEach((data, index) => {
+        const xPos = 20 + (index * 60);
+        const cardY = yPos;
+        
+        // Card background
+        doc.setFillColor(248, 249, 250);
+        doc.rect(xPos - 3, cardY - 3, 55, 45, 'F');
+        
+        // Year
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(0, 0, 0);
+        doc.text(data.year.toString(), xPos, cardY + 5);
+        
+        // Revenue
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(100, 100, 100);
+        doc.text("Total Revenue", xPos, cardY + 13);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(0, 0, 0);
+        doc.text(data.revenue, xPos, cardY + 19);
+        
+        // Profit
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(100, 100, 100);
+        doc.text("Net Profit", xPos, cardY + 27);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(34, 197, 94);
+        doc.text(data.profit, xPos, cardY + 33);
+        
+        // Margin
+        doc.setFontSize(7);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(100, 100, 100);
+        doc.text(`Net Margin: ${data.margin}`, xPos, cardY + 40);
       });
       
-      // 3-Year Summary
+      yPos += 55;
+      
+      // Key Financial Assumptions
       doc.setFontSize(14);
-      doc.text("3-Year Projections Summary", 20, yPos + 10);
-      yPos += 18;
-      
-      doc.setFontSize(11);
-      doc.text("Year 1:", 20, yPos);
-      doc.text("Revenue: $2.1M", 40, yPos);
-      doc.text("Net Profit: $523K", 100, yPos);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text("Key Financial Assumptions", 20, yPos);
       yPos += 8;
       
-      doc.text("Year 2:", 20, yPos);
-      doc.text("Revenue: $8.7M", 40, yPos);
-      doc.text("Net Profit: $2.4M", 100, yPos);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(60, 60, 60);
+      
+      const assumptions = [
+        "• Platform Growth: 100 users initially, 15% monthly compounded growth",
+        "• Revenue Model: Multi-tier subscriptions ($19-$499/mo) + ad revenue share",
+        "• Ad Monetization: $15 CPM podcast ads, 65% fill rate, 30% platform cut",
+        "• Customer Economics: $45 CAC with 5% monthly churn, 95% retention",
+        "• Cost Structure: $2.50/user AI compute + $0.75/user streaming monthly",
+        "• Quick Ads Platform: Advertiser subscriptions $199-$25k/mo across 4 tiers"
+      ];
+      
+      assumptions.forEach(assumption => {
+        doc.text(assumption, 20, yPos);
+        yPos += 5;
+      });
+      
+      yPos += 10;
+      
+      // Revenue Breakdown
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Revenue Breakdown by Year", 20, yPos);
       yPos += 8;
       
-      doc.text("Year 3:", 20, yPos);
-      doc.text("Revenue: $35.8M", 40, yPos);
-      doc.text("Net Profit: $10.8M", 100, yPos);
+      // Table header
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.text("Product Line", 20, yPos);
+      doc.text("Year 1", 100, yPos, { align: "right" });
+      doc.text("Year 2", 140, yPos, { align: "right" });
+      doc.text("Year 3", 180, yPos, { align: "right" });
+      yPos += 2;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, yPos, 180, yPos);
+      yPos += 5;
+      
+      // Revenue data
+      const revenueData = [
+        ["Podcaster Subscriptions", "$420K", "$1.75M", "$7.2M"],
+        ["Event Tools", "$355K", "$1.48M", "$6.1M"],
+        ["Political Campaigns", "$300K", "$1.25M", "$5.15M"],
+        ["My Page", "$140K", "$580K", "$2.4M"],
+        ["Ad Insertion (30% cut)", "$315K", "$1.31M", "$5.4M"],
+        ["Quick Ads Platform", "$480K", "$1.96M", "$8.0M"]
+      ];
+      
+      doc.setFont("helvetica", "normal");
+      revenueData.forEach(row => {
+        doc.text(row[0], 20, yPos);
+        doc.text(row[1], 100, yPos, { align: "right" });
+        doc.text(row[2], 140, yPos, { align: "right" });
+        doc.text(row[3], 180, yPos, { align: "right" });
+        yPos += 5;
+      });
+      
+      // Total
+      yPos += 2;
+      doc.line(20, yPos, 180, yPos);
+      yPos += 5;
+      doc.setFont("helvetica", "bold");
+      doc.text("TOTAL REVENUE", 20, yPos);
+      doc.text("$2.1M", 100, yPos, { align: "right" });
+      doc.text("$8.7M", 140, yPos, { align: "right" });
+      doc.text("$35.8M", 180, yPos, { align: "right" });
       
       // Footer
       doc.setFontSize(8);
-      doc.text("Generated by Seeksy Financial Models | These projections update automatically with actual data", 20, 280);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(150, 150, 150);
+      doc.text(`Generated by Seeksy Financial Models | ${new Date().toLocaleDateString()}`, 20, 285);
       
       doc.save("seeksy-ai-proforma.pdf");
       toast.success("PDF exported successfully!");
@@ -838,21 +929,25 @@ export const InteractiveSpreadsheet = () => {
       let yPos = 20;
       
       // Title
-      doc.setFontSize(20);
-      doc.text("Seeksy Custom Pro Forma", 20, yPos);
-      yPos += 10;
+      doc.setFontSize(24);
+      doc.setFont("helvetica", "bold");
+      doc.text("Custom 3-Year Pro Forma", 20, yPos);
+      yPos += 8;
       
       // Subtitle
-      doc.setFontSize(12);
-      doc.text("3-Year Financial Projections - Based on Your Custom Assumptions", 20, yPos);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 100, 100);
+      doc.text("Based on your custom assumptions configured in the downloadable spreadsheet", 20, yPos);
       yPos += 15;
       
       // 3-Year Summary
-      doc.setFontSize(14);
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
       doc.text("3-Year Summary", 20, yPos);
-      yPos += 8;
+      yPos += 10;
       
-      doc.setFontSize(10);
       const year1Rev = annualSummaries[0]?.totalRevenue || 0;
       const year2Rev = annualSummaries[1]?.totalRevenue || 0;
       const year3Rev = annualSummaries[2]?.totalRevenue || 0;
@@ -860,105 +955,155 @@ export const InteractiveSpreadsheet = () => {
       const year2Profit = annualSummaries[1]?.netProfit || 0;
       const year3Profit = annualSummaries[2]?.netProfit || 0;
       
-      doc.text("Year 1:", 20, yPos);
-      doc.text(`Revenue: $${Math.round(year1Rev / 1000)}K`, 40, yPos);
-      doc.text(`Net Profit: $${Math.round(year1Profit / 1000)}K`, 100, yPos);
-      yPos += 6;
+      // Year cards
+      const years = [
+        { year: 2026, revenue: year1Rev, profit: year1Profit },
+        { year: 2027, revenue: year2Rev, profit: year2Profit },
+        { year: 2028, revenue: year3Rev, profit: year3Profit }
+      ];
       
-      doc.text("Year 2:", 20, yPos);
-      doc.text(`Revenue: $${Math.round(year2Rev / 1000)}K`, 40, yPos);
-      doc.text(`Net Profit: $${Math.round(year2Profit / 1000)}K`, 100, yPos);
-      yPos += 6;
+      years.forEach((data, index) => {
+        const xPos = 20 + (index * 60);
+        const cardY = yPos;
+        
+        // Card background
+        doc.setFillColor(248, 249, 250);
+        doc.rect(xPos - 3, cardY - 3, 55, 48, 'F');
+        
+        // Year
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(0, 0, 0);
+        doc.text(data.year.toString(), xPos, cardY + 5);
+        
+        // Description
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(100, 100, 100);
+        doc.text("Annual financial summary", xPos, cardY + 10);
+        
+        // Revenue
+        doc.text("Total Revenue", xPos, cardY + 18);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(0, 0, 0);
+        doc.text(`$${Math.round(data.revenue / 1000)}K`, xPos, cardY + 24);
+        
+        // Profit
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(100, 100, 100);
+        doc.text("Net Profit", xPos, cardY + 32);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        const profitColor = data.profit >= 0 ? [34, 197, 94] : [239, 68, 68];
+        doc.setTextColor(profitColor[0], profitColor[1], profitColor[2]);
+        doc.text(`$${Math.round(data.profit / 1000)}K`, xPos, cardY + 38);
+      });
       
-      doc.text("Year 3:", 20, yPos);
-      doc.text(`Revenue: $${Math.round(year3Rev / 1000)}K`, 40, yPos);
-      doc.text(`Net Profit: $${Math.round(year3Profit / 1000)}K`, 100, yPos);
-      yPos += 15;
+      yPos += 60;
       
-      // Revenue Growth Chart Section
-      doc.setFontSize(12);
+      // Revenue Growth Trajectory
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
       doc.text("Revenue Growth Trajectory", 20, yPos);
       yPos += 8;
       
       // Simple bar chart visualization
       const chartX = 30;
       const chartWidth = 150;
-      const chartHeight = 40;
+      const chartHeight = 35;
       const maxRevenue = Math.max(year1Rev, year2Rev, year3Rev);
       
       // Year 1 bar
       const bar1Height = (year1Rev / maxRevenue) * chartHeight;
       doc.setFillColor(102, 126, 234);
-      doc.rect(chartX, yPos + chartHeight - bar1Height, 40, bar1Height, 'F');
-      doc.setFontSize(8);
-      doc.text("Year 1", chartX + 8, yPos + chartHeight + 4);
+      doc.rect(chartX, yPos + chartHeight - bar1Height, 35, bar1Height, 'F');
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(0, 0, 0);
+      doc.text("Year 1", chartX + 10, yPos + chartHeight + 4);
       doc.text(`$${Math.round(year1Rev / 1000)}K`, chartX + 5, yPos + chartHeight - bar1Height - 2);
       
       // Year 2 bar
       const bar2Height = (year2Rev / maxRevenue) * chartHeight;
       doc.setFillColor(0, 196, 159);
-      doc.rect(chartX + 50, yPos + chartHeight - bar2Height, 40, bar2Height, 'F');
-      doc.text("Year 2", chartX + 58, yPos + chartHeight + 4);
-      doc.text(`$${Math.round(year2Rev / 1000)}K`, chartX + 55, yPos + chartHeight - bar2Height - 2);
+      doc.rect(chartX + 45, yPos + chartHeight - bar2Height, 35, bar2Height, 'F');
+      doc.text("Year 2", chartX + 55, yPos + chartHeight + 4);
+      doc.text(`$${Math.round(year2Rev / 1000)}K`, chartX + 50, yPos + chartHeight - bar2Height - 2);
       
       // Year 3 bar
       const bar3Height = (year3Rev / maxRevenue) * chartHeight;
       doc.setFillColor(255, 136, 66);
-      doc.rect(chartX + 100, yPos + chartHeight - bar3Height, 40, bar3Height, 'F');
-      doc.text("Year 3", chartX + 108, yPos + chartHeight + 4);
-      doc.text(`$${Math.round(year3Rev / 1000)}K`, chartX + 105, yPos + chartHeight - bar3Height - 2);
+      doc.rect(chartX + 90, yPos + chartHeight - bar3Height, 35, bar3Height, 'F');
+      doc.text("Year 3", chartX + 100, yPos + chartHeight + 4);
+      doc.text(`$${Math.round(year3Rev / 1000)}K`, chartX + 95, yPos + chartHeight - bar3Height - 2);
       
       yPos += chartHeight + 15;
       
-      // Key Metrics
-      doc.setFontSize(12);
+      // Key Financial Metrics
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
       doc.text("Key Financial Metrics", 20, yPos);
       yPos += 8;
       
       doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(60, 60, 60);
+      
       const totalRevenue3Yr = year1Rev + year2Rev + year3Rev;
       const totalProfit3Yr = year1Profit + year2Profit + year3Profit;
       const avgMargin = totalRevenue3Yr > 0 ? (totalProfit3Yr / totalRevenue3Yr * 100).toFixed(1) : "0";
       
-      doc.text(`• Total 3-Year Revenue: $${Math.round(totalRevenue3Yr / 1000)}K`, 25, yPos);
-      yPos += 6;
-      doc.text(`• Total 3-Year Net Profit: $${Math.round(totalProfit3Yr / 1000)}K`, 25, yPos);
-      yPos += 6;
-      doc.text(`• Average Net Margin: ${avgMargin}%`, 25, yPos);
-      yPos += 6;
-      doc.text(`• Year-over-Year Growth Rate: ${year1Rev > 0 ? Math.round((year2Rev - year1Rev) / year1Rev * 100) : 0}% (Y1→Y2)`, 25, yPos);
+      doc.text(`• Total 3-Year Revenue: $${Math.round(totalRevenue3Yr / 1000)}K`, 20, yPos);
+      yPos += 5;
+      doc.text(`• Total 3-Year Net Profit: $${Math.round(totalProfit3Yr / 1000)}K`, 20, yPos);
+      yPos += 5;
+      doc.text(`• Average Net Margin: ${avgMargin}%`, 20, yPos);
+      yPos += 5;
+      doc.text(`• Year-over-Year Growth Rate: ${year1Rev > 0 ? Math.round((year2Rev - year1Rev) / year1Rev * 100) : 0}% (Y1→Y2)`, 20, yPos);
       yPos += 15;
       
-      // Monthly Metrics Summary
+      // Monthly Breakdown
       doc.setFontSize(12);
-      doc.text("First Year Monthly Breakdown (Selected Months)", 20, yPos);
+      doc.setFont("helvetica", "bold");
+      doc.text("First Year Monthly Breakdown", 20, yPos);
       yPos += 8;
       
+      // Table header
       doc.setFontSize(8);
-      doc.text("Month", 25, yPos);
-      doc.text("Revenue", 60, yPos);
-      doc.text("Costs", 95, yPos);
-      doc.text("Profit", 125, yPos);
-      doc.text("Margin %", 155, yPos);
+      doc.setFont("helvetica", "bold");
+      doc.text("Month", 20, yPos);
+      doc.text("Revenue", 60, yPos, { align: "right" });
+      doc.text("Costs", 95, yPos, { align: "right" });
+      doc.text("Profit", 130, yPos, { align: "right" });
+      doc.text("Margin %", 170, yPos, { align: "right" });
+      yPos += 2;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, yPos, 170, yPos);
       yPos += 5;
       
       // Show months 1, 6, and 12
+      doc.setFont("helvetica", "normal");
       [0, 5, 11].forEach((monthIdx) => {
         const month = forecast[monthIdx];
         if (month) {
-          doc.text(`M${month.month}`, 25, yPos);
-          doc.text(`$${Math.round(month.totalRevenue).toLocaleString()}`, 60, yPos);
-          doc.text(`$${Math.round(month.totalCosts).toLocaleString()}`, 95, yPos);
-          doc.text(`$${Math.round(month.netProfit).toLocaleString()}`, 125, yPos);
-          doc.text(`${month.netMargin.toFixed(1)}%`, 155, yPos);
+          doc.text(`M${month.month}`, 20, yPos);
+          doc.text(`$${Math.round(month.totalRevenue).toLocaleString()}`, 60, yPos, { align: "right" });
+          doc.text(`$${Math.round(month.totalCosts).toLocaleString()}`, 95, yPos, { align: "right" });
+          doc.text(`$${Math.round(month.netProfit).toLocaleString()}`, 130, yPos, { align: "right" });
+          doc.text(`${month.netMargin.toFixed(1)}%`, 170, yPos, { align: "right" });
           yPos += 5;
         }
       });
       
       // Footer
       doc.setFontSize(8);
-      doc.text("Generated by Seeksy Financial Models | Custom assumptions configured by CFO", 20, 280);
-      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 285);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(150, 150, 150);
+      doc.text(`Generated by Seeksy Financial Models | ${new Date().toLocaleDateString()}`, 20, 285);
       
       doc.save("seeksy-custom-proforma.pdf");
       toast.success("Custom Pro Forma PDF exported with charts!");
