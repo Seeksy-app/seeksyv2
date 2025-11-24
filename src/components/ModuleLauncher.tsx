@@ -81,6 +81,7 @@ export const ModuleLauncher = ({ open, onOpenChange }: ModuleLauncherProps) => {
   const [enabledModules, setEnabledModules] = useState<string[]>([]);
   const [pinnedModules, setPinnedModules] = useState<string[]>(["meetings"]);
   const [showTooltips, setShowTooltips] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (open) {
@@ -95,8 +96,12 @@ export const ModuleLauncher = ({ open, onOpenChange }: ModuleLauncherProps) => {
   }, [open]);
 
   const loadModulePreferences = async () => {
+    setIsLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
 
     const { data } = await supabase
       .from("user_preferences")
@@ -135,6 +140,7 @@ export const ModuleLauncher = ({ open, onOpenChange }: ModuleLauncherProps) => {
         : ["meetings"];
       setPinnedModules(pinned as string[]);
     }
+    setIsLoading(false);
   };
 
   const togglePin = async (moduleKey: string) => {
@@ -205,7 +211,14 @@ export const ModuleLauncher = ({ open, onOpenChange }: ModuleLauncherProps) => {
           </DialogDescription>
         </DialogHeader>
 
-        {availableModules.length === 0 ? (
+        {isLoading ? (
+          <div className="py-16 flex items-center justify-center">
+            <div className="text-center">
+              <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading Seekies...</p>
+            </div>
+          </div>
+        ) : availableModules.length === 0 ? (
           <div className="py-16 flex flex-col items-center justify-center gap-4">
             <div className="h-24 w-24 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
               <Grid3x3 className="h-12 w-12 text-primary/50" />
