@@ -9,13 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, BarChart3, UserCheck, Users, Loader2, DollarSign, MessageSquare, FileText, Plus, Eye, Calculator, Trash2 } from "lucide-react";
+import { ArrowLeft, BarChart3, UserCheck, Users, Loader2, DollarSign, MessageSquare, FileText, Plus, Eye, Calculator, Trash2, Shield } from "lucide-react";
 import SubscriptionsAdmin from "@/components/admin/SubscriptionsAdmin";
 import AdminCRM from "@/components/admin/AdminCRM";
 import { AdminOverview } from "@/components/admin/AdminOverview";
 import { AdminInternalChat } from "@/components/admin/AdminInternalChat";
 import ImpersonationBanner from "@/components/admin/ImpersonationBanner";
 import { PricingManagement } from "@/components/admin/PricingManagement";
+import { InvestorSharesManagement } from "@/components/admin/InvestorSharesManagement";
 
 interface UserProfile {
   id: string;
@@ -307,7 +308,7 @@ export default function Admin() {
         </Dialog>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-10">
+          <TabsList className="grid w-full grid-cols-11">
             <TabsTrigger value="overview" className="gap-2">
               <BarChart3 className="h-4 w-4" />
               Overview
@@ -324,6 +325,10 @@ export default function Admin() {
             <TabsTrigger value="cfo" className="gap-2">
               <DollarSign className="h-4 w-4" />
               CFO
+            </TabsTrigger>
+            <TabsTrigger value="investor-shares" className="gap-2">
+              <Eye className="h-4 w-4" />
+              Investor Shares
             </TabsTrigger>
             <TabsTrigger value="sales" className="gap-2">
               <BarChart3 className="h-4 w-4" />
@@ -403,6 +408,10 @@ export default function Admin() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="investor-shares" className="space-y-6">
+            <InvestorSharesManagement />
           </TabsContent>
 
           <TabsContent value="sales" className="space-y-6">
