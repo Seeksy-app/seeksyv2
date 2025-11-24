@@ -101,13 +101,22 @@ const Auth = () => {
           return;
         }
         
+        // Check user role
+        const { data: roles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id);
+        
+        const isAdmin = roles?.some(r => r.role === 'admin' || r.role === 'super_admin') || false;
+        
         // Check for signup intent and redirect
         const intent = localStorage.getItem("signupIntent");
         if (intent) {
           localStorage.removeItem("signupIntent");
           navigate(intent);
         } else {
-          navigate("/dashboard");
+          // Redirect based on user role
+          navigate(isAdmin ? "/cfo-dashboard" : "/dashboard");
         }
       } else {
         // Validate password
