@@ -37,28 +37,19 @@ export default function InvestorPortal() {
     try {
       // Validate access code
       const { data, error } = await supabase
-        .from('investor_access')
+        .from('investor_shares')
         .select('*')
         .eq('access_code', accessCode.toUpperCase())
-        .eq('is_active', true)
+        .eq('status', 'active')
         .gt('expires_at', new Date().toISOString())
         .single();
 
       if (error || !data) {
-        toast.error("Invalid or expired access code");
+        toast.error("Invalid, expired, or revoked access code");
         return;
       }
 
-      // Update access tracking
-      await supabase
-        .from('investor_access')
-        .update({
-          last_accessed_at: new Date().toISOString(),
-          access_count: (data.access_count || 0) + 1,
-        })
-        .eq('id', data.id);
-
-      setInvestorEmail(data.email);
+      setInvestorEmail(data.investor_email);
       setIsAuthenticated(true);
       toast.success("Access granted! Welcome to the financial portal.");
     } catch (error: any) {

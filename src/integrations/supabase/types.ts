@@ -3449,6 +3449,48 @@ export type Database = {
         }
         Relationships: []
       }
+      investor_shares: {
+        Row: {
+          access_code: string
+          created_at: string
+          expires_at: string
+          id: string
+          investor_email: string
+          investor_name: string | null
+          notes: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          access_code: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          investor_email: string
+          investor_name?: string | null
+          notes?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          access_code?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          investor_email?: string
+          investor_name?: string | null
+          notes?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       investor_talking_points: {
         Row: {
           assumptions_used: Json | null
