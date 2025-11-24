@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { ProformaTemplate } from "@/components/cfo/ProformaTemplate";
 import { TalkingPointsWidget } from "@/components/dashboard/TalkingPointsWidget";
+import { ForecastTab } from "@/components/cfo/ForecastTab";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#FF6B9D'];
 
@@ -394,6 +395,7 @@ const CFODashboard = () => {
           <TabsTrigger value="revenue" className="flex-shrink-0">Revenue</TabsTrigger>
           <TabsTrigger value="ad-breakdown" className="flex-shrink-0">Ads</TabsTrigger>
           <TabsTrigger value="projections" className="flex-shrink-0">Projections</TabsTrigger>
+          <TabsTrigger value="forecast" className="flex-shrink-0">Forecast</TabsTrigger>
           <TabsTrigger value="proforma" className="flex-shrink-0">Proforma</TabsTrigger>
           <TabsTrigger value="assumptions" className="flex-shrink-0">Assumptions</TabsTrigger>
         </TabsList>
@@ -936,6 +938,11 @@ const CFODashboard = () => {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* Forecast Tab */}
+        <TabsContent value="forecast" className="space-y-6">
+          <ForecastTab assumptions={assumptions} />
         </TabsContent>
 
         {/* Proforma Tab */}
