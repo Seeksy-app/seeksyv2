@@ -75,9 +75,43 @@ export const ShareInvestorDialog = ({ open, onOpenChange }: ShareInvestorDialogP
   };
 
   const sendEmail = async () => {
-    if (!generatedCode || !generatedLink) return;
-    
-    toast.info("Email functionality coming soon! For now, you can copy the link and code to send manually.");
+    if (!generatedCode || !generatedLink || !email) {
+      toast.error("Missing required information");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("You must be logged in");
+        return;
+      }
+
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .single();
+
+      const { error } = await supabase.functions.invoke("send-investor-invite", {
+        body: {
+          investorEmail: email,
+          accessCode: generatedCode,
+          investorLink: generatedLink,
+          senderName: profileData?.full_name || undefined,
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success(`Investor access email sent to ${email}`);
+    } catch (error: any) {
+      console.error("Error sending email:", error);
+      toast.error(error.message || "Failed to send email");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClose = () => {
@@ -163,9 +197,9 @@ export const ShareInvestorDialog = ({ open, onOpenChange }: ShareInvestorDialogP
             </div>
 
             <div className="flex gap-2">
-              <Button onClick={sendEmail} variant="default" className="flex-1">
+              <Button onClick={sendEmail} variant="default" className="flex-1" disabled={loading}>
                 <Mail className="h-4 w-4 mr-2" />
-                Send Email (Coming Soon)
+                {loading ? "Sending..." : "Send Email"}
               </Button>
               <Button onClick={handleClose} variant="outline" className="flex-1">
                 Done
