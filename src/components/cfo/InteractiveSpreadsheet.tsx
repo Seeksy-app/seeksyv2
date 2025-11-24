@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Download, FileSpreadsheet } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
+import { ProFormaSpreadsheetGenerator } from "./ProFormaSpreadsheetGenerator";
 
 interface SpreadsheetAssumptions {
   // Pricing by Product Line
@@ -410,10 +411,11 @@ export const InteractiveSpreadsheet = () => {
       </div>
 
       <Tabs defaultValue="assumptions" className="space-y-4">
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="assumptions">Assumptions</TabsTrigger>
           <TabsTrigger value="monthly">Monthly Forecast</TabsTrigger>
           <TabsTrigger value="annual">Annual Summary</TabsTrigger>
+          <TabsTrigger value="download">3-Year Download</TabsTrigger>
         </TabsList>
 
         {/* Assumptions Tab */}
@@ -1004,6 +1006,22 @@ export const InteractiveSpreadsheet = () => {
                   ))}
                 </TableBody>
               </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* 3-Year Download Tab */}
+        <TabsContent value="download" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Download Full 3-Year Pro Forma Spreadsheet</CardTitle>
+              <CardDescription>
+                Export comprehensive Excel file with all 7 tabs: Executive Summary, Assumptions, 36-Month Forecast, 
+                Annual Summary, Revenue Breakdown, Cost Breakdown, and Unit Economics
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProFormaSpreadsheetGenerator />
             </CardContent>
           </Card>
         </TabsContent>
