@@ -7,6 +7,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MyPageWelcomeDialogProps {
   open: boolean;
@@ -14,6 +17,36 @@ interface MyPageWelcomeDialogProps {
 }
 
 export const MyPageWelcomeDialog = ({ open, onClose }: MyPageWelcomeDialogProps) => {
+  const navigate = useNavigate();
+  const [username, setUsername] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      // Get the current user's username
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          supabase
+            .from('profiles')
+            .select('username')
+            .eq('id', user.id)
+            .single()
+            .then(({ data }) => {
+              if (data?.username) {
+                setUsername(data.username);
+              }
+            });
+        }
+      });
+    }
+  }, [open]);
+
+  const handleGetStarted = () => {
+    onClose();
+    if (username) {
+      navigate(`/${username}`);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="sm:max-w-[500px]">
@@ -75,7 +108,7 @@ export const MyPageWelcomeDialog = ({ open, onClose }: MyPageWelcomeDialogProps)
         </div>
 
         <div className="flex justify-end">
-          <Button onClick={onClose}>
+          <Button onClick={handleGetStarted}>
             Get Started
           </Button>
         </div>
