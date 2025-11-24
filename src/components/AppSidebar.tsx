@@ -1218,32 +1218,34 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     <>
       <Sidebar collapsible="icon" className="border-r">
         <SidebarHeader>
-          <div className="flex items-center gap-3 px-4 py-3">
+          <div className="flex items-center justify-between px-4 py-3">
             <Link to="/tasks">
               <img src={seeksyLogo} alt="Seeksy" className="h-8 w-8" />
             </Link>
-            <button
-              onClick={() => setModuleLauncherOpen(true)}
-              className="relative group cursor-pointer hover:opacity-80 transition-opacity"
-              aria-label="Open Module Launcher"
-            >
-              <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="10" cy="10" r="5" fill="hsl(207, 90%, 65%)" />
-                <circle cx="22" cy="10" r="5" fill="hsl(280, 65%, 70%)" />
-                <circle cx="34" cy="10" r="5" fill="hsl(25, 90%, 65%)" />
-                <circle cx="10" cy="22" r="5" fill="hsl(150, 65%, 60%)" />
-                <circle cx="22" cy="22" r="5" fill="hsl(45, 90%, 65%)" />
-                <circle cx="34" cy="22" r="5" fill="hsl(240, 65%, 70%)" />
-                <circle cx="10" cy="34" r="5" fill="hsl(330, 75%, 70%)" />
-                <circle cx="22" cy="34" r="5" fill="hsl(180, 65%, 60%)" />
-                <circle cx="34" cy="34" r="5" fill="hsl(0, 75%, 65%)" />
-              </svg>
-            </button>
             {!collapsed && (
-              <NavigationCustomizer 
-                sections={getVisibleSections()}
-                onSave={handleSectionsSave}
-              />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setModuleLauncherOpen(true)}
+                  className="relative group cursor-pointer hover:opacity-80 transition-opacity"
+                  aria-label="Open Module Launcher"
+                >
+                  <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="10" cy="10" r="5" fill="hsl(207, 90%, 65%)" />
+                    <circle cx="24" cy="10" r="5" fill="hsl(280, 65%, 70%)" />
+                    <circle cx="38" cy="10" r="5" fill="hsl(25, 90%, 65%)" />
+                    <circle cx="10" cy="24" r="5" fill="hsl(150, 65%, 60%)" />
+                    <circle cx="24" cy="24" r="5" fill="hsl(45, 90%, 65%)" />
+                    <circle cx="38" cy="24" r="5" fill="hsl(240, 65%, 70%)" />
+                    <circle cx="10" cy="38" r="5" fill="hsl(330, 75%, 70%)" />
+                    <circle cx="24" cy="38" r="5" fill="hsl(180, 65%, 60%)" />
+                    <circle cx="38" cy="38" r="5" fill="hsl(0, 75%, 65%)" />
+                  </svg>
+                </button>
+                <NavigationCustomizer 
+                  sections={getVisibleSections()}
+                  onSave={handleSectionsSave}
+                />
+              </div>
             )}
           </div>
         </SidebarHeader>
