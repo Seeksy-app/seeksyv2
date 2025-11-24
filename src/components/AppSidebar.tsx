@@ -40,10 +40,12 @@ import {
   ListChecks,
   FolderKanban,
   Network,
-  Code
+  Code,
+  Grid3x3
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import seeksyLogo from "@/assets/seeksy-logo.png";
+import { ModuleLauncher } from "@/components/ModuleLauncher";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
@@ -96,6 +98,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   const [username, setUsername] = useState<string>("");
   const [isAdvertiser, setIsAdvertiser] = useState(false);
   const [advertiserStatus, setAdvertiserStatus] = useState<string | null>(null);
+  const [moduleLauncherOpen, setModuleLauncherOpen] = useState(false);
   const [modulePrefs, setModulePrefs] = useState({
     awards: false,
     media: false,
@@ -1212,21 +1215,39 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r">
-      <SidebarHeader>
-        <div className="flex items-center justify-between px-4 py-3">
-          <Link to="/tasks" className="flex items-center gap-2">
-            <img src={seeksyLogo} alt="Seeksy" className="h-8 w-8" />
-            {!collapsed && <span className="text-xl font-bold text-primary">Seeksy</span>}
-          </Link>
-          {!collapsed && (
-            <NavigationCustomizer 
-              sections={getVisibleSections()}
-              onSave={handleSectionsSave}
-            />
-          )}
-        </div>
-      </SidebarHeader>
+    <>
+      <Sidebar collapsible="icon" className="border-r">
+        <SidebarHeader>
+          <div className="flex items-center gap-3 px-4 py-3">
+            <Link to="/tasks">
+              <img src={seeksyLogo} alt="Seeksy" className="h-8 w-8" />
+            </Link>
+            <button
+              onClick={() => setModuleLauncherOpen(true)}
+              className="relative group cursor-pointer"
+              aria-label="Open Module Launcher"
+            >
+              <Grid3x3 className="h-7 w-7 text-foreground transition-transform group-hover:scale-110" />
+              <div className="absolute inset-0 grid grid-cols-3 gap-[2px] p-[3px] pointer-events-none">
+                <div className="rounded-[1px] bg-red-500 opacity-60" />
+                <div className="rounded-[1px] bg-orange-500 opacity-60" />
+                <div className="rounded-[1px] bg-yellow-500 opacity-60" />
+                <div className="rounded-[1px] bg-green-500 opacity-60" />
+                <div className="rounded-[1px] bg-blue-500 opacity-60" />
+                <div className="rounded-[1px] bg-indigo-500 opacity-60" />
+                <div className="rounded-[1px] bg-purple-500 opacity-60" />
+                <div className="rounded-[1px] bg-pink-500 opacity-60" />
+                <div className="rounded-[1px] bg-rose-500 opacity-60" />
+              </div>
+            </button>
+            {!collapsed && (
+              <NavigationCustomizer 
+                sections={getVisibleSections()}
+                onSave={handleSectionsSave}
+              />
+            )}
+          </div>
+        </SidebarHeader>
 
       <SidebarContent className="pb-6 overflow-hidden">
         {/* Dashboard - Always visible and sticky at top */}
@@ -1279,5 +1300,8 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         {/* Footer can remain for any future global actions */}
       </SidebarFooter>
     </Sidebar>
+    
+    <ModuleLauncher open={moduleLauncherOpen} onOpenChange={setModuleLauncherOpen} />
+    </>
   );
 }
