@@ -5,7 +5,7 @@ import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Check, Trophy, Clapperboard, Landmark, User as UserIcon, Building2, Instagram, Facebook, Linkedin, Twitter, Youtube, Music, CheckSquare, DollarSign, TrendingUp, CreditCard, Wallet, Info, Edit2, MessageSquare, FileText, Rss, CalendarDays, ClipboardList, BarChart3, QrCode } from "lucide-react";
+import { Loader2, Check, Trophy, Clapperboard, Landmark, User as UserIcon, Building2, Instagram, Facebook, Linkedin, Twitter, Youtube, Music, CheckSquare, DollarSign, TrendingUp, CreditCard, Wallet, Info, Edit2, MessageSquare, FileText, Rss, CalendarDays, ClipboardList, BarChart3, QrCode, Mail, Smartphone } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -48,6 +48,8 @@ const Integrations = () => {
     signup_sheets: false,
     polls: false,
     qr_codes: false,
+    marketing: false,
+    sms: false,
   });
   const [socialConnections, setSocialConnections] = useState<any[]>([]);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -120,6 +122,8 @@ const Integrations = () => {
           signup_sheets: (prefs as any).module_signup_sheets_enabled || false,
           polls: (prefs as any).module_polls_enabled || false,
           qr_codes: (prefs as any).module_qr_codes_enabled || false,
+          marketing: (prefs as any).module_marketing_enabled || false,
+          sms: (prefs as any).module_sms_enabled || false,
         });
       }
 
@@ -527,6 +531,32 @@ const Integrations = () => {
                   }
                 }}
                 onEdit={() => handleEditMetadata('advertiser')}
+              />
+
+              <IntegrationCard
+                id="marketing"
+                icon={Mail}
+                iconGradient="from-blue-500 to-indigo-600"
+                title="Marketing"
+                description="Email campaigns, contact management, and marketing automation. Build and nurture your audience with powerful marketing tools."
+                tooltip="Enable to access email marketing and CRM features"
+                isActive={modules.marketing}
+                isAdmin={isAdmin}
+                onToggle={() => toggleModule('marketing')}
+                onEdit={() => handleEditMetadata('marketing')}
+              />
+
+              <IntegrationCard
+                id="sms"
+                icon={Smartphone}
+                iconGradient="from-green-500 to-teal-600"
+                title="SMS"
+                description="Send SMS campaigns, automate text message reminders, and engage your audience directly on their mobile devices."
+                tooltip="Enable to send SMS messages and notifications"
+                isActive={modules.sms}
+                isAdmin={isAdmin}
+                onToggle={() => toggleModule('sms')}
+                onEdit={() => handleEditMetadata('sms')}
               />
             </div>
           </section>

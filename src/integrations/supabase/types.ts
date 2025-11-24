@@ -6288,6 +6288,7 @@ export type Database = {
           module_civic_enabled: boolean | null
           module_events_enabled: boolean | null
           module_influencer_enabled: boolean | null
+          module_marketing_enabled: boolean | null
           module_media_enabled: boolean | null
           module_monetization_enabled: boolean | null
           module_polls_enabled: boolean | null
@@ -6295,10 +6296,12 @@ export type Database = {
           module_qr_codes_enabled: boolean | null
           module_rss_podcast_posting_enabled: boolean | null
           module_signup_sheets_enabled: boolean | null
+          module_sms_enabled: boolean | null
           module_team_chat_enabled: boolean | null
           my_page_enabled: boolean | null
           my_page_visited: boolean | null
           onboarding_completed: boolean | null
+          pinned_modules: Json | null
           task_reminder_enabled: boolean | null
           task_reminder_frequency: string | null
           theme_preference: string | null
@@ -6316,6 +6319,7 @@ export type Database = {
           module_civic_enabled?: boolean | null
           module_events_enabled?: boolean | null
           module_influencer_enabled?: boolean | null
+          module_marketing_enabled?: boolean | null
           module_media_enabled?: boolean | null
           module_monetization_enabled?: boolean | null
           module_polls_enabled?: boolean | null
@@ -6323,10 +6327,12 @@ export type Database = {
           module_qr_codes_enabled?: boolean | null
           module_rss_podcast_posting_enabled?: boolean | null
           module_signup_sheets_enabled?: boolean | null
+          module_sms_enabled?: boolean | null
           module_team_chat_enabled?: boolean | null
           my_page_enabled?: boolean | null
           my_page_visited?: boolean | null
           onboarding_completed?: boolean | null
+          pinned_modules?: Json | null
           task_reminder_enabled?: boolean | null
           task_reminder_frequency?: string | null
           theme_preference?: string | null
@@ -6344,6 +6350,7 @@ export type Database = {
           module_civic_enabled?: boolean | null
           module_events_enabled?: boolean | null
           module_influencer_enabled?: boolean | null
+          module_marketing_enabled?: boolean | null
           module_media_enabled?: boolean | null
           module_monetization_enabled?: boolean | null
           module_polls_enabled?: boolean | null
@@ -6351,10 +6358,12 @@ export type Database = {
           module_qr_codes_enabled?: boolean | null
           module_rss_podcast_posting_enabled?: boolean | null
           module_signup_sheets_enabled?: boolean | null
+          module_sms_enabled?: boolean | null
           module_team_chat_enabled?: boolean | null
           my_page_enabled?: boolean | null
           my_page_visited?: boolean | null
           onboarding_completed?: boolean | null
+          pinned_modules?: Json | null
           task_reminder_enabled?: boolean | null
           task_reminder_frequency?: string | null
           theme_preference?: string | null

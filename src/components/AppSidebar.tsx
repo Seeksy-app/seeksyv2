@@ -111,7 +111,10 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     signup_sheets: false,
     polls: false,
     qr_codes: false,
+    marketing: false,
+    sms: false,
   });
+  const [pinnedModules, setPinnedModules] = useState<string[]>(["meetings"]);
   
   // State for navigation section ordering
   const [navigationSections, setNavigationSections] = useState<NavigationSection[]>(() => {
@@ -214,8 +217,15 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         )
         .subscribe();
       
+      // Listen for pinned modules changes from ModuleLauncher
+      const handlePinnedModulesChange = () => {
+        loadModulePreferences();
+      };
+      window.addEventListener('pinnedModulesChanged', handlePinnedModulesChange);
+      
       return () => {
         supabase.removeChannel(channel);
+        window.removeEventListener('pinnedModulesChanged', handlePinnedModulesChange);
       };
     }
   }, [user]);
@@ -239,7 +249,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     
     const { data } = await supabase
       .from("user_preferences")
-      .select("module_awards_enabled, module_media_enabled, module_civic_enabled, module_influencer_enabled, module_agency_enabled, module_team_chat_enabled, module_monetization_enabled, module_project_management_enabled, module_rss_podcast_posting_enabled, module_blog_enabled, module_events_enabled, module_signup_sheets_enabled, module_polls_enabled, module_qr_codes_enabled")
+      .select("module_awards_enabled, module_media_enabled, module_civic_enabled, module_influencer_enabled, module_agency_enabled, module_team_chat_enabled, module_monetization_enabled, module_project_management_enabled, module_rss_podcast_posting_enabled, module_blog_enabled, module_events_enabled, module_signup_sheets_enabled, module_polls_enabled, module_qr_codes_enabled, module_marketing_enabled, module_sms_enabled, pinned_modules")
       .eq("user_id", user.id)
       .maybeSingle();
     
@@ -259,7 +269,15 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         signup_sheets: (data as any).module_signup_sheets_enabled || false,
         polls: (data as any).module_polls_enabled || false,
         qr_codes: (data as any).module_qr_codes_enabled || false,
+        marketing: (data as any).module_marketing_enabled || false,
+        sms: (data as any).module_sms_enabled || false,
       });
+      
+      // Parse pinned_modules safely
+      const pinned = Array.isArray(data.pinned_modules) 
+        ? data.pinned_modules 
+        : ["meetings"];
+      setPinnedModules(pinned as string[]);
     }
   };
 
@@ -316,12 +334,19 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       ];
 
   const seeksiesItems = [
-    { title: "Meetings", url: "/meetings", icon: Calendar },
-    ...(modulePrefs.events ? [{ title: "Events", url: "/events", icon: CalendarDays }] : []),
-    ...(modulePrefs.signup_sheets ? [{ title: "Sign-up Sheets", url: "/signup-sheets", icon: ClipboardList }] : []),
-    ...(modulePrefs.polls ? [{ title: "Polls", url: "/polls", icon: BarChart3 }] : []),
-    ...(modulePrefs.awards ? [{ title: "Awards", url: "/awards", icon: Trophy }] : []),
-    ...(modulePrefs.qr_codes ? [{ title: "QR Codes", url: "/qr-codes", icon: QrCode }] : []),
+    ...(pinnedModules.includes("meetings") ? [{ title: "Meetings", url: "/meetings", icon: Calendar }] : []),
+    ...(pinnedModules.includes("events") && modulePrefs.events ? [{ title: "Events", url: "/events", icon: CalendarDays }] : []),
+    ...(pinnedModules.includes("signup_sheets") && modulePrefs.signup_sheets ? [{ title: "Sign-up Sheets", url: "/signup-sheets", icon: ClipboardList }] : []),
+    ...(pinnedModules.includes("polls") && modulePrefs.polls ? [{ title: "Polls", url: "/polls", icon: BarChart3 }] : []),
+    ...(pinnedModules.includes("awards") && modulePrefs.awards ? [{ title: "Awards", url: "/awards", icon: Trophy }] : []),
+    ...(pinnedModules.includes("qr_codes") && modulePrefs.qr_codes ? [{ title: "QR Codes", url: "/qr-codes", icon: QrCode }] : []),
+    ...(pinnedModules.includes("contacts") ? [{ title: "Contacts", url: "/contacts", icon: Users }] : []),
+    ...(pinnedModules.includes("podcasts") ? [{ title: "Podcasts", url: "/podcasts", icon: Mic }] : []),
+    ...(pinnedModules.includes("media") && modulePrefs.media ? [{ title: "Media Library", url: "/media-library", icon: Clapperboard }] : []),
+    ...(pinnedModules.includes("civic") && modulePrefs.civic ? [{ title: "Civic Tools", url: "/civic-blog", icon: Building2 }] : []),
+    ...(pinnedModules.includes("team_chat") && modulePrefs.team_chat ? [{ title: "Team Chat", url: "/team-chat", icon: MessageSquare }] : []),
+    ...(pinnedModules.includes("marketing") && modulePrefs.marketing ? [{ title: "Marketing", url: "/crm", icon: Mail }] : []),
+    ...(pinnedModules.includes("sms") && modulePrefs.sms ? [{ title: "SMS", url: "/sms", icon: Smartphone }] : []),
   ];
 
   const rssPodcastItems = [

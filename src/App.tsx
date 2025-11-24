@@ -37,6 +37,7 @@ import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import Contacts from "./pages/Contacts";
 import CRM from "./pages/CRM";
+import SMS from "./pages/SMS";
 import SponsorshipMarketplace from "./pages/SponsorshipMarketplace";
 import Integrations from "./pages/Integrations";
 import Polls from "./pages/Polls";
@@ -319,6 +320,7 @@ const AppContent = () => {
         <Route path="/nominate/:programId" element={<PublicNomination />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/crm" element={<CRM />} />
+            <Route path="/sms" element={<SMS />} />
             <Route path="/sponsorship-marketplace" element={<SponsorshipMarketplace />} />
             <Route path="/team" element={<Team />} />
             <Route path="/team-chat" element={<TeamChat />} />
