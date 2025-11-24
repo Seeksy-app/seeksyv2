@@ -286,40 +286,79 @@ export const InteractiveSpreadsheet = () => {
     let csv = '';
     
     if (tabName === 'assumptions') {
-      csv = 'Category,Item,Value\n';
-      csv += 'Pricing,Podcaster Basic,$ ' + assumptions.podcasterBasicPrice + '\n';
-      csv += 'Pricing,Podcaster Pro,$ ' + assumptions.podcasterProPrice + '\n';
-      csv += 'Pricing,Podcaster Enterprise,$ ' + assumptions.podcasterEnterprisePrice + '\n';
-      csv += 'Pricing,Event Creator,$ ' + assumptions.eventCreatorPrice + '\n';
-      csv += 'Pricing,Event Organization,$ ' + assumptions.eventOrgPrice + '\n';
-      csv += 'Pricing,Political Campaign,$ ' + assumptions.politicalCampaignPrice + '\n';
-      csv += 'Pricing,My Page Basic,$ ' + assumptions.myPageBasicPrice + '\n';
-      csv += 'Pricing,My Page Pro,$ ' + assumptions.myPageProPrice + '\n';
-      csv += 'Pricing,Industry Creator,$ ' + assumptions.industryCreatorPrice + '\n';
-      csv += '\nStarting Customers,Podcasters,' + assumptions.startingPodcasters + '\n';
-      csv += 'Starting Customers,Event Creators,' + assumptions.startingEventCreators + '\n';
-      csv += 'Starting Customers,Event Orgs,' + assumptions.startingEventOrgs + '\n';
-      csv += 'Starting Customers,Political,' + assumptions.startingPolitical + '\n';
-      csv += 'Starting Customers,My Page Users,' + assumptions.startingMyPage + '\n';
-      csv += 'Starting Customers,Industry Creators,' + assumptions.startingIndustryCreators + '\n';
-      csv += '\nGrowth Rates (%),Podcaster,' + assumptions.podcasterGrowthRate + '\n';
-      csv += 'Growth Rates (%),Event Creator,' + assumptions.eventCreatorGrowthRate + '\n';
-      csv += 'Growth Rates (%),Event Org,' + assumptions.eventOrgGrowthRate + '\n';
-      csv += 'Growth Rates (%),Political,' + assumptions.politicalGrowthRate + '\n';
-      csv += 'Growth Rates (%),My Page,' + assumptions.myPageGrowthRate + '\n';
-      csv += 'Growth Rates (%),Industry Creator,' + assumptions.industryCreatorGrowthRate + '\n';
-    } else {
-      // Forecast data
-      csv = 'Month,Year,Podcasters,Event Creators,Event Orgs,Political,My Page Users,Industry Creators,Total Users,';
-      csv += 'Podcaster Revenue,Event Creator Revenue,Event Org Revenue,Political Revenue,My Page Revenue,Industry Creator Revenue,';
-      csv += 'Subscription Revenue,Ad Revenue (Platform),Total Revenue,';
-      csv += 'AI Costs,Storage Costs,Bandwidth Costs,Streaming Costs,Support Costs,Marketing Costs,Payment Processing,Creator Payouts,Total Costs,';
+      csv = 'Category,Item,Value,Unit\n';
+      csv += 'PRICING,,,,\n';
+      csv += 'Pricing,Podcaster Basic,$' + assumptions.podcasterBasicPrice + ',per month\n';
+      csv += 'Pricing,Podcaster Pro,$' + assumptions.podcasterProPrice + ',per month\n';
+      csv += 'Pricing,Podcaster Enterprise,$' + assumptions.podcasterEnterprisePrice + ',per month\n';
+      csv += 'Pricing,Event Creator,$' + assumptions.eventCreatorPrice + ',per month\n';
+      csv += 'Pricing,Event Organization,$' + assumptions.eventOrgPrice + ',per month\n';
+      csv += 'Pricing,Political Campaign,$' + assumptions.politicalCampaignPrice + ',per month\n';
+      csv += 'Pricing,My Page Basic,$' + assumptions.myPageBasicPrice + ',per month\n';
+      csv += 'Pricing,My Page Pro,$' + assumptions.myPageProPrice + ',per month\n';
+      csv += 'Pricing,Industry Creator,$' + assumptions.industryCreatorPrice + ',per month\n';
+      csv += '\nSTARTING CUSTOMERS,,,,\n';
+      csv += 'Starting Customers,Podcasters,' + assumptions.startingPodcasters + ',count\n';
+      csv += 'Starting Customers,Event Creators,' + assumptions.startingEventCreators + ',count\n';
+      csv += 'Starting Customers,Event Orgs,' + assumptions.startingEventOrgs + ',count\n';
+      csv += 'Starting Customers,Political,' + assumptions.startingPolitical + ',count\n';
+      csv += 'Starting Customers,My Page Users,' + assumptions.startingMyPage + ',count\n';
+      csv += 'Starting Customers,Industry Creators,' + assumptions.startingIndustryCreators + ',count\n';
+      csv += '\nGROWTH RATES,,,,\n';
+      csv += 'Growth Rates,Podcaster,' + assumptions.podcasterGrowthRate + ',%\n';
+      csv += 'Growth Rates,Event Creator,' + assumptions.eventCreatorGrowthRate + ',%\n';
+      csv += 'Growth Rates,Event Org,' + assumptions.eventOrgGrowthRate + ',%\n';
+      csv += 'Growth Rates,Political,' + assumptions.politicalGrowthRate + ',%\n';
+      csv += 'Growth Rates,My Page,' + assumptions.myPageGrowthRate + ',%\n';
+      csv += 'Growth Rates,Industry Creator,' + assumptions.industryCreatorGrowthRate + ',%\n';
+      csv += '\nTIER DISTRIBUTION,,,,\n';
+      csv += 'Tiers,Podcaster Basic %,' + assumptions.podcasterBasicPercent + ',%\n';
+      csv += 'Tiers,Podcaster Pro %,' + assumptions.podcasterProPercent + ',%\n';
+      csv += 'Tiers,Podcaster Enterprise %,' + assumptions.podcasterEnterprisePercent + ',%\n';
+      csv += 'Tiers,My Page Basic %,' + assumptions.myPageBasicPercent + ',%\n';
+      csv += 'Tiers,My Page Pro %,' + assumptions.myPageProPercent + ',%\n';
+      csv += '\nCHURN & RETENTION,,,,\n';
+      csv += 'Churn,Monthly Churn Rate,' + assumptions.monthlyChurnRate + ',%\n';
+      csv += '\nAD REVENUE,,,,\n';
+      csv += 'Ad Revenue,Average CPM,$' + assumptions.avgCPM + ',per thousand\n';
+      csv += 'Ad Revenue,Episodes per Month,' + assumptions.avgEpisodesPerMonth + ',count\n';
+      csv += 'Ad Revenue,Listeners per Episode,' + assumptions.avgListenersPerEpisode + ',count\n';
+      csv += 'Ad Revenue,Ad Fill Rate,' + assumptions.adFillRate + ',%\n';
+      csv += 'Ad Revenue,Platform Revenue Share,' + assumptions.platformAdRevShare + ',%\n';
+      csv += '\nCOST STRUCTURE,,,,\n';
+      csv += 'Costs,AI Compute Cost,$' + assumptions.aiComputeCost + ',per user/month\n';
+      csv += 'Costs,Storage Cost per GB,$' + assumptions.storageCostPerGB + ',per GB\n';
+      csv += 'Costs,Avg Storage per User,' + assumptions.avgStoragePerUserGB + ',GB\n';
+      csv += 'Costs,Bandwidth Cost per GB,$' + assumptions.bandwidthCostPerGB + ',per GB\n';
+      csv += 'Costs,Avg Bandwidth per User,' + assumptions.avgBandwidthPerUserGB + ',GB\n';
+      csv += 'Costs,Streaming Cost per Hour,$' + assumptions.streamingCostPerHour + ',per hour\n';
+      csv += 'Costs,Avg Streaming Hours,' + assumptions.avgStreamingHoursPerUser + ',hours/month\n';
+      csv += 'Costs,Support Cost,$' + assumptions.supportCostPerUser + ',per user/month\n';
+      csv += 'Costs,Marketing CAC,$' + assumptions.marketingCAC + ',per acquisition\n';
+      csv += 'Costs,Payment Processing,' + assumptions.paymentProcessingRate + ',%\n';
+    } else if (tabName === 'forecast-summary') {
+      // Summary export
+      csv = 'Month,Year,Total Users,Podcasters,Event Creators,Event Orgs,Political,My Page,Industry Creators,';
+      csv += 'Subscription Revenue,Ad Revenue,Total Revenue,Total Costs,Net Profit,Net Margin %\n';
+      
+      forecast.forEach(m => {
+        csv += `${m.month},${m.year},${m.totalUsers},${m.podcasters},${m.eventCreators},${m.eventOrgs},${m.political},${m.myPage},${m.industryCreators},`;
+        csv += `${m.totalSubscriptionRevenue.toFixed(2)},${m.adRevenuePlatform.toFixed(2)},${m.totalRevenue.toFixed(2)},${m.totalCosts.toFixed(2)},${m.netProfit.toFixed(2)},${m.netMargin.toFixed(2)}\n`;
+      });
+    } else if (tabName === 'forecast-detailed') {
+      // Complete detailed export with ALL line items
+      csv = 'Month,Year,';
+      csv += 'Total Users,Podcasters,Podcaster Basic,Podcaster Pro,Podcaster Enterprise,Event Creators,Event Orgs,Political,My Page Users,My Page Basic,My Page Pro,Industry Creators,';
+      csv += 'Podcaster Revenue,Event Creator Revenue,Event Org Revenue,Political Revenue,My Page Revenue,Industry Creator Revenue,Total Subscription Revenue,';
+      csv += 'Ad Revenue Gross,Ad Revenue Platform,Ad Revenue to Creators,';
+      csv += 'AI Costs,Storage Costs,Bandwidth Costs,Streaming Costs,Support Costs,Marketing Costs,Payment Processing Costs,Creator Payouts,Total Costs,';
       csv += 'Gross Profit,Gross Margin %,Net Profit,Net Margin %\n';
       
       forecast.forEach(m => {
-        csv += `${m.month},${m.year},${m.podcasters},${m.eventCreators},${m.eventOrgs},${m.political},${m.myPage},${m.industryCreators},${m.totalUsers},`;
-        csv += `${m.podcasterRevenue.toFixed(2)},${m.eventCreatorRevenue.toFixed(2)},${m.eventOrgRevenue.toFixed(2)},${m.politicalRevenue.toFixed(2)},${m.myPageRevenue.toFixed(2)},${m.industryCreatorRevenue.toFixed(2)},`;
-        csv += `${m.totalSubscriptionRevenue.toFixed(2)},${m.adRevenuePlatform.toFixed(2)},${m.totalRevenue.toFixed(2)},`;
+        csv += `${m.month},${m.year},`;
+        csv += `${m.totalUsers},${m.podcasters},${m.podcasterBasic},${m.podcasterPro},${m.podcasterEnterprise},${m.eventCreators},${m.eventOrgs},${m.political},${m.myPage},${m.myPageBasic},${m.myPagePro},${m.industryCreators},`;
+        csv += `${m.podcasterRevenue.toFixed(2)},${m.eventCreatorRevenue.toFixed(2)},${m.eventOrgRevenue.toFixed(2)},${m.politicalRevenue.toFixed(2)},${m.myPageRevenue.toFixed(2)},${m.industryCreatorRevenue.toFixed(2)},${m.totalSubscriptionRevenue.toFixed(2)},`;
+        csv += `${m.adRevenueGross.toFixed(2)},${m.adRevenuePlatform.toFixed(2)},${m.adRevenueToCreators.toFixed(2)},`;
         csv += `${m.aiCosts.toFixed(2)},${m.storageCosts.toFixed(2)},${m.bandwidthCosts.toFixed(2)},${m.streamingCosts.toFixed(2)},${m.supportCosts.toFixed(2)},${m.marketingCosts.toFixed(2)},${m.paymentProcessingCosts.toFixed(2)},${m.creatorPayouts.toFixed(2)},${m.totalCosts.toFixed(2)},`;
         csv += `${m.grossProfit.toFixed(2)},${m.grossMargin.toFixed(2)},${m.netProfit.toFixed(2)},${m.netMargin.toFixed(2)}\n`;
       });
@@ -335,7 +374,7 @@ export const InteractiveSpreadsheet = () => {
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
     
-    toast.success(`${tabName.charAt(0).toUpperCase() + tabName.slice(1)} exported to CSV`);
+    toast.success(`Exported to CSV successfully`);
   };
 
   // Calculate annual summaries
@@ -788,45 +827,75 @@ export const InteractiveSpreadsheet = () => {
 
         {/* Monthly Forecast Tab */}
         <TabsContent value="monthly" className="space-y-4">
-          <div className="flex justify-end">
-            <Button onClick={() => exportToCSV('forecast')} variant="outline" size="sm">
+          <div className="flex justify-end gap-2">
+            <Button onClick={() => exportToCSV('forecast-summary')} variant="outline" size="sm">
               <Download className="h-4 w-4 mr-2" />
-              Export Forecast
+              Export Summary
+            </Button>
+            <Button onClick={() => exportToCSV('forecast-detailed')} size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export All Details
             </Button>
           </div>
 
           <Card>
             <CardHeader>
               <CardTitle>36-Month Detailed Forecast</CardTitle>
-              <CardDescription>Scroll horizontally to see all columns</CardDescription>
+              <CardDescription>Scroll horizontally to see all columns • All line items included</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-16 sticky left-0 bg-background">Mo</TableHead>
+                      <TableHead className="w-12 sticky left-0 bg-background z-10">Mo</TableHead>
                       <TableHead className="w-16">Year</TableHead>
-                      <TableHead>Users</TableHead>
+                      <TableHead colSpan={7} className="text-center bg-muted/50">Customer Counts</TableHead>
+                      <TableHead colSpan={7} className="text-center bg-blue-50 dark:bg-blue-950">Revenue Streams</TableHead>
+                      <TableHead colSpan={8} className="text-center bg-orange-50 dark:bg-orange-950">Cost Breakdown</TableHead>
+                      <TableHead colSpan={4} className="text-center bg-green-50 dark:bg-green-950">Margins & Profit</TableHead>
+                    </TableRow>
+                    <TableRow>
+                      <TableHead className="sticky left-0 bg-background z-10">Mo</TableHead>
+                      <TableHead>Year</TableHead>
+                      {/* Customer Counts */}
+                      <TableHead>Total</TableHead>
                       <TableHead>Podcasters</TableHead>
                       <TableHead>Events</TableHead>
-                      <TableHead>Event Orgs</TableHead>
+                      <TableHead>Orgs</TableHead>
                       <TableHead>Political</TableHead>
                       <TableHead>My Page</TableHead>
                       <TableHead>Industry</TableHead>
-                      <TableHead>Sub Rev</TableHead>
+                      {/* Revenue */}
+                      <TableHead>Podcaster</TableHead>
+                      <TableHead>Event Creator</TableHead>
+                      <TableHead>Event Org</TableHead>
+                      <TableHead>Political</TableHead>
+                      <TableHead>My Page</TableHead>
+                      <TableHead>Industry</TableHead>
                       <TableHead>Ad Rev</TableHead>
+                      {/* Costs */}
+                      <TableHead>AI</TableHead>
+                      <TableHead>Storage</TableHead>
+                      <TableHead>Bandwidth</TableHead>
+                      <TableHead>Streaming</TableHead>
+                      <TableHead>Support</TableHead>
+                      <TableHead>Marketing</TableHead>
+                      <TableHead>Payment</TableHead>
+                      <TableHead>Creator Pay</TableHead>
+                      {/* Margins */}
                       <TableHead>Total Rev</TableHead>
-                      <TableHead>Total Costs</TableHead>
+                      <TableHead>Total Cost</TableHead>
                       <TableHead>Net Profit</TableHead>
-                      <TableHead>Net Margin</TableHead>
+                      <TableHead>Margin %</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {forecast.map((m) => (
                       <TableRow key={m.month}>
-                        <TableCell className="sticky left-0 bg-background font-medium">{m.month}</TableCell>
+                        <TableCell className="sticky left-0 bg-background font-medium z-10">{m.month}</TableCell>
                         <TableCell>{m.year}</TableCell>
+                        {/* Customers */}
                         <TableCell>{m.totalUsers}</TableCell>
                         <TableCell>{m.podcasters}</TableCell>
                         <TableCell>{m.eventCreators}</TableCell>
@@ -834,8 +903,24 @@ export const InteractiveSpreadsheet = () => {
                         <TableCell>{m.political}</TableCell>
                         <TableCell>{m.myPage}</TableCell>
                         <TableCell>{m.industryCreators}</TableCell>
-                        <TableCell>${Math.round(m.totalSubscriptionRevenue).toLocaleString()}</TableCell>
+                        {/* Revenue */}
+                        <TableCell>${Math.round(m.podcasterRevenue).toLocaleString()}</TableCell>
+                        <TableCell>${Math.round(m.eventCreatorRevenue).toLocaleString()}</TableCell>
+                        <TableCell>${Math.round(m.eventOrgRevenue).toLocaleString()}</TableCell>
+                        <TableCell>${Math.round(m.politicalRevenue).toLocaleString()}</TableCell>
+                        <TableCell>${Math.round(m.myPageRevenue).toLocaleString()}</TableCell>
+                        <TableCell>${Math.round(m.industryCreatorRevenue).toLocaleString()}</TableCell>
                         <TableCell>${Math.round(m.adRevenuePlatform).toLocaleString()}</TableCell>
+                        {/* Costs */}
+                        <TableCell>${Math.round(m.aiCosts).toLocaleString()}</TableCell>
+                        <TableCell>${Math.round(m.storageCosts).toLocaleString()}</TableCell>
+                        <TableCell>${Math.round(m.bandwidthCosts).toLocaleString()}</TableCell>
+                        <TableCell>${Math.round(m.streamingCosts).toLocaleString()}</TableCell>
+                        <TableCell>${Math.round(m.supportCosts).toLocaleString()}</TableCell>
+                        <TableCell>${Math.round(m.marketingCosts).toLocaleString()}</TableCell>
+                        <TableCell>${Math.round(m.paymentProcessingCosts).toLocaleString()}</TableCell>
+                        <TableCell>${Math.round(m.creatorPayouts).toLocaleString()}</TableCell>
+                        {/* Margins */}
                         <TableCell className="font-semibold">${Math.round(m.totalRevenue).toLocaleString()}</TableCell>
                         <TableCell>${Math.round(m.totalCosts).toLocaleString()}</TableCell>
                         <TableCell className={m.netProfit >= 0 ? "text-primary font-semibold" : "text-destructive"}>
