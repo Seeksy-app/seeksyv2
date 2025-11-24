@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, FileSpreadsheet } from "lucide-react";
+import { Download } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 
@@ -569,27 +568,14 @@ export function ProFormaSpreadsheetGenerator() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileSpreadsheet className="h-5 w-5" />
-          3-Year Financial Model Download
-        </CardTitle>
-        <CardDescription>
-          Download a comprehensive Excel spreadsheet with calculated projections across 7 tabs including Executive Summary, Assumptions, 36-Month Forecast, Annual Summary, Revenue Breakdown, Cost Breakdown, and Unit Economics.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Button 
-          onClick={generateSpreadsheet}
-          disabled={generating}
-          className="w-full"
-          size="lg"
-        >
-          <Download className="h-4 w-4 mr-2" />
-          {generating ? "Generating..." : "Download Pro Forma Spreadsheet (.xlsx)"}
-        </Button>
-      </CardContent>
-    </Card>
+    <Button 
+      onClick={generateSpreadsheet}
+      disabled={generating}
+      className="w-full"
+      size="lg"
+    >
+      <Download className="h-4 w-4 mr-2" />
+      {generating ? "Generating..." : "Download Pro Forma Spreadsheet (.xlsx)"}
+    </Button>
   );
 }
