@@ -1227,7 +1227,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                 <button
                   onClick={() => setModuleLauncherOpen(true)}
                   className="relative group cursor-pointer hover:opacity-80 transition-opacity"
-                  aria-label="Open Module Launcher"
+                  aria-label="Open Active Apps"
                 >
                   <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="10" cy="10" r="5" fill="hsl(207, 90%, 65%)" />

@@ -141,7 +141,7 @@ export const ModuleLauncher = ({ open, onOpenChange }: ModuleLauncherProps) => {
     if (error) {
       toast({
         title: "Error",
-        description: "Failed to update pinned modules",
+        description: "Failed to update pinned apps",
         variant: "destructive",
       });
       return;
@@ -150,7 +150,7 @@ export const ModuleLauncher = ({ open, onOpenChange }: ModuleLauncherProps) => {
     setPinnedModules(newPinned);
     toast({
       title: pinnedModules.includes(moduleKey) ? "Unpinned" : "Pinned",
-      description: `Module ${pinnedModules.includes(moduleKey) ? "removed from" : "added to"} sidebar`,
+      description: `App ${pinnedModules.includes(moduleKey) ? "removed from" : "added to"} sidebar`,
     });
 
     // Trigger sidebar refresh
@@ -186,10 +186,10 @@ export const ModuleLauncher = ({ open, onOpenChange }: ModuleLauncherProps) => {
       <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Module Launcher
+            Active Apps
           </DialogTitle>
           <DialogDescription className="text-base">
-            Click a module to open it. Use the pin icon to add/remove from sidebar.
+            Click an app to open it. Click the pin icon to add/remove from your sidebar.
           </DialogDescription>
         </DialogHeader>
 
@@ -241,7 +241,7 @@ export const ModuleLauncher = ({ open, onOpenChange }: ModuleLauncherProps) => {
             <Target className="h-4 w-4 text-primary" />
             <AlertTitle className="text-primary font-semibold">Keep Your Sidebar Clean! 🎯</AlertTitle>
             <AlertDescription className="text-base">
-              Only pin the modules you use most often to keep your sidebar uncluttered. All your modules are always accessible here in the launcher.
+              Only pin the apps you use most often to keep your sidebar uncluttered. All your apps are always accessible here.
             </AlertDescription>
             <Button
               variant="ghost"
