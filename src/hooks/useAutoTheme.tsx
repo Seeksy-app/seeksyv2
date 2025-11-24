@@ -1,16 +1,51 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
 import { useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 export function useAutoTheme() {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const location = useLocation();
   const isStudio = location.pathname.includes('/studio');
+  const previousTheme = useRef<string | null>(null);
+  const wasInStudio = useRef(false);
 
   useEffect(() => {
     // Always force dark mode in Studio
-    if (isStudio && resolvedTheme !== 'dark') {
-      setTheme('dark');
+    if (isStudio) {
+      if (!wasInStudio.current) {
+        // Entering Studio - save current theme
+        previousTheme.current = theme;
+        wasInStudio.current = true;
+      }
+      if (resolvedTheme !== 'dark') {
+        setTheme('dark');
+      }
+      return;
+    }
+
+    // Leaving Studio - restore user's preference from database
+    if (wasInStudio.current && !isStudio) {
+      wasInStudio.current = false;
+      
+      const restoreTheme = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: prefs } = await supabase
+          .from("user_preferences")
+          .select("theme_preference")
+          .eq("user_id", user.id)
+          .single();
+
+        if (prefs?.theme_preference) {
+          setTheme(prefs.theme_preference);
+        } else if (previousTheme.current) {
+          setTheme(previousTheme.current);
+        }
+      };
+      
+      restoreTheme();
       return;
     }
 
@@ -19,8 +54,8 @@ export function useAutoTheme() {
       return;
     }
 
-    // Skip if not in system/auto mode or if in Studio
-    if (theme !== 'system' || isStudio) return;
+    // Skip if not in system/auto mode
+    if (theme !== 'system') return;
 
     const checkTime = () => {
       const now = new Date();
