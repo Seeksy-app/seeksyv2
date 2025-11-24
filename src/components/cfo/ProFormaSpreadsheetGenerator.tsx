@@ -166,6 +166,62 @@ export function ProFormaSpreadsheetGenerator() {
     return months;
   };
 
+  // Format worksheet with styling
+  const formatWorksheet = (ws: any, data: any[][]) => {
+    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+    
+    // Auto-size columns based on content
+    const colWidths: number[] = [];
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      let maxWidth = 10;
+      for (let R = range.s.r; R <= range.e.r; ++R) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        const cell = ws[cellAddress];
+        if (cell && cell.v) {
+          const cellValue = String(cell.v);
+          maxWidth = Math.max(maxWidth, cellValue.length);
+        }
+      }
+      colWidths.push(maxWidth + 2);
+    }
+    ws['!cols'] = colWidths.map(w => ({ wch: w }));
+
+    // Apply cell formatting
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!ws[cellAddress]) continue;
+        
+        const cell = ws[cellAddress];
+        
+        // Initialize cell style
+        if (!cell.s) cell.s = {};
+        
+        // Center alignment for all cells
+        cell.s.alignment = { horizontal: "center", vertical: "center" };
+        
+        // Bold for headers (first 3 rows typically, or rows with section labels)
+        if (R < 3 || (cell.v && typeof cell.v === 'string' && 
+            (cell.v.includes('SEEKSY') || cell.v.includes('METRIC') || 
+             cell.v.includes('USER') || cell.v.includes('REVENUE') || 
+             cell.v.includes('COST') || cell.v.includes('KEY')))) {
+          cell.s.font = { bold: true };
+        }
+        
+        // Currency formatting for numeric values (except percentages)
+        if (typeof cell.v === 'number' && cell.v !== 0) {
+          const cellValue = data[R] && data[R][C];
+          const isPercentage = cellValue && typeof cellValue === 'string' && cellValue.includes('%');
+          
+          if (!isPercentage) {
+            cell.z = '$#,##0';
+            cell.t = 'n';
+          }
+        }
+      }
+    }
+  };
+
   const generateSpreadsheet = () => {
     setGenerating(true);
     
@@ -176,40 +232,51 @@ export function ProFormaSpreadsheetGenerator() {
       // TAB 1: Executive Summary
       const executiveSummary = generateExecutiveSummary(monthlyData);
       const ws1 = XLSX.utils.aoa_to_sheet(executiveSummary);
+      formatWorksheet(ws1, executiveSummary);
       XLSX.utils.book_append_sheet(workbook, ws1, "Executive Summary");
 
       // TAB 2: Assumptions
       const assumptionsSheet = generateAssumptions();
       const ws2 = XLSX.utils.aoa_to_sheet(assumptionsSheet);
+      formatWorksheet(ws2, assumptionsSheet);
       XLSX.utils.book_append_sheet(workbook, ws2, "Assumptions");
 
       // TAB 3: 36-Month Forecast
       const monthlyForecast = generateMonthlyForecast(monthlyData);
       const ws3 = XLSX.utils.aoa_to_sheet(monthlyForecast);
+      formatWorksheet(ws3, monthlyForecast);
       XLSX.utils.book_append_sheet(workbook, ws3, "36-Month Forecast");
 
       // TAB 4: Annual Summary
       const annualSummary = generateAnnualSummary(monthlyData);
       const ws4 = XLSX.utils.aoa_to_sheet(annualSummary);
+      formatWorksheet(ws4, annualSummary);
       XLSX.utils.book_append_sheet(workbook, ws4, "Annual Summary");
 
       // TAB 5: Revenue Breakdown
       const revenueBreakdown = generateRevenueBreakdown(monthlyData);
       const ws5 = XLSX.utils.aoa_to_sheet(revenueBreakdown);
+      formatWorksheet(ws5, revenueBreakdown);
       XLSX.utils.book_append_sheet(workbook, ws5, "Revenue Breakdown");
 
       // TAB 6: Cost Breakdown
       const costBreakdown = generateCostBreakdown(monthlyData);
       const ws6 = XLSX.utils.aoa_to_sheet(costBreakdown);
+      formatWorksheet(ws6, costBreakdown);
       XLSX.utils.book_append_sheet(workbook, ws6, "Cost Breakdown");
 
       // TAB 7: Unit Economics
       const unitEconomics = generateUnitEconomics(monthlyData);
       const ws7 = XLSX.utils.aoa_to_sheet(unitEconomics);
+      formatWorksheet(ws7, unitEconomics);
       XLSX.utils.book_append_sheet(workbook, ws7, "Unit Economics");
 
-      // Generate file
-      const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+      // Generate file with cellStyles enabled
+      const excelBuffer = XLSX.write(workbook, { 
+        bookType: "xlsx", 
+        type: "array",
+        cellStyles: true 
+      });
       const blob = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
