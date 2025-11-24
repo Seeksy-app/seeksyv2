@@ -69,6 +69,7 @@
     "tus-js-client": "^4.3.1",
     "vaul": "^0.9.9",
     "wavesurfer.js": "^7.11.1",
+    "xlsx": "^0.18.5",
     "zod": "^3.25.76"
   },
   "devDependencies": {

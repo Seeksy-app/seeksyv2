@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Download, TrendingUp, Users, DollarSign, Percent } from "lucide-react";
+import { ProFormaSpreadsheetGenerator } from "@/components/cfo/ProFormaSpreadsheetGenerator";
 
 const ProForma = () => {
   // Market Research Assumptions (2024-2028)
@@ -264,10 +265,11 @@ const ProForma = () => {
                 3-Year Financial Projection Model with Conservative Growth Assumptions
               </p>
             </div>
-            <Button>
-              <Download className="h-4 w-4 mr-2" />
-              Export to Excel
-            </Button>
+          </div>
+
+          {/* Full Spreadsheet Download */}
+          <div className="mb-6">
+            <ProFormaSpreadsheetGenerator />
           </div>
 
           {/* Executive Summary Cards */}
