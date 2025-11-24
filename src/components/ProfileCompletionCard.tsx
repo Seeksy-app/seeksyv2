@@ -23,8 +23,8 @@ export const ProfileCompletionCard = ({ fullName, phone, avatarUrl, bio }: Profi
   const fields = [
     { name: "Full Name", value: fullName, icon: User, page: "settings", fieldId: "full_name" },
     { name: "Phone Number", value: phone, icon: Phone, page: "settings", fieldId: "phone" },
-    { name: "Profile Picture", value: avatarUrl, icon: ImageIcon, page: "profile-edit", fieldId: null },
-    { name: "Create My Page", value: bio, icon: Layout, page: "profile-edit", fieldId: null, isMyPage: true },
+    { name: "Profile Picture", value: avatarUrl, icon: ImageIcon, page: "settings", fieldId: "avatar" },
+    { name: "Create My Page", value: bio, icon: Layout, page: "settings", fieldId: "bio", isMyPage: true },
   ];
 
   // More robust check: consider field complete if it has a truthy value with actual content
