@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Download, FileSpreadsheet } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { ProFormaSpreadsheetGenerator } from "./ProFormaSpreadsheetGenerator";
 import jsPDF from "jspdf";
@@ -1740,7 +1741,7 @@ export const InteractiveSpreadsheet = () => {
                       <p className="text-sm font-semibold">Projection Scenarios</p>
                       {selectedScenario !== 'baseline' && (
                         <Button 
-                          variant="ghost" 
+                          variant="default" 
                           size="sm" 
                           onClick={() => {
                             setSelectedScenario('baseline');
@@ -1751,48 +1752,69 @@ export const InteractiveSpreadsheet = () => {
                         </Button>
                       )}
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      <Button
-                        variant={selectedScenario === 'conservative' ? 'default' : 'outline'}
-                        size="sm"
-                        className="w-full"
-                        onClick={() => {
-                          setSelectedScenario('conservative');
-                          toast.success("Conservative scenario applied");
-                        }}
-                      >
-                        Conservative
-                      </Button>
-                      <Button
-                        variant={selectedScenario === 'growth' ? 'default' : 'outline'}
-                        size="sm"
-                        className="w-full"
-                        onClick={() => {
-                          setSelectedScenario('growth');
-                          toast.success("Growth scenario applied");
-                        }}
-                      >
-                        Growth
-                      </Button>
-                      <Button
-                        variant={selectedScenario === 'aggressive' ? 'default' : 'outline'}
-                        size="sm"
-                        className="w-full"
-                        onClick={() => {
-                          setSelectedScenario('aggressive');
-                          toast.success("Aggressive scenario applied");
-                        }}
-                      >
-                        Aggressive
-                      </Button>
-                    </div>
-                    {selectedScenario !== 'baseline' && (
-                      <p className="text-xs text-muted-foreground mt-3">
-                        {selectedScenario === 'conservative' && '📉 Lower growth rates, higher churn, reduced revenue projections'}
-                        {selectedScenario === 'growth' && '📈 Moderate growth increase, industry-standard assumptions'}
-                        {selectedScenario === 'aggressive' && '🚀 High growth rates, optimistic market conditions, maximum expansion'}
-                      </p>
-                    )}
+                    <TooltipProvider>
+                      <div className="grid grid-cols-3 gap-2">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant={selectedScenario === 'conservative' ? 'default' : 'outline'}
+                              size="sm"
+                              className="w-full"
+                              onClick={() => {
+                                setSelectedScenario('conservative');
+                                toast.success("Conservative scenario applied");
+                              }}
+                            >
+                              Conservative
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="font-semibold">Conservative</p>
+                            <p className="text-xs">30-40% reduced revenue/profit projections</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant={selectedScenario === 'growth' ? 'default' : 'outline'}
+                              size="sm"
+                              className="w-full"
+                              onClick={() => {
+                                setSelectedScenario('growth');
+                                toast.success("Growth scenario applied");
+                              }}
+                            >
+                              Growth
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="font-semibold">Growth</p>
+                            <p className="text-xs">15-30% increased projections</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant={selectedScenario === 'aggressive' ? 'default' : 'outline'}
+                              size="sm"
+                              className="w-full"
+                              onClick={() => {
+                                setSelectedScenario('aggressive');
+                                toast.success("Aggressive scenario applied");
+                              }}
+                            >
+                              Aggressive
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="font-semibold">Aggressive</p>
+                            <p className="text-xs">50-120% increased projections with maximum expansion</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </TooltipProvider>
                   </div>
 
                   <div className="mt-8 p-4 bg-muted rounded-lg">
