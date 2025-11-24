@@ -1200,7 +1200,22 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
               <img src={seeksyLogo} alt="Seeksy" className="h-10 w-10" />
             </Link>
             {!collapsed && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <NavigationCustomizer 
+                          sections={getVisibleSections()}
+                          onSave={handleSectionsSave}
+                        />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Customize Sidebar</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -1224,21 +1239,6 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>Apps</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div>
-                        <NavigationCustomizer 
-                          sections={getVisibleSections()}
-                          onSave={handleSectionsSave}
-                        />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Customize Sidebar</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
