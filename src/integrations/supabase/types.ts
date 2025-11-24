@@ -2088,6 +2088,51 @@ export type Database = {
           },
         ]
       }
+      clients: {
+        Row: {
+          address: string | null
+          company_name: string | null
+          contact_email: string
+          contact_name: string
+          contact_phone: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          company_name?: string | null
+          contact_email: string
+          contact_name: string
+          contact_phone?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          company_name?: string | null
+          contact_email?: string
+          contact_name?: string
+          contact_phone?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       constituent_requests: {
         Row: {
           address: string | null
@@ -2753,6 +2798,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      document_templates: {
+        Row: {
+          created_at: string | null
+          document_content: string
+          id: string
+          signature_fields: Json | null
+          template_name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          document_content: string
+          id?: string
+          signature_fields?: Json | null
+          template_name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          document_content?: string
+          id?: string
+          signature_fields?: Json | null
+          template_name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       email_campaigns: {
         Row: {
@@ -4407,6 +4482,56 @@ export type Database = {
           },
         ]
       }
+      podcast_directories: {
+        Row: {
+          approved_at: string | null
+          created_at: string | null
+          directory_name: string
+          directory_specific_url: string | null
+          directory_url: string | null
+          id: string
+          notes: string | null
+          podcast_id: string
+          status: string | null
+          submitted_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          created_at?: string | null
+          directory_name: string
+          directory_specific_url?: string | null
+          directory_url?: string | null
+          id?: string
+          notes?: string | null
+          podcast_id: string
+          status?: string | null
+          submitted_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          created_at?: string | null
+          directory_name?: string
+          directory_specific_url?: string | null
+          directory_url?: string | null
+          id?: string
+          notes?: string | null
+          podcast_id?: string
+          status?: string | null
+          submitted_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "podcast_directories_podcast_id_fkey"
+            columns: ["podcast_id"]
+            isOneToOne: false
+            referencedRelation: "podcasts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       podcasts: {
         Row: {
           author_email: string | null
@@ -4958,6 +5083,53 @@ export type Database = {
         }
         Relationships: []
       }
+      rss_migrations: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          migration_notes: string | null
+          migration_status: string | null
+          new_rss_url: string
+          old_rss_url: string
+          podcast_id: string
+          redirect_setup: boolean | null
+          redirect_verified_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          migration_notes?: string | null
+          migration_status?: string | null
+          new_rss_url: string
+          old_rss_url: string
+          podcast_id: string
+          redirect_setup?: boolean | null
+          redirect_verified_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          migration_notes?: string | null
+          migration_status?: string | null
+          new_rss_url?: string
+          old_rss_url?: string
+          podcast_id?: string
+          redirect_setup?: boolean | null
+          redirect_verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rss_migrations_podcast_id_fkey"
+            columns: ["podcast_id"]
+            isOneToOne: false
+            referencedRelation: "podcasts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sales_commissions: {
         Row: {
           campaign_revenue: number
@@ -5068,6 +5240,85 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      signature_documents: {
+        Row: {
+          access_token: string
+          client_id: string | null
+          created_at: string | null
+          document_content: string
+          document_title: string
+          id: string
+          pdf_url: string | null
+          recipient_email: string
+          recipient_name: string
+          sent_at: string | null
+          signature_data: Json | null
+          signed_at: string | null
+          status: string | null
+          template_id: string | null
+          ticket_id: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          client_id?: string | null
+          created_at?: string | null
+          document_content: string
+          document_title: string
+          id?: string
+          pdf_url?: string | null
+          recipient_email: string
+          recipient_name: string
+          sent_at?: string | null
+          signature_data?: Json | null
+          signed_at?: string | null
+          status?: string | null
+          template_id?: string | null
+          ticket_id?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          client_id?: string | null
+          created_at?: string | null
+          document_content?: string
+          document_title?: string
+          id?: string
+          pdf_url?: string | null
+          recipient_email?: string
+          recipient_name?: string
+          sent_at?: string | null
+          signature_data?: Json | null
+          signed_at?: string | null
+          status?: string | null
+          template_id?: string | null
+          ticket_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signature_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signature_documents_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "document_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signature_documents_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       signup_sheets: {
         Row: {
@@ -5873,6 +6124,97 @@ export type Database = {
         }
         Relationships: []
       }
+      ticket_comments: {
+        Row: {
+          comment_text: string
+          created_at: string | null
+          id: string
+          is_internal: boolean | null
+          ticket_id: string
+          user_id: string | null
+        }
+        Insert: {
+          comment_text: string
+          created_at?: string | null
+          id?: string
+          is_internal?: boolean | null
+          ticket_id: string
+          user_id?: string | null
+        }
+        Update: {
+          comment_text?: string
+          created_at?: string | null
+          id?: string
+          is_internal?: boolean | null
+          ticket_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_comments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tickets: {
+        Row: {
+          assigned_to: string | null
+          category: string | null
+          client_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          priority: string | null
+          resolved_at: string | null
+          status: string | null
+          ticket_number: string
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          priority?: string | null
+          resolved_at?: string | null
+          status?: string | null
+          ticket_number: string
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          priority?: string | null
+          resolved_at?: string | null
+          status?: string | null
+          ticket_number?: string
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       usage_tracking: {
         Row: {
           created_at: string | null
@@ -6205,6 +6547,7 @@ export type Database = {
         Returns: string
       }
       generate_investor_code: { Args: never; Returns: string }
+      generate_ticket_number: { Args: never; Returns: string }
       get_current_usage: {
         Args: { _feature_type: string; _user_id: string }
         Returns: number

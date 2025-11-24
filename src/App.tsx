@@ -141,6 +141,9 @@ import CreateProposal from "./pages/CreateProposal";
 import Invoices from "./pages/Invoices";
 import CreateInvoice from "./pages/CreateInvoice";
 import InvestorPortal from "./pages/InvestorPortal";
+import ProjectManagement from "./pages/ProjectManagement";
+import SignDocument from "./pages/SignDocument";
+import PodcastDistribution from "./pages/PodcastDistribution";
 
 const queryClient = new QueryClient();
 
@@ -220,7 +223,10 @@ const AppContent = () => {
               <Route path="/auth" element={<Auth />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/pricing" element={<Pricing />} />
-              <Route path="/investor" element={<InvestorPortal />} />
+            <Route path="/investor" element={<InvestorPortal />} />
+            <Route path="/project-management" element={<ProjectManagement />} />
+            <Route path="/sign/:token" element={<SignDocument />} />
+            <Route path="/podcast-distribution" element={<PodcastDistribution />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/cookies" element={<Cookies />} />
