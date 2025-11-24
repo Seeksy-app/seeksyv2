@@ -5,7 +5,7 @@ import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Check, Trophy, Clapperboard, Landmark, User as UserIcon, Building2, Instagram, Facebook, Linkedin, Twitter, Youtube, Music, CheckSquare, DollarSign, TrendingUp, CreditCard, Wallet, Info, Edit2, MessageSquare, FileText, Rss, CalendarDays, ClipboardList, BarChart3, QrCode, Mail, Smartphone, Search } from "lucide-react";
+import { Loader2, Check, Trophy, Clapperboard, Landmark, User as UserIcon, Building2, Instagram, Facebook, Linkedin, Twitter, Youtube, Music, CheckSquare, DollarSign, TrendingUp, CreditCard, Wallet, Info, Edit2, MessageSquare, FileText, Rss, CalendarDays, ClipboardList, BarChart3, QrCode, Mail, Smartphone, Search, Mic, Sparkles } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,11 @@ const Integrations = () => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [modules, setModules] = useState<ModuleStatus>({
+    my_page: false,
+    ai_assistant: false,
+    meetings: false,
+    contacts: false,
+    podcasts: false,
     awards: false,
     media: false,
     civic: false,
@@ -42,7 +47,6 @@ const Integrations = () => {
     team_chat: false,
     blog: false,
     rss_podcast_posting: false,
-    my_page: false,
     advertiser: false,
     events: false,
     signup_sheets: false,
@@ -107,6 +111,11 @@ const Integrations = () => {
 
       if (prefs) {
         setModules({
+          my_page: (prefs as any).my_page_enabled === true,
+          ai_assistant: (prefs as any).ai_assistant_enabled === true,
+          meetings: (prefs as any).meetings_enabled !== false, // Always enabled unless explicitly disabled
+          contacts: (prefs as any).contacts_enabled === true,
+          podcasts: (prefs as any).podcasts_enabled === true,
           awards: prefs.module_awards_enabled || false,
           media: prefs.module_media_enabled || false,
           civic: prefs.module_civic_enabled || false,
@@ -117,7 +126,6 @@ const Integrations = () => {
           team_chat: (prefs as any).module_team_chat_enabled || false,
           blog: (prefs as any).module_blog_enabled || false,
           rss_podcast_posting: (prefs as any).module_rss_podcast_posting_enabled || false,
-          my_page: (prefs as any).my_page_enabled !== false,
           advertiser: (prefs as any).module_advertiser_enabled || false,
           events: (prefs as any).module_events_enabled || false,
           signup_sheets: (prefs as any).module_signup_sheets_enabled || false,
@@ -340,6 +348,81 @@ const Integrations = () => {
             </h2>
             
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {matchesSearch('My Page', 'Create your shareable digital identity page with social links, videos, bookings, and more. Perfect for creators and influencers.') && (
+                <IntegrationCard
+                  id="my_page"
+                  icon={UserIcon}
+                  iconGradient="from-teal-500 to-cyan-600"
+                  title="My Page"
+                  description="Create your shareable digital identity page with social links, videos, bookings, and more. Perfect for creators and influencers."
+                  tooltip="Enable to create your customizable public profile page"
+                  isActive={modules.my_page}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('my_page')}
+                  onEdit={() => handleEditMetadata('my_page')}
+                />
+              )}
+
+              {matchesSearch('AI Assistant', 'Get help from your AI assistant. Ask questions, get insights, and automate tasks across your workspace.') && (
+                <IntegrationCard
+                  id="ai_assistant"
+                  icon={Sparkles}
+                  iconGradient="from-purple-500 to-pink-600"
+                  title="AI Assistant"
+                  description="Get help from your AI assistant. Ask questions, get insights, and automate tasks across your workspace."
+                  tooltip="Enable AI-powered assistance across your workspace"
+                  isActive={modules.ai_assistant}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('ai_assistant')}
+                  onEdit={() => handleEditMetadata('ai_assistant')}
+                />
+              )}
+
+              {matchesSearch('Meetings', 'Schedule and manage meetings with booking links, calendar integrations, and automated reminders.') && (
+                <IntegrationCard
+                  id="meetings"
+                  icon={CalendarDays}
+                  iconGradient="from-blue-500 to-indigo-600"
+                  title="Meetings"
+                  description="Schedule and manage meetings with booking links, calendar integrations, and automated reminders."
+                  tooltip="Always enabled - core scheduling functionality"
+                  isActive={modules.meetings}
+                  isAdmin={isAdmin}
+                  onToggle={() => {}} // Meetings cannot be disabled
+                  onEdit={() => handleEditMetadata('meetings')}
+                />
+              )}
+
+              {matchesSearch('Contacts', 'Manage your contacts, organize lists, and track engagement. Build and nurture your network.') && (
+                <IntegrationCard
+                  id="contacts"
+                  icon={UserIcon}
+                  iconGradient="from-green-500 to-emerald-600"
+                  title="Contacts"
+                  description="Manage your contacts, organize lists, and track engagement. Build and nurture your network."
+                  tooltip="Enable contact management and CRM features"
+                  isActive={modules.contacts}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('contacts')}
+                  onEdit={() => handleEditMetadata('contacts')}
+                />
+              )}
+
+              {matchesSearch('Podcasts', 'Create, publish, and distribute podcasts. Manage episodes, RSS feeds, and podcast analytics.') && (
+                <IntegrationCard
+                  id="podcasts"
+                  icon={Mic}
+                  iconGradient="from-amber-500 to-orange-600"
+                  title="Podcasts"
+                  description="Create, publish, and distribute podcasts. Manage episodes, RSS feeds, and podcast analytics."
+                  tooltip="Enable podcast creation and distribution"
+                  isActive={modules.podcasts}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('podcasts')}
+                  onEdit={() => handleEditMetadata('podcasts')}
+                />
+              )}
+
               {matchesSearch('Awards', 'Create and manage award programs with voting, sponsorships, and live ceremony streaming.') && (
                 <IntegrationCard
                   id="awards"
@@ -487,21 +570,6 @@ const Integrations = () => {
                   isAdmin={isAdmin}
                   onToggle={() => toggleModule('rss_podcast_posting')}
                   onEdit={() => handleEditMetadata('rss_podcast_posting')}
-                />
-              )}
-
-              {matchesSearch('My Page', 'Create your shareable digital identity page with social links, videos, bookings, and more. Perfect for creators and influencers.') && (
-                <IntegrationCard
-                  id="my_page"
-                  icon={UserIcon}
-                  iconGradient="from-teal-500 to-cyan-600"
-                  title="My Page"
-                  description="Create your shareable digital identity page with social links, videos, bookings, and more. Perfect for creators and influencers."
-                  tooltip="Enable to create your customizable public profile page"
-                  isActive={modules.my_page}
-                  isAdmin={isAdmin}
-                  onToggle={() => toggleModule('my_page')}
-                  onEdit={() => handleEditMetadata('my_page')}
                 />
               )}
 

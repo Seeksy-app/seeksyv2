@@ -105,8 +105,16 @@ export const ModuleLauncher = ({ open, onOpenChange }: ModuleLauncherProps) => {
       .single();
 
     if (data) {
-      const enabled: string[] = ["my_page", "ai_assistant", "meetings", "contacts", "podcasts"]; // Always enabled
+      const enabled: string[] = [];
       
+      // Core apps - check if explicitly enabled (or enabled by default for meetings)
+      if ((data as any).my_page_enabled === true) enabled.push("my_page");
+      if ((data as any).ai_assistant_enabled === true) enabled.push("ai_assistant");
+      if ((data as any).meetings_enabled !== false) enabled.push("meetings"); // Meetings is always enabled unless explicitly disabled
+      if ((data as any).contacts_enabled === true) enabled.push("contacts");
+      if ((data as any).podcasts_enabled === true) enabled.push("podcasts");
+      
+      // Optional apps
       if (data.module_events_enabled) enabled.push("events");
       if (data.module_signup_sheets_enabled) enabled.push("signup_sheets");
       if (data.module_polls_enabled) enabled.push("polls");
