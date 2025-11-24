@@ -197,65 +197,81 @@ export const ModuleLauncher = ({ open, onOpenChange }: ModuleLauncherProps) => {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-6">
-          {availableModules.map((module, index) => {
-            const Icon = module.icon;
-            const isPinned = pinnedModules.includes(module.key);
-            const gradientClass = moduleColors[index % moduleColors.length];
+        {availableModules.length === 0 ? (
+          <div className="py-16 flex flex-col items-center justify-center gap-4">
+            <div className="h-24 w-24 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+              <Grid3x3 className="h-12 w-12 text-primary/50" />
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-xl font-semibold text-foreground">Add your first app</h3>
+              <p className="text-muted-foreground max-w-md">
+                Visit the Integrations page to enable apps, then come back here to pin them to your sidebar.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-6">
+              {availableModules.map((module, index) => {
+                const Icon = module.icon;
+                const isPinned = pinnedModules.includes(module.key);
+                const gradientClass = moduleColors[index % moduleColors.length];
 
-            return (
-              <Card
-                key={module.key}
-                className={cn(
-                  "relative cursor-pointer transition-all hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 border-0 overflow-hidden group"
-                )}
-                onClick={() => handleModuleClick(module.route)}
-              >
-                <div className={cn("absolute inset-0 bg-gradient-to-br opacity-15", gradientClass)} />
-                <CardContent className="relative p-6 flex flex-col items-center gap-3">
-                  <div className={cn("p-4 rounded-xl bg-gradient-to-br shadow-lg transition-transform group-hover:scale-110", gradientClass)}>
-                    <Icon className="h-8 w-8 text-white" />
-                  </div>
-                  <span className="font-semibold text-center text-base">{module.label}</span>
-                  
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background/50"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      togglePin(module.key);
-                    }}
+                return (
+                  <Card
+                    key={module.key}
+                    className={cn(
+                      "relative cursor-pointer transition-all hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-1 border-0 overflow-hidden group"
+                    )}
+                    onClick={() => handleModuleClick(module.route)}
                   >
-                    <Pin
-                      className={cn(
-                        "h-4 w-4",
-                        isPinned ? "fill-primary text-primary" : "text-muted-foreground"
-                      )}
-                    />
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                    <div className={cn("absolute inset-0 bg-gradient-to-br opacity-15", gradientClass)} />
+                    <CardContent className="relative p-6 flex flex-col items-center gap-3">
+                      <div className={cn("p-4 rounded-xl bg-gradient-to-br shadow-lg transition-transform group-hover:scale-110", gradientClass)}>
+                        <Icon className="h-8 w-8 text-white" />
+                      </div>
+                      <span className="font-semibold text-center text-base">{module.label}</span>
+                      
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background/50"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          togglePin(module.key);
+                        }}
+                      >
+                        <Pin
+                          className={cn(
+                            "h-4 w-4",
+                            isPinned ? "fill-primary text-primary" : "text-muted-foreground"
+                          )}
+                        />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
 
-        {showTooltips && (
-          <Alert className="mt-4 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
-            <Target className="h-4 w-4 text-primary" />
-            <AlertTitle className="text-primary font-semibold">Keep Your Sidebar Clean! 🎯</AlertTitle>
-            <AlertDescription className="text-base">
-              Only pin the apps you use most often to keep your sidebar uncluttered. All your apps are always accessible here.
-            </AlertDescription>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-2 right-2"
-              onClick={() => setShowTooltips(false)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </Alert>
+            {showTooltips && (
+              <Alert className="mt-4 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+                <Target className="h-4 w-4 text-primary" />
+                <AlertTitle className="text-primary font-semibold">Keep Your Sidebar Clean! 🎯</AlertTitle>
+                <AlertDescription className="text-base">
+                  Only pin the apps you use most often to keep your sidebar uncluttered. All your apps are always accessible here.
+                </AlertDescription>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 right-2"
+                  onClick={() => setShowTooltips(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </Alert>
+            )}
+          </>
         )}
       </DialogContent>
     </Dialog>
