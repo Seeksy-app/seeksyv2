@@ -185,21 +185,37 @@ export function ProFormaSpreadsheetGenerator() {
     }
     ws['!cols'] = colWidths.map(w => ({ wch: w }));
 
-    // Apply number formatting for currency values
+    // Apply formatting: bold headers, center alignment, and currency
     for (let R = range.s.r; R <= range.e.r; ++R) {
       for (let C = range.s.c; C <= range.e.c; ++C) {
         const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
         if (!ws[cellAddress]) continue;
         
         const cell = ws[cellAddress];
+        const cellValue = data[R] && data[R][C];
+        
+        // Initialize cell style
+        if (!cell.s) cell.s = {};
+        
+        // Bold titles - first row and section headers (uppercase or containing colons)
+        const isHeader = R === 0 || 
+                        (cellValue && typeof cellValue === 'string' && 
+                         (cellValue.includes(':') || cellValue === cellValue.toUpperCase() && cellValue.length > 3));
+        
+        if (isHeader) {
+          cell.s.font = { bold: true };
+        }
+        
+        // Center align all columns except the first column (C > 0)
+        if (C > 0) {
+          cell.s.alignment = { horizontal: "center" };
+        }
         
         // Currency formatting for numeric values (except percentages)
         if (typeof cell.v === 'number' && cell.v !== 0) {
-          const cellValue = data[R] && data[R][C];
           const isPercentage = cellValue && typeof cellValue === 'string' && cellValue.includes('%');
           
           if (!isPercentage) {
-            // Apply currency format
             cell.z = '$#,##0';
           }
         }
