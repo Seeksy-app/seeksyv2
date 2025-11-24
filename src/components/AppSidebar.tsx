@@ -38,7 +38,9 @@ import {
   Megaphone,
   Target,
   ListChecks,
-  FolderKanban
+  FolderKanban,
+  Network,
+  Code
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import seeksyLogo from "@/assets/seeksy-logo.png";
@@ -377,6 +379,8 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     { title: "Team", url: "/team", icon: Contact },
     { title: "Integrations", url: "/integrations", icon: Puzzle },
     { title: "System Status", url: "/system-status", icon: Activity },
+    { title: "Architecture", url: "/seeksy-architecture", icon: Network },
+    { title: "Tech Stack", url: "/cfo-calculators", icon: Code },
   ];
 
   // Advertisers see the same settings items
