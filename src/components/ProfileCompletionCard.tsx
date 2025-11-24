@@ -10,10 +10,10 @@ interface ProfileCompletionCardProps {
   fullName: string;
   phone: string;
   avatarUrl: string | null;
-  bio: string | null;
+  myPageVisited: boolean;
 }
 
-export const ProfileCompletionCard = ({ fullName, phone, avatarUrl, bio }: ProfileCompletionCardProps) => {
+export const ProfileCompletionCard = ({ fullName, phone, avatarUrl, myPageVisited }: ProfileCompletionCardProps) => {
   const navigate = useNavigate();
   const [isDismissed, setIsDismissed] = useState(() => {
     return localStorage.getItem("profileCompletionDismissed") === "true";
@@ -24,7 +24,7 @@ export const ProfileCompletionCard = ({ fullName, phone, avatarUrl, bio }: Profi
     { name: "Full Name", value: fullName, icon: User, page: "settings", fieldId: "full_name" },
     { name: "Phone Number", value: phone, icon: Phone, page: "settings", fieldId: "phone" },
     { name: "Profile Picture", value: avatarUrl, icon: ImageIcon, page: "settings", fieldId: "avatar" },
-    { name: "Create My Page", value: bio, icon: Layout, page: "profile-edit", fieldId: "bio", isMyPage: true },
+    { name: "Create My Page", value: myPageVisited ? "visited" : "", icon: Layout, page: "profile-edit", fieldId: "bio", isMyPage: true },
   ];
 
   // More robust check: consider field complete if it has a truthy value with actual content

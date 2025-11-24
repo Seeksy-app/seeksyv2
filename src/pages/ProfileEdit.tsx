@@ -221,6 +221,16 @@ const ProfileEdit = () => {
 
   const loadProfile = async (userId: string) => {
     try {
+      // Mark that user has visited their My Page
+      await supabase
+        .from("user_preferences")
+        .upsert({
+          user_id: userId,
+          my_page_visited: true,
+        }, {
+          onConflict: 'user_id'
+        });
+
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("*")

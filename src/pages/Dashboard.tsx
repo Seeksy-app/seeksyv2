@@ -125,7 +125,7 @@ const Dashboard = () => {
     full_name: "",
     phone: "",
     avatar_url: null as string | null,
-    bio: null as string | null,
+    my_page_visited: false,
   });
   const [widgets, setWidgets] = useState<WidgetConfig[]>(() => {
     const saved = localStorage.getItem("dashboard-widgets");
@@ -242,11 +242,18 @@ const Dashboard = () => {
         ? '+1234567890' 
         : (profileData?.account_phone || "");
 
+      // Load my_page_visited from user_preferences
+      const { data: userPrefs } = await supabase
+        .from("user_preferences")
+        .select("my_page_visited")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
       setProfileData({
         full_name: profileData?.account_full_name || "",
         phone: displayPhone,
         avatar_url: displayAvatar,
-        bio: profileData?.bio || null,
+        my_page_visited: userPrefs?.my_page_visited || false,
       });
 
       const [
@@ -578,12 +585,12 @@ const Dashboard = () => {
 
         {/* Profile Completion */}
         <div className="mb-8">
-          <ProfileCompletionCard
-            fullName={profileData.full_name}
-            phone={profileData.phone}
-            avatarUrl={profileData.avatar_url}
-            bio={profileData.bio}
-          />
+        <ProfileCompletionCard
+          fullName={profileData.full_name}
+          phone={profileData.phone}
+          avatarUrl={profileData.avatar_url}
+          myPageVisited={profileData.my_page_visited}
+        />
         </div>
 
         {/* Social Accounts Banner */}
