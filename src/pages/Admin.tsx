@@ -15,6 +15,7 @@ import AdminCRM from "@/components/admin/AdminCRM";
 import { AdminOverview } from "@/components/admin/AdminOverview";
 import { AdminInternalChat } from "@/components/admin/AdminInternalChat";
 import ImpersonationBanner from "@/components/admin/ImpersonationBanner";
+import { PricingManagement } from "@/components/admin/PricingManagement";
 
 interface UserProfile {
   id: string;
@@ -306,7 +307,7 @@ export default function Admin() {
         </Dialog>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9">
+          <TabsList className="grid w-full grid-cols-10">
             <TabsTrigger value="overview" className="gap-2">
               <BarChart3 className="h-4 w-4" />
               Overview
@@ -316,6 +317,10 @@ export default function Admin() {
               CRM
             </TabsTrigger>
             <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
+            <TabsTrigger value="pricing" className="gap-2">
+              <DollarSign className="h-4 w-4" />
+              Pricing
+            </TabsTrigger>
             <TabsTrigger value="cfo" className="gap-2">
               <DollarSign className="h-4 w-4" />
               CFO
@@ -364,6 +369,10 @@ export default function Admin() {
                 <SubscriptionsAdmin demoMode={demoMode} />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="pricing" className="space-y-6">
+            <PricingManagement />
           </TabsContent>
 
           <TabsContent value="cfo" className="space-y-6">
