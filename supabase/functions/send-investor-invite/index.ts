@@ -39,15 +39,15 @@ const handler = async (req: Request): Promise<Response> => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <style>
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f5; }
-            .container { background-color: #ffffff; }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
+            .container { background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+            .header { background: linear-gradient(135deg, hsl(207, 100%, 50%) 0%, hsl(45, 100%, 60%) 100%); color: white; padding: 30px; text-align: center; }
             .content { background: #ffffff; padding: 30px; }
             .code-box { background: #f3f4f6; border: 2px dashed #9ca3af; border-radius: 8px; padding: 20px; text-align: center; margin: 25px 0; }
-            .access-code { font-size: 32px; font-weight: bold; letter-spacing: 4px; color: #667eea; font-family: 'Courier New', monospace; }
-            .button { display: inline-block; background: #667eea; color: #ffffff !important; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 20px 0; }
-            .instructions { background: #f9fafb; border-left: 4px solid #667eea; padding: 15px; margin: 20px 0; }
+            .access-code { font-size: 32px; font-weight: bold; letter-spacing: 4px; color: hsl(207, 100%, 50%); font-family: 'Courier New', monospace; }
+            .button { display: inline-block; background: hsl(207, 100%, 50%); color: #ffffff !important; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 20px 0; }
+            .instructions { background: #f9fafb; border-left: 4px solid hsl(207, 100%, 50%); padding: 15px; margin: 20px 0; }
             .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 14px; }
-            .link-text { color: #667eea; word-break: break-all; }
+            .link-text { color: hsl(207, 100%, 50%); word-break: break-all; }
           </style>
         </head>
         <body>
