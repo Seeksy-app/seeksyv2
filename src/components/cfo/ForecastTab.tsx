@@ -10,7 +10,8 @@ import { ShareInvestorDialog } from "./ShareInvestorDialog";
 import { useState } from "react";
 
 interface ForecastTabProps {
-  assumptions: {
+  isReadOnly?: boolean;
+  assumptions?: {
     avgSubscriptionPrice: number;
     monthlyUserGrowth: number;
     conversionRate: number;
@@ -27,8 +28,25 @@ interface ForecastTabProps {
   };
 }
 
-export const ForecastTab = ({ assumptions }: ForecastTabProps) => {
+export const ForecastTab = ({ assumptions: providedAssumptions, isReadOnly = false }: ForecastTabProps) => {
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  
+  // Default assumptions
+  const assumptions = providedAssumptions || {
+    avgSubscriptionPrice: 19,
+    monthlyUserGrowth: 15,
+    conversionRate: 5,
+    churnRate: 5,
+    hostReadCpm: 25,
+    announcerReadCpm: 18,
+    programmaticAudioCpm: 12,
+    videoAdsCpm: 15,
+    displayAdsCpm: 8,
+    creatorPayoutPercent: 70,
+    aiCostPerEpisode: 2.5,
+    storageCostPerGB: 0.023,
+    bandwidthCostPerGB: 0.05,
+  };
   
   // Market growth assumptions (research-based)
   const marketGrowth = {
@@ -321,10 +339,12 @@ export const ForecastTab = ({ assumptions }: ForecastTabProps) => {
             <Printer className="h-4 w-4 mr-2" />
             Print
           </Button>
-          <Button onClick={handleShareInvestor} variant="default" size="sm">
-            <Share2 className="h-4 w-4 mr-2" />
-            Share with Investors
-          </Button>
+          {!isReadOnly && (
+            <Button onClick={handleShareInvestor} variant="default" size="sm">
+              <Share2 className="h-4 w-4 mr-2" />
+              Share with Investors
+            </Button>
+          )}
         </div>
       </div>
 
@@ -576,7 +596,7 @@ export const ForecastTab = ({ assumptions }: ForecastTabProps) => {
         </CardContent>
       </Card>
       
-      <ShareInvestorDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} />
+      {!isReadOnly && <ShareInvestorDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} />}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Lock, FileSpreadsheet, TrendingUp } from "lucide-react";
+import { ForecastTab } from "@/components/cfo/ForecastTab";
+import { InteractiveSpreadsheet } from "@/components/cfo/InteractiveSpreadsheet";
 
 export default function InvestorPortal() {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const [accessCode, setAccessCode] = useState(searchParams.get("code") || "");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -138,39 +139,11 @@ export default function InvestorPortal() {
           </TabsList>
 
           <TabsContent value="forecast">
-            <Card>
-              <CardHeader>
-                <CardTitle>3-Year Financial Forecast</CardTitle>
-                <CardDescription>
-                  Seeksy's financial projections and growth trajectory
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center text-muted-foreground py-8">
-                  <FileSpreadsheet className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                  <p>Forecast data will be displayed here</p>
-                  <p className="text-sm mt-2">This is a read-only view of the company's financial projections</p>
-                </div>
-              </CardContent>
-            </Card>
+            <ForecastTab isReadOnly={true} />
           </TabsContent>
 
           <TabsContent value="models">
-            <Card>
-              <CardHeader>
-                <CardTitle>Financial Models</CardTitle>
-                <CardDescription>
-                  Detailed financial modeling and assumptions
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center text-muted-foreground py-8">
-                  <FileSpreadsheet className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                  <p>Financial models will be displayed here</p>
-                  <p className="text-sm mt-2">View AI-generated and custom pro forma models</p>
-                </div>
-              </CardContent>
-            </Card>
+            <InteractiveSpreadsheet />
           </TabsContent>
         </Tabs>
       </div>
