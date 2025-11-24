@@ -304,42 +304,77 @@ export default function MediaLibrary() {
 
       console.log('Uploading directly to R2...');
 
-      // Upload directly to R2 using XMLHttpRequest for better reliability with large files
-      await new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
+      // For files larger than 100MB, use resumable TUS upload
+      if (fileSizeMB > 100) {
+        console.log('Using TUS resumable upload for large file...');
         
-        xhr.upload.addEventListener('progress', (e) => {
-          if (e.lengthComputable) {
-            const percentComplete = (e.loaded / e.total) * 100;
-            setUploadProgress(Math.round(percentComplete));
-          }
-        });
+        // Import tus dynamically
+        const tus = await import('tus-js-client');
+        
+        await new Promise<void>((resolve, reject) => {
+          const upload = new tus.Upload(file, {
+            endpoint: urlData.presignedUrl,
+            retryDelays: [0, 3000, 5000, 10000, 20000],
+            chunkSize: 5 * 1024 * 1024, // 5MB chunks
+            metadata: {
+              filename: file.name,
+              filetype: file.type,
+            },
+            onError: (error) => {
+              console.error('TUS upload error:', error);
+              reject(error);
+            },
+            onProgress: (bytesUploaded, bytesTotal) => {
+              const percentage = ((bytesUploaded / bytesTotal) * 100).toFixed(2);
+              setUploadProgress(Math.round(Number(percentage)));
+            },
+            onSuccess: () => {
+              console.log('TUS upload completed');
+              resolve();
+            },
+          });
 
-        xhr.addEventListener('load', () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            resolve();
-          } else {
-            reject(new Error(`Upload failed with status ${xhr.status}`));
-          }
+          upload.start();
         });
+      } else {
+        // Use XMLHttpRequest for smaller files
+        await new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          
+          xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable) {
+              const percentComplete = (e.loaded / e.total) * 100;
+              setUploadProgress(Math.round(percentComplete));
+            }
+          });
 
-        xhr.addEventListener('error', () => {
-          reject(new Error('Network error during upload'));
+          xhr.addEventListener('load', () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve();
+            } else {
+              reject(new Error(`Upload failed with status ${xhr.status}: ${xhr.statusText}`));
+            }
+          });
+
+          xhr.addEventListener('error', (e) => {
+            console.error('XHR error:', e);
+            reject(new Error('Network error during upload. Please check your connection and try again.'));
+          });
+
+          xhr.addEventListener('timeout', () => {
+            reject(new Error('Upload timed out. Please try again.'));
+          });
+
+          xhr.addEventListener('abort', () => {
+            reject(new Error('Upload cancelled'));
+          });
+
+          xhr.open('PUT', urlData.presignedUrl);
+          xhr.setRequestHeader('Content-Type', file.type);
+          xhr.timeout = 1800000; // 30 minute timeout
+          xhr.send(file);
         });
-
-        xhr.addEventListener('timeout', () => {
-          reject(new Error('Upload timed out'));
-        });
-
-        xhr.addEventListener('abort', () => {
-          reject(new Error('Upload cancelled'));
-        });
-
-        xhr.open('PUT', urlData.presignedUrl);
-        xhr.setRequestHeader('Content-Type', file.type);
-        xhr.timeout = 600000; // 10 minute timeout for large files
-        xhr.send(file);
-      });
+      }
 
       console.log('R2 upload complete, creating database record...');
 
