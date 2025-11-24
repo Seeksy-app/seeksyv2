@@ -367,7 +367,7 @@ const CFODashboard = () => {
         <div className="max-w-full">
           <Button 
             variant="ghost" 
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/admin')}
             className="mb-2 -ml-2"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
