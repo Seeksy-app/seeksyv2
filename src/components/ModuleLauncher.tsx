@@ -37,6 +37,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
 
 interface ModuleLauncherProps {
   open: boolean;
@@ -161,95 +164,94 @@ export const ModuleLauncher = ({ open, onOpenChange }: ModuleLauncherProps) => {
 
   const availableModules = ALL_MODULES.filter(m => enabledModules.includes(m.key));
 
+  const moduleColors = [
+    "from-blue-500 to-cyan-500",
+    "from-purple-500 to-pink-500",
+    "from-orange-500 to-red-500",
+    "from-green-500 to-emerald-500",
+    "from-yellow-500 to-amber-500",
+    "from-indigo-500 to-blue-500",
+    "from-pink-500 to-rose-500",
+    "from-teal-500 to-cyan-500",
+    "from-violet-500 to-purple-500",
+    "from-amber-500 to-orange-500",
+    "from-lime-500 to-green-500",
+    "from-sky-500 to-blue-500",
+    "from-fuchsia-500 to-pink-500",
+    "from-rose-500 to-red-500",
+  ];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Module Launcher</DialogTitle>
-          <DialogDescription>
-            Click a module to open it. Right-click or use the pin icon to add/remove from sidebar.
+          <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+            Module Launcher
+          </DialogTitle>
+          <DialogDescription className="text-base">
+            Click a module to open it. Use the pin icon to add/remove from sidebar.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
-          {availableModules.map((module) => {
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-6">
+          {availableModules.map((module, index) => {
             const Icon = module.icon;
             const isPinned = pinnedModules.includes(module.key);
+            const gradientClass = moduleColors[index % moduleColors.length];
 
             return (
-              <TooltipProvider key={module.key}>
-                <Tooltip open={showTooltips && module.key === "meetings"}>
-                  <TooltipTrigger asChild>
-                    <Card
-                      className="relative p-6 cursor-pointer hover:bg-accent/50 transition-colors group"
-                      onClick={() => handleModuleClick(module.route)}
-                      onContextMenu={(e) => {
-                        e.preventDefault();
-                        togglePin(module.key);
-                      }}
-                    >
-                      <div className="flex flex-col items-center gap-3">
-                        <div className="p-3 rounded-lg bg-primary/10 text-primary">
-                          <Icon className="h-6 w-6" />
-                        </div>
-                        <span className="text-sm font-medium text-center">{module.label}</span>
-                      </div>
-                      
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          togglePin(module.key);
-                        }}
-                      >
-                        {isPinned ? (
-                          <PinOff className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <Pin className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </Button>
-                      
-                      {isPinned && (
-                        <div className="absolute top-2 left-2">
-                          <Pin className="h-4 w-4 text-primary fill-primary" />
-                        </div>
+              <Card
+                key={module.key}
+                className={cn(
+                  "relative cursor-pointer transition-all hover:shadow-xl hover:-translate-y-1 border-0 overflow-hidden group"
+                )}
+                onClick={() => handleModuleClick(module.route)}
+              >
+                <div className={cn("absolute inset-0 bg-gradient-to-br opacity-10", gradientClass)} />
+                <CardContent className="relative p-6 flex flex-col items-center gap-3">
+                  <div className={cn("p-4 rounded-xl bg-gradient-to-br shadow-lg", gradientClass)}>
+                    <Icon className="h-8 w-8 text-white" />
+                  </div>
+                  <span className="font-semibold text-center text-base">{module.label}</span>
+                  
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background/50"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      togglePin(module.key);
+                    }}
+                  >
+                    <Pin
+                      className={cn(
+                        "h-4 w-4",
+                        isPinned ? "fill-primary text-primary" : "text-muted-foreground"
                       )}
-                    </Card>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs">
-                    <p className="font-semibold mb-1">💡 Pro Tip</p>
-                    <p>Click to open • Right-click or use pin icon to add to sidebar</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                    />
+                  </Button>
+                </CardContent>
+              </Card>
             );
           })}
         </div>
 
         {showTooltips && (
-          <div className="mt-4 p-4 bg-muted rounded-lg">
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-full bg-primary/10">
-                <Grid3x3 className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1">
-                <h4 className="font-semibold mb-1">Keep Your Sidebar Clean! 🎯</h4>
-                <p className="text-sm text-muted-foreground">
-                  Only pin the modules you use most often to keep your sidebar uncluttered. 
-                  All your modules are always accessible here in the launcher.
-                </p>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowTooltips(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+          <Alert className="mt-4 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+            <Target className="h-4 w-4 text-primary" />
+            <AlertTitle className="text-primary font-semibold">Keep Your Sidebar Clean! 🎯</AlertTitle>
+            <AlertDescription className="text-base">
+              Only pin the modules you use most often to keep your sidebar uncluttered. All your modules are always accessible here in the launcher.
+            </AlertDescription>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-2 right-2"
+              onClick={() => setShowTooltips(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </Alert>
         )}
       </DialogContent>
     </Dialog>
