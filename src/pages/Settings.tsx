@@ -47,7 +47,7 @@ const Settings = () => {
   });
   const [profileData, setProfileData] = useState({
     avatar_url: null as string | null,
-    bio: null as string | null,
+    my_page_visited: false,
     username: null as string | null,
   });
   const [notificationPrefs, setNotificationPrefs] = useState({
@@ -100,18 +100,18 @@ const Settings = () => {
         email: authUser.email || "",
       });
 
-      setProfileData({
-        avatar_url: profile?.account_avatar_url || null,
-        bio: profile?.bio || null,
-        username: profile?.username || null,
-      });
-
       // Load notification preferences
       const { data: prefs } = await supabase
         .from("user_preferences")
         .select("*")
         .eq("user_id", authUser.id)
         .single();
+
+      setProfileData({
+        avatar_url: profile?.account_avatar_url || null,
+        my_page_visited: prefs?.my_page_visited || false,
+        username: profile?.username || null,
+      });
 
       if (prefs) {
         setNotificationPrefs({
@@ -337,7 +337,7 @@ const Settings = () => {
 
         <div className="space-y-6">
           {/* My Page Preview Link */}
-          {profileData.username && profileData.bio && (
+          {profileData.username && profileData.my_page_visited && (
             <Card className="bg-primary/5 border-primary/20">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
@@ -363,7 +363,7 @@ const Settings = () => {
             fullName={formData.full_name}
             phone={formData.phone}
             avatarUrl={profileData.avatar_url}
-            bio={profileData.bio}
+            myPageVisited={profileData.my_page_visited}
           />
 
           {/* Account Information */}

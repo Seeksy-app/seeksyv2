@@ -5868,6 +5868,7 @@ export type Database = {
           module_project_management_enabled: boolean | null
           module_rss_podcast_posting_enabled: boolean | null
           module_team_chat_enabled: boolean | null
+          my_page_visited: boolean | null
           task_reminder_enabled: boolean | null
           task_reminder_frequency: string | null
           theme_preference: string | null
@@ -5887,6 +5888,7 @@ export type Database = {
           module_project_management_enabled?: boolean | null
           module_rss_podcast_posting_enabled?: boolean | null
           module_team_chat_enabled?: boolean | null
+          my_page_visited?: boolean | null
           task_reminder_enabled?: boolean | null
           task_reminder_frequency?: string | null
           theme_preference?: string | null
@@ -5906,6 +5908,7 @@ export type Database = {
           module_project_management_enabled?: boolean | null
           module_rss_podcast_posting_enabled?: boolean | null
           module_team_chat_enabled?: boolean | null
+          my_page_visited?: boolean | null
           task_reminder_enabled?: boolean | null
           task_reminder_frequency?: string | null
           theme_preference?: string | null
