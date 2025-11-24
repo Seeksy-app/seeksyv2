@@ -337,7 +337,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       ];
 
   const seeksiesItems = [
-    ...(pinnedModules.includes("meetings") ? [{ title: "Meetings", url: "/meetings", icon: Calendar }] : []),
+    { title: "Meetings", url: "/meetings", icon: Calendar }, // Always visible by default
     ...(pinnedModules.includes("events") && modulePrefs.events ? [{ title: "Events", url: "/events", icon: CalendarDays }] : []),
     ...(pinnedModules.includes("signup_sheets") && modulePrefs.signup_sheets ? [{ title: "Sign-up Sheets", url: "/signup-sheets", icon: ClipboardList }] : []),
     ...(pinnedModules.includes("polls") && modulePrefs.polls ? [{ title: "Polls", url: "/polls", icon: BarChart3 }] : []),
@@ -353,18 +353,16 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   ];
 
   const rssPodcastItems = [
-    { title: "Manage RSS Feeds", url: "/podcasts", icon: Mic },
+    ...(pinnedModules.includes("podcasts") && modulePrefs.rss_podcast ? [
+      { title: "Manage RSS Feeds", url: "/podcasts", icon: Mic },
+    ] : []),
   ];
 
   const blogItems = [
-    { title: "Manage Blog", url: "/my-blog", icon: FileText },
-    { title: "Add Post", url: "/blog/create", icon: Plus },
-  ];
-
-  const mediaItems = [
-    { title: "Studio", url: "/studio", icon: Clapperboard },
-    { title: "Media Library", url: "/media-library", icon: FileAudio },
-    { title: "Create Clips", url: "/create-clips", icon: TrendingUp },
+    ...(pinnedModules.includes("blog") && modulePrefs.blog ? [
+      { title: "Manage Blog", url: "/my-blog", icon: FileText },
+      { title: "Add Post", url: "/blog/create", icon: Plus },
+    ] : []),
   ];
 
   const salesItems = [
@@ -373,25 +371,36 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     { title: "Create Campaign", url: "/sales/create-campaign", icon: Plus },
   ];
 
+  const engagementItems = [
+    ...(pinnedModules.includes("contacts") ? [{ title: "Contacts", url: "/crm", icon: Users }] : []),
+    ...(pinnedModules.includes("marketing") && modulePrefs.marketing ? [{ title: "Marketing", url: "/crm", icon: Send }] : []),
+    ...(pinnedModules.includes("sms") && modulePrefs.sms ? [{ title: "SMS", url: "/sms", icon: Smartphone }] : []),
+    ...(pinnedModules.includes("team_chat") && modulePrefs.team_chat ? [{ title: "Team Chat", url: "/team-chat", icon: MessageSquare }] : []),
+  ];
+
+  const mediaItems = [
+    ...(pinnedModules.includes("media") && modulePrefs.media ? [
+      { title: "Studio", url: "/studio", icon: Clapperboard },
+      { title: "Media Library", url: "/media-library", icon: FileAudio },
+      { title: "Create Clips", url: "/create-clips", icon: TrendingUp },
+    ] : []),
+  ];
+
   const creatorMonetizationItems = [
-    { title: "Ad Library", url: "/creator/campaign-browser", icon: Target },
-    { title: "Create Ad", url: "/podcast-ads", icon: Plus },
-    { title: "Revenue", url: "/podcast-revenue", icon: TrendingUp },
+    ...(pinnedModules.includes("monetization") && modulePrefs.monetization ? [
+      { title: "Ad Library", url: "/creator/campaign-browser", icon: Target },
+      { title: "Create Ad", url: "/podcast-ads", icon: Plus },
+      { title: "Revenue", url: "/podcast-revenue", icon: TrendingUp },
+    ] : []),
   ];
 
   const projectManagementItems = [
-    { title: "Task Manager", url: "/tasks", icon: ListChecks },
-    { title: "Tickets", url: "/tickets", icon: CheckSquare },
-    { title: "Proposals", url: "/proposals", icon: FileCheck },
-    { title: "Invoices", url: "/invoices", icon: FileText },
-  ];
-
-  const engagementItems = [
-    { title: "Contacts", url: "/crm", icon: Users },
-    { title: "Email", url: "/email-history", icon: Mail },
-    ...(modulePrefs.marketing ? [{ title: "Marketing", url: "/crm", icon: Send }] : []),
-    ...(modulePrefs.sms ? [{ title: "SMS", url: "/sms", icon: Smartphone }] : []),
-    ...(modulePrefs.team_chat ? [{ title: "Team Chat", url: "/team-chat", icon: MessageSquare }] : []),
+    ...(pinnedModules.includes("project_management") && modulePrefs.project_management ? [
+      { title: "Task Manager", url: "/tasks", icon: ListChecks },
+      { title: "Tickets", url: "/tickets", icon: CheckSquare },
+      { title: "Proposals", url: "/proposals", icon: FileCheck },
+      { title: "Invoices", url: "/invoices", icon: FileText },
+    ] : []),
   ];
 
   const civicItems = [
@@ -654,7 +663,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   };
 
   const renderMediaSection = () => {
-    if (isAdvertiser || !modulePrefs.media) return null;
+    if (isAdvertiser || !modulePrefs.media || mediaItems.length === 0) return null;
     return (
       <Collapsible
         key="media"
@@ -706,7 +715,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   };
 
   const renderMonetizationSection = () => {
-    if (isAdvertiser || !modulePrefs.monetization) return null;
+    if (isAdvertiser || !modulePrefs.monetization || creatorMonetizationItems.length === 0) return null;
     return (
       <Collapsible
         key="monetization"
@@ -758,7 +767,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   };
 
   const renderProjectManagementSection = () => {
-    if (isAdvertiser || !modulePrefs.project_management) return null;
+    if (isAdvertiser || !modulePrefs.project_management || projectManagementItems.length === 0) return null;
     return (
       <Collapsible
         key="project_management"
@@ -810,7 +819,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   };
 
   const renderEngagementSection = () => {
-    if (isAdvertiser) return null;
+    if (isAdvertiser || engagementItems.length === 0) return null;
     return (
       <Collapsible
         key="engagement"
@@ -1022,7 +1031,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
   const renderRssPodcastSection = () => {
     // Hide for advertisers or if module is deactivated
-    if (isAdvertiser || !modulePrefs.rss_podcast) return null;
+    if (isAdvertiser || !modulePrefs.rss_podcast || rssPodcastItems.length === 0) return null;
     return (
       <Collapsible
         key="rss_podcast"
@@ -1075,7 +1084,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
   const renderBlogSection = () => {
     // Hide for advertisers or if module is deactivated
-    if (isAdvertiser || !modulePrefs.blog) return null;
+    if (isAdvertiser || !modulePrefs.blog || blogItems.length === 0) return null;
     return (
       <Collapsible
         key="blog"
