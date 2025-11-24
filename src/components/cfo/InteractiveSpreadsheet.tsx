@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -288,8 +288,8 @@ export const InteractiveSpreadsheet = () => {
 
   const forecast = calculateForecast();
 
-  // Calculate scenario-adjusted AI projections
-  const getScenarioProjections = () => {
+  // Calculate scenario-adjusted AI projections with useMemo for optimal reactivity
+  const scenarioProjections = useMemo(() => {
     const baseline = {
       year1Revenue: 2100000,
       year2Revenue: 8700000,
@@ -330,9 +330,7 @@ export const InteractiveSpreadsheet = () => {
       default:
         return baseline;
     }
-  };
-
-  const scenarioProjections = getScenarioProjections();
+  }, [selectedScenario]);
 
   const formatCurrency = (value: number) => {
     if (value >= 1000000) {
