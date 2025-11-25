@@ -114,7 +114,33 @@ interface MediaFile {
   created_at: string;
   edit_transcript?: any;
   source: string;
+  markers?: any[];
 }
+
+interface Marker {
+  id: string;
+  type: 'camera_focus' | 'cut' | 'ad_placement' | 'lower_third' | 'broll' | 'clip_suggestion';
+  timestamp: number;
+}
+
+const getMarkerIcon = (type: string) => {
+  switch (type) {
+    case 'ad_placement':
+      return { icon: DollarSign, color: 'text-yellow-500 bg-yellow-500/10', label: 'Ads' };
+    case 'camera_focus':
+      return { icon: Video, color: 'text-blue-500 bg-blue-500/10', label: 'Camera Focus' };
+    case 'cut':
+      return { icon: Scissors, color: 'text-red-500 bg-red-500/10', label: 'Cuts/Trims' };
+    case 'lower_third':
+      return { icon: Edit3, color: 'text-green-500 bg-green-500/10', label: 'Lower Thirds' };
+    case 'broll':
+      return { icon: Film, color: 'text-purple-500 bg-purple-500/10', label: 'B-roll' };
+    case 'clip_suggestion':
+      return { icon: Sparkles, color: 'text-orange-500 bg-orange-500/10', label: 'Clip Suggestions' };
+    default:
+      return { icon: Video, color: 'text-gray-500 bg-gray-500/10', label: type };
+  }
+};
 
 interface Podcast {
   id: string;
@@ -222,6 +248,37 @@ export default function MediaLibrary() {
         .order("created_at", { ascending: false });
 
       if (mediaFilesError) throw mediaFilesError;
+
+      // Fetch markers for AI-edited files
+      const aiEditedIds = [...(recordingsData || []), ...(mediaFilesData || [])]
+        .filter(f => f.edit_status === 'edited')
+        .map(f => f.id);
+
+      if (aiEditedIds.length > 0) {
+        const { data: editsData } = await supabase
+          .from("video_post_production_edits")
+          .select("media_file_id, markers")
+          .in("media_file_id", aiEditedIds);
+
+        // Merge markers into files
+        const editsMap = new Map(editsData?.map(e => [e.media_file_id, e.markers]) || []);
+        
+        if (recordingsData) {
+          recordingsData.forEach((r: any) => {
+            if (editsMap.has(r.id)) {
+              r.markers = editsMap.get(r.id);
+            }
+          });
+        }
+        
+        if (mediaFilesData) {
+          mediaFilesData.forEach((f: any) => {
+            if (editsMap.has(f.id)) {
+              f.markers = editsMap.get(f.id);
+            }
+          });
+        }
+      }
 
       // Fetch podcasts
       const { data: podcastsData, error: podcastsError } = await supabase
@@ -1490,11 +1547,32 @@ export default function MediaLibrary() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div className="flex gap-1">
-                              <Badge variant="secondary" className="text-xs">Camera Focus</Badge>
-                              <Badge variant="secondary" className="text-xs">Trim</Badge>
-                              <Badge variant="secondary" className="text-xs">Ads</Badge>
-                            </div>
+                            {file.markers && file.markers.length > 0 ? (
+                              <div className="flex flex-wrap gap-1">
+                                {Array.from(new Set(file.markers.map((m: Marker) => m.type))).map((type) => {
+                                  const { icon: Icon, color, label } = getMarkerIcon(type as string);
+                                  const count = file.markers.filter((m: Marker) => m.type === type).length;
+                                  
+                                  return (
+                                    <TooltipProvider key={type}>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Badge variant="secondary" className={`text-xs gap-1 ${color}`}>
+                                            <Icon className="h-3 w-3" />
+                                            {count > 1 && <span className="font-medium">×{count}</span>}
+                                          </Badge>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>{label}</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <Badge variant="secondary" className="text-xs">No markers</Badge>
+                            )}
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">
                             {format(new Date(file.created_at), "MMM d, yyyy")}
