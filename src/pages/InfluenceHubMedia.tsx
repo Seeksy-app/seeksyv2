@@ -28,6 +28,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { format } from "date-fns";
+import { VideoProcessingDialog } from "@/components/media/VideoProcessingDialog";
+import { VideoComparisonView } from "@/components/media/VideoComparisonView";
 
 interface MediaFile {
   id: string;
@@ -47,6 +49,10 @@ export default function InfluenceHubMedia() {
   const [aiEditsDialogOpen, setAiEditsDialogOpen] = useState(false);
   const [selectedFileForEdits, setSelectedFileForEdits] = useState<MediaFile | null>(null);
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
+  const [processingDialogOpen, setProcessingDialogOpen] = useState(false);
+  const [comparisonDialogOpen, setComparisonDialogOpen] = useState(false);
+  const [currentAnalysis, setCurrentAnalysis] = useState<any>(null);
+  const [selectedMediaFile, setSelectedMediaFile] = useState<MediaFile | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -79,34 +85,20 @@ export default function InfluenceHubMedia() {
   };
 
   const handleProcessWithAI = async (file: MediaFile) => {
-    setIsProcessing(file.id);
-    try {
-      const { error } = await supabase.functions.invoke("ai-post-production", {
-        body: {
-          recordingId: file.id,
-          audioUrl: file.file_url,
-          isMediaFile: true,
-        },
-      });
+    // Open processing dialog and start AI analysis
+    setSelectedMediaFile(file);
+    setProcessingDialogOpen(true);
+  };
 
-      if (error) throw error;
-
-      toast({
-        title: "Processing started",
-        description: "Your content is being optimized with AI",
-      });
-
-      await fetchMediaFiles();
-    } catch (error) {
-      console.error("Error processing:", error);
-      toast({
-        title: "Error",
-        description: "Failed to process with AI",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(null);
-    }
+  const handleProcessingComplete = (analysis: any) => {
+    setCurrentAnalysis(analysis);
+    setProcessingDialogOpen(false);
+    setComparisonDialogOpen(true);
+    
+    toast({
+      title: "AI Analysis Complete",
+      description: "Review the suggested improvements for your video",
+    });
   };
 
   const handleDownload = (url: string, name: string) => {
@@ -406,6 +398,24 @@ export default function InfluenceHubMedia() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Video Processing Dialog */}
+      <VideoProcessingDialog
+        open={processingDialogOpen}
+        onOpenChange={setProcessingDialogOpen}
+        jobType="ai_edit"
+        onComplete={handleProcessingComplete}
+      />
+
+      {/* Video Comparison View */}
+      {selectedMediaFile && currentAnalysis && (
+        <VideoComparisonView
+          open={comparisonDialogOpen}
+          onOpenChange={setComparisonDialogOpen}
+          mediaFile={selectedMediaFile}
+          analysis={currentAnalysis}
+        />
+      )}
     </div>
   );
 }
