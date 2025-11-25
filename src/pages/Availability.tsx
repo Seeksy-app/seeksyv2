@@ -209,7 +209,13 @@ const Availability = () => {
     
     setConnectingCalendar(true);
     try {
-      const { data, error } = await supabase.functions.invoke('google-calendar-auth');
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const { data, error } = await supabase.functions.invoke('google-calendar-auth', {
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`
+        }
+      });
       
       if (error) throw error;
       
