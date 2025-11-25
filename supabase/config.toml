@@ -23,3 +23,33 @@ verify_jwt = true
 
 [functions.submit-public-ticket]
 verify_jwt = false
+
+[functions.send-sms]
+verify_jwt = true
+
+[functions.send-meeting-confirmation-sms]
+verify_jwt = false
+
+[functions.send-event-confirmation-sms]
+verify_jwt = false
+
+[functions.send-ticket-assignment-sms]
+verify_jwt = false
+
+[functions.send-admin-new-user-sms]
+verify_jwt = false
+
+[functions.send-meeting-reminders]
+verify_jwt = false
+
+[functions.zoom-auth]
+verify_jwt = true
+
+[functions.zoom-callback]
+verify_jwt = false
+
+[functions.google-calendar-auth]
+verify_jwt = true
+
+[functions.google-calendar-callback]
+verify_jwt = false
