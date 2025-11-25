@@ -753,11 +753,6 @@ export default function Tasks() {
                 </Button>
               </div>
             </div>
-            {task.description && (
-              <CardDescription className="text-xs mt-2">
-                {task.description}
-              </CardDescription>
-            )}
           </CardHeader>
           <CardContent className="pt-0">
             <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
