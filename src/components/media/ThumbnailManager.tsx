@@ -20,25 +20,43 @@ export function ThumbnailManager({ mediaId, currentThumbnail, onThumbnailUpdate 
   const [videoDescription, setVideoDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [generatedThumbnail, setGeneratedThumbnail] = useState<string | null>(null);
+  const [generatedThumbnails, setGeneratedThumbnails] = useState<string[]>([]);
+  const [selectedThumbnail, setSelectedThumbnail] = useState<string | null>(null);
   const [uploadedThumbnail, setUploadedThumbnail] = useState<string | null>(currentThumbnail || null);
 
   const handleGenerateThumbnail = async () => {
     setIsGenerating(true);
+    setGeneratedThumbnails([]);
+    setSelectedThumbnail(null);
+    
     try {
-      const { data, error } = await supabase.functions.invoke('generate-ai-thumbnail', {
-        body: { 
-          videoTitle: videoTitle || undefined,
-          videoDescription: videoDescription || undefined,
-          style: "eye-catching"
+      // Generate 3 thumbnail options
+      const promises = Array(3).fill(0).map(() => 
+        supabase.functions.invoke('generate-ai-thumbnail', {
+          body: { 
+            videoTitle: videoTitle || undefined,
+            videoDescription: videoDescription || undefined,
+            style: "eye-catching"
+          }
+        })
+      );
+
+      const results = await Promise.all(promises);
+      const thumbnails: string[] = [];
+      
+      for (const result of results) {
+        if (result.error) {
+          console.error('Error generating thumbnail:', result.error);
+        } else if (result.data?.imageUrl) {
+          thumbnails.push(result.data.imageUrl);
         }
-      });
+      }
 
-      if (error) throw error;
-
-      if (data?.imageUrl) {
-        setGeneratedThumbnail(data.imageUrl);
-        toast.success("Thumbnail generated successfully");
+      if (thumbnails.length > 0) {
+        setGeneratedThumbnails(thumbnails);
+        toast.success(`Generated ${thumbnails.length} thumbnail option${thumbnails.length > 1 ? 's' : ''}`);
+      } else {
+        toast.error("Failed to generate thumbnails");
       }
     } catch (error: any) {
       console.error('Error generating thumbnail:', error);
@@ -172,36 +190,72 @@ export function ThumbnailManager({ mediaId, currentThumbnail, onThumbnailUpdate 
             )}
           </Button>
 
-          {generatedThumbnail && (
-            <Card className="border-primary/20">
-              <CardContent className="p-3">
-                <Label className="text-sm font-medium mb-2 block">Generated Thumbnail</Label>
-                <img 
-                  src={generatedThumbnail} 
-                  alt="Generated thumbnail"
-                  className="w-full h-auto rounded-md mb-3"
-                />
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => downloadImage(generatedThumbnail)}
-                    className="flex-1"
+          {generatedThumbnails.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">Choose your thumbnail</Label>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleGenerateThumbnail}
+                  disabled={isGenerating}
+                >
+                  {isGenerating ? (
+                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                  ) : (
+                    <Sparkles className="h-3 w-3 mr-1" />
+                  )}
+                  Regenerate
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-3">
+                {generatedThumbnails.map((thumbnail, index) => (
+                  <Card 
+                    key={index}
+                    className={`cursor-pointer transition-all ${
+                      selectedThumbnail === thumbnail 
+                        ? 'border-primary ring-2 ring-primary/20' 
+                        : 'border-muted hover:border-primary/50'
+                    }`}
+                    onClick={() => setSelectedThumbnail(thumbnail)}
                   >
-                    <Download className="h-3 w-3 mr-1" />
-                    Download
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => saveThumbnail(generatedThumbnail)}
-                    className="flex-1"
-                  >
-                    <ImageIcon className="h-3 w-3 mr-1" />
-                    Use This
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                    <CardContent className="p-3">
+                      <img 
+                        src={thumbnail} 
+                        alt={`Thumbnail option ${index + 1}`}
+                        className="w-full h-auto rounded-md mb-2"
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            downloadImage(thumbnail);
+                          }}
+                          className="flex-1 text-xs"
+                        >
+                          <Download className="h-3 w-3 mr-1" />
+                          Download
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            saveThumbnail(thumbnail);
+                          }}
+                          className="flex-1 text-xs"
+                        >
+                          <ImageIcon className="h-3 w-3 mr-1" />
+                          Add
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
           )}
         </TabsContent>
 

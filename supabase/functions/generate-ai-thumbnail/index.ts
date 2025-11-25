@@ -11,6 +11,7 @@ interface GenerateThumbnailRequest {
   videoTitle?: string;
   videoDescription?: string;
   style?: string;
+  count?: number; // Number of thumbnails to generate
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -19,13 +20,13 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { videoTitle, videoDescription, style = "eye-catching" }: GenerateThumbnailRequest = await req.json();
+    const { videoTitle, videoDescription, style = "eye-catching", count = 1 }: GenerateThumbnailRequest = await req.json();
 
     const prompt = videoTitle 
       ? `Create an eye-catching, professional YouTube-style thumbnail for a video titled "${videoTitle}". ${videoDescription ? `Video is about: ${videoDescription}.` : ''} Style: ${style}, bold, vibrant colors, professional composition, 16:9 aspect ratio, high resolution.`
       : `Create an eye-catching, professional YouTube-style thumbnail. Style: ${style}, bold, vibrant colors, professional composition, 16:9 aspect ratio, high resolution.`;
 
-    console.log(`Generating thumbnail with prompt: ${prompt}`);
+    console.log(`Generating ${count} thumbnail(s) with prompt: ${prompt}`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -66,16 +67,26 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const data = await response.json();
+    console.log("AI Gateway response:", JSON.stringify(data, null, 2));
+    
     const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!imageUrl) {
-      throw new Error("Failed to generate thumbnail");
+      console.error("No image URL in response. Full response:", data);
+      throw new Error("Failed to generate thumbnail - no image URL in response");
     }
 
-    console.log("Successfully generated thumbnail");
+    console.log("Successfully generated thumbnail:", imageUrl);
 
+    // For multiple thumbnails, we'd need to generate them in sequence
+    // For now, return single thumbnail with structure that supports multiple
+    const thumbnails = [imageUrl];
+    
     return new Response(
-      JSON.stringify({ imageUrl }),
+      JSON.stringify({ 
+        imageUrl,  // Keep for backward compatibility
+        thumbnails // Array format for multiple thumbnails
+      }),
       {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
