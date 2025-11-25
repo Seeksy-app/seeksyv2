@@ -284,7 +284,7 @@ export default function InvestorPortal() {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="forecast" className="space-y-8">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 h-12 bg-muted/30 border border-border">
+          <TabsList className="grid w-full max-w-md grid-cols-3 h-12 bg-muted/30 border border-border">
             <TabsTrigger value="forecast" className="text-base font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <TrendingUp className="h-5 w-5 mr-2" />
               3-Year Forecast
@@ -300,22 +300,22 @@ export default function InvestorPortal() {
           </TabsList>
 
           <TabsContent value="forecast" className="space-y-6">
-            <div className="grid lg:grid-cols-3 gap-6 items-start">
+            <div className="grid lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
                 <ForecastTab isReadOnly={true} />
               </div>
-              <div className="h-full min-h-[600px]">
+              <div className="self-start">
                 <CFOAIChat />
               </div>
             </div>
           </TabsContent>
 
           <TabsContent value="models" className="space-y-6">
-            <div className="grid lg:grid-cols-3 gap-6 items-start">
+            <div className="grid lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
                 <InteractiveSpreadsheet isReadOnly={true} />
               </div>
-              <div className="h-full min-h-[600px]">
+              <div className="self-start">
                 <CFOAIChat />
               </div>
             </div>
