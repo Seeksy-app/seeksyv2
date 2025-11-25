@@ -845,12 +845,41 @@ export default function Tasks() {
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="category">Category</Label>
-                  <Input
-                    id="category"
+                  <Select
                     value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    placeholder="e.g., influencehub"
-                  />
+                    onValueChange={(value) => {
+                      if (value === "create_new") {
+                        // User wants to create new category
+                        const newCategory = prompt("Enter new category name:");
+                        if (newCategory && newCategory.trim()) {
+                          setFormData({ ...formData, category: newCategory.trim().toLowerCase() });
+                        }
+                      } else {
+                        setFormData({ ...formData, category: value });
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="general">General</SelectItem>
+                      <SelectItem value="development">Development</SelectItem>
+                      <SelectItem value="design">Design</SelectItem>
+                      <SelectItem value="marketing">Marketing</SelectItem>
+                      <SelectItem value="content">Content</SelectItem>
+                      <SelectItem value="sales">Sales</SelectItem>
+                      <SelectItem value="support">Support</SelectItem>
+                      <SelectItem value="influencehub">InfluenceHub</SelectItem>
+                      <SelectItem value="ai">AI</SelectItem>
+                      <SelectItem value="integrations">Integrations</SelectItem>
+                      <SelectItem value="task-manager">Task Manager</SelectItem>
+                      <SelectItem value="blog">Blog</SelectItem>
+                      <SelectItem value="create_new" className="text-primary font-medium">
+                        + Create New Category
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="priority">Priority</Label>
