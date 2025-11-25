@@ -205,10 +205,18 @@ export default function MediaLibrary() {
   };
 
   const formatDuration = (seconds: number | null) => {
-    if (!seconds) return '-';
+    if (seconds === null || seconds === undefined) return '-';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${String(secs).padStart(2, '0')}`;
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const year = date.getFullYear();
+    return `${month}/${day}/${year}`;
   };
 
   const sortedMediaFiles = [...mediaFiles]
@@ -1061,9 +1069,9 @@ export default function MediaLibrary() {
                          <TableCell className="text-sm">
                            {formatDuration(file.duration_seconds)}
                          </TableCell>
-                         <TableCell className="text-sm">
-                           {format(new Date(file.created_at), "MMM dd, yyyy")}
-                         </TableCell>
+                          <TableCell className="text-sm whitespace-nowrap">
+                            {formatDate(file.created_at)}
+                          </TableCell>
                         <TableCell className="text-sm">
                           {file.file_size_bytes ? `${(file.file_size_bytes / 1024 / 1024).toFixed(1)} MB` : '-'}
                         </TableCell>
@@ -1367,9 +1375,9 @@ export default function MediaLibrary() {
                          <TableCell className="text-sm">
                            {formatDuration(recording.duration_seconds)}
                          </TableCell>
-                         <TableCell className="text-sm">
-                           {format(new Date(recording.created_at), "MMM dd, yyyy")}
-                         </TableCell>
+                          <TableCell className="text-sm whitespace-nowrap">
+                            {formatDate(recording.created_at)}
+                          </TableCell>
                         <TableCell className="text-sm">
                           {recording.file_size_bytes ? `${(recording.file_size_bytes / 1024 / 1024).toFixed(1)} MB` : '-'}
                         </TableCell>
@@ -1596,8 +1604,8 @@ export default function MediaLibrary() {
                               <Badge variant="secondary" className="text-xs">No markers</Badge>
                             )}
                           </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {format(new Date(file.created_at), "MMM d, yyyy")}
+                          <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                            {formatDate(file.created_at)}
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-2">
