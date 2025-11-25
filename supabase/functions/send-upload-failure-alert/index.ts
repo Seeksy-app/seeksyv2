@@ -76,6 +76,37 @@ serve(async (req) => {
       console.error('Failed to log upload failure:', dbError);
     }
 
+    // Create in-app notification for admins
+    const { data: adminRoles } = await supabaseAdmin
+      .from('user_roles')
+      .select('user_id')
+      .in('role', ['admin', 'super_admin']);
+
+    if (adminRoles && adminRoles.length > 0) {
+      const adminUserIds = adminRoles.map(a => a.user_id);
+      
+      // Create urgent notification for each admin
+      const notifications = adminUserIds.map(adminId => ({
+        user_id: adminId,
+        title: '🚨 Upload Failure Alert',
+        message: `${alertData.userName} failed to upload "${alertData.fileName}" (${(alertData.fileSize / (1024 * 1024)).toFixed(1)} MB) - ${alertData.errorType}`,
+        type: 'urgent',
+        category: 'upload_failure',
+        link: '/admin/upload-logs',
+        read: false
+      }));
+
+      const { error: notifError } = await supabaseAdmin
+        .from('notifications')
+        .insert(notifications);
+
+      if (notifError) {
+        console.error('Failed to create notifications:', notifError);
+      } else {
+        console.log(`Created ${notifications.length} urgent notifications for admins`);
+      }
+    }
+
     // Send email alert to admins
     const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
     const senderEmail = Deno.env.get('SENDER_EMAIL_HELLO') || 'hello@seeksy.io';

@@ -8,6 +8,7 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import seeksyLogo from "@/assets/seeksy-logo.png";
 import { MasterSearch } from "@/components/MasterSearch";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 interface HeaderProps {
   user?: User | null;
@@ -57,19 +58,22 @@ const Header = ({ user }: HeaderProps) => {
 
           <nav className="flex items-center gap-3">
             {user && (
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={toggleTheme}
-                className="h-9 w-9"
-                title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-              >
-                {theme === "dark" ? (
-                  <Sun className="h-[1.2rem] w-[1.2rem]" />
-                ) : (
-                  <Moon className="h-[1.2rem] w-[1.2rem]" />
-                )}
-              </Button>
+              <>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={toggleTheme}
+                  className="h-9 w-9"
+                  title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                >
+                  {theme === "dark" ? (
+                    <Sun className="h-[1.2rem] w-[1.2rem]" />
+                  ) : (
+                    <Moon className="h-[1.2rem] w-[1.2rem]" />
+                  )}
+                </Button>
+                <NotificationBell />
+              </>
             )}
             {user ? (
               <Button variant="outline" onClick={handleSignOut}>
