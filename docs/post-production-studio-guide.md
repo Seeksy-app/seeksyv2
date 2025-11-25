@@ -32,6 +32,42 @@ The studio interface consists of four main areas:
 
 ![AI Tools](../src/assets/tutorial-ai-tools.jpg)
 
+### Full AI Enhancement
+
+**What it does:** Automatically applies ALL AI editing tools at once - camera focus, smart trim, and ad placement - to quickly transform your raw footage into a polished, professional video.
+
+**How to use:**
+1. Click **AI Will Handle Everything** button in the Tools sidebar
+2. System displays guidance: "Starting Full AI Enhancement - Watch the preview to see changes being applied!"
+3. **Picture-in-Picture processing dialog appears** showing real-time AI work:
+   - Main video displays original footage
+   - Smaller PiP window shows edited version with effects applied
+   - Visual overlays indicate edit types (close-up, zoom, trim, ad placement)
+   - Progress updates for each processing stage
+4. **After processing completes**, AI Edit Completion Dialog appears with two options:
+   - **Save Edits**: Apply all AI changes to timeline (recommended)
+   - **Keep Original**: Discard AI changes and return to original video
+5. If you choose "Save Edits":
+   - All AI markers appear in your timeline
+   - Video displays with edits ready for review
+   - You can continue with manual edits or export immediately
+6. System guides you with toast notifications for next steps
+
+**Best for:**
+- Quick professional results
+- First-time editors who want guidance
+- Time-sensitive content creation
+- Establishing foundation before manual refinement
+
+**Pro Tips:**
+- Let the full AI enhancement run first, then refine manually
+- Watch the PiP preview to understand what AI is doing
+- Review all markers in the Markers tab after processing
+- You can always undo and start over if needed
+- Manual tools work perfectly alongside AI edits
+
+---
+
 ### AI Camera Focus
 
 **What it does:** Creates a polished multicam-style edit from your single-camera footage using intelligent punch-ins, digital zooms, and reframing.
@@ -342,4 +378,4 @@ If you need additional assistance:
 ---
 
 **Last Updated:** 2025-11-25
-**Version:** 1.1
+**Version:** 1.2

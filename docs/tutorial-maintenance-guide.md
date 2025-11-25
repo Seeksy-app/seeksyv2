@@ -61,6 +61,22 @@ This guide ensures that tutorials and documentation stay synchronized with actua
 
 ## Recent Updates Log
 
+### 2025-11-25 - Full AI Enhancement UX with Completion Dialog
+
+**Changes made:**
+- **PiP Preview during Full AI Enhancement**: Picture-in-picture preview now displays during full AI processing
+- **AI Edit Completion Dialog**: After processing, users see dialog with "Save Edits" or "Keep Original" options
+- **Enhanced Guidance**: Toast notifications guide users through AI editing process
+- **Edited Video Display**: After saving, all AI markers appear in timeline for review
+- **Manual Editing Support**: Users can continue with manual edits after accepting AI changes
+- **Workflow Improvements**: Clear next-step prompts after each major action
+
+**Files updated:**
+- ✅ Created `AIEditCompletionDialog.tsx` - New completion dialog component
+- ✅ Updated `PostProductionStudio.tsx` - Full AI workflow with PiP and completion options
+- ✅ Enhanced `AICameraProcessingDialog.tsx` - Real-time visual feedback
+- ✅ Version bumped to 1.2
+
 ### 2025-11-25 - Picture-in-Picture Preview Feature & Full AI Enhancement
 
 **Changes made:**
@@ -120,7 +136,7 @@ When creating new tutorial images:
 - **Minor version (1.X)**: New features or significant improvements
 - **Patch (1.1.X)**: Bug fixes, small copy updates, minor tweaks
 
-Current version: **1.1**
+Current version: **1.2**
 
 ---
 

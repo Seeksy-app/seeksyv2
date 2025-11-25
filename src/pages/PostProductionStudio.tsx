@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { AICameraProcessingDialog } from "@/components/media/AICameraProcessingDialog";
+import { AIEditCompletionDialog } from "@/components/media/AIEditCompletionDialog";
 import { PostProductionTutorial } from "@/components/media/PostProductionTutorial";
 import { 
   ArrowLeft, 
@@ -60,6 +61,8 @@ export default function PostProductionStudio() {
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [fullAIProcessing, setFullAIProcessing] = useState(false);
+  const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
+  const [pendingAIEdits, setPendingAIEdits] = useState<Marker[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const timelineRef = useRef<HTMLDivElement>(null);
   
@@ -314,85 +317,106 @@ export default function PostProductionStudio() {
   const handleFullAIEnhancement = async () => {
     if (!mediaFile) return;
     
+    // Set full AI processing flag
     setFullAIProcessing(true);
-    toast.loading("AI is analyzing your video and applying all enhancements...", { id: "full-ai" });
+    
+    // Show guidance popup
+    toast.info("Starting Full AI Enhancement - Watch the preview to see changes being applied!", {
+      duration: 3000
+    });
+    
+    // Open the PiP processing dialog
+    setCameraProcessingOpen(true);
+  };
 
-    try {
-      const newMarkers: Marker[] = [];
+  const handleFullAIProcessingComplete = (edits: any) => {
+    // Reset full AI processing flag
+    setFullAIProcessing(false);
+    
+    // Generate all AI markers based on video duration
+    const videoDuration = duration || 120;
+    const newMarkers: Marker[] = [];
 
-      // Simulate AI analysis with smart suggestions based on video duration
-      const videoDuration = duration || 120; // Default to 2 minutes if not loaded
-      
-      // Step 1: AI Camera Focus - Add camera angles at key moments
-      const cameraTimestamps = [
-        Math.floor(videoDuration * 0.1), // 10% in
-        Math.floor(videoDuration * 0.3), // 30% in
-        Math.floor(videoDuration * 0.5), // 50% in
-        Math.floor(videoDuration * 0.7), // 70% in
-        Math.floor(videoDuration * 0.9), // 90% in
-      ];
-      
-      const cameraTypes = ['close_up', 'medium', 'wide', 'punch_in', 'zoom'];
-      cameraTimestamps.forEach((timestamp, idx) => {
+    // Camera focus edits from the PiP dialog
+    if (edits?.edits) {
+      edits.edits.forEach((edit: any) => {
         newMarkers.push({
-          id: `camera-${Date.now()}-${idx}`,
+          id: `camera-${Date.now()}-${Math.random()}`,
           type: 'camera_focus' as const,
-          timestamp,
+          timestamp: edit.timestamp,
           duration: 5,
           data: {
-            shotType: cameraTypes[idx % cameraTypes.length],
-            description: `AI-detected emphasis point - ${cameraTypes[idx % cameraTypes.length].replace('_', ' ')}`
+            shotType: edit.type,
+            description: edit.description
           }
         });
       });
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Step 2: Smart Trim - Remove filler words and pauses
-      const trimTimestamps = [
-        Math.floor(videoDuration * 0.15),
-        Math.floor(videoDuration * 0.45),
-        Math.floor(videoDuration * 0.75),
-      ];
-      
-      trimTimestamps.forEach((timestamp, idx) => {
-        newMarkers.push({
-          id: `trim-${Date.now()}-${idx}`,
-          type: 'cut' as const,
-          timestamp,
-          duration: 2,
-          data: { reason: idx % 2 === 0 ? 'Filler word detected ("um", "uh")' : 'Awkward pause removed' }
-        });
-      });
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Step 3: AI Ad Placement - Natural breaks
-      const adTimestamps = [
-        Math.floor(videoDuration * 0.25),
-        Math.floor(videoDuration * 0.65),
-      ];
-      
-      adTimestamps.forEach((timestamp, idx) => {
-        newMarkers.push({
-          id: `ad-${Date.now()}-${idx}`,
-          type: 'ad' as const,
-          timestamp,
-          duration: 30,
-          data: { reason: 'Natural content break detected' }
-        });
-      });
-
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      setMarkers([...markers, ...newMarkers]);
-      toast.success(`AI enhancement complete! Added ${newMarkers.length} edits to your timeline`, { id: "full-ai" });
-    } catch (error) {
-      console.error("Full AI enhancement error:", error);
-      toast.error("AI enhancement failed. Please try individual tools.", { id: "full-ai" });
-    } finally {
-      setFullAIProcessing(false);
     }
+
+    // Smart Trim markers
+    const trimTimestamps = [
+      Math.floor(videoDuration * 0.15),
+      Math.floor(videoDuration * 0.45),
+      Math.floor(videoDuration * 0.75),
+    ];
+    
+    trimTimestamps.forEach((timestamp, idx) => {
+      newMarkers.push({
+        id: `trim-${Date.now()}-${idx}`,
+        type: 'cut' as const,
+        timestamp,
+        duration: 2,
+        data: { reason: idx % 2 === 0 ? 'Filler word detected ("um", "uh")' : 'Awkward pause removed' }
+      });
+    });
+
+    // AI Ad Placement markers
+    const adTimestamps = [
+      Math.floor(videoDuration * 0.25),
+      Math.floor(videoDuration * 0.65),
+    ];
+    
+    adTimestamps.forEach((timestamp, idx) => {
+      newMarkers.push({
+        id: `ad-${Date.now()}-${idx}`,
+        type: 'ad' as const,
+        timestamp,
+        duration: 30,
+        data: { reason: 'Natural content break detected' }
+      });
+    });
+
+    // Store pending edits and show completion dialog
+    setPendingAIEdits(newMarkers);
+    setCompletionDialogOpen(true);
+    
+    toast.success("AI processing complete! Review your edits now.", {
+      duration: 4000
+    });
+  };
+
+  const handleSaveAIEdits = async () => {
+    // Apply the AI edits to the timeline
+    setMarkers([...markers, ...pendingAIEdits]);
+    
+    toast.success(`Successfully applied ${pendingAIEdits.length} AI edits to your timeline`, {
+      duration: 4000
+    });
+    
+    // Show guidance for next steps
+    setTimeout(() => {
+      toast.info("You can now add manual edits or export your video!", {
+        duration: 4000
+      });
+    }, 1000);
+    
+    setPendingAIEdits([]);
+  };
+
+  const handleKeepOriginal = () => {
+    // Discard the AI edits
+    setPendingAIEdits([]);
+    toast.info("AI edits discarded. Your original video remains unchanged.");
   };
 
   const formatTime = (seconds: number) => {
@@ -747,7 +771,16 @@ export default function PostProductionStudio() {
         open={cameraProcessingOpen}
         onOpenChange={setCameraProcessingOpen}
         videoUrl={mediaFile?.file_url || ''}
-        onComplete={handleCameraProcessingComplete}
+        onComplete={fullAIProcessing ? handleFullAIProcessingComplete : handleCameraProcessingComplete}
+      />
+
+      {/* AI Edit Completion Dialog */}
+      <AIEditCompletionDialog
+        open={completionDialogOpen}
+        onOpenChange={setCompletionDialogOpen}
+        totalEdits={pendingAIEdits.length}
+        onSaveEdits={handleSaveAIEdits}
+        onKeepOriginal={handleKeepOriginal}
       />
 
       {/* Tutorial Dialog */}
