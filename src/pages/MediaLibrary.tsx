@@ -249,35 +249,42 @@ export default function MediaLibrary() {
 
       if (mediaFilesError) throw mediaFilesError;
 
-      // Fetch markers for AI-edited files
-      const aiEditedIds = [...(recordingsData || []), ...(mediaFilesData || [])]
-        .filter(f => f.edit_status === 'edited')
-        .map(f => f.id);
+      // Fetch markers for AI-edited files (non-blocking)
+      try {
+        const aiEditedIds = [...(recordingsData || []), ...(mediaFilesData || [])]
+          .filter(f => f.edit_status === 'edited')
+          .map(f => f.id);
 
-      if (aiEditedIds.length > 0) {
-        const { data: editsData } = await supabase
-          .from("video_post_production_edits")
-          .select("media_file_id, markers")
-          .in("media_file_id", aiEditedIds);
+        if (aiEditedIds.length > 0) {
+          const { data: editsData, error: editsError } = await supabase
+            .from("video_post_production_edits")
+            .select("media_file_id, markers")
+            .in("media_file_id", aiEditedIds);
 
-        // Merge markers into files
-        const editsMap = new Map(editsData?.map(e => [e.media_file_id, e.markers]) || []);
-        
-        if (recordingsData) {
-          recordingsData.forEach((r: any) => {
-            if (editsMap.has(r.id)) {
-              r.markers = editsMap.get(r.id);
+          if (!editsError && editsData) {
+            // Merge markers into files
+            const editsMap = new Map(editsData.map(e => [e.media_file_id, e.markers]));
+            
+            if (recordingsData) {
+              recordingsData.forEach((r: any) => {
+                if (editsMap.has(r.id)) {
+                  r.markers = editsMap.get(r.id);
+                }
+              });
             }
-          });
-        }
-        
-        if (mediaFilesData) {
-          mediaFilesData.forEach((f: any) => {
-            if (editsMap.has(f.id)) {
-              f.markers = editsMap.get(f.id);
+            
+            if (mediaFilesData) {
+              mediaFilesData.forEach((f: any) => {
+                if (editsMap.has(f.id)) {
+                  f.markers = editsMap.get(f.id);
+                }
+              });
             }
-          });
+          }
         }
+      } catch (error) {
+        console.error("Error fetching markers:", error);
+        // Continue without markers - don't break the entire page
       }
 
       // Fetch podcasts
