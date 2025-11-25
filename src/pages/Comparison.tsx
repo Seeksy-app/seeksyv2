@@ -26,11 +26,11 @@ const Comparison = () => {
   ];
 
   const pricing = [
-    { tool: "Seeksy", price: "Starting at Free", highlight: true },
-    { tool: "Descript", price: "$30-50/mo", highlight: false },
-    { tool: "CapCut", price: "Free (limited)", highlight: false },
-    { tool: "OpusClip", price: "$29-129/mo", highlight: false },
-    { tool: "Adobe Premiere", price: "$55/mo", highlight: false },
+    { tool: "Seeksy", price: "Pay as you go", subtext: "$9.99 for 10 credits", highlight: true },
+    { tool: "Descript", price: "$30-50/mo", subtext: "Monthly subscription", highlight: false },
+    { tool: "CapCut", price: "Free (limited)", subtext: "Paid tiers available", highlight: false },
+    { tool: "OpusClip", price: "$29-129/mo", subtext: "Monthly subscription", highlight: false },
+    { tool: "Adobe Premiere", price: "$55/mo", subtext: "Monthly subscription", highlight: false },
   ];
 
   return (
@@ -88,8 +88,11 @@ const Comparison = () => {
                 <div className={`text-lg font-bold mb-2 ${item.highlight ? 'text-black' : ''}`}>
                   {item.tool}
                 </div>
-                <div className={`text-2xl font-black ${item.highlight ? 'text-black' : 'text-primary'}`}>
+                <div className={`text-2xl font-black mb-1 ${item.highlight ? 'text-black' : 'text-primary'}`}>
                   {item.price}
+                </div>
+                <div className={`text-xs ${item.highlight ? 'text-black/70' : 'text-muted-foreground'}`}>
+                  {item.subtext}
                 </div>
               </div>
             ))}
@@ -197,9 +200,9 @@ const Comparison = () => {
 
           <Card className="p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
             <Sparkles className="h-10 w-10 mb-4 text-primary" />
-            <h3 className="text-xl font-bold mb-2">Creator-First Pricing</h3>
+            <h3 className="text-xl font-bold mb-2">Credit-Based Pricing</h3>
             <p className="text-muted-foreground">
-              Start free and scale. No $50+/mo subscriptions required. Pay for what you use as you grow.
+              No subscriptions. 1 credit = 1 activity. Buy credits in bulk and use them when you need them. Credits never expire.
             </p>
           </Card>
         </div>
