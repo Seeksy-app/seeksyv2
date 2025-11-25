@@ -528,6 +528,23 @@ export default function PostProductionStudio() {
     // Save markers to database
     await saveEdits();
     
+    // Mark the video as AI-edited
+    if (mediaFile) {
+      try {
+        const { error } = await supabase
+          .from("media_files")
+          .update({ edit_status: 'edited' })
+          .eq("id", mediaFile.id);
+        
+        if (error) throw error;
+        
+        // Invalidate queries to refresh the media library
+        queryClient.invalidateQueries({ queryKey: ["media-files"] });
+      } catch (error) {
+        console.error("Error updating edit status:", error);
+      }
+    }
+    
     toast.success(`Successfully applied ${pendingAIEdits.length} AI edits to your timeline`, {
       duration: 4000
     });
@@ -554,6 +571,23 @@ export default function PostProductionStudio() {
     
     // Save markers to database
     await saveEdits();
+    
+    // Mark the video as AI-edited
+    if (mediaFile) {
+      try {
+        const { error } = await supabase
+          .from("media_files")
+          .update({ edit_status: 'edited' })
+          .eq("id", mediaFile.id);
+        
+        if (error) throw error;
+        
+        // Invalidate queries to refresh the media library
+        queryClient.invalidateQueries({ queryKey: ["media-files"] });
+      } catch (error) {
+        console.error("Error updating edit status:", error);
+      }
+    }
     
     toast.success(`Saved AI-edited version! Check the "AI Edited" tab in Media Library.`, {
       duration: 4000
