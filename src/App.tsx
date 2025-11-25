@@ -87,6 +87,7 @@ import CreateHostScript from "./pages/CreateHostScript";
 import CreateSponsorship from "./pages/CreateSponsorship";
 import AdminConversationalDemo from "./pages/AdminConversationalDemo";
 import AdvertiserPricing from "./pages/AdvertiserPricing";
+import VoiceProtection from "./pages/VoiceProtection";
 import CreateAudioAdCampaign from "./pages/CreateAudioAdCampaign";
 import AdvertiserCampaignDashboard from "./pages/AdvertiserCampaignDashboard";
 import AdvertiserCampaignDetail from "./pages/AdvertiserCampaignDetail";
@@ -297,6 +298,7 @@ const AppContent = () => {
             <Route path="/admin/legal" element={<AdminLegal />} />
             <Route path="/admin/conversational-demo" element={<AdminConversationalDemo />} />
             <Route path="/admin/architecture" element={<SeeksyArchitecture />} />
+            <Route path="/voice-protection" element={<VoiceProtection />} />
             <Route path="/seeksy-architecture" element={<SeeksyArchitecture />} />
             <Route path="/admin/master-blog" element={<AdminMasterBlog />} />
           <Route path="/advertiser" element={<AdvertiserServices />} />
