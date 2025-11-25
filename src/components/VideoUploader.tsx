@@ -296,7 +296,7 @@ export default function VideoUploader({
           contentType: file.type,
           cacheControl: '3600',
         },
-        chunkSize: 50 * 1024 * 1024, // 50MB chunks for maximum upload speed with large files
+        chunkSize: 100 * 1024 * 1024, // 100MB chunks for better performance with very large files
         parallelUploads: 1, // Sequential uploads for better reliability
         storeFingerprintForResuming: true, // Enable resume capability
         onError: (error) => {
@@ -316,32 +316,44 @@ export default function VideoUploader({
             const response = (error as any).originalResponse;
             errorDetails.originalResponse = {
               status: response?.getStatus(),
-              body: response?.getBody()
+              body: response?.getBody(),
+              headers: response?.getHeader ? {
+                contentType: response.getHeader('content-type'),
+                contentLength: response.getHeader('content-length')
+              } : undefined
             };
           }
           
           console.error('TUS upload error details:', errorDetails);
           
-          // Reject with detailed error message
-          let errorMessage = 'Upload failed: ';
-          if (error.message.includes('quota') || error.message.includes('storage')) {
-            errorMessage += 'Storage quota exceeded. Please free up space or contact support.';
-          } else if (error.message.includes('network') || error.message.includes('connection')) {
-            errorMessage += 'Network error. Please check your connection and try again.';
-          } else if (error.message.includes('timeout')) {
-            errorMessage += 'Upload timed out. Please try again with a stable connection.';
-          } else {
-            errorMessage += error.message || 'Unknown error occurred. Please try again.';
-          }
+          // Check if this is a final error (retries exhausted) or just a temporary error
+          const isFinalError = error.message.toLowerCase().includes('aborted') || 
+                              error.message.toLowerCase().includes('quota') ||
+                              error.message.toLowerCase().includes('forbidden') ||
+                              !upload.url; // No upload URL means we couldn't even start
           
-          reject(new Error(errorMessage));
+          if (isFinalError) {
+            let errorMessage = 'Upload failed: ';
+            if (error.message.includes('quota') || error.message.includes('storage')) {
+              errorMessage += 'Storage quota exceeded. Please free up space or contact support.';
+            } else if (error.message.includes('forbidden') || error.message.includes('401') || error.message.includes('403')) {
+              errorMessage += 'Permission denied. Please check your authentication.';
+            } else {
+              errorMessage += error.message || 'Unknown error occurred. Please try again.';
+            }
+            reject(new Error(errorMessage));
+          } else {
+            // Let tus retry for network errors
+            console.log('TUS will retry this error automatically...');
+          }
         },
         onProgress: (bytesUploaded, bytesTotal) => {
           const percentage = (bytesUploaded / bytesTotal) * 90; // Reserve 10% for DB work
           const elapsed = (Date.now() - uploadStartTime.current) / 1000;
           const speed = bytesUploaded / elapsed;
+          const remaining = (bytesTotal - bytesUploaded) / speed;
           
-          console.log(`Upload progress: ${Math.round(percentage)}% (${formatBytes(bytesUploaded)}/${formatBytes(bytesTotal)}) at ${formatSpeed(speed)}`);
+          console.log(`Upload progress: ${Math.round(percentage)}% (${formatBytes(bytesUploaded)}/${formatBytes(bytesTotal)}) at ${formatSpeed(speed)} - ${Math.round(remaining)}s remaining`);
           
           setUploadProgress(percentage);
           setUploadSpeed(speed);
