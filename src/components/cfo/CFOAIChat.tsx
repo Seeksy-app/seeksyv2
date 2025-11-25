@@ -113,7 +113,7 @@ export const CFOAIChat = ({ financialData }: CFOAIChatProps) => {
   };
 
   return (
-    <Card className="flex flex-col h-full">
+    <Card className="flex flex-col min-h-[600px] h-full">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <Sparkles className="h-4 w-4 text-primary" />
