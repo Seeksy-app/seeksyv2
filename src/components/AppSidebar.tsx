@@ -346,7 +346,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     ...(pinnedModules.includes("qr_codes") && modulePrefs.qr_codes ? [{ title: "QR Codes", url: "/qr-codes", icon: QrCode }] : []),
     ...(pinnedModules.includes("contacts") ? [{ title: "Contacts", url: "/contacts", icon: Users }] : []),
     ...(pinnedModules.includes("podcasts") ? [{ title: "Podcasts", url: "/podcasts", icon: Mic }] : []),
-    ...(pinnedModules.includes("media") && modulePrefs.media ? [{ title: "Media Library", url: "/media-library", icon: Clapperboard }] : []),
+    // Media Library is shown in its own Media section, not here
     ...(pinnedModules.includes("civic") && modulePrefs.civic ? [{ title: "Civic Tools", url: "/civic-blog", icon: Building2 }] : []),
     ...(pinnedModules.includes("team_chat") && modulePrefs.team_chat ? [{ title: "Team Chat", url: "/team-chat", icon: MessageSquare }] : []),
     ...(pinnedModules.includes("marketing") && modulePrefs.marketing ? [{ title: "Marketing", url: "/crm", icon: Mail }] : []),
@@ -739,6 +739,8 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
   const renderMediaSection = () => {
     if (isAdvertiser || !modulePrefs.media || mediaItems.length === 0) return null;
+    const isPinned = pinnedModules.includes("media");
+    
     return (
       <Collapsible
         key="media"
@@ -747,9 +749,28 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       >
         <SidebarGroup className="py-0">
           <CollapsibleTrigger asChild>
-            <SidebarGroupLabel className="text-base font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5">
+            <SidebarGroupLabel className="text-base font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5 relative group">
               <span>Media</span>
-              {!collapsed && <ChevronDown className={`h-3 w-3 transition-transform ${openSections.media ? '' : '-rotate-90'}`} />}
+              <div className="flex items-center gap-1">
+                {!collapsed && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      togglePin("media");
+                    }}
+                    className="p-1 opacity-100 hover:bg-accent rounded transition-colors"
+                    aria-label={isPinned ? "Unpin Media" : "Pin Media"}
+                  >
+                    <Pin
+                      className={`h-3.5 w-3.5 ${
+                        isPinned ? "fill-primary text-primary" : "text-muted-foreground"
+                      }`}
+                    />
+                  </button>
+                )}
+                {!collapsed && <ChevronDown className={`h-3 w-3 transition-transform ${openSections.media ? '' : '-rotate-90'}`} />}
+              </div>
             </SidebarGroupLabel>
           </CollapsibleTrigger>
           <CollapsibleContent>

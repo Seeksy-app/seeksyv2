@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 export function useAutoTheme() {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const location = useLocation();
-  const isStudio = location.pathname.includes('/studio');
+  const isStudio = location.pathname === '/studio'; // Only the actual studio page, not /studio-templates
   const previousTheme = useRef<string | null>(null);
   const wasInStudio = useRef(false);
   const hasSetStudioTheme = useRef(false);
