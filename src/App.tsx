@@ -125,6 +125,7 @@ import InfluenceHub from "./pages/InfluenceHub";
 import InfluenceHubConnect from "./pages/InfluenceHubConnect";
 import InfluenceHubCreators from "./pages/InfluenceHubCreators";
 import InfluenceHubMedia from "./pages/InfluenceHubMedia";
+import UpdateMediaDurations from "./pages/UpdateMediaDurations";
 import Tasks from "./pages/Tasks";
 import CivicEvents from "./pages/civic/CivicEvents";
 import ConstituentRequests from "./pages/civic/ConstituentRequests";
@@ -325,6 +326,7 @@ const AppContent = () => {
           <Route path="/studio" element={<StudioTemplates />} />
           <Route path="/studio/session/:id" element={<Studio />} />
           <Route path="/media-library" element={<MediaLibrary />} />
+          <Route path="/update-media-durations" element={<UpdateMediaDurations />} />
           <Route path="/post-production-studio" element={<PostProductionStudio />} />
           <Route path="/create-clips" element={<CreateClips />} />
           <Route path="/help-center" element={<HelpCenter />} />
