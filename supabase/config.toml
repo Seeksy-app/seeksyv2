@@ -6,6 +6,9 @@ verify_jwt = true
 [functions.cfo-ai-assistant]
 verify_jwt = false
 
+[functions.detect-speakers]
+verify_jwt = true
+
 [functions.generate-ai-broll]
 verify_jwt = true
 

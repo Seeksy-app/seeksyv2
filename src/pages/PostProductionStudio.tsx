@@ -19,6 +19,7 @@ import { PostProductionTutorial } from "@/components/media/PostProductionTutoria
 import { AIBRollGenerator } from "@/components/media/AIBRollGenerator";
 import { ThumbnailManager } from "@/components/media/ThumbnailManager";
 import { IntroOutroManager } from "@/components/media/IntroOutroManager";
+import { SpeakerDetectionManager } from "@/components/media/SpeakerDetectionManager";
 import { 
   ArrowLeft, 
   Play, 
@@ -744,6 +745,13 @@ export default function PostProductionStudio() {
                   <span>AI Edits</span>
                 </TabsTrigger>
                 <TabsTrigger 
+                  value="lower-thirds" 
+                  className="flex flex-col items-center gap-1 py-2 text-xs data-[state=active]:bg-background"
+                >
+                  <Type className="h-4 w-4" />
+                  <span>Lower Thirds</span>
+                </TabsTrigger>
+                <TabsTrigger 
                   value="markers" 
                   className="flex flex-col items-center gap-1 py-2 text-xs data-[state=active]:bg-background"
                 >
@@ -1065,6 +1073,29 @@ export default function PostProductionStudio() {
 
             <TabsContent value="broll" className="flex-1 p-4 space-y-6">
               <AIBRollGenerator />
+            </TabsContent>
+
+            <TabsContent value="lower-thirds" className="flex-1 p-4 space-y-6">
+              <SpeakerDetectionManager 
+                videoUrl={mediaFile?.file_url || ''}
+                videoDuration={duration}
+                onSpeakersIdentified={(speakers) => {
+                  console.log('Speakers identified:', speakers);
+                  // Create lower third markers for each speaker's first appearance
+                  const lowerThirdMarkers = speakers.map(speaker => ({
+                    id: `lower-third-${speaker.id}`,
+                    type: 'lower_third' as const,
+                    timestamp: speaker.firstAppearance,
+                    duration: 5,
+                    data: {
+                      speakerName: speaker.name,
+                      speakerAvatar: speaker.faceImageUrl
+                    }
+                  }));
+                  setMarkers(prev => [...prev, ...lowerThirdMarkers]);
+                  toast.success(`Added ${speakers.length} lower third markers`);
+                }}
+              />
             </TabsContent>
 
             <TabsContent value="intro-outro" className="flex-1 p-4 space-y-6">

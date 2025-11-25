@@ -5,9 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Sparkles, Upload, Download, Image as ImageIcon } from "lucide-react";
+import { ThumbnailLogoManager } from "./ThumbnailLogoManager";
 
 interface ThumbnailManagerProps {
   mediaId: string;
@@ -30,8 +32,8 @@ export function ThumbnailManager({ mediaId, currentThumbnail, onThumbnailUpdate 
     setSelectedThumbnail(null);
     
     try {
-      // Generate 3 thumbnail options
-      const promises = Array(3).fill(0).map(() => 
+      // Generate 5 thumbnail options
+      const promises = Array(5).fill(0).map(() =>
         supabase.functions.invoke('generate-ai-thumbnail', {
           body: { 
             videoTitle: videoTitle || undefined,
@@ -255,6 +257,20 @@ export function ThumbnailManager({ mediaId, currentThumbnail, onThumbnailUpdate 
                   </Card>
                 ))}
               </div>
+              
+              {/* Add Logo Manager for selected thumbnail */}
+              {selectedThumbnail && (
+                <>
+                  <Separator className="my-4" />
+                  <ThumbnailLogoManager 
+                    thumbnailUrl={selectedThumbnail}
+                    onLogoApplied={(thumbnailWithLogo) => {
+                      // Update the selected thumbnail with logo version
+                      setSelectedThumbnail(thumbnailWithLogo);
+                    }}
+                  />
+                </>
+              )}
             </div>
           )}
         </TabsContent>
