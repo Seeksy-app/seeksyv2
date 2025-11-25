@@ -43,7 +43,8 @@ import {
   Code,
   Grid3x3,
   Pin,
-  BookOpen
+  BookOpen,
+  UserCog
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import seeksyLogo from "@/assets/seeksy-logo.png";
@@ -70,6 +71,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { NavigationCustomizer, NavigationSection } from "@/components/navigation/NavigationCustomizer";
 import { useToast } from "@/hooks/use-toast";
+import { AdminViewToggle } from "@/components/admin/AdminViewToggle";
 
 interface AppSidebarProps {
   user?: User | null;
@@ -101,6 +103,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   const [isAdvertiser, setIsAdvertiser] = useState(false);
   const [advertiserStatus, setAdvertiserStatus] = useState<string | null>(null);
   const [moduleLauncherOpen, setModuleLauncherOpen] = useState(false);
+  const [adminViewMode, setAdminViewMode] = useState(false);
   const [modulePrefs, setModulePrefs] = useState({
     awards: false,
     media: false,
@@ -338,7 +341,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     ? []
     : [
         { title: "Dashboard", url: dashboardUrl, icon: LayoutDashboard },
-        ...(isAdmin ? [{ title: "Admin", url: "/admin", icon: Shield }] : []),
+        ...(isAdmin && adminViewMode ? [{ title: "Admin", url: "/admin", icon: Shield }] : []),
         ...(pinnedModules.includes("my_page") ? [{ title: "My Page", url: `/${username || 'profile'}`, icon: UserIcon }] : []),
         { title: "Profile Settings", url: "/settings", icon: Settings },
       ];
@@ -485,12 +488,22 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     window.dispatchEvent(new Event("pinnedModulesChanged"));
   };
 
-  // Filter sections based on user role
+  // Filter sections based on user role and admin view mode
   const getVisibleSections = () => {
     let sections = [...navigationSections];
     
-    if (isAdmin) {
-      // Admins see all sections - Settings guaranteed to be in navigationSections
+    // If admin is in personal view mode, hide admin section
+    if (isAdmin && !adminViewMode) {
+      sections = sections.filter(s => s.id !== 'admin');
+    }
+    
+    // If not admin or in personal view, hide admin section
+    if (!isAdmin || !adminViewMode) {
+      sections = sections.filter(s => s.id !== 'admin');
+    }
+    
+    if (isAdmin && adminViewMode) {
+      // Admins in admin view see all sections
       return sections;
     }
     
@@ -1365,6 +1378,22 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
               </div>
             )}
           </div>
+          
+          {/* Admin View Toggle - Only show for admins */}
+          {isAdmin && (
+            <>
+              <AdminViewToggle
+                adminViewMode={adminViewMode}
+                onToggle={(enabled) => {
+                  setAdminViewMode(enabled);
+                  toast({
+                    title: enabled ? "Admin View Enabled" : "Personal View Enabled",
+                    description: enabled ? "Showing admin-related menu items" : "Showing your personal menu items",
+                  });
+                }}
+              />
+            </>
+          )}
         </SidebarHeader>
 
       <SidebarContent className="pb-6 overflow-hidden">

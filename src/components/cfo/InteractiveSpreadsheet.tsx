@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { ProFormaSpreadsheetGenerator } from "./ProFormaSpreadsheetGenerator";
-import { ShareInvestorDialog } from "./ShareInvestorDialog";
+import { ShareProformaDialog } from "./ShareProformaDialog";
 import jsPDF from "jspdf";
 import * as XLSX from "xlsx";
 
@@ -82,6 +82,7 @@ export const InteractiveSpreadsheet = ({ isReadOnly = false }: { isReadOnly?: bo
   const [showAssumptions, setShowAssumptions] = useState(false);
   const [selectedScenario, setSelectedScenario] = useState<'baseline' | 'conservative' | 'growth' | 'aggressive'>('baseline');
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [proformaType] = useState<'ai' | 'custom'>('custom'); // InteractiveSpreadsheet uses custom proforma
   const [assumptions, setAssumptions] = useState<SpreadsheetAssumptions>({
     // Pricing
     podcasterBasicPrice: 19,
@@ -1982,9 +1983,10 @@ export const InteractiveSpreadsheet = ({ isReadOnly = false }: { isReadOnly?: bo
             </Card>
           </div>
 
-      <ShareInvestorDialog
+      <ShareProformaDialog
         open={shareDialogOpen}
         onOpenChange={setShareDialogOpen}
+        proformaType={proformaType}
       />
     </div>
   );
