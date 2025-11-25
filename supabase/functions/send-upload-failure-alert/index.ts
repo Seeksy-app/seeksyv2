@@ -77,13 +77,19 @@ serve(async (req) => {
     }
 
     // Create in-app notification for admins
-    const { data: adminRoles } = await supabaseAdmin
+    console.log('Querying for admin users...');
+    const { data: adminRoles, error: adminQueryError } = await supabaseAdmin
       .from('user_roles')
       .select('user_id')
       .in('role', ['admin', 'super_admin']);
 
-    if (adminRoles && adminRoles.length > 0) {
+    console.log('Admin query result:', { adminRoles, adminQueryError });
+
+    if (adminQueryError) {
+      console.error('Error querying admin roles:', adminQueryError);
+    } else if (adminRoles && adminRoles.length > 0) {
       const adminUserIds = adminRoles.map(a => a.user_id);
+      console.log('Found admin user IDs:', adminUserIds);
       
       // Create urgent notification for each admin
       const notifications = adminUserIds.map(adminId => ({
@@ -96,15 +102,19 @@ serve(async (req) => {
         read: false
       }));
 
-      const { error: notifError } = await supabaseAdmin
+      console.log('Creating notifications:', notifications);
+      const { data: insertedNotifications, error: notifError } = await supabaseAdmin
         .from('notifications')
-        .insert(notifications);
+        .insert(notifications)
+        .select();
 
       if (notifError) {
         console.error('Failed to create notifications:', notifError);
       } else {
-        console.log(`Created ${notifications.length} urgent notifications for admins`);
+        console.log(`Successfully created ${insertedNotifications?.length || 0} urgent notifications for admins:`, insertedNotifications);
       }
+    } else {
+      console.log('No admin users found to notify');
     }
 
     // Send email alert to admins
