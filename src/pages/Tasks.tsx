@@ -226,6 +226,7 @@ export default function Tasks() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [viewMode, setViewMode] = useState<"board" | "list">("board");
+  const [viewModeLoaded, setViewModeLoaded] = useState(false);
   const [sortField, setSortField] = useState<keyof Task | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -234,6 +235,22 @@ export default function Tasks() {
   const [categoryManagerOpen, setCategoryManagerOpen] = useState(false);
   const [categories, setCategories] = useState<{ id: string; name: string; color: string }[]>([]);
   const { toast } = useToast();
+
+  // Save view mode preference when it changes
+  useEffect(() => {
+    if (!viewModeLoaded || !currentUserId) return;
+    
+    const saveViewMode = async () => {
+      await supabase
+        .from("user_preferences")
+        .upsert(
+          { user_id: currentUserId, task_view_mode: viewMode },
+          { onConflict: "user_id" }
+        );
+    };
+    
+    saveViewMode();
+  }, [viewMode, viewModeLoaded, currentUserId]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -254,9 +271,30 @@ export default function Tasks() {
   });
 
   useEffect(() => {
-    fetchTasks();
-    fetchTeamMembers();
-    loadCategories();
+    const initialize = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Load view mode preference
+      const { data: prefs } = await supabase
+        .from("user_preferences")
+        .select("task_view_mode")
+        .eq("user_id", user.id)
+        .single();
+      
+      if (prefs?.task_view_mode) {
+        setViewMode(prefs.task_view_mode as "board" | "list");
+      }
+      setViewModeLoaded(true);
+
+      await Promise.all([
+        fetchTasks(),
+        fetchTeamMembers(),
+        loadCategories(),
+      ]);
+    };
+
+    initialize();
   }, []);
 
   const fetchTeamMembers = async () => {
