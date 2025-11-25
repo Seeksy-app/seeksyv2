@@ -21,7 +21,10 @@ import {
   FileText,
   Clock,
   Eye,
-  Send
+  Send,
+  Briefcase,
+  DollarSign,
+  MessageCircle
 } from "lucide-react";
 import {
   Breadcrumb,
@@ -31,8 +34,9 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { EmailTemplateCustomizer } from "@/components/EmailTemplateCustomizer";
 
-type TemplateCategory = 'all' | 'welcome' | 'promotional' | 'transactional' | 'newsletter' | 'event' | 'ecommerce' | 'reengagement';
+type TemplateCategory = 'all' | 'daily' | 'welcome' | 'promotional' | 'transactional' | 'newsletter' | 'event' | 'ecommerce' | 'reengagement';
 
 interface EmailTemplate {
   id: string;
@@ -49,9 +53,11 @@ const Marketing = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<TemplateCategory>('all');
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
+  const [customizerOpen, setCustomizerOpen] = useState(false);
 
   const categories = [
-    { id: 'all', label: 'All Templates', icon: Sparkles, count: 24 },
+    { id: 'all', label: 'All Templates', icon: Sparkles, count: 32 },
+    { id: 'daily', label: 'Daily Business', icon: Briefcase, count: 8 },
     { id: 'welcome', label: 'Welcome & Onboarding', icon: Users, count: 4 },
     { id: 'promotional', label: 'Promotional', icon: Megaphone, count: 6 },
     { id: 'transactional', label: 'Transactional', icon: FileText, count: 5 },
@@ -62,6 +68,292 @@ const Marketing = () => {
   ];
 
   const templates: EmailTemplate[] = [
+    // Daily Business Templates
+    {
+      id: 'daily-proposal',
+      name: 'Business Proposal',
+      category: 'daily',
+      description: 'Professional proposal email with logo and signature',
+      thumbnail: 'bg-gradient-to-br from-slate-700 to-slate-900',
+      icon: FileText,
+      previewHtml: `
+        <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: white;">
+          <div style="padding: 30px 40px; border-bottom: 3px solid hsl(207, 90%, 54%);">
+            <div style="font-size: 24px; font-weight: 700; color: hsl(207, 90%, 54%);">{{company.LOGO}}</div>
+          </div>
+          <div style="padding: 40px;">
+            <p style="font-size: 16px; color: #4a5568; margin: 0 0 16px 0;">Dear {{contact.FIRSTNAME}},</p>
+            <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin: 0 0 24px 0;">
+              Thank you for considering our services. Attached is our proposal for {{project.NAME}} which outlines our approach, timeline, and investment details.
+            </p>
+            <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin: 0 0 24px 0;">
+              Key highlights of our proposal:
+            </p>
+            <ul style="font-size: 16px; color: #4a5568; line-height: 1.8; margin: 0 0 24px 0;">
+              <li>Comprehensive strategy tailored to your goals</li>
+              <li>Clear timeline with milestones</li>
+              <li>Transparent pricing structure</li>
+            </ul>
+            <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin: 0 0 24px 0;">
+              I'm available to discuss any questions you may have. Would you be available for a call this week?
+            </p>
+            <p style="font-size: 16px; color: #4a5568; margin: 0 0 8px 0;">Best regards,</p>
+            <div style="border-left: 3px solid hsl(207, 90%, 54%); padding-left: 16px; margin: 24px 0 0 0;">
+              <p style="font-size: 16px; font-weight: 600; color: #2d3748; margin: 0 0 4px 0;">{{sender.NAME}}</p>
+              <p style="font-size: 14px; color: #718096; margin: 0 0 4px 0;">{{sender.TITLE}}</p>
+              <p style="font-size: 14px; color: #718096; margin: 0 0 4px 0;">{{sender.PHONE}} | {{sender.EMAIL}}</p>
+              <p style="font-size: 14px; color: hsl(207, 90%, 54%); margin: 0;">{{company.WEBSITE}}</p>
+            </div>
+          </div>
+        </div>
+      `
+    },
+    {
+      id: 'daily-followup',
+      name: 'Follow-Up',
+      category: 'daily',
+      description: 'Professional follow-up email for meetings or proposals',
+      thumbnail: 'bg-gradient-to-br from-blue-600 to-cyan-600',
+      icon: Clock,
+      previewHtml: `
+        <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: white;">
+          <div style="padding: 30px 40px; border-bottom: 3px solid hsl(207, 90%, 54%);">
+            <div style="font-size: 24px; font-weight: 700; color: hsl(207, 90%, 54%);">{{company.LOGO}}</div>
+          </div>
+          <div style="padding: 40px;">
+            <p style="font-size: 16px; color: #4a5568; margin: 0 0 16px 0;">Hi {{contact.FIRSTNAME}},</p>
+            <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin: 0 0 24px 0;">
+              I wanted to follow up on our conversation last {{meeting.DAY}}. It was great discussing {{topic.NAME}} with you.
+            </p>
+            <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin: 0 0 24px 0;">
+              As promised, I've prepared the information we discussed. Please find it attached.
+            </p>
+            <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin: 0 0 24px 0;">
+              What are your thoughts on the next steps? I'd be happy to schedule another call at your convenience.
+            </p>
+            <p style="font-size: 16px; color: #4a5568; margin: 0 0 8px 0;">Looking forward to hearing from you,</p>
+            <div style="border-left: 3px solid hsl(207, 90%, 54%); padding-left: 16px; margin: 24px 0 0 0;">
+              <p style="font-size: 16px; font-weight: 600; color: #2d3748; margin: 0 0 4px 0;">{{sender.NAME}}</p>
+              <p style="font-size: 14px; color: #718096; margin: 0 0 4px 0;">{{sender.TITLE}}</p>
+              <p style="font-size: 14px; color: #718096; margin: 0 0 4px 0;">{{sender.PHONE}} | {{sender.EMAIL}}</p>
+            </div>
+          </div>
+        </div>
+      `
+    },
+    {
+      id: 'daily-reminder',
+      name: 'Meeting Reminder',
+      category: 'daily',
+      description: 'Friendly reminder for upcoming meetings',
+      thumbnail: 'bg-gradient-to-br from-green-600 to-emerald-600',
+      icon: Calendar,
+      previewHtml: `
+        <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: white;">
+          <div style="padding: 30px 40px; border-bottom: 3px solid hsl(142, 71%, 45%);">
+            <div style="font-size: 24px; font-weight: 700; color: hsl(142, 71%, 45%);">{{company.LOGO}}</div>
+          </div>
+          <div style="padding: 40px;">
+            <p style="font-size: 16px; color: #4a5568; margin: 0 0 16px 0;">Hi {{contact.FIRSTNAME}},</p>
+            <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin: 0 0 24px 0;">
+              This is a friendly reminder about our upcoming meeting:
+            </p>
+            <div style="background: #f7fafc; border-left: 4px solid hsl(142, 71%, 45%); padding: 20px; margin: 24px 0; border-radius: 4px;">
+              <p style="font-size: 18px; font-weight: 600; color: #2d3748; margin: 0 0 12px 0;">{{meeting.TITLE}}</p>
+              <p style="font-size: 15px; color: #4a5568; margin: 0 0 8px 0;">📅 {{meeting.DATE}} at {{meeting.TIME}}</p>
+              <p style="font-size: 15px; color: #4a5568; margin: 0;">📍 {{meeting.LOCATION}}</p>
+            </div>
+            <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin: 0 0 24px 0;">
+              Looking forward to our discussion!
+            </p>
+            <p style="font-size: 16px; color: #4a5568; margin: 0 0 8px 0;">Best,</p>
+            <div style="border-left: 3px solid hsl(142, 71%, 45%); padding-left: 16px; margin: 24px 0 0 0;">
+              <p style="font-size: 16px; font-weight: 600; color: #2d3748; margin: 0 0 4px 0;">{{sender.NAME}}</p>
+              <p style="font-size: 14px; color: #718096; margin: 0 0 4px 0;">{{sender.TITLE}}</p>
+              <p style="font-size: 14px; color: #718096; margin: 0;">{{sender.PHONE}} | {{sender.EMAIL}}</p>
+            </div>
+          </div>
+        </div>
+      `
+    },
+    {
+      id: 'daily-introduction',
+      name: 'Introduction Email',
+      category: 'daily',
+      description: 'Professional introduction to new contacts',
+      thumbnail: 'bg-gradient-to-br from-purple-600 to-indigo-600',
+      icon: Users,
+      previewHtml: `
+        <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: white;">
+          <div style="padding: 30px 40px; border-bottom: 3px solid hsl(262, 83%, 58%);">
+            <div style="font-size: 24px; font-weight: 700; color: hsl(262, 83%, 58%);">{{company.LOGO}}</div>
+          </div>
+          <div style="padding: 40px;">
+            <p style="font-size: 16px; color: #4a5568; margin: 0 0 16px 0;">Hello {{contact.FIRSTNAME}},</p>
+            <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin: 0 0 24px 0;">
+              I hope this email finds you well. My name is {{sender.NAME}}, and I'm {{sender.TITLE}} at {{company.NAME}}.
+            </p>
+            <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin: 0 0 24px 0;">
+              I came across your profile and was impressed by your work in {{industry.NAME}}. I believe there could be valuable synergies between our companies.
+            </p>
+            <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin: 0 0 24px 0;">
+              Would you be open to a brief call to explore potential collaboration opportunities?
+            </p>
+            <p style="font-size: 16px; color: #4a5568; margin: 0 0 8px 0;">Best regards,</p>
+            <div style="border-left: 3px solid hsl(262, 83%, 58%); padding-left: 16px; margin: 24px 0 0 0;">
+              <p style="font-size: 16px; font-weight: 600; color: #2d3748; margin: 0 0 4px 0;">{{sender.NAME}}</p>
+              <p style="font-size: 14px; color: #718096; margin: 0 0 4px 0;">{{sender.TITLE}}</p>
+              <p style="font-size: 14px; color: #718096; margin: 0 0 4px 0;">{{sender.PHONE}} | {{sender.EMAIL}}</p>
+              <p style="font-size: 14px; color: hsl(262, 83%, 58%); margin: 0;">{{company.WEBSITE}}</p>
+            </div>
+          </div>
+        </div>
+      `
+    },
+    {
+      id: 'daily-thankyou',
+      name: 'Thank You Note',
+      category: 'daily',
+      description: 'Genuine thank you email for clients',
+      thumbnail: 'bg-gradient-to-br from-pink-600 to-rose-600',
+      icon: Heart,
+      previewHtml: `
+        <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: white;">
+          <div style="padding: 30px 40px; border-bottom: 3px solid hsl(346, 77%, 50%);">
+            <div style="font-size: 24px; font-weight: 700; color: hsl(346, 77%, 50%);">{{company.LOGO}}</div>
+          </div>
+          <div style="padding: 40px;">
+            <p style="font-size: 16px; color: #4a5568; margin: 0 0 16px 0;">Dear {{contact.FIRSTNAME}},</p>
+            <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin: 0 0 24px 0;">
+              I wanted to take a moment to personally thank you for choosing {{company.NAME}}.
+            </p>
+            <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin: 0 0 24px 0;">
+              Your trust and partnership mean the world to us. We're committed to delivering exceptional results and exceeding your expectations.
+            </p>
+            <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin: 0 0 24px 0;">
+              If there's anything we can do to enhance your experience, please don't hesitate to reach out.
+            </p>
+            <p style="font-size: 16px; color: #4a5568; margin: 0 0 8px 0;">With gratitude,</p>
+            <div style="border-left: 3px solid hsl(346, 77%, 50%); padding-left: 16px; margin: 24px 0 0 0;">
+              <p style="font-size: 16px; font-weight: 600; color: #2d3748; margin: 0 0 4px 0;">{{sender.NAME}}</p>
+              <p style="font-size: 14px; color: #718096; margin: 0 0 4px 0;">{{sender.TITLE}}</p>
+              <p style="font-size: 14px; color: #718096; margin: 0;">{{sender.PHONE}} | {{sender.EMAIL}}</p>
+            </div>
+          </div>
+        </div>
+      `
+    },
+    {
+      id: 'daily-status',
+      name: 'Status Update',
+      category: 'daily',
+      description: 'Project status update for clients',
+      thumbnail: 'bg-gradient-to-br from-amber-600 to-orange-600',
+      icon: TrendingUp,
+      previewHtml: `
+        <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: white;">
+          <div style="padding: 30px 40px; border-bottom: 3px solid hsl(38, 92%, 50%);">
+            <div style="font-size: 24px; font-weight: 700; color: hsl(38, 92%, 50%);">{{company.LOGO}}</div>
+          </div>
+          <div style="padding: 40px;">
+            <p style="font-size: 16px; color: #4a5568; margin: 0 0 16px 0;">Hi {{contact.FIRSTNAME}},</p>
+            <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin: 0 0 24px 0;">
+              Here's your weekly update on {{project.NAME}}:
+            </p>
+            <div style="background: #fffbeb; border-left: 4px solid hsl(38, 92%, 50%); padding: 20px; margin: 24px 0; border-radius: 4px;">
+              <p style="font-size: 16px; font-weight: 600; color: #78350f; margin: 0 0 12px 0;">✅ Completed This Week:</p>
+              <ul style="margin: 0 0 16px 0; padding-left: 20px; color: #92400e; line-height: 1.8;">
+                <li>{{task.COMPLETED_1}}</li>
+                <li>{{task.COMPLETED_2}}</li>
+              </ul>
+              <p style="font-size: 16px; font-weight: 600; color: #78350f; margin: 0 0 12px 0;">🚀 Next Steps:</p>
+              <ul style="margin: 0; padding-left: 20px; color: #92400e; line-height: 1.8;">
+                <li>{{task.NEXT_1}}</li>
+                <li>{{task.NEXT_2}}</li>
+              </ul>
+            </div>
+            <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin: 0 0 24px 0;">
+              We're on track to meet our deadline. Let me know if you have any questions!
+            </p>
+            <p style="font-size: 16px; color: #4a5568; margin: 0 0 8px 0;">Best,</p>
+            <div style="border-left: 3px solid hsl(38, 92%, 50%); padding-left: 16px; margin: 24px 0 0 0;">
+              <p style="font-size: 16px; font-weight: 600; color: #2d3748; margin: 0 0 4px 0;">{{sender.NAME}}</p>
+              <p style="font-size: 14px; color: #718096; margin: 0 0 4px 0;">{{sender.TITLE}}</p>
+              <p style="font-size: 14px; color: #718096; margin: 0;">{{sender.PHONE}} | {{sender.EMAIL}}</p>
+            </div>
+          </div>
+        </div>
+      `
+    },
+    {
+      id: 'daily-invoice',
+      name: 'Invoice Reminder',
+      category: 'daily',
+      description: 'Polite invoice payment reminder',
+      thumbnail: 'bg-gradient-to-br from-teal-600 to-cyan-600',
+      icon: DollarSign,
+      previewHtml: `
+        <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: white;">
+          <div style="padding: 30px 40px; border-bottom: 3px solid hsl(173, 58%, 39%);">
+            <div style="font-size: 24px; font-weight: 700; color: hsl(173, 58%, 39%);">{{company.LOGO}}</div>
+          </div>
+          <div style="padding: 40px;">
+            <p style="font-size: 16px; color: #4a5568; margin: 0 0 16px 0;">Dear {{contact.FIRSTNAME}},</p>
+            <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin: 0 0 24px 0;">
+              This is a friendly reminder that invoice {{invoice.NUMBER}} for {{project.NAME}} is due on {{invoice.DUE_DATE}}.
+            </p>
+            <div style="background: #ecfdf5; border-left: 4px solid hsl(173, 58%, 39%); padding: 20px; margin: 24px 0; border-radius: 4px;">
+              <p style="font-size: 15px; color: #065f46; margin: 0 0 8px 0;"><strong>Invoice #:</strong> {{invoice.NUMBER}}</p>
+              <p style="font-size: 15px; color: #065f46; margin: 0 0 8px 0;"><strong>Amount:</strong> {{invoice.AMOUNT}}</p>
+              <p style="font-size: 15px; color: #065f46; margin: 0;"><strong>Due Date:</strong> {{invoice.DUE_DATE}}</p>
+            </div>
+            <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin: 0 0 24px 0;">
+              Please find the invoice attached. If you have any questions or concerns, I'm here to help.
+            </p>
+            <p style="font-size: 16px; color: #4a5568; margin: 0 0 8px 0;">Thank you,</p>
+            <div style="border-left: 3px solid hsl(173, 58%, 39%); padding-left: 16px; margin: 24px 0 0 0;">
+              <p style="font-size: 16px; font-weight: 600; color: #2d3748; margin: 0 0 4px 0;">{{sender.NAME}}</p>
+              <p style="font-size: 14px; color: #718096; margin: 0 0 4px 0;">{{sender.TITLE}}</p>
+              <p style="font-size: 14px; color: #718096; margin: 0;">{{sender.PHONE}} | {{sender.EMAIL}}</p>
+            </div>
+          </div>
+        </div>
+      `
+    },
+    {
+      id: 'daily-check-in',
+      name: 'Client Check-in',
+      category: 'daily',
+      description: 'Casual check-in with clients',
+      thumbnail: 'bg-gradient-to-br from-indigo-600 to-blue-600',
+      icon: MessageCircle,
+      previewHtml: `
+        <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: white;">
+          <div style="padding: 30px 40px; border-bottom: 3px solid hsl(231, 48%, 48%);">
+            <div style="font-size: 24px; font-weight: 700; color: hsl(231, 48%, 48%);">{{company.LOGO}}</div>
+          </div>
+          <div style="padding: 40px;">
+            <p style="font-size: 16px; color: #4a5568; margin: 0 0 16px 0;">Hi {{contact.FIRSTNAME}},</p>
+            <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin: 0 0 24px 0;">
+              I hope you're doing well! I wanted to check in and see how things are going with {{project.NAME}}.
+            </p>
+            <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin: 0 0 24px 0;">
+              Do you have any feedback or questions about the work we've delivered so far? I'm always here to help ensure everything meets your expectations.
+            </p>
+            <p style="font-size: 16px; color: #4a5568; line-height: 1.6; margin: 0 0 24px 0;">
+              Looking forward to hearing from you!
+            </p>
+            <p style="font-size: 16px; color: #4a5568; margin: 0 0 8px 0;">Cheers,</p>
+            <div style="border-left: 3px solid hsl(231, 48%, 48%); padding-left: 16px; margin: 24px 0 0 0;">
+              <p style="font-size: 16px; font-weight: 600; color: #2d3748; margin: 0 0 4px 0;">{{sender.NAME}}</p>
+              <p style="font-size: 14px; color: #718096; margin: 0 0 4px 0;">{{sender.TITLE}}</p>
+              <p style="font-size: 14px; color: #718096; margin: 0;">{{sender.PHONE}} | {{sender.EMAIL}}</p>
+            </div>
+          </div>
+        </div>
+      `
+    },
+    
     // Welcome & Onboarding
     {
       id: 'welcome-modern',
@@ -565,10 +857,21 @@ const Marketing = () => {
                         {template.description}
                       </p>
                       <div className="mt-4 flex gap-2">
-                        <Button size="sm" className="flex-1">
+                        <Button 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => {
+                            setSelectedTemplate(template);
+                            setCustomizerOpen(true);
+                          }}
+                        >
                           Use Template
                         </Button>
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => setSelectedTemplate(template)}
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
                       </div>
@@ -655,6 +958,12 @@ const Marketing = () => {
           </TabsContent>
         </Tabs>
       </div>
+      
+      <EmailTemplateCustomizer
+        open={customizerOpen}
+        onOpenChange={setCustomizerOpen}
+        template={selectedTemplate}
+      />
     </div>
   );
 };
