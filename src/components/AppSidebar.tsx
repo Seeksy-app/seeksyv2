@@ -119,7 +119,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     marketing: false,
     sms: false,
   });
-  const [pinnedModules, setPinnedModules] = useState<string[]>(["meetings"]);
+  const [pinnedModules, setPinnedModules] = useState<string[]>([]);
   
   // State for navigation section ordering
   const [navigationSections, setNavigationSections] = useState<NavigationSection[]>(() => {
@@ -224,7 +224,10 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       
       // Listen for pinned modules changes from ModuleLauncher
       const handlePinnedModulesChange = () => {
-        loadModulePreferences();
+        // Add small delay to ensure DB update completes
+        setTimeout(() => {
+          loadModulePreferences();
+        }, 200);
       };
       window.addEventListener('pinnedModulesChanged', handlePinnedModulesChange);
       
@@ -278,10 +281,10 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         sms: (data as any).module_sms_enabled || false,
       });
       
-      // Parse pinned_modules safely - default to meetings if nothing is set
+      // Parse pinned_modules safely - default to empty array if nothing is set
       let pinned = Array.isArray(data.pinned_modules) 
         ? data.pinned_modules 
-        : ["meetings"];
+        : [];
       
       setPinnedModules(pinned as string[]);
     }
