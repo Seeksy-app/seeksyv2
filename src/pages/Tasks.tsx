@@ -19,6 +19,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-
 import { CSS } from "@dnd-kit/utilities";
 import { CategoryManager } from "@/components/tasks/CategoryManager";
 import { CategorySelect } from "@/components/tasks/CategorySelect";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Task {
   id: string;
@@ -30,6 +31,14 @@ interface Task {
   assigned_to: string | null;
   due_date: string | null;
   created_at: string;
+  assignee?: {
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
+  assigner?: {
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
 }
 
 interface TeamMember {
@@ -332,7 +341,28 @@ export default function Tasks() {
         return;
       }
 
-      setTasks(data || []);
+      // Fetch profile data for assignees and assigners
+      const userIds = new Set<string>();
+      data.forEach(task => {
+        if (task.assigned_to) userIds.add(task.assigned_to);
+        if (task.user_id) userIds.add(task.user_id);
+      });
+
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name, avatar_url")
+        .in("id", Array.from(userIds));
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+      // Enrich tasks with profile data
+      const enrichedTasks = data.map(task => ({
+        ...task,
+        assignee: task.assigned_to ? profileMap.get(task.assigned_to) : null,
+        assigner: task.user_id ? profileMap.get(task.user_id) : null,
+      }));
+
+      setTasks(enrichedTasks);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -714,17 +744,47 @@ export default function Tasks() {
                 placeholder="Set due date"
               />
             </div>
-            {assignedUser && (
-              <div className="mt-3 flex items-center gap-2">
-                <Avatar className="h-6 w-6">
-                  <AvatarImage src={assignedUser.avatar_url || undefined} />
-                  <AvatarFallback className="text-xs">{getUserInitials(assignedUser)}</AvatarFallback>
-                </Avatar>
-                <span className="text-xs text-muted-foreground">
-                  {assignedUser.full_name || assignedUser.username}
-                </span>
-              </div>
-            )}
+            <div className="mt-3 flex items-center justify-between">
+              {task.assignee && (
+                <div className="flex items-center gap-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={task.assignee.avatar_url || undefined} />
+                          <AvatarFallback className="text-xs">
+                            {task.assignee.full_name?.charAt(0) || "?"}
+                          </AvatarFallback>
+                        </Avatar>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Assigned to: {task.assignee.full_name || "Unknown"}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <span className="text-xs text-muted-foreground">
+                    {task.assignee.full_name || "Unknown"}
+                  </span>
+                </div>
+              )}
+              {task.assigner && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Avatar className="h-6 w-6 border-2 border-primary">
+                        <AvatarImage src={task.assigner.avatar_url || undefined} />
+                        <AvatarFallback className="text-xs">
+                          {task.assigner.full_name?.charAt(0) || "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Created by: {task.assigner.full_name || "Unknown"}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -1184,22 +1244,60 @@ export default function Tasks() {
                       />
                     </TableCell>
                     <TableCell>
-                      <Select
-                        value={task.assigned_to || "unassigned"}
-                        onValueChange={(value) => handleAssigneeChange(task.id, value)}
-                      >
-                        <SelectTrigger className="h-8 w-40 text-xs">
-                          <SelectValue placeholder="Unassigned" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="unassigned">Unassigned</SelectItem>
-                          {teamMembers.map((member) => (
-                            <SelectItem key={member.id} value={member.id}>
-                              {member.full_name || member.username || "Unknown"}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          {task.assignee && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Avatar className="h-6 w-6">
+                                    <AvatarImage src={task.assignee.avatar_url || undefined} />
+                                    <AvatarFallback className="text-xs">
+                                      {task.assignee.full_name?.charAt(0) || "?"}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Assigned to: {task.assignee.full_name || "Unknown"}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                          {task.assigner && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Avatar className="h-6 w-6 border border-primary">
+                                    <AvatarImage src={task.assigner.avatar_url || undefined} />
+                                    <AvatarFallback className="text-xs">
+                                      {task.assigner.full_name?.charAt(0) || "?"}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Created by: {task.assigner.full_name || "Unknown"}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </div>
+                        <Select
+                          value={task.assigned_to || "unassigned"}
+                          onValueChange={(value) => handleAssigneeChange(task.id, value)}
+                        >
+                          <SelectTrigger className="h-8 w-32 text-xs">
+                            <SelectValue placeholder="Unassigned" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="unassigned">Unassigned</SelectItem>
+                            {teamMembers.map((member) => (
+                              <SelectItem key={member.id} value={member.id}>
+                                {member.full_name || member.username || "Unknown"}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
