@@ -4,12 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Mail, Phone, Globe } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
 
 interface ClientsTabProps {
   userId: string;
 }
 
 export const ClientsTab = ({ userId }: ClientsTabProps) => {
+  const navigate = useNavigate();
+  
   const { data: clients } = useQuery({
     queryKey: ["pm-contacts", userId],
     queryFn: async () => {
@@ -30,7 +33,7 @@ export const ClientsTab = ({ userId }: ClientsTabProps) => {
         <div>
           <h2 className="text-2xl font-semibold">Clients & Customers</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Manage your clients from Contacts. <a href="/contacts" className="text-primary hover:underline">Go to Contacts →</a>
+            Manage your clients from Contacts. <Link to="/contacts" className="text-primary hover:underline">Go to Contacts →</Link>
           </p>
         </div>
       </div>
@@ -78,7 +81,7 @@ export const ClientsTab = ({ userId }: ClientsTabProps) => {
           <Card className="md:col-span-2">
             <CardContent className="py-12 text-center text-muted-foreground">
               <p className="mb-4">No contacts yet. Add contacts in the CRM to see them here.</p>
-              <Button onClick={() => window.location.href = '/contacts'}>
+              <Button onClick={() => navigate('/contacts')}>
                 Go to Contacts
               </Button>
             </CardContent>

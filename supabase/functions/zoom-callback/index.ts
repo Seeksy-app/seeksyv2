@@ -10,10 +10,9 @@ serve(async (req) => {
 
     if (error) {
       console.error('OAuth error:', error);
-      const baseUrl = Deno.env.get('SUPABASE_URL') || '';
       return new Response(null, {
         status: 302,
-        headers: { Location: `${baseUrl.replace('.supabase.co', '.lovableproject.com')}/availability?error=zoom_oauth_failed` }
+        headers: { Location: `https://seeksy.io/availability?error=zoom_oauth_failed` }
       });
     }
 
@@ -23,7 +22,7 @@ serve(async (req) => {
 
     const clientId = Deno.env.get('ZOOM_CLIENT_ID');
     const clientSecret = Deno.env.get('ZOOM_CLIENT_SECRET');
-    const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/zoom-callback`;
+    const redirectUri = `https://seeksy.io/functions/v1/zoom-callback`;
 
     // Exchange code for tokens
     const credentials = btoa(`${clientId}:${clientSecret}`);
@@ -107,17 +106,15 @@ serve(async (req) => {
     console.log('Successfully stored Zoom connection for user:', state);
 
     // Redirect back to app
-    const baseUrl = Deno.env.get('SUPABASE_URL') || '';
     return new Response(null, {
       status: 302,
-      headers: { Location: `${baseUrl.replace('.supabase.co', '.lovableproject.com')}/integrations?zoom_success=true` }
+      headers: { Location: `https://seeksy.io/integrations?zoom_success=true` }
     });
   } catch (error) {
     console.error('Error in zoom-callback:', error);
-    const baseUrl = Deno.env.get('SUPABASE_URL') || '';
     return new Response(null, {
       status: 302,
-      headers: { Location: `${baseUrl.replace('.supabase.co', '.lovableproject.com')}/integrations?error=zoom_connection_failed` }
+      headers: { Location: `https://seeksy.io/integrations?error=zoom_connection_failed` }
     });
   }
 });

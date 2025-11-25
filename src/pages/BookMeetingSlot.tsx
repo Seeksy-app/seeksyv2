@@ -115,6 +115,9 @@ const BookMeetingSlot = () => {
     setCheckingAvailability(true);
     try {
       const { data, error } = await supabase.functions.invoke('google-calendar-check-availability', {
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
         body: {
           userId: profile.id,
           date: selectedDate.toISOString(),
@@ -278,6 +281,9 @@ const BookMeetingSlot = () => {
       // Create calendar event for the meeting owner
       try {
         await supabase.functions.invoke("google-calendar-create-event", {
+          headers: {
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+          },
           body: {
             title: `${meetingType.name} with ${attendeeName}`,
             description: notes,

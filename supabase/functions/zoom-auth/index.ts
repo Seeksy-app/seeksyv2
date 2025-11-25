@@ -29,7 +29,7 @@ serve(async (req) => {
     }
 
     const clientId = Deno.env.get('ZOOM_CLIENT_ID');
-    const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/zoom-callback`;
+    const redirectUri = `https://seeksy.io/functions/v1/zoom-callback`;
     
     const authUrl = `https://zoom.us/oauth/authorize?` +
       `response_type=code` +

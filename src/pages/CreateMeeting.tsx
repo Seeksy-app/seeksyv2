@@ -213,6 +213,9 @@ const CreateMeeting = () => {
       if ((createCalendarEvent && calendarConnected) || (locationType === 'meet' && calendarConnected)) {
         try {
           const { data: calendarData } = await supabase.functions.invoke('google-calendar-create-event', {
+            headers: {
+              Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+            },
             body: {
               title,
               description,
