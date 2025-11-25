@@ -22,7 +22,7 @@ export const SeeksyAIChatWidget = () => {
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [messages, setMessages] = useState<Message[]>([{
     role: "assistant",
-    content: "Hi! I'm Seeksy AI. How can I help you today?"
+    content: "Hi! I'm Seeksy AI. What do you need help with?"
   }]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -239,10 +239,10 @@ export const SeeksyAIChatWidget = () => {
   };
 
   const quickActions = [
-    { label: "Create a Meeting", prompt: "Help me create a meeting" },
-    { label: "Add a Podcast", prompt: "I want to add a new podcast" },
-    { label: "Set Up My Page", prompt: "Help me set up my creator page" },
-    { label: "Create an Event", prompt: "I want to create an event" },
+    { label: "Create a Meeting", prompt: "Create a meeting" },
+    { label: "Add a Podcast", prompt: "Add a podcast" },
+    { label: "Create an Event", prompt: "Create an event" },
+    { label: "Send an Email", prompt: "Send an email" },
   ];
 
   if (!isOpen) {

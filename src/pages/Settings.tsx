@@ -248,13 +248,7 @@ const Settings = () => {
     saveTimeoutRef.current = setTimeout(() => {
       handleSave(false);
     }, 1000); // Save 1 second after user stops typing/changing
-  }, []); // Empty deps - we'll read from refs/state directly when saving
-
-  // Update effect to ensure we're always using latest state
-  useEffect(() => {
-    // This effect runs whenever formData, profileData, or notificationPrefs change
-    // The actual save happens in handleSave which reads the current state
-  }, [formData, profileData, notificationPrefs]);
+  }, [formData, profileData, notificationPrefs]); // Include deps so closure captures current state
 
   // Cleanup timeout on unmount
   useEffect(() => {
