@@ -1744,7 +1744,7 @@ export const InteractiveSpreadsheet = () => {
                   </p>
 
                   {/* Scenario Selection */}
-                  <div className="mt-4 p-3 bg-accent/50 rounded-lg border">
+                  <div className="mt-4 p-3 bg-background rounded-lg border">
                     <div className="flex items-center justify-between mb-3">
                       <p className="text-sm font-semibold">Projection Scenarios</p>
                       {selectedScenario !== 'baseline' && (
