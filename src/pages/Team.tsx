@@ -10,8 +10,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Trash2, Mail, Loader2, ArrowLeft, RefreshCw } from "lucide-react";
+import { UserPlus, Trash2, Mail, Loader2, ArrowLeft, RefreshCw, MoreVertical, Link as LinkIcon, UserMinus, Copy } from "lucide-react";
 
 type TeamMember = {
   id: string;
@@ -33,6 +39,18 @@ type TeamInvitation = {
   expires_at: string;
 };
 
+type CombinedMember = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  status: 'active' | 'pending';
+  avatar_url: string | null;
+  created_at: string;
+  type: 'member' | 'invitation';
+};
+
 type AppRole = "member" | "manager" | "scheduler" | "sales";
 
 export default function Team() {
@@ -47,6 +65,8 @@ export default function Team() {
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviting, setInviting] = useState(false);
   const [resendingId, setResendingId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [combinedMembers, setCombinedMembers] = useState<CombinedMember[]>([]);
 
   useEffect(() => {
     checkAuth();
@@ -69,6 +89,9 @@ export default function Team() {
         loadTeamMembers(user.id),
         loadInvitations(user.id)
       ]);
+      
+      // Combine members and invitations after both are loaded
+      combineMembers();
     } catch (error) {
       console.error("Error loading team data:", error);
       toast({
@@ -187,6 +210,48 @@ export default function Team() {
     setInvitations(data || []);
   };
 
+  const combineMembers = () => {
+    const combined: CombinedMember[] = [];
+
+    // Add active team members
+    teamMembers.forEach(member => {
+      const [firstName = "", lastName = ""] = (member.full_name || "").split(" ");
+      combined.push({
+        id: member.id,
+        firstName,
+        lastName: lastName || "",
+        email: member.email || "",
+        role: member.role,
+        status: 'active',
+        avatar_url: member.avatar_url,
+        created_at: member.created_at,
+        type: 'member'
+      });
+    });
+
+    // Add pending invitations
+    invitations.forEach(invitation => {
+      const [firstName = "", lastName = ""] = (invitation.invitee_name || "").split(" ");
+      combined.push({
+        id: invitation.id,
+        firstName,
+        lastName: lastName || "",
+        email: invitation.invitee_email,
+        role: invitation.role,
+        status: 'pending',
+        avatar_url: null,
+        created_at: invitation.invited_at,
+        type: 'invitation'
+      });
+    });
+
+    setCombinedMembers(combined);
+  };
+
+  useEffect(() => {
+    combineMembers();
+  }, [teamMembers, invitations]);
+
   const handleInvite = async () => {
     if (!inviteEmail || !inviteName) {
       toast({
@@ -301,6 +366,26 @@ export default function Team() {
       toast({
         title: "Error",
         description: "Failed to cancel invitation",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCopyInviteLink = async (email: string) => {
+    const inviteLink = `${window.location.origin}/auth?email=${encodeURIComponent(email)}`;
+    
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      setCopiedId(email);
+      toast({
+        title: "Link copied!",
+        description: "Invite link copied to clipboard",
+      });
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to copy link",
         variant: "destructive",
       });
     }
@@ -459,163 +544,146 @@ export default function Team() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Team Members</CardTitle>
-            <CardDescription>
-              {totalCount} total ({activeCount} active, {pendingCount} pending)
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-2xl">Directory</CardTitle>
+                <CardDescription className="mt-1">
+                  {combinedMembers.length} team member{combinedMembers.length !== 1 ? 's' : ''}
+                </CardDescription>
+              </div>
+              <Button onClick={() => setShowInviteDialog(true)}>
+                <UserPlus className="h-4 w-4 mr-2" />
+                Add Teammate
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="active" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="active">Active ({activeCount})</TabsTrigger>
-                <TabsTrigger value="pending">Pending ({pendingCount})</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="active" className="mt-6">
-                {teamMembers.length === 0 ? (
-                  <div className="text-center py-12">
-                    <UserPlus className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <h3 className="text-lg font-medium mb-2">No active team members yet</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Invite team members to collaborate on your content
-                    </p>
-                    <Button onClick={() => setShowInviteDialog(true)}>
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Invite Your First Member
-                    </Button>
-                  </div>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Member</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Joined</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {teamMembers.map((member) => (
-                        <TableRow key={member.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              {member.avatar_url ? (
-                                <img
-                                  src={member.avatar_url}
-                                  alt={member.full_name || "Member"}
-                                  className="h-8 w-8 rounded-full object-cover"
-                                />
-                              ) : (
-                                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                  <span className="text-xs font-medium">
-                                    {member.full_name?.[0]?.toUpperCase() || "?"}
-                                  </span>
-                                </div>
-                              )}
-                              <span className="font-medium">
-                                {member.full_name || "Unnamed"}
+            {combinedMembers.length === 0 ? (
+              <div className="text-center py-12">
+                <UserPlus className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-medium mb-2">No team members yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  Invite team members to collaborate
+                </p>
+                <Button onClick={() => setShowInviteDialog(true)}>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Add Your First Teammate
+                </Button>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>First Name</TableHead>
+                    <TableHead>Last Name</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {combinedMembers.map((member) => (
+                    <TableRow key={member.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          {member.avatar_url ? (
+                            <img
+                              src={member.avatar_url}
+                              alt={member.firstName}
+                              className="h-10 w-10 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center relative">
+                              <span className="text-sm font-medium">
+                                {member.firstName?.[0]?.toUpperCase() || "?"}
                               </span>
+                              {member.status === 'pending' && (
+                                <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-yellow-500 border-2 border-background" />
+                              )}
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={getRoleBadgeColor(member.role)}>
-                              {member.role}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {new Date(member.created_at).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {member.role !== "owner" && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoveMember(member.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                          )}
+                          <span className="font-medium">
+                            {member.firstName || "Unnamed"}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {member.lastName || "-"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="capitalize">
+                          {member.role}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {member.status === 'active' ? (
+                            <>
+                              <div className="h-2 w-2 rounded-full bg-green-500" />
+                              <span className="text-sm text-muted-foreground">Active</span>
+                            </>
+                          ) : (
+                            <>
+                              <div className="h-2 w-2 rounded-full bg-yellow-500" />
+                              <span className="text-sm text-muted-foreground">Pending</span>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56">
+                            {member.status === 'pending' && member.type === 'invitation' && (
+                              <>
+                                <DropdownMenuItem
+                                  onClick={() => handleResendInvitation(invitations.find(i => i.id === member.id)!)}
+                                  disabled={resendingId === member.id}
+                                >
+                                  <RefreshCw className="h-4 w-4 mr-2" />
+                                  Resend Invite
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleCopyInviteLink(member.email)}
+                                >
+                                  <LinkIcon className="h-4 w-4 mr-2" />
+                                  {copiedId === member.email ? "Copied!" : "Copy unique invite link"}
+                                </DropdownMenuItem>
+                              </>
                             )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </TabsContent>
-
-              <TabsContent value="pending" className="mt-6">
-                {invitations.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Mail className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <h3 className="text-lg font-medium mb-2">No pending invitations</h3>
-                    <p className="text-muted-foreground">
-                      All sent invitations will appear here
-                    </p>
-                  </div>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Sent</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {invitations.map((invitation) => (
-                        <TableRow key={invitation.id}>
-                          <TableCell className="font-medium">
-                            {invitation.invitee_name || "Unknown"}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {invitation.invitee_email}
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={getRoleBadgeColor(invitation.role)}>
-                              {invitation.role}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={getStatusBadgeColor(invitation.status)}>
-                              {invitation.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {new Date(invitation.invited_at).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleResendInvitation(invitation)}
-                                disabled={resendingId === invitation.id}
-                              >
-                                {resendingId === invitation.id ? (
-                                  <Loader2 className="h-4 w-4 animate-spin" />
+                            {member.role !== "owner" && (
+                              <>
+                                {member.type === 'invitation' ? (
+                                  <DropdownMenuItem
+                                    onClick={() => handleCancelInvitation(member.id)}
+                                    className="text-red-600"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Cancel Invitation
+                                  </DropdownMenuItem>
                                 ) : (
-                                  <RefreshCw className="h-4 w-4" />
+                                  <DropdownMenuItem
+                                    onClick={() => handleRemoveMember(member.id)}
+                                    className="text-red-600"
+                                  >
+                                    <UserMinus className="h-4 w-4 mr-2" />
+                                    Remove Member
+                                  </DropdownMenuItem>
                                 )}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleCancelInvitation(invitation.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </TabsContent>
-            </Tabs>
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </div>

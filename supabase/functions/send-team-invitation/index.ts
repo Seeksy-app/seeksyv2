@@ -175,6 +175,26 @@ serve(async (req) => {
         ? `https://${projectId}.lovableproject.com/dashboard`
         : `${supabaseUrl}/dashboard`;
       
+      // Add to contacts table
+      if (actualTeamId) {
+        const { error: contactError } = await supabaseAdmin
+          .from("contacts")
+          .upsert({
+            user_id: user.id,
+            email: email,
+            name: name,
+            tags: ["team_member"],
+          }, {
+            onConflict: 'user_id,email',
+            ignoreDuplicates: false
+          });
+
+        if (contactError) {
+          console.error("Error adding to contacts:", contactError);
+          // Continue even if contact creation fails
+        }
+      }
+      
       // Track invitation in database
       if (actualTeamId) {
         await supabaseAdmin
