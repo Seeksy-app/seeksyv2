@@ -151,6 +151,7 @@ import SignDocument from "./pages/SignDocument";
 import PodcastDistribution from "./pages/PodcastDistribution";
 import PublicTicketSubmission from "./pages/PublicTicketSubmission";
 import PublicTaskSubmission from "./pages/PublicTaskSubmission";
+import HelpCenter from "./pages/HelpCenter";
 
 const queryClient = new QueryClient();
 
@@ -324,6 +325,8 @@ const AppContent = () => {
           <Route path="/media-library" element={<MediaLibrary />} />
           <Route path="/post-production-studio" element={<PostProductionStudio />} />
           <Route path="/create-clips" element={<CreateClips />} />
+          <Route path="/help-center" element={<HelpCenter />} />
+          <Route path="/help-center/:guideId" element={<HelpCenter />} />
           <Route path="/system-status" element={<SystemStatus />} />
         <Route path="/awards" element={<Awards />} />
         <Route path="/awards/create" element={<CreateAwardsProgram />} />

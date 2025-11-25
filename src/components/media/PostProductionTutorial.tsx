@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -7,11 +8,11 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Play, Pause, BookOpen } from "lucide-react";
-import timelineOverview from "@/assets/tutorial-timeline-overview.jpg";
-import aiTools from "@/assets/tutorial-ai-tools.jpg";
-import manualTools from "@/assets/tutorial-manual-tools.jpg";
-import exportSave from "@/assets/tutorial-export-save.jpg";
+import { ChevronLeft, ChevronRight, Play, Pause, BookOpen, ExternalLink } from "lucide-react";
+import timelineOverview from "@/assets/tutorial-seeksy-timeline.jpg";
+import aiTools from "@/assets/tutorial-seeksy-ai-tools.jpg";
+import manualTools from "@/assets/tutorial-seeksy-manual-tools.jpg";
+import exportSave from "@/assets/tutorial-seeksy-export-save.jpg";
 
 interface TutorialStep {
   title: string;
@@ -69,6 +70,7 @@ interface PostProductionTutorialProps {
 }
 
 export function PostProductionTutorial({ open, onOpenChange }: PostProductionTutorialProps) {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -163,17 +165,30 @@ export function PostProductionTutorial({ open, onOpenChange }: PostProductionTut
               Previous
             </Button>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handlePlayPause}
-            >
-              {isPlaying ? (
-                <Pause className="h-4 w-4" />
-              ) : (
-                <Play className="h-4 w-4" />
-              )}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handlePlayPause}
+              >
+                {isPlaying ? (
+                  <Pause className="h-4 w-4" />
+                ) : (
+                  <Play className="h-4 w-4" />
+                )}
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => {
+                  onOpenChange(false);
+                  navigate("/help-center");
+                }}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                View Full Guide
+              </Button>
+            </div>
 
             <Button onClick={handleNext}>
               {currentStep === tutorialSteps.length - 1 ? (

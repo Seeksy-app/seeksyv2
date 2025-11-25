@@ -32,7 +32,8 @@ import {
   Redo,
   X,
   Camera,
-  HelpCircle
+  HelpCircle,
+  BookOpen
 } from "lucide-react";
 
 interface Marker {
@@ -452,6 +453,10 @@ export default function PostProductionStudio() {
           <Button variant="ghost" size="sm" onClick={() => setTutorialOpen(true)}>
             <HelpCircle className="h-4 w-4 mr-2" />
             Tutorial
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => navigate("/help-center")}>
+            <BookOpen className="h-4 w-4 mr-2" />
+            Help Center
           </Button>
           <Button variant="outline" size="sm">
             <Undo className="h-4 w-4 mr-2" />

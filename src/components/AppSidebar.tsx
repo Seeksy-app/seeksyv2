@@ -42,7 +42,8 @@ import {
   Network,
   Code,
   Grid3x3,
-  Pin
+  Pin,
+  BookOpen
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import seeksyLogo from "@/assets/seeksy-logo.png";
@@ -432,6 +433,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     { title: "Profile Settings", url: "/settings", icon: Settings },
     { title: "Team", url: "/team", icon: Contact },
     { title: "Seekies", url: "/integrations", icon: Puzzle },
+    { title: "Help Center", url: "/help-center", icon: BookOpen },
     { title: "System Status", url: "/system-status", icon: Activity },
     { title: "Architecture", url: "/seeksy-architecture", icon: Network },
     { title: "Tech Stack", url: "/tech-stack", icon: Code },
