@@ -1186,7 +1186,7 @@ export default function Tasks() {
                 const assignedUser = getAssignedUser(task.assigned_to);
                 return (
                   <TableRow key={task.id}>
-                    <TableCell>
+                    <TableCell className="py-2">
                       <div>
                         <div className="font-medium">{task.title}</div>
                         {task.description && (
@@ -1194,7 +1194,7 @@ export default function Tasks() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-2">
                       <Badge 
                         className="text-white text-xs cursor-default"
                         style={{ backgroundColor: getCategoryColor(task.category) }}
@@ -1202,7 +1202,7 @@ export default function Tasks() {
                         {task.category}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-2">
                       <Select
                         value={task.priority}
                         onValueChange={(value) => handlePriorityChange(task.id, value)}
@@ -1217,7 +1217,7 @@ export default function Tasks() {
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-2">
                       <Select
                         value={task.status}
                         onValueChange={(value) => handleStatusChange(task.id, value)}
@@ -1234,7 +1234,7 @@ export default function Tasks() {
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-2">
                       <Input
                         type="date"
                         value={task.due_date || ""}
@@ -1243,9 +1243,9 @@ export default function Tasks() {
                         placeholder="Set due date"
                       />
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1">
+                    <TableCell className="py-2">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5">
                           {task.assignee && (
                             <TooltipProvider>
                               <Tooltip>
@@ -1263,11 +1263,31 @@ export default function Tasks() {
                               </Tooltip>
                             </TooltipProvider>
                           )}
-                          {task.assigner && (
+                          <Select
+                            value={task.assigned_to || "unassigned"}
+                            onValueChange={(value) => handleAssigneeChange(task.id, value)}
+                          >
+                            <SelectTrigger className="h-8 w-28 text-xs">
+                              <SelectValue placeholder="Unassigned" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="unassigned">Unassigned</SelectItem>
+                              {teamMembers.map((member) => (
+                                <SelectItem key={member.id} value={member.id}>
+                                  {member.full_name || member.username || "Unknown"}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        {task.assigner && (
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <span className="whitespace-nowrap">Assigned by:</span>
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Avatar className="h-6 w-6 border border-primary">
+                                  <Avatar className="h-6 w-6">
                                     <AvatarImage src={task.assigner.avatar_url || undefined} />
                                     <AvatarFallback className="text-xs">
                                       {task.assigner.full_name?.charAt(0) || "?"}
@@ -1275,31 +1295,15 @@ export default function Tasks() {
                                   </Avatar>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  <p>Created by: {task.assigner.full_name || "Unknown"}</p>
+                                  <p>{task.assigner.full_name || "Unknown"}</p>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
-                          )}
-                        </div>
-                        <Select
-                          value={task.assigned_to || "unassigned"}
-                          onValueChange={(value) => handleAssigneeChange(task.id, value)}
-                        >
-                          <SelectTrigger className="h-8 w-32 text-xs">
-                            <SelectValue placeholder="Unassigned" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="unassigned">Unassigned</SelectItem>
-                            {teamMembers.map((member) => (
-                              <SelectItem key={member.id} value={member.id}>
-                                {member.full_name || member.username || "Unknown"}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          </div>
+                        )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right py-2">
                       <div className="flex justify-end gap-1">
                         <Button
                           variant="ghost"
