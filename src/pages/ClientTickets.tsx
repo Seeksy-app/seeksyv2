@@ -32,10 +32,13 @@ export default function ClientTickets() {
     dueDate: "",
   });
 
-  const { data: user } = useQuery({
+  const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ["user"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("Not authenticated");
+      }
       return user;
     },
   });
@@ -77,6 +80,21 @@ export default function ClientTickets() {
     },
     enabled: !!user,
   });
+
+  // Show loading state while checking authentication
+  if (userLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  // Redirect to auth if not logged in
+  if (!user) {
+    navigate("/auth");
+    return null;
+  }
 
   const createTicketMutation = useMutation({
     mutationFn: async (ticketData: typeof formData) => {
