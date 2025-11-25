@@ -30,7 +30,7 @@ export default function ProposalDetail() {
   const [emailMessage, setEmailMessage] = useState("");
   const [recipientEmail, setRecipientEmail] = useState("");
 
-  const { data: proposal, isLoading } = useQuery({
+  const { data: proposal, isLoading, isError, error } = useQuery({
     queryKey: ["proposal", id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -58,6 +58,7 @@ export default function ProposalDetail() {
       return data;
     },
     enabled: !!id,
+    retry: 1,
   });
 
   const sendProposalMutation = useMutation({
@@ -160,12 +161,15 @@ export default function ProposalDetail() {
     );
   }
 
-  if (!proposal) {
+  if (isError || !proposal) {
     return (
       <div className="container mx-auto py-8">
         <div className="text-center py-12">
-          <p className="text-muted-foreground">Proposal not found</p>
-          <Button onClick={() => navigate("/proposals")} className="mt-4">
+          <p className="text-muted-foreground mb-2">
+            {isError ? `Error loading proposal: ${error?.message}` : "Proposal not found"}
+          </p>
+          <Button onClick={() => navigate("/proposals")}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Proposals
           </Button>
         </div>
