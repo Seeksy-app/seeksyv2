@@ -72,10 +72,11 @@ const Index = () => {
               </Button>
               <Button 
                 size="lg" 
-                onClick={() => navigate("/auth?mode=signup")}
+                onClick={() => navigate("/comparison")}
+                variant="outline"
                 className="bg-black/40 backdrop-blur-sm border-2 border-white/50 text-white hover:bg-white hover:text-black text-lg px-10 py-7 h-auto font-black transition-all"
               >
-                Sign Up Free
+                Compare Tools
               </Button>
               </div>
               
