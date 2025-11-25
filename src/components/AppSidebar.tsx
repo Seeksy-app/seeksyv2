@@ -570,7 +570,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                              <NavLink 
                               to={item.url} 
                               end 
-                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8"
+                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8 pl-4"
                               activeClassName="bg-accent text-accent-foreground font-medium"
                             >
                               <item.icon className="h-4 w-4" />
@@ -623,7 +623,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                             <NavLink 
                               to={isPending ? "#" : item.url} 
                               end
-                              className={`hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8 ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              className={`hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8 pl-4 ${isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
                               activeClassName="bg-accent text-accent-foreground font-medium"
                             >
                               <item.icon className="h-4 w-4" />
@@ -705,7 +705,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                                 <NavLink
                                   to={item.url}
                                   end
-                                  className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8"
+                                  className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8 pl-4"
                                   activeClassName="bg-accent text-accent-foreground font-medium"
                                 >
                                   <item.icon className="h-4 w-4" />
@@ -743,6 +743,59 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                     </SidebarMenuItem>
                   );
                 })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </CollapsibleContent>
+        </SidebarGroup>
+      </Collapsible>
+    );
+  };
+
+  const renderEngagementSection = () => {
+    if (isAdvertiser || engagementItems.length === 0) return null;
+    
+    return (
+      <Collapsible
+        key="engagement"
+        open={openSections.engagement}
+        onOpenChange={(open) => setOpenSections({ ...openSections, engagement: open })}
+      >
+        <SidebarGroup className="py-0">
+          <CollapsibleTrigger asChild>
+            <SidebarGroupLabel className="text-base font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5">
+              <span>Engagement</span>
+              {!collapsed && <ChevronDown className={`h-3 w-3 transition-transform ${openSections.engagement ? '' : '-rotate-90'}`} />}
+            </SidebarGroupLabel>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <SidebarGroupContent>
+              <SidebarMenu className="space-y-0">
+                {engagementItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <SidebarMenuButton asChild>
+                            <NavLink
+                              to={item.url}
+                              end
+                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8 pl-4"
+                              activeClassName="bg-accent text-accent-foreground font-medium"
+                            >
+                              <item.icon className="h-4 w-4" />
+                              {!collapsed && <span>{item.title}</span>}
+                            </NavLink>
+                          </SidebarMenuButton>
+                        </TooltipTrigger>
+                        {collapsed && (
+                          <TooltipContent side="right">
+                            <p>{item.title}</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
+                  </SidebarMenuItem>
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </CollapsibleContent>
@@ -799,7 +852,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                             <NavLink
                               to={item.url}
                               end
-                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8"
+                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8 pl-4"
                               activeClassName="bg-accent text-accent-foreground font-medium"
                             >
                               <item.icon className="h-4 w-4" />
@@ -851,7 +904,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                             <NavLink
                               to={item.url}
                               end
-                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8"
+                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8 pl-4"
                               activeClassName="bg-accent text-accent-foreground font-medium"
                             >
                               <item.icon className="h-4 w-4" />
@@ -924,59 +977,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                             <NavLink
                               to={item.url}
                               end
-                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8"
-                              activeClassName="bg-accent text-accent-foreground font-medium"
-                            >
-                              <item.icon className="h-4 w-4" />
-                              {!collapsed && <span>{item.title}</span>}
-                            </NavLink>
-                          </SidebarMenuButton>
-                        </TooltipTrigger>
-                        {collapsed && (
-                          <TooltipContent side="right">
-                            <p>{item.title}</p>
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-                    </TooltipProvider>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </CollapsibleContent>
-        </SidebarGroup>
-      </Collapsible>
-    );
-  };
-
-  const renderEngagementSection = () => {
-    if (isAdvertiser || engagementItems.length === 0) return null;
-    return (
-      <Collapsible
-        key="engagement"
-        open={openSections.engagement}
-        onOpenChange={(open) => setOpenSections({ ...openSections, engagement: open })}
-      >
-        <SidebarGroup className="py-0">
-          <CollapsibleTrigger asChild>
-            <SidebarGroupLabel className="text-base font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5">
-              <span>Engagement</span>
-              {!collapsed && <ChevronDown className={`h-3 w-3 transition-transform ${openSections.engagement ? '' : '-rotate-90'}`} />}
-            </SidebarGroupLabel>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <SidebarGroupContent>
-              <SidebarMenu className="space-y-0">
-                {engagementItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <SidebarMenuButton asChild>
-                            <NavLink 
-                              to={item.url}
-                              end
-                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8"
+                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8 pl-4"
                               activeClassName="bg-accent text-accent-foreground font-medium"
                             >
                               <item.icon className="h-4 w-4" />
@@ -1029,7 +1030,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                             <NavLink
                               to={item.url}
                               end
-                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8"
+                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8 pl-4"
                               activeClassName="bg-accent text-accent-foreground font-medium"
                             >
                               <item.icon className="h-4 w-4" />
@@ -1082,7 +1083,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                             <NavLink
                               to={item.url}
                               end
-                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8"
+                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8 pl-4"
                               activeClassName="bg-accent text-accent-foreground font-medium"
                             >
                               <item.icon className="h-4 w-4" />
@@ -1135,7 +1136,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                             <NavLink
                               to={item.url}
                               end
-                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8"
+                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8 pl-4"
                               activeClassName="bg-accent text-accent-foreground font-medium"
                             >
                               <item.icon className="h-4 w-4" />
@@ -1188,7 +1189,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                             <NavLink
                               to={item.url}
                               end
-                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8"
+                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8 pl-4"
                               activeClassName="bg-accent text-accent-foreground font-medium"
                             >
                               <item.icon className="h-4 w-4" />
@@ -1291,7 +1292,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                           <NavLink
                             to={item.url}
                             end
-                            className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8"
+                            className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8 pl-4"
                             activeClassName="bg-accent text-accent-foreground font-medium"
                           >
                             <item.icon className="h-4 w-4" />
