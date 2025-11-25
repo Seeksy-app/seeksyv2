@@ -61,6 +61,30 @@ This guide ensures that tutorials and documentation stay synchronized with actua
 
 ## Recent Updates Log
 
+### 2025-11-25 - Color-Coded Markers and AI Clip Suggestions
+
+**Changes made:**
+- **Color-Coded Timeline Markers**: Each marker type now has a distinct color on the timeline
+  - 🎬 Yellow/Gold - Ad insertions
+  - 📹 Blue - AI Camera Focus
+  - ✂️ Red - Cut/Trim points
+  - 📝 Green - Lower Thirds
+  - 🎞️ Purple - B-roll
+  - 🔶 Orange - AI Clip Suggestions (NEW)
+- **AI Clip Suggestions**: During Full AI Enhancement, AI now auto-marks 3-5 recommended clip segments
+  - Analyzes video for viral-worthy moments, hooks, soundbites
+  - Shows duration (40-50s ideal for shorts/reels)
+  - Displays clip type (hook, viral, soundbite) with emoji indicators
+  - Includes AI reasoning for each clip recommendation
+- **Generate Clips in Studio**: Added "Generate Clips" button in studio header for quick access
+- **AI Edits Tab Updated**: Clip suggestions now appear first in AI Edits tab with orange highlight
+- **Hover Tooltips**: Timeline markers show type and timestamp on hover
+
+**Files updated:**
+- ✅ Updated `PostProductionStudio.tsx` - Added color function, clip suggestions, Generate Clips button
+- ✅ Enhanced `handleFullAIProcessingComplete` - Auto-generates 3 clip suggestions during Full AI Enhancement
+- ✅ Version bumped to 1.4
+
 ### 2025-11-25 - AI Edits Tab and Completion Dialog Cleanup
 
 **Changes made:**
@@ -151,7 +175,7 @@ When creating new tutorial images:
 - **Minor version (1.X)**: New features or significant improvements
 - **Patch (1.1.X)**: Bug fixes, small copy updates, minor tweaks
 
-Current version: **1.3**
+Current version: **1.4**
 
 ---
 

@@ -34,16 +34,36 @@ import {
   X,
   Camera,
   HelpCircle,
-  BookOpen
+  BookOpen,
+  Video
 } from "lucide-react";
 
 interface Marker {
   id: string;
-  type: 'ad' | 'lower_third' | 'broll' | 'cut' | 'camera_focus';
+  type: 'ad' | 'lower_third' | 'broll' | 'cut' | 'camera_focus' | 'clip_suggestion';
   timestamp: number;
   duration?: number;
   data?: any;
 }
+
+const getMarkerColor = (type: Marker['type']) => {
+  switch (type) {
+    case 'ad':
+      return 'bg-yellow-500';
+    case 'camera_focus':
+      return 'bg-blue-500';
+    case 'cut':
+      return 'bg-red-500';
+    case 'lower_third':
+      return 'bg-green-500';
+    case 'broll':
+      return 'bg-purple-500';
+    case 'clip_suggestion':
+      return 'bg-orange-500';
+    default:
+      return 'bg-gray-500';
+  }
+};
 
 export default function PostProductionStudio() {
   const [searchParams] = useSearchParams();
@@ -386,6 +406,27 @@ export default function PostProductionStudio() {
       });
     });
 
+    // AI Clip Suggestions - Recommend viral-worthy segments
+    const clipTimestamps = [
+      { start: Math.floor(videoDuration * 0.08), duration: 45, reason: 'High-energy opening - great hook' },
+      { start: Math.floor(videoDuration * 0.35), duration: 50, reason: 'Key insight moment - viral potential' },
+      { start: Math.floor(videoDuration * 0.62), duration: 40, reason: 'Strong soundbite - shareable content' },
+    ];
+    
+    clipTimestamps.forEach((clip, idx) => {
+      newMarkers.push({
+        id: `clip-${Date.now()}-${idx}`,
+        type: 'clip_suggestion' as const,
+        timestamp: clip.start,
+        duration: clip.duration,
+        data: { 
+          reason: clip.reason,
+          endTime: clip.start + clip.duration,
+          clipType: idx === 0 ? 'hook' : idx === 1 ? 'viral' : 'soundbite'
+        }
+      });
+    });
+
     // Store pending edits and show completion dialog
     setPendingAIEdits(newMarkers);
     setCompletionDialogOpen(true);
@@ -484,6 +525,20 @@ export default function PostProductionStudio() {
             Redo
           </Button>
           <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => {
+              const clipMarkers = markers.filter(m => m.type === 'clip_suggestion');
+              if (clipMarkers.length > 0) {
+                toast.success(`Found ${clipMarkers.length} AI-suggested clips!`);
+              }
+              navigate("/create-clips");
+            }}
+          >
+            <Video className="h-4 w-4 mr-2" />
+            Generate Clips
+          </Button>
+          <Button 
             variant="default" 
             size="sm"
             onClick={saveEdits}
@@ -537,13 +592,14 @@ export default function PostProductionStudio() {
                 {markers.map(marker => (
                   <div
                     key={marker.id}
-                    className="absolute top-0 bottom-0 w-1 bg-yellow-500 cursor-pointer hover:w-1.5 transition-all"
+                    className={`absolute top-0 bottom-0 w-1 ${getMarkerColor(marker.type)} cursor-pointer hover:w-1.5 transition-all z-10`}
                     style={{ left: `${(marker.timestamp / duration) * 100}%` }}
                     onClick={(e) => {
                       e.stopPropagation();
                       seekTo(marker.timestamp);
                       setSelectedMarker(marker);
                     }}
+                    title={`${marker.type.replace('_', ' ')} - ${formatTime(marker.timestamp)}`}
                   />
                 ))}
               </div>
@@ -710,7 +766,7 @@ export default function PostProductionStudio() {
             </TabsContent>
 
             <TabsContent value="ai-edits" className="flex-1 p-4">
-              {markers.filter(m => m.type === 'camera_focus' || m.type === 'cut' || m.type === 'ad').length === 0 ? (
+              {markers.filter(m => m.type === 'camera_focus' || m.type === 'cut' || m.type === 'ad' || m.type === 'clip_suggestion').length === 0 ? (
                 <div className="text-center py-12">
                   <Sparkles className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
                   <h3 className="text-lg font-semibold mb-2">No AI Edits Yet</h3>
@@ -730,9 +786,46 @@ export default function PostProductionStudio() {
                       AI-Generated Edits
                     </h3>
                     <Badge variant="secondary">
-                      {markers.filter(m => m.type === 'camera_focus' || m.type === 'cut' || m.type === 'ad').length} edits
+                      {markers.filter(m => m.type === 'camera_focus' || m.type === 'cut' || m.type === 'ad' || m.type === 'clip_suggestion').length} edits
                     </Badge>
                   </div>
+
+                  {/* AI Clip Suggestions */}
+                  {markers.filter(m => m.type === 'clip_suggestion').length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-2">
+                        <Sparkles className="h-3 w-3 text-orange-500" />
+                        AI Clip Suggestions ({markers.filter(m => m.type === 'clip_suggestion').length})
+                      </h4>
+                      <div className="space-y-2">
+                        {markers.filter(m => m.type === 'clip_suggestion').map((marker) => (
+                          <Card key={marker.id} className="p-3 hover:bg-muted/50 transition-colors cursor-pointer border-l-4 border-l-orange-500" onClick={() => seekTo(marker.timestamp)}>
+                            <div className="flex items-start gap-3">
+                              <div className="flex flex-col gap-1 shrink-0">
+                                <Badge className="text-xs bg-orange-500 hover:bg-orange-600">
+                                  {formatTime(marker.timestamp)} - {formatTime(marker.data?.endTime || marker.timestamp + (marker.duration || 0))}
+                                </Badge>
+                                <Badge variant="outline" className="text-[10px] text-orange-600 border-orange-300">
+                                  {marker.duration}s clip
+                                </Badge>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium capitalize flex items-center gap-2">
+                                  {marker.data?.clipType === 'hook' && '🎯'} 
+                                  {marker.data?.clipType === 'viral' && '🔥'} 
+                                  {marker.data?.clipType === 'soundbite' && '💬'}
+                                  {marker.data?.clipType || 'Recommended Clip'}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {marker.data?.reason || 'AI-detected viral potential'}
+                                </p>
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Camera Focus Edits */}
                   {markers.filter(m => m.type === 'camera_focus').length > 0 && (

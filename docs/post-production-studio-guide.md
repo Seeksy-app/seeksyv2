@@ -49,7 +49,9 @@ The studio interface consists of four main areas:
    - **Keep Original**: Discard AI changes and return to original video
 5. If you choose "Save Edits":
    - All AI markers appear in your timeline
+   - **NEW:** AI clip suggestions are automatically marked (orange markers)
    - Video displays with edits ready for review
+   - Click "Generate Clips" button to create clips from AI suggestions
    - You can continue with manual edits or export immediately
 6. System guides you with toast notifications for next steps
 
@@ -63,6 +65,8 @@ The studio interface consists of four main areas:
 - Let the full AI enhancement run first, then refine manually
 - Watch the PiP preview to understand what AI is doing
 - Review all markers in the Markers tab after processing
+- **NEW:** Check AI Edits tab for clip suggestions - orange markers show viral-worthy segments
+- Click "Generate Clips" button to create clips from AI recommendations
 - You can always undo and start over if needed
 - Manual tools work perfectly alongside AI edits
 
@@ -240,7 +244,12 @@ The studio interface consists of four main areas:
 - **Timestamp** - Exact time in minutes:seconds (e.g., "0:45", "1:23")
 - **Edit Type** - What kind of edit was applied (close-up, zoom, trim, etc.)
 - **Description** - Written explanation of what the AI did and why
-- **Duration** - How long the edit lasts (for ads and camera angles)
+- **Duration** - How long the edit lasts (for ads, camera angles, and clips)
+- **Clip Recommendations** - AI-suggested segments perfect for shorts/reels with:
+  - Start and end timestamps
+  - Duration (typically 40-50 seconds)
+  - Clip type indicator (🎯 hook, 🔥 viral, 💬 soundbite)
+  - Reasoning (why this segment has viral potential)
 
 **How to use:**
 1. Review the complete list of AI changes after processing
@@ -269,12 +278,15 @@ The studio interface consists of four main areas:
 
 - **Click timeline** - Jump to any point in your video
 - **Drag playhead** - Scrub through video frame-by-frame
-- **Timeline markers** - Color-coded by type:
-  - 🎬 **Yellow** - Ad insertion points
-  - 📹 **Blue** - Camera focus/angles
-  - 📝 **Green** - Lower thirds
-  - 🎞️ **Purple** - B-roll
-  - ✂️ **Red** - Cut points
+- **Color-coded markers** - Visual indicators for each edit type:
+  - 🎬 **Yellow/Gold** - Ad insertion points
+  - 📹 **Blue** - AI Camera focus and angles
+  - ✂️ **Red** - Cut and trim points
+  - 📝 **Green** - Lower thirds and name tags
+  - 🎞️ **Purple** - B-roll footage
+  - 🔶 **Orange** - AI-suggested clip segments (NEW)
+- **Hover for details** - Hover any marker to see type and timestamp
+- **Click markers** - Jump directly to that edit point
 
 ### Playback Controls
 
@@ -418,4 +430,4 @@ If you need additional assistance:
 ---
 
 **Last Updated:** 2025-11-25
-**Version:** 1.3
+**Version:** 1.4
