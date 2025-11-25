@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Upload, X, Check, AlertCircle, Video, FileAudio } from "lucide-react";
 import { cn } from "@/lib/utils";
+import * as tus from "tus-js-client";
 
 interface VideoUploaderProps {
   onUploadComplete?: () => void;
@@ -91,6 +92,126 @@ export default function VideoUploader({
     return true;
   };
 
+  const uploadSmallFile = async (file: File, session: any) => {
+    const timestamp = Date.now();
+    const fileName = `${session.user.id}/${timestamp}-${file.name}`;
+
+    // Simulate progress updates since Supabase SDK doesn't provide native progress
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 90) return prev;
+        const elapsed = (Date.now() - uploadStartTime.current) / 1000;
+        const estimatedSpeed = file.size / 10;
+        const newProgress = Math.min(90, (elapsed / 10) * 100);
+        setUploadSpeed(estimatedSpeed);
+        return newProgress;
+      });
+    }, 500);
+
+    // Upload to Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from('episode-files')
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    clearInterval(progressInterval);
+
+    if (uploadError) throw uploadError;
+
+    console.log('File uploaded to storage, creating database record...');
+    setUploadProgress(95);
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('episode-files')
+      .getPublicUrl(fileName);
+
+    // Create media file record
+    const { error: dbError } = await supabase
+      .from('media_files')
+      .insert({
+        user_id: session.user.id,
+        file_name: file.name,
+        file_url: publicUrl,
+        file_type: file.type.startsWith('video') ? 'video' : 'audio',
+        file_size_bytes: file.size,
+        source: 'upload',
+      });
+
+    if (dbError) throw dbError;
+  };
+
+  const uploadLargeFile = async (file: File, session: any) => {
+    const objectName = `${session.user.id}/${Date.now()}-${file.name}`;
+    
+    return new Promise((resolve, reject) => {
+      const upload = new tus.Upload(file, {
+        endpoint: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/upload/resumable`,
+        retryDelays: [0, 3000, 5000, 10000, 20000],
+        headers: {
+          authorization: `Bearer ${session.access_token}`,
+          'x-upsert': 'false',
+        },
+        uploadDataDuringCreation: true,
+        removeFingerprintOnSuccess: true,
+        metadata: {
+          bucketName: 'episode-files',
+          objectName: objectName,
+          contentType: file.type,
+          cacheControl: '3600',
+        },
+        chunkSize: 5 * 1024 * 1024, // 5MB chunks
+        onError: (error) => {
+          console.error('TUS upload error:', error);
+          reject(error);
+        },
+        onProgress: (bytesUploaded, bytesTotal) => {
+          const percentage = (bytesUploaded / bytesTotal) * 90; // Reserve 10% for DB work
+          const elapsed = (Date.now() - uploadStartTime.current) / 1000;
+          const speed = bytesUploaded / elapsed;
+          
+          setUploadProgress(percentage);
+          setUploadSpeed(speed);
+        },
+        onSuccess: async () => {
+          console.log('TUS upload complete, creating database record...');
+          setUploadProgress(95);
+
+          try {
+            const { data: { publicUrl } } = supabase.storage
+              .from('episode-files')
+              .getPublicUrl(objectName);
+
+            const { error: dbError } = await supabase
+              .from('media_files')
+              .insert({
+                user_id: session.user.id,
+                file_name: file.name,
+                file_url: publicUrl,
+                file_type: file.type.startsWith('video') ? 'video' : 'audio',
+                file_size_bytes: file.size,
+                source: 'upload',
+              });
+
+            if (dbError) throw dbError;
+            resolve(true);
+          } catch (error) {
+            reject(error);
+          }
+        },
+      });
+
+      upload.findPreviousUploads().then((previousUploads) => {
+        if (previousUploads.length) {
+          upload.resumeFromPreviousUpload(previousUploads[0]);
+        }
+        upload.start();
+      });
+    });
+  };
+
   const uploadFile = async (file: File) => {
     if (!validateFile(file)) return;
 
@@ -105,64 +226,20 @@ export default function VideoUploader({
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
-      console.log(`Starting Supabase Storage upload: ${file.name} (${formatBytes(file.size)})`);
+      const fileSizeMB = file.size / (1024 * 1024);
+      console.log(`Starting upload: ${file.name} (${formatBytes(file.size)})`);
 
-      // Create unique file path
-      const timestamp = Date.now();
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${session.user.id}/${timestamp}-${file.name}`;
-
-      // Simulate progress updates since Supabase SDK doesn't provide native progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) return prev;
-          const elapsed = (Date.now() - uploadStartTime.current) / 1000;
-          const estimatedSpeed = file.size / 10; // Estimate 10 seconds for upload
-          const newProgress = Math.min(90, (elapsed / 10) * 100);
-          setUploadSpeed(estimatedSpeed);
-          return newProgress;
-        });
-      }, 500);
-
-      // Upload to Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('episode-files')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      clearInterval(progressInterval);
-
-      if (uploadError) throw uploadError;
-
-      console.log('File uploaded to storage, creating database record...');
-      setUploadProgress(95);
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('episode-files')
-        .getPublicUrl(fileName);
-
-      // Create media file record
-      const { data: mediaFile, error: dbError } = await supabase
-        .from('media_files')
-        .insert({
-          user_id: session.user.id,
-          file_name: file.name,
-          file_url: publicUrl,
-          file_type: file.type.startsWith('video') ? 'video' : 'audio',
-          file_size_bytes: file.size,
-          source: 'upload',
-        })
-        .select()
-        .single();
-
-      if (dbError) throw dbError;
+      // Use resumable uploads for files larger than 100MB
+      if (fileSizeMB > 100) {
+        console.log('Using resumable upload for large file...');
+        await uploadLargeFile(file, session);
+      } else {
+        console.log('Using standard upload for small file...');
+        await uploadSmallFile(file, session);
+      }
 
       console.log('Upload complete!');
       setUploadProgress(100);
-
       setUploadStatus('success');
       toast({
         title: "Upload complete!",
