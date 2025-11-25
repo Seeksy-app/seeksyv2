@@ -154,6 +154,10 @@ export default function MediaLibrary() {
   const [filterSource, setFilterSource] = useState<string | null>(null);
   const [aiEditsDialogOpen, setAiEditsDialogOpen] = useState(false);
   const [selectedFileForEdits, setSelectedFileForEdits] = useState<MediaFile | Recording | null>(null);
+  const [showUploadWarning, setShowUploadWarning] = useState(false);
+  const [dontShowUploadWarning, setDontShowUploadWarning] = useState(
+    localStorage.getItem('hideUploadWarning') === 'true'
+  );
   
   const { processVideo, isProcessing: isVideoProcessing } = useVideoProcessing();
   const { toast } = useToast();
@@ -196,6 +200,25 @@ export default function MediaLibrary() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Warn user before leaving during upload
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isUploading && !dontShowUploadWarning) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    };
+
+    if (isUploading) {
+      window.addEventListener('beforeunload', handleBeforeUnload);
+    }
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isUploading, dontShowUploadWarning]);
 
   const fetchData = async () => {
     try {
@@ -1712,6 +1735,44 @@ export default function MediaLibrary() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Upload Warning Dialog */}
+      <AlertDialog open={showUploadWarning} onOpenChange={setShowUploadWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Upload in Progress</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have an upload in progress. If you leave this page, the upload will be cancelled and you'll lose your progress.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex items-center space-x-2 py-4">
+            <Checkbox
+              id="dont-show-upload-warning"
+              checked={dontShowUploadWarning}
+              onCheckedChange={(checked) => {
+                const newValue = checked === true;
+                setDontShowUploadWarning(newValue);
+                localStorage.setItem('hideUploadWarning', newValue.toString());
+              }}
+            />
+            <label
+              htmlFor="dont-show-upload-warning"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Don't show this warning again
+            </label>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Stay on Page</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              setIsUploading(false);
+              setShowUploadWarning(false);
+            }}>
+              Leave Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
