@@ -59,6 +59,8 @@ export default function PostProductionStudio() {
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [fullAIProcessing, setFullAIProcessing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const timelineRef = useRef<HTMLDivElement>(null);
   
   const queryClient = useQueryClient();
 
@@ -140,6 +142,50 @@ export default function PostProductionStudio() {
     video.currentTime = time;
     setCurrentTime(time);
   };
+
+  const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const timeline = timelineRef.current;
+    if (!timeline) return;
+    const rect = timeline.getBoundingClientRect();
+    const percent = (e.clientX - rect.left) / rect.width;
+    seekTo(Math.max(0, Math.min(duration, percent * duration)));
+  };
+
+  const handleTimelineDrag = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    const timeline = timelineRef.current;
+    if (!timeline) return;
+    const rect = timeline.getBoundingClientRect();
+    const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    seekTo(percent * duration);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    setIsDragging(true);
+    handleTimelineClick(e);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    const handleGlobalMouseUp = () => setIsDragging(false);
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !timelineRef.current) return;
+      const rect = timelineRef.current.getBoundingClientRect();
+      const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      seekTo(percent * duration);
+    };
+
+    document.addEventListener("mouseup", handleGlobalMouseUp);
+    document.addEventListener("mousemove", handleGlobalMouseMove);
+
+    return () => {
+      document.removeEventListener("mouseup", handleGlobalMouseUp);
+      document.removeEventListener("mousemove", handleGlobalMouseMove);
+    };
+  }, [isDragging, duration]);
 
   const addMarker = (type: Marker['type']) => {
     const newMarker: Marker = {
@@ -448,21 +494,28 @@ export default function PostProductionStudio() {
           {/* Timeline Controls */}
           <div className="border-t bg-card p-4">
             <div className="mb-4">
-              <div className="relative h-2 bg-muted rounded-full overflow-hidden cursor-pointer"
-                onClick={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const percent = (e.clientX - rect.left) / rect.width;
-                  seekTo(percent * duration);
-                }}
+              <div 
+                ref={timelineRef}
+                className="relative h-2 bg-muted rounded-full cursor-pointer group"
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleTimelineDrag}
+                onMouseUp={handleMouseUp}
               >
                 <div
-                  className="absolute h-full bg-primary"
+                  className="absolute h-full bg-primary rounded-full transition-all"
                   style={{ width: `${(currentTime / duration) * 100}%` }}
                 />
+                
+                {/* Scrubber Handle */}
+                <div
+                  className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-primary rounded-full shadow-lg cursor-grab active:cursor-grabbing transform transition-transform group-hover:scale-110"
+                  style={{ left: `${(currentTime / duration) * 100}%`, marginLeft: '-8px' }}
+                />
+                
                 {markers.map(marker => (
                   <div
                     key={marker.id}
-                    className="absolute top-0 bottom-0 w-1 bg-yellow-500 cursor-pointer"
+                    className="absolute top-0 bottom-0 w-1 bg-yellow-500 cursor-pointer hover:w-1.5 transition-all"
                     style={{ left: `${(marker.timestamp / duration) * 100}%` }}
                     onClick={(e) => {
                       e.stopPropagation();
