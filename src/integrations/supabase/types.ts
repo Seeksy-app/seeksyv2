@@ -6958,6 +6958,15 @@ export type Database = {
           onboarding_completed: boolean | null
           pinned_modules: Json | null
           podcasts_enabled: boolean | null
+          sms_event_registrations: boolean | null
+          sms_feature_updates: boolean | null
+          sms_follower_requests: boolean | null
+          sms_maintenance_alerts: boolean | null
+          sms_meeting_confirmations: boolean | null
+          sms_meeting_reminders: boolean | null
+          sms_new_account_alerts: boolean | null
+          sms_notifications_enabled: boolean | null
+          sms_ticket_assignments: boolean | null
           task_reminder_enabled: boolean | null
           task_reminder_frequency: string | null
           task_view_mode: string | null
@@ -6995,6 +7004,15 @@ export type Database = {
           onboarding_completed?: boolean | null
           pinned_modules?: Json | null
           podcasts_enabled?: boolean | null
+          sms_event_registrations?: boolean | null
+          sms_feature_updates?: boolean | null
+          sms_follower_requests?: boolean | null
+          sms_maintenance_alerts?: boolean | null
+          sms_meeting_confirmations?: boolean | null
+          sms_meeting_reminders?: boolean | null
+          sms_new_account_alerts?: boolean | null
+          sms_notifications_enabled?: boolean | null
+          sms_ticket_assignments?: boolean | null
           task_reminder_enabled?: boolean | null
           task_reminder_frequency?: string | null
           task_view_mode?: string | null
@@ -7032,6 +7050,15 @@ export type Database = {
           onboarding_completed?: boolean | null
           pinned_modules?: Json | null
           podcasts_enabled?: boolean | null
+          sms_event_registrations?: boolean | null
+          sms_feature_updates?: boolean | null
+          sms_follower_requests?: boolean | null
+          sms_maintenance_alerts?: boolean | null
+          sms_meeting_confirmations?: boolean | null
+          sms_meeting_reminders?: boolean | null
+          sms_new_account_alerts?: boolean | null
+          sms_notifications_enabled?: boolean | null
+          sms_ticket_assignments?: boolean | null
           task_reminder_enabled?: boolean | null
           task_reminder_frequency?: string | null
           task_view_mode?: string | null

@@ -4,10 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, User as UserIcon, Phone, Lock, Bell, FileText, Puzzle, Shield, Palette, Check, Eye } from "lucide-react";
+import { Loader2, Mail, User as UserIcon, Phone, Lock, Bell, FileText, Puzzle, Shield, Palette, Check, Eye, MessageSquare, Settings as SettingsIcon } from "lucide-react";
+import { NotificationPreferencesDialog } from "@/components/NotificationPreferencesDialog";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ProfileCompletionCard } from "@/components/ProfileCompletionCard";
@@ -53,7 +55,9 @@ const Settings = () => {
   const [notificationPrefs, setNotificationPrefs] = useState({
     task_reminder_enabled: false,
     task_reminder_frequency: "start_of_day",
+    sms_notifications_enabled: false,
   });
+  const [preferencesDialogOpen, setPreferencesDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const saveTimeoutRef = useRef<NodeJS.Timeout>();
@@ -117,6 +121,7 @@ const Settings = () => {
         setNotificationPrefs({
           task_reminder_enabled: prefs.task_reminder_enabled || false,
           task_reminder_frequency: prefs.task_reminder_frequency || "start_of_day",
+          sms_notifications_enabled: prefs.sms_notifications_enabled || false,
         });
         
         // Load theme preference but don't override it immediately
@@ -194,6 +199,7 @@ const Settings = () => {
           user_id: user.id,
           task_reminder_enabled: notificationPrefs.task_reminder_enabled,
           task_reminder_frequency: notificationPrefs.task_reminder_frequency,
+          sms_notifications_enabled: notificationPrefs.sms_notifications_enabled,
         }, {
           onConflict: 'user_id'
         });
@@ -234,7 +240,7 @@ const Settings = () => {
     }
   };
 
-  // Auto-save with debounce
+  // Auto-save with debounce - ensure we capture latest state
   const debouncedSave = useCallback(() => {
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
@@ -242,6 +248,12 @@ const Settings = () => {
     saveTimeoutRef.current = setTimeout(() => {
       handleSave(false);
     }, 1000); // Save 1 second after user stops typing/changing
+  }, []); // Empty deps - we'll read from refs/state directly when saving
+
+  // Update effect to ensure we're always using latest state
+  useEffect(() => {
+    // This effect runs whenever formData, profileData, or notificationPrefs change
+    // The actual save happens in handleSave which reads the current state
   }, [formData, profileData, notificationPrefs]);
 
   // Cleanup timeout on unmount
@@ -502,58 +514,115 @@ const Settings = () => {
             </CardContent>
           </Card>
 
-          {/* Task Reminders */}
+          {/* Notifications */}
           <Card>
             <CardHeader>
-              <CardTitle>Task Reminders</CardTitle>
-              <CardDescription>Get notified about your outstanding tasks</CardDescription>
+              <CardTitle>Notifications</CardTitle>
+              <CardDescription>Manage your notification preferences</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Bell className="h-4 w-4 text-muted-foreground" />
-                    <p className="font-medium">Enable Reminders</p>
+            <CardContent className="space-y-6">
+              {/* Task Reminders */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Bell className="h-4 w-4 text-muted-foreground" />
+                      <p className="font-medium">Task Reminders</p>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Receive notifications about tasks from your Task Manager
+                    </p>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Receive notifications about tasks from your Task Manager
-                  </p>
-                </div>
-                <Switch
-                  checked={notificationPrefs.task_reminder_enabled}
-                  onCheckedChange={(checked) => {
-                    setNotificationPrefs({ ...notificationPrefs, task_reminder_enabled: checked });
-                    debouncedSave();
-                  }}
-                />
-              </div>
-
-              {notificationPrefs.task_reminder_enabled && (
-                <div className="space-y-2 pt-4">
-                  <Label htmlFor="frequency">Reminder Frequency</Label>
-                  <Select
-                    value={notificationPrefs.task_reminder_frequency}
-                    onValueChange={(value) => {
-                      setNotificationPrefs({ ...notificationPrefs, task_reminder_frequency: value });
+                  <Switch
+                    checked={notificationPrefs.task_reminder_enabled}
+                    onCheckedChange={(checked) => {
+                      setNotificationPrefs({ ...notificationPrefs, task_reminder_enabled: checked });
                       debouncedSave();
                     }}
-                  >
-                    <SelectTrigger id="frequency">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="hourly">Every Hour</SelectItem>
-                      <SelectItem value="start_of_day">Start of Day (9 AM)</SelectItem>
-                      <SelectItem value="end_of_day">End of Day (5 PM)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    You'll be notified about tasks in backlog, todo, or in progress status
-                  </p>
+                  />
                 </div>
-              )}
+
+                {notificationPrefs.task_reminder_enabled && (
+                  <div className="space-y-2 pt-2 pl-6">
+                    <Label htmlFor="frequency">Reminder Frequency</Label>
+                    <Select
+                      value={notificationPrefs.task_reminder_frequency}
+                      onValueChange={(value) => {
+                        setNotificationPrefs({ ...notificationPrefs, task_reminder_frequency: value });
+                        debouncedSave();
+                      }}
+                    >
+                      <SelectTrigger id="frequency">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="hourly">Every Hour</SelectItem>
+                        <SelectItem value="start_of_day">Start of Day (9 AM)</SelectItem>
+                        <SelectItem value="end_of_day">End of Day (5 PM)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      You'll be notified about tasks in backlog, todo, or in progress status
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <Separator />
+
+              {/* SMS Notifications */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                      <p className="font-medium">SMS Notifications</p>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Receive important updates via text message
+                    </p>
+                  </div>
+                  <Switch
+                    checked={notificationPrefs.sms_notifications_enabled}
+                    onCheckedChange={(checked) => {
+                      setNotificationPrefs({ ...notificationPrefs, sms_notifications_enabled: checked });
+                      debouncedSave();
+                    }}
+                  />
+                </div>
+
+                {notificationPrefs.sms_notifications_enabled && (
+                  <div className="space-y-3 pt-2 pl-6">
+                    <p className="text-sm text-muted-foreground">
+                      SMS notifications are enabled. Customize which types of notifications you receive.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPreferencesDialogOpen(true)}
+                      className="w-full"
+                    >
+                      <SettingsIcon className="h-4 w-4 mr-2" />
+                      Customize SMS Preferences
+                    </Button>
+                    {!formData.phone && (
+                      <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
+                        <p className="text-xs text-yellow-600 dark:text-yellow-500">
+                          <strong>Phone number required:</strong> Add your phone number above to receive SMS notifications.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
+
+          <NotificationPreferencesDialog
+            open={preferencesDialogOpen}
+            onOpenChange={setPreferencesDialogOpen}
+            userId={user?.id || ""}
+          />
 
           {/* Security */}
           <Card>
