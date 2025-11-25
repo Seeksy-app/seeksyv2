@@ -199,11 +199,14 @@ const Integrations = () => {
 
         const currentPinned = Array.isArray(currentPrefs?.pinned_modules) 
           ? currentPrefs.pinned_modules 
-          : ["meetings"];
+          : [];
 
         // Add module to pinned if not already there
         if (!currentPinned.includes(moduleNameStr)) {
           updateData.pinned_modules = [...currentPinned, moduleNameStr];
+        } else {
+          // Even if already pinned, ensure we're setting it (in case of data inconsistency)
+          updateData.pinned_modules = currentPinned;
         }
       }
 
