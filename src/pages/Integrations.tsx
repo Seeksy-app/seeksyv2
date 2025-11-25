@@ -5,7 +5,7 @@ import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Check, Trophy, Clapperboard, Landmark, User as UserIcon, Building2, Instagram, Facebook, Linkedin, Twitter, Youtube, Music, CheckSquare, DollarSign, TrendingUp, CreditCard, Wallet, Info, Edit2, MessageSquare, FileText, Rss, CalendarDays, ClipboardList, BarChart3, QrCode, Mail, Smartphone, Search, Mic, Sparkles } from "lucide-react";
+import { Loader2, Check, Trophy, Clapperboard, Landmark, User as UserIcon, Building2, Instagram, Facebook, Linkedin, Twitter, Youtube, Music, CheckSquare, DollarSign, TrendingUp, CreditCard, Wallet, Info, Edit2, MessageSquare, FileText, Rss, CalendarDays, ClipboardList, BarChart3, QrCode, Mail, Smartphone, Search, Mic, Sparkles, Target } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
@@ -621,14 +621,14 @@ const Integrations = () => {
                 />
               )}
 
-              {matchesSearch('Contacts', 'Manage your contacts, organize lists, and track engagement. Build and nurture your network.') && (
+              {matchesSearch('Contacts & Email', 'Manage contacts, track interactions, view email history, and organize your network. Complete CRM with email integration.') && (
                 <IntegrationCard
                   id="contacts"
                   icon={UserIcon}
                   iconGradient="from-green-500 to-emerald-600"
-                  title="Contacts"
-                  description="Manage your contacts, organize lists, and track engagement. Build and nurture your network."
-                  tooltip="Enable contact management and CRM features"
+                  title="Contacts & Email"
+                  description="Manage contacts, track interactions, view email history, and organize your network. Complete CRM with email integration."
+                  tooltip="Enable contact management, CRM features, and email history"
                   isActive={modules.contacts}
                   isAdmin={isAdmin}
                   onToggle={() => toggleModule('contacts')}
@@ -804,14 +804,14 @@ const Integrations = () => {
                 />
               )}
 
-              {matchesSearch('Email', 'Send email campaigns, create newsletters, and track engagement metrics. View delivery status and monitor email performance.') && (
+              {matchesSearch('Marketing', 'Create email campaigns, build automated sequences, and manage marketing automation workflows.') && (
                 <IntegrationCard
                   id="marketing"
-                  icon={Mail}
+                  icon={Target}
                   iconGradient="from-purple-500 to-indigo-600"
-                  title="Email"
-                  description="Send email campaigns, create newsletters, and track engagement metrics. View delivery status and monitor email performance."
-                  tooltip="Enable to access email campaigns and tracking tools"
+                  title="Marketing"
+                  description="Create email campaigns, build automated sequences, and manage marketing automation workflows."
+                  tooltip="Enable to access marketing campaigns and automation tools"
                   isActive={modules.marketing}
                   isAdmin={isAdmin}
                   onToggle={() => toggleModule('marketing')}
