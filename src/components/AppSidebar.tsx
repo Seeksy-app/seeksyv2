@@ -673,62 +673,61 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       >
         <SidebarGroup className="py-0">
           <CollapsibleTrigger asChild>
-            <SidebarGroupLabel className="text-base font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5">
-              <span>Seekies</span>
+            <SidebarGroupLabel className="text-base font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5 group">
+              <div className="flex items-center gap-2">
+                <span>Seekies</span>
+                {!collapsed && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      // Toggle pin for seekies section - this would control visibility of entire section
+                      const isSeekiesPinned = pinnedModules.includes("seekies_section");
+                      togglePin("seekies_section");
+                    }}
+                    className="p-0.5 opacity-100 hover:bg-accent rounded transition-colors"
+                    aria-label="Pin Seekies section"
+                  >
+                    <Pin
+                      className={`h-3.5 w-3.5 ${
+                        pinnedModules.includes("seekies_section") ? "fill-primary text-primary" : "text-muted-foreground"
+                      }`}
+                    />
+                  </button>
+                )}
+              </div>
               {!collapsed && <ChevronDown className={`h-3 w-3 transition-transform ${openSections.seekies ? '' : '-rotate-90'}`} />}
             </SidebarGroupLabel>
           </CollapsibleTrigger>
           <CollapsibleContent>
             <SidebarGroupContent>
               <SidebarMenu className="space-y-0">
-                {seeksiesItems.map((item) => {
-                  const moduleKey = getModuleKey(item.title);
-                  const isPinned = pinnedModules.includes(moduleKey);
-                  
-                  return (
-                    <SidebarMenuItem key={item.title} className="relative group">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <SidebarMenuButton asChild>
-                              <NavLink
-                                to={item.url}
-                                end
-                                className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8"
-                                activeClassName="bg-accent text-accent-foreground font-medium"
-                              >
-                                <item.icon className="h-4 w-4" />
-                                {!collapsed && <span>{item.title}</span>}
-                              </NavLink>
-                            </SidebarMenuButton>
-                          </TooltipTrigger>
-                          {collapsed && (
-                            <TooltipContent side="right">
-                              <p>{item.title}</p>
-                            </TooltipContent>
-                          )}
-                        </Tooltip>
-                      </TooltipProvider>
-                      {!collapsed && (
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            togglePin(moduleKey);
-                          }}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 opacity-100 hover:bg-accent rounded transition-colors"
-                          aria-label={isPinned ? "Unpin" : "Pin"}
-                        >
-                          <Pin
-                            className={`h-3.5 w-3.5 ${
-                              isPinned ? "fill-primary text-primary" : "text-muted-foreground"
-                            }`}
-                          />
-                        </button>
-                      )}
-                    </SidebarMenuItem>
-                  );
-                })}
+                {seeksiesItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <SidebarMenuButton asChild>
+                            <NavLink
+                              to={item.url}
+                              end
+                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8"
+                              activeClassName="bg-accent text-accent-foreground font-medium"
+                            >
+                              <item.icon className="h-4 w-4" />
+                              {!collapsed && <span>{item.title}</span>}
+                            </NavLink>
+                          </SidebarMenuButton>
+                        </TooltipTrigger>
+                        {collapsed && (
+                          <TooltipContent side="right">
+                            <p>{item.title}</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
+                  </SidebarMenuItem>
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </CollapsibleContent>
