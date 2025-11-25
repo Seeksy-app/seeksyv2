@@ -158,7 +158,7 @@ serve(async (req) => {
         const emailHTML = generateTeamInviteHTML(inviterName, role, dashboardUrl);
 
         await resend.emails.send({
-          from: Deno.env.get("SENDER_EMAIL") || "Seeksy <no-reply@seeksy.io>",
+          from: Deno.env.get("SENDER_EMAIL_HELLO") || "Seeksy <hello@seeksy.io>",
           to: [invitee_email],
           subject: "🎉 Welcome to the Seeksy Team!",
           html: emailHTML,

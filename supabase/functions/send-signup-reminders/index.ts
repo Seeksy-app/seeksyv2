@@ -81,7 +81,7 @@ const handler = async (req: Request): Promise<Response> => {
         });
 
         await resend.emails.send({
-          from: `Seeksy <${Deno.env.get("SENDER_EMAIL")}>`,
+          from: `Seeksy <${Deno.env.get("SENDER_EMAIL_HELLO") || "hello@seeksy.io"}>`,
           to: [slot.volunteer_email],
           subject: `Reminder: ${sheet.title} Tomorrow`,
           tags: [

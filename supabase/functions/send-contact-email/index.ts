@@ -7,7 +7,7 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_URL") ?? "",
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
 );
-const senderEmail = Deno.env.get("SENDER_EMAIL") ?? "onboarding@resend.dev";
+const senderEmail = Deno.env.get("SENDER_EMAIL_HELLO") ?? "hello@seeksy.io";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

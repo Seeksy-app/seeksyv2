@@ -58,7 +58,7 @@ serve(async (req) => {
           if (registration?.attendee_email) {
             try {
               await resend.emails.send({
-                from: Deno.env.get("SENDER_EMAIL") || "Seeksy <onboarding@resend.dev>",
+                from: Deno.env.get("SENDER_EMAIL_HELLO") || "Seeksy <hello@seeksy.io>",
                 to: [registration.attendee_email],
                 subject: `Registration Confirmed - ${registration.awards_programs.title}`,
                 html: `
@@ -131,7 +131,7 @@ serve(async (req) => {
           if (sponsorship?.sponsor_email) {
             try {
               await resend.emails.send({
-                from: Deno.env.get("SENDER_EMAIL") || "Seeksy <onboarding@resend.dev>",
+                from: Deno.env.get("SENDER_EMAIL_HELLO") || "Seeksy <hello@seeksy.io>",
                 to: [sponsorship.sponsor_email],
                 subject: `Sponsorship Confirmed - ${sponsorship.awards_programs.title}`,
                 html: `

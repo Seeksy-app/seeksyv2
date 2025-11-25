@@ -52,7 +52,7 @@ serve(async (req) => {
 
     // Send approval email
     await resend.emails.send({
-      from: Deno.env.get("SENDER_EMAIL") || "Seeksy <onboarding@resend.dev>",
+      from: Deno.env.get("SENDER_EMAIL_HELLO") || "Seeksy <hello@seeksy.io>",
       to: [nominee.nominee_email],
       subject: `You've been nominated for ${nominee.awards_programs.title}!`,
       html: `

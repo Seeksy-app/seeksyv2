@@ -69,7 +69,7 @@ const handler = async (req: Request): Promise<Response> => {
     const safeEventDescription = eventDescription ? sanitizeHtml(eventDescription) : '';
 
     const emailResponse = await resend.emails.send({
-      from: `Seeksy <${Deno.env.get("SENDER_EMAIL")}>`,
+      from: `Seeksy <${Deno.env.get("SENDER_EMAIL_HELLO") || "hello@seeksy.io"}>`,
       to: [attendeeEmail],
       subject: subject,
       tags: [

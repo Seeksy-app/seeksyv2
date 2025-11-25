@@ -76,7 +76,7 @@ const handler = async (req: Request): Promise<Response> => {
     const safeDescription = description ? sanitizeHtml(description) : '';
 
     const emailResponse = await resend.emails.send({
-      from: `Seeksy <${Deno.env.get("SENDER_EMAIL")}>`,
+      from: `Seeksy <${Deno.env.get("SENDER_EMAIL_HELLO") || "hello@seeksy.io"}>`,
       to: [volunteerEmail],
       subject: subject,
       tags: [

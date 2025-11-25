@@ -68,7 +68,7 @@ serve(async (req) => {
 
     // Send email using Resend
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-    const SENDER_EMAIL = Deno.env.get('SENDER_EMAIL');
+    const SENDER_EMAIL = Deno.env.get('SENDER_EMAIL_HELLO');
 
     if (!RESEND_API_KEY) {
       console.error('RESEND_API_KEY not configured');
@@ -138,7 +138,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: SENDER_EMAIL || 'noreply@seeksy.io',
+        from: SENDER_EMAIL || 'hello@seeksy.io',
         to: [inviteeEmail],
         subject: `Meeting Invitation from ${profile?.full_name || profile?.username}`,
         html: emailHtml,

@@ -83,7 +83,7 @@ const handler = async (req: Request): Promise<Response> => {
         const locationLabel = locationLabels[meeting.location_type] || meeting.location_type;
 
         await resend.emails.send({
-          from: `Seeksy <${Deno.env.get("SENDER_EMAIL")}>`,
+          from: `Seeksy <${Deno.env.get("SENDER_EMAIL_HELLO") || "hello@seeksy.io"}>`,
           to: [meeting.attendee_email],
           subject: `Reminder: ${meeting.title} Tomorrow`,
           tags: [

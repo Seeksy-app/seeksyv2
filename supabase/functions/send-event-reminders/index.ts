@@ -79,7 +79,7 @@ const handler = async (req: Request): Promise<Response> => {
           });
 
           await resend.emails.send({
-            from: `Seeksy <${Deno.env.get("SENDER_EMAIL")}>`,
+            from: `Seeksy <${Deno.env.get("SENDER_EMAIL_HELLO") || "hello@seeksy.io"}>`,
             to: [registration.attendee_email],
             subject: `Reminder: ${event.title} Tomorrow`,
             tags: [
