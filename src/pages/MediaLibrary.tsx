@@ -957,22 +957,18 @@ export default function MediaLibrary() {
                                  </Tooltip>
                                </TooltipProvider>
                              )}
-                             {file.edit_status === "unprocessed" && (
-                               <Button
-                                 size="sm"
-                                 variant="ghost"
-                                 className="h-7 px-2 gap-1 text-primary hover:text-primary hover:bg-primary/10"
-                                 onClick={() => handlePostProduction(file, true)}
-                                 disabled={isProcessing === file.id}
-                               >
-                                 {isProcessing === file.id ? (
-                                   <Loader2 className="h-3 w-3 animate-spin" />
-                                 ) : (
-                                   <Sparkles className="h-3 w-3" />
-                                 )}
-                                 <span className="text-xs font-medium">AI</span>
-                               </Button>
-                             )}
+                            {file.edit_status === "unprocessed" && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 px-2 gap-1 text-primary hover:text-primary hover:bg-primary/10"
+                                onClick={() => navigate(`/post-production-studio?id=${file.id}`)}
+                                title="Open in Post Production Studio"
+                              >
+                                <Sparkles className="h-3 w-3" />
+                                <span className="text-xs font-medium">AI</span>
+                              </Button>
+                            )}
                            </div>
                          </TableCell>
                          <TableCell className="text-sm">
@@ -1263,22 +1259,18 @@ export default function MediaLibrary() {
                                  </Tooltip>
                                </TooltipProvider>
                              )}
-                             {recording.edit_status === "unprocessed" && (
-                               <Button
-                                 size="sm"
-                                 variant="ghost"
-                                 className="h-7 px-2 gap-1 text-primary hover:text-primary hover:bg-primary/10"
-                                 onClick={() => handlePostProduction(recording, false)}
-                                 disabled={isProcessing === recording.id}
-                               >
-                                 {isProcessing === recording.id ? (
-                                   <Loader2 className="h-3 w-3 animate-spin" />
-                                 ) : (
-                                   <Sparkles className="h-3 w-3" />
-                                 )}
-                                 <span className="text-xs font-medium">AI</span>
-                               </Button>
-                             )}
+                            {recording.edit_status === "unprocessed" && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 px-2 gap-1 text-primary hover:text-primary hover:bg-primary/10"
+                                onClick={() => navigate(`/post-production-studio?id=${recording.id}`)}
+                                title="Open in Post Production Studio"
+                              >
+                                <Sparkles className="h-3 w-3" />
+                                <span className="text-xs font-medium">AI</span>
+                              </Button>
+                            )}
                            </div>
                          </TableCell>
                          <TableCell className="text-sm">
