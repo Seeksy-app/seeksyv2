@@ -277,21 +277,10 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         sms: (data as any).module_sms_enabled || false,
       });
       
-      // Parse pinned_modules safely and ensure meetings is included if enabled
+      // Parse pinned_modules safely - default to meetings if nothing is set
       let pinned = Array.isArray(data.pinned_modules) 
         ? data.pinned_modules 
         : ["meetings"];
-      
-      // If meetings is enabled but not pinned, add it automatically
-      const meetingsEnabled = (data as any).meetings_enabled !== false;
-      if (meetingsEnabled && !pinned.includes("meetings")) {
-        pinned = [...pinned, "meetings"];
-        // Update database to persist this
-        await supabase
-          .from("user_preferences")
-          .update({ pinned_modules: pinned })
-          .eq("user_id", user.id);
-      }
       
       setPinnedModules(pinned as string[]);
     }
@@ -698,12 +687,12 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                   const isPinned = pinnedModules.includes(moduleKey);
                   
                   return (
-                    <SidebarMenuItem key={item.title} className="group/item">
+                    <SidebarMenuItem key={item.title} className="group/item relative">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <div className="flex items-center w-full">
-                              <SidebarMenuButton asChild className="flex-1">
+                              <SidebarMenuButton asChild className="flex-1 pr-8">
                                 <NavLink
                                   to={item.url}
                                   end
@@ -721,12 +710,12 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                                     e.stopPropagation();
                                     togglePin(moduleKey);
                                   }}
-                                  className="p-1 opacity-0 group-hover/item:opacity-100 hover:bg-accent rounded transition-all mr-2"
+                                  className="absolute right-2 p-1 opacity-0 group-hover/item:opacity-100 hover:bg-background/80 rounded transition-opacity"
                                   aria-label={isPinned ? `Unpin ${item.title}` : `Pin ${item.title}`}
                                 >
                                   <Pin
                                     className={`h-3.5 w-3.5 ${
-                                      isPinned ? "fill-primary text-primary opacity-100" : "text-muted-foreground"
+                                      isPinned ? "fill-primary text-primary" : "text-muted-foreground"
                                     }`}
                                   />
                                 </button>
