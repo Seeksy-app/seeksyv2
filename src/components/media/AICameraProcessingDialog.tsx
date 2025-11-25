@@ -184,18 +184,23 @@ export const AICameraProcessingDialog = ({
     return () => clearInterval(changeTimer);
   }, [open, currentStageIndex, detectedChanges.length]);
 
-  // Keep video elements in sync with calculated time
+  // Keep video elements in sync with calculated time and ensure they're playing
   useEffect(() => {
-    if (open && videoTime > 0) {
+    if (open && videoTime >= 0) {
       const videos = document.querySelectorAll('.ai-processing-video');
       videos.forEach((video) => {
         const videoElement = video as HTMLVideoElement;
+        // Sync the currentTime
         if (Math.abs(videoElement.currentTime - videoTime) > 0.5) {
           videoElement.currentTime = videoTime;
         }
+        // Ensure video is playing
+        if (videoElement.paused && videoTime < videoDuration) {
+          videoElement.play().catch(console.error);
+        }
       });
     }
-  }, [videoTime, open]);
+  }, [videoTime, open, videoDuration]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -297,6 +302,29 @@ export const AICameraProcessingDialog = ({
               <span className="font-medium">{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="h-2" />
+          </div>
+
+          {/* Video Timeline - Shows current position in video */}
+          <div className="space-y-2 p-4 bg-muted/30 rounded-lg border">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground font-medium">Video Timeline</span>
+              <span className="font-mono text-sm">
+                {Math.floor(videoTime / 60)}:{Math.floor(videoTime % 60).toString().padStart(2, '0')} / {Math.floor(videoDuration / 60)}:{Math.floor(videoDuration % 60).toString().padStart(2, '0')}
+              </span>
+            </div>
+            <div className="relative h-3 bg-background rounded-full overflow-hidden border">
+              <div 
+                className="absolute inset-y-0 left-0 bg-primary transition-all duration-300"
+                style={{ width: `${(videoTime / videoDuration) * 100}%` }}
+              />
+              <div 
+                className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary/50 to-transparent"
+                style={{ width: `${(videoTime / videoDuration) * 100 + 5}%` }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground text-center">
+              AI is analyzing and editing the entire video duration
+            </p>
           </div>
 
           {/* Processing Stages */}
