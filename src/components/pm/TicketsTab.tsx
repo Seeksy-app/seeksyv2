@@ -81,7 +81,7 @@ export const TicketsTab = ({ userId }: TicketsTabProps) => {
       <div className="flex justify-between items-center gap-4">
         <h2 className="text-2xl font-semibold">Support Tickets</h2>
         <div className="flex gap-2">
-          <Button onClick={handleCopyLink} variant="outline">
+          <Button onClick={handleCopyLink} variant="secondary" size="lg">
             {linkCopied ? (
               <>
                 <Check className="w-4 h-4 mr-2" />
@@ -90,7 +90,7 @@ export const TicketsTab = ({ userId }: TicketsTabProps) => {
             ) : (
               <>
                 <Link2 className="w-4 h-4 mr-2" />
-                Share Form Link
+                Share Client Form
               </>
             )}
           </Button>
