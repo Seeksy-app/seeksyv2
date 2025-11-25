@@ -1,47 +1,126 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { MessageSquare } from "lucide-react";
+import { Loader2, User, MessageSquare } from "lucide-react";
 
 interface TicketDetailDialogProps {
-  ticketId: string;
+  ticketId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
+  onUpdate: () => void;
 }
 
-export const TicketDetailDialog = ({ ticketId, open, onOpenChange, onSuccess }: TicketDetailDialogProps) => {
-  const [comment, setComment] = useState("");
-  const [loading, setLoading] = useState(false);
+type TeamMember = {
+  id: string;
+  full_name: string | null;
+};
 
-  const { data: ticket, refetch: refetchTicket } = useQuery({
-    queryKey: ["ticket", ticketId],
-    queryFn: async () => {
+export function TicketDetailDialog({ ticketId, open, onOpenChange, onUpdate }: TicketDetailDialogProps) {
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [ticket, setTicket] = useState<any>(null);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [status, setStatus] = useState("");
+  const [priority, setPriority] = useState("");
+  const [assignedTo, setAssignedTo] = useState("");
+  const [notes, setNotes] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [comment, setComment] = useState("");
+  const [comments, setComments] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (open && ticketId) {
+      loadTicketDetails();
+      loadTeamMembers();
+      loadComments();
+    }
+  }, [open, ticketId]);
+
+  const loadTicketDetails = async () => {
+    if (!ticketId) return;
+    
+    setLoading(true);
+    try {
       const { data, error } = await supabase
-        .from("tickets")
+        .from("client_tickets")
         .select(`
           *,
-          client:clients(contact_name, company_name)
+          contacts (
+            id,
+            name,
+            email,
+            company
+          )
         `)
         .eq("id", ticketId)
         .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!ticketId,
-  });
 
-  const { data: comments, refetch: refetchComments } = useQuery({
-    queryKey: ["ticket-comments", ticketId],
-    queryFn: async () => {
+      if (error) throw error;
+
+      setTicket(data);
+      setStatus(data.status || "open");
+      setPriority(data.priority || "medium");
+      setAssignedTo((data as any).assigned_to || "");
+      setNotes((data as any).notes || "");
+      setDueDate(data.due_date ? new Date(data.due_date).toISOString().split('T')[0] : "");
+    } catch (error) {
+      console.error("Error loading ticket:", error);
+      toast.error("Failed to load ticket details");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadTeamMembers = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get team members
+      const { data: team } = await supabase
+        .from("teams")
+        .select("id")
+        .eq("owner_id", user.id)
+        .maybeSingle();
+
+      if (!team) return;
+
+      const { data: members } = await supabase
+        .from("team_members")
+        .select("user_id")
+        .eq("team_id", team.id);
+
+      if (!members) return;
+
+      // Get profiles for team members
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, account_full_name, full_name, username")
+        .in("id", members.map(m => m.user_id));
+
+      if (profiles) {
+        setTeamMembers(profiles.map(p => ({
+          id: p.id,
+          full_name: p.account_full_name || p.full_name || p.username || "Unknown"
+        })));
+      }
+    } catch (error) {
+      console.error("Error loading team members:", error);
+    }
+  };
+
+  const loadComments = async () => {
+    if (!ticketId) return;
+    
+    try {
       const { data, error } = await supabase
         .from("ticket_comments")
         .select("*")
@@ -49,15 +128,15 @@ export const TicketDetailDialog = ({ ticketId, open, onOpenChange, onSuccess }: 
         .order("created_at", { ascending: true });
       
       if (error) throw error;
-      return data;
-    },
-    enabled: !!ticketId,
-  });
+      setComments(data || []);
+    } catch (error) {
+      console.error("Error loading comments:", error);
+    }
+  };
 
   const handleAddComment = async () => {
-    if (!comment.trim()) return;
+    if (!comment.trim() || !ticketId) return;
 
-    setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
@@ -72,116 +151,238 @@ export const TicketDetailDialog = ({ ticketId, open, onOpenChange, onSuccess }: 
 
       toast.success("Comment added");
       setComment("");
-      refetchComments();
+      loadComments();
     } catch (error) {
       console.error("Error adding comment:", error);
       toast.error("Failed to add comment");
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleUpdateStatus = async (newStatus: string) => {
+  const handleSave = async () => {
+    if (!ticketId) return;
+    
+    setSaving(true);
     try {
+      const updateData: any = {
+        status,
+        priority,
+        assigned_to: assignedTo || null,
+        notes,
+        due_date: dueDate || null,
+        last_activity_at: new Date().toISOString(),
+      };
+
       const { error } = await supabase
-        .from("tickets")
-        .update({ status: newStatus })
+        .from("client_tickets")
+        .update(updateData)
         .eq("id", ticketId);
 
       if (error) throw error;
 
-      toast.success("Status updated");
-      refetchTicket();
-      onSuccess();
+      toast.success("Ticket updated successfully");
+      onUpdate();
+      onOpenChange(false);
     } catch (error) {
-      console.error("Error updating status:", error);
-      toast.error("Failed to update status");
+      console.error("Error updating ticket:", error);
+      toast.error("Failed to update ticket");
+    } finally {
+      setSaving(false);
     }
   };
 
-  if (!ticket) return null;
+  if (!ticket && !loading) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <DialogTitle>{ticket.ticket_number}</DialogTitle>
-              <Badge>{ticket.priority}</Badge>
-            </div>
-            <h2 className="text-xl font-semibold">{ticket.title}</h2>
-          </div>
+          <DialogTitle className="flex items-center gap-2">
+            {ticket?.ticket_number} - {ticket?.title}
+          </DialogTitle>
+          <DialogDescription>
+            Client: {ticket?.contacts?.name} {ticket?.contacts?.company && `(${ticket.contacts.company})`}
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Status Update */}
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-medium">Status:</span>
-            <Select value={ticket.status} onValueChange={handleUpdateStatus}>
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="open">Open</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="resolved">Resolved</SelectItem>
-                <SelectItem value="closed">Closed</SelectItem>
-              </SelectContent>
-            </Select>
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin" />
           </div>
+        ) : (
+          <div className="space-y-6 py-4">
+            {/* Status and Priority Row */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select value={status} onValueChange={setStatus}>
+                  <SelectTrigger id="status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="open">Open</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="waiting">Waiting</SelectItem>
+                    <SelectItem value="resolved">Resolved</SelectItem>
+                    <SelectItem value="closed">Closed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-          {/* Description */}
-          {ticket.description && (
-            <Card className="p-4">
-              <p className="text-sm whitespace-pre-wrap">{ticket.description}</p>
-            </Card>
-          )}
+              <div className="space-y-2">
+                <Label htmlFor="priority">Priority</Label>
+                <Select value={priority} onValueChange={setPriority}>
+                  <SelectTrigger id="priority">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="urgent">Urgent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
-          {/* Comments */}
-          <div className="space-y-4">
-            <h3 className="font-semibold flex items-center gap-2">
-              <MessageSquare className="w-5 h-5" />
-              Conversation ({comments?.length || 0})
-            </h3>
+            {/* Assignment and Due Date Row */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="assignedTo">Assigned To</Label>
+                <Select value={assignedTo} onValueChange={setAssignedTo}>
+                  <SelectTrigger id="assignedTo">
+                    <SelectValue placeholder="Unassigned" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Unassigned</SelectItem>
+                    {teamMembers.map((member) => (
+                      <SelectItem key={member.id} value={member.id}>
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4" />
+                          {member.full_name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="space-y-3">
-              {comments?.map((c) => (
-                <Card key={c.id} className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-sm font-medium">User</span>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(c.created_at).toLocaleString()}
-                    </span>
-                  </div>
-                  <p className="text-sm whitespace-pre-wrap">{c.comment_text}</p>
-                </Card>
-              ))}
+              <div className="space-y-2">
+                <Label htmlFor="dueDate">Due Date</Label>
+                <Input
+                  id="dueDate"
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                />
+              </div>
+            </div>
 
-              {comments?.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No comments yet. Start the conversation below.
-                </p>
+            {/* Description */}
+            {ticket?.description && (
+              <div className="space-y-2">
+                <Label>Description</Label>
+                <div className="p-3 bg-muted rounded-md text-sm whitespace-pre-wrap">
+                  {ticket.description}
+                </div>
+              </div>
+            )}
+
+            {/* Notes */}
+            <div className="space-y-2">
+              <Label htmlFor="notes">Internal Notes</Label>
+              <Textarea
+                id="notes"
+                placeholder="Add notes about this ticket..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={4}
+              />
+            </div>
+
+            {/* Comments Section */}
+            <div className="space-y-4 border-t pt-6">
+              <h3 className="font-semibold flex items-center gap-2">
+                <MessageSquare className="w-5 h-5" />
+                Comments ({comments.length})
+              </h3>
+
+              <div className="space-y-3 max-h-60 overflow-y-auto">
+                {comments.map((c) => (
+                  <Card key={c.id} className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-sm font-medium">Team Member</span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(c.created_at).toLocaleString()}
+                      </span>
+                    </div>
+                    <p className="text-sm whitespace-pre-wrap">{c.comment_text}</p>
+                  </Card>
+                ))}
+
+                {comments.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No comments yet
+                  </p>
+                )}
+              </div>
+
+              {/* Add Comment */}
+              <div className="space-y-2">
+                <Textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Add a comment..."
+                  rows={3}
+                />
+                <div className="flex justify-end">
+                  <Button onClick={handleAddComment} size="sm" disabled={!comment.trim()}>
+                    Add Comment
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Client Info */}
+            {ticket?.contacts && (
+              <div className="space-y-2 border-t pt-6">
+                <Label>Client Information</Label>
+                <div className="p-3 bg-muted rounded-md space-y-1 text-sm">
+                  <div><strong>Name:</strong> {ticket.contacts.name}</div>
+                  <div><strong>Email:</strong> {ticket.contacts.email}</div>
+                  {ticket.contacts.company && (
+                    <div><strong>Company:</strong> {ticket.contacts.company}</div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Metadata */}
+            <div className="flex gap-4 text-xs text-muted-foreground border-t pt-4">
+              <div>Created: {new Date(ticket?.created_at).toLocaleString()}</div>
+              {ticket?.last_activity_at && (
+                <div>Last Activity: {new Date(ticket.last_activity_at).toLocaleString()}</div>
               )}
             </div>
 
-            {/* Add Comment */}
-            <div className="space-y-2">
-              <Textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="Add a comment..."
-                rows={3}
-              />
-              <div className="flex justify-end">
-                <Button onClick={handleAddComment} disabled={loading || !comment.trim()}>
-                  {loading ? "Adding..." : "Add Comment"}
-                </Button>
-              </div>
+            {/* Actions */}
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
+              </Button>
             </div>
           </div>
-        </div>
+        )}
       </DialogContent>
     </Dialog>
   );
-};
+}

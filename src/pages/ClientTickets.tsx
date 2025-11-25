@@ -14,12 +14,15 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Loader2, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
+import { TicketDetailDialog } from "@/components/pm/TicketDetailDialog";
 
 export default function ClientTickets() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -318,7 +321,14 @@ export default function ClientTickets() {
                 </TableHeader>
                 <TableBody>
                   {tickets.map((ticket: any) => (
-                    <TableRow key={ticket.id}>
+                    <TableRow 
+                      key={ticket.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => {
+                        setSelectedTicketId(ticket.id);
+                        setShowDetailDialog(true);
+                      }}
+                    >
                       <TableCell>
                         <div className="flex items-center gap-2">
                           {getStatusIcon(ticket.status)}
@@ -345,7 +355,7 @@ export default function ClientTickets() {
                       <TableCell className="text-sm text-muted-foreground">
                         {format(new Date(ticket.created_at), "MMM d, yyyy")}
                       </TableCell>
-                      <TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <Select
                           value={ticket.status}
                           onValueChange={(value) =>
@@ -370,6 +380,13 @@ export default function ClientTickets() {
             )}
           </CardContent>
         </Card>
+
+        <TicketDetailDialog
+          ticketId={selectedTicketId}
+          open={showDetailDialog}
+          onOpenChange={setShowDetailDialog}
+          onUpdate={() => queryClient.invalidateQueries({ queryKey: ["client-tickets"] })}
+        />
       </div>
     </div>
   );

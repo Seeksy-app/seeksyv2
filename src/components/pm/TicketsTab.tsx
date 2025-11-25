@@ -118,7 +118,7 @@ export const TicketsTab = ({ userId }: TicketsTabProps) => {
           ticketId={selectedTicket}
           open={!!selectedTicket}
           onOpenChange={(open) => !open && setSelectedTicket(null)}
-          onSuccess={refetch}
+          onUpdate={refetch}
         />
       )}
     </div>

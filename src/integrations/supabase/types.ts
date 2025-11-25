@@ -6317,6 +6317,8 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
+          last_activity_at: string | null
+          notes: string | null
           priority: string | null
           resolved_at: string | null
           status: string | null
@@ -6332,6 +6334,8 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          last_activity_at?: string | null
+          notes?: string | null
           priority?: string | null
           resolved_at?: string | null
           status?: string | null
@@ -6347,6 +6351,8 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          last_activity_at?: string | null
+          notes?: string | null
           priority?: string | null
           resolved_at?: string | null
           status?: string | null
