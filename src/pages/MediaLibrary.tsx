@@ -865,6 +865,13 @@ export default function MediaLibrary() {
                 Uploads
               </TabsTrigger>
               <TabsTrigger 
+                value="ai-edited" 
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3"
+              >
+                <Sparkles className="h-4 w-4 mr-1.5" />
+                AI Edited
+              </TabsTrigger>
+              <TabsTrigger 
                 value="studio" 
                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3"
               >
@@ -887,13 +894,6 @@ export default function MediaLibrary() {
                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3"
               >
                 Podcasts
-              </TabsTrigger>
-              <TabsTrigger 
-                value="ai-edited" 
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3"
-              >
-                <Sparkles className="h-4 w-4 mr-1.5" />
-                AI Edited
               </TabsTrigger>
             </TabsList>
 
