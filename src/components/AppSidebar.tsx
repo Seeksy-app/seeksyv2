@@ -380,9 +380,9 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
   const engagementItems = [
     ...(pinnedModules.includes("contacts") ? [{ title: "Contacts", url: "/crm", icon: Users }] : []),
-    ...(pinnedModules.includes("marketing") && modulePrefs.marketing ? [{ title: "Email", url: "/email-history", icon: Mail }] : []),
-    ...(pinnedModules.includes("sms") && modulePrefs.sms ? [{ title: "SMS", url: "/sms", icon: Smartphone }] : []),
-    ...(pinnedModules.includes("team_chat") && modulePrefs.team_chat ? [{ title: "Team Chat", url: "/team-chat", icon: MessageSquare }] : []),
+    ...(modulePrefs.marketing ? [{ title: "Email", url: "/email-history", icon: Mail }] : []),
+    ...(modulePrefs.sms ? [{ title: "SMS", url: "/sms", icon: Smartphone }] : []),
+    ...(modulePrefs.team_chat ? [{ title: "Team Chat", url: "/team-chat", icon: MessageSquare }] : []),
   ];
 
   const mediaItems = [
