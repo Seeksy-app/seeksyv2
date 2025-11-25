@@ -164,20 +164,6 @@ export default function Team() {
           console.error("Error adding owner to team:", memberInsertError);
         }
 
-        // Add Johnny Rocket as a sample team member (hardcoded for demo)
-        const johnnyRocketUserId = 'bdc068e7-2042-4cd4-ae1b-9261e96b27ec';
-        const { error: johnnyInsertError } = await supabase
-          .from("team_members")
-          .insert({
-            team_id: newTeam.id,
-            user_id: johnnyRocketUserId,
-            role: 'member',
-          });
-
-        if (johnnyInsertError) {
-          console.error("Error adding Johnny Rocket to team:", johnnyInsertError);
-        }
-
         team = newTeam;
       }
 
