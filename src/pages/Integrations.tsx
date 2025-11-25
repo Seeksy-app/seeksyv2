@@ -220,8 +220,10 @@ const Integrations = () => {
         description: `${moduleNameStr.charAt(0).toUpperCase() + moduleNameStr.slice(1).replace(/_/g, ' ')} has been ${newValue ? 'activated' : 'deactivated'}.`,
       });
       
-      // Trigger sidebar refresh
-      window.dispatchEvent(new Event("pinnedModulesChanged"));
+      // Trigger sidebar refresh with small delay to ensure DB update propagates
+      setTimeout(() => {
+        window.dispatchEvent(new Event("pinnedModulesChanged"));
+      }, 100);
     } catch (error: any) {
       toast({
         title: "Error updating Seeky",

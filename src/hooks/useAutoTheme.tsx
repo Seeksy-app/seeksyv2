@@ -44,45 +44,16 @@ export function useAutoTheme() {
           .eq("user_id", user.id)
           .single();
 
-        if (prefs?.theme_preference) {
-          setTheme(prefs.theme_preference);
-        } else if (previousTheme.current) {
-          setTheme(previousTheme.current);
-        }
+        // Restore saved preference or use system theme
+        const savedTheme = prefs?.theme_preference || previousTheme.current || 'system';
+        setTheme(savedTheme);
       };
       
       restoreTheme();
       return;
     }
 
-    // Don't auto-switch if user explicitly chose light or dark
-    if (theme === 'light' || theme === 'dark') {
-      return;
-    }
-
-    // Skip if not in system/auto mode
-    if (theme !== 'system') return;
-
-    const checkTime = () => {
-      const now = new Date();
-      const hour = now.getHours();
-      
-      // 7am (7) to 7pm (19) = light mode
-      // 7pm (19) to 7am (7) = dark mode
-      const shouldBeDark = hour >= 19 || hour < 7;
-      const targetTheme = shouldBeDark ? 'dark' : 'light';
-      
-      if (resolvedTheme !== targetTheme) {
-        setTheme(targetTheme);
-      }
-    };
-
-    // Check immediately
-    checkTime();
-
-    // Check every minute
-    const interval = setInterval(checkTime, 60000);
-
-    return () => clearInterval(interval);
+    // Auto mode now follows system preferences (OS-level light/dark mode)
+    // "system" theme in next-themes automatically follows OS preference
   }, [theme, resolvedTheme, setTheme, isStudio, location.pathname]);
 }
