@@ -6302,6 +6302,7 @@ export type Database = {
           my_page_visited: boolean | null
           onboarding_completed: boolean | null
           pinned_modules: Json | null
+          podcasts_enabled: boolean | null
           task_reminder_enabled: boolean | null
           task_reminder_frequency: string | null
           theme_preference: string | null
@@ -6333,6 +6334,7 @@ export type Database = {
           my_page_visited?: boolean | null
           onboarding_completed?: boolean | null
           pinned_modules?: Json | null
+          podcasts_enabled?: boolean | null
           task_reminder_enabled?: boolean | null
           task_reminder_frequency?: string | null
           theme_preference?: string | null
@@ -6364,6 +6366,7 @@ export type Database = {
           my_page_visited?: boolean | null
           onboarding_completed?: boolean | null
           pinned_modules?: Json | null
+          podcasts_enabled?: boolean | null
           task_reminder_enabled?: boolean | null
           task_reminder_frequency?: string | null
           theme_preference?: string | null
