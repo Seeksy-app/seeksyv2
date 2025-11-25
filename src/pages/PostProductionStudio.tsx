@@ -734,19 +734,28 @@ export default function PostProductionStudio() {
                   style={{ left: `${(currentTime / duration) * 100}%`, marginLeft: '-8px' }}
                 />
                 
-                {markers.map(marker => (
-                  <div
-                    key={marker.id}
-                    className={`absolute top-0 bottom-0 w-1 ${getMarkerColor(marker.type)} cursor-pointer hover:w-1.5 transition-all z-10`}
-                    style={{ left: `${(marker.timestamp / duration) * 100}%` }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      seekTo(marker.timestamp);
-                      setSelectedMarker(marker);
-                    }}
-                    title={`${marker.type.replace('_', ' ')} - ${formatTime(marker.timestamp)}`}
-                  />
-                ))}
+                <TooltipProvider>
+                  {markers.map(marker => (
+                    <Tooltip key={marker.id}>
+                      <TooltipTrigger asChild>
+                        <div
+                          className={`absolute top-0 bottom-0 w-1 ${getMarkerColor(marker.type)} cursor-pointer hover:w-1.5 transition-all z-10`}
+                          style={{ left: `${(marker.timestamp / duration) * 100}%` }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            seekTo(marker.timestamp);
+                            setSelectedMarker(marker);
+                          }}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-sm font-medium">
+                          {marker.type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())} - {formatTime(marker.timestamp)}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                </TooltipProvider>
               </div>
               <div className="flex justify-between text-xs text-muted-foreground mt-1">
                 <span>{formatTime(currentTime)}</span>
