@@ -1438,10 +1438,10 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                         to={dashboardUrl} 
                         end
                         className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5"
-                        activeClassName="bg-accent text-accent-foreground font-semibold"
+                        activeClassName="bg-accent font-semibold"
                       >
-                        <LayoutDashboard className="h-4 w-4" />
-                        {!collapsed && <span className="text-foreground">Dashboard</span>}
+                        <LayoutDashboard className="h-4 w-4 text-black" />
+                        {!collapsed && <span className="text-black">Dashboard</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </TooltipTrigger>
