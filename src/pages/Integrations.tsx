@@ -1239,6 +1239,96 @@ const Integrations = () => {
                   </Button>
                 </div>
               </Card>
+
+              {/* Zoom */}
+              <Card className="p-6 hover:border-primary/50 transition-all">
+                <div className="flex flex-col space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                      <CalendarDays className="w-6 h-6 text-white" />
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      Not Connected
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg">Zoom</h3>
+                    <p className="text-xs text-muted-foreground">Video Conferencing</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Connect Zoom to schedule and host virtual meetings and webinars.
+                    </p>
+                  </div>
+                  
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                  >
+                    Connect
+                  </Button>
+                </div>
+              </Card>
+
+              {/* Google Calendar */}
+              <Card className="p-6 hover:border-primary/50 transition-all">
+                <div className="flex flex-col space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+                      <CalendarDays className="w-6 h-6 text-white" />
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      Not Connected
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg">Google Calendar</h3>
+                    <p className="text-xs text-muted-foreground">Calendar Integration</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Sync your meetings and events with Google Calendar automatically.
+                    </p>
+                  </div>
+                  
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                  >
+                    Connect
+                  </Button>
+                </div>
+              </Card>
+
+              {/* Google Email (Gmail) */}
+              <Card className="p-6 hover:border-primary/50 transition-all">
+                <div className="flex flex-col space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center">
+                      <Mail className="w-6 h-6 text-white" />
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      Not Connected
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg">Google Email</h3>
+                    <p className="text-xs text-muted-foreground">Email Integration</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Connect Gmail to manage email communications and sync contacts.
+                    </p>
+                  </div>
+                  
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                  >
+                    Connect
+                  </Button>
+                </div>
+              </Card>
             </div>
           </section>
         </div>
