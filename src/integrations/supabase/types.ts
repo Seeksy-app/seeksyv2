@@ -6756,6 +6756,10 @@ export type Database = {
         Args: { _feature_type: string; _increment?: number; _user_id: string }
         Returns: undefined
       }
+      is_team_owner: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
       log_user_activity: {
         Args: {
           p_action_description: string

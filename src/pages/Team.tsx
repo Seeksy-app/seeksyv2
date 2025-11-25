@@ -164,6 +164,20 @@ export default function Team() {
           console.error("Error adding owner to team:", memberInsertError);
         }
 
+        // Add Johnny Rocket as a sample team member (hardcoded for demo)
+        const johnnyRocketUserId = 'bdc068e7-2042-4cd4-ae1b-9261e96b27ec';
+        const { error: johnnyInsertError } = await supabase
+          .from("team_members")
+          .insert({
+            team_id: newTeam.id,
+            user_id: johnnyRocketUserId,
+            role: 'member',
+          });
+
+        if (johnnyInsertError) {
+          console.error("Error adding Johnny Rocket to team:", johnnyInsertError);
+        }
+
         team = newTeam;
       }
 
@@ -526,19 +540,9 @@ export default function Team() {
 
         <Card>
           <CardHeader className="border-b">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <CardTitle className="text-2xl font-semibold">Directory</CardTitle>
-                <span className="text-lg text-muted-foreground">{combinedMembers.length}</span>
-              </div>
-              <Button 
-                onClick={() => setShowInviteDialog(true)}
-                variant="ghost"
-                className="text-[hsl(207,100%,50%)] hover:text-[hsl(207,100%,45%)] hover:bg-[hsl(207,100%,50%)]/10"
-              >
-                <UserPlus className="h-4 w-4 mr-2" />
-                Add teammate
-              </Button>
+            <div className="flex items-center gap-3">
+              <CardTitle className="text-2xl font-semibold">Directory</CardTitle>
+              <span className="text-lg text-muted-foreground">{combinedMembers.length}</span>
             </div>
           </CardHeader>
           <CardContent className="p-0">
@@ -546,16 +550,9 @@ export default function Team() {
               <div className="text-center py-16 px-4">
                 <UserPlus className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-lg font-semibold mb-2">No team members yet</h3>
-                <p className="text-muted-foreground mb-6">
+                <p className="text-muted-foreground">
                   Invite team members to collaborate
                 </p>
-                <Button 
-                  onClick={() => setShowInviteDialog(true)}
-                  className="bg-[hsl(207,100%,50%)] hover:bg-[hsl(207,100%,45%)]"
-                >
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Add Your First Teammate
-                </Button>
               </div>
             ) : (
               <Table>
