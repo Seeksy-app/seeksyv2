@@ -237,10 +237,19 @@ export default function VideoUploader({
     const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '-').replace(/--+/g, '-');
     const objectName = `${session.user.id}/${Date.now()}-${sanitizedName}`;
     
+    console.log('Starting large file resumable upload:', {
+      fileName: file.name,
+      sanitizedName,
+      fileSize: formatBytes(file.size),
+      fileSizeBytes: file.size,
+      objectName,
+      endpoint: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/upload/resumable`
+    });
+    
     return new Promise((resolve, reject) => {
       const upload = new tus.Upload(file, {
         endpoint: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/upload/resumable`,
-        retryDelays: [0, 3000, 5000, 10000, 20000],
+        retryDelays: [0, 1000, 3000, 5000, 10000, 20000, 30000], // More retry attempts with longer delays
         headers: {
           authorization: `Bearer ${session.access_token}`,
           'x-upsert': 'false',
@@ -253,15 +262,32 @@ export default function VideoUploader({
           contentType: file.type,
           cacheControl: '3600',
         },
-        chunkSize: 5 * 1024 * 1024, // 5MB chunks
+        chunkSize: 10 * 1024 * 1024, // 10MB chunks for better performance with large files
         onError: (error) => {
-          console.error('TUS upload error:', error);
+          const errorDetails: any = {
+            error,
+            message: error.message,
+            fileName: file.name,
+            fileSize: file.size
+          };
+          
+          // Add TUS-specific error details if available
+          if ('originalRequest' in error) {
+            errorDetails.originalRequest = (error as any).originalRequest;
+          }
+          if ('originalResponse' in error) {
+            errorDetails.originalResponse = (error as any).originalResponse;
+          }
+          
+          console.error('TUS upload error details:', errorDetails);
           reject(error);
         },
         onProgress: (bytesUploaded, bytesTotal) => {
           const percentage = (bytesUploaded / bytesTotal) * 90; // Reserve 10% for DB work
           const elapsed = (Date.now() - uploadStartTime.current) / 1000;
           const speed = bytesUploaded / elapsed;
+          
+          console.log(`Upload progress: ${Math.round(percentage)}% (${formatBytes(bytesUploaded)}/${formatBytes(bytesTotal)}) at ${formatSpeed(speed)}`);
           
           setUploadProgress(percentage);
           setUploadSpeed(speed);
@@ -275,6 +301,8 @@ export default function VideoUploader({
               .from('episode-files')
               .getPublicUrl(objectName);
 
+            console.log('Creating media_files record with publicUrl:', publicUrl);
+
             const { error: dbError } = await supabase
               .from('media_files')
               .insert({
@@ -286,18 +314,32 @@ export default function VideoUploader({
                 source: 'upload',
               });
 
-            if (dbError) throw dbError;
+            if (dbError) {
+              console.error('Database insert error:', dbError);
+              throw dbError;
+            }
+            
+            console.log('Upload completed successfully!');
             resolve(true);
           } catch (error) {
+            console.error('Error in onSuccess handler:', error);
             reject(error);
           }
         },
       });
 
+      console.log('Checking for previous uploads to resume...');
       upload.findPreviousUploads().then((previousUploads) => {
         if (previousUploads.length) {
+          console.log(`Found ${previousUploads.length} previous upload(s), resuming from last one...`);
           upload.resumeFromPreviousUpload(previousUploads[0]);
+        } else {
+          console.log('No previous uploads found, starting fresh...');
         }
+        upload.start();
+      }).catch((error) => {
+        console.error('Error finding previous uploads:', error);
+        console.log('Starting upload anyway...');
         upload.start();
       });
     });
