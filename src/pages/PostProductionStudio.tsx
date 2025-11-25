@@ -16,6 +16,9 @@ import { toast } from "sonner";
 import { AICameraProcessingDialog } from "@/components/media/AICameraProcessingDialog";
 import { AIEditCompletionDialog } from "@/components/media/AIEditCompletionDialog";
 import { PostProductionTutorial } from "@/components/media/PostProductionTutorial";
+import { AIBRollGenerator } from "@/components/media/AIBRollGenerator";
+import { ThumbnailManager } from "@/components/media/ThumbnailManager";
+import { IntroOutroManager } from "@/components/media/IntroOutroManager";
 import { 
   ArrowLeft, 
   Play, 
@@ -724,9 +727,12 @@ export default function PostProductionStudio() {
         {/* Right Sidebar */}
         <div className="w-96 border-l bg-card overflow-y-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-6 text-xs">
               <TabsTrigger value="tools">Tools</TabsTrigger>
               <TabsTrigger value="ai-edits">AI Edits</TabsTrigger>
+              <TabsTrigger value="broll">B-Roll</TabsTrigger>
+              <TabsTrigger value="intro-outro">Intro/Outro</TabsTrigger>
+              <TabsTrigger value="thumbnail">Thumbnail</TabsTrigger>
               <TabsTrigger value="markers">Markers</TabsTrigger>
             </TabsList>
 
@@ -1017,6 +1023,27 @@ export default function PostProductionStudio() {
                   )}
                 </div>
               )}
+            </TabsContent>
+
+            <TabsContent value="broll" className="flex-1 p-4 space-y-6">
+              <AIBRollGenerator />
+            </TabsContent>
+
+            <TabsContent value="intro-outro" className="flex-1 p-4 space-y-6">
+              <IntroOutroManager mediaId={mediaId || ''} type="intro" />
+              <div className="border-t pt-6">
+                <IntroOutroManager mediaId={mediaId || ''} type="outro" />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="thumbnail" className="flex-1 p-4">
+              <ThumbnailManager 
+                mediaId={mediaId || ''} 
+                currentThumbnail={mediaFile?.file_url}
+                onThumbnailUpdate={(url) => {
+                  console.log('Thumbnail updated:', url);
+                }}
+              />
             </TabsContent>
 
             <TabsContent value="markers" className="flex-1 p-4">

@@ -6,5 +6,11 @@ verify_jwt = true
 [functions.cfo-ai-assistant]
 verify_jwt = false
 
+[functions.generate-ai-broll]
+verify_jwt = true
+
+[functions.generate-ai-thumbnail]
+verify_jwt = true
+
 [functions.submit-public-ticket]
 verify_jwt = false
