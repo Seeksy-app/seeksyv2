@@ -1,8 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@4.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const senderEmail = Deno.env.get("SENDER_EMAIL_HELLO") || "Seeksy <hello@seeksy.io>";
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,9 +14,11 @@ const corsHeaders = {
 
 interface InviteRequest {
   investorEmail: string;
+  investorName?: string;
   accessCode: string;
   investorLink: string;
   senderName?: string;
+  senderUserId?: string;
 }
 
 const generateEmailHTML = (accessCode: string, investorLink: string, senderName?: string) => `
@@ -112,7 +117,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { investorEmail, accessCode, investorLink, senderName }: InviteRequest = await req.json();
+    const { investorEmail, investorName, accessCode, investorLink, senderName, senderUserId }: InviteRequest = await req.json();
 
     if (!investorEmail || !accessCode || !investorLink) {
       return new Response(
@@ -156,6 +161,27 @@ Questions? Reply to this email.
     });
 
     console.log("Investor invite email sent successfully:", emailResponse);
+
+    // Log the email send in investor_portal_emails table
+    if (senderUserId) {
+      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      
+      const { error: logError } = await supabase
+        .from("investor_portal_emails")
+        .insert({
+          sent_by_user_id: senderUserId,
+          recipient_email: investorEmail,
+          recipient_name: investorName || investorEmail,
+          access_code: accessCode,
+          status: 'sent',
+          resend_email_id: emailResponse.data?.id || null,
+        });
+
+      if (logError) {
+        console.error("Error logging email send:", logError);
+        // Don't fail the request if logging fails
+      }
+    }
 
     return new Response(
       JSON.stringify({ success: true, data: emailResponse }),

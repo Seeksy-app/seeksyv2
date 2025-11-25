@@ -116,7 +116,7 @@ const Integrations = () => {
         setModules({
           my_page: (prefs as any).my_page_enabled === true,
           ai_assistant: (prefs as any).ai_assistant_enabled === true,
-          meetings: (prefs as any).meetings_enabled !== false, // Always enabled unless explicitly disabled
+          meetings: (prefs as any).meetings_enabled === true,
           contacts: (prefs as any).contacts_enabled === true,
           podcasts: (prefs as any).podcasts_enabled === true,
           awards: prefs.module_awards_enabled || false,
@@ -187,6 +187,7 @@ const Integrations = () => {
   const performToggle = async (moduleName: keyof ModuleStatus, newValue: boolean) => {
     if (!user) return;
 
+    console.log(`Toggling ${moduleName} to ${newValue}`);
     setModules({ ...modules, [moduleName]: newValue });
 
     try {
