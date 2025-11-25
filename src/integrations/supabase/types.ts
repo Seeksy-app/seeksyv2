@@ -3750,6 +3750,38 @@ export type Database = {
           },
         ]
       }
+      lead_photos: {
+        Row: {
+          caption: string | null
+          created_at: string | null
+          id: string
+          photo_url: string
+          ticket_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string | null
+          id?: string
+          photo_url: string
+          ticket_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string | null
+          id?: string
+          photo_url?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_photos_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       link_clicks: {
         Row: {
           clicked_at: string
@@ -6312,54 +6344,78 @@ export type Database = {
       tickets: {
         Row: {
           assigned_to: string | null
+          best_contact_times: string[] | null
           category: string | null
           contact_id: string | null
           created_at: string | null
           description: string | null
           id: string
           last_activity_at: string | null
+          latitude: number | null
+          location_accuracy: number | null
+          longitude: number | null
           notes: string | null
+          preferred_contact_method: string[] | null
           priority: string | null
+          property_address: string | null
           resolved_at: string | null
+          scheduled_estimate_time: string | null
           status: string | null
           ticket_number: string
           title: string
           updated_at: string | null
           user_id: string
+          work_types: string[] | null
         }
         Insert: {
           assigned_to?: string | null
+          best_contact_times?: string[] | null
           category?: string | null
           contact_id?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           last_activity_at?: string | null
+          latitude?: number | null
+          location_accuracy?: number | null
+          longitude?: number | null
           notes?: string | null
+          preferred_contact_method?: string[] | null
           priority?: string | null
+          property_address?: string | null
           resolved_at?: string | null
+          scheduled_estimate_time?: string | null
           status?: string | null
           ticket_number: string
           title: string
           updated_at?: string | null
           user_id: string
+          work_types?: string[] | null
         }
         Update: {
           assigned_to?: string | null
+          best_contact_times?: string[] | null
           category?: string | null
           contact_id?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           last_activity_at?: string | null
+          latitude?: number | null
+          location_accuracy?: number | null
+          longitude?: number | null
           notes?: string | null
+          preferred_contact_method?: string[] | null
           priority?: string | null
+          property_address?: string | null
           resolved_at?: string | null
+          scheduled_estimate_time?: string | null
           status?: string | null
           ticket_number?: string
           title?: string
           updated_at?: string | null
           user_id?: string
+          work_types?: string[] | null
         }
         Relationships: [
           {

@@ -145,6 +145,7 @@ import Invoices from "./pages/Invoices";
 import CreateInvoice from "./pages/CreateInvoice";
 import InvestorPortal from "./pages/InvestorPortal";
 import ProjectManagement from "./pages/ProjectManagement";
+import CreateLead from "./pages/CreateLead";
 import SignDocument from "./pages/SignDocument";
 import PodcastDistribution from "./pages/PodcastDistribution";
 import PublicTicketSubmission from "./pages/PublicTicketSubmission";
@@ -229,6 +230,7 @@ const AppContent = () => {
               <Route path="/pricing" element={<Pricing />} />
             <Route path="/investor" element={<InvestorPortal />} />
             <Route path="/project-management" element={<ProjectManagement />} />
+            <Route path="/create-lead" element={<CreateLead />} />
             <Route path="/proposals" element={<Proposals />} />
             <Route path="/proposals/create" element={<CreateProposal />} />
             <Route path="/proposals/:id" element={<ProposalDetail />} />
