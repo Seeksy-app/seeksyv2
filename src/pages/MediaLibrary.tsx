@@ -790,7 +790,13 @@ export default function MediaLibrary() {
                 value="videos" 
                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3"
               >
-                Videos
+                Uploads
+              </TabsTrigger>
+              <TabsTrigger 
+                value="studio" 
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3"
+              >
+                Studio Recordings
               </TabsTrigger>
               <TabsTrigger 
                 value="shorts" 
@@ -809,12 +815,6 @@ export default function MediaLibrary() {
                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3"
               >
                 Podcasts
-              </TabsTrigger>
-              <TabsTrigger 
-                value="studio" 
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3"
-              >
-                Studio Recordings
               </TabsTrigger>
             </TabsList>
 
