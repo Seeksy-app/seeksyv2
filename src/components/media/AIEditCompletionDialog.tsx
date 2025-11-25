@@ -26,7 +26,7 @@ export const AIEditCompletionDialog = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl">
             <CheckCircle2 className="h-6 w-6 text-green-500" />
-            AI Editing Complete!
+            Ready to Save?
           </DialogTitle>
         </DialogHeader>
 
@@ -37,10 +37,10 @@ export const AIEditCompletionDialog = ({
               <Sparkles className="h-10 w-10 text-green-500" />
             </div>
             <p className="text-xl">
-              I've successfully applied <span className="font-bold text-primary">{totalEdits} AI edits</span> to your video
+              I've successfully prepared <span className="font-bold text-primary">{totalEdits} edits</span> for your video
             </p>
             <p className="text-base text-muted-foreground max-w-md mx-auto">
-              Your edited video is now displayed in the timeline. Review the changes and decide what to do next.
+              Review your changes and choose how to save them.
             </p>
           </div>
 

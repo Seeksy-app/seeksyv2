@@ -512,11 +512,10 @@ export default function PostProductionStudio() {
       });
     });
 
-    // Store pending edits and show completion dialog
+    // Store pending edits but don't show dialog automatically
     setPendingAIEdits(newMarkers);
-    setCompletionDialogOpen(true);
     
-    toast.success(`AI processing complete! ${brollClips && brollClips.length > 0 ? 'Using your uploaded B-roll clips. ' : ''}Review your edits now.`, {
+    toast.success(`AI processing complete! ${brollClips && brollClips.length > 0 ? 'Using your uploaded B-roll clips. ' : ''}Click Save when ready.`, {
       duration: 4000
     });
   };
@@ -677,7 +676,13 @@ export default function PostProductionStudio() {
           <Button 
             variant="default" 
             size="sm"
-            onClick={saveEdits}
+            onClick={() => {
+              if (pendingAIEdits.length > 0 || markers.length > 0) {
+                setCompletionDialogOpen(true);
+              } else {
+                toast.info("No edits to save yet. Add some markers or run AI enhancement first.");
+              }
+            }}
             disabled={isSaving}
           >
             <Save className="h-4 w-4 mr-2" />
@@ -1220,7 +1225,7 @@ export default function PostProductionStudio() {
       <AIEditCompletionDialog
         open={completionDialogOpen}
         onOpenChange={setCompletionDialogOpen}
-        totalEdits={pendingAIEdits.length}
+        totalEdits={pendingAIEdits.length + markers.length}
         onSaveEdits={handleSaveAIEdits}
         onKeepOriginal={handleKeepOriginal}
         onSaveBoth={handleSaveBoth}
