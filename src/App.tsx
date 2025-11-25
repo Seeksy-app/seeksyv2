@@ -136,6 +136,7 @@ import InfluencerSearch from "./pages/agency/InfluencerSearch";
 import AgencyCampaigns from "./pages/agency/AgencyCampaigns";
 import InfluencerProfileSettings from "./pages/InfluencerProfileSettings";
 import InfluencerPortfolio from "./pages/InfluencerPortfolio";
+import Marketing from "./pages/Marketing";
 import ClientTickets from "./pages/ClientTickets";
 import Proposals from "./pages/Proposals";
 import CreateProposal from "./pages/CreateProposal";
@@ -241,6 +242,7 @@ const AppContent = () => {
               <Route path="/security" element={<Security />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/email-history" element={<EmailHistory />} />
+              <Route path="/marketing" element={<Marketing />} />
               <Route path="/create-event" element={<CreateEvent />} />
               <Route path="/event/:id" element={<EventDetail />} />
               <Route path="/event/:id/edit" element={<EditEvent />} />
