@@ -539,10 +539,10 @@ const Integrations = () => {
                   iconGradient="from-blue-500 to-indigo-600"
                   title="Meetings"
                   description="Schedule and manage meetings with booking links, calendar integrations, and automated reminders."
-                  tooltip="Always enabled - core scheduling functionality"
+                  tooltip="Enable to schedule and manage meetings"
                   isActive={modules.meetings}
                   isAdmin={isAdmin}
-                  onToggle={() => {}} // Meetings cannot be disabled
+                  onToggle={() => toggleModule('meetings')}
                   onEdit={() => handleEditMetadata('meetings')}
                 />
               )}
