@@ -114,6 +114,7 @@ export default function VideoUploader({
       });
 
       xhr.addEventListener('load', () => {
+        console.log('XHR Load - Status:', xhr.status, 'Response:', xhr.responseText);
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
             const response = JSON.parse(xhr.responseText);
@@ -121,19 +122,31 @@ export default function VideoUploader({
               setUploadProgress(100);
               resolve(response);
             } else {
+              console.error('Upload failed:', response.error);
               reject(new Error(response.error || 'Upload failed'));
             }
           } catch (e) {
+            console.error('Failed to parse response:', e, xhr.responseText);
             reject(new Error('Invalid response from server'));
           }
         } else {
-          reject(new Error(`Upload failed with status ${xhr.status}`));
+          console.error('Upload failed with status:', xhr.status, xhr.statusText, xhr.responseText);
+          reject(new Error(`Upload failed with status ${xhr.status}: ${xhr.statusText}`));
         }
       });
 
-      xhr.addEventListener('error', () => reject(new Error('Network error during upload')));
-      xhr.addEventListener('abort', () => reject(new Error('Upload cancelled')));
-      xhr.addEventListener('timeout', () => reject(new Error('Upload timed out')));
+      xhr.addEventListener('error', (e) => {
+        console.error('XHR Error event:', e, 'Status:', xhr.status, 'ReadyState:', xhr.readyState);
+        reject(new Error('Network error during upload - check console for details'));
+      });
+      xhr.addEventListener('abort', () => {
+        console.error('XHR Abort event');
+        reject(new Error('Upload cancelled'));
+      });
+      xhr.addEventListener('timeout', () => {
+        console.error('XHR Timeout event');
+        reject(new Error('Upload timed out'));
+      });
 
       // Set longer timeout for large files (30 minutes)
       xhr.timeout = 1800000;
@@ -141,9 +154,14 @@ export default function VideoUploader({
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const functionUrl = `${supabaseUrl}/functions/v1/upload-large-media`;
       
+      console.log('Starting XHR upload to:', functionUrl);
+      console.log('File size:', file.size, 'bytes');
+      
       xhr.open('POST', functionUrl);
       xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
       xhr.setRequestHeader('apikey', import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
+      
+      console.log('Sending XHR request...');
       xhr.send(formData);
     });
   };
