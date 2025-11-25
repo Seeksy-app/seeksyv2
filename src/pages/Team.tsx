@@ -90,13 +90,13 @@ export default function Team() {
         loadInvitations(user.id)
       ]);
       
-      // Combine members and invitations after both are loaded
-      combineMembers();
-    } catch (error) {
+      // Note: combineMembers() will be called automatically by the useEffect
+      // that watches teamMembers and invitations state changes
+    } catch (error: any) {
       console.error("Error loading team data:", error);
       toast({
         title: "Error",
-        description: "Failed to load team data",
+        description: error?.message || "Failed to load team data",
         variant: "destructive",
       });
     } finally {
@@ -106,22 +106,34 @@ export default function Team() {
 
   const loadTeamMembers = async (userId: string) => {
     try {
+      console.log("Loading team members for user:", userId);
+      
       // Get the current user's team, create one if it doesn't exist
-      let { data: team } = await supabase
+      let { data: team, error: teamError } = await supabase
         .from("teams")
         .select("id")
         .eq("owner_id", userId)
         .maybeSingle();
 
+      if (teamError) {
+        console.error("Error fetching team:", teamError);
+        throw teamError;
+      }
+
       if (!team) {
+        console.log("No team found, creating one");
         // Create team for this user
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from("profiles")
-          .select("full_name, username")
+          .select("account_full_name, full_name, username")
           .eq("id", userId)
           .single();
 
-        const teamName = `${profile?.full_name || profile?.username || 'User'}'s Team`;
+        if (profileError) {
+          console.error("Error fetching profile for team creation:", profileError);
+        }
+
+        const teamName = `${profile?.account_full_name || profile?.full_name || profile?.username || 'User'}'s Team`;
         
         const { data: newTeam, error: createError } = await supabase
           .from("teams")
@@ -132,10 +144,15 @@ export default function Team() {
           .select()
           .single();
 
-        if (createError) throw createError;
+        if (createError) {
+          console.error("Error creating team:", createError);
+          throw createError;
+        }
+
+        console.log("Team created:", newTeam);
 
         // Add owner as team member
-        await supabase
+        const { error: memberInsertError } = await supabase
           .from("team_members")
           .insert({
             team_id: newTeam.id,
@@ -143,11 +160,17 @@ export default function Team() {
             role: 'owner',
           });
 
+        if (memberInsertError) {
+          console.error("Error adding owner to team:", memberInsertError);
+        }
+
         team = newTeam;
       }
 
+      console.log("Loading members for team:", team.id);
+
       // Get team members from team_members table
-      const { data: members, error } = await supabase
+      const { data: members, error: membersError } = await supabase
         .from("team_members")
         .select(`
           id,
@@ -157,7 +180,12 @@ export default function Team() {
         `)
         .eq("team_id", team.id);
 
-      if (error) throw error;
+      if (membersError) {
+        console.error("Error fetching team members:", membersError);
+        throw membersError;
+      }
+
+      console.log("Found team members:", members);
 
       // Get profile info for each member
       if (!members || members.length === 0) {
@@ -168,10 +196,14 @@ export default function Team() {
       const memberIds = members.map(m => m.user_id);
       
       // Get profiles
-      const { data: profiles } = await supabase
+      const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("id, account_full_name, full_name, username, avatar_url")
         .in("id", memberIds);
+
+      if (profilesError) {
+        console.error("Error fetching profiles:", profilesError);
+      }
       
       const membersWithDetails: TeamMember[] = members.map(member => {
         const profile = profiles?.find(p => p.id === member.user_id);
@@ -187,27 +219,37 @@ export default function Team() {
         };
       });
 
+      console.log("Members with details:", membersWithDetails);
       setTeamMembers(membersWithDetails);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error loading team members:", error);
       throw error;
     }
   };
 
   const loadInvitations = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("team_invitations")
-      .select("*")
-      .eq("inviter_id", userId)
-      .eq("status", "pending")
-      .order("invited_at", { ascending: false });
+    try {
+      console.log("Loading invitations for user:", userId);
+      
+      const { data, error } = await supabase
+        .from("team_invitations")
+        .select("*")
+        .eq("inviter_id", userId)
+        .eq("status", "pending")
+        .order("invited_at", { ascending: false });
 
-    if (error) {
-      console.error("Error loading invitations:", error);
-      return;
+      if (error) {
+        console.error("Error loading invitations:", error);
+        throw error;
+      }
+
+      console.log("Found invitations:", data);
+      setInvitations(data || []);
+    } catch (error: any) {
+      console.error("Error in loadInvitations:", error);
+      // Don't throw - allow page to load even if invitations fail
+      setInvitations([]);
     }
-
-    setInvitations(data || []);
   };
 
   const combineMembers = () => {
