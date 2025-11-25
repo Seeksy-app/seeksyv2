@@ -67,7 +67,7 @@ const ALL_MODULES: Module[] = [
   { key: "contacts", label: "Contacts", icon: Users, route: "/contacts", enabledKey: "contacts" },
   { key: "podcasts", label: "Podcasts", icon: Mic, route: "/podcasts", enabledKey: "podcasts" },
   { key: "awards", label: "Awards", icon: Trophy, route: "/awards", enabledKey: "module_awards_enabled" },
-  { key: "media", label: "Media Library", icon: Clapperboard, route: "/media-library", enabledKey: "module_media_enabled" },
+  { key: "media", label: "Media", icon: Clapperboard, route: "/studio", enabledKey: "module_media_enabled" },
   { key: "civic", label: "Civic Tools", icon: Building2, route: "/civic-blog", enabledKey: "module_civic_enabled" },
   { key: "advertiser", label: "Advertiser", icon: Target, route: "/advertiser/dashboard", enabledKey: "module_advertiser_enabled" },
   { key: "team_chat", label: "Team Chat", icon: MessageSquare, route: "/team-chat", enabledKey: "module_team_chat_enabled" },

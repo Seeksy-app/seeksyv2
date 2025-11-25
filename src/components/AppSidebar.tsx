@@ -346,14 +346,12 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     ...(pinnedModules.includes("qr_codes") && modulePrefs.qr_codes ? [{ title: "QR Codes", url: "/qr-codes", icon: QrCode }] : []),
     ...(pinnedModules.includes("contacts") ? [{ title: "Contacts", url: "/contacts", icon: Users }] : []),
     ...(pinnedModules.includes("podcasts") ? [{ title: "Podcasts", url: "/podcasts", icon: Mic }] : []),
-    // Media Library removed - shown only in Media section below
+    // Media is shown as its own section with Studio, Media Library, Create Clips
     ...(pinnedModules.includes("civic") && modulePrefs.civic ? [{ title: "Civic Tools", url: "/civic-blog", icon: Building2 }] : []),
     ...(pinnedModules.includes("team_chat") && modulePrefs.team_chat ? [{ title: "Team Chat", url: "/team-chat", icon: MessageSquare }] : []),
     ...(pinnedModules.includes("marketing") && modulePrefs.marketing ? [{ title: "Marketing", url: "/crm", icon: Mail }] : []),
     ...(pinnedModules.includes("sms") && modulePrefs.sms ? [{ title: "SMS", url: "/sms", icon: Smartphone }] : []),
   ];
-  
-  console.log("Seekies items (should NOT include Media Library):", seeksiesItems.map(i => i.title));
 
   const rssPodcastItems = [
     ...(pinnedModules.includes("podcasts") && modulePrefs.rss_podcast ? [
