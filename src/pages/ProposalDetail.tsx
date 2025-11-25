@@ -46,7 +46,7 @@ export default function ProposalDetail() {
           )
         `)
         .eq("id", id)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       
