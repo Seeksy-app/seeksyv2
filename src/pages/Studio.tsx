@@ -20,6 +20,7 @@ import { RecordingMarker } from "@/components/studio/MarkerPanel";
 import { Scene } from "@/components/studio/StudioScenes";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { StudioGuestPanel } from "@/components/studio/StudioGuestPanel";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 function StudioContent() {
   const navigate = useNavigate();
@@ -772,6 +773,8 @@ Closing Notes:
             </div>
         
         <div className="flex items-center gap-3">
+          <ThemeToggle />
+          
           <Button
             variant="outline"
             size="sm"
@@ -825,7 +828,7 @@ Closing Notes:
           
           <ResizablePanel defaultSize={78} minSize={70}>
             {myPageStreamStatus.isLive && myPageStreamStatus.videoUrl ? (
-              <div className="relative h-full w-full bg-black">
+              <div className="relative h-full w-full bg-muted">
                 <video
                   src={myPageStreamStatus.videoUrl}
                   className="w-full h-full object-contain"

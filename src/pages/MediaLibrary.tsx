@@ -87,6 +87,7 @@ import { useVideoProcessing } from "@/hooks/useVideoProcessing";
 import { VideoMarkerPanel } from "@/components/media/VideoMarkerPanel";
 import { VideoEditingControls } from "@/components/media/VideoEditingControls";
 import { BRollManager } from "@/components/media/BRollManager";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface Recording {
   id: string;
@@ -818,6 +819,8 @@ export default function MediaLibrary() {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              <ThemeToggle />
+              
               <input
                 ref={fileInputRef}
                 type="file"

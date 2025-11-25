@@ -74,10 +74,10 @@ export function StudioMainView({
   currentGuestIndex = 0,
 }: StudioMainViewProps) {
   return (
-    <div className="relative flex flex-col h-full bg-black">
+    <div className="relative flex flex-col h-full bg-muted">
       {/* Quality Badge */}
       <div className="absolute top-4 left-4 z-20">
-        <Badge className="bg-black/50 border-white/20 text-white backdrop-blur-sm">
+        <Badge className="bg-background/80 border-border backdrop-blur-sm">
           1080p
         </Badge>
       </div>
@@ -98,7 +98,7 @@ export function StudioMainView({
       )}
 
       {/* Video Preview */}
-      <div className="relative flex-1 bg-black overflow-hidden">
+      <div className="relative flex-1 bg-muted overflow-hidden">
         <video
           ref={videoRef}
           autoPlay
