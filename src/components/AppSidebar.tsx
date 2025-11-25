@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { 
@@ -96,6 +96,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { toast } = useToast();
+  const location = useLocation();
   const [username, setUsername] = useState<string>("");
   const [isAdvertiser, setIsAdvertiser] = useState(false);
   const [advertiserStatus, setAdvertiserStatus] = useState<string | null>(null);
@@ -685,6 +686,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                 {seeksiesItems.map((item) => {
                   const moduleKey = getModuleKey(item.title);
                   const isPinned = pinnedModules.includes(moduleKey);
+                  const isActive = location.pathname === item.url;
                   
                   return (
                     <SidebarMenuItem key={item.title} className="group/item relative">
@@ -710,7 +712,9 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                                     e.stopPropagation();
                                     togglePin(moduleKey);
                                   }}
-                                  className="absolute right-2 p-1 opacity-0 group-hover/item:opacity-100 hover:bg-background/80 rounded transition-opacity"
+                                  className={`absolute right-2 p-1 hover:bg-background/80 rounded transition-opacity ${
+                                    isActive ? "opacity-100" : "opacity-0 group-hover/item:opacity-100"
+                                  }`}
                                   aria-label={isPinned ? `Unpin ${item.title}` : `Pin ${item.title}`}
                                 >
                                   <Pin
