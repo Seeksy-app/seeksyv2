@@ -34,6 +34,7 @@ export const AICameraProcessingDialog = ({
   const [detectedChanges, setDetectedChanges] = useState<string[]>([]);
   const [currentEdit, setCurrentEdit] = useState<{ type: string; label: string } | null>(null);
   const [pipScale, setPipScale] = useState(1);
+  const [videoTime, setVideoTime] = useState(0);
   
   const stages: ProcessingStage[] = [
     {
@@ -80,13 +81,19 @@ export const AICameraProcessingDialog = ({
       setDetectedChanges([]);
       setCurrentEdit(null);
       setPipScale(1);
+      setVideoTime(0);
       return;
     }
 
-    // Simulate real-time change detection
+    // Simulate real-time change detection and sync video playback
     const changeTimer = setInterval(() => {
       setProgress((prev) => {
         const newProgress = Math.min(prev + 1.5, 100);
+        
+        // Calculate video playback time based on progress (play through entire video once)
+        const duration = videoDuration || 120;
+        const calculatedTime = (newProgress / 100) * duration;
+        setVideoTime(calculatedTime);
         
         // Add realistic change notifications at specific progress points (based on video duration)
         const formatTimestamp = (seconds: number) => {
@@ -95,7 +102,6 @@ export const AICameraProcessingDialog = ({
           return `${mins}:${secs.toString().padStart(2, '0')}`;
         };
         
-        const duration = videoDuration || 120;
         const timestamps = [
           Math.floor(duration * 0.05),
           Math.floor(duration * 0.20),
@@ -147,8 +153,7 @@ export const AICameraProcessingDialog = ({
         // Complete processing
         if (newProgress === 100) {
           setTimeout(() => {
-            const duration = videoDuration || 120;
-            const timestamps = [
+            const completionTimestamps = [
               Math.floor(duration * 0.05),
               Math.floor(duration * 0.20),
               Math.floor(duration * 0.40),
@@ -158,11 +163,11 @@ export const AICameraProcessingDialog = ({
             
             onComplete({
               edits: [
-                { timestamp: timestamps[0], type: 'close_up', description: 'Speaker emphasis - close-up shot' },
-                { timestamp: timestamps[1], type: 'punch_in', description: 'Key point - digital punch-in' },
-                { timestamp: timestamps[2], type: 'wide', description: 'Conversational flow - wide angle' },
-                { timestamp: timestamps[3], type: 'zoom', description: 'Energy shift - smooth zoom in' },
-                { timestamp: timestamps[4], type: 'medium', description: 'Natural transition - medium shot' }
+                { timestamp: completionTimestamps[0], type: 'close_up', description: 'Speaker emphasis - close-up shot' },
+                { timestamp: completionTimestamps[1], type: 'punch_in', description: 'Key point - digital punch-in' },
+                { timestamp: completionTimestamps[2], type: 'wide', description: 'Conversational flow - wide angle' },
+                { timestamp: completionTimestamps[3], type: 'zoom', description: 'Energy shift - smooth zoom in' },
+                { timestamp: completionTimestamps[4], type: 'medium', description: 'Natural transition - medium shot' }
               ],
               totalShots: 5,
               avgShotLength: Math.floor(duration / 5),
@@ -179,9 +184,22 @@ export const AICameraProcessingDialog = ({
     return () => clearInterval(changeTimer);
   }, [open, currentStageIndex, detectedChanges.length]);
 
+  // Keep video elements in sync with calculated time
+  useEffect(() => {
+    if (open && videoTime > 0) {
+      const videos = document.querySelectorAll('.ai-processing-video');
+      videos.forEach((video) => {
+        const videoElement = video as HTMLVideoElement;
+        if (Math.abs(videoElement.currentTime - videoTime) > 0.5) {
+          videoElement.currentTime = videoTime;
+        }
+      });
+    }
+  }, [videoTime, open]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Camera className="h-5 w-5 text-primary animate-pulse" />
@@ -189,10 +207,10 @@ export const AICameraProcessingDialog = ({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="space-y-6 py-6">
           {/* Real-time Text Overlay - Prominent */}
           {currentEdit && (
-            <div className="bg-primary/10 border-2 border-primary rounded-lg p-4 animate-in fade-in slide-in-from-top duration-300">
+            <div className="bg-primary/10 border-2 border-primary rounded-lg p-5 animate-in fade-in slide-in-from-top duration-300">
               <div className="flex items-center gap-3">
                 {currentEdit.type === 'zoom' && <ZoomIn className="h-6 w-6 text-primary animate-pulse" />}
                 {currentEdit.type === 'close_up' && <Focus className="h-6 w-6 text-primary animate-pulse" />}
@@ -212,9 +230,8 @@ export const AICameraProcessingDialog = ({
             {/* Original Video (Background) */}
             <video 
               src={videoUrl} 
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain ai-processing-video"
               muted
-              loop
               autoPlay
               playsInline
             />
@@ -234,15 +251,14 @@ export const AICameraProcessingDialog = ({
             )}
             
             {/* Picture-in-Picture Edited Preview - Made Larger */}
-            <div className="absolute bottom-4 right-4 w-80 aspect-video bg-black rounded-lg overflow-hidden border-4 border-primary shadow-2xl z-10">
+            <div className="absolute bottom-4 right-4 w-96 aspect-video bg-black rounded-lg overflow-hidden border-4 border-primary shadow-2xl z-10">
               <video 
                 src={videoUrl} 
                 className={cn(
-                  "w-full h-full object-cover transition-transform duration-700 ease-in-out",
+                  "w-full h-full object-cover transition-transform duration-700 ease-in-out ai-processing-video",
                 )}
                 style={{ transform: `scale(${pipScale})` }}
                 muted
-                loop
                 autoPlay
                 playsInline
               />
