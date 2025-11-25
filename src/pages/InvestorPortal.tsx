@@ -284,38 +284,38 @@ export default function InvestorPortal() {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="forecast" className="space-y-8">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 h-12 bg-accent/50">
-            <TabsTrigger value="forecast" className="text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 h-12 bg-muted/30 border border-border">
+            <TabsTrigger value="forecast" className="text-base font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <TrendingUp className="h-5 w-5 mr-2" />
               3-Year Forecast
             </TabsTrigger>
-            <TabsTrigger value="models" className="text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="models" className="text-base font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <FileSpreadsheet className="h-5 w-5 mr-2" />
               Financial Models
             </TabsTrigger>
-            <TabsTrigger value="assumptions" className="text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="assumptions" className="text-base font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Settings className="h-5 w-5 mr-2" />
               Assumptions
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="forecast" className="space-y-6">
-            <div className="grid lg:grid-cols-3 gap-6">
+            <div className="grid lg:grid-cols-3 gap-6 items-start">
               <div className="lg:col-span-2">
                 <ForecastTab isReadOnly={true} />
               </div>
-              <div className="flex flex-col">
+              <div className="h-full min-h-[600px]">
                 <CFOAIChat />
               </div>
             </div>
           </TabsContent>
 
           <TabsContent value="models" className="space-y-6">
-            <div className="grid lg:grid-cols-3 gap-6">
+            <div className="grid lg:grid-cols-3 gap-6 items-start">
               <div className="lg:col-span-2">
-                <InteractiveSpreadsheet />
+                <InteractiveSpreadsheet isReadOnly={true} />
               </div>
-              <div className="flex flex-col">
+              <div className="h-full min-h-[600px]">
                 <CFOAIChat />
               </div>
             </div>

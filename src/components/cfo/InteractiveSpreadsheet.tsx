@@ -78,7 +78,7 @@ interface SpreadsheetAssumptions {
   podcasterToMyPageCrossSell: number;
 }
 
-export const InteractiveSpreadsheet = () => {
+export const InteractiveSpreadsheet = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
   const [showAssumptions, setShowAssumptions] = useState(false);
   const [selectedScenario, setSelectedScenario] = useState<'baseline' | 'conservative' | 'growth' | 'aggressive'>('baseline');
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
@@ -1600,18 +1600,22 @@ export const InteractiveSpreadsheet = () => {
             <FileSpreadsheet className="h-6 w-6" />
             Financial Models
           </h2>
-          <p className="text-muted-foreground mt-1">
-            Compare AI-generated projections with your custom financial scenarios
-          </p>
+          {!isReadOnly && (
+            <p className="text-muted-foreground mt-1">
+              Compare AI-generated projections with your custom financial scenarios
+            </p>
+          )}
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setShowAssumptions(!showAssumptions)}>
             {showAssumptions ? "Hide" : "Edit"} Assumptions
           </Button>
-          <Button onClick={() => setShareDialogOpen(true)}>
-            <Share2 className="h-4 w-4 mr-2" />
-            Share with Investors
-          </Button>
+          {!isReadOnly && (
+            <Button onClick={() => setShareDialogOpen(true)}>
+              <Share2 className="h-4 w-4 mr-2" />
+              Share with Investors
+            </Button>
+          )}
         </div>
       </div>
 
