@@ -3,18 +3,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, MessageSquare } from "lucide-react";
+import { Plus, MessageSquare, Link2, Check } from "lucide-react";
 import { useState } from "react";
 import { CreateTicketDialog } from "./CreateTicketDialog";
 import { TicketDetailDialog } from "./TicketDetailDialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface TicketsTabProps {
   userId: string;
 }
 
 export const TicketsTab = ({ userId }: TicketsTabProps) => {
+  const { toast } = useToast();
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  const publicTicketUrl = `${window.location.origin}/submit-ticket`;
 
   const { data: tickets, refetch } = useQuery({
     queryKey: ["tickets", userId],
@@ -33,6 +38,24 @@ export const TicketsTab = ({ userId }: TicketsTabProps) => {
       return data;
     },
   });
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(publicTicketUrl);
+      setLinkCopied(true);
+      toast({
+        title: "Link Copied!",
+        description: "Public ticket submission form link copied to clipboard.",
+      });
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to copy link. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -55,12 +78,27 @@ export const TicketsTab = ({ userId }: TicketsTabProps) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center gap-4">
         <h2 className="text-2xl font-semibold">Support Tickets</h2>
-        <Button onClick={() => setCreateOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          New Ticket
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleCopyLink} variant="outline">
+            {linkCopied ? (
+              <>
+                <Check className="w-4 h-4 mr-2" />
+                Copied!
+              </>
+            ) : (
+              <>
+                <Link2 className="w-4 h-4 mr-2" />
+                Share Form Link
+              </>
+            )}
+          </Button>
+          <Button onClick={() => setCreateOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            New Ticket
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4">

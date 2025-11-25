@@ -146,6 +146,7 @@ import InvestorPortal from "./pages/InvestorPortal";
 import ProjectManagement from "./pages/ProjectManagement";
 import SignDocument from "./pages/SignDocument";
 import PodcastDistribution from "./pages/PodcastDistribution";
+import PublicTicketSubmission from "./pages/PublicTicketSubmission";
 
 const queryClient = new QueryClient();
 
@@ -349,6 +350,7 @@ const AppContent = () => {
             <Route path="/civic/blog" element={<CivicBlog />} />
             <Route path="/civic/blog/create" element={<CreateCivicArticle />} />
           <Route path="/civic/contact" element={<PublicConstituentRequestForm />} />
+          <Route path="/submit-ticket" element={<PublicTicketSubmission />} />
             <Route path="/tickets" element={<ClientTickets />} />
             <Route path="/proposals" element={<Proposals />} />
             <Route path="/proposals/create" element={<CreateProposal />} />

@@ -2,3 +2,6 @@ project_id = "taxqcioheqdqtlmjeaht"
 
 [functions.cfo-ai-assistant]
 verify_jwt = false
+
+[functions.submit-public-ticket]
+verify_jwt = false
