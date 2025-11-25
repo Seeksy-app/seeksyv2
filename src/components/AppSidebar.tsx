@@ -776,7 +776,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       >
         <SidebarGroup className="py-0">
           <CollapsibleTrigger asChild>
-            <SidebarGroupLabel className="text-base font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5 group/section relative pr-8">
+            <SidebarGroupLabel className="text-base font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5 relative group">
               <span>Engagement</span>
               <div className="flex items-center gap-1">
                 {!collapsed && (
@@ -784,12 +784,9 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      // Toggle pin for Engagement section
                       togglePin("engagement");
                     }}
-                    className={`p-1 hover:bg-background/80 rounded transition-opacity ${
-                      isPinned ? "opacity-100" : "opacity-0 group-hover/section:opacity-100"
-                    }`}
+                    className="p-1 opacity-100 hover:bg-accent rounded transition-colors"
                     aria-label={isPinned ? "Unpin Engagement" : "Pin Engagement"}
                   >
                     <Pin

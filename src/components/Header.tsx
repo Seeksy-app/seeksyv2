@@ -46,10 +46,6 @@ const Header = ({ user }: HeaderProps) => {
             {user && (
               <SidebarTrigger />
             )}
-            <Link to="/" className="flex items-center gap-2">
-              <img src={seeksyLogo} alt="Seeksy" className="h-10 w-10" />
-              <span className="text-2xl font-bold text-primary">Seeksy</span>
-            </Link>
           </div>
 
           <nav className="flex items-center gap-3">
