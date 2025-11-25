@@ -754,6 +754,14 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   const renderEngagementSection = () => {
     if (isAdvertiser || engagementItems.length === 0) return null;
     
+    // Map engagement items to their module keys for pin functionality
+    const engagementModuleMap: Record<string, string> = {
+      "Contacts": "contacts",
+      "Emails": "marketing",
+      "SMS": "sms",
+      "Team Chat": "team_chat"
+    };
+    
     return (
       <Collapsible
         key="engagement"
@@ -770,32 +778,59 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
           <CollapsibleContent>
             <SidebarGroupContent>
               <SidebarMenu className="space-y-0">
-                {engagementItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <SidebarMenuButton asChild>
-                            <NavLink
-                              to={item.url}
-                              end
-                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8 pl-4"
-                              activeClassName="bg-accent text-accent-foreground font-medium"
-                            >
-                              <item.icon className="h-4 w-4" />
-                              {!collapsed && <span>{item.title}</span>}
-                            </NavLink>
-                          </SidebarMenuButton>
-                        </TooltipTrigger>
-                        {collapsed && (
-                          <TooltipContent side="right">
-                            <p>{item.title}</p>
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-                    </TooltipProvider>
-                  </SidebarMenuItem>
-                ))}
+                {engagementItems.map((item) => {
+                  const moduleKey = engagementModuleMap[item.title];
+                  const isPinned = pinnedModules.includes(moduleKey);
+                  const isActive = location.pathname === item.url || location.pathname.startsWith(`${item.url}/`);
+                  
+                  return (
+                    <SidebarMenuItem key={item.title} className="group/item relative">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-center w-full">
+                              <SidebarMenuButton asChild className="flex-1 pr-8">
+                                <NavLink
+                                  to={item.url}
+                                  end
+                                  className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8 pl-4"
+                                  activeClassName="bg-accent text-accent-foreground font-medium"
+                                >
+                                  <item.icon className="h-4 w-4" />
+                                  {!collapsed && <span>{item.title}</span>}
+                                </NavLink>
+                              </SidebarMenuButton>
+                              {!collapsed && (
+                                <button
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    togglePin(moduleKey);
+                                  }}
+                                  className={`absolute right-2 p-1 hover:bg-background/80 rounded transition-opacity ${
+                                    isActive ? "opacity-100" : "opacity-0 group-hover/item:opacity-100"
+                                  }`}
+                                  aria-label={isPinned ? `Unpin ${item.title}` : `Pin ${item.title}`}
+                                >
+                                  <Pin
+                                    className={`h-3.5 w-3.5 ${
+                                      isPinned ? "fill-primary text-primary" : "text-muted-foreground"
+                                    }`}
+                                  />
+                                </button>
+                              )}
+                            </div>
+                          </TooltipTrigger>
+                          {collapsed && (
+                            <TooltipContent side="right">
+                              <p>{item.title}</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TooltipProvider>
+                    </SidebarMenuItem>
+                  );
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </CollapsibleContent>
