@@ -10,10 +10,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Trash2, Mail, Plus, Pencil, ArrowLeft } from "lucide-react";
+import { Trash2, Mail, Plus, Pencil, ArrowLeft, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ActivityLogger } from "@/lib/activityLogger";
+import { SendSMSDialog } from "@/components/contacts/SendSMSDialog";
 
 const contactSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -32,6 +33,8 @@ const Contacts = () => {
   const [editingContact, setEditingContact] = useState<any>(null);
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
+  const [isSMSDialogOpen, setIsSMSDialogOpen] = useState(false);
+  const [selectedSMSContact, setSelectedSMSContact] = useState<any>(null);
   const [emailSubject, setEmailSubject] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
   const queryClient = useQueryClient();
@@ -221,6 +224,11 @@ const Contacts = () => {
     setIsEmailDialogOpen(true);
   };
 
+  const handleSendSMS = (contact: any) => {
+    setSelectedSMSContact(contact);
+    setIsSMSDialogOpen(true);
+  };
+
   const handleSendEmailSubmit = () => {
     const recipientEmails = contacts
       ?.filter(c => selectedContacts.includes(c.id))
@@ -405,13 +413,24 @@ const Contacts = () => {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleSendEmail(contact.id)}
+                            title="Send Email"
                           >
                             <Mail className="w-4 h-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() => handleSendSMS(contact)}
+                            disabled={!contact.phone}
+                            title={contact.phone ? "Send SMS" : "No phone number"}
+                          >
+                            <MessageSquare className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleEdit(contact)}
+                            title="Edit Contact"
                           >
                             <Pencil className="w-4 h-4" />
                           </Button>
@@ -419,6 +438,7 @@ const Contacts = () => {
                             variant="ghost"
                             size="sm"
                             onClick={() => deleteContact.mutate(contact.id)}
+                            title="Delete Contact"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -476,6 +496,12 @@ const Contacts = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <SendSMSDialog
+        isOpen={isSMSDialogOpen}
+        onOpenChange={setIsSMSDialogOpen}
+        contact={selectedSMSContact}
+      />
     </div>
   );
 };
