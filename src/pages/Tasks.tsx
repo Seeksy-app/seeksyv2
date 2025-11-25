@@ -17,6 +17,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, DragOverlay, closestCorners, useDroppable } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { CategoryManager } from "@/components/tasks/CategoryManager";
+import { CategorySelect } from "@/components/tasks/CategorySelect";
 
 interface Task {
   id: string;
@@ -220,6 +222,8 @@ export default function Tasks() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [filterMode, setFilterMode] = useState<"my" | "all" | "due">("my");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [categoryManagerOpen, setCategoryManagerOpen] = useState(false);
+  const [categories, setCategories] = useState<{ id: string; name: string; color: string }[]>([]);
   const { toast } = useToast();
 
   const sensors = useSensors(
@@ -243,6 +247,7 @@ export default function Tasks() {
   useEffect(() => {
     fetchTasks();
     fetchTeamMembers();
+    loadCategories();
   }, []);
 
   const fetchTeamMembers = async () => {
@@ -283,6 +288,26 @@ export default function Tasks() {
         }
       }
     }
+  };
+
+  const loadCategories = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data } = await supabase
+      .from('task_categories')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('name');
+
+    if (data) {
+      setCategories(data);
+    }
+  };
+
+  const getCategoryColor = (categoryName: string): string => {
+    const category = categories.find(cat => cat.name.toLowerCase() === categoryName.toLowerCase());
+    return category?.color || '#3B82F6';
   };
 
   const fetchTasks = async () => {
@@ -502,28 +527,6 @@ export default function Tasks() {
     }
   };
 
-  const handleCategoryChange = async (taskId: string, newCategory: string) => {
-    try {
-      const { error } = await supabase
-        .from("tasks")
-        .update({ category: newCategory })
-        .eq("id", taskId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Category updated",
-      });
-      fetchTasks();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleDueDateChange = async (taskId: string, newDueDate: string) => {
     try {
@@ -686,40 +689,12 @@ export default function Tasks() {
           </CardHeader>
           <CardContent className="pt-0">
             <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
-              <Select
-                value={task.category}
-                onValueChange={(value) => {
-                  if (value === "create_new") {
-                    const newCategory = prompt("Enter new category name:");
-                    if (newCategory && newCategory.trim()) {
-                      handleCategoryChange(task.id, newCategory.trim().toLowerCase());
-                    }
-                  } else {
-                    handleCategoryChange(task.id, value);
-                  }
-                }}
+              <Badge 
+                className="text-white text-xs cursor-default"
+                style={{ backgroundColor: getCategoryColor(task.category) }}
               >
-                <SelectTrigger className="h-7 w-auto text-xs border-border bg-background">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-background z-50">
-                  <SelectItem value="general">General</SelectItem>
-                  <SelectItem value="development">Development</SelectItem>
-                  <SelectItem value="design">Design</SelectItem>
-                  <SelectItem value="marketing">Marketing</SelectItem>
-                  <SelectItem value="content">Content</SelectItem>
-                  <SelectItem value="sales">Sales</SelectItem>
-                  <SelectItem value="support">Support</SelectItem>
-                  <SelectItem value="influencehub">InfluenceHub</SelectItem>
-                  <SelectItem value="ai">AI</SelectItem>
-                  <SelectItem value="integrations">Integrations</SelectItem>
-                  <SelectItem value="task-manager">Task Manager</SelectItem>
-                  <SelectItem value="blog">Blog</SelectItem>
-                  <SelectItem value="create_new" className="text-primary font-medium">
-                    + Create New Category
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+                {task.category}
+              </Badge>
               <Badge className={`${getPriorityColor(task.priority)} text-white text-xs`}>
                 {task.priority}
               </Badge>
@@ -899,41 +874,14 @@ export default function Tasks() {
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="category">Category</Label>
-                  <Select
+                  <CategorySelect
                     value={formData.category}
-                    onValueChange={(value) => {
-                      if (value === "create_new") {
-                        // User wants to create new category
-                        const newCategory = prompt("Enter new category name:");
-                        if (newCategory && newCategory.trim()) {
-                          setFormData({ ...formData, category: newCategory.trim().toLowerCase() });
-                        }
-                      } else {
-                        setFormData({ ...formData, category: value });
-                      }
+                    onValueChange={(value) => setFormData({ ...formData, category: value })}
+                    onManageCategories={() => {
+                      setDialogOpen(false);
+                      setCategoryManagerOpen(true);
                     }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="general">General</SelectItem>
-                      <SelectItem value="development">Development</SelectItem>
-                      <SelectItem value="design">Design</SelectItem>
-                      <SelectItem value="marketing">Marketing</SelectItem>
-                      <SelectItem value="content">Content</SelectItem>
-                      <SelectItem value="sales">Sales</SelectItem>
-                      <SelectItem value="support">Support</SelectItem>
-                      <SelectItem value="influencehub">InfluenceHub</SelectItem>
-                      <SelectItem value="ai">AI</SelectItem>
-                      <SelectItem value="integrations">Integrations</SelectItem>
-                      <SelectItem value="task-manager">Task Manager</SelectItem>
-                      <SelectItem value="blog">Blog</SelectItem>
-                      <SelectItem value="create_new" className="text-primary font-medium">
-                        + Create New Category
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                  />
                 </div>
                 <div>
                   <Label htmlFor="priority">Priority</Label>
@@ -1187,40 +1135,12 @@ export default function Tasks() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Select
-                        value={task.category}
-                        onValueChange={(value) => {
-                          if (value === "create_new") {
-                            const newCategory = prompt("Enter new category name:");
-                            if (newCategory && newCategory.trim()) {
-                              handleCategoryChange(task.id, newCategory.trim().toLowerCase());
-                            }
-                          } else {
-                            handleCategoryChange(task.id, value);
-                          }
-                        }}
+                      <Badge 
+                        className="text-white text-xs cursor-default"
+                        style={{ backgroundColor: getCategoryColor(task.category) }}
                       >
-                        <SelectTrigger className="h-8 w-32 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-background z-50">
-                          <SelectItem value="general">General</SelectItem>
-                          <SelectItem value="development">Development</SelectItem>
-                          <SelectItem value="design">Design</SelectItem>
-                          <SelectItem value="marketing">Marketing</SelectItem>
-                          <SelectItem value="content">Content</SelectItem>
-                          <SelectItem value="sales">Sales</SelectItem>
-                          <SelectItem value="support">Support</SelectItem>
-                          <SelectItem value="influencehub">InfluenceHub</SelectItem>
-                          <SelectItem value="ai">AI</SelectItem>
-                          <SelectItem value="integrations">Integrations</SelectItem>
-                          <SelectItem value="task-manager">Task Manager</SelectItem>
-                          <SelectItem value="blog">Blog</SelectItem>
-                          <SelectItem value="create_new" className="text-primary font-medium">
-                            + Create New Category
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                        {task.category}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <Select
@@ -1314,6 +1234,24 @@ export default function Tasks() {
           <ActivityLog />
         </TabsContent>
       </Tabs>
+
+      <CategoryManager
+        open={categoryManagerOpen}
+        onOpenChange={(open) => {
+          setCategoryManagerOpen(open);
+          if (!open) {
+            // Reopen task dialog if it was open before
+            setDialogOpen(true);
+          }
+        }}
+        onCategoryChange={() => {
+          loadCategories();
+          // Trigger reload in CategorySelect component
+          if ((window as any)._reloadTaskCategories) {
+            (window as any)._reloadTaskCategories();
+          }
+        }}
+      />
     </div>
   );
 }
