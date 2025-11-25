@@ -13,7 +13,7 @@ export function CreditBalance() {
 
       const { data, error } = await supabase
         .from("user_credits")
-        .select("balance")
+        .select("balance, credit_goal")
         .eq("user_id", user.id)
         .single();
 
@@ -26,6 +26,7 @@ export function CreditBalance() {
   if (!userCredits) return null;
 
   const isLowBalance = userCredits.balance < 5;
+  const goal = userCredits.credit_goal || 100;
 
   return (
     <Link to="/credits">
@@ -35,7 +36,7 @@ export function CreditBalance() {
         className="gap-2"
       >
         <Coins className="h-4 w-4" />
-        <span className="font-semibold">{userCredits.balance}</span>
+        <span className="font-semibold">{userCredits.balance} / {goal}</span>
         {isLowBalance && <span className="text-xs">Low!</span>}
       </Button>
     </Link>

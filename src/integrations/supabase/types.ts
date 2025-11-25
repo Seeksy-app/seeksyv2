@@ -7089,6 +7089,7 @@ export type Database = {
         Row: {
           balance: number
           created_at: string | null
+          credit_goal: number | null
           id: string
           total_earned: number | null
           total_purchased: number | null
@@ -7099,6 +7100,7 @@ export type Database = {
         Insert: {
           balance?: number
           created_at?: string | null
+          credit_goal?: number | null
           id?: string
           total_earned?: number | null
           total_purchased?: number | null
@@ -7109,6 +7111,7 @@ export type Database = {
         Update: {
           balance?: number
           created_at?: string | null
+          credit_goal?: number | null
           id?: string
           total_earned?: number | null
           total_purchased?: number | null

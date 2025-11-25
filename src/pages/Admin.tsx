@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, BarChart3, UserCheck, Users, Loader2, DollarSign, MessageSquare, FileText, Plus, Eye, Calculator, Trash2, Shield } from "lucide-react";
+import { ArrowLeft, BarChart3, UserCheck, Users, Loader2, DollarSign, MessageSquare, FileText, Plus, Eye, Calculator, Trash2, Shield, Coins } from "lucide-react";
 import SubscriptionsAdmin from "@/components/admin/SubscriptionsAdmin";
 import AdminCRM from "@/components/admin/AdminCRM";
 import { AdminOverview } from "@/components/admin/AdminOverview";
@@ -17,6 +17,7 @@ import { AdminInternalChat } from "@/components/admin/AdminInternalChat";
 import ImpersonationBanner from "@/components/admin/ImpersonationBanner";
 import { PricingManagement } from "@/components/admin/PricingManagement";
 import { InvestorSharesManagement } from "@/components/admin/InvestorSharesManagement";
+import { AdminCreditManagement } from "@/components/admin/AdminCreditManagement";
 
 interface UserProfile {
   id: string;
@@ -308,7 +309,7 @@ export default function Admin() {
         </Dialog>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-11">
+          <TabsList className="grid w-full grid-cols-12">
             <TabsTrigger value="overview" className="gap-2">
               <BarChart3 className="h-4 w-4" />
               Overview
@@ -318,6 +319,10 @@ export default function Admin() {
               CRM
             </TabsTrigger>
             <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
+            <TabsTrigger value="credits" className="gap-2">
+              <Coins className="h-4 w-4" />
+              Credits
+            </TabsTrigger>
             <TabsTrigger value="pricing" className="gap-2">
               <DollarSign className="h-4 w-4" />
               Pricing
@@ -374,6 +379,10 @@ export default function Admin() {
                 <SubscriptionsAdmin demoMode={demoMode} />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="credits" className="space-y-6">
+            <AdminCreditManagement />
           </TabsContent>
 
           <TabsContent value="pricing" className="space-y-6">
