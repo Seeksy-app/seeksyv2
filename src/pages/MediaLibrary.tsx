@@ -86,6 +86,7 @@ import { AdInsertionDialog } from "@/components/media/AdInsertionDialog";
 import { useVideoProcessing } from "@/hooks/useVideoProcessing";
 import { VideoMarkerPanel } from "@/components/media/VideoMarkerPanel";
 import { VideoEditingControls } from "@/components/media/VideoEditingControls";
+import { BRollManager } from "@/components/media/BRollManager";
 
 interface Recording {
   id: string;
@@ -859,8 +860,9 @@ export default function MediaLibrary() {
             {/* Videos Tab */}
             <TabsContent value="videos" className="mt-0 space-y-6">
               {/* Upload Section */}
-              <div className="py-4">
+              <div className="py-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <VideoUploader onUploadComplete={fetchData} />
+                <BRollManager />
               </div>
 
               {sortedMediaFiles.length === 0 ? (

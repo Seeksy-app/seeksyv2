@@ -125,12 +125,70 @@ export default function PostProductionStudio() {
     enabled: !!mediaId,
   });
 
-  // Load existing markers
-  useEffect(() => {
-    if (existingEdits?.markers) {
-      setMarkers(existingEdits.markers as unknown as Marker[]);
+  // Fetch video markers from database (Studio markers + manual markers)
+  const { data: dbMarkers } = useQuery({
+    queryKey: ["video-markers", mediaId],
+    queryFn: async () => {
+      if (!mediaId) return [];
+      const { data, error } = await supabase
+        .from("video_markers")
+        .select("*")
+        .eq("media_file_id", mediaId)
+        .order("timestamp_seconds", { ascending: true });
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!mediaId,
+  });
+
+  // Fetch available B-roll clips for AI to use
+  const { data: brollClips } = useQuery({
+    queryKey: ["broll-clips"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const { data, error } = await supabase
+        .from("media_files")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("file_type", "broll")
+        .order("created_at", { ascending: false });
+      
+      if (error) throw error;
+      return data;
     }
-  }, [existingEdits]);
+  });
+
+  // Load existing markers from both sources
+  useEffect(() => {
+    const allMarkers: Marker[] = [];
+    
+    // Load from video_post_production_edits (AI-generated edits)
+    if (existingEdits?.markers) {
+      allMarkers.push(...(existingEdits.markers as unknown as Marker[]));
+    }
+    
+    // Load from video_markers table (Studio + manual markers)
+    if (dbMarkers) {
+      const convertedMarkers: Marker[] = dbMarkers.map(m => ({
+        id: m.id,
+        type: m.marker_type as Marker['type'],
+        timestamp: m.timestamp_seconds,
+        duration: m.duration_seconds || undefined,
+        data: m.metadata
+      }));
+      allMarkers.push(...convertedMarkers);
+    }
+    
+    // Remove duplicates by id
+    const uniqueMarkers = Array.from(
+      new Map(allMarkers.map(m => [m.id, m])).values()
+    );
+    
+    setMarkers(uniqueMarkers);
+  }, [existingEdits, dbMarkers]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -406,6 +464,29 @@ export default function PostProductionStudio() {
       });
     });
 
+    // AI B-Roll Suggestions - Use uploaded B-roll clips if available
+    if (brollClips && brollClips.length > 0) {
+      const brollTimestamps = [
+        Math.floor(videoDuration * 0.20),
+        Math.floor(videoDuration * 0.55),
+      ];
+      
+      brollTimestamps.forEach((timestamp, idx) => {
+        const clip = brollClips[idx % brollClips.length];
+        newMarkers.push({
+          id: `broll-${Date.now()}-${idx}`,
+          type: 'broll' as const,
+          timestamp,
+          duration: 5,
+          data: { 
+            reason: 'AI selected B-roll insertion',
+            clipUrl: clip.file_url,
+            clipName: clip.file_name
+          }
+        });
+      });
+    }
+
     // AI Clip Suggestions - Recommend viral-worthy segments
     const clipTimestamps = [
       { start: Math.floor(videoDuration * 0.08), duration: 45, reason: 'High-energy opening - great hook' },
@@ -431,7 +512,7 @@ export default function PostProductionStudio() {
     setPendingAIEdits(newMarkers);
     setCompletionDialogOpen(true);
     
-    toast.success("AI processing complete! Review your edits now.", {
+    toast.success(`AI processing complete! ${brollClips && brollClips.length > 0 ? 'Using your uploaded B-roll clips. ' : ''}Review your edits now.`, {
       duration: 4000
     });
   };
