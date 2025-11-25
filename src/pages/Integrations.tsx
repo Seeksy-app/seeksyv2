@@ -269,15 +269,24 @@ const Integrations = () => {
 
   const handleEditMetadata = (moduleId: string) => {
     const metadata = integrationMetadata?.find(m => m.id === moduleId);
-    if (metadata) {
-      setEditingModule({
-        id: metadata.id,
-        title: metadata.title,
-        description: metadata.description,
-        tooltip: metadata.tooltip_text || "",
-      });
-      setEditDialogOpen(true);
-    }
+    
+    // If metadata exists, use it; otherwise create default values
+    const defaultMetadata = {
+      id: moduleId,
+      title: moduleId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
+      description: `Description for ${moduleId.replace(/_/g, ' ')}`,
+      tooltip: `Tooltip for ${moduleId.replace(/_/g, ' ')}`,
+    };
+    
+    const editData = metadata ? {
+      id: metadata.id,
+      title: metadata.title,
+      description: metadata.description,
+      tooltip: metadata.tooltip_text || "",
+    } : defaultMetadata;
+    
+    setEditingModule(editData);
+    setEditDialogOpen(true);
   };
 
   const handleSaveMetadata = async () => {
@@ -286,12 +295,12 @@ const Integrations = () => {
     try {
       const { error } = await supabase
         .from("integration_metadata")
-        .update({
+        .upsert({
+          id: editingModule.id,
           title: editingModule.title,
           description: editingModule.description,
           tooltip_text: editingModule.tooltip,
-        })
-        .eq("id", editingModule.id);
+        });
 
       if (error) throw error;
 
@@ -387,6 +396,52 @@ const Integrations = () => {
             Connect your tools and explore available Seekies
           </p>
           
+          {/* Category Navigation */}
+          <div className="flex items-center gap-3 mb-6 overflow-x-auto pb-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => document.getElementById('core-apps')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            >
+              Core Apps
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => document.getElementById('engagement')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            >
+              Engagement
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => document.getElementById('content')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            >
+              Content
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => document.getElementById('business')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            >
+              Business
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => document.getElementById('social')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            >
+              Social Media
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            >
+              Services
+            </Button>
+          </div>
+          
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -400,10 +455,10 @@ const Integrations = () => {
         </div>
 
         <div className="space-y-12">
-          {/* Free by Seeksy Section */}
-          <section>
+          {/* Core Apps Section */}
+          <section id="core-apps">
             <h2 className="text-sm font-semibold text-muted-foreground mb-6 uppercase tracking-wider">
-              FREE BY SEEKSY
+              CORE APPS
             </h2>
             
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -501,7 +556,7 @@ const Integrations = () => {
                 <IntegrationCard
                   id="media"
                   icon={Clapperboard}
-                  iconGradient="from-purple-500 to-pink-600"
+                  iconGradient="from-purple-600 to-indigo-700"
                   title={getMetadata('media')?.title || 'Media'}
                   description={getMetadata('media')?.description || 'Complete content creation suite with podcasts, blogs, live studio, and media library with AI-powered editing.'}
                   tooltip={getMetadata('media')?.tooltip_text}
@@ -511,94 +566,28 @@ const Integrations = () => {
                   onEdit={() => handleEditMetadata('media')}
                 />
               )}
+            </div>
+          </section>
 
-              {matchesSearch('Civic', 'Platform for elected officials and public offices. Manage civic events, constituent requests, and transparency reports.') && (
+          {/* Content Creation Section */}
+          <section id="content">
+            <h2 className="text-sm font-semibold text-muted-foreground mb-6 uppercase tracking-wider">
+              CONTENT CREATION
+            </h2>
+            
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {matchesSearch('Civic Tools', 'Platform for government officials and civic leaders. Manage constituent requests, publish updates, and engage communities.') && (
                 <IntegrationCard
                   id="civic"
                   icon={Landmark}
-                  iconGradient="from-blue-500 to-cyan-600"
-                  title={getMetadata('civic')?.title || 'Civic'}
-                  description={getMetadata('civic')?.description || 'Platform for elected officials and public offices. Manage civic events, constituent requests, and transparency reports.'}
+                  iconGradient="from-blue-600 to-indigo-700"
+                  title={getMetadata('civic')?.title || 'Civic Tools'}
+                  description={getMetadata('civic')?.description || 'Platform for government officials and civic leaders. Manage constituent requests, publish updates, and engage communities.'}
                   tooltip={getMetadata('civic')?.tooltip_text}
                   isActive={modules.civic}
                   isAdmin={isAdmin}
                   onToggle={() => toggleModule('civic')}
                   onEdit={() => handleEditMetadata('civic')}
-                />
-              )}
-
-              {matchesSearch('Influencer', 'Build your influencer profile, showcase your portfolio, connect with brands, and manage campaign responses.') && (
-                <IntegrationCard
-                  id="influencer"
-                  icon={UserIcon}
-                  iconGradient="from-green-500 to-emerald-600"
-                  title={getMetadata('influencer')?.title || 'Influencer'}
-                  description={getMetadata('influencer')?.description || 'Build your influencer profile, showcase your portfolio, connect with brands, and manage campaign responses.'}
-                  tooltip={getMetadata('influencer')?.tooltip_text}
-                  isActive={modules.influencer}
-                  isAdmin={isAdmin}
-                  onToggle={() => toggleModule('influencer')}
-                  onEdit={() => handleEditMetadata('influencer')}
-                />
-              )}
-
-              {matchesSearch('Agency', 'Search and discover influencers, manage multi-channel campaigns, track performance metrics, and build creator partnerships.') && (
-                <IntegrationCard
-                  id="agency"
-                  icon={Building2}
-                  iconGradient="from-indigo-500 to-purple-600"
-                  title={getMetadata('agency')?.title || 'Agency'}
-                  description={getMetadata('agency')?.description || 'Search and discover influencers, manage multi-channel campaigns, track performance metrics, and build creator partnerships.'}
-                  tooltip={getMetadata('agency')?.tooltip_text}
-                  isActive={modules.agency}
-                  isAdmin={isAdmin}
-                  onToggle={() => toggleModule('agency')}
-                  onEdit={() => handleEditMetadata('agency')}
-                />
-              )}
-
-              {matchesSearch('Project Management', 'Manage tasks, tickets, proposals, and invoices all in one place.') && (
-                <IntegrationCard
-                  id="project_management"
-                  icon={CheckSquare}
-                  iconGradient="from-slate-500 to-slate-600"
-                  title={getMetadata('project_management')?.title || 'Project Management'}
-                  description={getMetadata('project_management')?.description || 'Manage tasks, tickets, proposals, and invoices all in one place.'}
-                  tooltip={getMetadata('project_management')?.tooltip_text}
-                  isActive={modules.project_management}
-                  isAdmin={isAdmin}
-                  onToggle={() => toggleModule('project_management')}
-                  onEdit={() => handleEditMetadata('project_management')}
-                />
-              )}
-
-              {matchesSearch('Monetization', 'Enable tipping, donations, subscriptions, and revenue tracking.') && (
-                <IntegrationCard
-                  id="monetization"
-                  icon={DollarSign}
-                  iconGradient="from-green-500 to-green-600"
-                  title={getMetadata('monetization')?.title || 'Monetization'}
-                  description={getMetadata('monetization')?.description || 'Enable tipping, donations, subscriptions, and revenue tracking.'}
-                  tooltip={getMetadata('monetization')?.tooltip_text}
-                  isActive={modules.monetization}
-                  isAdmin={isAdmin}
-                  onToggle={() => toggleModule('monetization')}
-                  onEdit={() => handleEditMetadata('monetization')}
-                />
-              )}
-
-              {matchesSearch('Team Chat', 'Real-time team messaging and collaboration. Connect with your team members instantly.') && (
-                <IntegrationCard
-                  id="team_chat"
-                  icon={MessageSquare}
-                  iconGradient="from-cyan-500 to-blue-600"
-                  title={getMetadata('team_chat')?.title || 'Team Chat'}
-                  description={getMetadata('team_chat')?.description || 'Real-time team messaging and collaboration. Connect with your team members instantly.'}
-                  tooltip={getMetadata('team_chat')?.tooltip_text}
-                  isActive={modules.team_chat}
-                  isAdmin={isAdmin}
-                  onToggle={() => toggleModule('team_chat')}
-                  onEdit={() => handleEditMetadata('team_chat')}
                 />
               )}
 
@@ -631,7 +620,16 @@ const Integrations = () => {
                   onEdit={() => handleEditMetadata('rss_podcast_posting')}
                 />
               )}
+            </div>
+          </section>
 
+          {/* Engagement Section */}
+          <section id="engagement">
+            <h2 className="text-sm font-semibold text-muted-foreground mb-6 uppercase tracking-wider">
+              ENGAGEMENT
+            </h2>
+            
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {matchesSearch('Events', 'Create and manage events with ticketing, registrations, RSVPs, and automated reminders.') && (
                 <IntegrationCard
                   id="events"
@@ -692,35 +690,14 @@ const Integrations = () => {
                 />
               )}
 
-              {matchesSearch('Advertiser Account', 'Create an advertiser account to run campaigns, manage ad budgets, and reach engaged podcast audiences.') && (
-                <IntegrationCard
-                  id="advertiser"
-                  icon={TrendingUp}
-                  iconGradient="from-orange-500 to-red-600"
-                  title="Advertiser Account"
-                  description="Create an advertiser account to run campaigns, manage ad budgets, and reach engaged podcast audiences."
-                  tooltip="Enable to access advertiser features and campaign management"
-                  isActive={modules.advertiser}
-                  isAdmin={isAdmin}
-                  onToggle={() => {
-                    if (!modules.advertiser) {
-                      navigate('/advertiser/signup');
-                    } else {
-                      toggleModule('advertiser');
-                    }
-                  }}
-                  onEdit={() => handleEditMetadata('advertiser')}
-                />
-              )}
-
-              {matchesSearch('Marketing', 'Email campaigns, contact management, and marketing automation. Build and nurture your audience with powerful marketing tools.') && (
+              {matchesSearch('Marketing', 'Send email campaigns, create newsletters, and track engagement metrics with integrated CRM.') && (
                 <IntegrationCard
                   id="marketing"
                   icon={Mail}
-                  iconGradient="from-blue-500 to-indigo-600"
+                  iconGradient="from-purple-500 to-indigo-600"
                   title="Marketing"
-                  description="Email campaigns, contact management, and marketing automation. Build and nurture your audience with powerful marketing tools."
-                  tooltip="Enable to access email marketing and CRM features"
+                  description="Send email campaigns, create newsletters, and track engagement metrics with integrated CRM."
+                  tooltip="Enable to access email marketing and campaign tools"
                   isActive={modules.marketing}
                   isAdmin={isAdmin}
                   onToggle={() => toggleModule('marketing')}
@@ -742,11 +719,116 @@ const Integrations = () => {
                   onEdit={() => handleEditMetadata('sms')}
                 />
               )}
+              
+              {matchesSearch('Team Chat', 'Real-time team messaging and collaboration. Connect with your team members instantly.') && (
+                <IntegrationCard
+                  id="team_chat"
+                  icon={MessageSquare}
+                  iconGradient="from-cyan-500 to-blue-600"
+                  title={getMetadata('team_chat')?.title || 'Team Chat'}
+                  description={getMetadata('team_chat')?.description || 'Real-time team messaging and collaboration. Connect with your team members instantly.'}
+                  tooltip={getMetadata('team_chat')?.tooltip_text}
+                  isActive={modules.team_chat}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('team_chat')}
+                  onEdit={() => handleEditMetadata('team_chat')}
+                />
+              )}
+            </div>
+          </section>
+
+          {/* Business Tools Section */}
+          <section id="business">
+            <h2 className="text-sm font-semibold text-muted-foreground mb-6 uppercase tracking-wider">
+              BUSINESS TOOLS
+            </h2>
+            
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {matchesSearch('Advertiser Account', 'Create an advertiser account to run campaigns, manage ad budgets, and reach engaged podcast audiences.') && (
+                <IntegrationCard
+                  id="advertiser"
+                  icon={TrendingUp}
+                  iconGradient="from-orange-500 to-red-600"
+                  title="Advertiser Account"
+                  description="Create an advertiser account to run campaigns, manage ad budgets, and reach engaged podcast audiences."
+                  tooltip="Enable to access advertiser features and campaign management"
+                  isActive={modules.advertiser}
+                  isAdmin={isAdmin}
+                  onToggle={() => {
+                    if (!modules.advertiser) {
+                      navigate('/advertiser/signup');
+                    } else {
+                      toggleModule('advertiser');
+                    }
+                  }}
+                  onEdit={() => handleEditMetadata('advertiser')}
+                />
+              )}
+
+              {matchesSearch('Influencer', 'Creator tools for influencers. Manage brand deals, track performance, and monetize your content.') && (
+                <IntegrationCard
+                  id="influencer"
+                  icon={TrendingUp}
+                  iconGradient="from-pink-500 to-purple-600"
+                  title={getMetadata('influencer')?.title || 'Influencer'}
+                  description={getMetadata('influencer')?.description || 'Creator tools for influencers. Manage brand deals, track performance, and monetize your content.'}
+                  tooltip={getMetadata('influencer')?.tooltip_text}
+                  isActive={modules.influencer}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('influencer')}
+                  onEdit={() => handleEditMetadata('influencer')}
+                />
+              )}
+
+              {matchesSearch('Agency', 'Talent agency management tools. Represent creators, manage rosters, and negotiate deals.') && (
+                <IntegrationCard
+                  id="agency"
+                  icon={Building2}
+                  iconGradient="from-slate-600 to-gray-700"
+                  title={getMetadata('agency')?.title || 'Agency'}
+                  description={getMetadata('agency')?.description || 'Talent agency management tools. Represent creators, manage rosters, and negotiate deals.'}
+                  tooltip={getMetadata('agency')?.tooltip_text}
+                  isActive={modules.agency}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('agency')}
+                  onEdit={() => handleEditMetadata('agency')}
+                />
+              )}
+
+              {matchesSearch('Project Management', 'Manage client projects, track tickets, send documents, and collaborate with your team.') && (
+                <IntegrationCard
+                  id="project_management"
+                  icon={CheckSquare}
+                  iconGradient="from-teal-500 to-cyan-600"
+                  title={getMetadata('project_management')?.title || 'Project Management'}
+                  description={getMetadata('project_management')?.description || 'Manage client projects, track tickets, send documents, and collaborate with your team.'}
+                  tooltip={getMetadata('project_management')?.tooltip_text}
+                  isActive={modules.project_management}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('project_management')}
+                  onEdit={() => handleEditMetadata('project_management')}
+                />
+              )}
+
+              {matchesSearch('Monetization', 'Revenue tracking and financial tools. Monitor earnings, ad revenue, sponsorships, and subscriptions.') && (
+                <IntegrationCard
+                  id="monetization"
+                  icon={DollarSign}
+                  iconGradient="from-emerald-500 to-green-600"
+                  title={getMetadata('monetization')?.title || 'Monetization'}
+                  description={getMetadata('monetization')?.description || 'Revenue tracking and financial tools. Monitor earnings, ad revenue, sponsorships, and subscriptions.'}
+                  tooltip={getMetadata('monetization')?.tooltip_text}
+                  isActive={modules.monetization}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('monetization')}
+                  onEdit={() => handleEditMetadata('monetization')}
+                />
+              )}
             </div>
           </section>
 
           {/* Social Media Section */}
-          <section>
+          <section id="social">
             <h2 className="text-sm font-semibold text-muted-foreground mb-6 uppercase tracking-wider">
               SOCIAL MEDIA
             </h2>
@@ -977,9 +1059,9 @@ const Integrations = () => {
           </section>
 
           {/* Payments Section */}
-          <section>
+          <section id="services">
             <h2 className="text-sm font-semibold text-muted-foreground mb-6 uppercase tracking-wider">
-              PAYMENTS
+              SERVICES & PAYMENTS
             </h2>
             
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
