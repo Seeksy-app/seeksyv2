@@ -405,7 +405,34 @@ export default function VideoUploader({
       setIsUploading(false);
       
       const errorMsg = error instanceof Error ? error.message : "Failed to upload file";
+      const errorType = errorMsg.includes('Network') ? 'network_error' : 
+                       errorMsg.includes('timeout') ? 'timeout_error' :
+                       errorMsg.includes('storage') ? 'storage_error' :
+                       errorMsg.includes('Database') ? 'database_error' : 'unknown_error';
+      
       console.error("Error details:", errorMsg);
+      
+      // Send failure alert to admins
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          await supabase.functions.invoke('send-upload-failure-alert', {
+            body: {
+              userId: session.user.id,
+              userEmail: session.user.email || 'unknown@email.com',
+              userName: session.user.user_metadata?.full_name || session.user.email || 'Unknown User',
+              fileName: file.name,
+              fileSize: file.size,
+              errorMessage: errorMsg,
+              errorType: errorType,
+              uploadProgress: Math.round(uploadProgress),
+              userAgent: navigator.userAgent,
+            },
+          });
+        }
+      } catch (alertError) {
+        console.error('Failed to send upload failure alert:', alertError);
+      }
       
       toast({
         title: "Upload failed",

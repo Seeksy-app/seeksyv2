@@ -6623,6 +6623,42 @@ export type Database = {
           },
         ]
       }
+      upload_failure_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string
+          error_type: string
+          file_name: string
+          file_size_bytes: number
+          id: string
+          upload_progress: number | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message: string
+          error_type: string
+          file_name: string
+          file_size_bytes: number
+          id?: string
+          upload_progress?: number | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string
+          error_type?: string
+          file_name?: string
+          file_size_bytes?: number
+          id?: string
+          upload_progress?: number | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       usage_tracking: {
         Row: {
           created_at: string | null
