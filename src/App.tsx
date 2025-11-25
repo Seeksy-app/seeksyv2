@@ -62,8 +62,8 @@ import PodcastDetail from "./pages/PodcastDetail";
 import EditPodcast from "./pages/EditPodcast";
 import ImportPodcast from "./pages/ImportPodcast";
 import UploadEpisode from "./pages/UploadEpisode";
-import AIAssistant from "./pages/AIAssistant";
 import SubscriptionSettings from "./pages/SubscriptionSettings";
+import { SeeksyAIChatWidget } from "./components/SeeksyAIChatWidget";
 import AdminAds from "./pages/AdminAds";
 import AdminAudioAds from "./pages/AdminAudioAds";
 import PodcastAds from "./pages/PodcastAds";
@@ -315,7 +315,6 @@ const AppContent = () => {
               <Route path="/settings" element={<Settings />} />
               <Route path="/subscription" element={<SubscriptionSettings />} />
               <Route path="/qr-codes" element={<QRCodes />} />
-              <Route path="/ai-assistant" element={<AIAssistant />} />
           <Route path="/studio" element={<StudioTemplates />} />
           <Route path="/studio/session/:id" element={<Studio />} />
           <Route path="/media-library" element={<MediaLibrary />} />
@@ -371,6 +370,7 @@ const AppContent = () => {
             </Routes>
           </main>
         </div>
+        {user && <SeeksyAIChatWidget />}
       </div>
     </SidebarProvider>
   );
