@@ -17,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Trash2, Mail, Loader2, ArrowLeft, RefreshCw, MoreVertical, Link as LinkIcon, UserMinus, Copy } from "lucide-react";
+import { UserPlus, Trash2, Mail, Loader2, ArrowLeft, RefreshCw, MoreVertical, Link as LinkIcon, UserMinus, Copy, UserCog, Archive } from "lucide-react";
 
 type TeamMember = {
   id: string;
@@ -67,11 +67,31 @@ export default function Team() {
   const [resendingId, setResendingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [combinedMembers, setCombinedMembers] = useState<CombinedMember[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showRoleDialog, setShowRoleDialog] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<CombinedMember | null>(null);
+  const [newRole, setNewRole] = useState<AppRole>("member");
 
   useEffect(() => {
     checkAuth();
     loadTeamData();
+    checkAdminRole();
   }, []);
+
+  const checkAdminRole = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id);
+
+    if (roles && roles.length > 0) {
+      const hasAdminRole = roles.some(r => r.role === "admin" || r.role === "super_admin");
+      setIsAdmin(hasAdminRole);
+    }
+  };
 
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -458,6 +478,67 @@ export default function Team() {
     }
   };
 
+  const handleChangeRole = (member: CombinedMember) => {
+    setSelectedMember(member);
+    setNewRole(member.role as AppRole);
+    setShowRoleDialog(true);
+  };
+
+  const handleSaveRoleChange = async () => {
+    if (!selectedMember) return;
+
+    try {
+      const { error } = await supabase
+        .from("team_members")
+        .update({ role: newRole })
+        .eq("id", selectedMember.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Role updated",
+        description: `${selectedMember.firstName}'s role has been changed to ${newRole}`,
+      });
+
+      setShowRoleDialog(false);
+      setSelectedMember(null);
+      loadTeamData();
+    } catch (error) {
+      console.error("Error updating role:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update member role",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleArchiveMember = async (memberId: string, memberName: string) => {
+    try {
+      // For now, we'll use a soft delete by updating the role to 'archived'
+      const { error } = await supabase
+        .from("team_members")
+        .update({ role: "archived" })
+        .eq("id", memberId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Member archived",
+        description: `${memberName} has been archived`,
+      });
+
+      loadTeamData();
+    } catch (error) {
+      console.error("Error archiving member:", error);
+      toast({
+        title: "Error",
+        description: "Failed to archive team member",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case "owner":
@@ -625,7 +706,23 @@ export default function Team() {
                                 </DropdownMenuItem>
                               </>
                             )}
-                            {member.role !== "owner" && (
+                            {member.role !== "owner" && isAdmin && member.status === 'active' && (
+                              <>
+                                <DropdownMenuItem
+                                  onClick={() => handleChangeRole(member)}
+                                >
+                                  <UserCog className="h-4 w-4 mr-2" />
+                                  Change Role
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleArchiveMember(member.id, member.firstName)}
+                                >
+                                  <Archive className="h-4 w-4 mr-2" />
+                                  Archive
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            {member.role !== "owner" && isAdmin && (
                               <>
                                 {member.type === 'invitation' ? (
                                   <DropdownMenuItem
@@ -641,7 +738,7 @@ export default function Team() {
                                     className="text-red-600"
                                   >
                                     <UserMinus className="h-4 w-4 mr-2" />
-                                    Remove Member
+                                    Delete Member
                                   </DropdownMenuItem>
                                 )}
                               </>
@@ -712,6 +809,45 @@ export default function Team() {
                   </>
                 )}
               </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showRoleDialog} onOpenChange={setShowRoleDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Change Role</DialogTitle>
+              <DialogDescription>
+                Update {selectedMember?.firstName}'s role in the team
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="newRole">New Role</Label>
+                <Select value={newRole} onValueChange={(value: AppRole) => setNewRole(value)}>
+                  <SelectTrigger id="newRole">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="member">Member</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="scheduler">Scheduler</SelectItem>
+                    <SelectItem value="sales">Sales</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowRoleDialog(false)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveRoleChange} className="flex-1">
+                  Save Changes
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
