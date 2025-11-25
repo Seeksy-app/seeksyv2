@@ -6,64 +6,57 @@ import { useNavigate } from "react-router-dom";
 const Pricing = () => {
   const navigate = useNavigate();
 
-  const plans = [
+  const creditPackages = [
     {
-      name: "Free",
-      price: "$0",
-      period: "forever",
-      description: "Perfect for getting started",
-      features: [
-        { text: "Unlimited Studio Recording", included: true },
-        { text: "Unlimited Episodes", included: true },
-        { text: "Basic Analytics", included: true },
-        { text: "1 AI Post-Production per month", included: true },
-        { text: "2 AI-Generated Clips per month", included: true },
-        { text: "RSS Feed Hosting", included: true },
-        { text: "Advanced AI Features", included: false },
-        { text: "Unlimited Clips", included: false },
-        { text: "Priority Support", included: false },
-      ],
-      cta: "Start Free",
+      name: "Starter Pack",
+      credits: 10,
+      price: "$9.99",
+      description: "Perfect for trying out features",
+      perCredit: "$1.00",
       popular: false,
     },
     {
-      name: "Creator",
-      price: "$19",
-      period: "per month",
-      description: "For serious content creators",
-      features: [
-        { text: "Everything in Free", included: true },
-        { text: "10 AI Post-Productions per month", included: true },
-        { text: "20 AI-Generated Clips per month", included: true },
-        { text: "Advanced AI Features", included: true },
-        { text: "Filler Word Removal", included: true },
-        { text: "Noise Reduction", included: true },
-        { text: "Auto Chaptering", included: true },
-        { text: "Priority Email Support", included: true },
-        { text: "Custom Branding", included: false },
-      ],
-      cta: "Start 14-Day Trial",
+      name: "Creator Pack",
+      credits: 25,
+      price: "$19.99",
+      description: "For regular content creators",
+      perCredit: "$0.80",
       popular: true,
     },
     {
-      name: "Pro",
-      price: "$49",
-      period: "per month",
-      description: "For professionals & teams",
-      features: [
-        { text: "Everything in Creator", included: true },
-        { text: "Unlimited AI Post-Productions", included: true },
-        { text: "Unlimited AI-Generated Clips", included: true },
-        { text: "Multi-Track Handling", included: true },
-        { text: "Speaker Separation", included: true },
-        { text: "Custom Branding", included: true },
-        { text: "API Access", included: true },
-        { text: "Priority Support (24/7)", included: true },
-        { text: "Team Collaboration", included: true },
-      ],
-      cta: "Start 14-Day Trial",
+      name: "Pro Pack",
+      credits: 50,
+      price: "$34.99",
+      description: "Best value for active creators",
+      perCredit: "$0.70",
       popular: false,
     },
+    {
+      name: "Power User",
+      credits: 100,
+      price: "$59.99",
+      description: "For serious content production",
+      perCredit: "$0.60",
+      popular: false,
+    },
+    {
+      name: "Ultimate Bundle",
+      credits: 250,
+      price: "$129.99",
+      description: "Maximum value for teams",
+      perCredit: "$0.52",
+      popular: false,
+    },
+  ];
+
+  const whatCreditsCanDo = [
+    "Upload & process videos",
+    "Create meetings & events",
+    "Use AI Studio recording",
+    "Generate AI clips",
+    "AI post-production editing",
+    "Create podcasts & episodes",
+    "Use all platform features",
   ];
 
   return (
@@ -86,125 +79,115 @@ const Pricing = () => {
 
       <main className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Creator Pricing</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Simple Credit-Based Pricing</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Studio is always free. Unlock AI-powered editing and clips with our paid plans.
+            1 credit = 1 activity. No subscriptions. Buy credits in bulk and use them as you need.
           </p>
+          <div className="mt-6 inline-block bg-primary/10 border border-primary/20 rounded-lg px-6 py-3">
+            <p className="text-sm font-semibold text-primary">🎁 New users get 5 free credits to start!</p>
+          </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto mb-20">
-          {plans.map((plan) => (
+        <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-6 max-w-7xl mx-auto mb-12">
+          {creditPackages.map((pkg) => (
             <Card
-              key={plan.name}
-              className={`p-8 relative ${
-                plan.popular
-                  ? "border-2 border-primary shadow-glow"
+              key={pkg.name}
+              className={`p-6 relative ${
+                pkg.popular
+                  ? "border-2 border-primary shadow-glow scale-105"
                   : "border border-border"
               }`}
             >
-              {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold">
-                  Most Popular
+              {pkg.popular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">
+                  Best Value
                 </div>
               )}
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                <div className="flex items-baseline gap-2 mb-2">
-                  <span className="text-4xl font-bold">{plan.price}</span>
-                  <span className="text-muted-foreground">/{plan.period}</span>
-                </div>
-                <p className="text-sm text-muted-foreground">{plan.description}</p>
+              <div className="text-center mb-4">
+                <h3 className="text-xl font-bold mb-1">{pkg.name}</h3>
+                <div className="text-3xl font-bold text-primary mb-1">{pkg.credits}</div>
+                <div className="text-xs text-muted-foreground mb-2">credits</div>
+                <div className="text-2xl font-bold">{pkg.price}</div>
+                <div className="text-xs text-muted-foreground">{pkg.perCredit} per credit</div>
               </div>
-
-              <ul className="space-y-3 mb-8">
-                {plan.features.map((feature, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    {feature.included ? (
-                      <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    ) : (
-                      <X className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                    )}
-                    <span
-                      className={
-                        feature.included
-                          ? "text-foreground"
-                          : "text-muted-foreground line-through"
-                      }
-                    >
-                      {feature.text}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
+              <p className="text-sm text-muted-foreground text-center mb-4">{pkg.description}</p>
               <Button
                 className="w-full"
-                variant={plan.popular ? "default" : "outline"}
+                variant={pkg.popular ? "default" : "outline"}
                 onClick={() => navigate("/auth?mode=signup")}
               >
-                {plan.cta}
+                Buy Credits
               </Button>
             </Card>
           ))}
         </div>
 
+        <Card className="p-8 mb-20 max-w-4xl mx-auto bg-gradient-to-br from-primary/5 to-background">
+          <h3 className="text-2xl font-bold mb-4 text-center">What Can You Do With Credits?</h3>
+          <p className="text-center text-muted-foreground mb-6">Every activity costs just 1 credit. Simple.</p>
+          <div className="grid md:grid-cols-2 gap-3">
+            {whatCreditsCanDo.map((item, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                <span>{item}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-6 p-4 bg-primary/10 rounded-lg text-center">
+            <p className="text-sm font-semibold text-primary">
+              🎰 Bonus: Spend 20 credits and get a chance to spin the wheel for free credits!
+            </p>
+          </div>
+        </Card>
+
         <section className="max-w-4xl mx-auto mb-20">
           <h2 className="text-3xl font-bold text-center mb-12">Frequently Asked Questions</h2>
           <div className="space-y-6">
             <Card className="p-6">
-              <h3 className="text-xl font-semibold mb-3">Is the Studio really free forever?</h3>
+              <h3 className="text-xl font-semibold mb-3">How does credit-based pricing work?</h3>
               <p className="text-muted-foreground">
-                Yes! Recording, hosting, and publishing unlimited podcast episodes in our Studio
-                is completely free, forever. You only pay if you want AI-powered post-production
-                features or AI-generated clips.
+                Simple: 1 credit = 1 activity. Whether you're uploading a video, creating a meeting, 
+                using AI editing, or any other feature—it's always 1 credit. No complex tiers or limits.
               </p>
             </Card>
 
             <Card className="p-6">
-              <h3 className="text-xl font-semibold mb-3">
-                What counts as an AI Post-Production?
-              </h3>
+              <h3 className="text-xl font-semibold mb-3">Do credits expire?</h3>
               <p className="text-muted-foreground">
-                Each time you process a recording with AI features (filler word removal, noise
-                reduction, volume leveling, etc.), that counts as one AI post-production. The
-                Free plan includes 1 per month, Creator includes 10, and Pro is unlimited.
+                No! Your credits never expire. Buy a pack and use them whenever you're ready. 
+                This gives you complete flexibility to create on your own schedule.
               </p>
             </Card>
 
             <Card className="p-6">
               <h3 className="text-xl font-semibold mb-3">Can I try before I buy?</h3>
               <p className="text-muted-foreground">
-                Absolutely! Start with our Free plan to test the Studio and get a feel for the AI
-                features. Paid plans include a 14-day free trial with full access to all
-                features.
+                Absolutely! New users get 5 free credits to start. Test all our features and see 
+                the value before purchasing additional credits.
               </p>
             </Card>
 
             <Card className="p-6">
-              <h3 className="text-xl font-semibold mb-3">
-                What makes your AI editing different?
-              </h3>
+              <h3 className="text-xl font-semibold mb-3">What's the spin wheel bonus?</h3>
               <p className="text-muted-foreground">
-                Our AI is specifically trained for podcast content. It understands context,
-                preserves natural conversation flow, and can identify the best moments for social
-                clips. Unlike generic editors, we optimize for listener engagement.
+                After every 20 credits you spend, you get a free spin to win bonus credits! 
+                Prizes range from 1-25 credits. It's our way of rewarding active creators.
               </p>
             </Card>
 
             <Card className="p-6">
-              <h3 className="text-xl font-semibold mb-3">Can I cancel anytime?</h3>
+              <h3 className="text-xl font-semibold mb-3">Which package should I choose?</h3>
               <p className="text-muted-foreground">
-                Yes! All paid plans are monthly subscriptions that you can cancel at any time. No
-                long-term commitments or cancellation fees. Your content and data remain
-                accessible even if you downgrade to Free.
+                Start with the Starter Pack to test things out. Most active creators find the 
+                Creator Pack or Pro Pack offers the best value per credit. Bulk buying saves you money!
               </p>
             </Card>
 
             <Card className="p-6">
-              <h3 className="text-xl font-semibold mb-3">Do you offer annual plans?</h3>
+              <h3 className="text-xl font-semibold mb-3">Can I buy more credits anytime?</h3>
               <p className="text-muted-foreground">
-                Not yet, but we're working on annual pricing with significant discounts. Join
-                our newsletter to be notified when annual plans launch.
+                Yes! Purchase credits whenever you need them. Your balance rolls over and you can 
+                mix and match packages based on your current needs.
               </p>
             </Card>
           </div>
@@ -325,8 +308,15 @@ const Pricing = () => {
                   </td>
                 </tr>
                 <tr className="border-b border-border">
+                  <td className="p-4">Pricing Model</td>
+                  <td className="text-center p-4 font-semibold text-primary">Credits (Pay as you go)</td>
+                  <td className="text-center p-4 text-muted-foreground">Monthly subscription</td>
+                  <td className="text-center p-4 text-muted-foreground">Monthly subscription</td>
+                  <td className="text-center p-4 text-muted-foreground">Free (limited)</td>
+                </tr>
+                <tr className="border-b border-border">
                   <td className="p-4">Starting Price</td>
-                  <td className="text-center p-4 font-semibold text-primary">Free</td>
+                  <td className="text-center p-4 font-semibold text-primary">$9.99 (10 credits)</td>
                   <td className="text-center p-4 text-muted-foreground">$19/mo</td>
                   <td className="text-center p-4 text-muted-foreground">$24/mo</td>
                   <td className="text-center p-4 text-muted-foreground">Free</td>
