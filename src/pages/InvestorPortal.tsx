@@ -44,15 +44,25 @@ export default function InvestorPortal() {
   const validateAccessCodeFromURL = async (code: string) => {
     setLoading(true);
     try {
+      console.log('Validating access code:', code.toUpperCase());
+      
       const { data, error } = await supabase
         .from('investor_shares')
         .select('*')
         .eq('access_code', code.toUpperCase())
         .eq('status', 'active')
         .gt('expires_at', new Date().toISOString())
-        .single();
+        .maybeSingle();
 
-      if (error || !data) {
+      console.log('Query result:', { data, error });
+
+      if (error) {
+        console.error('Database error:', error);
+        toast.error("Error validating access code");
+        return;
+      }
+
+      if (!data) {
         toast.error("Invalid, expired, or revoked access code");
         return;
       }
@@ -75,21 +85,29 @@ export default function InvestorPortal() {
 
     setLoading(true);
     try {
-      // Validate access code
+      console.log('Validating access code:', accessCode.toUpperCase());
+      
       const { data, error } = await supabase
         .from('investor_shares')
         .select('*')
         .eq('access_code', accessCode.toUpperCase())
         .eq('status', 'active')
         .gt('expires_at', new Date().toISOString())
-        .single();
+        .maybeSingle();
 
-      if (error || !data) {
+      console.log('Query result:', { data, error });
+
+      if (error) {
+        console.error('Database error:', error);
+        toast.error("Error validating access code");
+        return;
+      }
+
+      if (!data) {
         toast.error("Invalid, expired, or revoked access code");
         return;
       }
 
-      // Store data and show disclosure agreement
       setPendingAccessData(data);
       setShowDisclosure(true);
     } catch (error: any) {
