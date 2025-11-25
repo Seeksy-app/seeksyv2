@@ -1224,12 +1224,7 @@ export default function Tasks() {
                 return (
                   <TableRow key={task.id}>
                     <TableCell className="py-2">
-                      <div>
-                        <div className="font-medium">{task.title}</div>
-                        {task.description && (
-                          <div className="text-xs text-muted-foreground mt-1">{task.description}</div>
-                        )}
-                      </div>
+                      <div className="font-medium">{task.title}</div>
                     </TableCell>
                     <TableCell className="py-2">
                       <Badge 
