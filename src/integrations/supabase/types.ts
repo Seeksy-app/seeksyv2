@@ -759,6 +759,7 @@ export type Database = {
           campaign_name: string | null
           conversation_config: Json | null
           created_at: string | null
+          creator_voice_profile_id: string | null
           custom_phone_fee_charged: boolean | null
           duration_seconds: number | null
           elevenlabs_agent_id: string | null
@@ -776,6 +777,7 @@ export type Database = {
           thumbnail_url: string | null
           tracking_phone_number: string | null
           updated_at: string | null
+          uses_creator_voice: boolean | null
           voice_id: string
           voice_name: string | null
         }
@@ -788,6 +790,7 @@ export type Database = {
           campaign_name?: string | null
           conversation_config?: Json | null
           created_at?: string | null
+          creator_voice_profile_id?: string | null
           custom_phone_fee_charged?: boolean | null
           duration_seconds?: number | null
           elevenlabs_agent_id?: string | null
@@ -805,6 +808,7 @@ export type Database = {
           thumbnail_url?: string | null
           tracking_phone_number?: string | null
           updated_at?: string | null
+          uses_creator_voice?: boolean | null
           voice_id: string
           voice_name?: string | null
         }
@@ -817,6 +821,7 @@ export type Database = {
           campaign_name?: string | null
           conversation_config?: Json | null
           created_at?: string | null
+          creator_voice_profile_id?: string | null
           custom_phone_fee_charged?: boolean | null
           duration_seconds?: number | null
           elevenlabs_agent_id?: string | null
@@ -834,6 +839,7 @@ export type Database = {
           thumbnail_url?: string | null
           tracking_phone_number?: string | null
           updated_at?: string | null
+          uses_creator_voice?: boolean | null
           voice_id?: string
           voice_name?: string | null
         }
@@ -850,6 +856,13 @@ export type Database = {
             columns: ["campaign_id"]
             isOneToOne: false
             referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audio_ads_creator_voice_profile_id_fkey"
+            columns: ["creator_voice_profile_id"]
+            isOneToOne: false
+            referencedRelation: "creator_voice_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2640,6 +2653,48 @@ export type Database = {
           status?: string
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
+        }
+        Relationships: []
+      }
+      creator_voice_profiles: {
+        Row: {
+          created_at: string | null
+          elevenlabs_voice_id: string | null
+          id: string
+          is_available_for_ads: boolean | null
+          is_verified: boolean | null
+          price_per_ad: number | null
+          sample_audio_url: string | null
+          updated_at: string | null
+          usage_terms: string | null
+          user_id: string
+          voice_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          elevenlabs_voice_id?: string | null
+          id?: string
+          is_available_for_ads?: boolean | null
+          is_verified?: boolean | null
+          price_per_ad?: number | null
+          sample_audio_url?: string | null
+          updated_at?: string | null
+          usage_terms?: string | null
+          user_id: string
+          voice_name: string
+        }
+        Update: {
+          created_at?: string | null
+          elevenlabs_voice_id?: string | null
+          id?: string
+          is_available_for_ads?: boolean | null
+          is_verified?: boolean | null
+          price_per_ad?: number | null
+          sample_audio_url?: string | null
+          updated_at?: string | null
+          usage_terms?: string | null
+          user_id?: string
+          voice_name?: string
         }
         Relationships: []
       }
@@ -7215,6 +7270,55 @@ export type Database = {
             columns: ["media_file_id"]
             isOneToOne: false
             referencedRelation: "media_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voice_ad_usage: {
+        Row: {
+          advertiser_id: string | null
+          amount_paid: number | null
+          audio_ad_id: string | null
+          created_at: string | null
+          id: string
+          voice_profile_id: string | null
+        }
+        Insert: {
+          advertiser_id?: string | null
+          amount_paid?: number | null
+          audio_ad_id?: string | null
+          created_at?: string | null
+          id?: string
+          voice_profile_id?: string | null
+        }
+        Update: {
+          advertiser_id?: string | null
+          amount_paid?: number | null
+          audio_ad_id?: string | null
+          created_at?: string | null
+          id?: string
+          voice_profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_ad_usage_advertiser_id_fkey"
+            columns: ["advertiser_id"]
+            isOneToOne: false
+            referencedRelation: "advertisers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voice_ad_usage_audio_ad_id_fkey"
+            columns: ["audio_ad_id"]
+            isOneToOne: false
+            referencedRelation: "audio_ads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voice_ad_usage_voice_profile_id_fkey"
+            columns: ["voice_profile_id"]
+            isOneToOne: false
+            referencedRelation: "creator_voice_profiles"
             referencedColumns: ["id"]
           },
         ]
