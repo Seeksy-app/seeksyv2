@@ -92,6 +92,62 @@ export default function VideoUploader({
     return true;
   };
 
+  const uploadViaEdgeFunction = async (file: File, session: any) => {
+    // Create FormData
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // Upload using XMLHttpRequest to track progress
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percentage = (e.loaded / e.total) * 90;
+          const elapsed = (Date.now() - uploadStartTime.current) / 1000;
+          const speed = e.loaded / elapsed;
+          
+          setUploadProgress(percentage);
+          setUploadSpeed(speed);
+          console.log(`Upload progress: ${Math.round(percentage)}%`);
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText);
+            if (response.success) {
+              setUploadProgress(100);
+              resolve(response);
+            } else {
+              reject(new Error(response.error || 'Upload failed'));
+            }
+          } catch (e) {
+            reject(new Error('Invalid response from server'));
+          }
+        } else {
+          reject(new Error(`Upload failed with status ${xhr.status}`));
+        }
+      });
+
+      xhr.addEventListener('error', () => reject(new Error('Network error during upload')));
+      xhr.addEventListener('abort', () => reject(new Error('Upload cancelled')));
+      xhr.addEventListener('timeout', () => reject(new Error('Upload timed out')));
+
+      // Set longer timeout for large files (30 minutes)
+      xhr.timeout = 1800000;
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const functionUrl = `${supabaseUrl}/functions/v1/upload-large-media`;
+      
+      xhr.open('POST', functionUrl);
+      xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
+      xhr.setRequestHeader('apikey', import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
+      xhr.send(formData);
+    });
+  };
+
   const uploadSmallFile = async (file: File, session: any) => {
     const timestamp = Date.now();
     // Sanitize filename: remove special chars, replace spaces with hyphens
@@ -246,14 +302,9 @@ export default function VideoUploader({
       const fileSizeMB = file.size / (1024 * 1024);
       console.log(`Starting upload: ${file.name} (${formatBytes(file.size)})`);
 
-      // Use resumable uploads for files larger than 100MB
-      if (fileSizeMB > 100) {
-        console.log('Using resumable upload for large file...');
-        await uploadLargeFile(file, session);
-      } else {
-        console.log('Using standard upload for small file...');
-        await uploadSmallFile(file, session);
-      }
+      // Use edge function for all uploads to avoid browser timeout issues
+      console.log('Using server-side upload...');
+      await uploadViaEdgeFunction(file, session);
 
       console.log('Upload complete!');
       setUploadProgress(100);
