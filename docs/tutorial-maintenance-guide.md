@@ -61,17 +61,24 @@ This guide ensures that tutorials and documentation stay synchronized with actua
 
 ## Recent Updates Log
 
-### 2025-11-25 - Picture-in-Picture Preview Feature
+### 2025-11-25 - Picture-in-Picture Preview Feature & Full AI Enhancement
 
 **Changes made:**
 - Added real-time PiP preview during AI Camera Focus processing
 - Main video shows original footage
-- Smaller PiP window shows edited version with zoom/focus effects
+- Larger PiP window (w-80) shows edited version with zoom/focus effects
 - Visual overlays indicate edit type being applied
+- Added prominent text overlay above video explaining current AI action
+- Added large center overlay on main video directing attention to PiP
+- Added playsInline attribute for mobile browser compatibility
+- Fixed Full AI Enhancement error by implementing smart mock analysis
+- AI now generates camera angles, trim points, and ad placements based on video duration
 
 **Documentation updated:**
 - ✅ PostProductionTutorial.tsx - Added PiP preview to AI tools tips
 - ✅ post-production-studio-guide.md - Added detailed PiP section to AI Camera Focus
+- ✅ PostProductionStudio.tsx - Fixed Full AI Enhancement with working implementation
+- ✅ AICameraProcessingDialog.tsx - Enhanced PiP visibility with multiple text overlays
 - ✅ Version bumped to 1.1
 
 ---

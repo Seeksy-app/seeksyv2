@@ -164,6 +164,23 @@ export const AICameraProcessingDialog = ({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Real-time Text Overlay - Prominent */}
+          {currentEdit && (
+            <div className="bg-primary/10 border-2 border-primary rounded-lg p-4 animate-in fade-in slide-in-from-top duration-300">
+              <div className="flex items-center gap-3">
+                {currentEdit.type === 'zoom' && <ZoomIn className="h-6 w-6 text-primary animate-pulse" />}
+                {currentEdit.type === 'close_up' && <Focus className="h-6 w-6 text-primary animate-pulse" />}
+                {currentEdit.type === 'wide' && <Camera className="h-6 w-6 text-primary animate-pulse" />}
+                {currentEdit.type === 'punch_in' && <ZoomIn className="h-6 w-6 text-primary animate-pulse" />}
+                {currentEdit.type === 'medium' && <Camera className="h-6 w-6 text-primary animate-pulse" />}
+                <div>
+                  <p className="font-semibold text-primary">AI is editing now:</p>
+                  <p className="text-sm">{currentEdit.label}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Real-time Video Preview with PiP */}
           <div className="relative aspect-video bg-black rounded-lg overflow-hidden border-2 border-primary/20">
             {/* Original Video (Background) */}
@@ -173,10 +190,25 @@ export const AICameraProcessingDialog = ({
               muted
               loop
               autoPlay
+              playsInline
             />
             
-            {/* Picture-in-Picture Edited Preview */}
-            <div className="absolute bottom-4 right-4 w-64 aspect-video bg-black/90 rounded-lg overflow-hidden border-2 border-primary shadow-2xl">
+            {/* Large Text Overlay on Main Video */}
+            {currentEdit && (
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center z-20 pointer-events-none">
+                <div className="bg-black/80 backdrop-blur-sm px-8 py-4 rounded-lg border-2 border-primary/50 animate-in zoom-in duration-300">
+                  <p className="text-white text-2xl font-bold mb-1">
+                    {currentEdit.label}
+                  </p>
+                  <Badge variant="default" className="bg-primary text-xs">
+                    Watch the preview below →
+                  </Badge>
+                </div>
+              </div>
+            )}
+            
+            {/* Picture-in-Picture Edited Preview - Made Larger */}
+            <div className="absolute bottom-4 right-4 w-80 aspect-video bg-black rounded-lg overflow-hidden border-4 border-primary shadow-2xl z-10">
               <video 
                 src={videoUrl} 
                 className={cn(
@@ -186,35 +218,33 @@ export const AICameraProcessingDialog = ({
                 muted
                 loop
                 autoPlay
+                playsInline
               />
               
-              {/* Edit Type Overlay */}
+              {/* Edit Type Overlay on PiP */}
               {currentEdit && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                  <div className="text-center space-y-2 animate-in fade-in zoom-in duration-300">
-                    {currentEdit.type === 'zoom' && <ZoomIn className="h-8 w-8 text-white mx-auto animate-pulse" />}
-                    {currentEdit.type === 'close_up' && <Focus className="h-8 w-8 text-white mx-auto animate-pulse" />}
-                    {currentEdit.type === 'wide' && <Camera className="h-8 w-8 text-white mx-auto animate-pulse" />}
-                    <p className="text-white text-xs font-semibold px-2">
-                      {currentEdit.label}
-                    </p>
+                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/60 via-transparent to-transparent">
+                  <div className="absolute bottom-2 left-2 right-2 text-center">
+                    <Badge variant="default" className="bg-primary/90 backdrop-blur text-xs px-3 py-1">
+                      AI Edited - {currentEdit.type.replace('_', ' ')}
+                    </Badge>
                   </div>
                 </div>
               )}
               
               {/* PiP Label */}
               <div className="absolute top-2 left-2 right-2">
-                <Badge variant="default" className="text-[10px] bg-primary/90 backdrop-blur">
-                  AI Edited Preview
+                <Badge variant="default" className="text-[10px] bg-black/80 backdrop-blur border border-primary/50">
+                  ✨ AI Preview
                 </Badge>
               </div>
             </div>
 
             {/* Processing Indicator */}
-            <div className="absolute top-4 left-4">
-              <Badge variant="default" className="bg-red-500 animate-pulse">
+            <div className="absolute top-4 left-4 z-20">
+              <Badge variant="default" className="bg-red-500/90 backdrop-blur animate-pulse shadow-lg">
                 <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                Processing
+                Processing Live
               </Badge>
             </div>
           </div>
