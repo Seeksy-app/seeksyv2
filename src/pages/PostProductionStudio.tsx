@@ -6,6 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { AICameraProcessingDialog } from "@/components/media/AICameraProcessingDialog";
 import { 
@@ -313,68 +319,116 @@ export default function PostProductionStudio() {
             </TabsList>
 
             <TabsContent value="tools" className="flex-1 p-4 space-y-4">
-              <div>
-                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                  <Sparkles className="h-4 w-4" />
-                  AI Tools
-                </h3>
-                <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => addMarker('ad')}
-                  >
-                    <Film className="h-4 w-4 mr-2" />
-                    Insert AI Ad
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={handleAICameraFocus}
-                  >
-                    <Camera className="h-4 w-4 mr-2" />
-                    AI Camera Focus
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => processAIEdit('trim')}
-                  >
-                    <Scissors className="h-4 w-4 mr-2" />
-                    Smart Trim
-                  </Button>
-                </div>
-              </div>
+              <TooltipProvider delayDuration={300}>
+                <div>
+                  <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    AI Tools
+                  </h3>
+                  <div className="space-y-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start"
+                          onClick={() => addMarker('ad')}
+                        >
+                          <Film className="h-4 w-4 mr-2" />
+                          Insert AI Ad
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="left" className="max-w-xs">
+                        <p>AI automatically finds the best placement for ads based on natural breaks and engagement</p>
+                      </TooltipContent>
+                    </Tooltip>
 
-              <div>
-                <h3 className="text-sm font-semibold mb-3">Manual Tools</h3>
-                <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => addMarker('lower_third')}
-                  >
-                    <Type className="h-4 w-4 mr-2" />
-                    Lower Third / Name Tag
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => addMarker('broll')}
-                  >
-                    <ImageIcon className="h-4 w-4 mr-2" />
-                    Insert B-Roll
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => addMarker('cut')}
-                  >
-                    <Scissors className="h-4 w-4 mr-2" />
-                    Manual Cut
-                  </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start"
+                          onClick={handleAICameraFocus}
+                        >
+                          <Camera className="h-4 w-4 mr-2" />
+                          AI Camera Focus
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="left" className="max-w-xs">
+                        <p>Creates polished multicam-style edit with punch-ins, digital zooms, and reframing to highlight the speaker at the right moments</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start"
+                          onClick={() => processAIEdit('trim')}
+                        >
+                          <Scissors className="h-4 w-4 mr-2" />
+                          Smart Trim
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="left" className="max-w-xs">
+                        <p>AI removes filler words, dead air, and awkward pauses to create a tighter, more professional edit</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                 </div>
-              </div>
+
+                <div>
+                  <h3 className="text-sm font-semibold mb-3">Manual Tools</h3>
+                  <div className="space-y-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start"
+                          onClick={() => addMarker('lower_third')}
+                        >
+                          <Type className="h-4 w-4 mr-2" />
+                          Lower Third / Name Tag
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="left" className="max-w-xs">
+                        <p>Add professional lower third graphics with name, title, or other text overlays at current timestamp</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start"
+                          onClick={() => addMarker('broll')}
+                        >
+                          <ImageIcon className="h-4 w-4 mr-2" />
+                          Insert B-Roll
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="left" className="max-w-xs">
+                        <p>Place supplemental footage or images at current timestamp to add visual interest</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start"
+                          onClick={() => addMarker('cut')}
+                        >
+                          <Scissors className="h-4 w-4 mr-2" />
+                          Manual Cut
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="left" className="max-w-xs">
+                        <p>Mark a manual cut point to remove unwanted sections from your video</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+              </TooltipProvider>
             </TabsContent>
 
             <TabsContent value="markers" className="flex-1 p-4">
