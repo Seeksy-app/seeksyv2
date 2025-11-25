@@ -283,39 +283,28 @@ export default function InvestorPortal() {
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="forecast" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="forecast">
-              <TrendingUp className="h-4 w-4 mr-2" />
+        <Tabs defaultValue="forecast" className="space-y-8">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-3 h-12 bg-accent/50">
+            <TabsTrigger value="forecast" className="text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TrendingUp className="h-5 w-5 mr-2" />
               3-Year Forecast
             </TabsTrigger>
-            <TabsTrigger value="models">
-              <FileSpreadsheet className="h-4 w-4 mr-2" />
+            <TabsTrigger value="models" className="text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <FileSpreadsheet className="h-5 w-5 mr-2" />
               Financial Models
             </TabsTrigger>
-            <TabsTrigger value="assumptions">
-              <Settings className="h-4 w-4 mr-2" />
+            <TabsTrigger value="assumptions" className="text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Settings className="h-5 w-5 mr-2" />
               Assumptions
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="forecast" className="space-y-6">
-            <Card className="mb-4">
-              <CardHeader>
-                <CardTitle className="text-sm font-medium">Data Source</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  This forecast is based on <strong>custom assumptions</strong> configured by the CFO team. 
-                  These projections reflect Seeksy's specific growth strategy, pricing models, and cost structures.
-                </p>
-              </CardContent>
-            </Card>
             <div className="grid lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
                 <ForecastTab isReadOnly={true} />
               </div>
-              <div>
+              <div className="flex flex-col">
                 <CFOAIChat />
               </div>
             </div>
@@ -326,7 +315,7 @@ export default function InvestorPortal() {
               <div className="lg:col-span-2">
                 <InteractiveSpreadsheet />
               </div>
-              <div>
+              <div className="flex flex-col">
                 <CFOAIChat />
               </div>
             </div>
@@ -470,6 +459,10 @@ export default function InvestorPortal() {
             </Card>
           </TabsContent>
         </Tabs>
+        
+        <div className="mt-12 text-center text-sm text-muted-foreground border-t pt-6">
+          <p>For questions or additional information, please contact <a href="mailto:Hello@Seeksy.io" className="text-primary hover:underline font-medium">Hello@Seeksy.io</a></p>
+        </div>
       </div>
     </div>
   );
