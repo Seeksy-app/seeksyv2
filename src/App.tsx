@@ -149,6 +149,7 @@ import CreateLead from "./pages/CreateLead";
 import SignDocument from "./pages/SignDocument";
 import PodcastDistribution from "./pages/PodcastDistribution";
 import PublicTicketSubmission from "./pages/PublicTicketSubmission";
+import PublicTaskSubmission from "./pages/PublicTaskSubmission";
 
 const queryClient = new QueryClient();
 
@@ -354,6 +355,7 @@ const AppContent = () => {
             <Route path="/civic/blog/create" element={<CreateCivicArticle />} />
           <Route path="/civic/contact" element={<PublicConstituentRequestForm />} />
           <Route path="/submit-ticket" element={<PublicTicketSubmission />} />
+          <Route path="/submit-task" element={<PublicTaskSubmission />} />
             <Route path="/tickets" element={<ClientTickets />} />
             <Route path="/proposals" element={<Proposals />} />
             <Route path="/proposals/create" element={<CreateProposal />} />

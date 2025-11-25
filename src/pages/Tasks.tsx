@@ -796,30 +796,9 @@ export default function Tasks() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="flex items-center border rounded-md">
-            <Button
-              variant={viewMode === "board" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setViewMode("board")}
-              className="rounded-r-none"
-            >
-              <LayoutGrid className="h-4 w-4 mr-2" />
-              Board
-            </Button>
-            <Button
-              variant={viewMode === "list" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setViewMode("list")}
-              className="rounded-l-none"
-            >
-              <List className="h-4 w-4 mr-2" />
-              List
-            </Button>
-          </div>
-
+        <div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
+            <DialogTrigger asChild>
             <Button onClick={() => {
               setEditingTask(null);
               setFormData({
@@ -977,29 +956,52 @@ export default function Tasks() {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant={filterMode === "my" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilterMode("my")}
-                  >
-                    <User className="h-4 w-4 mr-2" />
-                    My Tasks
-                  </Button>
-                  <Button
-                    variant={filterMode === "all" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilterMode("all")}
-                  >
-                    All
-                  </Button>
-                  <Button
-                    variant={filterMode === "due" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilterMode("due")}
-                  >
-                    By Due Date
-                  </Button>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant={filterMode === "my" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setFilterMode("my")}
+                    >
+                      <User className="h-4 w-4 mr-2" />
+                      My Tasks
+                    </Button>
+                    <Button
+                      variant={filterMode === "all" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setFilterMode("all")}
+                    >
+                      All
+                    </Button>
+                    <Button
+                      variant={filterMode === "due" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setFilterMode("due")}
+                    >
+                      By Due Date
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center border rounded-md">
+                    <Button
+                      variant={viewMode === "board" ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setViewMode("board")}
+                      className="rounded-r-none"
+                    >
+                      <LayoutGrid className="h-4 w-4 mr-2" />
+                      Board
+                    </Button>
+                    <Button
+                      variant={viewMode === "list" ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setViewMode("list")}
+                      className="rounded-l-none"
+                    >
+                      <List className="h-4 w-4 mr-2" />
+                      List
+                    </Button>
+                  </div>
                 </div>
               </div>
             </CardContent>
