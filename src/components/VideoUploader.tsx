@@ -321,12 +321,20 @@ export default function VideoUploader({
           }
           
           console.error('TUS upload error details:', errorDetails);
-          console.log('Upload will retry automatically if possible...');
           
-          // Don't reject immediately on network errors - let retries handle it
-          if (!error.message.includes('retry')) {
-            reject(new Error(`Network error during upload. Please check your connection and try again.`));
+          // Reject with detailed error message
+          let errorMessage = 'Upload failed: ';
+          if (error.message.includes('quota') || error.message.includes('storage')) {
+            errorMessage += 'Storage quota exceeded. Please free up space or contact support.';
+          } else if (error.message.includes('network') || error.message.includes('connection')) {
+            errorMessage += 'Network error. Please check your connection and try again.';
+          } else if (error.message.includes('timeout')) {
+            errorMessage += 'Upload timed out. Please try again with a stable connection.';
+          } else {
+            errorMessage += error.message || 'Unknown error occurred. Please try again.';
           }
+          
+          reject(new Error(errorMessage));
         },
         onProgress: (bytesUploaded, bytesTotal) => {
           const percentage = (bytesUploaded / bytesTotal) * 90; // Reserve 10% for DB work
@@ -405,6 +413,17 @@ export default function VideoUploader({
     setUploadStatus('uploading');
     uploadStartTime.current = Date.now();
 
+    // Set a timeout for the upload (30 minutes for large files)
+    const uploadTimeout = setTimeout(() => {
+      setUploadStatus('error');
+      setIsUploading(false);
+      toast({
+        title: "Upload timed out",
+        description: "The upload took too long. Please try again with a stable connection.",
+        variant: "destructive",
+      });
+    }, 30 * 60 * 1000); // 30 minutes
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
@@ -421,6 +440,7 @@ export default function VideoUploader({
         await uploadSmallFile(file, session);
       }
 
+      clearTimeout(uploadTimeout);
       console.log('Upload complete!');
       setUploadProgress(100);
       setUploadStatus('success');
@@ -438,14 +458,15 @@ export default function VideoUploader({
       }, 2000);
 
     } catch (error) {
+      clearTimeout(uploadTimeout);
       console.error("Upload error:", error);
       setUploadStatus('error');
       setIsUploading(false);
       
       const errorMsg = error instanceof Error ? error.message : "Failed to upload file";
-      const errorType = errorMsg.includes('Network') ? 'network_error' : 
+      const errorType = errorMsg.includes('Network') || errorMsg.includes('network') ? 'network_error' : 
                        errorMsg.includes('timeout') ? 'timeout_error' :
-                       errorMsg.includes('storage') ? 'storage_error' :
+                       errorMsg.includes('storage') || errorMsg.includes('quota') ? 'storage_error' :
                        errorMsg.includes('Database') ? 'database_error' : 'unknown_error';
       
       console.error("Error details:", errorMsg);
