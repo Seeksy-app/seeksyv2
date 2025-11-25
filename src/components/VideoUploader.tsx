@@ -260,7 +260,7 @@ export default function VideoUploader({
         file_url: publicUrl,
         file_type: file.type.startsWith('video') ? 'video' : 'audio',
         file_size_bytes: file.size,
-        duration_seconds: duration,
+        duration_seconds: duration ? Math.round(duration) : null,
         source: 'upload',
       });
 
@@ -382,7 +382,7 @@ export default function VideoUploader({
                 file_url: publicUrl,
                 file_type: file.type.startsWith('video') ? 'video' : 'audio',
                 file_size_bytes: file.size,
-                duration_seconds: duration,
+                duration_seconds: duration ? Math.round(duration) : null,
                 source: 'upload',
               });
 
