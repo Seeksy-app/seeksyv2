@@ -3837,6 +3837,7 @@ export type Database = {
           notes: string | null
           revoked_at: string | null
           revoked_by: string | null
+          share_config: Json | null
           status: string
           user_id: string
         }
@@ -3850,6 +3851,7 @@ export type Database = {
           notes?: string | null
           revoked_at?: string | null
           revoked_by?: string | null
+          share_config?: Json | null
           status?: string
           user_id: string
         }
@@ -3863,6 +3865,7 @@ export type Database = {
           notes?: string | null
           revoked_at?: string | null
           revoked_by?: string | null
+          share_config?: Json | null
           status?: string
           user_id?: string
         }

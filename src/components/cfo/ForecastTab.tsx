@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
 import { ShareInvestorDialog } from "./ShareInvestorDialog";
+import { ShareProformaDialog } from "./ShareProformaDialog";
 import { useState } from "react";
 
 interface ForecastTabProps {
@@ -30,6 +31,7 @@ interface ForecastTabProps {
 
 export const ForecastTab = ({ assumptions: providedAssumptions, isReadOnly = false }: ForecastTabProps) => {
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [proformaType] = useState<'ai' | 'custom'>('ai'); // Default to AI for ForecastTab
   
   // Default assumptions
   const assumptions = providedAssumptions || {
@@ -596,7 +598,7 @@ export const ForecastTab = ({ assumptions: providedAssumptions, isReadOnly = fal
         </CardContent>
       </Card>
       
-      {!isReadOnly && <ShareInvestorDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} />}
+      {!isReadOnly && <ShareProformaDialog open={shareDialogOpen} onOpenChange={setShareDialogOpen} proformaType={proformaType} />}
     </div>
   );
 };

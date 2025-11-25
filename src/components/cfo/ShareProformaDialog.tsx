@@ -1,0 +1,374 @@
+import { useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Copy, Mail, FileSpreadsheet, TrendingUp, Download } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+interface ShareProformaDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  proformaType: 'ai' | 'custom';
+}
+
+export const ShareProformaDialog = ({ open, onOpenChange, proformaType }: ShareProformaDialogProps) => {
+  const [email, setEmail] = useState("");
+  const [expiryDays, setExpiryDays] = useState(30);
+  const [generatedCode, setGeneratedCode] = useState<string | null>(null);
+  const [generatedLink, setGeneratedLink] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  
+  // Share configuration
+  const [copyAiProforma, setCopyAiProforma] = useState(false);
+  const [adjustmentPercent, setAdjustmentPercent] = useState(0);
+  const [adjustmentType, setAdjustmentType] = useState<'increase' | 'decrease'>('increase');
+  const [allowHtmlView, setAllowHtmlView] = useState(true);
+  const [allowDownload, setAllowDownload] = useState(false);
+  const [useRealTimeData, setUseRealTimeData] = useState(true);
+
+  const generateAccessCode = async () => {
+    if (!email) {
+      toast.error("Please enter an investor email address");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("You must be logged in to share access");
+        return;
+      }
+
+      // Generate unique access code
+      const { data: codeData, error: codeError } = await supabase.rpc('generate_investor_code');
+      if (codeError) throw codeError;
+
+      const accessCode = codeData as string;
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + expiryDays);
+
+      // Get user profile
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .single();
+
+      // Calculate adjustment multiplier
+      const adjustmentMultiplier = adjustmentType === 'increase' 
+        ? 1 + (adjustmentPercent / 100)
+        : 1 - (adjustmentPercent / 100);
+
+      // Store share configuration
+      const shareConfig = {
+        proformaType: copyAiProforma ? 'ai' : proformaType,
+        adjustmentMultiplier: copyAiProforma ? adjustmentMultiplier : 1,
+        allowHtmlView,
+        allowDownload,
+        useRealTimeData,
+      };
+
+      // Insert access record with share configuration
+      const { error: insertError } = await supabase
+        .from('investor_shares')
+        .insert({
+          user_id: user.id,
+          investor_email: email,
+          investor_name: email.split('@')[0],
+          access_code: accessCode,
+          expires_at: expiresAt.toISOString(),
+          notes: `Shared by ${profileData?.full_name || 'Admin'} - ${copyAiProforma ? 'AI Proforma with ' + adjustmentType + ' ' + adjustmentPercent + '%' : proformaType + ' Proforma'} - ${useRealTimeData ? 'Real-time data' : 'Projected data'}`,
+          share_config: shareConfig,
+        });
+
+      if (insertError) throw insertError;
+
+      // Generate shareable link
+      const baseUrl = window.location.origin;
+      const investorLink = `${baseUrl}/investor?code=${accessCode}`;
+
+      setGeneratedCode(accessCode);
+      setGeneratedLink(investorLink);
+
+      toast.success("Investor access created successfully!");
+    } catch (error: any) {
+      console.error("Error generating access:", error);
+      toast.error(error.message || "Failed to generate access code");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard!");
+  };
+
+  const sendEmail = async () => {
+    if (!generatedCode || !generatedLink || !email) {
+      toast.error("Missing required information");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("You must be logged in");
+        return;
+      }
+
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .single();
+
+      const { error } = await supabase.functions.invoke("send-investor-invite", {
+        body: {
+          investorEmail: email,
+          investorName: email.split('@')[0],
+          accessCode: generatedCode,
+          investorLink: generatedLink,
+          senderName: profileData?.full_name || undefined,
+          senderUserId: user.id,
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success(`Investor access email sent to ${email}`);
+    } catch (error: any) {
+      console.error("Error sending email:", error);
+      toast.error(error.message || "Failed to send email");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClose = () => {
+    setEmail("");
+    setGeneratedCode(null);
+    setGeneratedLink(null);
+    setCopyAiProforma(false);
+    setAdjustmentPercent(0);
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <FileSpreadsheet className="h-5 w-5" />
+            Share {proformaType === 'ai' ? 'AI-Generated' : 'Custom'} Pro Forma
+          </DialogTitle>
+          <DialogDescription>
+            Generate secure access for investors with customizable view options
+          </DialogDescription>
+        </DialogHeader>
+
+        {!generatedCode ? (
+          <div className="space-y-6 py-4">
+            <Tabs defaultValue="basic" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                <TabsTrigger value="advanced">Share Options</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="basic" className="space-y-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Investor Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="investor@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="expiry">Access Duration (days)</Label>
+                  <Input
+                    id="expiry"
+                    type="number"
+                    min="1"
+                    max="365"
+                    value={expiryDays}
+                    onChange={(e) => setExpiryDays(parseInt(e.target.value))}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Access will expire after {expiryDays} days
+                  </p>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="advanced" className="space-y-4 mt-4">
+                {proformaType === 'ai' && (
+                  <div className="space-y-4 p-4 bg-muted rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="copy-ai" className="text-sm font-medium">
+                          Copy AI Proforma to Custom with Adjustment
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Apply an overall +/- % adjustment for shared version only
+                        </p>
+                      </div>
+                      <Switch
+                        id="copy-ai"
+                        checked={copyAiProforma}
+                        onCheckedChange={setCopyAiProforma}
+                      />
+                    </div>
+
+                    {copyAiProforma && (
+                      <div className="space-y-3 pl-4 border-l-2 border-primary/20">
+                        <div className="flex gap-2">
+                          <Select value={adjustmentType} onValueChange={(v: any) => setAdjustmentType(v)}>
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="increase">Increase</SelectItem>
+                              <SelectItem value="decrease">Decrease</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={adjustmentPercent}
+                            onChange={(e) => setAdjustmentPercent(parseFloat(e.target.value))}
+                            placeholder="0"
+                            className="flex-1"
+                          />
+                          <span className="flex items-center text-sm text-muted-foreground">%</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground italic">
+                          This adjustment only affects the shared version. Your system data remains unchanged.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="real-time" className="text-sm font-medium">
+                        Use Real-Time Financials
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Show live data from your actual system metrics
+                      </p>
+                    </div>
+                    <Switch
+                      id="real-time"
+                      checked={useRealTimeData}
+                      onCheckedChange={setUseRealTimeData}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="html-view" className="text-sm font-medium">
+                        Allow HTML Spreadsheet View
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Investors can view spreadsheet in browser (read-only)
+                      </p>
+                    </div>
+                    <Switch
+                      id="html-view"
+                      checked={allowHtmlView}
+                      onCheckedChange={setAllowHtmlView}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="download" className="text-sm font-medium">
+                        Allow Download
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Investors can download Excel/PDF files
+                      </p>
+                    </div>
+                    <Switch
+                      id="download"
+                      checked={allowDownload}
+                      onCheckedChange={setAllowDownload}
+                    />
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <Button onClick={generateAccessCode} disabled={loading} className="w-full">
+              {loading ? "Generating..." : "Generate Access Code"}
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Access Code</Label>
+              <div className="flex gap-2">
+                <Input value={generatedCode} readOnly className="font-mono text-lg" />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => copyToClipboard(generatedCode)}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Investor Link</Label>
+              <div className="flex gap-2">
+                <Input value={generatedLink || ""} readOnly className="text-sm" />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => copyToClipboard(generatedLink || "")}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={sendEmail} variant="default" className="flex-1" disabled={loading}>
+                <Mail className="h-4 w-4 mr-2" />
+                {loading ? "Sending..." : "Send Email"}
+              </Button>
+              <Button onClick={handleClose} variant="outline" className="flex-1">
+                Done
+              </Button>
+            </div>
+
+            <div className="p-4 bg-muted rounded-lg text-sm space-y-3">
+              <p className="font-semibold">Share Configuration:</p>
+              <ul className="space-y-1 text-muted-foreground text-xs">
+                <li>• Proforma: {copyAiProforma ? `AI with ${adjustmentType} ${adjustmentPercent}%` : proformaType}</li>
+                <li>• Data: {useRealTimeData ? 'Real-time metrics' : 'Projected assumptions'}</li>
+                <li>• View: {allowHtmlView ? 'HTML spreadsheet enabled' : 'View-only mode'}</li>
+                <li>• Download: {allowDownload ? 'Enabled' : 'Disabled'}</li>
+                <li>• Expires: {expiryDays} days</li>
+              </ul>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+};

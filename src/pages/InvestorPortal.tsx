@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Lock, FileSpreadsheet, TrendingUp, Settings, ShieldCheck } from "lucide-react";
+import { Lock, FileSpreadsheet, TrendingUp, Settings, ShieldCheck, Download } from "lucide-react";
 import { ForecastTab } from "@/components/cfo/ForecastTab";
 import { InteractiveSpreadsheet } from "@/components/cfo/InteractiveSpreadsheet";
 import { CFOAIChat } from "@/components/cfo/CFOAIChat";
@@ -30,6 +30,13 @@ export default function InvestorPortal() {
   const [investorEmail, setInvestorEmail] = useState("");
   const [showDisclosure, setShowDisclosure] = useState(false);
   const [pendingAccessData, setPendingAccessData] = useState<any>(null);
+  const [shareConfig, setShareConfig] = useState<any>({
+    allowHtmlView: true,
+    allowDownload: false,
+    proformaType: 'ai',
+    adjustmentMultiplier: 1,
+    useRealTimeData: true,
+  });
 
   useEffect(() => {
     // Pre-fill access code from URL but don't auto-validate
@@ -83,6 +90,13 @@ export default function InvestorPortal() {
   const acceptDisclosure = () => {
     if (pendingAccessData) {
       setInvestorEmail(pendingAccessData.investor_email);
+      setShareConfig(pendingAccessData.share_config || {
+        allowHtmlView: true,
+        allowDownload: false,
+        proformaType: 'ai',
+        adjustmentMultiplier: 1,
+        useRealTimeData: true,
+      });
       setIsAuthenticated(true);
       setShowDisclosure(false);
       toast.success("Access granted! Welcome to the financial portal.");
@@ -262,6 +276,14 @@ export default function InvestorPortal() {
           </TabsList>
 
           <TabsContent value="forecast" className="space-y-6">
+            {shareConfig.allowDownload && (
+              <div className="flex justify-end mb-4">
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Forecast
+                </Button>
+              </div>
+            )}
             <div className="grid lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
                 <ForecastTab isReadOnly={true} />
@@ -273,6 +295,14 @@ export default function InvestorPortal() {
           </TabsContent>
 
           <TabsContent value="models" className="space-y-6">
+            {shareConfig.allowDownload && (
+              <div className="flex justify-end mb-4">
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Spreadsheet
+                </Button>
+              </div>
+            )}
             <div className="grid lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
                 <InteractiveSpreadsheet isReadOnly={true} />
