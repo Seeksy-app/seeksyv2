@@ -204,6 +204,13 @@ export default function MediaLibrary() {
     }
   };
 
+  const formatDuration = (seconds: number | null) => {
+    if (!seconds) return '-';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${String(secs).padStart(2, '0')}`;
+  };
+
   const sortedMediaFiles = [...mediaFiles]
     .filter(file => !filterSource || file.source === filterSource)
     .sort((a, b) => {
@@ -956,6 +963,7 @@ export default function MediaLibrary() {
                       </TableHead>
                       <TableHead className="w-96">Video</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Duration</TableHead>
                       <TableHead className="cursor-pointer" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
                         <div className="flex items-center gap-1">
                           Date
@@ -1047,8 +1055,11 @@ export default function MediaLibrary() {
                                 <Sparkles className="h-3 w-3" />
                                 <span className="text-xs font-medium">AI</span>
                               </Button>
-                            )}
-                           </div>
+                           )}
+                          </div>
+                         </TableCell>
+                         <TableCell className="text-sm">
+                           {formatDuration(file.duration_seconds)}
                          </TableCell>
                          <TableCell className="text-sm">
                            {format(new Date(file.created_at), "MMM dd, yyyy")}
@@ -1267,6 +1278,7 @@ export default function MediaLibrary() {
                       </TableHead>
                       <TableHead className="w-96">Recording</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Duration</TableHead>
                       <TableHead className="cursor-pointer" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
                         <div className="flex items-center gap-1">
                           Date
@@ -1349,8 +1361,11 @@ export default function MediaLibrary() {
                                 <Sparkles className="h-3 w-3" />
                                 <span className="text-xs font-medium">AI</span>
                               </Button>
-                            )}
+                           )}
                            </div>
+                         </TableCell>
+                         <TableCell className="text-sm">
+                           {formatDuration(recording.duration_seconds)}
                          </TableCell>
                          <TableCell className="text-sm">
                            {format(new Date(recording.created_at), "MMM dd, yyyy")}
