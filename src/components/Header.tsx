@@ -7,6 +7,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import seeksyLogo from "@/assets/seeksy-logo.png";
+import { MasterSearch } from "@/components/MasterSearch";
 
 interface HeaderProps {
   user?: User | null;
@@ -41,12 +42,18 @@ const Header = ({ user }: HeaderProps) => {
   return (
     <header className="border-b border-border bg-background sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             {user && (
               <SidebarTrigger />
             )}
           </div>
+
+          {user && (
+            <div className="flex-1 max-w-2xl">
+              <MasterSearch />
+            </div>
+          )}
 
           <nav className="flex items-center gap-3">
             {user && (

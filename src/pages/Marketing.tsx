@@ -836,10 +836,32 @@ const Marketing = () => {
                     className="group cursor-pointer hover:shadow-lg transition-all duration-200 overflow-hidden"
                     onClick={() => setSelectedTemplate(template)}
                   >
-                    <div className={`${template.thumbnail} h-48 relative flex items-center justify-center`}>
-                      <Icon className="h-16 w-16 text-white opacity-80" />
+                    <div className="h-64 relative overflow-hidden bg-muted">
+                      {/* Email Preview */}
+                      <div 
+                        className="w-full h-full transform scale-[0.3] origin-top-left"
+                        style={{ width: '333%', height: '333%' }}
+                      >
+                        <div 
+                          className="bg-white"
+                          dangerouslySetInnerHTML={{ __html: template.previewHtml.replace(/\{\{[^}]+\}\}/g, (match) => {
+                            const placeholders: Record<string, string> = {
+                              '{{company.LOGO}}': 'Your Company',
+                              '{{contact.FIRSTNAME}}': 'John',
+                              '{{contact.NAME}}': 'John Smith',
+                              '{{params.EVENT_NAME}}': 'Annual Gala',
+                              '{{params.EVENT_DATE}}': 'December 15, 2025',
+                              '{{params.EVENT_TIME}}': '7:00 PM',
+                              '{{params.EVENT_LOCATION}}': 'Grand Ballroom',
+                              '{{params.PRODUCT_NAME}}': 'Premium Plan',
+                              '{{params.DISCOUNT_CODE}}': 'SAVE20'
+                            };
+                            return placeholders[match] || 'Sample Text';
+                          }) }} 
+                        />
+                      </div>
                       {template.isPremium && (
-                        <Badge className="absolute top-3 right-3 bg-yellow-500 text-black">
+                        <Badge className="absolute top-3 right-3 bg-yellow-500 text-black z-10">
                           <Star className="h-3 w-3 mr-1" />
                           Premium
                         </Badge>
