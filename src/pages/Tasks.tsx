@@ -21,6 +21,8 @@ import { CategoryManager } from "@/components/tasks/CategoryManager";
 import { CategorySelect } from "@/components/tasks/CategorySelect";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTaskReminders } from "@/hooks/useTaskReminders";
+import { TaskComments } from "@/components/tasks/TaskComments";
+import { Separator } from "@/components/ui/separator";
 
 interface Task {
   id: string;
@@ -942,7 +944,7 @@ export default function Tasks() {
               Add Task
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingTask ? "Edit Task" : "Add New Task"}</DialogTitle>
               <DialogDescription>
@@ -1047,6 +1049,16 @@ export default function Tasks() {
                 {editingTask ? "Update Task" : "Create Task"}
               </Button>
             </form>
+
+            {editingTask && (
+              <>
+                <Separator className="my-6" />
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Notes & Comments</h3>
+                  <TaskComments taskId={editingTask.id} teamMembers={teamMembers} />
+                </div>
+              </>
+            )}
           </DialogContent>
         </Dialog>
         </div>
@@ -1222,7 +1234,11 @@ export default function Tasks() {
               {getSortedTasks().map((task) => {
                 const assignedUser = getAssignedUser(task.assigned_to);
                 return (
-                  <TableRow key={task.id}>
+                  <TableRow 
+                    key={task.id} 
+                    className="cursor-pointer hover:bg-accent/50"
+                    onClick={() => handleEdit(task)}
+                  >
                     <TableCell className="py-2">
                       <div className="font-medium">{task.title}</div>
                     </TableCell>
@@ -1341,7 +1357,10 @@ export default function Tasks() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
-                          onClick={() => handleEdit(task)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(task);
+                          }}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -1349,7 +1368,10 @@ export default function Tasks() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
-                          onClick={() => handleDelete(task.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(task.id);
+                          }}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
