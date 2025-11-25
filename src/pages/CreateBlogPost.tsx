@@ -188,21 +188,24 @@ const CreateBlogPost = () => {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-600";
-    if (score >= 50) return "text-yellow-600";
-    return "text-red-600";
+    if (score >= 80) return "text-brand-green";
+    if (score >= 70) return "text-green-500";
+    if (score >= 50) return "text-accent";
+    return "text-destructive";
   };
 
   const getScoreBgColor = (score: number) => {
-    if (score >= 80) return "bg-green-600";
-    if (score >= 50) return "bg-yellow-600";
-    return "bg-red-600";
+    if (score >= 80) return "bg-brand-green";
+    if (score >= 70) return "bg-green-500";
+    if (score >= 50) return "bg-accent";
+    return "bg-destructive";
   };
 
   const getSEOScoreBgColor = () => {
-    if (seoScore >= 80) return "bg-green-600";
-    if (seoScore >= 50) return "bg-yellow-600";
-    return "bg-red-600";
+    if (seoScore >= 80) return "bg-brand-green";
+    if (seoScore >= 70) return "bg-green-500";
+    if (seoScore >= 50) return "bg-accent";
+    return "bg-destructive";
   };
 
   const generateSlug = (title: string) => {
@@ -268,61 +271,70 @@ const CreateBlogPost = () => {
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="flex">
             {/* Left Sidebar - Score Navigation */}
-            <div className="w-48 border-r border-border bg-background fixed h-screen overflow-y-auto">
-              <div className="p-4 space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3 p-2 rounded hover:bg-accent cursor-pointer" onClick={() => setActiveSection("mention-boost")}>
-                    <Badge variant={seeksyAIScore >= 4 ? "default" : "secondary"} className={`w-12 ${getScoreBgColor(seeksyAIScore * 20)}`}>
-                      {seeksyAIScore}/5
+            <div className="w-56 border-r border-border bg-card fixed h-screen overflow-y-auto">
+              <div className="p-6 space-y-3">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/10 cursor-pointer transition-colors" onClick={() => setActiveSection("mention-boost")}>
+                    <Badge variant="outline" className={`w-14 h-8 text-sm font-bold justify-center ${getScoreBgColor(seeksyAIScore * 20)} text-white border-0`}>
+                      {seeksyAIScore * 20}%
                     </Badge>
-                    <div className="flex flex-col">
-                      <span className="text-xs font-medium">Seeksy AI Boost™</span>
-                      {seeksyAIScore >= 4 && <Badge variant="secondary" className="text-[10px] px-1 w-fit mt-0.5">NEW</Badge>}
+                    <div className="flex flex-col flex-1">
+                      <span className="text-sm font-semibold">Seeksy AI Boost™</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-2 rounded hover:bg-accent cursor-pointer" onClick={() => setActiveSection("seo-analyzer")}>
-                    <Badge variant="default" className={`w-12 ${getScoreBgColor(seoScore)}`}>{seoScore}</Badge>
-                    <span className="text-xs font-medium">SEO Analyzer</span>
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/10 cursor-pointer transition-colors" onClick={() => setActiveSection("seo-analyzer")}>
+                    <Badge variant="outline" className={`w-14 h-8 text-sm font-bold justify-center ${getScoreBgColor(seoScore)} text-white border-0`}>
+                      {seoScore}%
+                    </Badge>
+                    <span className="text-sm font-semibold">SEO Analyzer</span>
                   </div>
 
-                  <div className="flex items-center gap-3 p-2 rounded hover:bg-accent cursor-pointer" onClick={() => setActiveSection("page-title")}>
-                    <Badge variant="default" className={`w-12 ${getScoreBgColor(pageTitleScore)}`}>{pageTitleScore}</Badge>
-                    <span className="text-xs font-medium">Page Title</span>
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/10 cursor-pointer transition-colors" onClick={() => setActiveSection("page-title")}>
+                    <Badge variant="outline" className={`w-14 h-8 text-sm font-bold justify-center ${getScoreBgColor(pageTitleScore)} text-white border-0`}>
+                      {pageTitleScore}%
+                    </Badge>
+                    <span className="text-sm font-semibold">Page Title</span>
                   </div>
 
-                  <div className="flex items-center gap-3 p-2 rounded hover:bg-accent cursor-pointer" onClick={() => setActiveSection("meta-description")}>
-                    <Badge variant="default" className={`w-12 ${getScoreBgColor(metaDescScore)}`}>{metaDescScore}</Badge>
-                    <span className="text-xs font-medium">Meta Description</span>
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/10 cursor-pointer transition-colors" onClick={() => setActiveSection("meta-description")}>
+                    <Badge variant="outline" className={`w-14 h-8 text-sm font-bold justify-center ${getScoreBgColor(metaDescScore)} text-white border-0`}>
+                      {metaDescScore}%
+                    </Badge>
+                    <span className="text-sm font-semibold">Meta Description</span>
                   </div>
 
-                  <div className="flex items-center gap-3 p-2 rounded hover:bg-accent cursor-pointer" onClick={() => setActiveSection("content")}>
-                    <Badge variant="default" className={`w-12 ${getScoreBgColor(contentScore)}`}>{contentScore}</Badge>
-                    <span className="text-xs font-medium">Content</span>
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/10 cursor-pointer transition-colors" onClick={() => setActiveSection("content")}>
+                    <Badge variant="outline" className={`w-14 h-8 text-sm font-bold justify-center ${getScoreBgColor(contentScore)} text-white border-0`}>
+                      {contentScore}%
+                    </Badge>
+                    <span className="text-sm font-semibold">Content</span>
                   </div>
 
-                  <div className="flex items-center gap-3 p-2 rounded hover:bg-accent cursor-pointer" onClick={() => setActiveSection("primary-keyword")}>
-                    <div className="w-4 h-4 flex items-center justify-center">
-                      🔍
+                  <div className="border-t border-border pt-3 mt-4">
+                    <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/10 cursor-pointer transition-colors" onClick={() => setActiveSection("primary-keyword")}>
+                      <div className="w-5 h-5 flex items-center justify-center">
+                        🔍
+                      </div>
+                      <span className="text-sm text-muted-foreground font-medium">{keyword || "keyword"}</span>
                     </div>
-                    <span className="text-xs text-muted-foreground">{keyword || "keyword"}</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 ml-48">
-              <div className="max-w-5xl mx-auto px-8 py-8">
+            <div className="flex-1 ml-56">
+              <div className="max-w-5xl mx-auto px-8 py-10">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center justify-between mb-10">
                   <div className="flex items-center gap-4">
                     <Button type="button" variant="ghost" size="icon" onClick={() => navigate("/my-blog")}>
                       <ArrowLeft className="w-5 h-5" />
                     </Button>
-                    <h1 className="text-2xl font-bold">SEO Blog Post Editor</h1>
+                    <h1 className="text-3xl font-bold">SEO Blog Post Editor</h1>
                   </div>
-                  <Button type="submit" disabled={isSubmitting}>
+                  <Button type="submit" disabled={isSubmitting} size="lg">
                     <Save className="w-4 h-4 mr-2" />
                     Save Post
                   </Button>
@@ -333,8 +345,8 @@ const CreateBlogPost = () => {
                   control={form.control}
                   name="title"
                   render={({ field }) => (
-                    <FormItem className="mb-6">
-                      <FormLabel className="text-sm font-medium flex items-center gap-2">
+                    <FormItem className="mb-8">
+                      <FormLabel className="text-base font-semibold flex items-center gap-2">
                         Post Title (Heading 1)
                         <HelpCircle className="w-4 h-4 text-muted-foreground" />
                       </FormLabel>
@@ -342,7 +354,7 @@ const CreateBlogPost = () => {
                         <Input 
                           {...field} 
                           placeholder="Write Engaging Blog Posts That Keep Readers Hooked and Improve SEO" 
-                          className="text-lg font-medium"
+                          className="text-lg font-medium h-12"
                         />
                       </FormControl>
                       <FormMessage />
@@ -355,8 +367,8 @@ const CreateBlogPost = () => {
                   control={form.control}
                   name="content"
                   render={({ field }) => (
-                    <FormItem className="mb-6">
-                      <FormLabel className="text-sm font-medium flex items-center gap-2">
+                    <FormItem className="mb-8">
+                      <FormLabel className="text-base font-semibold flex items-center gap-2">
                         Content
                         <HelpCircle className="w-4 h-4 text-muted-foreground" />
                       </FormLabel>
@@ -364,110 +376,119 @@ const CreateBlogPost = () => {
                         <Textarea 
                           {...field} 
                           placeholder="Start writing your blog post content here..." 
-                          rows={12}
+                          rows={14}
                           className="font-sans"
                         />
                       </FormControl>
-                      <FormDescription className="flex justify-between">
+                      <FormDescription className="flex justify-between mt-2">
                         <span></span>
-                        <span className="text-sm">Words: {wordCount}</span>
+                        <span className="text-sm font-medium">Words: {wordCount}</span>
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <div className="mb-8">
-                  <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+                <div className="mb-12">
+                  <Button type="submit" disabled={isSubmitting} size="lg" className="w-full sm:w-auto">
                     <Save className="w-4 h-4 mr-2" />
                     Save Post
                   </Button>
                 </div>
 
                 {/* Seeksy AI Boost Section */}
-                <div className="mb-8" id="mention-boost">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Badge variant={seeksyAIScore >= 4 ? "default" : "secondary"} className={`text-lg px-3 py-1 ${getScoreBgColor(seeksyAIScore * 20)}`}>
-                      {seeksyAIScore}/5
-                    </Badge>
-                    <div>
-                      <h2 className="text-2xl font-bold">Seeksy AI Boost™</h2>
+                <Card className="mb-10" id="mention-boost">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center gap-4 mb-2">
+                      <Badge variant="outline" className={`text-lg px-4 py-1.5 font-bold ${getScoreBgColor(seeksyAIScore * 20)} text-white border-0`}>
+                        {seeksyAIScore * 20}%
+                      </Badge>
+                      <div className="flex-1">
+                        <CardTitle className="text-2xl font-bold">Seeksy AI Boost™</CardTitle>
+                      </div>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => window.open('/seeksy-ai-boost-help', '_blank')}>
+                        Help Article
+                        <HelpCircle className="w-4 h-4 ml-1" />
+                      </Button>
+                      <Button type="button" variant="ghost" size="icon">
+                        <Copy className="w-4 h-4" />
+                      </Button>
                     </div>
-                    <Button type="button" variant="ghost" size="sm" className="ml-auto" onClick={() => window.open('/seeksy-ai-boost-help', '_blank')}>
-                      Help Article
-                      <HelpCircle className="w-4 h-4 ml-1" />
-                    </Button>
-                    <Button type="button" variant="ghost" size="icon">
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                  </div>
 
-                  <p className="text-sm text-muted-foreground mb-6">
-                    <span className="font-medium">Feedback:</span> {seeksyAIScore >= 4 ? "You're almost there! One step left for full optimization and AI visibility." : "Keep optimizing to improve your AI visibility score."}
-                  </p>
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-semibold">Feedback:</span> {seeksyAIScore >= 4 ? "Excellent! You're optimized for AI visibility." : "Keep optimizing to improve your AI visibility score."}
+                    </p>
+                  </CardHeader>
+                  
+                  <CardContent>
 
-                  <Alert className="mb-6 border-primary/20 bg-primary/5">
-                    <AlertDescription className="text-sm">
-                      Seeksy AI Boost™ shows you best-known practices to help your content get mentioned in AI tools like ChatGPT and Google's AI Overviews.
-                    </AlertDescription>
-                  </Alert>
+                    <Alert className="mb-6 border-primary/20 bg-primary/5">
+                      <AlertDescription className="text-sm leading-relaxed">
+                        Seeksy AI Boost™ shows you best-known practices to help your content get mentioned in AI tools like ChatGPT and Google's AI Overviews.
+                      </AlertDescription>
+                    </Alert>
 
-                  <div className="w-full bg-muted rounded-full h-3 mb-6">
-                    <div 
-                      className={`h-3 rounded-full transition-all ${getScoreBgColor(seeksyAIScore * 20)}`}
-                      style={{ width: `${seeksyAIScore * 20}%` }}
-                    />
-                  </div>
+                    <div className="w-full bg-muted rounded-full h-4 mb-8">
+                      <div 
+                        className={`h-4 rounded-full transition-all ${getScoreBgColor(seeksyAIScore * 20)}`}
+                        style={{ width: `${seeksyAIScore * 20}%` }}
+                      />
+                    </div>
 
-                  <div className="space-y-3 mb-6">
-                    <div className="flex items-start gap-2">
-                      {watchedFields.content && (watchedFields.content.includes('<h2') || watchedFields.content.includes('## ')) ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                        {watchedFields.content && (watchedFields.content.includes('<h2') || watchedFields.content.includes('## ')) ? (
+                          <CheckCircle className="w-5 h-5 text-brand-green mt-0.5 flex-shrink-0" />
+                        ) : (
                         <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                       )}
-                      <span className="text-sm">You have an H2 and properly nested headings.</span>
+                      <span className="text-sm font-medium">You have an H2 and properly nested headings.</span>
                     </div>
-                    <div className="flex items-start gap-2">
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
                       {watchedFields.content && watchedFields.content.toLowerCase().includes('table of contents') ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                        <CheckCircle className="w-5 h-5 text-brand-green mt-0.5 flex-shrink-0" />
                       ) : (
                         <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                       )}
-                      <span className="text-sm">You have included a Table of Contents.</span>
+                      <span className="text-sm font-medium">You have included a Table of Contents.</span>
                     </div>
-                    <div className="flex items-start gap-2">
-                      <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm">Add FAQs to help surface your post in AI and voice results.</span>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                      <AlertCircle className="w-5 h-5 text-destructive mt-0.5 flex-shrink-0" />
+                      <span className="text-sm font-medium">Add FAQs to help surface your post in AI and voice results.</span>
                     </div>
-                    <div className="flex items-start gap-2">
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
                       {watchedFields.content && (watchedFields.content.includes('<li>') || watchedFields.content.includes('<table') || watchedFields.content.includes('- ') || watchedFields.content.includes('* ')) ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                        <CheckCircle className="w-5 h-5 text-brand-green mt-0.5 flex-shrink-0" />
                       ) : (
                         <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                       )}
-                      <span className="text-sm">You have used structured content (list or table).</span>
+                      <span className="text-sm font-medium">You have used structured content (list or table).</span>
                     </div>
-                    <div className="flex items-start gap-2">
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
                       {wordCount >= 1000 ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                        <CheckCircle className="w-5 h-5 text-brand-green mt-0.5 flex-shrink-0" />
                       ) : (
                         <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                       )}
-                      <span className="text-sm">You have enabled the <span className="text-red-600 underline cursor-pointer">SEO Supercharger</span> for improved AI visibility and GPTBot access.</span>
+                      <span className="text-sm font-medium">You have enabled the <span className="text-destructive underline cursor-pointer">SEO Supercharger</span> for improved AI visibility and GPTBot access.</span>
                     </div>
                   </div>
-                </div>
+                  </CardContent>
+                </Card>
 
                 {/* SEO Analysis Section */}
-                <div className="mb-8" id="seo-analyzer">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-2xl font-bold">SEO Analysis</h2>
-                    <Button type="button" variant="ghost" size="sm">
-                      Help Article
-                      <HelpCircle className="w-4 h-4 ml-1" />
-                    </Button>
-                  </div>
+                <Card className="mb-10" id="seo-analyzer">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-2xl font-bold">SEO Analysis</CardTitle>
+                      <Button type="button" variant="ghost" size="sm">
+                        Help Article
+                        <HelpCircle className="w-4 h-4 ml-1" />
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent>
 
                   <FormField
                     control={form.control}
@@ -562,253 +583,271 @@ const CreateBlogPost = () => {
                       </FormItem>
                     )}
                   />
-                </div>
+                  </CardContent>
+                </Card>
 
                 {/* Total SEO Score */}
-                <div className="mb-8">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Badge variant="default" className={`text-lg px-3 py-1 ${getScoreBgColor(seoScore)}`}>
-                      {seoScore}
-                    </Badge>
-                    <h2 className="text-2xl font-bold">Total SEO Score</h2>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-6">
-                    <span className="font-medium">Feedback:</span> {seoScore >= 80 ? "Great job! Your content passed the most important SEO checks successfully." : "Keep optimizing to improve your SEO score."}
-                  </p>
-                  <div className="w-full bg-muted rounded-full h-3">
-                    <div 
-                      className={`h-3 rounded-full transition-all ${getScoreBgColor(seoScore)}`}
-                      style={{ width: `${seoScore}%` }}
-                    />
-                  </div>
-                </div>
+                <Card className="mb-10">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center gap-4">
+                      <Badge variant="outline" className={`text-lg px-4 py-1.5 font-bold ${getScoreBgColor(seoScore)} text-white border-0`}>
+                        {seoScore}%
+                      </Badge>
+                      <CardTitle className="text-2xl font-bold">Total SEO Score</CardTitle>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      <span className="font-semibold">Feedback:</span> {seoScore >= 80 ? "Excellent! Your content passed all important SEO checks." : seoScore >= 70 ? "Great job! You're doing well." : "Keep optimizing to improve your SEO score."}
+                    </p>
+                  </CardHeader>
+                  
+                  <CardContent>
+                    <div className="w-full bg-muted rounded-full h-4">
+                      <div 
+                        className={`h-4 rounded-full transition-all ${getScoreBgColor(seoScore)}`}
+                        style={{ width: `${seoScore}%` }}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
 
                 {/* Page Title Score */}
-                <div className="mb-8" id="page-title">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <Badge variant="default" className={`text-lg px-3 py-1 ${getScoreBgColor(pageTitleScore)}`}>
-                        {pageTitleScore}
-                      </Badge>
-                      <h2 className="text-xl font-bold">Page Title Score</h2>
+                <Card className="mb-10" id="page-title">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <Badge variant="outline" className={`text-lg px-4 py-1.5 font-bold ${getScoreBgColor(pageTitleScore)} text-white border-0`}>
+                          {pageTitleScore}%
+                        </Badge>
+                        <CardTitle className="text-xl font-bold">Page Title Score</CardTitle>
+                      </div>
+                      <Button type="button" variant="outline" size="sm">
+                        <Edit3 className="w-4 h-4 mr-1" />
+                        Edit Page Title
+                      </Button>
                     </div>
-                    <Button type="button" variant="outline" size="sm">
-                      <Edit3 className="w-4 h-4 mr-1" />
-                      Edit Page Title
-                    </Button>
-                  </div>
+                  </CardHeader>
+                  
+                  <CardContent>
+                    <div className="w-full bg-muted rounded-full h-4 mb-6">
+                      <div 
+                        className={`h-4 rounded-full transition-all ${getScoreBgColor(pageTitleScore)}`}
+                        style={{ width: `${pageTitleScore}%` }}
+                      />
+                    </div>
 
-                  <div className="w-full bg-muted rounded-full h-3 mb-6">
-                    <div 
-                      className={`h-3 rounded-full transition-all ${getScoreBgColor(pageTitleScore)}`}
-                      style={{ width: `${pageTitleScore}%` }}
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-2">
-                      {watchedFields.title ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      )}
-                      <span className="text-sm">You've entered a Page Title</span>
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                        {watchedFields.title ? (
+                          <CheckCircle className="w-5 h-5 text-brand-green mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        )}
+                        <span className="text-sm font-medium">You've entered a Page Title</span>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                        {keyword && watchedFields.title?.toLowerCase().includes(keyword) ? (
+                          <CheckCircle className="w-5 h-5 text-brand-green mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        )}
+                        <span className="text-sm font-medium">The Keyword {`"${keyword || 'write engaging blog posts'}"`} is used in the Page Title</span>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                        {keyword && watchedFields.title?.toLowerCase().indexOf(keyword) === 0 ? (
+                          <CheckCircle className="w-5 h-5 text-brand-green mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        )}
+                        <span className="text-sm font-medium">The Keyword {`"${keyword || 'write engaging blog posts'}"`} is used toward the beginning of the Page Title</span>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                        {watchedFields.title && watchedFields.title.length >= 30 && watchedFields.title.length <= 60 ? (
+                          <CheckCircle className="w-5 h-5 text-brand-green mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        )}
+                        <span className="text-sm font-medium">
+                          The Page Title length is perfect, <strong>{60 - (watchedFields.title?.length || 0)} characters available</strong> ({watchedFields.title?.length || 0} of 60 characters used)
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-start gap-2">
-                      {keyword && watchedFields.title?.toLowerCase().includes(keyword) ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      )}
-                      <span className="text-sm">The Keyword {`"${keyword || 'write engaging blog posts'}"`} is used in the Page Title</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      {keyword && watchedFields.title?.toLowerCase().indexOf(keyword) === 0 ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      )}
-                      <span className="text-sm">The Keyword {`"${keyword || 'write engaging blog posts'}"`} is used toward the beginning of the Page Title</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      {watchedFields.title && watchedFields.title.length >= 30 && watchedFields.title.length <= 60 ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      )}
-                      <span className="text-sm">
-                        The Page Title length is perfect, <strong>{60 - (watchedFields.title?.length || 0)} characters available</strong> ({watchedFields.title?.length || 0} of 60 characters used)
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
 
                 {/* Meta Description Score */}
-                <div className="mb-8" id="meta-description">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <Badge variant="default" className={`text-lg px-3 py-1 ${getScoreBgColor(metaDescScore)}`}>
-                        {metaDescScore}
-                      </Badge>
-                      <h2 className="text-xl font-bold">Meta Description Score</h2>
+                <Card className="mb-10" id="meta-description">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <Badge variant="outline" className={`text-lg px-4 py-1.5 font-bold ${getScoreBgColor(metaDescScore)} text-white border-0`}>
+                          {metaDescScore}%
+                        </Badge>
+                        <CardTitle className="text-xl font-bold">Meta Description Score</CardTitle>
+                      </div>
+                      <Button type="button" variant="outline" size="sm">
+                        <Edit3 className="w-4 h-4 mr-1" />
+                        Edit Meta Description
+                      </Button>
                     </div>
-                    <Button type="button" variant="outline" size="sm">
-                      <Edit3 className="w-4 h-4 mr-1" />
-                      Edit Meta Description
-                    </Button>
-                  </div>
+                  </CardHeader>
+                  
+                  <CardContent>
+                    <div className="w-full bg-muted rounded-full h-4 mb-6">
+                      <div 
+                        className={`h-4 rounded-full transition-all ${getScoreBgColor(metaDescScore)}`}
+                        style={{ width: `${metaDescScore}%` }}
+                      />
+                    </div>
 
-                  <div className="w-full bg-muted rounded-full h-3 mb-6">
-                    <div 
-                      className={`h-3 rounded-full transition-all ${getScoreBgColor(metaDescScore)}`}
-                      style={{ width: `${metaDescScore}%` }}
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-2">
-                      {watchedFields.seo_description ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      )}
-                      <span className="text-sm">You've entered a Meta Description</span>
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                        {watchedFields.seo_description ? (
+                          <CheckCircle className="w-5 h-5 text-brand-green mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        )}
+                        <span className="text-sm font-medium">You've entered a Meta Description</span>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                        {keyword && watchedFields.seo_description?.toLowerCase().includes(keyword) ? (
+                          <CheckCircle className="w-5 h-5 text-brand-green mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        )}
+                        <span className="text-sm font-medium">The Keyword {`"${keyword || 'write engaging blog posts'}"`} is used in the Meta Description</span>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                        {watchedFields.seo_description && watchedFields.seo_description.length >= 120 && watchedFields.seo_description.length <= 160 ? (
+                          <CheckCircle className="w-5 h-5 text-brand-green mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        )}
+                        <span className="text-sm font-medium">
+                          The Meta Description length is perfect, <strong>{160 - (watchedFields.seo_description?.length || 0)} characters available</strong> ({watchedFields.seo_description?.length || 0} of 160 characters used)
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-start gap-2">
-                      {keyword && watchedFields.seo_description?.toLowerCase().includes(keyword) ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      )}
-                      <span className="text-sm">The Keyword {`"${keyword || 'write engaging blog posts'}"`} is used in the Meta Description</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      {watchedFields.seo_description && watchedFields.seo_description.length >= 120 && watchedFields.seo_description.length <= 160 ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      )}
-                      <span className="text-sm">
-                        The Meta Description length is perfect, <strong>{160 - (watchedFields.seo_description?.length || 0)} characters available</strong> ({watchedFields.seo_description?.length || 0} of 160 characters used)
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
 
                 {/* Content Score */}
-                <div className="mb-8" id="content">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <Badge variant="default" className={`text-lg px-3 py-1 ${getScoreBgColor(contentScore)}`}>
-                        {contentScore}
-                      </Badge>
-                      <h2 className="text-xl font-bold">Content Score</h2>
+                <Card className="mb-10" id="content">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <Badge variant="outline" className={`text-lg px-4 py-1.5 font-bold ${getScoreBgColor(contentScore)} text-white border-0`}>
+                          {contentScore}%
+                        </Badge>
+                        <CardTitle className="text-xl font-bold">Content Score</CardTitle>
+                      </div>
+                      <Button type="button" variant="outline" size="sm">
+                        <Edit3 className="w-4 h-4 mr-1" />
+                        Edit Content
+                      </Button>
                     </div>
-                    <Button type="button" variant="outline" size="sm">
-                      <Edit3 className="w-4 h-4 mr-1" />
-                      Edit Content
-                    </Button>
-                  </div>
+                  </CardHeader>
+                  
+                  <CardContent>
+                    <div className="w-full bg-muted rounded-full h-4 mb-6">
+                      <div 
+                        className={`h-4 rounded-full transition-all ${getScoreBgColor(contentScore)}`}
+                        style={{ width: `${contentScore}%` }}
+                      />
+                    </div>
 
-                  <div className="w-full bg-muted rounded-full h-3 mb-6">
-                    <div 
-                      className={`h-3 rounded-full transition-all ${getScoreBgColor(contentScore)}`}
-                      style={{ width: `${contentScore}%` }}
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-2">
-                      {keyword && generateSlug(watchedFields.title || "").includes(keyword.replace(/\s+/g, '-')) ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      )}
-                      <span className="text-sm">Keyword {`"${keyword || 'write engaging blog posts'}"`} is used in the Slug</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      {watchedFields.title ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      )}
-                      <span className="text-sm">You've added a Post Title (H1)</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      {keyword && watchedFields.title?.toLowerCase().includes(keyword) ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      )}
-                      <span className="text-sm">Keyword {`"${keyword || 'write engaging blog posts'}"`} is used in the Post Title (H1)</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      {watchedFields.content ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      )}
-                      <span className="text-sm">You've added text to the post</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      {wordCount >= 1000 ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      )}
-                      <span className="text-sm">Your text contains at least 1000 words (You have {wordCount} words)</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      {keyword && watchedFields.content && watchedFields.content.substring(0, 200).toLowerCase().includes(keyword) ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      )}
-                      <span className="text-sm">The Keyword {`"${keyword || 'write engaging blog posts'}"`} is used in the first paragraph of the text</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      {(() => {
-                        const keywordCount = keyword && watchedFields.content ? (watchedFields.content.toLowerCase().match(new RegExp(keyword, 'g')) || []).length : 0;
-                        const density = wordCount > 0 ? (keywordCount / wordCount) * 100 : 0;
-                        return density >= 0.5 && density <= 2.5;
-                      })() ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      )}
-                      <span className="text-sm">
-                        Your keyword density (0.54%) is great, the Keyword {`"${keyword || 'write engaging blog posts'}"`} is used {(() => {
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                        {keyword && generateSlug(watchedFields.title || "").includes(keyword.replace(/\s+/g, '-')) ? (
+                          <CheckCircle className="w-5 h-5 text-brand-green mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        )}
+                        <span className="text-sm font-medium">Keyword {`"${keyword || 'write engaging blog posts'}"`} is used in the Slug</span>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                        {watchedFields.title ? (
+                          <CheckCircle className="w-5 h-5 text-brand-green mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        )}
+                        <span className="text-sm font-medium">You've added a Post Title (H1)</span>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                        {keyword && watchedFields.title?.toLowerCase().includes(keyword) ? (
+                          <CheckCircle className="w-5 h-5 text-brand-green mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        )}
+                        <span className="text-sm font-medium">Keyword {`"${keyword || 'write engaging blog posts'}"`} is used in the Post Title (H1)</span>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                        {watchedFields.content ? (
+                          <CheckCircle className="w-5 h-5 text-brand-green mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        )}
+                        <span className="text-sm font-medium">You've added text to the post</span>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                        {wordCount >= 1000 ? (
+                          <CheckCircle className="w-5 h-5 text-brand-green mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        )}
+                        <span className="text-sm font-medium">Your text contains at least 1000 words (You have {wordCount} words)</span>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                        {keyword && watchedFields.content && watchedFields.content.substring(0, 200).toLowerCase().includes(keyword) ? (
+                          <CheckCircle className="w-5 h-5 text-brand-green mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        )}
+                        <span className="text-sm font-medium">The Keyword {`"${keyword || 'write engaging blog posts'}"`} is used in the first paragraph of the text</span>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                        {(() => {
                           const keywordCount = keyword && watchedFields.content ? (watchedFields.content.toLowerCase().match(new RegExp(keyword, 'g')) || []).length : 0;
-                          return keywordCount;
-                        })()} time(s)
-                      </span>
+                          const density = wordCount > 0 ? (keywordCount / wordCount) * 100 : 0;
+                          return density >= 0.5 && density <= 2.5;
+                        })() ? (
+                          <CheckCircle className="w-5 h-5 text-brand-green mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        )}
+                        <span className="text-sm font-medium">
+                          Your keyword density (0.54%) is great, the Keyword {`"${keyword || 'write engaging blog posts'}"`} is used {(() => {
+                            const keywordCount = keyword && watchedFields.content ? (watchedFields.content.toLowerCase().match(new RegExp(keyword, 'g')) || []).length : 0;
+                            return keywordCount;
+                          })()} time(s)
+                        </span>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                        {watchedFields.featured_image_url && keyword ? (
+                          <CheckCircle className="w-5 h-5 text-brand-green mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        )}
+                        <span className="text-sm font-medium">You've used the Keyword {`"${keyword || 'write engaging blog posts'}"`} in the file name of an image</span>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                        {watchedFields.featured_image_url ? (
+                          <CheckCircle className="w-5 h-5 text-brand-green mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        )}
+                        <span className="text-sm font-medium">You've added an image</span>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                        {watchedFields.featured_image_url && keyword ? (
+                          <CheckCircle className="w-5 h-5 text-brand-green mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        )}
+                        <span className="text-sm font-medium">You've used the Keyword {`"${keyword || 'write engaging blog posts'}"`} in the Alternate Text (alt tag) of an image</span>
+                      </div>
                     </div>
-                    <div className="flex items-start gap-2">
-                      {watchedFields.featured_image_url && keyword ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      )}
-                      <span className="text-sm">You've used the Keyword {`"${keyword || 'write engaging blog posts'}"`} in the file name of an image</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      {watchedFields.featured_image_url ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      )}
-                      <span className="text-sm">You've added an image</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      {watchedFields.featured_image_url && keyword ? (
-                        <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      ) : (
-                        <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      )}
-                      <span className="text-sm">You've used the Keyword {`"${keyword || 'write engaging blog posts'}"`} in the Alternate Text (alt tag) of an image</span>
-                    </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
 
                 {/* Featured Image Upload */}
                 <Card className="mb-8">
