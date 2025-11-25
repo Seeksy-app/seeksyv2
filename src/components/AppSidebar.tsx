@@ -353,13 +353,10 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     ...(pinnedModules.includes("polls") && modulePrefs.polls ? [{ title: "Polls", url: "/polls", icon: BarChart3 }] : []),
     ...(pinnedModules.includes("awards") && modulePrefs.awards ? [{ title: "Awards", url: "/awards", icon: Trophy }] : []),
     ...(pinnedModules.includes("qr_codes") && modulePrefs.qr_codes ? [{ title: "QR Codes", url: "/qr-codes", icon: QrCode }] : []),
-    ...(pinnedModules.includes("contacts") ? [{ title: "Contacts", url: "/contacts", icon: Users }] : []),
     ...(pinnedModules.includes("podcasts") ? [{ title: "Podcasts", url: "/podcasts", icon: Mic }] : []),
     // Media is shown as its own section with Studio, Media Library, Create Clips
     ...(pinnedModules.includes("civic") && modulePrefs.civic ? [{ title: "Civic Tools", url: "/civic-blog", icon: Building2 }] : []),
     ...(pinnedModules.includes("team_chat") && modulePrefs.team_chat ? [{ title: "Team Chat", url: "/team-chat", icon: MessageSquare }] : []),
-    ...(pinnedModules.includes("marketing") && modulePrefs.marketing ? [{ title: "Marketing", url: "/crm", icon: Mail }] : []),
-    ...(pinnedModules.includes("sms") && modulePrefs.sms ? [{ title: "SMS", url: "/sms", icon: Smartphone }] : []),
   ];
 
   const rssPodcastItems = [
@@ -383,7 +380,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
   const engagementItems = [
     ...(pinnedModules.includes("contacts") ? [{ title: "Contacts", url: "/crm", icon: Users }] : []),
-    ...(pinnedModules.includes("marketing") && modulePrefs.marketing ? [{ title: "Marketing", url: "/crm", icon: Send }] : []),
+    ...(pinnedModules.includes("marketing") && modulePrefs.marketing ? [{ title: "Emails", url: "/email-history", icon: Mail }] : []),
     ...(pinnedModules.includes("sms") && modulePrefs.sms ? [{ title: "SMS", url: "/sms", icon: Smartphone }] : []),
     ...(pinnedModules.includes("team_chat") && modulePrefs.team_chat ? [{ title: "Team Chat", url: "/team-chat", icon: MessageSquare }] : []),
   ];

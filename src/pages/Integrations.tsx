@@ -169,13 +169,26 @@ const Integrations = () => {
     // Special handling: PM requires Contacts (CRM)
     if (moduleName === 'project_management' && newValue) {
       if (!modules.contacts) {
-        toast({
-          title: "Enabling Project Management + Contacts",
-          description: "Project Management requires Contacts to manage clients. Both will be activated.",
-        });
+        // Show prominent AlertDialog instead of toast
+        const confirmPM = window.confirm(
+          "Project Management requires Contacts to manage clients.\n\n" +
+          "Both Project Management and Contacts will be activated.\n\n" +
+          "Click OK to continue."
+        );
+        
+        if (!confirmPM) {
+          return; // User cancelled
+        }
+        
         // Enable both PM and Contacts
         await performToggle('contacts', true);
         await performToggle('project_management', true);
+        
+        toast({
+          title: "✅ Project Management + Contacts Activated",
+          description: "Both apps are now active and available in your sidebar.",
+          duration: 5000,
+        });
         return;
       }
     }
@@ -198,34 +211,37 @@ const Integrations = () => {
         ? `${moduleNameStr}_enabled`
         : `module_${moduleNameStr}_enabled`;
 
-      // If enabling, auto-pin to sidebar
+      // Fetch current pinned_modules
+      const { data: currentPrefs } = await supabase
+        .from("user_preferences")
+        .select("pinned_modules")
+        .eq("user_id", user.id)
+        .single();
+
+      const currentPinned = Array.isArray(currentPrefs?.pinned_modules) 
+        ? currentPrefs.pinned_modules 
+        : [];
+
+      console.log("Current pinned before toggle:", currentPinned);
+
+      // Prepare update data
       let updateData: any = {
         user_id: user.id,
         [columnName]: newValue,
       };
 
       if (newValue) {
-        // Fetch current pinned_modules
-        const { data: currentPrefs } = await supabase
-          .from("user_preferences")
-          .select("pinned_modules")
-          .eq("user_id", user.id)
-          .single();
-
-        const currentPinned = Array.isArray(currentPrefs?.pinned_modules) 
-          ? currentPrefs.pinned_modules 
-          : [];
-
-        console.log("Current pinned before toggle:", currentPinned);
-
-        // Add module to pinned if not already there
+        // If enabling, auto-pin to sidebar
         if (!currentPinned.includes(moduleNameStr)) {
           updateData.pinned_modules = [...currentPinned, moduleNameStr];
           console.log("Adding to pinned:", updateData.pinned_modules);
         } else {
-          // Even if already pinned, ensure we're setting it (in case of data inconsistency)
           updateData.pinned_modules = currentPinned;
         }
+      } else {
+        // If disabling, remove from pinned
+        updateData.pinned_modules = currentPinned.filter((m: string) => m !== moduleNameStr);
+        console.log("Removing from pinned:", updateData.pinned_modules);
       }
 
       console.log("Upserting preferences:", updateData);
