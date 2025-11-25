@@ -231,10 +231,10 @@ export default function PostProductionStudio() {
 
   const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const timeline = timelineRef.current;
-    if (!timeline) return;
+    if (!timeline || !duration) return;
     const rect = timeline.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
-    seekTo(Math.max(0, Math.min(duration, percent * duration)));
+    const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    seekTo(percent * duration);
   };
 
   const handleTimelineDrag = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -708,8 +708,13 @@ export default function PostProductionStudio() {
               ref={videoRef}
               src={mediaFile.file_url}
               className="max-h-full max-w-full"
+              preload="metadata"
               onPlay={() => setIsPlaying(true)}
               onPause={() => setIsPlaying(false)}
+              onLoadedMetadata={(e) => {
+                const video = e.currentTarget;
+                setDuration(video.duration);
+              }}
             />
           </div>
 
@@ -718,28 +723,33 @@ export default function PostProductionStudio() {
             <div className="mb-4">
               <div 
                 ref={timelineRef}
-                className="relative h-2 bg-muted rounded-full cursor-pointer group"
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleTimelineDrag}
-                onMouseUp={handleMouseUp}
+                className={`relative h-3 bg-muted rounded-full group ${duration > 0 ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}
+                onMouseDown={duration > 0 ? handleMouseDown : undefined}
+                onClick={duration > 0 ? handleTimelineClick : undefined}
               >
                 <div
-                  className="absolute h-full bg-primary rounded-full transition-all"
-                  style={{ width: `${(currentTime / duration) * 100}%` }}
+                  className="absolute h-full bg-primary rounded-full transition-all pointer-events-none"
+                  style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
                 />
                 
                 {/* Scrubber Handle */}
-                <div
-                  className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-primary rounded-full shadow-lg cursor-grab active:cursor-grabbing transform transition-transform group-hover:scale-110"
-                  style={{ left: `${(currentTime / duration) * 100}%`, marginLeft: '-8px' }}
-                />
+                {duration > 0 && (
+                  <div
+                    className="absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-primary rounded-full shadow-lg border-2 border-background cursor-grab active:cursor-grabbing transform transition-transform group-hover:scale-125"
+                    style={{ 
+                      left: `${(currentTime / duration) * 100}%`, 
+                      marginLeft: '-10px',
+                      pointerEvents: 'none'
+                    }}
+                  />
+                )}
                 
                 <TooltipProvider>
-                  {markers.map(marker => (
+                  {duration > 0 && markers.map(marker => (
                     <Tooltip key={marker.id}>
                       <TooltipTrigger asChild>
                         <div
-                          className={`absolute top-0 bottom-0 w-1 ${getMarkerColor(marker.type)} cursor-pointer hover:w-1.5 transition-all z-10`}
+                          className={`absolute top-0 bottom-0 w-1.5 ${getMarkerColor(marker.type)} cursor-pointer hover:w-2 transition-all z-10 rounded-full`}
                           style={{ left: `${(marker.timestamp / duration) * 100}%` }}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -757,9 +767,9 @@ export default function PostProductionStudio() {
                   ))}
                 </TooltipProvider>
               </div>
-              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+              <div className="flex justify-between text-xs text-muted-foreground mt-2">
                 <span>{formatTime(currentTime)}</span>
-                <span>{formatTime(duration)}</span>
+                <span>{duration > 0 ? formatTime(duration) : '0:00'}</span>
               </div>
             </div>
 
