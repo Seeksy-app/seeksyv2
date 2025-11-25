@@ -111,6 +111,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     team_chat: false,
     monetization: false,
     project_management: false,
+    lead_pixel: false,
     rss_podcast: false,
     blog: false,
     events: false,
@@ -259,7 +260,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     
     const { data } = await supabase
       .from("user_preferences")
-      .select("module_awards_enabled, module_media_enabled, module_civic_enabled, module_influencer_enabled, module_agency_enabled, module_team_chat_enabled, module_monetization_enabled, module_project_management_enabled, module_rss_podcast_posting_enabled, module_blog_enabled, module_events_enabled, module_signup_sheets_enabled, module_polls_enabled, module_qr_codes_enabled, module_marketing_enabled, module_sms_enabled, meetings_enabled, pinned_modules")
+      .select("module_awards_enabled, module_media_enabled, module_civic_enabled, module_influencer_enabled, module_agency_enabled, module_team_chat_enabled, module_monetization_enabled, module_project_management_enabled, module_lead_pixel_enabled, module_rss_podcast_posting_enabled, module_blog_enabled, module_events_enabled, module_signup_sheets_enabled, module_polls_enabled, module_qr_codes_enabled, module_marketing_enabled, module_sms_enabled, meetings_enabled, pinned_modules")
       .eq("user_id", user.id)
       .maybeSingle();
     
@@ -275,6 +276,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         team_chat: (data as any).module_team_chat_enabled || false,
         monetization: (data as any).module_monetization_enabled || false,
         project_management: (data as any).module_project_management_enabled || false,
+        lead_pixel: (data as any).module_lead_pixel_enabled || false,
         rss_podcast: (data as any).module_rss_podcast_posting_enabled || false,
         blog: (data as any).module_blog_enabled || false,
         events: (data as any).module_events_enabled || false,
@@ -410,6 +412,9 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       { title: "Tickets", url: "/tickets", icon: CheckSquare },
       { title: "Proposals", url: "/proposals", icon: FileCheck },
       { title: "Invoices", url: "/invoices", icon: FileText },
+    ] : []),
+    ...(pinnedModules.includes("lead_pixel") && modulePrefs.lead_pixel ? [
+      { title: "Lead Pixel", url: "/leads-dashboard", icon: Target },
     ] : []),
   ];
 

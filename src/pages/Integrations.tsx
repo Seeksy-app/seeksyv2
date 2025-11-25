@@ -56,6 +56,7 @@ const Integrations = () => {
     qr_codes: false,
     marketing: false,
     sms: false,
+    lead_pixel: false,
   });
   const [socialConnections, setSocialConnections] = useState<any[]>([]);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -936,6 +937,21 @@ const Integrations = () => {
                   isAdmin={isAdmin}
                   onToggle={() => toggleModule('monetization')}
                   onEdit={() => handleEditMetadata('monetization')}
+                />
+              )}
+
+              {matchesSearch('Lead Pixel', 'Invisible tracking pixel to capture website visitors and behavioral data. Track page views, session duration, and geo location.') && (
+                <IntegrationCard
+                  id="lead_pixel"
+                  icon={Target}
+                  iconGradient="from-violet-500 to-purple-600"
+                  title={getMetadata('lead_pixel')?.title || 'Lead Pixel'}
+                  description={getMetadata('lead_pixel')?.description || 'Invisible tracking pixel to capture website visitors and behavioral data. Track page views, session duration, and geo location.'}
+                  tooltip={getMetadata('lead_pixel')?.tooltip_text || 'Track website visitors invisibly and capture behavioral data'}
+                  isActive={modules.lead_pixel}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('lead_pixel')}
+                  onEdit={() => handleEditMetadata('lead_pixel')}
                 />
               )}
             </div>

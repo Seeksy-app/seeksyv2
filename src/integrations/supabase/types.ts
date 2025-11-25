@@ -6840,6 +6840,7 @@ export type Database = {
           module_civic_enabled: boolean | null
           module_events_enabled: boolean | null
           module_influencer_enabled: boolean | null
+          module_lead_pixel_enabled: boolean | null
           module_marketing_enabled: boolean | null
           module_media_enabled: boolean | null
           module_monetization_enabled: boolean | null
@@ -6876,6 +6877,7 @@ export type Database = {
           module_civic_enabled?: boolean | null
           module_events_enabled?: boolean | null
           module_influencer_enabled?: boolean | null
+          module_lead_pixel_enabled?: boolean | null
           module_marketing_enabled?: boolean | null
           module_media_enabled?: boolean | null
           module_monetization_enabled?: boolean | null
@@ -6912,6 +6914,7 @@ export type Database = {
           module_civic_enabled?: boolean | null
           module_events_enabled?: boolean | null
           module_influencer_enabled?: boolean | null
+          module_lead_pixel_enabled?: boolean | null
           module_marketing_enabled?: boolean | null
           module_media_enabled?: boolean | null
           module_monetization_enabled?: boolean | null
