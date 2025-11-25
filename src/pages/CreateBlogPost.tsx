@@ -271,44 +271,72 @@ const CreateBlogPost = () => {
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="flex">
             {/* Left Sidebar - Score Navigation */}
-            <div className="w-56 border-r border-border bg-card fixed h-screen overflow-y-auto">
+            <div className="w-80 border-r border-border bg-card fixed h-screen overflow-y-auto">
               <div className="p-6 space-y-3">
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/10 cursor-pointer transition-colors" onClick={() => setActiveSection("mention-boost")}>
-                    <Badge variant="outline" className={`w-14 h-8 text-sm font-bold justify-center ${getScoreBgColor(seeksyAIScore * 20)} text-white border-0`}>
-                      {seeksyAIScore * 20}%
-                    </Badge>
-                    <div className="flex flex-col flex-1">
+                  <div className="p-3 rounded-lg hover:bg-accent/10 cursor-pointer transition-colors" onClick={() => setActiveSection("mention-boost")}>
+                    <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-semibold">Seeksy AI Boost™</span>
+                      <span className="text-xs font-bold">{seeksyAIScore * 20}%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full transition-all duration-300 ${getScoreBgColor(seeksyAIScore * 20)}`}
+                        style={{ width: `${seeksyAIScore * 20}%` }}
+                      />
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/10 cursor-pointer transition-colors" onClick={() => setActiveSection("seo-analyzer")}>
-                    <Badge variant="outline" className={`w-14 h-8 text-sm font-bold justify-center ${getScoreBgColor(seoScore)} text-white border-0`}>
-                      {seoScore}%
-                    </Badge>
-                    <span className="text-sm font-semibold">SEO Analyzer</span>
+                  <div className="p-3 rounded-lg hover:bg-accent/10 cursor-pointer transition-colors" onClick={() => setActiveSection("seo-analyzer")}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold">SEO Analyzer</span>
+                      <span className="text-xs font-bold">{seoScore}%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full transition-all duration-300 ${getScoreBgColor(seoScore)}`}
+                        style={{ width: `${seoScore}%` }}
+                      />
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/10 cursor-pointer transition-colors" onClick={() => setActiveSection("page-title")}>
-                    <Badge variant="outline" className={`w-14 h-8 text-sm font-bold justify-center ${getScoreBgColor(pageTitleScore)} text-white border-0`}>
-                      {pageTitleScore}%
-                    </Badge>
-                    <span className="text-sm font-semibold">Page Title</span>
+                  <div className="p-3 rounded-lg hover:bg-accent/10 cursor-pointer transition-colors" onClick={() => setActiveSection("page-title")}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold">Page Title</span>
+                      <span className="text-xs font-bold">{pageTitleScore}%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full transition-all duration-300 ${getScoreBgColor(pageTitleScore)}`}
+                        style={{ width: `${pageTitleScore}%` }}
+                      />
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/10 cursor-pointer transition-colors" onClick={() => setActiveSection("meta-description")}>
-                    <Badge variant="outline" className={`w-14 h-8 text-sm font-bold justify-center ${getScoreBgColor(metaDescScore)} text-white border-0`}>
-                      {metaDescScore}%
-                    </Badge>
-                    <span className="text-sm font-semibold">Meta Description</span>
+                  <div className="p-3 rounded-lg hover:bg-accent/10 cursor-pointer transition-colors" onClick={() => setActiveSection("meta-description")}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold">Meta Description</span>
+                      <span className="text-xs font-bold">{metaDescScore}%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full transition-all duration-300 ${getScoreBgColor(metaDescScore)}`}
+                        style={{ width: `${metaDescScore}%` }}
+                      />
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/10 cursor-pointer transition-colors" onClick={() => setActiveSection("content")}>
-                    <Badge variant="outline" className={`w-14 h-8 text-sm font-bold justify-center ${getScoreBgColor(contentScore)} text-white border-0`}>
-                      {contentScore}%
-                    </Badge>
-                    <span className="text-sm font-semibold">Content</span>
+                  <div className="p-3 rounded-lg hover:bg-accent/10 cursor-pointer transition-colors" onClick={() => setActiveSection("content")}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold">Content</span>
+                      <span className="text-xs font-bold">{contentScore}%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full transition-all duration-300 ${getScoreBgColor(contentScore)}`}
+                        style={{ width: `${contentScore}%` }}
+                      />
+                    </div>
                   </div>
 
                   <div className="border-t border-border pt-3 mt-4">
@@ -324,7 +352,7 @@ const CreateBlogPost = () => {
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 ml-56">
+            <div className="flex-1 ml-80">
               <div className="max-w-5xl mx-auto px-8 py-10">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-10">

@@ -1,9 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Plus, Mic, Music, Download } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Plus, Mic, Music, Download, Rss, Copy, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const Podcasts = () => {
   const navigate = useNavigate();
@@ -32,6 +35,11 @@ const Podcasts = () => {
     enabled: !!user,
   });
 
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied to clipboard!`);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-6">
       <div className="max-w-7xl mx-auto">
@@ -43,7 +51,7 @@ const Podcasts = () => {
               Podcasts
             </h1>
             <p className="text-muted-foreground mt-1">
-              Manage your podcast shows and episodes
+              Manage your podcast shows, episodes, and RSS feeds
             </p>
           </div>
           
@@ -58,6 +66,78 @@ const Podcasts = () => {
             </Button>
           </div>
         </div>
+
+        {/* RSS Feed Management */}
+        {user && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Rss className="w-5 h-5" />
+                RSS Feed URL
+              </CardTitle>
+              <CardDescription>
+                Your unique RSS feed URL for podcast directories and platforms
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="rss-url">Your RSS Feed URL</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="rss-url"
+                    value={`https://seeksy.io/rss/${user.id}`}
+                    readOnly
+                    className="font-mono text-sm"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => copyToClipboard(`https://seeksy.io/rss/${user.id}`, "RSS URL")}
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => window.open(`https://seeksy.io/rss/${user.id}`, '_blank')}
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Use this URL to submit your podcast to Apple Podcasts, Spotify, Google Podcasts, and other directories
+                </p>
+              </div>
+
+              <div className="p-4 bg-muted/50 rounded-lg space-y-2">
+                <h4 className="text-sm font-semibold">Quick Directory Links:</h4>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open('https://podcastsconnect.apple.com/', '_blank')}
+                  >
+                    Apple Podcasts
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open('https://podcasters.spotify.com/', '_blank')}
+                  >
+                    Spotify
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open('https://podcastsmanager.google.com/', '_blank')}
+                  >
+                    Google Podcasts
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Podcasts Grid */}
         {isLoading ? (
