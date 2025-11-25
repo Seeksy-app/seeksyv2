@@ -94,7 +94,9 @@ export default function VideoUploader({
 
   const uploadSmallFile = async (file: File, session: any) => {
     const timestamp = Date.now();
-    const fileName = `${session.user.id}/${timestamp}-${file.name}`;
+    // Sanitize filename: remove special chars, replace spaces with hyphens
+    const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '-').replace(/--+/g, '-');
+    const fileName = `${session.user.id}/${timestamp}-${sanitizedName}`;
 
     // Simulate progress updates since Supabase SDK doesn't provide native progress
     const progressInterval = setInterval(() => {
@@ -144,7 +146,9 @@ export default function VideoUploader({
   };
 
   const uploadLargeFile = async (file: File, session: any) => {
-    const objectName = `${session.user.id}/${Date.now()}-${file.name}`;
+    // Sanitize filename: remove special chars, replace spaces with hyphens
+    const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '-').replace(/--+/g, '-');
+    const objectName = `${session.user.id}/${Date.now()}-${sanitizedName}`;
     
     return new Promise((resolve, reject) => {
       const upload = new tus.Upload(file, {
