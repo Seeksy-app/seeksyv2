@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { AICameraProcessingDialog } from "@/components/media/AICameraProcessingDialog";
+import { PostProductionTutorial } from "@/components/media/PostProductionTutorial";
 import { 
   ArrowLeft, 
   Play, 
@@ -30,7 +31,8 @@ import {
   Undo,
   Redo,
   X,
-  Camera
+  Camera,
+  HelpCircle
 } from "lucide-react";
 
 interface Marker {
@@ -54,6 +56,7 @@ export default function PostProductionStudio() {
   const [selectedMarker, setSelectedMarker] = useState<Marker | null>(null);
   const [activeTab, setActiveTab] = useState("tools");
   const [cameraProcessingOpen, setCameraProcessingOpen] = useState(false);
+  const [tutorialOpen, setTutorialOpen] = useState(false);
 
   // Fetch media file
   const { data: mediaFile, isLoading } = useQuery({
@@ -230,6 +233,10 @@ export default function PostProductionStudio() {
           </div>
         </div>
         <div className="flex gap-2">
+          <Button variant="ghost" size="sm" onClick={() => setTutorialOpen(true)}>
+            <HelpCircle className="h-4 w-4 mr-2" />
+            Tutorial
+          </Button>
           <Button variant="outline" size="sm">
             <Undo className="h-4 w-4 mr-2" />
             Undo
@@ -495,6 +502,12 @@ export default function PostProductionStudio() {
         onOpenChange={setCameraProcessingOpen}
         videoUrl={mediaFile?.file_url || ''}
         onComplete={handleCameraProcessingComplete}
+      />
+
+      {/* Tutorial Dialog */}
+      <PostProductionTutorial
+        open={tutorialOpen}
+        onOpenChange={setTutorialOpen}
       />
     </div>
   );
