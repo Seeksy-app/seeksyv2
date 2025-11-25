@@ -404,6 +404,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       { title: "Ad Library", url: "/creator/campaign-browser", icon: Target },
       { title: "Create Ad", url: "/podcast-ads", icon: Plus },
       { title: "Revenue", url: "/podcast-revenue", icon: TrendingUp },
+      { title: "Voice Protection", url: "/voice-protection", icon: Shield },
     ] : []),
   ];
 

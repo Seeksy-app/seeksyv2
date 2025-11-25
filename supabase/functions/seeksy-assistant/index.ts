@@ -40,10 +40,12 @@ serve(async (req) => {
 - Writing compelling content (bios, descriptions, emails)
 - Platform navigation and feature guidance
 - Content discovery and recommendations
+- Support tickets (when users need help or report issues)
 
 **Tools you have**:
 - search_podcast_transcripts: Search their own podcast content
 - recommend_podcasts: Find podcasts for them to listen to
+- create_support_ticket: Create support tickets when users need help or report issues
 
 **Example interactions**:
 User: "Create a meeting"
@@ -51,6 +53,9 @@ You: "I'll help you set up a meeting Seeky. Go to /meeting-types/create to get s
 
 User: "How do I send emails?"
 You: "Head to /marketing to compose and send emails to your contacts. Need help writing one?"
+
+User: "I need help" or "Something isn't working"
+You: "I'll help you create a support ticket. I need your name, email, phone, and a description of the issue."
 
 Keep it brief. Take them where they need to go.`;
 
@@ -102,6 +107,35 @@ Keep it brief. Take them where they need to go.`;
                 }
               },
               required: ["topic"]
+            }
+          }
+        },
+        {
+          type: "function",
+          function: {
+            name: "create_support_ticket",
+            description: "Create a support ticket when users report issues, need help, or have questions. Collect all required information before calling this.",
+            parameters: {
+              type: "object",
+              properties: {
+                name: {
+                  type: "string",
+                  description: "User's full name"
+                },
+                email: {
+                  type: "string",
+                  description: "User's email address"
+                },
+                phone: {
+                  type: "string",
+                  description: "User's phone number"
+                },
+                message: {
+                  type: "string",
+                  description: "Description of the issue or question"
+                }
+              },
+              required: ["name", "email", "phone", "message"]
             }
           }
         }
@@ -254,6 +288,36 @@ Keep it brief. Take them where they need to go.`;
                     })) || [];
                     
                     console.log("Found podcasts:", toolResults.length);
+                  } else if (toolName === "create_support_ticket") {
+                    const args = JSON.parse(toolCallBuffer);
+                    const { name, email, phone, message } = args;
+
+                    // Create a support ticket
+                    const { data: ticket, error: ticketError } = await supabase
+                      .from("client_tickets")
+                      .insert({
+                        user_id: userId,
+                        title: "Support Request from Chat",
+                        description: message,
+                        category: "support",
+                        priority: "medium",
+                        status: "open"
+                      })
+                      .select()
+                      .single();
+
+                    if (ticketError) {
+                      console.error("Failed to create support ticket:", ticketError);
+                      toolResults = { success: false, error: ticketError.message };
+                    } else {
+                      // Store contact info in ticket metadata or separate table
+                      console.log("Support ticket created:", ticket.id, "for", name, email, phone);
+                      toolResults = { 
+                        success: true, 
+                        ticketId: ticket.id,
+                        message: "Support ticket created successfully. Our team will reach out soon."
+                      };
+                    }
                   }
 
                   // Send tool result back to AI
