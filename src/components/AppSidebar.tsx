@@ -385,6 +385,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       { title: "Studio", url: "/studio", icon: Clapperboard },
       { title: "Media Library", url: "/media-library", icon: FileAudio },
       { title: "Create Clips", url: "/create-clips", icon: TrendingUp },
+      { title: "Voice Cloning", url: "/voice-protection", icon: Shield },
     ] : []),
   ];
 
@@ -393,7 +394,6 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       { title: "Ad Library", url: "/creator/campaign-browser", icon: Target },
       { title: "Create Ad", url: "/podcast-ads", icon: Plus },
       { title: "Revenue", url: "/podcast-revenue", icon: TrendingUp },
-      { title: "Voice Protection", url: "/voice-protection", icon: Shield },
     ] : []),
   ];
 
