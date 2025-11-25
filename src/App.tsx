@@ -139,6 +139,7 @@ import InfluencerPortfolio from "./pages/InfluencerPortfolio";
 import ClientTickets from "./pages/ClientTickets";
 import Proposals from "./pages/Proposals";
 import CreateProposal from "./pages/CreateProposal";
+import ProposalDetail from "./pages/ProposalDetail";
 import Invoices from "./pages/Invoices";
 import CreateInvoice from "./pages/CreateInvoice";
 import InvestorPortal from "./pages/InvestorPortal";
@@ -226,6 +227,11 @@ const AppContent = () => {
               <Route path="/pricing" element={<Pricing />} />
             <Route path="/investor" element={<InvestorPortal />} />
             <Route path="/project-management" element={<ProjectManagement />} />
+            <Route path="/proposals" element={<Proposals />} />
+            <Route path="/proposals/create" element={<CreateProposal />} />
+            <Route path="/proposals/:id" element={<ProposalDetail />} />
+            <Route path="/invoices" element={<Invoices />} />
+            <Route path="/invoices/create" element={<CreateInvoice />} />
             <Route path="/sign/:token" element={<SignDocument />} />
             <Route path="/podcast-distribution" element={<PodcastDistribution />} />
               <Route path="/privacy" element={<Privacy />} />

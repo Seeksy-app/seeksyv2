@@ -11,6 +11,7 @@ import { ListsSidebar } from "@/components/crm/ListsSidebar";
 import { CreateListDialog } from "@/components/crm/CreateListDialog";
 import { CreateContactDialog } from "@/components/crm/CreateContactDialog";
 import { TagManager } from "@/components/crm/TagManager";
+import { PipelineStagesManager } from "@/components/crm/PipelineStagesManager";
 import { BulkActions } from "@/components/crm/BulkActions";
 
 const CRM = () => {
@@ -191,6 +192,9 @@ const CRM = () => {
                   <Tag className="w-4 h-4 mr-2" />
                   Tags
                 </TabsTrigger>
+                <TabsTrigger value="pipeline" className="data-[state=active]:bg-primary/10">
+                  Pipeline
+                </TabsTrigger>
                 <TabsTrigger value="campaigns" className="data-[state=active]:bg-primary/10">
                   <Mail className="w-4 h-4 mr-2" />
                   Campaigns
@@ -216,6 +220,10 @@ const CRM = () => {
 
             <TabsContent value="tags" className="flex-1 overflow-auto p-6 mt-0">
               <TagManager tags={tags || []} />
+            </TabsContent>
+
+            <TabsContent value="pipeline" className="flex-1 overflow-auto p-6 mt-0">
+              <PipelineStagesManager />
             </TabsContent>
 
             <TabsContent value="campaigns" className="flex-1 overflow-auto p-6 mt-0">
