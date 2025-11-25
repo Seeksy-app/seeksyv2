@@ -44,8 +44,13 @@ The studio interface consists of four main areas:
    - Planning camera movements
    - Creating virtual camera angles
    - Finalizing edits
-4. Review the detected camera angles added to your timeline
-5. Click on any camera marker to preview that shot
+4. **New:** Picture-in-Picture preview shows AI edits in real-time
+   - Main video displays the original footage
+   - Smaller PiP window shows the edited version with zoom/focus effects applied
+   - Visual overlays indicate the type of edit being applied (close-up, zoom, wide shot)
+   - Watch the AI work as it creates professional camera angles
+5. Review the detected camera angles added to your timeline
+6. Click on any camera marker to preview that shot
 
 **Best for:**
 - Interview content
@@ -58,6 +63,7 @@ The studio interface consists of four main areas:
 - AI alternates between wide, medium, and close-up shots
 - Maintains natural framing and consistent quality
 - Creates professional multicam feel from single camera
+- Real-time PiP preview builds confidence by showing exactly what the AI is doing
 
 ---
 
@@ -336,4 +342,4 @@ If you need additional assistance:
 ---
 
 **Last Updated:** 2025-11-25
-**Version:** 1.0
+**Version:** 1.1
