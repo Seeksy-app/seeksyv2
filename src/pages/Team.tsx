@@ -518,96 +518,41 @@ export default function Team() {
             </p>
           </div>
 
-          <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
-            <DialogTrigger asChild>
-              <Button>
-                <UserPlus className="h-4 w-4 mr-2" />
-                Invite Member
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Invite Team Member</DialogTitle>
-                <DialogDescription>
-                  Send an invitation to join your team
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    placeholder="John Doe"
-                    value={inviteName}
-                    onChange={(e) => setInviteName(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="member@example.com"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Role</Label>
-                  <Select value={inviteRole} onValueChange={(value: AppRole) => setInviteRole(value)}>
-                    <SelectTrigger id="role">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="member">Member</SelectItem>
-                      <SelectItem value="manager">Manager</SelectItem>
-                      <SelectItem value="scheduler">Scheduler</SelectItem>
-                      <SelectItem value="sales">Sales</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button onClick={handleInvite} disabled={inviting} className="w-full">
-                  {inviting ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <Mail className="h-4 w-4 mr-2" />
-                      Send Invitation
-                    </>
-                  )}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => setShowInviteDialog(true)} className="bg-[hsl(207,100%,50%)] hover:bg-[hsl(207,100%,45%)]">
+            <UserPlus className="h-4 w-4 mr-2" />
+            Invite Member
+          </Button>
         </div>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="border-b">
             <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-2xl">Directory</CardTitle>
-                <CardDescription className="mt-1">
-                  {combinedMembers.length} team member{combinedMembers.length !== 1 ? 's' : ''}
-                </CardDescription>
+              <div className="flex items-center gap-3">
+                <CardTitle className="text-2xl font-semibold">Directory</CardTitle>
+                <span className="text-lg text-muted-foreground">{combinedMembers.length}</span>
               </div>
-              <Button onClick={() => setShowInviteDialog(true)}>
+              <Button 
+                onClick={() => setShowInviteDialog(true)}
+                variant="ghost"
+                className="text-[hsl(207,100%,50%)] hover:text-[hsl(207,100%,45%)] hover:bg-[hsl(207,100%,50%)]/10"
+              >
                 <UserPlus className="h-4 w-4 mr-2" />
-                Add Teammate
+                Add teammate
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {combinedMembers.length === 0 ? (
-              <div className="text-center py-12">
+              <div className="text-center py-16 px-4">
                 <UserPlus className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-medium mb-2">No team members yet</h3>
-                <p className="text-muted-foreground mb-4">
+                <h3 className="text-lg font-semibold mb-2">No team members yet</h3>
+                <p className="text-muted-foreground mb-6">
                   Invite team members to collaborate
                 </p>
-                <Button onClick={() => setShowInviteDialog(true)}>
+                <Button 
+                  onClick={() => setShowInviteDialog(true)}
+                  className="bg-[hsl(207,100%,50%)] hover:bg-[hsl(207,100%,45%)]"
+                >
                   <UserPlus className="h-4 w-4 mr-2" />
                   Add Your First Teammate
                 </Button>
@@ -615,12 +560,12 @@ export default function Team() {
             ) : (
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>First Name</TableHead>
-                    <TableHead>Last Name</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right"></TableHead>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="w-[25%]">First Name</TableHead>
+                    <TableHead className="w-[25%]">Last Name</TableHead>
+                    <TableHead className="w-[20%]">Role access</TableHead>
+                    <TableHead className="w-[20%]">Status</TableHead>
+                    <TableHead className="w-[10%] text-right"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -728,6 +673,65 @@ export default function Team() {
             )}
           </CardContent>
         </Card>
+
+        <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Invite Team Member</DialogTitle>
+              <DialogDescription>
+                Send an invitation to join your team
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  placeholder="John Doe"
+                  value={inviteName}
+                  onChange={(e) => setInviteName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="member@example.com"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="role">Role</Label>
+                <Select value={inviteRole} onValueChange={(value: AppRole) => setInviteRole(value)}>
+                  <SelectTrigger id="role">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="member">Member</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="scheduler">Scheduler</SelectItem>
+                    <SelectItem value="sales">Sales</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button onClick={handleInvite} disabled={inviting} className="w-full">
+                {inviting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="h-4 w-4 mr-2" />
+                    Send Invitation
+                  </>
+                )}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
