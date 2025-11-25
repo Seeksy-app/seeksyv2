@@ -157,6 +157,7 @@ import PublicTicketSubmission from "./pages/PublicTicketSubmission";
 import PublicTaskSubmission from "./pages/PublicTaskSubmission";
 import HelpCenter from "./pages/HelpCenter";
 import Comparison from "./pages/Comparison";
+import Credits from "./pages/Credits";
 
 const queryClient = new QueryClient();
 
@@ -237,6 +238,7 @@ const AppContent = () => {
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/comparison" element={<Comparison />} />
+              <Route path="/credits" element={<Credits />} />
             <Route path="/investor" element={<InvestorPortal />} />
             <Route path="/project-management" element={<ProjectManagement />} />
             <Route path="/create-lead" element={<CreateLead />} />

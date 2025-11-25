@@ -2698,6 +2698,75 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_packages: {
+        Row: {
+          created_at: string | null
+          credits: number
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          price: number
+          stripe_price_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          credits: number
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          price: number
+          stripe_price_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          credits?: number
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          price?: number
+          stripe_price_id?: string | null
+        }
+        Relationships: []
+      }
+      credit_transactions: {
+        Row: {
+          activity_type: string | null
+          amount: number
+          balance_after: number
+          created_at: string | null
+          description: string | null
+          id: string
+          metadata: Json | null
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          activity_type?: string | null
+          amount: number
+          balance_after: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          activity_type?: string | null
+          amount?: number
+          balance_after?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       custom_link_sections: {
         Row: {
           created_at: string | null
@@ -6166,6 +6235,30 @@ export type Database = {
         }
         Relationships: []
       }
+      spin_wheel_history: {
+        Row: {
+          credits_spent_threshold: number
+          credits_won: number
+          id: string
+          spun_at: string | null
+          user_id: string
+        }
+        Insert: {
+          credits_spent_threshold: number
+          credits_won: number
+          id?: string
+          spun_at?: string | null
+          user_id: string
+        }
+        Update: {
+          credits_spent_threshold?: number
+          credits_won?: number
+          id?: string
+          spun_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       stream_impressions: {
         Row: {
           created_at: string
@@ -6988,6 +7081,39 @@ export type Database = {
           period_start?: string
           updated_at?: string | null
           usage_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_credits: {
+        Row: {
+          balance: number
+          created_at: string | null
+          id: string
+          total_earned: number | null
+          total_purchased: number | null
+          total_spent: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string | null
+          id?: string
+          total_earned?: number | null
+          total_purchased?: number | null
+          total_spent?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string | null
+          id?: string
+          total_earned?: number | null
+          total_purchased?: number | null
+          total_spent?: number | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []

@@ -9,6 +9,7 @@ import { useTheme } from "next-themes";
 import seeksyLogo from "@/assets/seeksy-logo.png";
 import { MasterSearch } from "@/components/MasterSearch";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { CreditBalance } from "@/components/credits/CreditBalance";
 
 interface HeaderProps {
   user?: User | null;
@@ -59,6 +60,7 @@ const Header = ({ user }: HeaderProps) => {
           <nav className="flex items-center gap-3">
             {user && (
               <>
+                <CreditBalance />
                 <Button 
                   variant="ghost" 
                   size="icon"

@@ -53,3 +53,15 @@ verify_jwt = true
 
 [functions.google-calendar-callback]
 verify_jwt = false
+
+[functions.purchase-credits]
+verify_jwt = true
+
+[functions.deduct-credit]
+verify_jwt = true
+
+[functions.spin-wheel]
+verify_jwt = true
+
+[functions.stripe-webhook-credits]
+verify_jwt = false
