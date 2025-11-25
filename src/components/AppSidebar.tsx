@@ -338,7 +338,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       ];
 
   const seeksiesItems = [
-    { title: "Meetings", url: "/meetings", icon: Calendar }, // Always visible by default
+    ...(pinnedModules.includes("meetings") ? [{ title: "Meetings", url: "/meetings", icon: Calendar }] : []),
     ...(pinnedModules.includes("events") && modulePrefs.events ? [{ title: "Events", url: "/events", icon: CalendarDays }] : []),
     ...(pinnedModules.includes("signup_sheets") && modulePrefs.signup_sheets ? [{ title: "Sign-up Sheets", url: "/signup-sheets", icon: ClipboardList }] : []),
     ...(pinnedModules.includes("polls") && modulePrefs.polls ? [{ title: "Polls", url: "/polls", icon: BarChart3 }] : []),
