@@ -106,9 +106,11 @@ export const ShareInvestorDialog = ({ open, onOpenChange }: ShareInvestorDialogP
       const { error } = await supabase.functions.invoke("send-investor-invite", {
         body: {
           investorEmail: email,
+          investorName: email.split('@')[0],
           accessCode: generatedCode,
           investorLink: generatedLink,
           senderName: profileData?.full_name || undefined,
+          senderUserId: user.id,
         },
       });
 
