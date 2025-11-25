@@ -1,9 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import { ClientsTab } from "@/components/pm/ClientsTab";
 import { TicketsTab } from "@/components/pm/TicketsTab";
 import { DocumentsTab } from "@/components/pm/DocumentsTab";
+import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 
 export default function ProjectManagement() {
@@ -21,9 +24,17 @@ export default function ProjectManagement() {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">Project Management</h1>
-          <p className="text-muted-foreground">Manage clients, support tickets, and e-signatures</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-foreground mb-2">Project Management</h1>
+            <p className="text-muted-foreground">Manage clients, support tickets, and e-signatures</p>
+          </div>
+          <Link to="/create-lead">
+            <Button size="lg" className="gap-2">
+              <Plus className="h-5 w-5" />
+              New Field Lead
+            </Button>
+          </Link>
         </div>
 
         <Tabs defaultValue="tickets" className="w-full">
