@@ -6752,6 +6752,7 @@ export type Database = {
           podcasts_enabled: boolean | null
           task_reminder_enabled: boolean | null
           task_reminder_frequency: string | null
+          task_view_mode: string | null
           theme_preference: string | null
           updated_at: string | null
           user_id: string
@@ -6787,6 +6788,7 @@ export type Database = {
           podcasts_enabled?: boolean | null
           task_reminder_enabled?: boolean | null
           task_reminder_frequency?: string | null
+          task_view_mode?: string | null
           theme_preference?: string | null
           updated_at?: string | null
           user_id: string
@@ -6822,6 +6824,7 @@ export type Database = {
           podcasts_enabled?: boolean | null
           task_reminder_enabled?: boolean | null
           task_reminder_frequency?: string | null
+          task_view_mode?: string | null
           theme_preference?: string | null
           updated_at?: string | null
           user_id?: string
