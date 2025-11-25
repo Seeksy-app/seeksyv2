@@ -502,6 +502,29 @@ export default function Tasks() {
     }
   };
 
+  const handleCategoryChange = async (taskId: string, newCategory: string) => {
+    try {
+      const { error } = await supabase
+        .from("tasks")
+        .update({ category: newCategory })
+        .eq("id", taskId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Category updated",
+      });
+      fetchTasks();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleDueDateChange = async (taskId: string, newDueDate: string) => {
     try {
       const { error } = await supabase
@@ -662,10 +685,41 @@ export default function Tasks() {
             )}
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="outline" className="text-xs">
-                {task.category}
-              </Badge>
+            <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
+              <Select
+                value={task.category}
+                onValueChange={(value) => {
+                  if (value === "create_new") {
+                    const newCategory = prompt("Enter new category name:");
+                    if (newCategory && newCategory.trim()) {
+                      handleCategoryChange(task.id, newCategory.trim().toLowerCase());
+                    }
+                  } else {
+                    handleCategoryChange(task.id, value);
+                  }
+                }}
+              >
+                <SelectTrigger className="h-7 w-auto text-xs border-border bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="development">Development</SelectItem>
+                  <SelectItem value="design">Design</SelectItem>
+                  <SelectItem value="marketing">Marketing</SelectItem>
+                  <SelectItem value="content">Content</SelectItem>
+                  <SelectItem value="sales">Sales</SelectItem>
+                  <SelectItem value="support">Support</SelectItem>
+                  <SelectItem value="influencehub">InfluenceHub</SelectItem>
+                  <SelectItem value="ai">AI</SelectItem>
+                  <SelectItem value="integrations">Integrations</SelectItem>
+                  <SelectItem value="task-manager">Task Manager</SelectItem>
+                  <SelectItem value="blog">Blog</SelectItem>
+                  <SelectItem value="create_new" className="text-primary font-medium">
+                    + Create New Category
+                  </SelectItem>
+                </SelectContent>
+              </Select>
               <Badge className={`${getPriorityColor(task.priority)} text-white text-xs`}>
                 {task.priority}
               </Badge>
@@ -1133,9 +1187,40 @@ export default function Tasks() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="text-xs">
-                        {task.category}
-                      </Badge>
+                      <Select
+                        value={task.category}
+                        onValueChange={(value) => {
+                          if (value === "create_new") {
+                            const newCategory = prompt("Enter new category name:");
+                            if (newCategory && newCategory.trim()) {
+                              handleCategoryChange(task.id, newCategory.trim().toLowerCase());
+                            }
+                          } else {
+                            handleCategoryChange(task.id, value);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-8 w-32 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background z-50">
+                          <SelectItem value="general">General</SelectItem>
+                          <SelectItem value="development">Development</SelectItem>
+                          <SelectItem value="design">Design</SelectItem>
+                          <SelectItem value="marketing">Marketing</SelectItem>
+                          <SelectItem value="content">Content</SelectItem>
+                          <SelectItem value="sales">Sales</SelectItem>
+                          <SelectItem value="support">Support</SelectItem>
+                          <SelectItem value="influencehub">InfluenceHub</SelectItem>
+                          <SelectItem value="ai">AI</SelectItem>
+                          <SelectItem value="integrations">Integrations</SelectItem>
+                          <SelectItem value="task-manager">Task Manager</SelectItem>
+                          <SelectItem value="blog">Blog</SelectItem>
+                          <SelectItem value="create_new" className="text-primary font-medium">
+                            + Create New Category
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell>
                       <Select
