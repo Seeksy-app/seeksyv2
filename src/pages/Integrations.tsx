@@ -1280,6 +1280,12 @@ const Integrations = () => {
                     variant="outline"
                     size="sm"
                     className="w-full"
+                    onClick={() => {
+                      toast({
+                        title: "Zoom Integration Coming Soon",
+                        description: "Connect your Zoom account to schedule and host virtual meetings directly from Seeksy.",
+                      });
+                    }}
                   >
                     Connect
                   </Button>
@@ -1310,6 +1316,12 @@ const Integrations = () => {
                     variant="outline"
                     size="sm"
                     className="w-full"
+                    onClick={() => {
+                      toast({
+                        title: "Google Calendar Integration Coming Soon",
+                        description: "Sync your Seeksy meetings and events with Google Calendar automatically.",
+                      });
+                    }}
                   >
                     Connect
                   </Button>
@@ -1340,6 +1352,12 @@ const Integrations = () => {
                     variant="outline"
                     size="sm"
                     className="w-full"
+                    onClick={() => {
+                      toast({
+                        title: "Google Email Integration Coming Soon",
+                        description: "Connect Gmail to manage email communications and sync contacts directly from Seeksy.",
+                      });
+                    }}
                   >
                     Connect
                   </Button>
