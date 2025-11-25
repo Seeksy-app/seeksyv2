@@ -5636,38 +5636,56 @@ export type Database = {
         Row: {
           completed_at: string | null
           created_at: string | null
+          host_type: string | null
           id: string
+          last_check_at: string | null
           migration_notes: string | null
           migration_status: string | null
+          migration_step: string | null
           new_rss_url: string
           old_rss_url: string
           podcast_id: string
           redirect_setup: boolean | null
+          redirect_status: string | null
           redirect_verified_at: string | null
+          third_party_platform: string | null
+          user_notes: string | null
         }
         Insert: {
           completed_at?: string | null
           created_at?: string | null
+          host_type?: string | null
           id?: string
+          last_check_at?: string | null
           migration_notes?: string | null
           migration_status?: string | null
+          migration_step?: string | null
           new_rss_url: string
           old_rss_url: string
           podcast_id: string
           redirect_setup?: boolean | null
+          redirect_status?: string | null
           redirect_verified_at?: string | null
+          third_party_platform?: string | null
+          user_notes?: string | null
         }
         Update: {
           completed_at?: string | null
           created_at?: string | null
+          host_type?: string | null
           id?: string
+          last_check_at?: string | null
           migration_notes?: string | null
           migration_status?: string | null
+          migration_step?: string | null
           new_rss_url?: string
           old_rss_url?: string
           podcast_id?: string
           redirect_setup?: boolean | null
+          redirect_status?: string | null
           redirect_verified_at?: string | null
+          third_party_platform?: string | null
+          user_notes?: string | null
         }
         Relationships: [
           {
@@ -5678,6 +5696,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      rss_redirect_instructions: {
+        Row: {
+          created_at: string | null
+          help_url: string | null
+          id: string
+          instructions: string
+          platform_display_name: string
+          platform_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          help_url?: string | null
+          id?: string
+          instructions: string
+          platform_display_name: string
+          platform_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          help_url?: string | null
+          id?: string
+          instructions?: string
+          platform_display_name?: string
+          platform_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       sales_commissions: {
         Row: {
