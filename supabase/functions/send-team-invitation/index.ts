@@ -9,8 +9,10 @@ const corsHeaders = {
 
 interface InviteRequest {
   invitee_email: string;
+  name?: string;
+  email: string;
   role: string;
-  team_id: string;
+  team_id: string | null;
 }
 
 const generateTeamInviteHTML = (inviterName: string, role: string, dashboardUrl: string) => `
@@ -103,7 +105,23 @@ serve(async (req) => {
       throw new Error("Unauthorized");
     }
 
-    const { invitee_email, role, team_id }: InviteRequest = await req.json();
+    const { email, name, role, team_id }: InviteRequest = await req.json();
+    const invitee_email = email || (await req.json()).invitee_email;
+    const invitee_name = name;
+
+    // Get or create team_id
+    let actualTeamId = team_id;
+    if (!actualTeamId) {
+      const { data: team } = await supabaseAdmin
+        .from("teams")
+        .select("id")
+        .eq("owner_id", user.id)
+        .maybeSingle();
+      
+      if (team) {
+        actualTeamId = team.id;
+      }
+    }
 
     // Check if user exists with this email using admin API
     const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
@@ -113,17 +131,19 @@ serve(async (req) => {
 
     if (invitedUser) {
       // User exists, add to team_members table
-      const { error: memberError } = await supabaseAdmin
-        .from("team_members")
-        .insert({
-          team_id: team_id,
-          user_id: invitedUser.id,
-          role: role,
-        });
+      if (actualTeamId) {
+        const { error: memberError } = await supabaseAdmin
+          .from("team_members")
+          .insert({
+            team_id: actualTeamId,
+            user_id: invitedUser.id,
+            role: role,
+          });
 
-      // Ignore conflict errors if already a member
-      if (memberError && !memberError.message.includes("duplicate")) {
-        throw memberError;
+        // Ignore conflict errors if already a member
+        if (memberError && !memberError.message.includes("duplicate")) {
+          throw memberError;
+        }
       }
 
       return new Response(
@@ -135,7 +155,7 @@ serve(async (req) => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } else {
-      // User doesn't exist, send invitation email
+      // User doesn't exist, send invitation email and track in database
       const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
       
       // Get inviter's name
@@ -153,6 +173,20 @@ serve(async (req) => {
       const dashboardUrl = projectId 
         ? `https://${projectId}.lovableproject.com/dashboard`
         : `${supabaseUrl}/dashboard`;
+      
+      // Track invitation in database
+      if (actualTeamId) {
+        await supabaseAdmin
+          .from("team_invitations")
+          .insert({
+            inviter_id: user.id,
+            team_id: actualTeamId,
+            invitee_email: invitee_email,
+            invitee_name: invitee_name,
+            role: role,
+            status: "pending",
+          });
+      }
       
       try {
         const emailHTML = generateTeamInviteHTML(inviterName, role, dashboardUrl);
