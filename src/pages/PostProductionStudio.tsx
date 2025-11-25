@@ -256,16 +256,26 @@ export default function PostProductionStudio() {
   };
 
   useEffect(() => {
-    const handleGlobalMouseUp = () => setIsDragging(false);
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false);
+    };
+    
     const handleGlobalMouseMove = (e: MouseEvent) => {
-      if (!isDragging || !timelineRef.current) return;
+      if (!isDragging || !timelineRef.current || !duration) return;
       const rect = timelineRef.current.getBoundingClientRect();
       const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-      seekTo(percent * duration);
+      const newTime = percent * duration;
+      
+      if (videoRef.current) {
+        videoRef.current.currentTime = newTime;
+      }
+      setCurrentTime(newTime);
     };
 
-    document.addEventListener("mouseup", handleGlobalMouseUp);
-    document.addEventListener("mousemove", handleGlobalMouseMove);
+    if (isDragging) {
+      document.addEventListener("mouseup", handleGlobalMouseUp);
+      document.addEventListener("mousemove", handleGlobalMouseMove);
+    }
 
     return () => {
       document.removeEventListener("mouseup", handleGlobalMouseUp);
@@ -512,17 +522,17 @@ export default function PostProductionStudio() {
       });
     });
 
-    // Store pending edits but don't show dialog automatically
+    // Store pending edits and open completion dialog
     setPendingAIEdits(newMarkers);
+    setMarkers([...markers, ...newMarkers]);
     
-    toast.success(`AI processing complete! ${brollClips && brollClips.length > 0 ? 'Using your uploaded B-roll clips. ' : ''}Click Save when ready.`, {
-      duration: 4000
-    });
+    // Show completion dialog after AI processing
+    setCompletionDialogOpen(true);
   };
 
   const handleSaveAIEdits = async () => {
-    // Apply the AI edits to the timeline
-    setMarkers([...markers, ...pendingAIEdits]);
+    // Close the completion dialog
+    setCompletionDialogOpen(false);
     
     // Save markers to database
     await saveEdits();
@@ -544,29 +554,23 @@ export default function PostProductionStudio() {
       }
     }
     
-    toast.success(`Successfully applied ${pendingAIEdits.length} AI edits to your timeline`, {
+    toast.success(`Successfully saved your AI-edited video!`, {
       duration: 4000
     });
-    
-    // Show guidance for next steps
-    setTimeout(() => {
-      toast.info("You can now add manual edits or export your video!", {
-        duration: 4000
-      });
-    }, 1000);
     
     setPendingAIEdits([]);
   };
 
   const handleKeepOriginal = () => {
-    // Discard the AI edits
+    // Close dialog and keep editing with current markers
+    setCompletionDialogOpen(false);
     setPendingAIEdits([]);
-    toast.info("AI edits discarded. Your original video remains unchanged.");
+    toast.info("Keep editing! AI edits are on your timeline.");
   };
 
   const handleSaveBoth = async () => {
-    // Apply the AI edits to the timeline
-    setMarkers([...markers, ...pendingAIEdits]);
+    // Close the completion dialog
+    setCompletionDialogOpen(false);
     
     // Save markers to database
     await saveEdits();
@@ -588,7 +592,7 @@ export default function PostProductionStudio() {
       }
     }
     
-    toast.success(`Saved AI-edited version! Check the "AI Edited" tab in Media Library.`, {
+    toast.success(`Saved both versions! Check Media Library for original and AI-edited.`, {
       duration: 4000
     });
     

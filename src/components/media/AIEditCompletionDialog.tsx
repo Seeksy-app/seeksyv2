@@ -26,7 +26,7 @@ export const AIEditCompletionDialog = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl">
             <CheckCircle2 className="h-6 w-6 text-green-500" />
-            Ready to Save?
+            AI Processing Complete!
           </DialogTitle>
         </DialogHeader>
 
@@ -40,7 +40,7 @@ export const AIEditCompletionDialog = ({
               I've successfully prepared <span className="font-bold text-primary">{totalEdits} edits</span> for your video
             </p>
             <p className="text-base text-muted-foreground max-w-md mx-auto">
-              Review your changes and choose how to save them.
+              Do you want to keep editing or save now?
             </p>
           </div>
 
@@ -61,8 +61,8 @@ export const AIEditCompletionDialog = ({
               <div className="flex gap-4 items-start p-4 rounded-lg bg-background border border-muted">
                 <Badge variant="outline" className="shrink-0 px-3 py-1">Option 2</Badge>
                 <div>
-                  <p className="font-medium text-foreground mb-1.5">Keep Original Only</p>
-                  <p className="text-sm text-muted-foreground">Discard all AI changes and keep original</p>
+                  <p className="font-medium text-foreground mb-1.5">Keep Editing</p>
+                  <p className="text-sm text-muted-foreground">Continue editing without saving yet</p>
                 </div>
               </div>
               <div className="flex gap-4 items-start p-4 rounded-lg bg-secondary/50 border border-secondary">
@@ -86,8 +86,8 @@ export const AIEditCompletionDialog = ({
               }}
               className="h-12"
             >
-              <X className="h-4 w-4 mr-2" />
-              Keep Original
+              <ArrowRight className="h-4 w-4 mr-2" />
+              Keep Editing
             </Button>
             <Button
               onClick={() => {
