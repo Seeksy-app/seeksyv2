@@ -1504,6 +1504,18 @@ export default function MediaLibrary() {
                               <Button
                                 size="sm"
                                 variant="ghost"
+                                onClick={() => setPreviewItem({ 
+                                  original: file.file_url, 
+                                  name: file.file_name,
+                                  fileType: file.file_type 
+                                })}
+                              >
+                                <Play className="h-4 w-4 mr-1" />
+                                Preview
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
                                 onClick={() => navigate(`/post-production-studio?id=${file.id}`)}
                               >
                                 <Edit3 className="h-4 w-4 mr-1" />
@@ -1515,6 +1527,14 @@ export default function MediaLibrary() {
                                 onClick={() => handleDownload(file.file_url, file.file_name)}
                               >
                                 <Download className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setDeleteItemId(file.id)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
                           </TableCell>
