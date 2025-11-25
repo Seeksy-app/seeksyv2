@@ -182,8 +182,7 @@ export function PostProductionTutorial({ open, onOpenChange }: PostProductionTut
               <Button
                 variant="outline"
                 onClick={() => {
-                  onOpenChange(false);
-                  navigate("/help-center");
+                  window.open("/help-center", "_blank");
                 }}
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
