@@ -1,8 +1,9 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Loader2, Camera, Focus, Scissors, TrendingUp } from "lucide-react";
+import { CheckCircle2, Loader2, Camera, Focus, Scissors, TrendingUp, ZoomIn } from "lucide-react";
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface ProcessingStage {
   id: string;
@@ -29,6 +30,8 @@ export const AICameraProcessingDialog = ({
   const [currentStageIndex, setCurrentStageIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [detectedChanges, setDetectedChanges] = useState<string[]>([]);
+  const [currentEdit, setCurrentEdit] = useState<{ type: string; label: string } | null>(null);
+  const [pipScale, setPipScale] = useState(1);
   
   const stages: ProcessingStage[] = [
     {
@@ -73,6 +76,8 @@ export const AICameraProcessingDialog = ({
       setProgress(0);
       setProcessedStages(stages);
       setDetectedChanges([]);
+      setCurrentEdit(null);
+      setPipScale(1);
       return;
     }
 
@@ -84,18 +89,28 @@ export const AICameraProcessingDialog = ({
         // Add realistic change notifications at specific progress points
         if (newProgress >= 20 && newProgress < 22 && detectedChanges.length === 0) {
           setDetectedChanges(['Found speaker at 0:05 - creating close-up shot']);
+          setCurrentEdit({ type: 'close_up', label: 'Focusing on Speaker' });
+          setPipScale(1.5);
         }
         if (newProgress >= 35 && newProgress < 37 && detectedChanges.length === 1) {
           setDetectedChanges(prev => [...prev, 'Emphasis detected at 0:18 - adding punch-in']);
+          setCurrentEdit({ type: 'punch_in', label: 'Adding Punch-In Effect' });
+          setPipScale(1.8);
         }
         if (newProgress >= 50 && newProgress < 52 && detectedChanges.length === 2) {
           setDetectedChanges(prev => [...prev, 'Conversation flow at 0:32 - alternating to wide shot']);
+          setCurrentEdit({ type: 'wide', label: 'Switching to Wide Angle' });
+          setPipScale(0.9);
         }
         if (newProgress >= 65 && newProgress < 67 && detectedChanges.length === 3) {
           setDetectedChanges(prev => [...prev, 'Energy shift at 0:47 - adding digital zoom']);
+          setCurrentEdit({ type: 'zoom', label: 'Applying Digital Zoom' });
+          setPipScale(1.6);
         }
         if (newProgress >= 80 && newProgress < 82 && detectedChanges.length === 4) {
           setDetectedChanges(prev => [...prev, 'Smoothing transition at 1:02 - medium shot']);
+          setCurrentEdit({ type: 'medium', label: 'Creating Medium Shot' });
+          setPipScale(1.2);
         }
         
         // Update stage status based on progress
@@ -140,7 +155,7 @@ export const AICameraProcessingDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Camera className="h-5 w-5 text-primary animate-pulse" />
@@ -149,6 +164,60 @@ export const AICameraProcessingDialog = ({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Real-time Video Preview with PiP */}
+          <div className="relative aspect-video bg-black rounded-lg overflow-hidden border-2 border-primary/20">
+            {/* Original Video (Background) */}
+            <video 
+              src={videoUrl} 
+              className="w-full h-full object-contain"
+              muted
+              loop
+              autoPlay
+            />
+            
+            {/* Picture-in-Picture Edited Preview */}
+            <div className="absolute bottom-4 right-4 w-64 aspect-video bg-black/90 rounded-lg overflow-hidden border-2 border-primary shadow-2xl">
+              <video 
+                src={videoUrl} 
+                className={cn(
+                  "w-full h-full object-cover transition-transform duration-700 ease-in-out",
+                )}
+                style={{ transform: `scale(${pipScale})` }}
+                muted
+                loop
+                autoPlay
+              />
+              
+              {/* Edit Type Overlay */}
+              {currentEdit && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                  <div className="text-center space-y-2 animate-in fade-in zoom-in duration-300">
+                    {currentEdit.type === 'zoom' && <ZoomIn className="h-8 w-8 text-white mx-auto animate-pulse" />}
+                    {currentEdit.type === 'close_up' && <Focus className="h-8 w-8 text-white mx-auto animate-pulse" />}
+                    {currentEdit.type === 'wide' && <Camera className="h-8 w-8 text-white mx-auto animate-pulse" />}
+                    <p className="text-white text-xs font-semibold px-2">
+                      {currentEdit.label}
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              {/* PiP Label */}
+              <div className="absolute top-2 left-2 right-2">
+                <Badge variant="default" className="text-[10px] bg-primary/90 backdrop-blur">
+                  AI Edited Preview
+                </Badge>
+              </div>
+            </div>
+
+            {/* Processing Indicator */}
+            <div className="absolute top-4 left-4">
+              <Badge variant="default" className="bg-red-500 animate-pulse">
+                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                Processing
+              </Badge>
+            </div>
+          </div>
           {/* Progress Bar */}
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
