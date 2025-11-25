@@ -379,8 +379,11 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   ];
 
   const engagementItems = [
-    ...(pinnedModules.includes("contacts") ? [{ title: "Contacts", url: "/crm", icon: Users }] : []),
-    ...(modulePrefs.marketing ? [{ title: "Email", url: "/email-history", icon: Mail }] : []),
+    ...(pinnedModules.includes("contacts") ? [
+      { title: "Contacts", url: "/crm", icon: Users },
+      { title: "Email History", url: "/email-history", icon: Mail }
+    ] : []),
+    ...(modulePrefs.marketing ? [{ title: "Marketing", url: "/marketing", icon: Target }] : []),
     ...(modulePrefs.sms ? [{ title: "SMS", url: "/sms", icon: Smartphone }] : []),
     ...(modulePrefs.team_chat ? [{ title: "Team Chat", url: "/team-chat", icon: MessageSquare }] : []),
   ];
