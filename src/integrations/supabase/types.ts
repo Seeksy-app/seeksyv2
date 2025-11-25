@@ -2321,6 +2321,7 @@ export type Database = {
           name: string
           notes: string | null
           phone: string | null
+          pipeline_stage_id: string | null
           sales_rep_id: string | null
           title: string | null
           updated_at: string
@@ -2336,6 +2337,7 @@ export type Database = {
           name: string
           notes?: string | null
           phone?: string | null
+          pipeline_stage_id?: string | null
           sales_rep_id?: string | null
           title?: string | null
           updated_at?: string
@@ -2351,12 +2353,20 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string | null
+          pipeline_stage_id?: string | null
           sales_rep_id?: string | null
           title?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "contacts_pipeline_stage_id_fkey"
+            columns: ["pipeline_stage_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_stages"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "contacts_sales_rep_id_fkey"
             columns: ["sales_rep_id"]
@@ -4441,6 +4451,39 @@ export type Database = {
           },
         ]
       }
+      pipeline_stages: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          display_order: number
+          id: string
+          is_system: boolean | null
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          is_system?: boolean | null
+          name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          is_system?: boolean | null
+          name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       podcast_ad_settings: {
         Row: {
           ad_mode: string | null
@@ -4985,6 +5028,8 @@ export type Database = {
           items: Json | null
           notes: string | null
           proposal_number: string
+          sent_at: string | null
+          sent_to_email: string | null
           signature_data: string | null
           signed_at: string | null
           signed_by_email: string | null
@@ -5007,6 +5052,8 @@ export type Database = {
           items?: Json | null
           notes?: string | null
           proposal_number: string
+          sent_at?: string | null
+          sent_to_email?: string | null
           signature_data?: string | null
           signed_at?: string | null
           signed_by_email?: string | null
@@ -5029,6 +5076,8 @@ export type Database = {
           items?: Json | null
           notes?: string | null
           proposal_number?: string
+          sent_at?: string | null
+          sent_to_email?: string | null
           signature_data?: string | null
           signed_at?: string | null
           signed_by_email?: string | null
