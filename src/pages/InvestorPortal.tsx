@@ -32,50 +32,12 @@ export default function InvestorPortal() {
   const [pendingAccessData, setPendingAccessData] = useState<any>(null);
 
   useEffect(() => {
-    // Check if code is in URL and auto-validate
+    // Pre-fill access code from URL but don't auto-validate
     const code = searchParams.get("code");
     if (code && code.length === 8) {
       setAccessCode(code);
-      // Auto-validate when code is in URL
-      validateAccessCodeFromURL(code);
     }
   }, [searchParams]);
-
-  const validateAccessCodeFromURL = async (code: string) => {
-    setLoading(true);
-    try {
-      console.log('Validating access code:', code.toUpperCase());
-      
-      const { data, error } = await supabase
-        .from('investor_shares')
-        .select('*')
-        .eq('access_code', code.toUpperCase())
-        .eq('status', 'active')
-        .gt('expires_at', new Date().toISOString())
-        .maybeSingle();
-
-      console.log('Query result:', { data, error });
-
-      if (error) {
-        console.error('Database error:', error);
-        toast.error("Error validating access code");
-        return;
-      }
-
-      if (!data) {
-        toast.error("Invalid, expired, or revoked access code");
-        return;
-      }
-
-      setPendingAccessData(data);
-      setShowDisclosure(true);
-    } catch (error: any) {
-      console.error("Error validating access:", error);
-      toast.error("Failed to validate access code");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const validateAccessCode = async () => {
     if (!accessCode) {
