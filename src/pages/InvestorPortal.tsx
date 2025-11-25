@@ -34,10 +34,38 @@ export default function InvestorPortal() {
   useEffect(() => {
     // Check if code is in URL and auto-validate
     const code = searchParams.get("code");
-    if (code) {
+    if (code && code.length === 8) {
       setAccessCode(code);
+      // Auto-validate when code is in URL
+      validateAccessCodeFromURL(code);
     }
   }, [searchParams]);
+
+  const validateAccessCodeFromURL = async (code: string) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('investor_shares')
+        .select('*')
+        .eq('access_code', code.toUpperCase())
+        .eq('status', 'active')
+        .gt('expires_at', new Date().toISOString())
+        .single();
+
+      if (error || !data) {
+        toast.error("Invalid, expired, or revoked access code");
+        return;
+      }
+
+      setPendingAccessData(data);
+      setShowDisclosure(true);
+    } catch (error: any) {
+      console.error("Error validating access:", error);
+      toast.error("Failed to validate access code");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const validateAccessCode = async () => {
     if (!accessCode) {
