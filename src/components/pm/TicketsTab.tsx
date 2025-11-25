@@ -23,7 +23,7 @@ export const TicketsTab = ({ userId }: TicketsTabProps) => {
         .from("tickets")
         .select(`
           *,
-          client:clients(contact_name, company_name),
+          contact:contacts(name, company, email),
           comments:ticket_comments(count)
         `)
         .or(`user_id.eq.${userId},assigned_to.eq.${userId}`)
@@ -89,7 +89,7 @@ export const TicketsTab = ({ userId }: TicketsTabProps) => {
             <CardContent>
               <div className="flex justify-between items-center text-sm text-muted-foreground">
                 <span>
-                  {ticket.client?.company_name || ticket.client?.contact_name || "No client"}
+                  {ticket.contact?.company || ticket.contact?.name || "No contact"}
                 </span>
                 <span>{new Date(ticket.created_at).toLocaleDateString()}</span>
               </div>

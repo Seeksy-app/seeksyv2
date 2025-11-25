@@ -3,22 +3,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Mail, Phone, Globe } from "lucide-react";
-import { useState } from "react";
-import { CreateClientDialog } from "./CreateClientDialog";
+import { Mail, Phone, Globe } from "lucide-react";
 
 interface ClientsTabProps {
   userId: string;
 }
 
 export const ClientsTab = ({ userId }: ClientsTabProps) => {
-  const [createOpen, setCreateOpen] = useState(false);
-
-  const { data: clients, refetch } = useQuery({
-    queryKey: ["clients", userId],
+  const { data: clients } = useQuery({
+    queryKey: ["pm-contacts", userId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("clients")
+        .from("contacts")
         .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
@@ -31,11 +27,12 @@ export const ClientsTab = ({ userId }: ClientsTabProps) => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold">Clients & Customers</h2>
-        <Button onClick={() => setCreateOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Client
-        </Button>
+        <div>
+          <h2 className="text-2xl font-semibold">Clients & Customers</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Manage your clients from Contacts. <a href="/contacts" className="text-primary hover:underline">Go to Contacts →</a>
+          </p>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
@@ -45,34 +42,32 @@ export const ClientsTab = ({ userId }: ClientsTabProps) => {
               <div className="flex justify-between items-start">
                 <div>
                   <CardTitle className="text-lg">
-                    {client.company_name || client.contact_name}
+                    {client.company || client.name}
                   </CardTitle>
-                  {client.company_name && (
-                    <p className="text-sm text-muted-foreground mt-1">{client.contact_name}</p>
+                  {client.company && (
+                    <p className="text-sm text-muted-foreground mt-1">{client.name}</p>
                   )}
                 </div>
-                <Badge variant={client.status === 'active' ? 'default' : 'secondary'}>
-                  {client.status}
+                <Badge variant={client.lead_status === 'customer' ? 'default' : 'secondary'}>
+                  {client.lead_status || 'contact'}
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Mail className="w-4 h-4" />
-                <span>{client.contact_email}</span>
+                <span>{client.email}</span>
               </div>
-              {client.contact_phone && (
+              {client.phone && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Phone className="w-4 h-4" />
-                  <span>{client.contact_phone}</span>
+                  <span>{client.phone}</span>
                 </div>
               )}
-              {client.website && (
+              {client.company && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Globe className="w-4 h-4" />
-                  <a href={client.website} target="_blank" rel="noopener noreferrer" className="hover:text-primary">
-                    {client.website}
-                  </a>
+                  <span>{client.company}</span>
                 </div>
               )}
             </CardContent>
@@ -82,18 +77,14 @@ export const ClientsTab = ({ userId }: ClientsTabProps) => {
         {clients?.length === 0 && (
           <Card className="md:col-span-2">
             <CardContent className="py-12 text-center text-muted-foreground">
-              No clients yet. Add your first client to get started.
+              <p className="mb-4">No contacts yet. Add contacts in the CRM to see them here.</p>
+              <Button onClick={() => window.location.href = '/contacts'}>
+                Go to Contacts
+              </Button>
             </CardContent>
           </Card>
         )}
       </div>
-
-      <CreateClientDialog 
-        open={createOpen} 
-        onOpenChange={setCreateOpen}
-        onSuccess={refetch}
-        userId={userId}
-      />
     </div>
   );
 };

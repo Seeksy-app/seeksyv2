@@ -6211,7 +6211,7 @@ export type Database = {
         Row: {
           assigned_to: string | null
           category: string | null
-          client_id: string | null
+          contact_id: string | null
           created_at: string | null
           description: string | null
           id: string
@@ -6226,7 +6226,7 @@ export type Database = {
         Insert: {
           assigned_to?: string | null
           category?: string | null
-          client_id?: string | null
+          contact_id?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -6241,7 +6241,7 @@ export type Database = {
         Update: {
           assigned_to?: string | null
           category?: string | null
-          client_id?: string | null
+          contact_id?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -6255,10 +6255,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "tickets_client_id_fkey"
-            columns: ["client_id"]
+            foreignKeyName: "tickets_contact_id_fkey"
+            columns: ["contact_id"]
             isOneToOne: false
-            referencedRelation: "clients"
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
         ]

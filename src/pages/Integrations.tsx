@@ -166,6 +166,20 @@ const Integrations = () => {
       return;
     }
     
+    // Special handling: PM requires Contacts (CRM)
+    if (moduleName === 'project_management' && newValue) {
+      if (!modules.contacts) {
+        toast({
+          title: "Enabling Project Management + Contacts",
+          description: "Project Management requires Contacts to manage clients. Both will be activated.",
+        });
+        // Enable both PM and Contacts
+        await performToggle('contacts', true);
+        await performToggle('project_management', true);
+        return;
+      }
+    }
+    
     // If activating, proceed directly
     await performToggle(moduleName, newValue);
   };
