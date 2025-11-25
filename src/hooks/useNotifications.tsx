@@ -22,6 +22,7 @@ export const useNotifications = () => {
   // Fetch notifications
   const fetchNotifications = async () => {
     const { data: { user } } = await supabase.auth.getUser();
+    console.log('🔔 Fetching notifications for user:', user?.id);
     if (!user) return;
 
     const { data, error } = await supabase
@@ -32,10 +33,11 @@ export const useNotifications = () => {
       .limit(50);
 
     if (error) {
-      console.error('Error fetching notifications:', error);
+      console.error('❌ Error fetching notifications:', error);
       return;
     }
 
+    console.log('✅ Fetched notifications:', data?.length || 0, data);
     setNotifications((data || []) as Notification[]);
     setUnreadCount(data?.filter(n => !n.read).length || 0);
   };
@@ -158,6 +160,7 @@ export const useNotifications = () => {
   useEffect(() => {
     const setupRealtimeSubscription = async () => {
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('🔄 Setting up realtime subscription for user:', user?.id);
       if (!user) return;
       
       const channel = supabase
@@ -171,6 +174,7 @@ export const useNotifications = () => {
             filter: `user_id=eq.${user.id}`,
           },
           (payload) => {
+            console.log('🆕 New notification received via realtime:', payload.new);
             const newNotification = payload.new as Notification;
             setNotifications(prev => [newNotification, ...prev]);
             setUnreadCount(prev => prev + 1);
