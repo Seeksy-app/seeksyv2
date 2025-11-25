@@ -754,6 +754,12 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   const renderEngagementSection = () => {
     if (isAdvertiser || engagementItems.length === 0) return null;
     
+    // Check if Engagement section is pinned (based on whether any child is pinned)
+    const isPinned = pinnedModules.includes("contacts") || 
+                     pinnedModules.includes("marketing") || 
+                     pinnedModules.includes("sms") || 
+                     pinnedModules.includes("team_chat");
+    
     // Map engagement items to their module keys for pin functionality
     const engagementModuleMap: Record<string, string> = {
       "Contacts": "contacts",
@@ -770,17 +776,37 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       >
         <SidebarGroup className="py-0">
           <CollapsibleTrigger asChild>
-            <SidebarGroupLabel className="text-base font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5">
+            <SidebarGroupLabel className="text-base font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5 group/section relative pr-8">
               <span>Engagement</span>
-              {!collapsed && <ChevronDown className={`h-3 w-3 transition-transform ${openSections.engagement ? '' : '-rotate-90'}`} />}
+              <div className="flex items-center gap-1">
+                {!collapsed && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      // Toggle pin for Engagement section
+                      togglePin("engagement");
+                    }}
+                    className={`p-1 hover:bg-background/80 rounded transition-opacity ${
+                      isPinned ? "opacity-100" : "opacity-0 group-hover/section:opacity-100"
+                    }`}
+                    aria-label={isPinned ? "Unpin Engagement" : "Pin Engagement"}
+                  >
+                    <Pin
+                      className={`h-3.5 w-3.5 ${
+                        isPinned ? "fill-primary text-primary" : "text-muted-foreground"
+                      }`}
+                    />
+                  </button>
+                )}
+                {!collapsed && <ChevronDown className={`h-3 w-3 transition-transform ${openSections.engagement ? '' : '-rotate-90'}`} />}
+              </div>
             </SidebarGroupLabel>
           </CollapsibleTrigger>
           <CollapsibleContent>
             <SidebarGroupContent>
               <SidebarMenu className="space-y-0">
                 {engagementItems.map((item) => {
-                  const moduleKey = engagementModuleMap[item.title];
-                  const isPinned = pinnedModules.includes(moduleKey);
                   const isActive = location.pathname === item.url || location.pathname.startsWith(`${item.url}/`);
                   
                   return (
@@ -788,38 +814,17 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <div className="flex items-center w-full">
-                              <SidebarMenuButton asChild className="flex-1 pr-8">
-                                <NavLink
-                                  to={item.url}
-                                  end
-                                  className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8 pl-4"
-                                  activeClassName="bg-accent text-accent-foreground font-medium"
-                                >
-                                  <item.icon className="h-4 w-4" />
-                                  {!collapsed && <span>{item.title}</span>}
-                                </NavLink>
-                              </SidebarMenuButton>
-                              {!collapsed && (
-                                <button
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    togglePin(moduleKey);
-                                  }}
-                                  className={`absolute right-2 p-1 hover:bg-background/80 rounded transition-opacity ${
-                                    isActive ? "opacity-100" : "opacity-0 group-hover/item:opacity-100"
-                                  }`}
-                                  aria-label={isPinned ? `Unpin ${item.title}` : `Pin ${item.title}`}
-                                >
-                                  <Pin
-                                    className={`h-3.5 w-3.5 ${
-                                      isPinned ? "fill-primary text-primary" : "text-muted-foreground"
-                                    }`}
-                                  />
-                                </button>
-                              )}
-                            </div>
+                            <SidebarMenuButton asChild className="flex-1">
+                              <NavLink
+                                to={item.url}
+                                end
+                                className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8 pl-4"
+                                activeClassName="bg-accent text-accent-foreground font-medium"
+                              >
+                                <item.icon className="h-4 w-4" />
+                                {!collapsed && <span>{item.title}</span>}
+                              </NavLink>
+                            </SidebarMenuButton>
                           </TooltipTrigger>
                           {collapsed && (
                             <TooltipContent side="right">

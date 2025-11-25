@@ -11,6 +11,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { IntegrationCard } from "@/components/IntegrationCard";
@@ -62,6 +63,10 @@ const Integrations = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
   const [moduleToDeactivate, setModuleToDeactivate] = useState<keyof ModuleStatus | null>(null);
+  const [dependencyWarningOpen, setDependencyWarningOpen] = useState(false);
+  const [dependencyMessage, setDependencyMessage] = useState("");
+  const [dontShowAgain, setDontShowAgain] = useState(false);
+  const [dismissedDependencies, setDismissedDependencies] = useState<string[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -88,10 +93,23 @@ const Integrations = () => {
       setUser(session.user);
       await loadModulesAndConnections(session.user.id);
       await checkAdminStatus(session.user.id);
+      await loadDismissedDependencies(session.user.id);
     };
 
     checkAuth();
   }, [navigate]);
+
+  const loadDismissedDependencies = async (userId: string) => {
+    const { data } = await supabase
+      .from("user_preferences")
+      .select("dismissed_dependency_warnings")
+      .eq("user_id", userId)
+      .maybeSingle();
+    
+    if (data?.dismissed_dependency_warnings) {
+      setDismissedDependencies(data.dismissed_dependency_warnings as string[]);
+    }
+  };
 
   const checkAdminStatus = async (userId: string) => {
     const { data } = await supabase
@@ -159,17 +177,31 @@ const Integrations = () => {
 
     const newValue = !modules[moduleName];
     
-    // If deactivating, show confirmation dialog
+    // Check dependencies when DEACTIVATING
     if (!newValue) {
+      const dependencies = checkDependencies(moduleName);
+      if (dependencies.length > 0 && !dismissedDependencies.includes(String(moduleName))) {
+        const dependentNames = dependencies.map(d => {
+          return d.replace(/_/g, ' ').split(' ').map(word => 
+            word.charAt(0).toUpperCase() + word.slice(1)
+          ).join(' ');
+        }).join(', ');
+        
+        setDependencyMessage(`This Seekie is attached to ${dependentNames}. You will not lose your data and can reactivate it any time.`);
+        setModuleToDeactivate(moduleName);
+        setDependencyWarningOpen(true);
+        return;
+      }
+      
+      // Show standard deactivate confirmation
       setModuleToDeactivate(moduleName);
       setDeactivateDialogOpen(true);
       return;
     }
     
-    // Special handling: PM requires Contacts (CRM)
+    // Special handling: PM requires Contacts (CRM) when ACTIVATING
     if (moduleName === 'project_management' && newValue) {
       if (!modules.contacts) {
-        // Show prominent AlertDialog instead of toast
         const confirmPM = window.confirm(
           "Project Management requires Contacts to manage clients.\n\n" +
           "Both Project Management and Contacts will be activated.\n\n" +
@@ -177,10 +209,9 @@ const Integrations = () => {
         );
         
         if (!confirmPM) {
-          return; // User cancelled
+          return;
         }
         
-        // Enable both PM and Contacts
         await performToggle('contacts', true);
         await performToggle('project_management', true);
         
@@ -193,8 +224,25 @@ const Integrations = () => {
       }
     }
     
-    // If activating, proceed directly
     await performToggle(moduleName, newValue);
+  };
+
+  const checkDependencies = (moduleName: keyof ModuleStatus): string[] => {
+    const dependencies: Record<string, string[]> = {
+      'contacts': ['project_management'],
+      'marketing': [],
+    };
+    
+    const dependents: string[] = [];
+    const moduleNameStr = String(moduleName);
+    
+    for (const [dependent, requirements] of Object.entries(dependencies)) {
+      if (requirements.includes(moduleNameStr) && modules[dependent as keyof ModuleStatus]) {
+        dependents.push(dependent);
+      }
+    }
+    
+    return dependents;
   };
 
   const performToggle = async (moduleName: keyof ModuleStatus, newValue: boolean) => {
@@ -279,7 +327,33 @@ const Integrations = () => {
     if (moduleToDeactivate) {
       await performToggle(moduleToDeactivate, false);
       setDeactivateDialogOpen(false);
+      setDependencyWarningOpen(false);
       setModuleToDeactivate(null);
+      setDontShowAgain(false);
+    }
+  };
+
+  const handleConfirmDependencyDeactivate = async () => {
+    if (moduleToDeactivate && user) {
+      // Save "don't show again" preference if checked
+      if (dontShowAgain) {
+        const updatedDismissed = [...dismissedDependencies, String(moduleToDeactivate)];
+        setDismissedDependencies(updatedDismissed);
+        
+        await supabase
+          .from("user_preferences")
+          .upsert({
+            user_id: user.id,
+            dismissed_dependency_warnings: updatedDismissed
+          }, {
+            onConflict: 'user_id'
+          });
+      }
+      
+      await performToggle(moduleToDeactivate, false);
+      setDependencyWarningOpen(false);
+      setModuleToDeactivate(null);
+      setDontShowAgain(false);
     }
   };
 
@@ -1225,6 +1299,120 @@ const Integrations = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Dependency Warning Dialog */}
+      <AlertDialog open={dependencyWarningOpen} onOpenChange={setDependencyWarningOpen}>
+        <AlertDialogContent className="bg-background border shadow-lg z-50">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Connected Seekie</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-4">
+              <p>{dependencyMessage}</p>
+              <div className="flex items-center space-x-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="dont-show-again"
+                  checked={dontShowAgain}
+                  onChange={(e) => setDontShowAgain(e.target.checked)}
+                  className="h-4 w-4 rounded border-border"
+                />
+                <label 
+                  htmlFor="dont-show-again" 
+                  className="text-sm text-muted-foreground cursor-pointer"
+                >
+                  Don't show this again
+                </label>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setDependencyWarningOpen(false);
+              setDontShowAgain(false);
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDependencyDeactivate}>
+              Deactivate Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dependency Warning Dialog */}
+      <AlertDialog open={dependencyWarningOpen} onOpenChange={setDependencyWarningOpen}>
+        <AlertDialogContent className="bg-background border shadow-lg z-50">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Connected Seekie</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-4">
+              <p className="text-foreground">{dependencyMessage}</p>
+              <div className="flex items-center space-x-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="dont-show-again"
+                  checked={dontShowAgain}
+                  onChange={(e) => setDontShowAgain(e.target.checked)}
+                  className="h-4 w-4 rounded border-border cursor-pointer"
+                />
+                <label 
+                  htmlFor="dont-show-again" 
+                  className="text-sm text-muted-foreground cursor-pointer select-none"
+                >
+                  Don't show this again
+                </label>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setDependencyWarningOpen(false);
+              setDontShowAgain(false);
+              setModuleToDeactivate(null);
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDependencyDeactivate}>
+              Deactivate Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dependency Warning Dialog */}
+      <AlertDialog open={dependencyWarningOpen} onOpenChange={setDependencyWarningOpen}>
+        <AlertDialogContent className="bg-background border shadow-lg z-50">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Connected Seekie</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-4">
+              <p className="text-foreground">{dependencyMessage}</p>
+              <div className="flex items-center space-x-2 pt-2">
+                <Checkbox
+                  id="dont-show-again"
+                  checked={dontShowAgain}
+                  onCheckedChange={(checked) => setDontShowAgain(checked as boolean)}
+                />
+                <label 
+                  htmlFor="dont-show-again" 
+                  className="text-sm text-muted-foreground cursor-pointer select-none"
+                >
+                  Don't show this again
+                </label>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setDependencyWarningOpen(false);
+              setDontShowAgain(false);
+              setModuleToDeactivate(null);
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDependencyDeactivate}>
+              Deactivate Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Deactivate Confirmation Dialog */}
       <AlertDialog open={deactivateDialogOpen} onOpenChange={setDeactivateDialogOpen}>

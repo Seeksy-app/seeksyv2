@@ -637,7 +637,7 @@ export default function Team() {
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-56">
+                          <DropdownMenuContent align="end" className="w-56 bg-popover z-50">
                             {member.status === 'pending' && member.type === 'invitation' && (
                               <>
                                 <DropdownMenuItem

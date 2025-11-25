@@ -6437,6 +6437,7 @@ export type Database = {
         Row: {
           contacts_enabled: boolean | null
           created_at: string | null
+          dismissed_dependency_warnings: string[] | null
           id: string
           meetings_enabled: boolean | null
           module_advertiser_enabled: boolean | null
@@ -6471,6 +6472,7 @@ export type Database = {
         Insert: {
           contacts_enabled?: boolean | null
           created_at?: string | null
+          dismissed_dependency_warnings?: string[] | null
           id?: string
           meetings_enabled?: boolean | null
           module_advertiser_enabled?: boolean | null
@@ -6505,6 +6507,7 @@ export type Database = {
         Update: {
           contacts_enabled?: boolean | null
           created_at?: string | null
+          dismissed_dependency_warnings?: string[] | null
           id?: string
           meetings_enabled?: boolean | null
           module_advertiser_enabled?: boolean | null
