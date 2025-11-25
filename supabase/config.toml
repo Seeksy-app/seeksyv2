@@ -1,5 +1,8 @@
 project_id = "taxqcioheqdqtlmjeaht"
 
+[functions.analyze-video-content]
+verify_jwt = true
+
 [functions.cfo-ai-assistant]
 verify_jwt = false
 

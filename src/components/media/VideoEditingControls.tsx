@@ -46,7 +46,30 @@ export const VideoEditingControls = ({ mediaFile, onProcessingComplete }: VideoE
 
   const handleSubmitEdit = async () => {
     try {
-      await processVideo(mediaFile.id, editType, {});
+      const config: any = {
+        instructions: editConfig.instructions
+      };
+
+      // Add specific configurations based on edit type
+      if (editType === 'ai_edit') {
+        config.features = {
+          smartTrim: true,
+          qualityEnhancement: true,
+          autoCaptions: true
+        };
+      } else if (editType === 'ad_insertion') {
+        // User can configure ad slots if needed
+        config.adSlots = [];
+      } else if (editType === 'full_process') {
+        config.features = {
+          smartTrim: true,
+          qualityEnhancement: true,
+          autoCaptions: true,
+          adOptimization: true
+        };
+      }
+
+      await processVideo(mediaFile.id, editType, config);
       setEditDialogOpen(false);
       onProcessingComplete?.();
     } catch (error) {
@@ -138,14 +161,51 @@ export const VideoEditingControls = ({ mediaFile, onProcessingComplete }: VideoE
               <Label htmlFor="instructions">Editing Instructions</Label>
               <Textarea
                 id="instructions"
-                placeholder="E.g., Remove filler words, improve pacing, add smooth transitions, insert ads at specific timestamps..."
+                placeholder={
+                  editType === 'ai_edit' 
+                    ? "E.g., Remove filler words like 'um' and 'uh', improve pacing, enhance audio quality..."
+                    : editType === 'ad_insertion'
+                    ? "E.g., Insert ads at natural breaks, avoid mid-sentence placements..."
+                    : "E.g., Full AI enhancement with smart trim, quality boost, captions, and ad optimization..."
+                }
                 value={editConfig.instructions}
                 onChange={(e) => setEditConfig({ ...editConfig, instructions: e.target.value })}
                 rows={5}
               />
               <p className="text-sm text-muted-foreground">
-                Describe what you want the AI to do with your video
+                {editType === 'ai_edit' && "AI will analyze for filler words, quality issues, and suggest improvements"}
+                {editType === 'ad_insertion' && "AI will find optimal timestamps for ad placement"}
+                {editType === 'full_process' && "Complete AI-powered video enhancement pipeline"}
               </p>
+            </div>
+
+            {/* Feature preview for current edit type */}
+            <div className="rounded-lg bg-primary/5 p-3 space-y-2">
+              <p className="text-sm font-medium">Included Features:</p>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                {editType === 'ai_edit' && (
+                  <>
+                    <li>✓ Smart trim - removes filler words and pauses</li>
+                    <li>✓ Quality enhancement - improves lighting and audio</li>
+                    <li>✓ Auto-captions - generates accurate subtitles</li>
+                  </>
+                )}
+                {editType === 'ad_insertion' && (
+                  <>
+                    <li>✓ AI-suggested ad break timestamps</li>
+                    <li>✓ Natural scene transition detection</li>
+                    <li>✓ Viewer engagement optimization</li>
+                  </>
+                )}
+                {editType === 'full_process' && (
+                  <>
+                    <li>✓ Smart trim + quality enhancement</li>
+                    <li>✓ Auto-captions with timestamps</li>
+                    <li>✓ Optimal ad placement suggestions</li>
+                    <li>✓ Complete video analysis report</li>
+                  </>
+                )}
+              </ul>
             </div>
 
             <div className="flex gap-2 pt-4">

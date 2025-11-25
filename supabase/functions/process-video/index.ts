@@ -115,44 +115,66 @@ async function processVideoBackground(
   try {
     console.log("Background processing started for job:", jobId);
 
-    let processedFileUrl = mediaFile.file_url;
-    let editsApplied: any[] = [];
-    let timeSaved = 0;
-
-    // STEP 1: AI Editing (if requested)
-    if (jobType === 'ai_edit' || jobType === 'full_process') {
-      console.log("Performing AI editing...");
-      
-      // Get edit instructions from existing edit_transcript
-      const editInstructions = mediaFile.edit_transcript?.edits || [];
-      
-      if (editInstructions.length > 0) {
-        // In production, this would use FFmpeg to actually cut the video
-        // For now, we'll simulate the process
-        console.log(`Found ${editInstructions.length} edit instructions`);
-        
-        editsApplied = editInstructions.map((edit: any) => ({
-          type: edit.type,
-          timestamp: edit.timestamp,
-          duration: edit.duration,
-        }));
-        
-        timeSaved = editInstructions.reduce((sum: number, edit: any) => sum + edit.duration, 0);
-        
-        // TODO: Actual FFmpeg processing would happen here
-        // processedFileUrl = await applyFFmpegEdits(mediaFile.file_url, editInstructions);
+    // STEP 1: Analyze video content with Lovable AI
+    console.log("Starting AI video analysis...");
+    const analysisResponse = await fetch(
+      `${Deno.env.get("SUPABASE_URL")}/functions/v1/analyze-video-content`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+        },
+        body: JSON.stringify({
+          mediaFileId: mediaFile.id,
+          videoUrl: mediaFile.file_url,
+          analysisType: jobType,
+        }),
       }
+    );
+
+    if (!analysisResponse.ok) {
+      const error = await analysisResponse.text();
+      throw new Error(`Analysis failed: ${error}`);
     }
 
-    // STEP 2: Ad Insertion (if requested)
+    const { analysis } = await analysisResponse.json();
+    console.log("AI analysis completed:", analysis);
+
+    let processedFileUrl = mediaFile.file_url;
+    let processingResults: any = {
+      analysis,
+      processingType: jobType,
+    };
+
+    // STEP 2: Process based on job type
+    if (jobType === 'ai_edit' || jobType === 'full_process') {
+      console.log("Applying AI edits...");
+      
+      const fillerWords = analysis.fillerWords || [];
+      const qualityIssues = analysis.qualityIssues || [];
+      
+      processingResults.editsApplied = {
+        fillerWordsIdentified: fillerWords.length,
+        totalFillerDuration: fillerWords.reduce((sum: number, fw: any) => sum + (fw.duration || 0), 0),
+        qualityEnhancementsNeeded: qualityIssues.filter((i: any) => i.severity === 'high').length,
+        scenesAnalyzed: (analysis.scenes || []).length,
+        transcriptGenerated: !!analysis.transcript,
+      };
+
+      // In production: Apply FFmpeg cuts for filler words
+      // processedFileUrl = await applyFFmpegEdits(mediaFile.file_url, fillerWords);
+    }
+
+    // STEP 3: Ad Insertion processing
     let adsInserted = 0;
     if (jobType === 'ad_insertion' || jobType === 'full_process') {
-      console.log("Inserting ads...");
+      console.log("Processing ad insertion...");
       
+      const suggestedBreaks = analysis.suggestedAdBreaks || [];
       const adSlots = config.adSlots || [];
       
       if (adSlots.length > 0) {
-        // Save ad slot configurations
         for (const slot of adSlots) {
           await supabase.from("media_ad_slots").insert({
             media_file_id: mediaFile.id,
@@ -162,16 +184,21 @@ async function processVideoBackground(
             ad_file_url: slot.adFileUrl,
             ad_duration_seconds: slot.adDuration,
           });
-          
           adsInserted++;
         }
-        
-        // TODO: Actual FFmpeg ad splicing would happen here
-        // processedFileUrl = await spliceAdsWithFFmpeg(processedFileUrl, adSlots);
       }
+      
+      processingResults.adInsertionData = {
+        adsInserted,
+        suggestedBreaks: suggestedBreaks.length,
+        optimalTimestamps: suggestedBreaks.map((b: any) => b.timestamp),
+      };
+
+      // In production: Splice ads using FFmpeg
+      // processedFileUrl = await spliceAdsWithFFmpeg(processedFileUrl, adSlots);
     }
 
-    // STEP 3: Create version record
+    // STEP 4: Create version record
     const versionType = 
       jobType === 'ai_edit' ? 'ai_edited' :
       jobType === 'ad_insertion' ? 'with_ads' :
@@ -186,15 +213,13 @@ async function processVideoBackground(
         file_url: processedFileUrl,
         file_size_bytes: mediaFile.file_size_bytes,
         duration_seconds: mediaFile.duration_seconds,
-        edits_applied: editsApplied,
-        ads_inserted: adsInserted,
-        time_saved_seconds: timeSaved,
+        processing_config: processingResults,
         is_primary: false,
       });
 
     if (versionError) throw versionError;
 
-    // STEP 4: Update job status
+    // STEP 5: Update job status
     const processingTime = (Date.now() - startTime) / 1000;
     
     await supabase
@@ -203,8 +228,7 @@ async function processVideoBackground(
         status: "completed",
         processing_completed_at: new Date().toISOString(),
         output_file_url: processedFileUrl,
-        output_file_size_bytes: mediaFile.file_size_bytes,
-        output_duration_seconds: mediaFile.duration_seconds - timeSaved,
+        output_data: processingResults,
         processing_time_seconds: processingTime,
       })
       .eq("id", jobId);
@@ -229,60 +253,111 @@ async function processVideoBackground(
 /* 
 PRODUCTION FFMPEG IMPLEMENTATION NOTES:
 
-To enable actual video processing, you would need to:
+Current Implementation:
+- Uses Lovable AI (google/gemini-2.5-flash) to analyze video content
+- Identifies filler words, quality issues, scene boundaries, and optimal ad break points
+- Generates transcripts with timestamps for auto-captions
+- Provides detailed analysis that guides editing decisions
 
-1. Use a Docker-based edge function with FFmpeg installed
-2. Implement these helper functions:
+To enable actual video editing, you would need to:
 
-async function applyFFmpegEdits(inputUrl: string, edits: EditInstruction[]): Promise<string> {
-  // Download input video
+1. Set up Docker-based edge function with FFmpeg installed
+2. Implement video manipulation:
+
+// Smart Trim/Cut - Remove filler word segments
+async function applySmartTrim(inputUrl: string, fillerWords: any[]): Promise<string> {
   const inputPath = await downloadFile(inputUrl);
-  const outputPath = "/tmp/edited_" + Date.now() + ".mp4";
+  const outputPath = "/tmp/trimmed_" + Date.now() + ".mp4";
   
-  // Build FFmpeg filter for cutting segments
-  let filterComplex = "";
-  let concatInputs = "";
+  // Build filter to remove filler word segments
+  const segments = buildKeepSegments(fillerWords);
+  const filterComplex = segments.map((s, i) => 
+    `[0:v]trim=${s.start}:${s.end},setpts=PTS-STARTPTS[v${i}];` +
+    `[0:a]atrim=${s.start}:${s.end},asetpts=PTS-STARTPTS[a${i}]`
+  ).join(';') + ';' + segments.map((_, i) => `[v${i}][a${i}]`).join('') + 
+  `concat=n=${segments.length}:v=1:a=1[outv][outa]`;
   
-  // For each edit, create a segment
-  // Then concatenate all segments
-  
-  // Execute FFmpeg
   await execFFmpeg([
-    "-i", inputPath,
-    "-filter_complex", filterComplex,
-    "-c:v", "libx264",
-    "-c:a", "aac",
+    '-i', inputPath,
+    '-filter_complex', filterComplex,
+    '-map', '[outv]', '-map', '[outa]',
+    '-c:v', 'libx264', '-c:a', 'aac',
     outputPath
   ]);
   
-  // Upload to storage
   return await uploadToStorage(outputPath);
 }
 
-async function spliceAdsWithFFmpeg(videoUrl: string, adSlots: AdSlot[]): Promise<string> {
-  // Download video and all ad files
-  const videoPath = await downloadFile(videoUrl);
-  const adPaths = await Promise.all(adSlots.map(slot => downloadFile(slot.adFileUrl)));
+// Quality Enhancement - Stabilize, denoise, enhance
+async function enhanceQuality(inputUrl: string, issues: any[]): Promise<string> {
+  const inputPath = await downloadFile(inputUrl);
+  const outputPath = "/tmp/enhanced_" + Date.now() + ".mp4";
   
+  const videoFilters = [
+    'deshake',  // Stabilization
+    'eq=brightness=0.06:saturation=1.2',  // Color enhancement
+    'unsharp=5:5:1.0:5:5:0.0',  // Sharpening
+  ];
+  
+  const audioFilters = [
+    'highpass=f=200',  // Remove low rumble
+    'lowpass=f=3000',  // Remove high hiss
+    'loudnorm',  // Normalize audio levels
+  ];
+  
+  await execFFmpeg([
+    '-i', inputPath,
+    '-vf', videoFilters.join(','),
+    '-af', audioFilters.join(','),
+    '-c:v', 'libx264', '-preset', 'slow', '-crf', '18',
+    '-c:a', 'aac', '-b:a', '192k',
+    outputPath
+  ]);
+  
+  return await uploadToStorage(outputPath);
+}
+
+// Auto-Captions - Burn subtitles into video
+async function addCaptions(inputUrl: string, transcript: string): Promise<string> {
+  const inputPath = await downloadFile(inputUrl);
+  const srtPath = await generateSRT(transcript);
+  const outputPath = "/tmp/captioned_" + Date.now() + ".mp4";
+  
+  await execFFmpeg([
+    '-i', inputPath,
+    '-vf', `subtitles=${srtPath}:force_style='FontSize=24,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=3'`,
+    '-c:v', 'libx264', '-c:a', 'copy',
+    outputPath
+  ]);
+  
+  return await uploadToStorage(outputPath);
+}
+
+// Ad Insertion - Splice ads at optimal points
+async function insertAds(videoUrl: string, adSlots: any[]): Promise<string> {
+  const videoPath = await downloadFile(videoUrl);
+  const adPaths = await Promise.all(adSlots.map(s => downloadFile(s.adFileUrl)));
   const outputPath = "/tmp/with_ads_" + Date.now() + ".mp4";
   
-  // Build concat filter for splicing ads at specific positions
-  let inputs = [];
-  let filterComplex = "";
+  // Create concat file listing all segments
+  const concatList = buildConcatList(videoPath, adPaths, adSlots);
+  await Deno.writeTextFile('/tmp/concat.txt', concatList);
   
-  // Sort ad slots by position
-  const sortedSlots = [...adSlots].sort((a, b) => 
-    (a.positionSeconds || 0) - (b.positionSeconds || 0)
-  );
-  
-  // Build FFmpeg command to splice video segments with ads
-  
-  await execFFmpeg([...inputs, "-filter_complex", filterComplex, outputPath]);
+  await execFFmpeg([
+    '-f', 'concat',
+    '-safe', '0',
+    '-i', '/tmp/concat.txt',
+    '-c', 'copy',
+    outputPath
+  ]);
   
   return await uploadToStorage(outputPath);
 }
 
-3. Set up Cloudflare R2 or Supabase Storage for processed files
-4. Implement proper error handling and retry logic
-5. Add progress tracking via database updates
+3. Integration requirements:
+   - FFmpeg binary in Docker container
+   - Sufficient storage for temporary files
+   - File download/upload helpers
+   - Progress tracking and error handling
+   - Timeout management for long videos
 */
