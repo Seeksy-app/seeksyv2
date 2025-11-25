@@ -47,7 +47,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Generate proposal view link
-    const proposalLink = `${Deno.env.get("VITE_SUPABASE_URL")}/proposals/${proposalId}`;
+    const proposalLink = `https://seeksy.io/proposals/${proposalId}`;
 
     // Build line items table
     const lineItemsHtml = proposal.items?.map((item: any, index: number) => `
@@ -69,7 +69,7 @@ const handler = async (req: Request): Promise<Response> => {
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #1f2937; background-color: #f9fafb; margin: 0; padding: 20px;">
           <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
             <!-- Header -->
-            <div style="background: linear-gradient(135deg, #3b82f6 0%, #f59e0b 100%); padding: 32px; text-align: center; border-radius: 8px 8px 0 0;">
+            <div style="background: #0095FF; padding: 32px; text-align: center; border-radius: 8px 8px 0 0;">
               <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">New Proposal</h1>
             </div>
 
@@ -140,7 +140,7 @@ const handler = async (req: Request): Promise<Response> => {
               <p style="color: #4b5563; margin-top: 24px;">Please review the proposal and let me know if you have any questions.</p>
 
               <div style="text-align: center; margin: 32px 0;">
-                <a href="${proposalLink}" style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #f59e0b 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 16px;">View Proposal</a>
+                <a href="${proposalLink}" style="display: inline-block; background: #0095FF; color: white; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 16px;">View Proposal</a>
               </div>
 
               <p style="color: #9ca3af; font-size: 14px; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
