@@ -727,13 +727,51 @@ export default function PostProductionStudio() {
         {/* Right Sidebar */}
         <div className="w-96 border-l bg-card overflow-y-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-6 text-xs">
-              <TabsTrigger value="tools">Tools</TabsTrigger>
-              <TabsTrigger value="ai-edits">AI Edits</TabsTrigger>
-              <TabsTrigger value="broll">B-Roll</TabsTrigger>
-              <TabsTrigger value="intro-outro">Intro/Outro</TabsTrigger>
-              <TabsTrigger value="thumbnail">Thumbnail</TabsTrigger>
-              <TabsTrigger value="markers">Markers</TabsTrigger>
+            <TabsList className="w-full p-1 bg-muted/30 h-auto">
+              <div className="grid grid-cols-3 gap-1 w-full">
+                <TabsTrigger 
+                  value="tools" 
+                  className="flex flex-col items-center gap-1 py-2 text-xs data-[state=active]:bg-background"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <span>Tools</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="ai-edits" 
+                  className="flex flex-col items-center gap-1 py-2 text-xs data-[state=active]:bg-background"
+                >
+                  <Camera className="h-4 w-4" />
+                  <span>AI Edits</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="markers" 
+                  className="flex flex-col items-center gap-1 py-2 text-xs data-[state=active]:bg-background"
+                >
+                  <Film className="h-4 w-4" />
+                  <span>Markers</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="broll" 
+                  className="flex flex-col items-center gap-1 py-2 text-xs data-[state=active]:bg-background"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                  <span>B-Roll</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="intro-outro" 
+                  className="flex flex-col items-center gap-1 py-2 text-xs data-[state=active]:bg-background"
+                >
+                  <Video className="h-4 w-4" />
+                  <span>Intro/Outro</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="thumbnail" 
+                  className="flex flex-col items-center gap-1 py-2 text-xs data-[state=active]:bg-background"
+                >
+                  <ImageIcon className="h-4 w-4" />
+                  <span>Thumbnail</span>
+                </TabsTrigger>
+              </div>
             </TabsList>
 
             <TabsContent value="tools" className="flex-1 p-4 space-y-4">
