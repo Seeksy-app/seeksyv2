@@ -165,6 +165,7 @@ import PublicTaskSubmission from "./pages/PublicTaskSubmission";
 import HelpCenter from "./pages/HelpCenter";
 import Comparison from "./pages/Comparison";
 import Credits from "./pages/Credits";
+import ZoomIntegration from "./pages/help/ZoomIntegration";
 
 const queryClient = new QueryClient();
 
@@ -386,6 +387,8 @@ const AppContent = () => {
           <Route path="/civic/contact" element={<PublicConstituentRequestForm />} />
           <Route path="/submit-ticket" element={<PublicTicketSubmission />} />
           <Route path="/submit-task" element={<PublicTaskSubmission />} />
+          <Route path="/help/zoom-integration" element={<ZoomIntegration />} />
+          <Route path="/docs/zoom-integration" element={<ZoomIntegration />} />
             <Route path="/tickets" element={<ClientTickets />} />
             <Route path="/proposals" element={<Proposals />} />
             <Route path="/proposals/create" element={<CreateProposal />} />

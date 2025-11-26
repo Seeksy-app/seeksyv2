@@ -48,6 +48,9 @@ verify_jwt = true
 [functions.zoom-callback]
 verify_jwt = false
 
+[functions.zoom-deauthorization]
+verify_jwt = false
+
 [functions.google-calendar-auth]
 verify_jwt = true
 
