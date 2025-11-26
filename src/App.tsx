@@ -177,6 +177,9 @@ import HelpCenter from "./pages/HelpCenter";
 import Comparison from "./pages/Comparison";
 import Credits from "./pages/Credits";
 import ZoomIntegration from "./pages/help/ZoomIntegration";
+import Forms from "./pages/Forms";
+import FormBuilder from "./pages/FormBuilder";
+import PublicForm from "./pages/PublicForm";
 
 const queryClient = new QueryClient();
 
@@ -414,6 +417,10 @@ const AppContent = () => {
           <Route path="/submit-ticket" element={<PublicTicketSubmission />} />
           <Route path="/lead-form/:userId" element={<FieldLeadCapture />} />
           <Route path="/submit-task" element={<PublicTaskSubmission />} />
+          <Route path="/forms" element={<Forms />} />
+          <Route path="/forms/create" element={<FormBuilder />} />
+          <Route path="/forms/:id/edit" element={<FormBuilder />} />
+          <Route path="/f/:slug" element={<PublicForm />} />
           <Route path="/help/zoom-integration" element={<ZoomIntegration />} />
           <Route path="/docs/zoom-integration" element={<ZoomIntegration />} />
             <Route path="/tickets" element={<ClientTickets />} />

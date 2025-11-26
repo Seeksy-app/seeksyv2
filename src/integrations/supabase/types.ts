@@ -2337,6 +2337,7 @@ export type Database = {
       }
       contacts: {
         Row: {
+          address: string | null
           company: string | null
           created_at: string
           email: string
@@ -2353,6 +2354,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          address?: string | null
           company?: string | null
           created_at?: string
           email: string
@@ -2369,6 +2371,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          address?: string | null
           company?: string | null
           created_at?: string
           email?: string
@@ -3577,6 +3580,103 @@ export type Database = {
           total_podcasts?: number | null
           total_revenue?: number | null
           total_users?: number | null
+        }
+        Relationships: []
+      }
+      form_submissions: {
+        Row: {
+          contact_id: string | null
+          created_at: string | null
+          form_id: string | null
+          id: string
+          submitted_data: Json
+          ticket_id: string | null
+          tracking_code: string | null
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string | null
+          form_id?: string | null
+          id?: string
+          submitted_data: Json
+          ticket_id?: string | null
+          tracking_code?: string | null
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string | null
+          form_id?: string | null
+          id?: string
+          submitted_data?: Json
+          ticket_id?: string | null
+          tracking_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_submissions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_submissions_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_submissions_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "client_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forms: {
+        Row: {
+          created_at: string | null
+          custom_fields: Json | null
+          description: string | null
+          enabled_fields: Json | null
+          form_name: string
+          form_slug: string
+          form_type: string
+          id: string
+          is_active: boolean | null
+          settings: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          custom_fields?: Json | null
+          description?: string | null
+          enabled_fields?: Json | null
+          form_name: string
+          form_slug: string
+          form_type?: string
+          id?: string
+          is_active?: boolean | null
+          settings?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          custom_fields?: Json | null
+          description?: string | null
+          enabled_fields?: Json | null
+          form_name?: string
+          form_slug?: string
+          form_type?: string
+          id?: string
+          is_active?: boolean | null
+          settings?: Json | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
