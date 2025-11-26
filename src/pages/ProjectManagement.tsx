@@ -29,7 +29,7 @@ export default function ProjectManagement() {
             <h1 className="text-4xl font-bold text-foreground mb-2">Project Management</h1>
             <p className="text-muted-foreground">Manage clients, support tickets, and e-signatures</p>
           </div>
-          <Link to="/create-lead">
+          <Link to="/lead-form">
             <Button size="lg" className="gap-2">
               <Plus className="h-5 w-5" />
               New Field Lead

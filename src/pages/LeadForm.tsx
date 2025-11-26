@@ -38,8 +38,8 @@ export default function LeadForm() {
     address: string;
   } | null>(null);
   
-  const [photo, setPhoto] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
 
   const getLocation = async () => {
     if (!navigator.geolocation) {
@@ -98,42 +98,54 @@ export default function LeadForm() {
       return;
     }
 
-    setPhoto(file);
+    // Add to photos array
+    setPhotos(prev => [...prev, file]);
     
     // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
-      setPhotoPreview(reader.result as string);
+      setPhotoPreviews(prev => [...prev, reader.result as string]);
     };
     reader.readAsDataURL(file);
     
-    toast.success("Photo captured!");
+    toast.success("Photo added!");
   };
 
-  const uploadPhoto = async (contactId: string): Promise<string | null> => {
-    if (!photo) return null;
+  const removePhoto = (index: number) => {
+    setPhotos(prev => prev.filter((_, i) => i !== index));
+    setPhotoPreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadPhotos = async (contactId: string): Promise<string[]> => {
+    if (photos.length === 0) return [];
 
     setUploadingPhoto(true);
+    const uploadedUrls: string[] = [];
+    
     try {
-      const fileExt = photo.name.split('.').pop();
-      const fileName = `${contactId}-${Date.now()}.${fileExt}`;
-      const filePath = `contact-photos/${fileName}`;
+      for (let i = 0; i < photos.length; i++) {
+        const photo = photos[i];
+        const fileExt = photo.name.split('.').pop();
+        const fileName = `${contactId}-${Date.now()}-${i}.${fileExt}`;
+        const filePath = `contact-photos/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('contact-photos')
-        .upload(filePath, photo);
+        const { error: uploadError } = await supabase.storage
+          .from('contact-photos')
+          .upload(filePath, photo);
 
-      if (uploadError) throw uploadError;
+        if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('contact-photos')
-        .getPublicUrl(filePath);
+        const { data: { publicUrl } } = supabase.storage
+          .from('contact-photos')
+          .getPublicUrl(filePath);
 
-      return publicUrl;
+        uploadedUrls.push(publicUrl);
+      }
+      return uploadedUrls;
     } catch (error) {
-      console.error("Error uploading photo:", error);
-      toast.error("Failed to upload photo");
-      return null;
+      console.error("Error uploading photos:", error);
+      toast.error("Failed to upload some photos");
+      return uploadedUrls;
     } finally {
       setUploadingPhoto(false);
     }
@@ -189,15 +201,16 @@ export default function LeadForm() {
 
       if (contactError) throw contactError;
 
-      // Upload photo if available
-      if (photo && contact) {
-        const photoUrl = await uploadPhoto(contact.id);
+      // Upload photos if available
+      if (photos.length > 0 && contact) {
+        const photoUrls = await uploadPhotos(contact.id);
         
-        if (photoUrl) {
-          // Update contact with photo URL
+        if (photoUrls.length > 0) {
+          // Update contact with photo URLs
+          const photosList = photoUrls.map((url, i) => `Photo ${i + 1}: ${url}`).join('\n');
           await supabase
             .from("contacts")
-            .update({ notes: `${contact.notes || ''}\n\nPhoto: ${photoUrl}` })
+            .update({ notes: `${contact.notes || ''}\n\n${photosList}` })
             .eq("id", contact.id);
         }
       }
@@ -213,8 +226,8 @@ export default function LeadForm() {
         notes: "",
       });
       setLocation(null);
-      setPhoto(null);
-      setPhotoPreview(null);
+      setPhotos([]);
+      setPhotoPreviews([]);
       
       // Navigate to contacts page
       setTimeout(() => {
@@ -335,7 +348,7 @@ export default function LeadForm() {
 
               {/* Photo Capture */}
               <div className="space-y-3">
-                <Label>Photo</Label>
+                <Label>Photos ({photos.length})</Label>
                 <div className="flex gap-2">
                   <input
                     type="file"
@@ -354,30 +367,34 @@ export default function LeadForm() {
                       disabled={uploadingPhoto}
                     >
                       <Camera className="w-4 h-4 mr-2" />
-                      {photo ? "Change Photo" : "Take Photo"}
+                      {photos.length > 0 ? "Add Another Photo" : "Take Photo"}
                     </Button>
                   </label>
                 </div>
 
-                {photoPreview && (
-                  <div className="relative">
-                    <img
-                      src={photoPreview}
-                      alt="Lead photo preview"
-                      className="w-full h-48 object-cover rounded-md border"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-2 right-2"
-                      onClick={() => {
-                        setPhoto(null);
-                        setPhotoPreview(null);
-                      }}
-                    >
-                      Remove
-                    </Button>
+                {photoPreviews.length > 0 && (
+                  <div className="grid grid-cols-2 gap-2">
+                    {photoPreviews.map((preview, index) => (
+                      <div key={index} className="relative">
+                        <img
+                          src={preview}
+                          alt={`Lead photo ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-md border"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-1 right-1 h-6 w-6 p-0"
+                          onClick={() => removePhoto(index)}
+                        >
+                          ×
+                        </Button>
+                        <div className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-2 py-0.5 rounded">
+                          Photo {index + 1}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
