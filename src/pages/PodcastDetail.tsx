@@ -175,43 +175,43 @@ const PodcastDetail = () => {
           <TabsList className="bg-transparent border-b-0 h-auto p-0 gap-2">
             <TabsTrigger
               value="home"
-              className="data-[state=active]:bg-transparent data-[state=active]:text-green-600 data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none px-4 pb-3 text-base"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-3 text-base"
             >
               Home
             </TabsTrigger>
             <TabsTrigger
               value="episodes"
-              className="data-[state=active]:bg-transparent data-[state=active]:text-green-600 data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none px-4 pb-3 text-base"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-3 text-base"
             >
               Episodes
             </TabsTrigger>
             <TabsTrigger
               value="players"
-              className="data-[state=active]:bg-transparent data-[state=active]:text-green-600 data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none px-4 pb-3 text-base"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-3 text-base"
             >
               Players
             </TabsTrigger>
             <TabsTrigger
               value="website"
-              className="data-[state=active]:bg-transparent data-[state=active]:text-green-600 data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none px-4 pb-3 text-base"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-3 text-base"
             >
               Website
             </TabsTrigger>
             <TabsTrigger
               value="directories"
-              className="data-[state=active]:bg-transparent data-[state=active]:text-green-600 data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none px-4 pb-3 text-base"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-3 text-base"
             >
               Directories
             </TabsTrigger>
             <TabsTrigger
               value="monetization"
-              className="data-[state=active]:bg-transparent data-[state=active]:text-green-600 data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none px-4 pb-3 text-base"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-3 text-base"
             >
               Monetization
             </TabsTrigger>
             <TabsTrigger
               value="stats"
-              className="data-[state=active]:bg-transparent data-[state=active]:text-green-600 data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none px-4 pb-3 text-base"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-3 text-base"
             >
               Stats
             </TabsTrigger>
@@ -273,8 +273,8 @@ const PodcastDetail = () => {
                                   <h3 className="font-semibold">{episode.title}</h3>
                                   <span className={`px-2 py-0.5 text-xs rounded-full ${
                                     episode.is_published
-                                      ? 'bg-green-500/10 text-green-500'
-                                      : 'bg-yellow-500/10 text-yellow-500'
+                                      ? 'bg-primary/10 text-primary'
+                                      : 'bg-secondary/10 text-secondary'
                                   }`}>
                                     {episode.is_published ? 'Published' : 'Draft'}
                                   </span>
@@ -377,33 +377,6 @@ const PodcastDetail = () => {
                       >
                         Start RSS Migration
                       </Button>
-                    </Card>
-
-                    {/* Upgrade Promo */}
-                    <Card className="p-6 bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/20 dark:to-purple-800/20">
-                      <h3 className="text-xl font-bold mb-4">
-                        Unlock powerful podcasting features
-                      </h3>
-                      <div className="space-y-3 mb-6">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Sparkles className="w-4 h-4" />
-                          <span>Episodes are retained indefinitely</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Sparkles className="w-4 h-4" />
-                          <span>Fully customizable podcast website</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Sparkles className="w-4 h-4" />
-                          <span>Access to premium features & add-ons</span>
-                        </div>
-                      </div>
-                      <Button className="w-full bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90">
-                        Upgrade Now
-                      </Button>
-                      <p className="text-center text-sm text-muted-foreground mt-3">
-                        Starting at just $19/month
-                      </p>
                     </Card>
                   </div>
                 </div>

@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import podcastStudio from "@/assets/podcast-studio.jpg";
 
 const Podcasts = () => {
   const navigate = useNavigate();
@@ -182,8 +183,8 @@ const Podcasts = () => {
                       </span>
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         podcast.is_published
-                          ? 'bg-green-500/10 text-green-500'
-                          : 'bg-yellow-500/10 text-yellow-500'
+                          ? 'bg-primary/10 text-primary'
+                          : 'bg-secondary/10 text-secondary'
                       }`}>
                         {podcast.is_published ? 'Published' : 'Draft'}
                       </span>
@@ -194,17 +195,25 @@ const Podcasts = () => {
             })}
           </div>
         ) : (
-          <Card className="p-12 text-center">
-            <Mic className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No podcasts yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Create your first podcast Seeksy and start sharing your voice
-            </p>
-            <Button onClick={() => navigate("/podcasts/create")}>
-              <Plus className="w-4 h-4 mr-2" />
-              Create Your First Podcast
-            </Button>
-          </Card>
+          <div className="space-y-6">
+            <Card className="overflow-hidden">
+              <img 
+                src={podcastStudio} 
+                alt="Professional podcast studio" 
+                className="w-full h-64 object-cover"
+              />
+              <div className="p-12 text-center">
+                <h3 className="text-2xl font-bold mb-2">No podcasts yet</h3>
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                  Create your first podcast on Seeksy and start sharing your voice with the world
+                </p>
+                <Button size="lg" onClick={() => navigate("/podcasts/create")}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Your First Podcast
+                </Button>
+              </div>
+            </Card>
+          </div>
         )}
       </div>
     </div>

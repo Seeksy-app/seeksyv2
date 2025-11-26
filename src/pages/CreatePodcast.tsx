@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { ArrowLeft, Plus, Download } from "lucide-react";
+import podcastIcon from "@/assets/podcast-icon.jpg";
 
 const CreatePodcast = () => {
   const navigate = useNavigate();
@@ -110,8 +111,8 @@ const CreatePodcast = () => {
               className="p-12 flex flex-col items-center justify-center text-center cursor-pointer hover:shadow-xl transition-all hover:scale-105 border-2"
               onClick={() => setStep("details")}
             >
-              <div className="w-24 h-24 rounded-full bg-green-500 flex items-center justify-center mb-6">
-                <Plus className="w-12 h-12 text-white" />
+              <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center mb-6">
+                <Plus className="w-12 h-12 text-primary-foreground" />
               </div>
               <h2 className="text-2xl font-bold mb-3">Create a New Podcast</h2>
               <p className="text-muted-foreground">
@@ -124,7 +125,7 @@ const CreatePodcast = () => {
               className="p-12 flex flex-col items-center justify-center text-center cursor-pointer hover:shadow-xl transition-all hover:scale-105 border-2"
               onClick={() => navigate("/podcasts/import")}
             >
-              <div className="w-24 h-24 rounded-full bg-green-500 flex items-center justify-center mb-6">
+              <div className="w-24 h-24 rounded-full bg-secondary flex items-center justify-center mb-6">
                 <Download className="w-12 h-12 text-white" />
               </div>
               <h2 className="text-2xl font-bold mb-3">Copy in an Existing Podcast</h2>
@@ -151,11 +152,13 @@ const CreatePodcast = () => {
         </Button>
 
         <div className="space-y-8">
-          {/* Podcast Icon Placeholder */}
+          {/* Podcast Icon */}
           <div className="flex justify-center">
-            <div className="w-24 h-24 rounded-lg bg-muted flex items-center justify-center">
-              <Plus className="w-12 h-12 text-muted-foreground" />
-            </div>
+            <img 
+              src={podcastIcon} 
+              alt="Podcast" 
+              className="w-32 h-32 rounded-2xl object-cover shadow-lg"
+            />
           </div>
 
           <div>
@@ -164,7 +167,7 @@ const CreatePodcast = () => {
             </h1>
             <p className="text-center text-muted-foreground">
               Take a quick moment to add some information about your new podcast.{" "}
-              <span className="bg-green-200 text-green-900 px-1">
+              <span className="bg-primary/10 text-primary px-2 py-0.5 rounded">
                 You can update this anytime.
               </span>
             </p>
