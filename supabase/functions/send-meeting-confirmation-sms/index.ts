@@ -44,7 +44,8 @@ serve(async (req) => {
       timeStyle: 'short'
     });
 
-    const message = `Meeting Confirmed! 📅\n\n${meeting.title}\n${startTime}\n${meeting.location_type === 'in_person' ? meeting.location_details : 'Virtual meeting'}\n\nLooking forward to meeting you!`;
+    const message = `✅ Meeting Confirmed!\n\n${meeting.title}\n${startTime}\n${meeting.location_type === 'in_person' ? meeting.location_details : 'Virtual meeting'}\n\n📧 Check your email for calendar invite.\n\n💡 Create your free Seeksy account to manage meetings & more: https://seeksy.io/auth`;
+
 
     // Send SMS via Twilio
     const accountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
