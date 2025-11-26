@@ -845,11 +845,13 @@ Closing Notes:
           <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
             <StudioLeftSidebar
               scenes={scenes}
-              onSceneChange={handleSceneChange}
               activeSceneId={activeSceneId}
-              onAddScene={() => {}} 
-              cameraEnabled={cameraEnabled}
-              profileImageUrl={profileImageUrl}
+              onSceneChange={handleSceneChange}
+              onScenesUpdate={(updatedScenes) => {
+                setScenes(updatedScenes);
+                localStorage.setItem('studioScenes', JSON.stringify(updatedScenes));
+              }}
+              mediaFiles={mediaFiles}
             />
           </ResizablePanel>
 
