@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { voiceName, audioUrl, description } = await req.json();
+    const { voiceName, audioUrl, description, cloneType = 'instant' } = await req.json();
 
     if (!voiceName || !audioUrl) {
       throw new Error('Missing required fields: voiceName or audioUrl');
@@ -28,7 +28,7 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    console.log(`Cloning voice: ${voiceName} from ${audioUrl}`);
+    console.log(`Cloning voice (${cloneType}): ${voiceName} from ${audioUrl}`);
 
     // Fetch the audio file
     const audioResponse = await fetch(audioUrl);
@@ -46,8 +46,15 @@ serve(async (req) => {
       formData.append('description', description);
     }
 
+    // Choose endpoint based on clone type
+    // Instant: standard voice cloning (quick, 10 seconds audio)
+    // Professional: PVC endpoint (high-quality, 30+ minutes audio)
+    const endpoint = cloneType === 'professional' 
+      ? 'https://api.elevenlabs.io/v1/voice-generation/create-voice'
+      : 'https://api.elevenlabs.io/v1/voices/add';
+
     // Call ElevenLabs API to clone voice
-    const response = await fetch('https://api.elevenlabs.io/v1/voices/add', {
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'xi-api-key': ELEVENLABS_API_KEY,

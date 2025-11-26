@@ -7,12 +7,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Mic, DollarSign, Check } from "lucide-react";
+import { Shield, Mic, DollarSign, Check, Clock, Zap, Star, Info } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
+type CloneType = 'instant' | 'professional';
 
 export default function VoiceProtection() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [cloneType, setCloneType] = useState<CloneType>('instant');
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [voiceName, setVoiceName] = useState("");
@@ -51,11 +55,14 @@ export default function VoiceProtection() {
       mediaRecorder.start();
       setIsRecording(true);
 
+      // Recording duration based on clone type
+      const duration = cloneType === 'instant' ? 10000 : 1800000; // 10 seconds or 30 minutes
+      
       setTimeout(() => {
         mediaRecorder.stop();
         stream.getTracks().forEach(track => track.stop());
         setIsRecording(false);
-      }, 30000); // 30 second recording
+      }, duration);
     } catch (error) {
       toast({
         title: "Error",
@@ -94,6 +101,7 @@ export default function VoiceProtection() {
             voiceName,
             audioUrl: publicUrl,
             description,
+            cloneType, // 'instant' or 'professional'
           },
         }
       );
@@ -159,10 +167,64 @@ export default function VoiceProtection() {
           <CardHeader>
             <CardTitle>Create Voice Profile</CardTitle>
             <CardDescription>
-              Record a 30-second sample to clone your voice and make it available for advertisers
+              Choose a cloning method and record your voice sample
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
+            {/* Clone Type Selection */}
+            <div className="space-y-4">
+              <Label>Select Clone Type</Label>
+              <RadioGroup value={cloneType} onValueChange={(value) => setCloneType(value as CloneType)}>
+                {/* Instant Voice Clone */}
+                <Card className={cloneType === 'instant' ? 'border-primary border-2' : ''}>
+                  <CardContent className="pt-6">
+                    <div className="flex items-start space-x-4">
+                      <RadioGroupItem value="instant" id="instant" className="mt-1" />
+                      <div className="flex-1 space-y-2">
+                        <Label htmlFor="instant" className="flex items-center gap-2 cursor-pointer font-semibold text-base">
+                          <Zap className="h-5 w-5 text-primary" />
+                          Instant Voice Clone
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Clone your voice with only 10 seconds of audio.
+                        </p>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">2 minutes</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Professional Voice Clone */}
+                <Card className={cloneType === 'professional' ? 'border-primary border-2' : ''}>
+                  <CardContent className="pt-6">
+                    <div className="flex items-start space-x-4">
+                      <RadioGroupItem value="professional" id="professional" className="mt-1" />
+                      <div className="flex-1 space-y-2">
+                        <Label htmlFor="professional" className="flex items-center gap-2 cursor-pointer font-semibold text-base">
+                          <Star className="h-5 w-5 text-primary" />
+                          Professional Voice Clone
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Create the most realistic digital replica of your voice. Requires at least 30 minutes of clean audio.
+                        </p>
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">5 minutes</span>
+                          </div>
+                          <span className="text-xs text-muted-foreground">1 slot available</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </RadioGroup>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="voiceName">Voice Name</Label>
               <Input
@@ -191,7 +253,12 @@ export default function VoiceProtection() {
                 variant={audioBlob ? "outline" : "default"}
               >
                 <Mic className="mr-2 h-4 w-4" />
-                {isRecording ? "Recording... (30s)" : audioBlob ? "Sample Recorded ✓" : "Record Voice Sample"}
+                {isRecording 
+                  ? `Recording... (${cloneType === 'instant' ? '10s' : '30 min'})`
+                  : audioBlob 
+                  ? "Sample Recorded ✓" 
+                  : `Record ${cloneType === 'instant' ? '10 Seconds' : '30 Minutes'}`
+                }
               </Button>
               
               {audioBlob && (
