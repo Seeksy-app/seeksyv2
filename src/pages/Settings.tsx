@@ -964,14 +964,7 @@ const Settings = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={() => navigate("/seeksy-architecture")}
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Tech Stack & Architecture
-              </Button>
+              {/* Architecture button removed per user request */}
             </CardContent>
           </Card>
         </div>
