@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { toast } from "sonner";
 import { ProFormaSpreadsheetGenerator } from "./ProFormaSpreadsheetGenerator";
 import { ShareProformaDialog } from "./ShareProformaDialog";
+import { SpreadsheetViewerDialog } from "./SpreadsheetViewerDialog";
 import jsPDF from "jspdf";
 import * as XLSX from "xlsx";
 
@@ -82,6 +83,8 @@ export const InteractiveSpreadsheet = ({ isReadOnly = false }: { isReadOnly?: bo
   const [showAssumptions, setShowAssumptions] = useState(false);
   const [selectedScenario, setSelectedScenario] = useState<'baseline' | 'conservative' | 'growth' | 'aggressive'>('conservative');
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [spreadsheetViewerOpen, setSpreadsheetViewerOpen] = useState(false);
+  const [viewerData, setViewerData] = useState<{ assumptions: any; forecast: any[]; type: 'ai' | 'custom' } | null>(null);
   const [proformaType] = useState<'ai' | 'custom'>('custom'); // InteractiveSpreadsheet uses custom proforma
   const [assumptions, setAssumptions] = useState<SpreadsheetAssumptions>({
     // Pricing
@@ -1879,16 +1882,23 @@ export const InteractiveSpreadsheet = ({ isReadOnly = false }: { isReadOnly?: bo
 
                   <div className="space-y-3 mt-6">
                     <p className="font-semibold text-xs">Download Reports:</p>
-                    <div className="grid grid-cols-3 gap-2">
-                      <Button variant="outline" size="sm" className="w-full" onClick={handleExportAIPDF}>
+                    <div className="grid grid-cols-3 gap-3">
+                      <Button variant="outline" size="sm" onClick={handleExportAIPDF}>
                         <Download className="mr-2 h-4 w-4" />
                         PDF Report
                       </Button>
-                      <Button variant="outline" size="sm" className="w-full" onClick={handleExportAIExcel}>
+                      <Button variant="outline" size="sm" onClick={handleExportAIExcel}>
                         <FileSpreadsheet className="mr-2 h-4 w-4" />
                         Excel (.xlsx)
                       </Button>
-                      <Button variant="default" size="sm" className="w-full" onClick={handleExportAIExcel}>
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        onClick={() => {
+                          setViewerData({ assumptions, forecast, type: 'ai' });
+                          setSpreadsheetViewerOpen(true);
+                        }}
+                      >
                         <FileSpreadsheet className="mr-2 h-4 w-4" />
                         View Spreadsheet
                       </Button>
@@ -1969,17 +1979,27 @@ export const InteractiveSpreadsheet = ({ isReadOnly = false }: { isReadOnly?: bo
 
                   <div className="space-y-3 mt-6">
                     <p className="font-semibold text-xs">Download Reports:</p>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-3 gap-3">
                       <Button 
                         variant="outline" 
                         size="sm"
-                        className="w-full"
                         onClick={handleExportCustomPDF}
                       >
                         <Download className="mr-2 h-4 w-4" />
                         PDF Report
                       </Button>
                       <ProFormaSpreadsheetGenerator />
+                      <Button 
+                        variant="default" 
+                        size="sm"
+                        onClick={() => {
+                          setViewerData({ assumptions, forecast, type: 'custom' });
+                          setSpreadsheetViewerOpen(true);
+                        }}
+                      >
+                        <FileSpreadsheet className="mr-2 h-4 w-4" />
+                        View Spreadsheet
+                      </Button>
                     </div>
                     {!isReadOnly && (
                       <Button 
@@ -2006,6 +2026,14 @@ export const InteractiveSpreadsheet = ({ isReadOnly = false }: { isReadOnly?: bo
         onOpenChange={setShareDialogOpen}
         proformaType={proformaType}
       />
+      
+      {viewerData && (
+        <SpreadsheetViewerDialog
+          open={spreadsheetViewerOpen}
+          onOpenChange={setSpreadsheetViewerOpen}
+          data={viewerData}
+        />
+      )}
     </div>
   );
 };

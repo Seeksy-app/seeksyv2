@@ -263,14 +263,10 @@ export default function InvestorPortal() {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="proforma" className="space-y-8">
-          <TabsList className="grid w-full max-w-4xl grid-cols-4 h-12 bg-muted/30 border border-border">
+          <TabsList className="grid w-full max-w-3xl grid-cols-3 h-12 bg-muted/30 border border-border">
             <TabsTrigger value="proforma" className="text-base font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <FileSpreadsheet className="h-5 w-5 mr-2" />
               3-Year Pro Forma
-            </TabsTrigger>
-            <TabsTrigger value="spreadsheets" className="text-base font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <FileSpreadsheet className="h-5 w-5 mr-2" />
-              Financial Spreadsheets
             </TabsTrigger>
             <TabsTrigger value="business-model" className="text-base font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <TrendingUp className="h-5 w-5 mr-2" />
@@ -309,20 +305,6 @@ export default function InvestorPortal() {
 
           <TabsContent value="business-model" className="space-y-6">
             <BusinessModelTab />
-          </TabsContent>
-
-          <TabsContent value="spreadsheets" className="space-y-6">
-            {viewingSpreadsheet ? (
-              <SpreadsheetViewer 
-                spreadsheet={viewingSpreadsheet} 
-                onBack={() => setViewingSpreadsheet(null)} 
-              />
-            ) : (
-              <SpreadsheetList 
-                onViewSpreadsheet={setViewingSpreadsheet}
-                showAdminActions={false}
-              />
-            )}
           </TabsContent>
 
           <TabsContent value="assumptions" className="space-y-6">
