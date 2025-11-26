@@ -28,6 +28,7 @@ import MeetingTypes from "./pages/MeetingTypes";
 import CreateMeetingType from "./pages/CreateMeetingType";
 import EditMeetingType from "./pages/EditMeetingType";
 import CreateMeeting from "./pages/CreateMeeting";
+import EditMeeting from "./pages/EditMeeting";
 import Meetings from "./pages/Meetings";
 import Availability from "./pages/Availability";
 import BookMeetings from "./pages/BookMeetings";
@@ -274,6 +275,8 @@ const AppContent = () => {
               <Route path="/meeting-types/create" element={<CreateMeetingType />} />
               <Route path="/meeting-types/:id/edit" element={<EditMeetingType />} />
             <Route path="/meetings" element={<Meetings />} />
+            <Route path="/meetings/create" element={<CreateMeeting />} />
+            <Route path="/meetings/edit/:id" element={<EditMeeting />} />
             <Route path="/events" element={<Events />} />
             <Route path="/signup-sheets" element={<SignupSheets />} />
               <Route path="/meetings/create" element={<CreateMeeting />} />

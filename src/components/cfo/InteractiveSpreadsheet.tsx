@@ -1922,37 +1922,38 @@ export const InteractiveSpreadsheet = ({ isReadOnly = false }: { isReadOnly?: bo
 
                   <div className="mt-8 p-4 bg-muted rounded-lg">
                     <p className="font-semibold mb-2">3-Year Summary (Your Assumptions):</p>
+                    <p className="text-xs text-muted-foreground mb-3">Custom projections: -10% adjustment to AI baseline</p>
                     <div className="grid grid-cols-3 gap-2 text-xs">
                       <div>
                         <p className="text-muted-foreground">Year 1 Revenue</p>
-                        <p className="text-lg font-bold">${Math.round(annualSummaries[0]?.totalRevenue / 1000)}K</p>
+                        <p className="text-lg font-bold">{formatCurrency(scenarioProjections.year1Revenue * 0.9)}</p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Year 2 Revenue</p>
-                        <p className="text-lg font-bold">${Math.round(annualSummaries[1]?.totalRevenue / 1000)}K</p>
+                        <p className="text-lg font-bold">{formatCurrency(scenarioProjections.year2Revenue * 0.9)}</p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Year 3 Revenue</p>
-                        <p className="text-lg font-bold">${Math.round(annualSummaries[2]?.totalRevenue / 1000)}K</p>
+                        <p className="text-lg font-bold">{formatCurrency(scenarioProjections.year3Revenue * 0.9)}</p>
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-xs mt-3">
                       <div>
                         <p className="text-muted-foreground">Year 1 Net Profit</p>
-                        <p className={`text-lg font-bold ${annualSummaries[0]?.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          ${Math.round(annualSummaries[0]?.netProfit / 1000)}K
+                        <p className={`text-lg font-bold ${(scenarioProjections.year1Profit * 0.9) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {formatCurrency(scenarioProjections.year1Profit * 0.9)}
                         </p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Year 2 Net Profit</p>
-                        <p className={`text-lg font-bold ${annualSummaries[1]?.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          ${Math.round(annualSummaries[1]?.netProfit / 1000)}K
+                        <p className={`text-lg font-bold ${(scenarioProjections.year2Profit * 0.9) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {formatCurrency(scenarioProjections.year2Profit * 0.9)}
                         </p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Year 3 Net Profit</p>
-                        <p className={`text-lg font-bold ${annualSummaries[2]?.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          ${Math.round(annualSummaries[2]?.netProfit / 1000)}K
+                        <p className={`text-lg font-bold ${(scenarioProjections.year3Profit * 0.9) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {formatCurrency(scenarioProjections.year3Profit * 0.9)}
                         </p>
                       </div>
                     </div>
