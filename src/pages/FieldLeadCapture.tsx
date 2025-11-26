@@ -16,6 +16,22 @@ export default function FieldLeadCapture() {
   const { userId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Validate userId exists
+  if (!userId) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Invalid Link</CardTitle>
+            <CardDescription>
+              This lead capture form requires a valid user link. Please contact your administrator for the correct link.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
   
   const [formData, setFormData] = useState({
     name: "",
@@ -169,6 +185,11 @@ export default function FieldLeadCapture() {
     setSubmitting(true);
 
     try {
+      // Validate userId is present
+      if (!userId) {
+        throw new Error("User ID is missing. Please use a valid lead form link.");
+      }
+
       // Upload photos
       const photoUrls = await uploadPhotos();
 
@@ -199,25 +220,29 @@ export default function FieldLeadCapture() {
       let contactId: string;
 
       if (existingContact) {
-        const { data: updatedContact } = await supabase
+        const { data: updatedContact, error: updateError } = await supabase
           .from('contacts')
           .update(contactData)
           .eq('id', existingContact.id)
           .select('id')
           .single();
+        
+        if (updateError) throw updateError;
         contactId = updatedContact!.id;
       } else {
-        const { data: newContact } = await supabase
+        const { data: newContact, error: insertError } = await supabase
           .from('contacts')
           .insert(contactData)
           .select('id')
           .single();
+        
+        if (insertError) throw insertError;
         contactId = newContact!.id;
       }
 
       // Create ticket if requested
       if (createTicket) {
-        await supabase.from('client_tickets').insert({
+        const { error: ticketError } = await supabase.from('client_tickets').insert({
           title: `Field Lead: ${formData.name}`,
           description: formData.notes,
           client_contact_id: contactId,
@@ -227,6 +252,8 @@ export default function FieldLeadCapture() {
           priority: 'medium',
           source: 'field_capture',
         });
+        
+        if (ticketError) throw ticketError;
       }
 
       toast({
@@ -241,11 +268,12 @@ export default function FieldLeadCapture() {
       setLocation(null);
       setCreateTicket(true);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error submitting lead:", error);
+      const errorMessage = error?.message || "Failed to capture lead. Please try again.";
       toast({
         title: "Error",
-        description: "Failed to capture lead. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
