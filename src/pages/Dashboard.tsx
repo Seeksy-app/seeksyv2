@@ -581,18 +581,6 @@ const Dashboard = () => {
       <main className="container mx-auto py-8 px-4">
         <div className="mb-8 flex items-start justify-between">
           <div className="flex items-center gap-4">
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-brand-blue to-brand-navy bg-clip-text text-transparent">
-                  Welcome back{firstName ? ` ${firstName}` : ""}!
-                </h1>
-                {/* Thanksgiving decoration */}
-                {new Date().getMonth() === 10 && (
-                  <span className="text-3xl">🍂</span>
-                )}
-              </div>
-              <p className="text-muted-foreground">Here's what's happening with your account.</p>
-            </div>
             {profileData.avatar_url && (
               <Avatar className="h-16 w-16 ring-2 ring-primary/20">
                 <AvatarImage src={profileData.avatar_url} alt={profileData.full_name} />
@@ -601,8 +589,21 @@ const Dashboard = () => {
                 </AvatarFallback>
               </Avatar>
             )}
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-brand-blue to-brand-navy bg-clip-text text-transparent">
+                Welcome back{firstName ? ` ${firstName}` : ""}!
+              </h1>
+              <p className="text-muted-foreground">Here's what's happening with your account.</p>
+            </div>
           </div>
-          <DashboardCustomizer widgets={widgets} onSave={handleWidgetsSave} />
+          <div className="flex items-center gap-4">
+            {new Date().getMonth() === 10 && (
+              <span className="text-2xl font-semibold text-orange-500">
+                Happy Thanksgiving! 🦃
+              </span>
+            )}
+            <DashboardCustomizer widgets={widgets} onSave={handleWidgetsSave} />
+          </div>
         </div>
 
         {/* Live Stream Indicator */}
