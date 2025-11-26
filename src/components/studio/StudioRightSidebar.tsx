@@ -83,29 +83,6 @@ export function StudioRightSidebar({
 
   return (
     <div className="flex flex-col h-full border-l border-border/40 bg-background">
-      {/* Participants Section */}
-      <div className="border-b border-border/40 p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Users className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Participants ({participants.length})</span>
-        </div>
-        <ScrollArea className="max-h-32">
-          <div className="space-y-2">
-            {participants.map((participant) => (
-              <div key={participant.id} className="flex items-center gap-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={participant.avatar} />
-                  <AvatarFallback className="text-xs bg-primary/10">
-                    {participant.name.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-sm">{participant.name}</span>
-              </div>
-            ))}
-          </div>
-        </ScrollArea>
-      </div>
-
       {/* Tabs at the top */}
       <div className="border-b border-border/40">
         <div className="flex items-center">
@@ -139,6 +116,29 @@ export function StudioRightSidebar({
             </Button>
           )}
         </div>
+      </div>
+
+      {/* Participants Section */}
+      <div className="border-b border-border/40 p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Users className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium">Participants ({participants.length})</span>
+        </div>
+        <ScrollArea className="max-h-32">
+          <div className="space-y-2">
+            {participants.map((participant) => (
+              <div key={participant.id} className="flex items-center gap-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={participant.avatar} />
+                  <AvatarFallback className="text-xs bg-primary/10">
+                    {participant.name.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm">{participant.name}</span>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
       </div>
 
       {/* Content Section */}

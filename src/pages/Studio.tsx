@@ -763,6 +763,18 @@ Closing Notes:
             </div>
         
         <div className="flex items-center gap-4">
+          <VideoLayoutSelector
+            currentLayout={videoLayout}
+            onLayoutChange={setVideoLayout}
+            participantCount={1}
+          />
+          
+          <div className="h-6 w-px bg-border" />
+          
+          <ThemeToggle />
+          
+          <div className="h-6 w-px bg-border" />
+          
           {isMeetingLive ? (
             <Button
               onClick={() => setIsMeetingLive(false)}
@@ -780,30 +792,6 @@ Closing Notes:
               START MEETING
             </Button>
           )}
-          
-          <div className="h-6 w-px bg-border" />
-          
-          <VideoLayoutSelector
-            currentLayout={videoLayout}
-            onLayoutChange={setVideoLayout}
-            participantCount={1}
-          />
-          
-          <div className="h-6 w-px bg-border" />
-          
-          <div className="flex items-center gap-2">
-            <Switch
-              id="ai-notes"
-              checked={showAINotes}
-              onCheckedChange={setShowAINotes}
-            />
-            <Label htmlFor="ai-notes" className="text-sm cursor-pointer flex items-center gap-1">
-              <Sparkles className="h-4 w-4" />
-              AI Notes
-            </Label>
-          </div>
-          
-          <ThemeToggle />
         </div>
       </div>
       
