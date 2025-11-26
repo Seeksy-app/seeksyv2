@@ -148,6 +148,20 @@ const handler = async (req: Request): Promise<Response> => {
             <strong>📅 Add to Calendar:</strong> A calendar invitation (.ics file) is attached to this email. 
             Click on the attachment to add this meeting to your calendar app.
           </p>
+          
+          <div style="background-color: #f0f7ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
+            <h3 style="color: #333; margin-top: 0; font-size: 16px;">💡 Get More Out of Your Meetings</h3>
+            <p style="margin: 10px 0;">Create your free Seeksy account to:</p>
+            <ul style="margin: 10px 0; padding-left: 20px;">
+              <li>Manage all your meetings in one place</li>
+              <li>Schedule calls with your own booking link</li>
+              <li>Access powerful tools for creators and professionals</li>
+            </ul>
+            <a href="https://seeksy.io/auth" style="display: inline-block; padding: 12px 24px; background-color: #667eea; color: white; text-decoration: none; border-radius: 6px; margin-top: 10px; font-weight: bold;">
+              Create Free Account →
+            </a>
+          </div>
+          
           <p style="color: #666; font-size: 12px; margin-top: 30px;">
             This email was sent by Seeksy.io
           </p>
