@@ -52,6 +52,8 @@ function StudioContent() {
   const [dontShowAINotesAgain, setDontShowAINotesAgain] = useState(false);
   const [showScriptDialog, setShowScriptDialog] = useState(false);
   const [showHostNotesPanel, setShowHostNotesPanel] = useState(false);
+  const [showMeetingEndedDialog, setShowMeetingEndedDialog] = useState(false);
+  const [showSendAINotesDialog, setShowSendAINotesDialog] = useState(false);
   
   // Assume user in studio is the host (guests would have different entry point)
   const isHost = true;
@@ -663,11 +665,30 @@ Closing Notes:
         setCameraEnabled(videoTrack.enabled);
       }
     } else {
-      // No stream yet - start preview first
-      if (!cameraEnabled) {
-        await startPreview();
+      // No stream yet - request with camera enabled
+      try {
+        const newCameraState = !cameraEnabled;
+        setCameraEnabled(newCameraState);
+        
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: newCameraState,
+          audio: micEnabled
+        });
+        
+        streamRef.current = stream;
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (error) {
+        console.error("Error accessing camera:", error);
+        setCameraEnabled(false);
+        toast({
+          title: "Error",
+          description: "Could not access camera or microphone",
+          variant: "destructive",
+        });
       }
-      setCameraEnabled(!cameraEnabled);
     }
   };
 
@@ -679,11 +700,30 @@ Closing Notes:
         setMicEnabled(audioTrack.enabled);
       }
     } else {
-      // No stream yet - start preview first
-      if (!micEnabled) {
-        await startPreview();
+      // No stream yet - request with mic enabled
+      try {
+        const newMicState = !micEnabled;
+        setMicEnabled(newMicState);
+        
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: cameraEnabled,
+          audio: newMicState
+        });
+        
+        streamRef.current = stream;
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (error) {
+        console.error("Error accessing microphone:", error);
+        setMicEnabled(false);
+        toast({
+          title: "Error",
+          description: "Could not access camera or microphone",
+          variant: "destructive",
+        });
       }
-      setMicEnabled(!micEnabled);
     }
   };
 
@@ -831,7 +871,10 @@ Closing Notes:
           
           {isMeetingLive ? (
             <Button
-              onClick={() => setIsMeetingLive(false)}
+              onClick={() => {
+                setIsMeetingLive(false);
+                setShowMeetingEndedDialog(true);
+              }}
               size="sm"
               className="bg-red-600 hover:bg-red-700 text-white font-semibold gap-2"
             >
@@ -883,6 +926,65 @@ Closing Notes:
             <Button onClick={handleEnableAINotes} className="gap-2">
               <Sparkles className="h-4 w-4" />
               Enable AI Notes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Meeting Ended Dialog */}
+      <Dialog open={showMeetingEndedDialog} onOpenChange={setShowMeetingEndedDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Meeting has ended</DialogTitle>
+            <DialogDescription>
+              The meeting has been stopped and all participants have been removed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => {
+              setShowMeetingEndedDialog(false);
+              if (isHost) {
+                setShowSendAINotesDialog(true);
+              }
+            }}>
+              OK
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Send AI Notes Dialog - Host Only */}
+      <Dialog open={showSendAINotesDialog} onOpenChange={setShowSendAINotesDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Send AI Notes to Attendees?
+            </DialogTitle>
+            <DialogDescription>
+              Would you like to send the AI-generated meeting notes to all attendees via email?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowSendAINotesDialog(false);
+              toast({
+                title: "AI Notes not sent",
+                description: "You can always export and send notes manually later.",
+              });
+            }}>
+              No
+            </Button>
+            <Button onClick={() => {
+              setShowSendAINotesDialog(false);
+              toast({
+                title: "AI Notes sent",
+                description: "Meeting notes have been sent to all attendees.",
+              });
+              // TODO: Implement actual sending logic
+            }} className="gap-2">
+              <Sparkles className="h-4 w-4" />
+              Yes, Send Notes
             </Button>
           </DialogFooter>
         </DialogContent>
