@@ -1,53 +1,53 @@
-import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { 
+  AlertCircle, 
+  CheckCircle2, 
+  Clock, 
+  TrendingUp, 
+  Users, 
+  DollarSign,
+  Calendar,
+  MessageSquare,
+  Target,
+  UserCheck,
+  Loader2
+} from "lucide-react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowLeft, BarChart3, UserCheck, Users, Loader2, DollarSign, MessageSquare, FileText, Plus, Eye, Calculator, Trash2, Shield, Coins } from "lucide-react";
-import SubscriptionsAdmin from "@/components/admin/SubscriptionsAdmin";
-import AdminCRM from "@/components/admin/AdminCRM";
-import { AdminOverview } from "@/components/admin/AdminOverview";
-import { AdminInternalChat } from "@/components/admin/AdminInternalChat";
-import ImpersonationBanner from "@/components/admin/ImpersonationBanner";
-import { PricingManagement } from "@/components/admin/PricingManagement";
-import { InvestorSharesManagement } from "@/components/admin/InvestorSharesManagement";
-import { AdminCreditManagement } from "@/components/admin/AdminCreditManagement";
 
-interface UserProfile {
+interface DashboardStats {
+  openTickets: number;
+  pendingMeetings: number;
+  activeContacts: number;
+  monthlyRevenue: number;
+  recentActivity: Activity[];
+}
+
+interface Activity {
   id: string;
-  username: string;
-  full_name: string | null;
-  created_at: string | null;
-  roles: string[];
+  type: string;
+  description: string;
+  timestamp: string;
 }
 
 export default function Admin() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-  const [users, setUsers] = useState<UserProfile[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState<string>("all");
-  const [showImpersonateDialog, setShowImpersonateDialog] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState<string>("");
-  const [demoMode, setDemoMode] = useState(false);
-  const [deletingUsers, setDeletingUsers] = useState(false);
+  const [stats, setStats] = useState<DashboardStats>({
+    openTickets: 0,
+    pendingMeetings: 0,
+    activeContacts: 0,
+    monthlyRevenue: 0,
+    recentActivity: [],
+  });
 
   useEffect(() => {
     checkAdminAccess();
   }, []);
-
-  useEffect(() => {
-    filterUsers();
-  }, [searchQuery, roleFilter, users]);
 
   const checkAdminAccess = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -65,9 +65,7 @@ export default function Admin() {
     const hasAdminRole = roles?.some(r => 
       r.role === "admin" || 
       r.role === "super_admin" || 
-      r.role === "manager" ||
-      r.role === "scheduler" ||
-      r.role === "sales"
+      r.role === "manager"
     );
     
     if (!hasAdminRole) {
@@ -76,145 +74,70 @@ export default function Admin() {
       return;
     }
 
-    const isSuperAdminRole = roles?.some(r => r.role === "super_admin");
-    setIsSuperAdmin(isSuperAdminRole || false);
     setHasAdminAccess(true);
-    await fetchUsers();
+    await fetchDashboardStats();
     setLoading(false);
   };
 
-  const fetchUsers = async () => {
-    const { data: profilesData } = await supabase
-      .from("profiles")
-      .select("id, username, full_name, created_at")
-      .order("created_at", { ascending: false });
-
-    if (!profilesData) return;
-
-    const usersWithRoles = await Promise.all(
-      profilesData.map(async (profile) => {
-        const { data: rolesData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", profile.id);
-
-        return {
-          ...profile,
-          roles: rolesData?.map(r => r.role) || [],
-        };
-      })
-    );
-
-    setUsers(usersWithRoles);
-  };
-
-  const filterUsers = () => {
-    let filtered = users;
-
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (user) =>
-          user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          user.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    if (roleFilter !== "all") {
-      filtered = filtered.filter((user) => user.roles.includes(roleFilter));
-    }
-
-    setFilteredUsers(filtered);
-  };
-
-  const toggleRole = async (userId: string, newRole: string) => {
+  const fetchDashboardStats = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error("Not authenticated");
-      }
+      // Fetch open tickets (tasks with status 'open' or 'in_progress')
+      const { count: ticketCount } = await supabase
+        .from("tasks")
+        .select("*", { count: "exact", head: true })
+        .in("status", ["open", "in_progress"]);
 
-      const { data, error } = await supabase.functions.invoke('manage-user-role', {
-        body: { targetUserId: userId, newRole },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
+      // Fetch pending meetings (upcoming meetings)
+      const { count: meetingCount } = await supabase
+        .from("meetings")
+        .select("*", { count: "exact", head: true })
+        .gte("start_time", new Date().toISOString());
+
+      // Fetch active contacts (contacts created in last 30 days)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const { count: contactCount } = await supabase
+        .from("contacts")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", thirtyDaysAgo.toISOString());
+
+      // Fetch recent activity
+      const { data: activityData } = await supabase
+        .from("activity_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      const activities: Activity[] = activityData?.map(log => ({
+        id: log.id,
+        type: log.action_type,
+        description: log.action_description,
+        timestamp: log.created_at,
+      })) || [];
+
+      setStats({
+        openTickets: ticketCount || 0,
+        pendingMeetings: meetingCount || 0,
+        activeContacts: contactCount || 0,
+        monthlyRevenue: 0, // To be calculated from actual revenue data
+        recentActivity: activities,
       });
-
-      if (error) {
-        toast.error("Failed to update role: " + error.message);
-        return;
-      }
-
-      toast.success(`Role updated to ${newRole}`);
-      await fetchUsers();
-    } catch (error: any) {
-      toast.error("An error occurred: " + error.message);
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
     }
   };
 
-  const deleteUser = async (userId: string, username: string) => {
-    try {
-      const { error } = await supabase.functions.invoke("delete-user", {
-        body: { userId },
-      });
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
 
-      if (error) {
-        toast.error("Failed to delete user: " + error.message);
-        return;
-      }
-
-      toast.success(`User ${username} has been deleted`);
-      await fetchUsers();
-    } catch (error: any) {
-      toast.error("An error occurred: " + error.message);
-    }
-  };
-
-  const handleImpersonate = async () => {
-    if (!selectedUserId) {
-      toast.error("Please select a user to impersonate");
-      return;
-    }
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    localStorage.setItem("original_admin_id", user.id);
-    localStorage.setItem("impersonating_user_id", selectedUserId);
-
-    const selectedUser = users.find((u) => u.id === selectedUserId);
-    toast.success(`Now impersonating ${selectedUser?.username || selectedUser?.full_name}`);
-
-    navigate("/dashboard");
-  };
-
-  const handleDeleteTestUsers = async () => {
-    if (!window.confirm("⚠️ WARNING: This will delete ALL users except yourself. This cannot be undone!\n\nAre you absolutely sure?")) {
-      return;
-    }
-
-    setDeletingUsers(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        throw new Error("Not authenticated");
-      }
-
-      const { data, error } = await supabase.functions.invoke('delete-test-users', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
-      });
-
-      if (error) throw error;
-
-      toast.success(`Deleted ${data.deletedUsers?.length || 0} test users. Your account was kept.`);
-      await fetchUsers();
-    } catch (error: any) {
-      toast.error("Failed to delete users: " + error.message);
-    } finally {
-      setDeletingUsers(false);
-    }
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${diffDays}d ago`;
   };
 
   if (loading) {
@@ -230,292 +153,208 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-8 px-4">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <BarChart3 className="h-8 w-8 text-primary" />
-            <h1 className="text-4xl font-bold">Admin Panel</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            {/* Demo Mode Toggle */}
-            <div className="flex items-center gap-2 px-4 py-2 border rounded-lg bg-card">
-              <Switch
-                id="demo-mode"
-                checked={demoMode}
-                onCheckedChange={setDemoMode}
-              />
-              <Label htmlFor="demo-mode" className="cursor-pointer font-medium">
-                Demo Mode
-              </Label>
-            </div>
-            {isSuperAdmin && (
-              <Button 
-                onClick={handleDeleteTestUsers} 
-                disabled={deletingUsers}
-                variant="destructive"
-                size="sm"
-                className="gap-2"
-              >
-                <Trash2 className="h-4 w-4" />
-                {deletingUsers ? "Deleting..." : "Delete Test Users"}
-              </Button>
-            )}
-            <Button 
-              variant="outline"
-              onClick={() => setShowImpersonateDialog(true)}
-              className="gap-2"
-            >
-              <UserCheck className="h-4 w-4" />
-              Impersonate User
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => navigate("/dashboard")}
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Button>
-          </div>
+    <div className="container mx-auto py-8 space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-bold">Admin Dashboard</h1>
+          <p className="text-muted-foreground mt-2">
+            Monitor platform activity and manage operations
+          </p>
         </div>
-
-        <Dialog open={showImpersonateDialog} onOpenChange={setShowImpersonateDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Impersonate Account Holder</DialogTitle>
-              <DialogDescription>
-                Select a user to view the platform from their perspective
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a user..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {users.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.full_name || user.username} ({user.username})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button onClick={handleImpersonate} className="w-full">
-                Start Impersonation
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-12">
-            <TabsTrigger value="overview" className="gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="crm" className="gap-2">
-              <Users className="h-4 w-4" />
-              CRM
-            </TabsTrigger>
-            <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
-            <TabsTrigger value="credits" className="gap-2">
-              <Coins className="h-4 w-4" />
-              Credits
-            </TabsTrigger>
-            <TabsTrigger value="pricing" className="gap-2">
-              <DollarSign className="h-4 w-4" />
-              Pricing
-            </TabsTrigger>
-            <TabsTrigger value="cfo" className="gap-2">
-              <DollarSign className="h-4 w-4" />
-              CFO
-            </TabsTrigger>
-            <TabsTrigger value="investor-shares" className="gap-2">
-              <Eye className="h-4 w-4" />
-              Investor Shares
-            </TabsTrigger>
-            <TabsTrigger value="sales" className="gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Sales
-            </TabsTrigger>
-            <TabsTrigger value="blog" className="gap-2">
-              <FileText className="h-4 w-4" />
-              Blog
-            </TabsTrigger>
-            <TabsTrigger value="chat" className="gap-2 data-[state=active]:bg-[hsl(var(--brand-gold))] data-[state=active]:text-[hsl(var(--brand-navy))] hover:bg-[hsl(var(--brand-gold))]/10">
-              <MessageSquare className="h-4 w-4 text-[hsl(var(--brand-gold))]" />
-              Chat
-            </TabsTrigger>
-            <TabsTrigger value="legal">Legal</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            <AdminOverview demoMode={demoMode} />
-          </TabsContent>
-
-          <TabsContent value="crm" className="space-y-6">
-            <AdminCRM
-              userManagementProps={{
-                users,
-                filteredUsers,
-                searchQuery,
-                roleFilter,
-                setSearchQuery,
-                setRoleFilter,
-                onToggleRole: toggleRole,
-                onDeleteUser: deleteUser,
-              }}
-            />
-          </TabsContent>
-
-          <TabsContent value="subscriptions" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Subscriptions</CardTitle>
-                <CardDescription>View all user subscription plans and usage</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <SubscriptionsAdmin demoMode={demoMode} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="credits" className="space-y-6">
-            <AdminCreditManagement />
-          </TabsContent>
-
-          <TabsContent value="pricing" className="space-y-6">
-            <PricingManagement />
-          </TabsContent>
-
-          <TabsContent value="cfo" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  CFO Financial Dashboard
-                </CardTitle>
-                <CardDescription>
-                  Financial analytics, projections, and investor insights
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Comprehensive financial overview with revenue projections, 
-                  cost analysis, unit economics, and auto-generated investor talking points.
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Button onClick={() => navigate("/cfo-dashboard")} className="w-full">
-                    <DollarSign className="h-4 w-4 mr-2" />
-                    Open Full CFO Dashboard
-                  </Button>
-                  <Button onClick={() => navigate("/cfo-calculators")} variant="outline" className="w-full">
-                    <Calculator className="h-4 w-4 mr-2" />
-                    Revenue Calculators
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="investor-shares" className="space-y-6">
-            <InvestorSharesManagement />
-          </TabsContent>
-
-          <TabsContent value="sales" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Sales Dashboard
-                </CardTitle>
-                <CardDescription>
-                  Sales team analytics and campaign management
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4">
-                  <Button onClick={() => navigate("/sales-dashboard")} variant="outline" className="justify-start">
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                    Open Sales Dashboard
-                  </Button>
-                  <Button onClick={() => navigate("/sales/create-campaign")} variant="outline" className="justify-start">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create New Campaign
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="blog" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Master Blog Management
-                </CardTitle>
-                <CardDescription>
-                  Manage all posts on the Seeksy Master Blog
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4">
-                  <Button onClick={() => navigate("/admin/master-blog")} variant="outline" className="justify-start">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Manage Master Blog Posts
-                  </Button>
-                  <Button onClick={() => navigate("/master-blog")} variant="outline" className="justify-start">
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Master Blog
-                  </Button>
-                  <Button onClick={() => navigate("/blog/create")} variant="outline" className="justify-start">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create New Post
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="chat" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5 text-primary" />
-                  Admin Team Chat
-                </CardTitle>
-                <CardDescription>
-                  Internal communication for admin team members
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <AdminInternalChat />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="legal" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Legal Pages Management
-                </CardTitle>
-                <CardDescription>
-                  Manage privacy policy, terms & conditions, and cookie policy
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button onClick={() => navigate("/admin/legal")}>
-                  Go to Legal Editor
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
       </div>
+
+      {/* Key Metrics */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Open Tickets</CardTitle>
+            <AlertCircle className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.openTickets}</div>
+            <p className="text-xs text-muted-foreground">
+              <Link to="/admin/support" className="text-primary hover:underline">
+                View all tickets →
+              </Link>
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Meetings</CardTitle>
+            <Calendar className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.pendingMeetings}</div>
+            <p className="text-xs text-muted-foreground">
+              <Link to="/meetings" className="text-primary hover:underline">
+                View calendar →
+              </Link>
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Contacts</CardTitle>
+            <Users className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.activeContacts}</div>
+            <p className="text-xs text-muted-foreground">
+              <Link to="/crm" className="text-primary hover:underline">
+                View contacts →
+              </Link>
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Revenue (MTD)</CardTitle>
+            <DollarSign className="h-4 w-4 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${stats.monthlyRevenue.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              <Link to="/cfo-dashboard" className="text-primary hover:underline">
+                View financials →
+              </Link>
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Actions & Recent Activity */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+            <CardDescription>Common administrative tasks</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Link 
+              to="/admin/support" 
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors"
+            >
+              <MessageSquare className="h-5 w-5 text-primary" />
+              <div>
+                <p className="font-medium">View Support Tickets</p>
+                <p className="text-sm text-muted-foreground">Manage customer requests</p>
+              </div>
+            </Link>
+            
+            <Link 
+              to="/admin/sales" 
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors"
+            >
+              <TrendingUp className="h-5 w-5 text-primary" />
+              <div>
+                <p className="font-medium">Sales Pipeline</p>
+                <p className="text-sm text-muted-foreground">Track leads and deals</p>
+              </div>
+            </Link>
+            
+            <Link 
+              to="/crm" 
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors"
+            >
+              <Users className="h-5 w-5 text-primary" />
+              <div>
+                <p className="font-medium">Manage Contacts</p>
+                <p className="text-sm text-muted-foreground">View all CRM contacts</p>
+              </div>
+            </Link>
+            
+            <Link 
+              to="/marketing" 
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors"
+            >
+              <Target className="h-5 w-5 text-primary" />
+              <div>
+                <p className="font-medium">Marketing Campaigns</p>
+                <p className="text-sm text-muted-foreground">Create and manage campaigns</p>
+              </div>
+            </Link>
+
+            <Link 
+              to="/admin/impersonate" 
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors"
+            >
+              <UserCheck className="h-5 w-5 text-primary" />
+              <div>
+                <p className="font-medium">Impersonate User</p>
+                <p className="text-sm text-muted-foreground">View as another user</p>
+              </div>
+            </Link>
+          </CardContent>
+        </Card>
+
+        {/* Recent Activity */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+            <CardDescription>Latest system events and actions</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {stats.recentActivity.length === 0 ? (
+              <div className="flex items-center justify-center py-8 text-muted-foreground">
+                <CheckCircle2 className="h-5 w-5 mr-2" />
+                No recent activity
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {stats.recentActivity.map((activity) => (
+                  <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                    <div className="h-2 w-2 rounded-full bg-primary mt-2" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{activity.description}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formatTimestamp(activity.timestamp)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* System Status */}
+      <Card>
+        <CardHeader>
+          <CardTitle>System Status</CardTitle>
+          <CardDescription>Platform health and performance</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="h-5 w-5 text-green-500" />
+              <div>
+                <p className="font-medium">Database</p>
+                <p className="text-sm text-muted-foreground">Operational</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="h-5 w-5 text-green-500" />
+              <div>
+                <p className="font-medium">API Services</p>
+                <p className="text-sm text-muted-foreground">Operational</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="h-5 w-5 text-green-500" />
+              <div>
+                <p className="font-medium">Storage</p>
+                <p className="text-sm text-muted-foreground">Operational</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

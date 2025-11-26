@@ -190,6 +190,12 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     project_management: true,
     engagement: true,
     admin: false,
+    adminCustomer: true,
+    adminMarketing: true,
+    adminContent: true,
+    adminSupport: true,
+    adminPlatform: true,
+    adminSystem: true,
     advertising: true,
     civic: true,
     influencer: true,
@@ -446,19 +452,34 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     { title: "Pricing", url: "/advertiser/pricing", icon: DollarSign },
   ];
 
-  // Admin-only menu items (shown when adminViewMode is true)
-  const adminMenuItems = [
+  // Admin-only menu items - organized by category
+  const adminCustomerManagement = [
     { title: "Meetings", url: "/meetings", icon: Calendar },
     { title: "Sign-ups", url: "/signup-sheets", icon: ClipboardList },
     { title: "Events", url: "/events", icon: CalendarDays },
     { title: "CRM/Contacts", url: "/crm", icon: Users },
+  ];
+
+  const adminMarketingGrowth = [
     { title: "Marketing", url: "/marketing", icon: Target },
     { title: "Lead Pixel", url: "/leads-dashboard", icon: Code },
+  ];
+
+  const adminContentMedia = [
     { title: "Studio", url: "/studio", icon: Clapperboard },
+  ];
+
+  const adminSupportSales = [
     { title: "Support Desk", url: "/admin/support", icon: UserCog },
     { title: "Sales & Leads", url: "/admin/sales", icon: TrendingUp },
+  ];
+
+  const adminPlatformOps = [
     { title: "Ad Management", url: "/admin/advertising", icon: Megaphone },
     { title: "Financials", url: "/cfo-dashboard", icon: DollarSign },
+  ];
+
+  const adminSystemTools = [
     { title: "Impersonate", url: "/admin/impersonate", icon: UserCog },
     { title: "Credits", url: "/admin/credits", icon: Coins },
   ];
@@ -1330,49 +1351,100 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
   const renderAdminSection = () => {
     if (!isAdmin || !adminViewMode) return null;
+
+    const renderAdminCategory = (title: string, items: typeof adminCustomerManagement, sectionKey: string) => {
+      const isOpen = openSections[sectionKey as keyof typeof openSections] !== false;
+      
+      return (
+        <Collapsible
+          key={sectionKey}
+          open={isOpen}
+          onOpenChange={(open) => setOpenSections({ ...openSections, [sectionKey]: open })}
+        >
+          <SidebarGroup className="py-0">
+            <CollapsibleTrigger asChild>
+              <SidebarGroupLabel className="text-sm font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5 text-muted-foreground">
+                <span>{title}</span>
+                {!collapsed && <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? '' : '-rotate-90'}`} />}
+              </SidebarGroupLabel>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu className="space-y-0">
+                  {items.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <SidebarMenuButton asChild>
+                              <NavLink 
+                                to={item.url} 
+                                end 
+                                className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8 pl-6"
+                                activeClassName="bg-accent text-accent-foreground font-medium"
+                              >
+                                <item.icon className="h-4 w-4" />
+                                {!collapsed && <span>{item.title}</span>}
+                              </NavLink>
+                            </SidebarMenuButton>
+                          </TooltipTrigger>
+                          {collapsed && (
+                            <TooltipContent side="right">
+                              <p>{item.title}</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TooltipProvider>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </SidebarGroup>
+        </Collapsible>
+      );
+    };
     
     return (
-      <Collapsible
-        key="admin"
-        open={true}
-        onOpenChange={() => {}}
-      >
-        <SidebarGroup className="py-0">
-          <SidebarGroupLabel className="text-base font-semibold mb-0 py-1.5">
-            Admin Dashboard
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="space-y-0">
-              {adminMenuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuButton asChild>
-                          <NavLink 
-                            to={item.url} 
-                            end 
-                            className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8 pl-4"
-                            activeClassName="bg-accent text-accent-foreground font-medium"
-                          >
-                            <item.icon className="h-4 w-4" />
-                            {!collapsed && <span>{item.title}</span>}
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      {collapsed && (
-                        <TooltipContent side="right">
-                          <p>{item.title}</p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  </TooltipProvider>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
+      <>
+        {/* Admin Dashboard Link */}
+        <SidebarGroup className="py-0 pb-2">
+          <SidebarMenu className="space-y-0">
+            <SidebarMenuItem>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SidebarMenuButton asChild>
+                      <NavLink 
+                        to="/admin" 
+                        end 
+                        className="hover:bg-accent hover:text-accent-foreground text-base font-bold py-2 h-10"
+                        activeClassName="bg-accent text-accent-foreground"
+                      >
+                        <Shield className="h-5 w-5" />
+                        {!collapsed && <span>Admin Dashboard</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </TooltipTrigger>
+                  {collapsed && (
+                    <TooltipContent side="right">
+                      <p>Admin Dashboard</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
+            </SidebarMenuItem>
+          </SidebarMenu>
         </SidebarGroup>
-      </Collapsible>
+
+        {/* Admin Categories */}
+        {renderAdminCategory("Customer Management", adminCustomerManagement, "adminCustomer")}
+        {renderAdminCategory("Marketing & Growth", adminMarketingGrowth, "adminMarketing")}
+        {renderAdminCategory("Content & Media", adminContentMedia, "adminContent")}
+        {renderAdminCategory("Support & Sales", adminSupportSales, "adminSupport")}
+        {renderAdminCategory("Platform Operations", adminPlatformOps, "adminPlatform")}
+        {renderAdminCategory("System Tools", adminSystemTools, "adminSystem")}
+      </>
     );
   };
 
