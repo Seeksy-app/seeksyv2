@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Mic, DollarSign, Check, Clock, Zap, Star, Info } from "lucide-react";
+import { Shield, Mic, DollarSign, Check, Clock, Zap, Star, Info, Trash2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
@@ -121,13 +121,27 @@ export default function VoiceProtection() {
   };
 
   const deleteRecording = () => {
+    // Stop recording if in progress
+    if (mediaRecorder) {
+      if (mediaRecorder.state === 'recording' || mediaRecorder.state === 'paused') {
+        mediaRecorder.stop();
+      }
+    }
+    if (recordingStream) {
+      recordingStream.getTracks().forEach(track => track.stop());
+    }
+    
+    // Reset all states
+    setIsRecording(false);
+    setIsPaused(false);
     setAudioBlob(null);
     setRecordingChunks([]);
     setMediaRecorder(null);
     setRecordingStream(null);
+    
     toast({
       title: "Recording Deleted",
-      description: "You can record a new sample",
+      description: "You can start a new recording",
     });
   };
 
@@ -364,8 +378,17 @@ export default function VoiceProtection() {
                             Pause
                           </Button>
                         )}
-                        <Button onClick={stopRecording} variant="outline" className="w-full col-span-2">
+                        <Button onClick={stopRecording} variant="outline" className="w-full">
                           Stop Recording
+                        </Button>
+                        <Button 
+                          onClick={deleteRecording} 
+                          variant="destructive" 
+                          size="icon"
+                          className="w-full"
+                          title="Delete and start over"
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
@@ -384,8 +407,14 @@ export default function VoiceProtection() {
                     <source src={URL.createObjectURL(audioBlob)} type="audio/mp3" />
                   </audio>
                   <div className="grid grid-cols-2 gap-2">
-                    <Button onClick={deleteRecording} variant="destructive" size="sm">
-                      Delete
+                    <Button 
+                      onClick={deleteRecording} 
+                      variant="destructive" 
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete & Start Over
                     </Button>
                     <Button onClick={() => {
                       deleteRecording();
