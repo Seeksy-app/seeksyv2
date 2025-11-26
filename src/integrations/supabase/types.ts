@@ -7320,6 +7320,7 @@ export type Database = {
           location_accuracy: number | null
           longitude: number | null
           notes: string | null
+          photos: string[] | null
           preferred_contact_method: string[] | null
           priority: string | null
           property_address: string | null
@@ -7345,6 +7346,7 @@ export type Database = {
           location_accuracy?: number | null
           longitude?: number | null
           notes?: string | null
+          photos?: string[] | null
           preferred_contact_method?: string[] | null
           priority?: string | null
           property_address?: string | null
@@ -7370,6 +7372,7 @@ export type Database = {
           location_accuracy?: number | null
           longitude?: number | null
           notes?: string | null
+          photos?: string[] | null
           preferred_contact_method?: string[] | null
           priority?: string | null
           property_address?: string | null

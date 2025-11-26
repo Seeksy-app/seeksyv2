@@ -291,6 +291,37 @@ export function TicketDetailDialog({ ticketId, open, onOpenChange, onUpdate }: T
                 </div>
               )}
 
+              {/* Photos */}
+              {ticket.photos && ticket.photos.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Attached Photos ({ticket.photos.length})</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {ticket.photos.map((url: string, index: number) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={url}
+                          alt={`Ticket photo ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-md border"
+                        />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
+                          <a
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-white text-xs underline"
+                          >
+                            View Full Size
+                          </a>
+                        </div>
+                        <div className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-2 py-0.5 rounded">
+                          Photo {index + 1}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Notes */}
               <div className="space-y-2">
                 <Label htmlFor="notes">Internal Notes</Label>
