@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { ArrowLeft, Save, User, Palette, Link2, QrCode, Image, Video, Settings, 
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import { ProfileQRCode } from "@/components/ProfileQRCode";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function ProfileEdit() {
   const navigate = useNavigate();
@@ -56,6 +57,33 @@ export default function ProfileEdit() {
   const [qrColor, setQrColor] = useState("#000000");
   const [qrLogo, setQrLogo] = useState<string | null>(null);
 
+  useEffect(() => {
+    loadProfileData();
+  }, []);
+
+  const loadProfileData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (profile) {
+        setDisplayName(profile.account_full_name || "");
+        setUsername(profile.username || "");
+        setBio(profile.bio || "");
+        setProfileImage(profile.account_avatar_url || null);
+        setBackgroundColor(profile.page_background_color || "#e5e7eb");
+      }
+    } catch (error) {
+      console.error("Error loading profile data:", error);
+    }
+  };
+
   const fontOptions = [
     { value: "sans", label: "Inter" },
     { value: "serif", label: "Playfair Display" },
@@ -93,16 +121,38 @@ export default function ProfileEdit() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("You must be logged in to save changes");
+        return;
+      }
+
+      // Save basic profile settings to database
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          account_full_name: displayName,
+          username,
+          bio,
+          account_avatar_url: profileImage,
+          page_background_color: backgroundColor,
+        })
+        .eq("id", user.id);
+
+      if (profileError) throw profileError;
+
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-      toast.success("Changes saved!");
+      toast.success("Changes saved successfully!");
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      toast.error("Failed to save changes");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="h-screen bg-background flex flex-col overflow-hidden">
+    <div className="h-screen bg-[#e5e7eb] dark:bg-[#1e293b] flex flex-col overflow-hidden">
       {/* Header */}
       <div className="border-b bg-card shrink-0 z-10">
         <div className="px-6 py-4 flex items-center justify-between">
