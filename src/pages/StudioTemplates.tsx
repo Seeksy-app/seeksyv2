@@ -280,7 +280,12 @@ export default function StudioTemplates() {
     });
   };
 
-  const allSessions = [...sessions, ...demoTemplates];
+  // Filter out meetings from studio sessions - only show podcast studios
+  const podcastSessions = sessions.filter(session => 
+    !session.session_name.startsWith('Meeting:')
+  );
+  
+  const allSessions = [...podcastSessions, ...demoTemplates];
 
   if (loading) {
     return (
@@ -326,7 +331,7 @@ export default function StudioTemplates() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white dark:bg-background">
       {/* Admin View Toggle */}
       {isAdmin && (
         <div className="border-b bg-card/50 px-6 py-3">
@@ -341,7 +346,7 @@ export default function StudioTemplates() {
       )}
       
       {/* Tabs Navigation */}
-      <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      <div className="border-b border-border/50 bg-white/95 dark:bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-background/80">
         <div className="container mx-auto px-6">
           <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
             <div className="flex items-center justify-between py-4">

@@ -98,47 +98,8 @@ const Meetings = () => {
 
   const handleStartMeeting = async (meeting: any) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      // Create or get studio session for this meeting
-      const { data: existingSession, error: checkError } = await supabase
-        .from("studio_templates")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("session_name", `Meeting: ${meeting.title}`)
-        .maybeSingle();
-
-      if (checkError && checkError.code !== 'PGRST116') throw checkError;
-
-      let sessionId = existingSession?.id;
-
-      if (!sessionId) {
-        // Create new studio session for this meeting
-        const { data: newSession, error: createError } = await supabase
-          .from("studio_templates")
-          .insert({
-            user_id: user.id,
-            session_name: `Meeting: ${meeting.title}`,
-            host_name: user.email,
-            description: `Meeting with ${meeting.attendee_name}`,
-          })
-          .select()
-          .single();
-
-        if (createError) throw createError;
-        sessionId = newSession.id;
-      }
-
-      // Navigate to studio session
-      navigate(`/studio/session/${sessionId}`, {
-        state: {
-          sessionName: `Meeting: ${meeting.title}`,
-          hostName: user.email,
-          description: `Meeting with ${meeting.attendee_name}`,
-          meetingId: meeting.id
-        }
-      });
+      // Navigate directly to meeting studio (not podcast studio)
+      navigate(`/meeting-studio/${meeting.id}`);
     } catch (error: any) {
       toast.error("Failed to start meeting: " + error.message);
     }
