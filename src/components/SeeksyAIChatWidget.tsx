@@ -251,7 +251,7 @@ export const SeeksyAIChatWidget = () => {
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-gradient-to-br from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 z-50"
+        className="fixed bottom-4 right-6 h-16 w-16 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-gradient-to-br from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 z-50"
         size="icon"
       >
         <Sparkles className="h-7 w-7 text-white" />
@@ -261,7 +261,7 @@ export const SeeksyAIChatWidget = () => {
 
   return (
     <Card className={cn(
-      "fixed bottom-6 right-6 shadow-2xl transition-all duration-300 z-50 flex flex-col",
+      "fixed bottom-4 right-6 shadow-2xl transition-all duration-300 z-50 flex flex-col",
       isMinimized ? "h-14 w-80" : "h-[600px] w-[400px]"
     )}>
       {/* Header */}

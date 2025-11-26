@@ -1882,25 +1882,26 @@ export const InteractiveSpreadsheet = ({ isReadOnly = false }: { isReadOnly?: bo
 
                   <div className="space-y-3 mt-6">
                     <p className="font-semibold text-xs">Download Reports:</p>
-                    <div className="grid grid-cols-3 gap-3">
-                      <Button variant="outline" size="sm" onClick={handleExportAIPDF}>
-                        <Download className="mr-2 h-4 w-4" />
-                        PDF Report
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button variant="outline" size="sm" onClick={handleExportAIPDF} className="text-xs px-2">
+                        <Download className="mr-1 h-3 w-3" />
+                        PDF
                       </Button>
-                      <Button variant="outline" size="sm" onClick={handleExportAIExcel}>
-                        <FileSpreadsheet className="mr-2 h-4 w-4" />
-                        Excel (.xlsx)
+                      <Button variant="outline" size="sm" onClick={handleExportAIExcel} className="text-xs px-2">
+                        <FileSpreadsheet className="mr-1 h-3 w-3" />
+                        Excel
                       </Button>
                       <Button 
                         variant="default" 
                         size="sm" 
+                        className="text-xs px-2"
                         onClick={() => {
                           setViewerData({ assumptions, forecast, type: 'ai' });
                           setSpreadsheetViewerOpen(true);
                         }}
                       >
-                        <FileSpreadsheet className="mr-2 h-4 w-4" />
-                        View Spreadsheet
+                        <FileSpreadsheet className="mr-1 h-3 w-3" />
+                        View
                       </Button>
                     </div>
                     {!isReadOnly && (
@@ -1979,26 +1980,28 @@ export const InteractiveSpreadsheet = ({ isReadOnly = false }: { isReadOnly?: bo
 
                   <div className="space-y-3 mt-6">
                     <p className="font-semibold text-xs">Download Reports:</p>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-3 gap-2">
                       <Button 
                         variant="outline" 
                         size="sm"
+                        className="text-xs px-2"
                         onClick={handleExportCustomPDF}
                       >
-                        <Download className="mr-2 h-4 w-4" />
-                        PDF Report
+                        <Download className="mr-1 h-3 w-3" />
+                        PDF
                       </Button>
                       <ProFormaSpreadsheetGenerator />
                       <Button 
                         variant="default" 
                         size="sm"
+                        className="text-xs px-2"
                         onClick={() => {
                           setViewerData({ assumptions, forecast, type: 'custom' });
                           setSpreadsheetViewerOpen(true);
                         }}
                       >
-                        <FileSpreadsheet className="mr-2 h-4 w-4" />
-                        View Spreadsheet
+                        <FileSpreadsheet className="mr-1 h-3 w-3" />
+                        View
                       </Button>
                     </div>
                     {!isReadOnly && (

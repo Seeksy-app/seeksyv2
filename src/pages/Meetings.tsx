@@ -178,7 +178,7 @@ const Meetings = () => {
             <TableHeader>
               <TableRow className="bg-muted/30">
                 <TableHead className="font-semibold">Start Time</TableHead>
-                <TableHead className="font-semibold">Topic</TableHead>
+                <TableHead className="font-semibold">Title</TableHead>
                 <TableHead className="font-semibold">Attendee</TableHead>
                 <TableHead className="font-semibold">Meeting ID</TableHead>
                 <TableHead className="font-semibold">Status</TableHead>

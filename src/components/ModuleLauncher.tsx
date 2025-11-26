@@ -61,7 +61,7 @@ const ALL_MODULES: Module[] = [
   { key: "civic", label: "Civic Tools", icon: Building2, route: "/civic-blog", enabledKey: "module_civic_enabled" },
   { key: "advertiser", label: "Advertiser", icon: Target, route: "/advertiser/dashboard", enabledKey: "module_advertiser_enabled" },
   { key: "team_chat", label: "Team Chat", icon: MessageSquare, route: "/team-chat", enabledKey: "module_team_chat_enabled" },
-  { key: "marketing", label: "Email", icon: Mail, route: "/email-history", enabledKey: "module_marketing_enabled" },
+  { key: "marketing", label: "Email", icon: Mail, route: "/communication-history", enabledKey: "module_marketing_enabled" },
   { key: "sms", label: "SMS", icon: Smartphone, route: "/sms", enabledKey: "module_sms_enabled" },
 ];
 

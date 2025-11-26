@@ -443,7 +443,7 @@ export default function EditMeeting() {
                     Saving...
                   </>
                 ) : (
-                  "Save Changes"
+                  "Save Only"
                 )}
               </Button>
               <Button
@@ -475,9 +475,12 @@ export default function EditMeeting() {
                 checked={inviteTarget === 'added'}
                 onCheckedChange={(checked) => checked && setInviteTarget('added')}
               />
-              <Label htmlFor="invite-added" className="cursor-pointer">
-                Send invite to added attendees only ({selectedContacts.filter(c => c.email !== originalAttendeeEmail).length})
+              <Label htmlFor="invite-added" className="cursor-pointer font-semibold">
+                Send to new attendees only
               </Label>
+              <span className="text-sm text-muted-foreground">
+                ({selectedContacts.filter(c => c.email !== originalAttendeeEmail).length} new)
+              </span>
             </div>
             <div className="flex items-center space-x-2">
               <Checkbox
@@ -485,9 +488,12 @@ export default function EditMeeting() {
                 checked={inviteTarget === 'all'}
                 onCheckedChange={(checked) => checked && setInviteTarget('all')}
               />
-              <Label htmlFor="invite-all" className="cursor-pointer">
-                Send to all attendees ({selectedContacts.length + 1})
+              <Label htmlFor="invite-all" className="cursor-pointer font-semibold">
+                Send to all attendees
               </Label>
+              <span className="text-sm text-muted-foreground">
+                ({selectedContacts.length + 1} total)
+              </span>
             </div>
           </div>
           <DialogFooter>

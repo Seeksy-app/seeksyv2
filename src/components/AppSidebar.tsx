@@ -417,7 +417,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   const engagementItems = [
     ...(pinnedModules.includes("contacts") ? [
       { title: "Contacts", url: "/crm", icon: Users },
-      { title: "Email History", url: "/email-history", icon: Mail }
+      { title: "Communication History", url: "/communication-history", icon: Mail }
     ] : []),
     ...(modulePrefs.marketing ? [{ title: "Marketing", url: "/marketing", icon: Target }] : []),
     ...(modulePrefs.sms ? [{ title: "SMS", url: "/sms", icon: Smartphone }] : []),
@@ -489,7 +489,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   // Admin-only menu items - organized by category
   const adminCustomerSupport = [
     { title: "Tickets & Projects", url: "/tickets", icon: Briefcase },
-    { title: "Email History", url: "/email-history", icon: Mail },
+    { title: "Communication History", url: "/communication-history", icon: Mail },
   ];
 
   const adminManagement = [
