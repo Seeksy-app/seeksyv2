@@ -547,7 +547,7 @@ const BookMeetingSlot = () => {
                   )}
 
                   {meetingType.location_type !== "phone" && (
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <Label htmlFor="phone-optional">Phone Number (optional for SMS)</Label>
                       <Input
                         id="phone-optional"
@@ -557,16 +557,16 @@ const BookMeetingSlot = () => {
                         placeholder="+1 (555) 123-4567"
                       />
                       {attendeePhone && (
-                        <div className="flex items-start space-x-2 mt-2">
+                        <div className="flex items-start space-x-3 p-4 bg-muted/30 rounded-lg border border-border">
                           <input
                             type="checkbox"
                             id="sms-consent-meeting"
                             checked={smsConsent}
                             onChange={(e) => setSmsConsent(e.target.checked)}
-                            className="mt-1"
+                            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary cursor-pointer"
                           />
-                          <label htmlFor="sms-consent-meeting" className="text-sm text-muted-foreground">
-                            I agree to receive SMS notifications about my meeting. Message and data rates may apply.
+                          <label htmlFor="sms-consent-meeting" className="text-sm leading-relaxed cursor-pointer select-none">
+                            <span className="font-medium">I agree to receive SMS notifications</span> about my meeting booking, including confirmations and reminders. Message and data rates may apply.
                           </label>
                         </div>
                       )}

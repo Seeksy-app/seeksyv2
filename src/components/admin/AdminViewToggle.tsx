@@ -4,7 +4,7 @@ import { UserCog, User, Settings } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 interface AdminViewToggleProps {
   adminViewMode: boolean;
@@ -21,6 +21,8 @@ interface AdminProfile {
 
 export const AdminViewToggle = ({ adminViewMode, onToggle }: AdminViewToggleProps) => {
   const [profile, setProfile] = useState<AdminProfile | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -38,6 +40,23 @@ export const AdminViewToggle = ({ adminViewMode, onToggle }: AdminViewToggleProp
 
     fetchProfile();
   }, [adminViewMode]);
+
+  const handleToggleChange = (enabled: boolean) => {
+    onToggle(enabled);
+    
+    // Navigate based on the new mode
+    if (enabled) {
+      // Switched to Admin View - go to admin dashboard
+      if (location.pathname !== '/admin') {
+        navigate('/admin');
+      }
+    } else {
+      // Switched to Personal View - go to creator dashboard
+      if (location.pathname !== '/dashboard') {
+        navigate('/dashboard');
+      }
+    }
+  };
 
   const displayName = adminViewMode && profile?.use_separate_admin_profile && profile?.admin_full_name
     ? profile.admin_full_name
@@ -75,7 +94,7 @@ export const AdminViewToggle = ({ adminViewMode, onToggle }: AdminViewToggleProp
       <Switch
         id="admin-toggle"
         checked={adminViewMode}
-        onCheckedChange={onToggle}
+        onCheckedChange={handleToggleChange}
       />
     </div>
   );
