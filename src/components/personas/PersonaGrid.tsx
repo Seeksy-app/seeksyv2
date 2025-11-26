@@ -68,9 +68,15 @@ export const PersonaGrid = () => {
       </div>
 
       <PersonaModal
-        isOpen={!!selectedPersona}
+        open={!!selectedPersona}
         onClose={() => setSelectedPersona(null)}
-        persona={selectedPersona}
+        persona={selectedPersona ? {
+          name: selectedPersona.name,
+          role: selectedPersona.role,
+          tagline: selectedPersona.tagline,
+          description: selectedPersona.description,
+          videoUrl: selectedPersona.video_url,
+        } : null}
       />
     </>
   );

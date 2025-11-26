@@ -1,4 +1,5 @@
 import { PersonaCard } from "./PersonaCard";
+import { PersonaModal } from "./PersonaModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -54,6 +55,7 @@ const PERSONAS: Omit<Persona, "videoUrl">[] = [
 
 export const PersonaShowcase = () => {
   const [personas, setPersonas] = useState<Persona[]>([]);
+  const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
 
   useEffect(() => {
     loadPersonaVideos();
@@ -125,9 +127,19 @@ export const PersonaShowcase = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {personas.map((persona) => (
-            <PersonaCard key={persona.id} {...persona} />
+            <PersonaCard 
+              key={persona.id} 
+              {...persona} 
+              onSelect={() => setSelectedPersona(persona)}
+            />
           ))}
         </div>
+
+        <PersonaModal
+          open={!!selectedPersona}
+          onClose={() => setSelectedPersona(null)}
+          persona={selectedPersona}
+        />
       </div>
     </div>
   );

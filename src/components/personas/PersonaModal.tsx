@@ -1,79 +1,128 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useRef, useEffect } from "react";
-import { X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Volume2, VolumeX, X } from "lucide-react";
 
 interface PersonaModalProps {
-  isOpen: boolean;
+  open: boolean;
   onClose: () => void;
   persona: {
     name: string;
     role: string;
-    tagline: string;
+    tagline?: string;
     description: string;
-    video_url: string;
+    videoUrl: string;
+    tags?: Array<{ icon: string; label: string }>;
   } | null;
 }
 
-export const PersonaModal = ({ isOpen, onClose, persona }: PersonaModalProps) => {
+export const PersonaModal = ({ open, onClose, persona }: PersonaModalProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
-    if (isOpen && videoRef.current) {
-      videoRef.current.play().catch(console.error);
-    } else if (!isOpen && videoRef.current) {
+    if (open && videoRef.current) {
+      videoRef.current.play();
+    } else if (!open && videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
     }
-  }, [isOpen]);
+  }, [open]);
 
   if (!persona) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl p-0 gap-0 overflow-hidden">
-        <div className="grid md:grid-cols-2 gap-0">
-          {/* Video Side */}
-          <div className="relative aspect-[3/4] md:aspect-auto bg-gradient-to-br from-primary/5 to-secondary/5">
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-6xl max-h-[90vh] p-0 gap-0 overflow-hidden">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-50 p-2 rounded-full bg-black/20 hover:bg-black/40 text-white transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="flex flex-col lg:flex-row h-full">
+          {/* Video Section - Left */}
+          <div className="relative lg:w-1/2 aspect-video lg:aspect-auto bg-black">
             <video
               ref={videoRef}
-              src={persona.video_url}
+              src={persona.videoUrl}
               className="w-full h-full object-cover"
               loop
-              muted
               playsInline
+              muted={isMuted}
             />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white rounded-full"
-              onClick={onClose}
+            
+            {/* Mute Toggle */}
+            <button
+              onClick={() => setIsMuted(!isMuted)}
+              className="absolute top-4 left-4 p-3 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/30 transition-colors"
             >
-              <X className="w-5 h-5" />
-            </Button>
+              {isMuted ? (
+                <VolumeX className="w-5 h-5 text-white" />
+              ) : (
+                <Volume2 className="w-5 h-5 text-white" />
+              )}
+            </button>
           </div>
 
-          {/* Content Side */}
-          <div className="p-8 flex flex-col justify-center space-y-6 bg-card">
-            <div className="space-y-2">
-              <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
-                {persona.role}
-              </p>
-              <DialogHeader>
-                <DialogTitle className="text-3xl font-bold">{persona.name}</DialogTitle>
-              </DialogHeader>
-              <p className="text-lg text-muted-foreground">{persona.tagline}</p>
-            </div>
+          {/* Info Section - Right */}
+          <div className="lg:w-1/2 p-8 lg:p-12 overflow-y-auto">
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-4xl font-bold text-foreground mb-2">
+                  {persona.name}
+                </h2>
+                <p className="text-xl text-muted-foreground">
+                  {persona.role}
+                </p>
+              </div>
 
-            <div className="prose prose-sm dark:prose-invert">
-              <p className="text-foreground/80 leading-relaxed whitespace-pre-line">
-                {persona.description}
-              </p>
-            </div>
+              {persona.tagline && (
+                <p className="text-lg text-muted-foreground italic border-l-4 border-primary pl-4">
+                  {persona.tagline}
+                </p>
+              )}
 
-            <Button onClick={onClose} size="lg" className="w-full">
-              Get Started
-            </Button>
+              <div className="prose prose-sm max-w-none">
+                <p className="text-foreground leading-relaxed text-base">
+                  {persona.description}
+                </p>
+              </div>
+
+              {/* Tags */}
+              {persona.tags && persona.tags.length > 0 && (
+                <div className="pt-4">
+                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">
+                    {persona.name.split(" ")[0]}'s style
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {persona.tags.map((tag, index) => (
+                      <div
+                        key={index}
+                        className="px-4 py-2 rounded-full bg-secondary text-secondary-foreground text-sm font-medium flex items-center gap-2"
+                      >
+                        <span>{tag.icon}</span>
+                        <span>{tag.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Button */}
+              <div className="pt-6">
+                <Button
+                  size="lg"
+                  className="w-full text-lg py-6"
+                >
+                  Work with {persona.name.split(" ")[0]}
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </DialogContent>
