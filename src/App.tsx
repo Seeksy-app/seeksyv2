@@ -127,6 +127,7 @@ import AdvertisingManagement from "./pages/admin/AdvertisingManagement";
 import ImpersonateUser from "./pages/admin/ImpersonateUser";
 import CreditManagement from "./pages/admin/CreditManagement";
 import AdminProfileSettings from "./pages/admin/AdminProfileSettings";
+import AdminCreators from "./pages/admin/AdminCreators";
 import ModuleSelector from "./pages/ModuleSelector";
 import Modules from "./pages/Modules";
 import InfluenceHub from "./pages/InfluenceHub";
@@ -313,6 +314,7 @@ const AppContent = () => {
               <Route path="/admin/impersonate" element={<ImpersonateUser />} />
               <Route path="/admin/credits" element={<CreditManagement />} />
               <Route path="/admin/profile-settings" element={<AdminProfileSettings />} />
+              <Route path="/admin/creators" element={<AdminCreators />} />
           <Route path="/advertiser" element={<AdvertiserServices />} />
           <Route path="/advertiser/signup" element={<AdvertiserSignup />} />
           <Route path="/advertiser/dashboard" element={<AdvertiserDashboard />} />
