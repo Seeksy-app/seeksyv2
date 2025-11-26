@@ -190,197 +190,201 @@ export function TicketDetailDialog({ ticketId, open, onOpenChange, onUpdate }: T
     }
   };
 
-  if (!ticket && !loading) return null;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {ticket?.ticket_number} - {ticket?.title}
-          </DialogTitle>
-          <DialogDescription>
-            Client: {ticket?.contacts?.name} {ticket?.contacts?.company && `(${ticket.contacts.company})`}
-          </DialogDescription>
-        </DialogHeader>
-
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-background text-foreground">
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
+        ) : !ticket ? (
+          <div className="flex items-center justify-center py-8">
+            <p className="text-muted-foreground">Ticket not found</p>
+          </div>
         ) : (
-          <div className="space-y-6 py-4">
-            {/* Status and Priority Row */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select value={status} onValueChange={setStatus}>
-                  <SelectTrigger id="status">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="waiting">Waiting</SelectItem>
-                    <SelectItem value="resolved">Resolved</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          <>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                {ticket.ticket_number} - {ticket.title}
+              </DialogTitle>
+              <DialogDescription>
+                Client: {ticket.contacts?.name} {ticket.contacts?.company && `(${ticket.contacts.company})`}
+              </DialogDescription>
+            </DialogHeader>
 
-              <div className="space-y-2">
-                <Label htmlFor="priority">Priority</Label>
-                <Select value={priority} onValueChange={setPriority}>
-                  <SelectTrigger id="priority">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="urgent">Urgent</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <div className="space-y-6 py-4">
+              {/* Status and Priority Row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select value={status} onValueChange={setStatus}>
+                    <SelectTrigger id="status">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="open">Open</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="waiting">Waiting</SelectItem>
+                      <SelectItem value="resolved">Resolved</SelectItem>
+                      <SelectItem value="closed">Closed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            {/* Assignment and Due Date Row */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="assignedTo">Assigned To</Label>
-                <Select value={assignedTo} onValueChange={setAssignedTo}>
-                  <SelectTrigger id="assignedTo">
-                    <SelectValue placeholder="Unassigned" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Unassigned</SelectItem>
-                    {teamMembers.map((member) => (
-                      <SelectItem key={member.id} value={member.id}>
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4" />
-                          {member.full_name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="dueDate">Due Date</Label>
-                <Input
-                  id="dueDate"
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* Description */}
-            {ticket?.description && (
-              <div className="space-y-2">
-                <Label>Description</Label>
-                <div className="p-3 bg-muted rounded-md text-sm whitespace-pre-wrap">
-                  {ticket.description}
+                <div className="space-y-2">
+                  <Label htmlFor="priority">Priority</Label>
+                  <Select value={priority} onValueChange={setPriority}>
+                    <SelectTrigger id="priority">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            )}
 
-            {/* Notes */}
-            <div className="space-y-2">
-              <Label htmlFor="notes">Internal Notes</Label>
-              <Textarea
-                id="notes"
-                placeholder="Add notes about this ticket..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={4}
-              />
-            </div>
+              {/* Assignment and Due Date Row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="assignedTo">Assigned To</Label>
+                  <Select value={assignedTo} onValueChange={setAssignedTo}>
+                    <SelectTrigger id="assignedTo">
+                      <SelectValue placeholder="Unassigned" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Unassigned</SelectItem>
+                      {teamMembers.map((member) => (
+                        <SelectItem key={member.id} value={member.id}>
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            {member.full_name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            {/* Comments Section */}
-            <div className="space-y-4 border-t pt-6">
-              <h3 className="font-semibold flex items-center gap-2">
-                <MessageSquare className="w-5 h-5" />
-                Comments ({comments.length})
-              </h3>
-
-              <div className="space-y-3 max-h-60 overflow-y-auto">
-                {comments.map((c) => (
-                  <Card key={c.id} className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="text-sm font-medium">Team Member</span>
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(c.created_at).toLocaleString()}
-                      </span>
-                    </div>
-                    <p className="text-sm whitespace-pre-wrap">{c.comment_text}</p>
-                  </Card>
-                ))}
-
-                {comments.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No comments yet
-                  </p>
-                )}
+                <div className="space-y-2">
+                  <Label htmlFor="dueDate">Due Date</Label>
+                  <Input
+                    id="dueDate"
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                  />
+                </div>
               </div>
 
-              {/* Add Comment */}
+              {/* Description */}
+              {ticket.description && (
+                <div className="space-y-2">
+                  <Label>Description</Label>
+                  <div className="p-3 bg-muted rounded-md text-sm whitespace-pre-wrap">
+                    {ticket.description}
+                  </div>
+                </div>
+              )}
+
+              {/* Notes */}
               <div className="space-y-2">
+                <Label htmlFor="notes">Internal Notes</Label>
                 <Textarea
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  placeholder="Add a comment..."
-                  rows={3}
+                  id="notes"
+                  placeholder="Add notes about this ticket..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={4}
                 />
-                <div className="flex justify-end">
-                  <Button onClick={handleAddComment} size="sm" disabled={!comment.trim()}>
-                    Add Comment
-                  </Button>
-                </div>
               </div>
-            </div>
 
-            {/* Client Info */}
-            {ticket?.contacts && (
-              <div className="space-y-2 border-t pt-6">
-                <Label>Client Information</Label>
-                <div className="p-3 bg-muted rounded-md space-y-1 text-sm">
-                  <div><strong>Name:</strong> {ticket.contacts.name}</div>
-                  <div><strong>Email:</strong> {ticket.contacts.email}</div>
-                  {ticket.contacts.company && (
-                    <div><strong>Company:</strong> {ticket.contacts.company}</div>
+              {/* Comments Section */}
+              <div className="space-y-4 border-t pt-6">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5" />
+                  Comments ({comments.length})
+                </h3>
+
+                <div className="space-y-3 max-h-60 overflow-y-auto">
+                  {comments.map((c) => (
+                    <Card key={c.id} className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-sm font-medium">Team Member</span>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(c.created_at).toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="text-sm whitespace-pre-wrap">{c.comment_text}</p>
+                    </Card>
+                  ))}
+
+                  {comments.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      No comments yet
+                    </p>
                   )}
                 </div>
+
+                {/* Add Comment */}
+                <div className="space-y-2">
+                  <Textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    placeholder="Add a comment..."
+                    rows={3}
+                  />
+                  <div className="flex justify-end">
+                    <Button onClick={handleAddComment} size="sm" disabled={!comment.trim()}>
+                      Add Comment
+                    </Button>
+                  </div>
+                </div>
               </div>
-            )}
 
-            {/* Metadata */}
-            <div className="flex gap-4 text-xs text-muted-foreground border-t pt-4">
-              <div>Created: {new Date(ticket?.created_at).toLocaleString()}</div>
-              {ticket?.last_activity_at && (
-                <div>Last Activity: {new Date(ticket.last_activity_at).toLocaleString()}</div>
+              {/* Client Info */}
+              {ticket.contacts && (
+                <div className="space-y-2 border-t pt-6">
+                  <Label>Client Information</Label>
+                  <div className="p-3 bg-muted rounded-md space-y-1 text-sm">
+                    <div><strong>Name:</strong> {ticket.contacts.name}</div>
+                    <div><strong>Email:</strong> {ticket.contacts.email}</div>
+                    {ticket.contacts.company && (
+                      <div><strong>Company:</strong> {ticket.contacts.company}</div>
+                    )}
+                  </div>
+                </div>
               )}
-            </div>
 
-            {/* Actions */}
-            <div className="flex justify-end gap-3 pt-4 border-t">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSave} disabled={saving}>
-                {saving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  "Save Changes"
+              {/* Metadata */}
+              <div className="flex gap-4 text-xs text-muted-foreground border-t pt-4">
+                <div>Created: {new Date(ticket.created_at).toLocaleString()}</div>
+                {ticket.last_activity_at && (
+                  <div>Last Activity: {new Date(ticket.last_activity_at).toLocaleString()}</div>
                 )}
-              </Button>
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <Button variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSave} disabled={saving}>
+                  {saving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Changes"
+                  )}
+                </Button>
+              </div>
             </div>
-          </div>
+          </>
         )}
       </DialogContent>
     </Dialog>
