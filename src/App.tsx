@@ -185,6 +185,7 @@ import ZoomIntegration from "./pages/help/ZoomIntegration";
 import Forms from "./pages/Forms";
 import FormBuilder from "./pages/FormBuilder";
 import PublicForm from "./pages/PublicForm";
+import Personas from "./pages/Personas";
 
 const queryClient = new QueryClient();
 
@@ -270,6 +271,7 @@ const AppContent = () => {
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/comparison" element={<Comparison />} />
               <Route path="/credits" element={<Credits />} />
+              <Route path="/personas" element={<Personas />} />
             <Route path="/investor" element={<InvestorPortal />} />
             <Route path="/project-management" element={<ProjectManagement />} />
             <Route path="/client-tickets" element={<ClientTickets />} />
