@@ -24,7 +24,6 @@ export const ShareProformaDialog = ({ open, onOpenChange, proformaType }: ShareP
   const [loading, setLoading] = useState(false);
   
   // Share configuration
-  const [copyAiProforma, setCopyAiProforma] = useState(false);
   const [adjustmentPercent, setAdjustmentPercent] = useState(0);
   const [adjustmentType, setAdjustmentType] = useState<'increase' | 'decrease'>('increase');
   const [allowHtmlView, setAllowHtmlView] = useState(true);
@@ -67,8 +66,10 @@ export const ShareProformaDialog = ({ open, onOpenChange, proformaType }: ShareP
 
       // Store share configuration
       const shareConfig = {
-        proformaType: copyAiProforma ? 'ai' : proformaType,
-        adjustmentMultiplier: copyAiProforma ? adjustmentMultiplier : 1,
+        proformaType: proformaType,
+        adjustmentMultiplier: adjustmentPercent !== 0 ? adjustmentMultiplier : 1,
+        adjustmentPercent,
+        adjustmentType,
         allowHtmlView,
         allowDownload,
         useRealTimeData,
@@ -83,7 +84,7 @@ export const ShareProformaDialog = ({ open, onOpenChange, proformaType }: ShareP
           investor_name: email.split('@')[0],
           access_code: accessCode,
           expires_at: expiresAt.toISOString(),
-          notes: `Shared by ${profileData?.full_name || 'Admin'} - ${copyAiProforma ? 'AI Proforma with ' + adjustmentType + ' ' + adjustmentPercent + '%' : proformaType + ' Proforma'} - ${useRealTimeData ? 'Real-time data' : 'Projected data'}`,
+          notes: `Shared by ${profileData?.full_name || 'Admin'} - ${proformaType === 'ai' ? 'AI' : 'Custom'} Proforma${adjustmentPercent !== 0 ? ' with ' + adjustmentType + ' ' + adjustmentPercent + '% (all scenarios)' : ''} - ${useRealTimeData ? 'Real-time data' : 'Projected data'}`,
           share_config: shareConfig,
         });
 
@@ -156,8 +157,8 @@ export const ShareProformaDialog = ({ open, onOpenChange, proformaType }: ShareP
     setEmail("");
     setGeneratedCode(null);
     setGeneratedLink(null);
-    setCopyAiProforma(false);
     setAdjustmentPercent(0);
+    setAdjustmentType('increase');
     onOpenChange(false);
   };
 
@@ -211,54 +212,46 @@ export const ShareProformaDialog = ({ open, onOpenChange, proformaType }: ShareP
               </TabsContent>
 
               <TabsContent value="advanced" className="space-y-4 mt-4">
-                {proformaType === 'ai' && (
-                  <div className="space-y-4 p-4 bg-muted rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="copy-ai" className="text-sm font-medium">
-                          Copy AI Proforma to Custom with Adjustment
-                        </Label>
-                        <p className="text-xs text-muted-foreground">
-                          Apply an overall +/- % adjustment for shared version only
-                        </p>
-                      </div>
-                      <Switch
-                        id="copy-ai"
-                        checked={copyAiProforma}
-                        onCheckedChange={setCopyAiProforma}
-                      />
+                <div className="space-y-4 p-4 bg-muted rounded-lg">
+                  <div className="space-y-3">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm font-medium flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4" />
+                        Overall Adjustment (All Scenarios)
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Apply +/- % adjustment to Conservative, Growth, and Aggressive projections
+                      </p>
                     </div>
-
-                    {copyAiProforma && (
-                      <div className="space-y-3 pl-4 border-l-2 border-primary/20">
-                        <div className="flex gap-2">
-                          <Select value={adjustmentType} onValueChange={(v: any) => setAdjustmentType(v)}>
-                            <SelectTrigger className="w-32">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="increase">Increase</SelectItem>
-                              <SelectItem value="decrease">Decrease</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Input
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={adjustmentPercent}
-                            onChange={(e) => setAdjustmentPercent(parseFloat(e.target.value))}
-                            placeholder="0"
-                            className="flex-1"
-                          />
-                          <span className="flex items-center text-sm text-muted-foreground">%</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground italic">
-                          This adjustment only affects the shared version. Your system data remains unchanged.
-                        </p>
+                    <div className="space-y-3">
+                      <div className="flex gap-2">
+                        <Select value={adjustmentType} onValueChange={(v: any) => setAdjustmentType(v)}>
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="increase">+</SelectItem>
+                            <SelectItem value="decrease">−</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="1"
+                          value={adjustmentPercent}
+                          onChange={(e) => setAdjustmentPercent(parseFloat(e.target.value) || 0)}
+                          placeholder="0"
+                          className="flex-1"
+                        />
+                        <span className="flex items-center text-sm text-muted-foreground font-medium">%</span>
                       </div>
-                    )}
+                      <p className="text-xs text-muted-foreground italic">
+                        Example: -10% reduces all estimates by 10% across all scenarios. Your system data remains unchanged.
+                      </p>
+                    </div>
                   </div>
-                )}
+                </div>
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
@@ -359,7 +352,8 @@ export const ShareProformaDialog = ({ open, onOpenChange, proformaType }: ShareP
             <div className="p-4 bg-muted rounded-lg text-sm space-y-3">
               <p className="font-semibold">Share Configuration:</p>
               <ul className="space-y-1 text-muted-foreground text-xs">
-                <li>• Proforma: {copyAiProforma ? `AI with ${adjustmentType} ${adjustmentPercent}%` : proformaType}</li>
+                <li>• Proforma: {proformaType === 'ai' ? 'AI-Generated' : 'Custom'}{adjustmentPercent !== 0 ? ` with ${adjustmentType === 'increase' ? '+' : '−'}${adjustmentPercent}% adjustment` : ''}</li>
+                <li>• Adjustment: {adjustmentPercent !== 0 ? `Applies to all scenarios (Conservative, Growth, Aggressive)` : 'None'}</li>
                 <li>• Data: {useRealTimeData ? 'Real-time metrics' : 'Projected assumptions'}</li>
                 <li>• View: {allowHtmlView ? 'HTML spreadsheet enabled' : 'View-only mode'}</li>
                 <li>• Download: {allowDownload ? 'Enabled' : 'Disabled'}</li>
