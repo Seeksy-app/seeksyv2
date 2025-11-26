@@ -419,6 +419,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       { title: "Contacts", url: "/crm", icon: Users },
       { title: "Communication History", url: "/communication-history", icon: Mail }
     ] : []),
+    ...(pinnedModules.includes("forms") ? [{ title: "Forms", url: "/forms", icon: FileText }] : []),
     ...(modulePrefs.marketing ? [{ title: "Marketing", url: "/marketing", icon: Target }] : []),
     ...(modulePrefs.sms ? [{ title: "SMS", url: "/sms", icon: Smartphone }] : []),
     ...(modulePrefs.team_chat ? [{ title: "Team Chat", url: "/team-chat", icon: MessageSquare }] : []),
