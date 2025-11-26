@@ -1,13 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useToast } from "@/hooks/use-toast";
-import { MessageSquare } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Send, Users } from "lucide-react";
 
 interface StudioRightSidebarProps {
   currentViewerCount: number;
@@ -45,101 +41,110 @@ export function StudioRightSidebar({
   profileImageUrl,
   sessionId,
 }: StudioRightSidebarProps) {
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  const [openPanel, setOpenPanel] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState<Array<{ id: string; sender: string; text: string; avatar?: string }>>([]);
 
-  const tools = [
-    { id: 'chat', icon: MessageSquare, label: 'Chat' },
-  ];
-
-  const handlePanelChange = (toolId: string) => {
-    setOpenPanel(openPanel === toolId ? null : toolId);
+  const handleSendMessage = () => {
+    if (!message.trim()) return;
+    
+    setMessages([...messages, {
+      id: Date.now().toString(),
+      sender: "You",
+      text: message,
+      avatar: profileImageUrl
+    }]);
+    setMessage("");
   };
 
-  const handleToolClick = (toolId: string) => {
-    setOpenPanel(openPanel === toolId ? null : toolId);
-  };
-
-  const renderPanelContent = () => {
-    switch (openPanel) {
-      case 'chat':
-        return (
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-base font-semibold mb-1">Live Chat</h3>
-              <p className="text-xs text-muted-foreground">View and interact with live chat</p>
-            </div>
-          </div>
-        );
-      default:
-        return null;
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
 
-  return (
-    <>
-      {/* Dialog for panel content */}
-      <Dialog open={!!openPanel} onOpenChange={(open) => !open && setOpenPanel(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">
-              {tools.find(t => t.id === openPanel)?.label}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            {renderPanelContent()}
-          </div>
-        </DialogContent>
-      </Dialog>
+  // Mock participants for demo
+  const participants = [
+    { id: '1', name: 'ANDY GUO (Host, me)', avatar: profileImageUrl, isHost: true },
+    { id: '2', name: 'IAHR Secretariat', avatar: '', isHost: false },
+  ];
 
-      {/* Icon Bar - Always Visible on the right */}
-      <div className="flex h-full relative overflow-visible">
-        <div className="w-full h-full border-l border-border/40 bg-gradient-to-b from-background via-background to-muted/20 flex flex-col items-center py-6 gap-1 relative z-[101]">
-          <TooltipProvider delayDuration={100}>
-            {tools.map((tool) => (
-              <Tooltip key={tool.id}>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => handleToolClick(tool.id)}
-                    className={cn(
-                      "group relative flex flex-col items-center justify-center w-[68px] h-[68px] rounded-xl transition-all duration-200",
-                      openPanel === tool.id 
-                        ? "bg-primary shadow-lg shadow-primary/20 scale-105" 
-                        : "hover:bg-muted/60 hover:scale-105"
-                    )}
-                  >
-                    <tool.icon className={cn(
-                      "h-6 w-6 mb-1 transition-all duration-200",
-                      openPanel === tool.id 
-                        ? "text-primary-foreground scale-110" 
-                        : "text-foreground/70 group-hover:text-foreground group-hover:scale-110"
-                    )} />
-                    <span className={cn(
-                      "text-[10px] font-medium leading-tight text-center px-1.5 transition-all duration-200",
-                      openPanel === tool.id 
-                        ? "text-primary-foreground font-semibold" 
-                        : "text-foreground/60 group-hover:text-foreground"
-                    )}>
-                      {tool.label}
-                    </span>
-                    {openPanel === tool.id && (
-                      <div className="absolute -right-[1px] top-1/2 -translate-y-1/2 w-1 h-14 bg-primary rounded-l-full shadow-lg shadow-primary/30" />
-                    )}
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent 
-                  side="left" 
-                  className="bg-popover text-popover-foreground border-border shadow-xl px-4 py-2 text-sm font-medium"
-                  sideOffset={10}
-                >
-                  <p>{tool.label}</p>
-                </TooltipContent>
-              </Tooltip>
+  return (
+    <div className="flex flex-col h-full border-l border-border/40 bg-background">
+      {/* Participants Section */}
+      <div className="border-b border-border/40 p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Users className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium">Participants ({participants.length})</span>
+        </div>
+        <ScrollArea className="max-h-32">
+          <div className="space-y-2">
+            {participants.map((participant) => (
+              <div key={participant.id} className="flex items-center gap-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={participant.avatar} />
+                  <AvatarFallback className="text-xs bg-primary/10">
+                    {participant.name.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm">{participant.name}</span>
+              </div>
             ))}
-          </TooltipProvider>
+          </div>
+        </ScrollArea>
+      </div>
+
+      {/* Chat Section */}
+      <div className="flex-1 flex flex-col min-h-0">
+        <div className="p-4 border-b border-border/40">
+          <h3 className="text-sm font-semibold">Chat</h3>
+        </div>
+        
+        <ScrollArea className="flex-1 p-4">
+          <div className="space-y-4">
+            {messages.length === 0 ? (
+              <div className="text-center text-sm text-muted-foreground py-8">
+                No messages yet. Start the conversation!
+              </div>
+            ) : (
+              messages.map((msg) => (
+                <div key={msg.id} className="flex gap-2">
+                  <Avatar className="h-8 w-8 flex-shrink-0">
+                    <AvatarImage src={msg.avatar} />
+                    <AvatarFallback className="text-xs bg-primary/10">
+                      {msg.sender.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-medium mb-1">{msg.sender}</div>
+                    <div className="text-sm break-words">{msg.text}</div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </ScrollArea>
+
+        {/* Message Input */}
+        <div className="p-4 border-t border-border/40">
+          <div className="flex gap-2">
+            <Input
+              placeholder="Type message here..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              className="flex-1"
+            />
+            <Button 
+              onClick={handleSendMessage}
+              size="icon"
+              disabled={!message.trim()}
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

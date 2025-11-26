@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Radio, X } from "lucide-react";
+import { Radio, X, Calendar } from "lucide-react";
 import { StudioLobby } from "@/components/studio/StudioLobby";
 import { StudioTopBar } from "@/components/studio/StudioTopBar";
 import { StudioLeftSidebar } from "@/components/studio/StudioLeftSidebar";
@@ -148,6 +148,10 @@ Closing Notes:
     loadMyPageStatus();
     subscribeToViewerCount();
     // Don't start preview automatically since camera/mic start as disabled
+    
+    // Auto-start the meeting when studio loads
+    setIsLiveOnProfile(true);
+    
     return () => {
       stopStream();
       if (timerRef.current) clearInterval(timerRef.current);
@@ -788,13 +792,9 @@ Closing Notes:
           <Button
             variant="outline"
             size="sm"
-            onClick={() => {
-              toast({
-                title: "Schedule Stream",
-                description: "Scheduling feature coming soon",
-              });
-            }}
+            onClick={() => navigate('/create-meeting')}
           >
+            <Calendar className="h-4 w-4 mr-2" />
             Schedule
           </Button>
           
