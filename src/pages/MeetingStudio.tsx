@@ -1,10 +1,9 @@
 import { useParams } from "react-router-dom";
 import { StudioRightSidebar } from "@/components/studio/StudioRightSidebar";
 import { Button } from "@/components/ui/button";
-import { Video, VideoOff, Mic, MicOff, PhoneOff, Calendar, Moon, Users, Sparkles } from "lucide-react";
+import { Video, VideoOff, Mic, MicOff, PhoneOff, Moon, Users, Sparkles } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -17,7 +16,6 @@ const MeetingStudio = () => {
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
   const [showAINotes, setShowAINotes] = useState(true);
-  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
   const [showDeviceTest, setShowDeviceTest] = useState(true);
   const [selectedDevices, setSelectedDevices] = useState<{
     videoDeviceId: string | null;
@@ -142,23 +140,6 @@ const MeetingStudio = () => {
             <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
               <Moon className="h-5 w-5" />
             </Button>
-
-            <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="text-white border-white/20 hover:bg-white/10">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Schedule
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Schedule Meeting</DialogTitle>
-                </DialogHeader>
-                <div className="py-4">
-                  <p className="text-sm text-muted-foreground">Schedule meeting functionality coming soon...</p>
-                </div>
-              </DialogContent>
-            </Dialog>
 
             <div className="flex items-center gap-2">
               <Switch 

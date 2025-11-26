@@ -181,14 +181,15 @@ export function SpreadsheetList({ onViewSpreadsheet, showAdminActions = false }:
                         onClick={() => onViewSpreadsheet(spreadsheet)}
                       >
                         <Eye className="w-4 h-4 mr-1" />
-                        View
+                        View in Browser
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handleDownload(spreadsheet)}
                       >
-                        <Download className="w-4 h-4" />
+                        <Download className="w-4 h-4 mr-1" />
+                        Download
                       </Button>
                       {showAdminActions && (
                         <Button
