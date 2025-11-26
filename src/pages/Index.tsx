@@ -19,6 +19,7 @@ import creatorsCommunity from "@/assets/creators-community.jpg";
 import creatorPortrait from "@/assets/creator-portrait.jpg";
 import videoBeforeAI from "@/assets/video-before-ai.jpg";
 import videoAfterAI from "@/assets/video-after-ai.jpg";
+import { PersonaGrid } from "@/components/personas/PersonaGrid";
 
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -94,6 +95,34 @@ const Index = () => {
                   <span className="text-white font-semibold text-sm">Supporting Local Talent</span>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Who is Seeksy For - AI Personas */}
+        <section className="py-24 bg-gradient-to-b from-background via-secondary/20 to-background">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-16">
+              <h2 className="text-5xl md:text-6xl font-black mb-4">
+                <span className="bg-gradient-to-r from-brand-blue to-brand-navy bg-clip-text text-transparent">
+                  Meet Your Guide
+                </span>
+              </h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Hover over each persona to see how Seeksy transforms your workflow
+              </p>
+            </div>
+            
+            <PersonaGrid />
+
+            <div className="text-center mt-12">
+              <Button 
+                size="lg" 
+                onClick={() => navigate("/auth?mode=signup")}
+                className="bg-gradient-to-r from-brand-blue to-brand-navy hover:opacity-90 text-white text-lg px-10 py-7 h-auto font-bold"
+              >
+                Start Your Journey
+              </Button>
             </div>
           </div>
         </section>
