@@ -23,7 +23,6 @@ import { Scene } from "@/components/studio/StudioScenes";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { StudioGuestPanel } from "@/components/studio/StudioGuestPanel";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { VideoLayoutSelector, VideoLayout } from "@/components/studio/VideoLayoutSelector";
 
 function StudioContent() {
   const navigate = useNavigate();
@@ -135,7 +134,6 @@ Closing Notes:
     youtube: false
   });
   const [channelsExpanded, setChannelsExpanded] = useState(true);
-  const [videoLayout, setVideoLayout] = useState<VideoLayout>("speaker");
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -822,14 +820,6 @@ Closing Notes:
             </div>
         
         <div className="flex items-center gap-4">
-          <VideoLayoutSelector
-            currentLayout={videoLayout}
-            onLayoutChange={setVideoLayout}
-            participantCount={1}
-          />
-          
-          <div className="h-6 w-px bg-border" />
-          
           <div className="flex items-center gap-2">
             <Switch
               id="ai-notes"
