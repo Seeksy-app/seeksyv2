@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ActivityLogger } from "@/lib/activityLogger";
 import { SendSMSDialog } from "@/components/contacts/SendSMSDialog";
+import { ContactViewDialog } from "@/components/contacts/ContactViewDialog";
 
 const contactSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -35,6 +36,7 @@ const Contacts = () => {
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
   const [isSMSDialogOpen, setIsSMSDialogOpen] = useState(false);
   const [selectedSMSContact, setSelectedSMSContact] = useState<any>(null);
+  const [viewingContact, setViewingContact] = useState<any>(null);
   const [emailSubject, setEmailSubject] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
   const queryClient = useQueryClient();
@@ -402,7 +404,12 @@ const Contacts = () => {
                           onCheckedChange={() => handleToggleSelect(contact.id)}
                         />
                       </td>
-                      <td className="p-4 font-medium">{contact.name}</td>
+                      <td 
+                        className="p-4 font-medium cursor-pointer hover:text-primary underline-offset-4 hover:underline"
+                        onClick={() => setViewingContact(contact)}
+                      >
+                        {contact.name}
+                      </td>
                       <td className="p-4">{contact.email}</td>
                       <td className="p-4">{contact.phone || "-"}</td>
                       <td className="p-4">{contact.title || "-"}</td>
@@ -501,6 +508,12 @@ const Contacts = () => {
         isOpen={isSMSDialogOpen}
         onOpenChange={setIsSMSDialogOpen}
         contact={selectedSMSContact}
+      />
+
+      <ContactViewDialog
+        open={!!viewingContact}
+        onOpenChange={(open) => !open && setViewingContact(null)}
+        contact={viewingContact}
       />
     </div>
   );
