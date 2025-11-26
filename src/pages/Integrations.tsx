@@ -96,7 +96,9 @@ const Integrations = () => {
   });
 
   const getAudioUrl = (appId: string) => {
-    return audioDescriptions?.find(desc => desc.app_id === appId)?.audio_url;
+    // Convert underscores to hyphens and handle special cases
+    const dbAppId = appId.replace(/_/g, '-');
+    return audioDescriptions?.find(desc => desc.app_id === dbAppId)?.audio_url;
   };
 
   useEffect(() => {
@@ -667,6 +669,7 @@ const Integrations = () => {
                   isAdmin={isAdmin}
                   onToggle={() => toggleModule('meetings')}
                   onEdit={() => handleEditMetadata('meetings')}
+                  audioUrl={getAudioUrl('meetings')}
                 />
               )}
 
@@ -682,6 +685,7 @@ const Integrations = () => {
                   isAdmin={isAdmin}
                   onToggle={() => toggleModule('contacts')}
                   onEdit={() => handleEditMetadata('contacts')}
+                  audioUrl={getAudioUrl('contacts')}
                 />
               )}
 
@@ -697,6 +701,7 @@ const Integrations = () => {
                   isAdmin={isAdmin}
                   onToggle={() => toggleModule('podcasts')}
                   onEdit={() => handleEditMetadata('podcasts')}
+                  audioUrl={getAudioUrl('podcasts')}
                 />
               )}
 
@@ -727,6 +732,7 @@ const Integrations = () => {
                   isAdmin={isAdmin}
                   onToggle={() => toggleModule('media')}
                   onEdit={() => handleEditMetadata('media')}
+                  audioUrl={getAudioUrl('media')}
                 />
               )}
             </div>
@@ -790,6 +796,7 @@ const Integrations = () => {
                   isAdmin={isAdmin}
                   onToggle={() => toggleModule('events')}
                   onEdit={() => handleEditMetadata('events')}
+                  audioUrl={getAudioUrl('events')}
                 />
               )}
 
@@ -805,6 +812,7 @@ const Integrations = () => {
                   isAdmin={isAdmin}
                   onToggle={() => toggleModule('signup_sheets')}
                   onEdit={() => handleEditMetadata('signup_sheets')}
+                  audioUrl={getAudioUrl('signup_sheets')}
                 />
               )}
 
@@ -820,6 +828,7 @@ const Integrations = () => {
                   isAdmin={isAdmin}
                   onToggle={() => toggleModule('polls')}
                   onEdit={() => handleEditMetadata('polls')}
+                  audioUrl={getAudioUrl('polls')}
                 />
               )}
 
@@ -850,6 +859,7 @@ const Integrations = () => {
                   isAdmin={isAdmin}
                   onToggle={() => toggleModule('marketing')}
                   onEdit={() => handleEditMetadata('marketing')}
+                  audioUrl={getAudioUrl('marketing')}
                 />
               )}
 
@@ -910,6 +920,7 @@ const Integrations = () => {
                   isAdmin={isAdmin}
                   onToggle={() => toggleModule('forms')}
                   onEdit={() => handleEditMetadata('forms')}
+                  audioUrl={getAudioUrl('forms')}
                 />
               )}
             </div>
@@ -985,6 +996,7 @@ const Integrations = () => {
                   isAdmin={isAdmin}
                   onToggle={() => toggleModule('project_management')}
                   onEdit={() => handleEditMetadata('project_management')}
+                  audioUrl={getAudioUrl('project_management')}
                 />
               )}
 
