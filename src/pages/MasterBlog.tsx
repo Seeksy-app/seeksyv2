@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { Search, ArrowLeft, Calendar, Eye } from "lucide-react";
 import { format } from "date-fns";
+import { NewsletterSignupForm } from "@/components/NewsletterSignupForm";
 
 const MasterBlog = () => {
   const navigate = useNavigate();
@@ -82,6 +83,11 @@ const MasterBlog = () => {
                 className="pl-10"
               />
             </div>
+          </div>
+
+          {/* Newsletter Signup */}
+          <div className="mb-8 flex justify-center">
+            <NewsletterSignupForm />
           </div>
 
           {isLoading ? (

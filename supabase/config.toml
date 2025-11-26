@@ -80,3 +80,13 @@ verify_jwt = false
 
 [functions.send-meeting-followup]
 verify_jwt = false
+
+[functions.send-newsletter]
+verify_jwt = true
+
+[functions.daily-ai-blog-posts]
+verify_jwt = false
+
+[[functions.daily-ai-blog-posts.schedules]]
+# Runs daily at 9:00 AM UTC (4:00 AM EST / 1:00 AM PST)
+cron = "0 9 * * *"

@@ -532,6 +532,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
   const adminMarketingSales = [
     { title: "Marketing", url: "/marketing", icon: Mail },
+    { title: "Newsletter", url: "/newsletter", icon: Mail },
     { title: "Sales & Leads", url: "/admin/sales", icon: TrendingUp },
     { title: "Lead Pixel", url: "/leads-dashboard", icon: Code },
   ];

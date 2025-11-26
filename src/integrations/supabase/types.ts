@@ -4831,6 +4831,150 @@ export type Database = {
           },
         ]
       }
+      newsletter_campaigns: {
+        Row: {
+          clicked_count: number | null
+          created_at: string
+          html_content: string
+          id: string
+          opened_count: number | null
+          preview_text: string | null
+          recipient_count: number | null
+          scheduled_at: string | null
+          sent_at: string | null
+          status: string
+          subject: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          clicked_count?: number | null
+          created_at?: string
+          html_content: string
+          id?: string
+          opened_count?: number | null
+          preview_text?: string | null
+          recipient_count?: number | null
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string
+          subject: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          clicked_count?: number | null
+          created_at?: string
+          html_content?: string
+          id?: string
+          opened_count?: number | null
+          preview_text?: string | null
+          recipient_count?: number | null
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      newsletter_sends: {
+        Row: {
+          campaign_id: string
+          clicked_at: string | null
+          created_at: string
+          email: string
+          id: string
+          metadata: Json | null
+          opened_at: string | null
+          sent_at: string
+          status: string
+          subscriber_id: string
+        }
+        Insert: {
+          campaign_id: string
+          clicked_at?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          metadata?: Json | null
+          opened_at?: string | null
+          sent_at?: string
+          status?: string
+          subscriber_id: string
+        }
+        Update: {
+          campaign_id?: string
+          clicked_at?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          metadata?: Json | null
+          opened_at?: string | null
+          sent_at?: string
+          status?: string
+          subscriber_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_sends_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "newsletter_sends_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      newsletter_subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          metadata: Json | null
+          name: string | null
+          source: string | null
+          status: string
+          subscribed_at: string
+          unsubscribed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          metadata?: Json | null
+          name?: string | null
+          source?: string | null
+          status?: string
+          subscribed_at?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          metadata?: Json | null
+          name?: string | null
+          source?: string | null
+          status?: string
+          subscribed_at?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           created_at: string
