@@ -116,7 +116,7 @@ const AdminCreators = () => {
   const filteredCreators = creators?.filter((creator) => {
     const searchLower = searchTerm.toLowerCase();
     const matchesSearch =
-      creator.full_name?.toLowerCase().includes(searchLower) ||
+      creator.account_full_name?.toLowerCase().includes(searchLower) ||
       creator.username?.toLowerCase().includes(searchLower);
 
     return matchesSearch;
@@ -285,7 +285,7 @@ const AdminCreators = () => {
                   filteredCreators.map((creator) => (
                     <TableRow key={creator.id}>
                       <TableCell className="font-medium">
-                        {creator.full_name || "No name"}
+                        {creator.account_full_name || "No name"}
                       </TableCell>
                       <TableCell>{creator.username || "—"}</TableCell>
                       <TableCell>—</TableCell>
