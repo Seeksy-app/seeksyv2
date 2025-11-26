@@ -149,8 +149,7 @@ Closing Notes:
     subscribeToViewerCount();
     // Don't start preview automatically since camera/mic start as disabled
     
-    // Auto-start the meeting when studio loads
-    setIsLiveOnProfile(true);
+    // Don't auto-start for meetings - let user control via Start button
     
     return () => {
       stopStream();
@@ -647,9 +646,6 @@ Closing Notes:
 
   const toggleLiveOnProfile = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
       const newLiveStatus = !isLiveOnProfile;
       
       // If going live, start recording automatically
@@ -657,7 +653,7 @@ Closing Notes:
         await startRecording();
         toast({
           title: "Auto-recording enabled",
-          description: "Your live stream will be saved to Media Library",
+          description: "Your meeting will be saved to Media Library",
           duration: 2000,
         });
       }
@@ -668,36 +664,21 @@ Closing Notes:
         // Recording will be auto-saved via handleRecordingStopped
       }
       
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          is_live_on_profile: newLiveStatus,
-          live_stream_title: newLiveStatus ? liveStreamTitle || sessionName : null,
-          live_video_url: newLiveStatus ? null : null,
-        })
-        .eq("id", user.id);
-
-      if (error) throw error;
-
+      // For meetings, we don't update My Page - just track local state
       setIsLiveOnProfile(newLiveStatus);
-      setMyPageStreamStatus({
-        isLive: newLiveStatus,
-        title: newLiveStatus ? (liveStreamTitle || sessionName || "") : "",
-        videoUrl: null
-      });
       
       toast({
-        title: newLiveStatus ? "Now Live on Your Page" : "No Longer Live",
+        title: newLiveStatus ? "Meeting Started" : "Meeting Ended",
         description: newLiveStatus 
-          ? "Your stream is now visible on your public profile"
-          : "Your stream has been saved to Media Library",
+          ? "Your meeting is now in session"
+          : "Meeting has been saved to Media Library",
         duration: 3000,
       });
     } catch (error) {
       console.error("Error toggling live status:", error);
       toast({
         title: "Error",
-        description: "Failed to update live status",
+        description: "Failed to update meeting status",
         variant: "destructive",
       });
     }
