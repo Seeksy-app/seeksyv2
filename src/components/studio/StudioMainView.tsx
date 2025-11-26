@@ -7,7 +7,8 @@ import {
   VideoOff, 
   Monitor, 
   UserPlus, 
-  Circle
+  Circle,
+  Play
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StudioBrandingOverlay } from "./StudioBrandingOverlay";
@@ -191,6 +192,16 @@ export function StudioMainView({
               className="h-12 w-12 rounded-full p-0 flex-shrink-0"
             >
               <UserPlus className="h-5 w-5" />
+            </Button>
+
+            <Button
+              onClick={onPlayVideo}
+              size="lg"
+              variant="outline"
+              className="h-12 w-12 rounded-full p-0 flex-shrink-0 bg-primary/10 hover:bg-primary/20"
+              title="Stream Video to My Page"
+            >
+              <Play className="h-5 w-5" />
             </Button>
           </div>
         </div>
