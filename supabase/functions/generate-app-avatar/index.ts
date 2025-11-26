@@ -30,7 +30,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Generating avatar for app: ${appName} (${appId})`);
 
     // Generate avatar image using Lovable AI
-    const prompt = `Create a professional, friendly avatar portrait for ${appName}. The avatar should be a diverse, approachable person that represents the essence of ${appName}. Modern, clean style with good lighting. Headshot format, smiling, professional attire. High quality, 512x512 dimensions.`;
+    const prompt = `Create a professional, friendly avatar portrait for ${appName}. The avatar should be a diverse, approachable female person that represents the essence of ${appName}. Modern, clean style with good lighting. Headshot format, warm smile, professional business attire. Ensure diversity in ethnicity and representation. High quality, 512x512 dimensions.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
