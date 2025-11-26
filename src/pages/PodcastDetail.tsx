@@ -134,12 +134,6 @@ const PodcastDetail = () => {
       subtitle: "to get discovered",
       completed: false,
     },
-    {
-      icon: <CheckCircle className="w-5 h-5" />,
-      title: "Upgrade to unlock features",
-      subtitle: "and power up your podcast",
-      completed: false,
-    },
   ];
 
   return (
@@ -224,10 +218,7 @@ const PodcastDetail = () => {
                   {/* Main Content */}
                   <div className="lg:col-span-2 space-y-6">
                     <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-2">
-                        <h2 className="text-3xl font-bold">Episodes</h2>
-                        <span className="text-sm text-muted-foreground">2h remaining</span>
-                      </div>
+                      <h2 className="text-3xl font-bold">Episodes</h2>
                       <Button
                         size="lg"
                         className="bg-black text-white hover:bg-black/90"
