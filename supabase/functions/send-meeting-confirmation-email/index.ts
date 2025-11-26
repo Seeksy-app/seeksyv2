@@ -76,7 +76,8 @@ const handler = async (req: Request): Promise<Response> => {
       'teams': 'Microsoft Teams',
       'meet': 'Google Meet',
       'in-person': 'In Person',
-      'custom': 'Custom Location'
+      'custom': 'Custom Location',
+      'seeksy_studio': 'Seeksy Studio'
     }[locationType] || locationType;
 
     // Sanitize user-provided content to prevent XSS
@@ -84,6 +85,32 @@ const handler = async (req: Request): Promise<Response> => {
     const safeAttendeeName = sanitizeHtml(attendeeName);
     const safeLocationDetails = locationDetails ? sanitizeHtml(locationDetails) : '';
     const safeDescription = description ? sanitizeHtml(description) : '';
+
+    // Create iCalendar (.ics) content for calendar invitation
+    const formatDateForICS = (date: string) => {
+      return new Date(date).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    };
+    
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Seeksy//Meeting Scheduler//EN',
+      'METHOD:REQUEST',
+      'BEGIN:VEVENT',
+      `UID:${meetingId}@seeksy.io`,
+      `DTSTAMP:${formatDateForICS(new Date().toISOString())}`,
+      `DTSTART:${formatDateForICS(startTime)}`,
+      `DTEND:${formatDateForICS(endTime)}`,
+      `SUMMARY:${meetingTitle}`,
+      `DESCRIPTION:${description || 'Meeting scheduled via Seeksy'}`,
+      `LOCATION:${safeLocationDetails || locationLabel}`,
+      'STATUS:CONFIRMED',
+      'SEQUENCE:0',
+      `ORGANIZER;CN=Seeksy:mailto:hello@seeksy.io`,
+      `ATTENDEE;CN=${attendeeName};RSVP=TRUE:mailto:${attendeeEmail}`,
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n');
 
     const emailResponse = await resend.emails.send({
       from: `Seeksy <${Deno.env.get("SENDER_EMAIL_HELLO") || "hello@seeksy.io"}>`,
@@ -93,6 +120,12 @@ const handler = async (req: Request): Promise<Response> => {
         { name: 'category', value: 'meeting_confirmation' },
         { name: 'user_id', value: userId },
         { name: 'meeting_id', value: meetingId },
+      ],
+      attachments: [
+        {
+          filename: 'meeting-invite.ics',
+          content: btoa(icsContent),
+        },
       ],
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -111,6 +144,10 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
           
           <p>We look forward to speaking with you!</p>
+          <p style="margin: 20px 0;">
+            <strong>📅 Add to Calendar:</strong> A calendar invitation (.ics file) is attached to this email. 
+            Click on the attachment to add this meeting to your calendar app.
+          </p>
           <p style="color: #666; font-size: 12px; margin-top: 30px;">
             This email was sent by Seeksy.io
           </p>

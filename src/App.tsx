@@ -248,6 +248,7 @@ const AppContent = () => {
               <Route path="/credits" element={<Credits />} />
             <Route path="/investor" element={<InvestorPortal />} />
             <Route path="/project-management" element={<ProjectManagement />} />
+            <Route path="/client-tickets" element={<ClientTickets />} />
             <Route path="/create-lead" element={<CreateLead />} />
             <Route path="/proposals" element={<Proposals />} />
             <Route path="/proposals/create" element={<CreateProposal />} />
