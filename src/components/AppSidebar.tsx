@@ -109,7 +109,19 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   const [advertiserStatus, setAdvertiserStatus] = useState<string | null>(null);
   const [moduleLauncherOpen, setModuleLauncherOpen] = useState(false);
   // Default to Admin View for admin users
-  const [adminViewMode, setAdminViewMode] = useState(isAdmin);
+  const [adminViewMode, setAdminViewMode] = useState(false);
+  
+  // Update adminViewMode when isAdmin prop changes
+  useEffect(() => {
+    if (isAdmin) {
+      setAdminViewMode(true);
+      setOpenSections(prev => ({
+        ...prev,
+        admin: true,
+        adminCustomerSupport: true
+      }));
+    }
+  }, [isAdmin]);
   const [modulePrefs, setModulePrefs] = useState({
     awards: false,
     media: false,
@@ -194,7 +206,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     monetization: true,
     project_management: true,
     engagement: true,
-    admin: isAdmin, // Open admin section by default for admin users
+    admin: false, // Will be set to true by useEffect when isAdmin becomes true
     adminCustomerSupport: true,
     adminManagement: false,
     adminClientManagement: false,
