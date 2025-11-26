@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Volume2, Loader2, Save } from "lucide-react";
+import { Volume2, Loader2, Save, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export const AppAudioManager = () => {
   const queryClient = useQueryClient();
@@ -41,6 +42,25 @@ export const AppAudioManager = () => {
     onError: (error) => {
       console.error("Error generating audio:", error);
       toast.error("Failed to generate audio");
+    },
+  });
+
+  const generateAvatarMutation = useMutation({
+    mutationFn: async ({ appId, appName }: { appId: string; appName: string }) => {
+      const { data, error } = await supabase.functions.invoke("generate-app-avatar", {
+        body: { appId, appName },
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["app-audio-descriptions"] });
+      toast.success("Avatar generated successfully!");
+    },
+    onError: (error) => {
+      console.error("Error generating avatar:", error);
+      toast.error("Failed to generate avatar");
     },
   });
 
@@ -83,6 +103,13 @@ export const AppAudioManager = () => {
     });
   };
 
+  const handleGenerateAvatar = (app: any) => {
+    generateAvatarMutation.mutate({
+      appId: app.app_id,
+      appName: app.app_name,
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -105,9 +132,17 @@ export const AppAudioManager = () => {
           <Card key={app.id} className="p-4">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-lg">{app.app_name}</h3>
-                  <p className="text-sm text-muted-foreground">ID: {app.app_id}</p>
+                <div className="flex items-center gap-3">
+                  {app.avatar_url && (
+                    <Avatar className="w-10 h-10">
+                      <AvatarImage src={app.avatar_url} alt={app.app_name} />
+                      <AvatarFallback>{app.app_name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                  )}
+                  <div>
+                    <h3 className="font-semibold text-lg">{app.app_name}</h3>
+                    <p className="text-sm text-muted-foreground">ID: {app.app_id}</p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   {app.audio_url && (
@@ -115,6 +150,19 @@ export const AppAudioManager = () => {
                       <source src={app.audio_url} type="audio/mpeg" />
                     </audio>
                   )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleGenerateAvatar(app)}
+                    disabled={generateAvatarMutation.isPending}
+                  >
+                    {generateAvatarMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <ImageIcon className="h-4 w-4" />
+                    )}
+                    Avatar
+                  </Button>
                   <Button
                     size="sm"
                     variant="outline"
@@ -126,7 +174,7 @@ export const AppAudioManager = () => {
                     ) : (
                       <Volume2 className="h-4 w-4" />
                     )}
-                    Generate
+                    Audio
                   </Button>
                 </div>
               </div>

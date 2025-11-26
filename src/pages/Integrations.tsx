@@ -101,6 +101,12 @@ const Integrations = () => {
     return audioDescriptions?.find(desc => desc.app_id === dbAppId)?.audio_url;
   };
 
+  const getAvatarUrl = (appId: string) => {
+    // Convert underscores to hyphens and handle special cases
+    const dbAppId = appId.replace(/_/g, '-');
+    return audioDescriptions?.find(desc => desc.app_id === dbAppId)?.avatar_url;
+  };
+
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -653,6 +659,7 @@ const Integrations = () => {
                   onToggle={() => toggleModule('my_page')}
                   onEdit={() => handleEditMetadata('my_page')}
                   audioUrl={getAudioUrl('my-page')}
+                  avatarUrl={getAvatarUrl('my-page')}
                 />
               )}
 
@@ -670,6 +677,7 @@ const Integrations = () => {
                   onToggle={() => toggleModule('meetings')}
                   onEdit={() => handleEditMetadata('meetings')}
                   audioUrl={getAudioUrl('meetings')}
+                  avatarUrl={getAvatarUrl('meetings')}
                 />
               )}
 
@@ -686,6 +694,7 @@ const Integrations = () => {
                   onToggle={() => toggleModule('contacts')}
                   onEdit={() => handleEditMetadata('contacts')}
                   audioUrl={getAudioUrl('contacts')}
+                  avatarUrl={getAvatarUrl('contacts')}
                 />
               )}
 
@@ -702,6 +711,7 @@ const Integrations = () => {
                   onToggle={() => toggleModule('podcasts')}
                   onEdit={() => handleEditMetadata('podcasts')}
                   audioUrl={getAudioUrl('podcasts')}
+                  avatarUrl={getAvatarUrl('podcasts')}
                 />
               )}
 
@@ -733,6 +743,7 @@ const Integrations = () => {
                   onToggle={() => toggleModule('media')}
                   onEdit={() => handleEditMetadata('media')}
                   audioUrl={getAudioUrl('media')}
+                  avatarUrl={getAvatarUrl('media')}
                 />
               )}
             </div>
@@ -797,6 +808,7 @@ const Integrations = () => {
                   onToggle={() => toggleModule('events')}
                   onEdit={() => handleEditMetadata('events')}
                   audioUrl={getAudioUrl('events')}
+                  avatarUrl={getAvatarUrl('events')}
                 />
               )}
 
@@ -813,6 +825,7 @@ const Integrations = () => {
                   onToggle={() => toggleModule('signup_sheets')}
                   onEdit={() => handleEditMetadata('signup_sheets')}
                   audioUrl={getAudioUrl('signup_sheets')}
+                  avatarUrl={getAvatarUrl('signup_sheets')}
                 />
               )}
 
@@ -829,6 +842,7 @@ const Integrations = () => {
                   onToggle={() => toggleModule('polls')}
                   onEdit={() => handleEditMetadata('polls')}
                   audioUrl={getAudioUrl('polls')}
+                  avatarUrl={getAvatarUrl('polls')}
                 />
               )}
 
@@ -860,6 +874,7 @@ const Integrations = () => {
                   onToggle={() => toggleModule('marketing')}
                   onEdit={() => handleEditMetadata('marketing')}
                   audioUrl={getAudioUrl('marketing')}
+                  avatarUrl={getAvatarUrl('marketing')}
                 />
               )}
 
@@ -921,6 +936,7 @@ const Integrations = () => {
                   onToggle={() => toggleModule('forms')}
                   onEdit={() => handleEditMetadata('forms')}
                   audioUrl={getAudioUrl('forms')}
+                  avatarUrl={getAvatarUrl('forms')}
                 />
               )}
             </div>
@@ -997,6 +1013,7 @@ const Integrations = () => {
                   onToggle={() => toggleModule('project_management')}
                   onEdit={() => handleEditMetadata('project_management')}
                   audioUrl={getAudioUrl('project_management')}
+                  avatarUrl={getAvatarUrl('project_management')}
                 />
               )}
 

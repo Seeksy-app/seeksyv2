@@ -796,6 +796,7 @@ export type Database = {
           app_id: string
           app_name: string
           audio_url: string | null
+          avatar_url: string | null
           created_at: string | null
           id: string
           script: string
@@ -806,6 +807,7 @@ export type Database = {
           app_id: string
           app_name: string
           audio_url?: string | null
+          avatar_url?: string | null
           created_at?: string | null
           id?: string
           script: string
@@ -816,6 +818,7 @@ export type Database = {
           app_id?: string
           app_name?: string
           audio_url?: string | null
+          avatar_url?: string | null
           created_at?: string | null
           id?: string
           script?: string

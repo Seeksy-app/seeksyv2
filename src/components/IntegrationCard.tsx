@@ -19,6 +19,7 @@ interface IntegrationCardProps {
   onEdit?: () => void;
   actionLabel?: string;
   audioUrl?: string | null;
+  avatarUrl?: string | null;
 }
 
 export function IntegrationCard({
@@ -35,6 +36,7 @@ export function IntegrationCard({
   onEdit,
   actionLabel,
   audioUrl,
+  avatarUrl,
 }: IntegrationCardProps) {
   return (
     <Card className="p-6 hover:border-primary/50 transition-all flex flex-col h-full">
@@ -66,7 +68,7 @@ export function IntegrationCard({
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-2">
                   <h3 className="font-semibold text-lg">{title}</h3>
-                  <AppAudioPlayer appId={id} audioUrl={audioUrl} size="sm" />
+                  <AppAudioPlayer appId={id} audioUrl={audioUrl} avatarUrl={avatarUrl} size="sm" />
                 </div>
               </TooltipTrigger>
               {tooltip && (
