@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Save, User, Palette, Link2, QrCode, Image, Video, Settings, Upload, Plus, X } from "lucide-react";
+import { ArrowLeft, Save, User, Palette, Link2, QrCode, Image, Video, Settings, Upload, Plus, X, Smartphone, Tablet, Monitor } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import { ProfileQRCode } from "@/components/ProfileQRCode";
@@ -25,9 +25,20 @@ export default function ProfileEdit() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
   // Design
-  const [backgroundColor, setBackgroundColor] = useState("#9ca3af");
+  const [backgroundColor, setBackgroundColor] = useState("#6ee7b7");
   const [titleColor, setTitleColor] = useState("#1f2937");
   const [titleFont, setTitleFont] = useState("sans");
+  
+  // Device preview
+  const [previewDevice, setPreviewDevice] = useState<"mobile" | "tablet" | "desktop">("mobile");
+  
+  // Media
+  const [selectedMedia, setSelectedMedia] = useState<string>("");
+  const [selectedPodcast, setSelectedPodcast] = useState<string>("");
+  
+  // Streaming
+  const [selectedAd, setSelectedAd] = useState<string>("");
+  const [streamingVideo, setStreamingVideo] = useState<string>("");
 
   // Links & Features
   const [showMeetings, setShowMeetings] = useState(true);
@@ -41,9 +52,6 @@ export default function ProfileEdit() {
 
   // QR Code
   const [qrShape, setQrShape] = useState<"square" | "round">("square");
-
-  // Streaming
-  const [streamingVideoUrl, setStreamingVideoUrl] = useState("");
 
   const fontOptions = [
     { value: "sans", label: "Inter" },
@@ -65,13 +73,13 @@ export default function ProfileEdit() {
   ];
 
   const navItems = [
-    { id: "profile", icon: User, label: "Profile" },
-    { id: "design", icon: Palette, label: "Design" },
-    { id: "links", icon: Link2, label: "Links" },
-    { id: "qrcode", icon: QrCode, label: "QR Code" },
-    { id: "media", icon: Image, label: "Media" },
-    { id: "streaming", icon: Video, label: "Streaming" },
-    { id: "advanced", icon: Settings, label: "Advanced" },
+    { id: "profile", icon: User, label: "Profile", color: "bg-blue-500" },
+    { id: "design", icon: Palette, label: "Design", color: "bg-gradient-to-br from-pink-500 to-purple-500" },
+    { id: "links", icon: Link2, label: "Links", color: "bg-green-500" },
+    { id: "qrcode", icon: QrCode, label: "QR Code", color: "bg-indigo-500" },
+    { id: "media", icon: Image, label: "Media", color: "bg-yellow-500" },
+    { id: "streaming", icon: Video, label: "Streaming", color: "bg-red-500" },
+    { id: "advanced", icon: Settings, label: "Advanced", color: "bg-gray-600" },
   ];
 
   const handleSave = async () => {
@@ -117,7 +125,7 @@ export default function ProfileEdit() {
                 onClick={() => setActiveSection(item.id)}
                 className={`w-16 h-16 rounded-xl flex flex-col items-center justify-center gap-1 transition-all ${
                   activeSection === item.id
-                    ? "bg-primary text-primary-foreground shadow-md"
+                    ? `${item.color} text-white shadow-lg scale-105`
                     : "hover:bg-muted text-muted-foreground"
                 }`}
                 title={item.label}
@@ -442,30 +450,34 @@ export default function ProfileEdit() {
             {activeSection === "media" && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-lg font-semibold mb-4">Media</h2>
-                  <div className="space-y-3">
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                      onClick={() => navigate("/podcasts")}
-                    >
-                      <span className="flex items-center gap-2">
-                        <Image className="w-4 h-4" />
-                        RSS Feeds
-                      </span>
-                      <span className="text-xs">→</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                      onClick={() => navigate("/media-library")}
-                    >
-                      <span className="flex items-center gap-2">
-                        <Video className="w-4 h-4" />
-                        Videos
-                      </span>
-                      <span className="text-xs">→</span>
-                    </Button>
+                  <h3 className="text-lg font-semibold mb-4">Select Media</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="mediaSelect" className="text-sm font-medium">Video from Library</Label>
+                      <Select value={selectedMedia} onValueChange={setSelectedMedia}>
+                        <SelectTrigger className="mt-1.5">
+                          <SelectValue placeholder="Select a video..." />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover z-50">
+                          <SelectItem value="video1">My Latest Video</SelectItem>
+                          <SelectItem value="video2">Tutorial Recording</SelectItem>
+                          <SelectItem value="video3">Interview with Guest</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="podcastSelect" className="text-sm font-medium">Podcast</Label>
+                      <Select value={selectedPodcast} onValueChange={setSelectedPodcast}>
+                        <SelectTrigger className="mt-1.5">
+                          <SelectValue placeholder="Select a podcast..." />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover z-50">
+                          <SelectItem value="podcast1">The Creator's Journey</SelectItem>
+                          <SelectItem value="podcast2">Tech Talks Weekly</SelectItem>
+                          <SelectItem value="podcast3">Business Insights</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -474,33 +486,62 @@ export default function ProfileEdit() {
             {activeSection === "streaming" && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-lg font-semibold mb-4">Streaming</h2>
+                  <h3 className="text-lg font-semibold mb-4">Live Streaming</h3>
                   <div className="space-y-4">
                     <div>
-                      <Label className="text-sm font-medium">Upload Video for Streaming</Label>
-                      <p className="text-xs text-muted-foreground mt-1 mb-3">
-                        Upload a video that will display on your page, or record one in Studio
-                      </p>
-                      <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer">
-                        <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                        <p className="text-sm font-medium">Drop video here or click to upload</p>
-                        <p className="text-xs text-muted-foreground mt-1">MP4, MOV, AVI up to 500MB</p>
+                      <Label htmlFor="streamingVideo" className="text-sm font-medium">Upload Video or Record in Studio</Label>
+                      <div className="mt-1.5 space-y-2">
+                        <input
+                          type="file"
+                          id="streamingVideo"
+                          accept="video/*"
+                          className="w-full px-3 py-2 border rounded-lg text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setStreamingVideo(file.name);
+                            }
+                          }}
+                        />
+                        <Button variant="outline" className="w-full" onClick={() => navigate("/studio")}>
+                          <Video className="w-4 h-4 mr-2" />
+                          Record in Studio
+                        </Button>
                       </div>
                     </div>
-                    <div className="text-center">
-                      <p className="text-sm text-muted-foreground mb-2">or</p>
-                      <Button variant="outline" onClick={() => navigate("/studio")}>
-                        <Video className="w-4 h-4 mr-2" />
-                        Record in Studio
-                      </Button>
+                    
+                    <div>
+                      <Label htmlFor="adSelect" className="text-sm font-medium">Select Ad (Optional)</Label>
+                      <Select value={selectedAd} onValueChange={setSelectedAd}>
+                        <SelectTrigger className="mt-1.5">
+                          <SelectValue placeholder="No ad" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover z-50">
+                          <SelectItem value="none">No ad</SelectItem>
+                          <SelectItem value="pre_roll">Pre-roll Ad</SelectItem>
+                          <SelectItem value="mid_roll">Mid-roll Ad</SelectItem>
+                          <SelectItem value="post_roll">Post-roll Ad</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground mt-1">Choose where to insert ads in your stream</p>
                     </div>
-                    {streamingVideoUrl && (
-                      <div className="border rounded-lg p-4">
-                        <div className="aspect-[9/16] max-w-[200px] mx-auto bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center text-white">
-                          <p className="text-sm">🎥 Preview</p>
+
+                    <div className="space-y-3 pt-2">
+                      <div className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <p className="font-medium">Enable Tipping</p>
+                          <p className="text-sm text-muted-foreground">Allow viewers to send tips</p>
                         </div>
+                        <Switch checked={true} />
                       </div>
-                    )}
+                      <div className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <p className="font-medium">Subscriptions</p>
+                          <p className="text-sm text-muted-foreground">Enable subscription button</p>
+                        </div>
+                        <Switch checked={true} />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -509,8 +550,10 @@ export default function ProfileEdit() {
             {activeSection === "advanced" && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-lg font-semibold mb-4">Advanced</h2>
-                  <p className="text-sm text-muted-foreground">Advanced settings coming soon...</p>
+                  <h3 className="text-lg font-semibold mb-4">Advanced Settings</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Coming soon...
+                  </p>
                 </div>
               </div>
             )}
@@ -520,10 +563,46 @@ export default function ProfileEdit() {
         {/* Live Preview */}
         <div className="flex-1 bg-muted/20 overflow-y-auto">
           <div className="p-8">
-            <Card className="max-w-md mx-auto shadow-2xl">
+            <div className="mb-4 flex justify-center gap-2">
+              <button
+                onClick={() => setPreviewDevice("mobile")}
+                className={`p-2 rounded-lg transition-all ${
+                  previewDevice === "mobile" ? "bg-primary text-primary-foreground shadow-md" : "bg-muted hover:bg-muted/80"
+                }`}
+                title="Mobile"
+              >
+                <Smartphone className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setPreviewDevice("tablet")}
+                className={`p-2 rounded-lg transition-all ${
+                  previewDevice === "tablet" ? "bg-primary text-primary-foreground shadow-md" : "bg-muted hover:bg-muted/80"
+                }`}
+                title="Tablet"
+              >
+                <Tablet className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setPreviewDevice("desktop")}
+                className={`p-2 rounded-lg transition-all ${
+                  previewDevice === "desktop" ? "bg-primary text-primary-foreground shadow-md" : "bg-muted hover:bg-muted/80"
+                }`}
+                title="Desktop"
+              >
+                <Monitor className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <Card className={`mx-auto shadow-2xl transition-all ${
+              previewDevice === "mobile" ? "max-w-md" :
+              previewDevice === "tablet" ? "max-w-2xl" :
+              "max-w-4xl"
+            }`}>
               <CardContent className="p-0">
                 <div className="rounded-lg overflow-hidden" style={{ backgroundColor }}>
-                  <div className="aspect-[9/16] p-8 flex flex-col items-center">
+                  <div className={`p-8 flex flex-col items-center ${
+                    previewDevice === "mobile" ? "aspect-[9/16]" : "min-h-[600px]"
+                  }`}>
                     {/* Profile Image */}
                     <div
                       className={`${
@@ -532,7 +611,7 @@ export default function ProfileEdit() {
                           : imageStyle === "square"
                           ? "w-32 h-32 rounded-2xl"
                           : "w-40 h-56 rounded-2xl"
-                      } mb-4 shadow-lg overflow-hidden ${!profileImage ? "bg-black" : ""}`}
+                      } mb-4 shadow-lg overflow-hidden ${!profileImage ? "bg-gradient-to-br from-purple-500 to-blue-600" : ""}`}
                     >
                       {profileImage && (
                         <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
@@ -555,14 +634,16 @@ export default function ProfileEdit() {
                     )}
 
                     {/* Feature Links */}
-                    <div className="w-full space-y-2 mb-4">
+                    <div className={`w-full space-y-2 mb-4 ${
+                      previewDevice === "desktop" ? "max-w-2xl grid grid-cols-2 gap-2" : ""
+                    }`}>
                       {showMeetings && (
-                        <Button variant="secondary" className="w-full" size="sm">
+                        <Button style={{ backgroundColor: "#facc15", color: "#000000" }} className="w-full font-semibold" size="sm">
                           📅 Book a Meeting
                         </Button>
                       )}
                       {showEvents && (
-                        <Button variant="secondary" className="w-full" size="sm">
+                        <Button style={{ backgroundColor: "#fb923c", color: "#000000" }} className="w-full font-semibold" size="sm">
                           🎉 View Events
                         </Button>
                       )}
@@ -598,7 +679,12 @@ export default function ProfileEdit() {
                     {/* QR Code */}
                     {showQRCodes && (
                       <div className="mt-4">
-                        <ProfileQRCode username={username} shape={qrShape} />
+                        <div className="bg-white p-4 rounded-xl shadow-lg">
+                          <ProfileQRCode username={username} shape={qrShape} />
+                        </div>
+                        <p className="text-xs text-center mt-2" style={{ color: titleColor }}>
+                          https://seeksy.io/{username}
+                        </p>
                       </div>
                     )}
                   </div>
