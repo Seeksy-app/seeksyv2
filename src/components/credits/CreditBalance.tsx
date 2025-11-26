@@ -47,9 +47,9 @@ export function CreditBalance() {
         </TooltipTrigger>
         <TooltipContent>
           <p className="text-sm">
-            <strong>{userCredits.balance}</strong> credits available
+            <strong>{userCredits.balance}</strong> credits remaining
             <br />
-            <span className="text-muted-foreground">Goal: {goal} credits</span>
+            <span className="text-muted-foreground">Out of {goal} credits</span>
           </p>
         </TooltipContent>
       </Tooltip>

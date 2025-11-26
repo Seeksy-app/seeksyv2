@@ -167,7 +167,12 @@ export default function FieldLeadCapture() {
 
       if (uploadError) {
         console.error("Photo upload error:", uploadError);
-        continue;
+        toast({
+          title: "Photo upload failed",
+          description: `Failed to upload ${photo.name}: ${uploadError.message}`,
+          variant: "destructive",
+        });
+        throw uploadError; // Stop form submission if photo upload fails
       }
 
       const { data: { publicUrl } } = supabase.storage

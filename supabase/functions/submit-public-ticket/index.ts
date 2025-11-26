@@ -85,7 +85,8 @@ serve(async (req) => {
         user_id: adminUserId,
         email: submission.email,
         name: submission.name,
-        tags: ["ticket_submission"],
+        lead_status: 'new',
+        lead_source: 'ticket_submission',
       };
       
       if (submission.company) contactData.company = submission.company;
