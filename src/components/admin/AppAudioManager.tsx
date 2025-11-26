@@ -123,7 +123,7 @@ export const AppAudioManager = () => {
       <div>
         <h2 className="text-2xl font-bold mb-2">App Audio Descriptions</h2>
         <p className="text-muted-foreground">
-          Manage audio descriptions for all apps. Edit scripts and generate new audio using Jessica's voice from ElevenLabs.
+          Manage audio descriptions for all apps. Edit scripts and regenerate audio using matched ElevenLabs voices (avatars are assigned gender-appropriate voices automatically).
         </p>
       </div>
 
