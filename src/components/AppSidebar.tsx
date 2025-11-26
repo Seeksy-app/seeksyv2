@@ -147,7 +147,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     monetization: false,
     project_management: false,
     lead_pixel: false,
-    rss_podcast: false,
+    podcasts: false,
     blog: false,
     events: false,
     signup_sheets: false,
@@ -297,7 +297,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     
     const { data } = await supabase
       .from("user_preferences")
-      .select("module_awards_enabled, module_media_enabled, module_civic_enabled, module_influencer_enabled, module_agency_enabled, module_team_chat_enabled, module_monetization_enabled, module_project_management_enabled, module_lead_pixel_enabled, module_rss_podcast_posting_enabled, module_blog_enabled, module_events_enabled, module_signup_sheets_enabled, module_polls_enabled, module_qr_codes_enabled, module_marketing_enabled, module_sms_enabled, meetings_enabled, pinned_modules")
+      .select("module_awards_enabled, module_media_enabled, module_civic_enabled, module_influencer_enabled, module_agency_enabled, module_team_chat_enabled, module_monetization_enabled, module_project_management_enabled, module_lead_pixel_enabled, podcasts_enabled, module_blog_enabled, module_events_enabled, module_signup_sheets_enabled, module_polls_enabled, module_qr_codes_enabled, module_marketing_enabled, module_sms_enabled, meetings_enabled, pinned_modules")
       .eq("user_id", user.id)
       .maybeSingle();
     
@@ -314,7 +314,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         monetization: (data as any).module_monetization_enabled || false,
         project_management: (data as any).module_project_management_enabled || false,
         lead_pixel: (data as any).module_lead_pixel_enabled || false,
-        rss_podcast: (data as any).module_rss_podcast_posting_enabled || false,
+        podcasts: (data as any).podcasts_enabled || false,
         blog: (data as any).module_blog_enabled || false,
         events: (data as any).module_events_enabled || false,
         signup_sheets: (data as any).module_signup_sheets_enabled || false,
@@ -394,9 +394,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     ...(pinnedModules.includes("polls") && modulePrefs.polls ? [{ title: "Polls", url: "/polls", icon: BarChart3 }] : []),
     ...(pinnedModules.includes("awards") && modulePrefs.awards ? [{ title: "Awards", url: "/awards", icon: Trophy }] : []),
     ...(pinnedModules.includes("qr_codes") && modulePrefs.qr_codes ? [{ title: "QR Codes", url: "/qr-codes", icon: QrCode }] : []),
-    // Podcasts - unified feature (RSS + Podcast in one)
-    ...((pinnedModules.includes("rss_podcast_posting") || pinnedModules.includes("podcasts")) && modulePrefs.rss_podcast ? [{ title: "Podcasts", url: "/podcasts", icon: Mic }] : []),
-    // Media is shown as its own section with Studio, Media Library, Create Clips
+    ...(pinnedModules.includes("podcasts") ? [{ title: "Podcasts", url: "/podcasts", icon: Mic }] : []),
     ...(pinnedModules.includes("civic") && modulePrefs.civic ? [{ title: "Civic Tools", url: "/civic-blog", icon: Building2 }] : []),
     ...(pinnedModules.includes("team_chat") && modulePrefs.team_chat ? [{ title: "Team Chat", url: "/team-chat", icon: MessageSquare }] : []),
   ];
@@ -631,7 +629,6 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       if (section.id === "civic") return modulePrefs.civic;
       if (section.id === "influencer") return modulePrefs.influencer;
       if (section.id === "agency") return modulePrefs.agency;
-      if (section.id === "rss_podcast") return modulePrefs.rss_podcast;
       if (section.id === "blog") return modulePrefs.blog;
       
       return false;

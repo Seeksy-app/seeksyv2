@@ -35,6 +35,7 @@ export default function ProfileEdit() {
   const [showPolls, setShowPolls] = useState(false);
   const [showAwards, setShowAwards] = useState(false);
   const [showQRCodes, setShowQRCodes] = useState(true);
+  const [showNewsletter, setShowNewsletter] = useState(false);
   const [customLinks, setCustomLinks] = useState<Array<{ title: string; url: string }>>([]);
 
   // QR Code
@@ -310,6 +311,13 @@ export default function ProfileEdit() {
                           </div>
                           <Switch checked={showQRCodes} onCheckedChange={setShowQRCodes} />
                         </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium">Newsletter</p>
+                            <p className="text-xs text-muted-foreground">Newsletter signup</p>
+                          </div>
+                          <Switch checked={showNewsletter} onCheckedChange={setShowNewsletter} />
+                        </div>
                       </div>
                     </div>
 
@@ -531,6 +539,11 @@ export default function ProfileEdit() {
                       {showAwards && (
                         <Button variant="secondary" className="w-full" size="sm">
                           🏆 Awards
+                        </Button>
+                      )}
+                      {showNewsletter && (
+                        <Button variant="secondary" className="w-full" size="sm">
+                          📧 Subscribe to Newsletter
                         </Button>
                       )}
                     </div>

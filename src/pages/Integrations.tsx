@@ -48,7 +48,6 @@ const Integrations = () => {
     monetization: false,
     team_chat: false,
     blog: false,
-    rss_podcast_posting: false,
     advertiser: false,
     events: false,
     signup_sheets: false,
@@ -58,6 +57,7 @@ const Integrations = () => {
     sms: false,
     lead_pixel: false,
     newsletter: false,
+    forms: false,
   });
   const [socialConnections, setSocialConnections] = useState<any[]>([]);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -148,7 +148,6 @@ const Integrations = () => {
           monetization: prefs.module_monetization_enabled || false,
           team_chat: (prefs as any).module_team_chat_enabled || false,
           blog: (prefs as any).module_blog_enabled || false,
-          rss_podcast_posting: (prefs as any).module_rss_podcast_posting_enabled || false,
           advertiser: (prefs as any).module_advertiser_enabled || false,
           events: (prefs as any).module_events_enabled || false,
           signup_sheets: (prefs as any).module_signup_sheets_enabled || false,
@@ -157,6 +156,7 @@ const Integrations = () => {
           marketing: (prefs as any).module_marketing_enabled || false,
           sms: (prefs as any).module_sms_enabled || false,
           newsletter: (prefs as any).module_newsletter_enabled || false,
+          forms: (prefs as any).module_forms_enabled || false,
         });
       }
 
@@ -752,21 +752,6 @@ const Integrations = () => {
                   onEdit={() => handleEditMetadata('blog')}
                 />
               )}
-
-              {matchesSearch('RSS Podcast Posting', 'Automatically sync and publish podcast episodes from RSS feeds to your podcast library.') && (
-                <IntegrationCard
-                  id="rss_podcast_posting"
-                  icon={Rss}
-                  iconGradient="from-amber-500 to-orange-600"
-                  title={getMetadata('rss_podcast_posting')?.title || 'RSS Podcast Posting'}
-                  description={getMetadata('rss_podcast_posting')?.description || 'Automatically sync and publish podcast episodes from RSS feeds to your podcast library.'}
-                  tooltip={getMetadata('rss_podcast_posting')?.tooltip_text}
-                  isActive={modules.rss_podcast_posting}
-                  isAdmin={isAdmin}
-                  onToggle={() => toggleModule('rss_podcast_posting')}
-                  onEdit={() => handleEditMetadata('rss_podcast_posting')}
-                />
-              )}
             </div>
           </section>
 
@@ -879,6 +864,36 @@ const Integrations = () => {
                   isAdmin={isAdmin}
                   onToggle={() => toggleModule('team_chat')}
                   onEdit={() => handleEditMetadata('team_chat')}
+                />
+              )}
+
+              {matchesSearch('Newsletter', 'Build and grow your email list. Send newsletters to subscribers from your My Page and influencer profiles.') && (
+                <IntegrationCard
+                  id="newsletter"
+                  icon={Mail}
+                  iconGradient="from-blue-500 to-purple-600"
+                  title="Newsletter"
+                  description="Build and grow your email list. Send newsletters to subscribers from your My Page and influencer profiles."
+                  tooltip="Enable to build your email list and send newsletters"
+                  isActive={modules.newsletter}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('newsletter')}
+                  onEdit={() => handleEditMetadata('newsletter')}
+                />
+              )}
+
+              {matchesSearch('Forms', 'Create custom forms for lead capture and tracking. Generate unique links for field staff and salespeople with form attribution.') && (
+                <IntegrationCard
+                  id="forms"
+                  icon={FileText}
+                  iconGradient="from-teal-500 to-cyan-600"
+                  title="Forms"
+                  description="Create custom forms for lead capture and tracking. Generate unique links for field staff and salespeople with form attribution."
+                  tooltip="Enable to create custom forms and track submissions"
+                  isActive={modules.forms}
+                  isAdmin={isAdmin}
+                  onToggle={() => toggleModule('forms')}
+                  onEdit={() => handleEditMetadata('forms')}
                 />
               )}
             </div>
