@@ -25,7 +25,7 @@ export default function ProfileEdit() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
   // Design
-  const [backgroundColor, setBackgroundColor] = useState("#6ee7b7");
+  const [backgroundColor, setBackgroundColor] = useState("#e5e7eb");
   const [titleColor, setTitleColor] = useState("#1f2937");
   const [titleFont, setTitleFont] = useState("sans");
   
@@ -38,6 +38,7 @@ export default function ProfileEdit() {
   
   // Streaming
   const [selectedAd, setSelectedAd] = useState<string>("");
+  const [selectedAdVideo, setSelectedAdVideo] = useState<string>("");
   const [streamingVideo, setStreamingVideo] = useState<string>("");
 
   // Links & Features
@@ -52,6 +53,8 @@ export default function ProfileEdit() {
 
   // QR Code
   const [qrShape, setQrShape] = useState<"square" | "round">("square");
+  const [qrColor, setQrColor] = useState("#000000");
+  const [qrLogo, setQrLogo] = useState<string | null>(null);
 
   const fontOptions = [
     { value: "sans", label: "Inter" },
@@ -444,8 +447,60 @@ export default function ProfileEdit() {
                         </Button>
                       </div>
                     </div>
-                    <div className="border rounded-lg p-4 flex justify-center">
-                      <ProfileQRCode username={username} shape={qrShape} />
+                    <div>
+                      <Label className="text-sm font-medium">QR Code Color</Label>
+                      <div className="mt-3">
+                        <div className="flex gap-2 flex-wrap">
+                          {["#000000", "#374151", "#3b82f6", "#8b5cf6", "#ec4899", "#ef4444", "#f97316", "#10b981"].map((color) => (
+                            <button
+                              key={color}
+                              onClick={() => setQrColor(color)}
+                              className={`w-10 h-10 rounded-full border-2 hover:scale-110 transition-transform ${
+                                qrColor === color ? "border-primary ring-2 ring-primary ring-offset-2" : "border-border"
+                              }`}
+                              style={{ backgroundColor: color }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="qrLogo" className="text-sm font-medium">Logo (Optional)</Label>
+                      <div className="mt-1.5">
+                        <div className="border-2 border-dashed rounded-lg p-4 text-center hover:border-primary transition-colors cursor-pointer">
+                          <input
+                            type="file"
+                            id="qrLogo"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (e) => setQrLogo(e.target?.result as string);
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                          <label htmlFor="qrLogo" className="cursor-pointer">
+                            {qrLogo ? (
+                              <div className="flex flex-col items-center gap-2">
+                                <img src={qrLogo} alt="Logo" className="w-12 h-12 rounded object-cover" />
+                                <p className="text-xs text-muted-foreground">Click to change</p>
+                              </div>
+                            ) : (
+                              <>
+                                <Upload className="w-6 h-6 mx-auto mb-2 text-muted-foreground" />
+                                <p className="text-sm font-medium">Upload logo</p>
+                                <p className="text-xs text-muted-foreground mt-1">PNG, JPG up to 2MB</p>
+                              </>
+                            )}
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="border rounded-lg p-4 flex justify-center bg-white">
+                      <ProfileQRCode username={username} shape={qrShape} themeColor={qrColor} logoUrl={qrLogo || undefined} />
                     </div>
                   </div>
                 </div>
@@ -491,7 +546,10 @@ export default function ProfileEdit() {
             {activeSection === "streaming" && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Live Streaming</h3>
+                  <h3 className="text-lg font-semibold mb-2">Live Streaming</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Set up your live stream with video content, monetization features, and ad placements. Your viewers will see Subscribe and Tipping buttons during the stream.
+                  </p>
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="streamingVideo" className="text-sm font-medium">Upload Video or Record in Studio</Label>
@@ -518,6 +576,21 @@ export default function ProfileEdit() {
                     <div className="border-t pt-4">
                       <h4 className="text-sm font-semibold mb-3">Ad Insertion</h4>
                       <div className="space-y-3">
+                        <div>
+                          <Label className="text-xs font-medium">Ad Videos</Label>
+                          <Select value={selectedAdVideo} onValueChange={setSelectedAdVideo}>
+                            <SelectTrigger className="mt-1.5">
+                              <SelectValue placeholder="Select ad video" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-popover z-50">
+                              <SelectItem value="none">None</SelectItem>
+                              <SelectItem value="video1">Product Launch Video</SelectItem>
+                              <SelectItem value="video2">Brand Showcase</SelectItem>
+                              <SelectItem value="video3">Promotional Clip</SelectItem>
+                              <SelectItem value="video4">Service Introduction</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                         <div>
                           <Label className="text-xs font-medium">Pre-Roll Ad</Label>
                           <Select value={selectedAd} onValueChange={setSelectedAd}>
@@ -727,7 +800,7 @@ export default function ProfileEdit() {
                     {showQRCodes && (
                       <div className="mt-4">
                         <div className="bg-white p-4 rounded-xl shadow-lg">
-                          <ProfileQRCode username={username} shape={qrShape} />
+                          <ProfileQRCode username={username} shape={qrShape} themeColor={qrColor} logoUrl={qrLogo || undefined} />
                         </div>
                         <p className="text-xs text-center mt-2" style={{ color: titleColor }}>
                           https://seeksy.io/{username}
