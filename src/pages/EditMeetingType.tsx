@@ -116,7 +116,7 @@ const EditMeetingType = () => {
           name,
           description,
           duration: parseInt(duration),
-          location_type: locationType as "phone" | "zoom" | "teams" | "meet" | "in-person" | "custom",
+          location_type: locationType as "phone" | "zoom" | "teams" | "meet" | "in-person" | "custom" | "seeksy_studio",
           custom_location_url: locationType === "custom" ? customLocationUrl : null,
           pre_meeting_questions: filteredQuestions as any,
           is_active: isActive,
@@ -233,6 +233,7 @@ const EditMeetingType = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="seeksy_studio">Seeksy Studio</SelectItem>
                     <SelectItem value="phone">Phone Call</SelectItem>
                     <SelectItem value="zoom">Zoom</SelectItem>
                     <SelectItem value="teams">Microsoft Teams</SelectItem>

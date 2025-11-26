@@ -196,7 +196,7 @@ const CreateMeeting = () => {
           description: description || null,
           start_time: startTime.toISOString(),
           end_time: endTime.toISOString(),
-          location_type: locationType as "phone" | "zoom" | "teams" | "meet" | "in-person" | "custom",
+          location_type: locationType as "phone" | "zoom" | "teams" | "meet" | "in-person" | "custom" | "seeksy_studio",
           location_details: finalLocationDetails || null,
           attendee_name: attendeeName,
           attendee_email: attendeeEmail,
@@ -433,6 +433,7 @@ const CreateMeeting = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="seeksy_studio">Seeksy Studio</SelectItem>
                   <SelectItem value="zoom">
                     Zoom {zoomConnected && '✓ Connected'}
                   </SelectItem>

@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Calendar, Radio, ChevronLeft, Edit2 } from "lucide-react";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { VideoLayoutSelector, VideoLayout } from "@/components/studio/VideoLayoutSelector";
 
 interface StudioTopBarProps {
   sessionName: string;
@@ -10,6 +11,9 @@ interface StudioTopBarProps {
   isLiveOnProfile: boolean;
   onGoLive: () => void;
   onBack: () => void;
+  videoLayout: VideoLayout;
+  onVideoLayoutChange: (layout: VideoLayout) => void;
+  participantCount: number;
 }
 
 export function StudioTopBar({
@@ -18,6 +22,9 @@ export function StudioTopBar({
   isLiveOnProfile,
   onGoLive,
   onBack,
+  videoLayout,
+  onVideoLayoutChange,
+  participantCount,
 }: StudioTopBarProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
 
@@ -62,7 +69,15 @@ export function StudioTopBar({
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
+        <VideoLayoutSelector
+          currentLayout={videoLayout}
+          onLayoutChange={onVideoLayoutChange}
+          participantCount={participantCount}
+        />
+        
+        <div className="h-6 w-px bg-border" />
+        
         <ThemeToggle />
         
         <Button variant="outline" size="sm">

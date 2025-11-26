@@ -7718,6 +7718,7 @@ export type Database = {
         | "meet"
         | "in-person"
         | "custom"
+        | "seeksy_studio"
       meeting_status: "scheduled" | "completed" | "cancelled"
       nominee_status: "pending" | "approved" | "rejected"
       voting_method: "public" | "jury" | "hybrid" | "ranked_choice"
@@ -7881,7 +7882,15 @@ export const Constants = {
         "completed",
       ],
       chat_type: ["team_chat", "admin_internal", "support_chat"],
-      location_type: ["phone", "zoom", "teams", "meet", "in-person", "custom"],
+      location_type: [
+        "phone",
+        "zoom",
+        "teams",
+        "meet",
+        "in-person",
+        "custom",
+        "seeksy_studio",
+      ],
       meeting_status: ["scheduled", "completed", "cancelled"],
       nominee_status: ["pending", "approved", "rejected"],
       voting_method: ["public", "jury", "hybrid", "ranked_choice"],
