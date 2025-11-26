@@ -5336,6 +5336,10 @@ export type Database = {
           account_full_name: string | null
           account_phone: string | null
           account_type: Database["public"]["Enums"]["account_type"] | null
+          admin_avatar_url: string | null
+          admin_email: string | null
+          admin_full_name: string | null
+          admin_phone: string | null
           auto_publish_rss: boolean | null
           avatar_url: string | null
           bio: string | null
@@ -5376,6 +5380,7 @@ export type Database = {
           tipping_button_text: string | null
           tipping_enabled: boolean | null
           updated_at: string | null
+          use_separate_admin_profile: boolean | null
           username: string
         }
         Insert: {
@@ -5383,6 +5388,10 @@ export type Database = {
           account_full_name?: string | null
           account_phone?: string | null
           account_type?: Database["public"]["Enums"]["account_type"] | null
+          admin_avatar_url?: string | null
+          admin_email?: string | null
+          admin_full_name?: string | null
+          admin_phone?: string | null
           auto_publish_rss?: boolean | null
           avatar_url?: string | null
           bio?: string | null
@@ -5423,6 +5432,7 @@ export type Database = {
           tipping_button_text?: string | null
           tipping_enabled?: boolean | null
           updated_at?: string | null
+          use_separate_admin_profile?: boolean | null
           username: string
         }
         Update: {
@@ -5430,6 +5440,10 @@ export type Database = {
           account_full_name?: string | null
           account_phone?: string | null
           account_type?: Database["public"]["Enums"]["account_type"] | null
+          admin_avatar_url?: string | null
+          admin_email?: string | null
+          admin_full_name?: string | null
+          admin_phone?: string | null
           auto_publish_rss?: boolean | null
           avatar_url?: string | null
           bio?: string | null
@@ -5470,6 +5484,7 @@ export type Database = {
           tipping_button_text?: string | null
           tipping_enabled?: boolean | null
           updated_at?: string | null
+          use_separate_admin_profile?: boolean | null
           username?: string
         }
         Relationships: []
