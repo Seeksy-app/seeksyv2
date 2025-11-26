@@ -119,23 +119,25 @@ serve(async (req) => {
     const { country, city } = await getGeoLocation(ip);
     console.log('[TRACK-IMPRESSION] Geo:', { country, city });
 
-    // Check for duplicate impression (same IP hash + ad slot in last 5 minutes)
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-    const { data: recentImpression } = await supabase
-      .from('ad_impressions')
-      .select('id')
-      .eq('ad_slot_id', impressionData.ad_slot_id)
-      .eq('listener_ip_hash', ipHash)
-      .gte('created_at', fiveMinutesAgo)
-      .limit(1)
-      .single();
+    // Validate impression using fraud prevention function
+    const { data: isValid, error: validationError } = await supabase
+      .rpc('validate_ad_impression', {
+        p_ad_slot_id: impressionData.ad_slot_id,
+        p_campaign_id: impressionData.campaign_id || null,
+        p_listener_ip_hash: ipHash,
+        p_user_agent: userAgent
+      });
 
-    if (recentImpression) {
-      console.log('[TRACK-IMPRESSION] Duplicate impression detected, skipping');
+    if (validationError) {
+      console.error('[TRACK-IMPRESSION] Validation error:', validationError);
+    }
+
+    if (!isValid) {
+      console.log('[TRACK-IMPRESSION] Invalid or suspicious impression detected, skipping');
       return new Response(
         JSON.stringify({ 
           success: false, 
-          message: 'Duplicate impression',
+          message: 'Invalid or suspicious impression',
           counted: false
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
