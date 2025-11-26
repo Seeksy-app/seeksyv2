@@ -159,6 +159,8 @@ const ProfileEdit = () => {
   const [qrCodeShape, setQrCodeShape] = useState<'square' | 'round'>('square');
   const [imageStyle, setImageStyle] = useState<'circular' | 'rounded-square' | 'portrait'>('circular');
   const [titleFont, setTitleFont] = useState<'serif' | 'sans' | 'script'>('serif');
+  const [activeTab, setActiveTab] = useState<'profile' | 'design' | 'features' | 'advanced'>('profile');
+  const [previewDevice, setPreviewDevice] = useState<'mobile' | 'tablet' | 'desktop'>('mobile');
   const [heroSectionColor, setHeroSectionColor] = useState("#1a1a1a");
   const [customThemeColors, setCustomThemeColors] = useState<string[]>([]);
   const [customBgColors, setCustomBgColors] = useState<string[]>([]);
@@ -919,29 +921,80 @@ const ProfileEdit = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-4 py-12 max-w-7xl">
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
+      <main className="container mx-auto px-4 py-8 max-w-[1600px]">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-4xl font-bold">Edit Profile</h1>
-              <p className="text-muted-foreground mt-2">
-                Customize your public profile page
+              <h1 className="text-3xl font-bold">Edit My Page</h1>
+              <p className="text-muted-foreground mt-1">
+                Customize your public profile
               </p>
             </div>
-            {hasUnsavedChanges && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-orange-500/10 border border-orange-500/20 rounded-lg">
-                <div className="h-2 w-2 bg-orange-500 rounded-full animate-pulse" />
-                <span className="text-sm font-medium text-orange-600 dark:text-orange-400">
-                  Unsaved changes
-                </span>
-              </div>
-            )}
+            <div className="flex items-center gap-3">
+              {hasUnsavedChanges && (
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+                  <div className="h-2 w-2 bg-orange-500 rounded-full animate-pulse" />
+                  <span className="text-sm font-medium text-orange-600 dark:text-orange-400">
+                    Unsaved changes
+                  </span>
+                </div>
+              )}
+              <Button onClick={handleSave} disabled={saving || !hasUnsavedChanges}>
+                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Save Changes
+              </Button>
+            </div>
+          </div>
+
+          {/* Tab Navigation */}
+          <div className="flex gap-1 bg-muted/50 p-1 rounded-lg mb-6">
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`flex-1 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${
+                activeTab === 'profile'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Profile Info
+            </button>
+            <button
+              onClick={() => setActiveTab('design')}
+              className={`flex-1 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${
+                activeTab === 'design'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Page Design
+            </button>
+            <button
+              onClick={() => setActiveTab('features')}
+              className={`flex-1 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${
+                activeTab === 'features'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Features
+            </button>
+            <button
+              onClick={() => setActiveTab('advanced')}
+              className={`flex-1 px-4 py-2.5 rounded-md text-sm font-medium transition-all ${
+                activeTab === 'advanced'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Advanced
+            </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column - Edit Form */}
-          <div>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr,400px] gap-6">
+          {/* Left Column - Settings */}
+          <div className="space-y-6">
             <Card className="p-8 space-y-6">
           <div className="space-y-2">
             <Label htmlFor="displayName" className="text-lg font-semibold">Display Name</Label>
@@ -1841,17 +1894,69 @@ const ProfileEdit = () => {
         </Card>
       </div>
 
-      {/* Right Column - Phone Preview */}
-      <div className="lg:sticky lg:top-8 lg:self-start">
-        <div className="mx-auto" style={{ width: '375px', maxWidth: '100%' }}>
+      {/* Right Column - Device Preview */}
+      <div className="lg:sticky lg:top-8 lg:self-start space-y-4">
+        {/* Device Switcher */}
+        <div className="flex gap-2 justify-center bg-muted/30 p-1.5 rounded-lg">
+          <button
+            onClick={() => setPreviewDevice('mobile')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+              previewDevice === 'mobile'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Mobile
+          </button>
+          <button
+            onClick={() => setPreviewDevice('tablet')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+              previewDevice === 'tablet'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Tablet
+          </button>
+          <button
+            onClick={() => setPreviewDevice('desktop')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+              previewDevice === 'desktop'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Desktop
+          </button>
+        </div>
+
+        {/* Device Frame */}
+        <div className="mx-auto" style={{ 
+          width: previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '100%',
+          maxWidth: '100%' 
+        }}>
           <div className="relative">
-            {/* Phone Frame */}
-            <div className="relative bg-black rounded-[3rem] p-3 shadow-2xl border-8 border-gray-800">
-              {/* Notch */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-black rounded-b-3xl z-10" />
+            {/* Frame */}
+            <div className={`relative shadow-2xl ${
+              previewDevice === 'mobile' 
+                ? 'bg-black rounded-[3rem] p-3 border-8 border-gray-800'
+                : previewDevice === 'tablet'
+                ? 'bg-gray-900 rounded-[2rem] p-2 border-4 border-gray-700'
+                : 'bg-gray-900 rounded-xl p-1 border-2 border-gray-700'
+            }`}>
+              {/* Mobile Notch */}
+              {previewDevice === 'mobile' && (
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-7 bg-black rounded-b-3xl z-10" />
+              )}
               
               {/* Screen */}
-              <div className="bg-white rounded-[2.5rem] overflow-hidden relative" style={{ height: '667px' }}>
+              <div className={`bg-white overflow-hidden relative ${
+                previewDevice === 'mobile' 
+                  ? 'rounded-[2.5rem] h-[667px]'
+                  : previewDevice === 'tablet'
+                  ? 'rounded-[1.5rem] h-[900px]'
+                  : 'rounded-lg h-[600px]'
+              }`}>
                 {/* Live Preview Content */}
                 <div className="h-full overflow-y-auto" style={{ backgroundColor: pageBackgroundColor }}>
                   {/* Hero Section */}
