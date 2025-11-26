@@ -439,22 +439,88 @@ const Settings = () => {
           {/* Account Information with Profile Photo */}
           <Card>
             <CardHeader>
-              <div className="flex items-start justify-between gap-6">
-                <div className="flex-1">
-                  <CardTitle>Account Information</CardTitle>
-                  <CardDescription>Update your personal details</CardDescription>
-                  {profileData.username && profileData.my_page_visited && (
-                    <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-                      <span>Your public profile:</span>
-                      <Button variant="link" className="h-auto p-0 text-sm" asChild>
-                        <a href={`/${profileData.username}`} target="_blank" rel="noopener noreferrer">
-                          /{profileData.username}
-                          <Eye className="ml-1 h-3 w-3" />
-                        </a>
-                      </Button>
-                    </div>
-                  )}
+              <CardTitle>Account Information</CardTitle>
+              <CardDescription>Update your personal details</CardDescription>
+              {profileData.username && profileData.my_page_visited && (
+                <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>Your public profile:</span>
+                  <Button variant="link" className="h-auto p-0 text-sm" asChild>
+                    <a href={`/${profileData.username}`} target="_blank" rel="noopener noreferrer">
+                      /{profileData.username}
+                      <Eye className="ml-1 h-3 w-3" />
+                    </a>
+                  </Button>
                 </div>
+              )}
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-8 items-start">
+                {/* Left: Form Fields */}
+                <div className="flex-1 max-w-md space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="full_name">Full Name</Label>
+                    <div className="relative">
+                      <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="full_name"
+                        value={formData.full_name}
+                        onChange={(e) => {
+                          setFormData({ ...formData, full_name: e.target.value });
+                          debouncedSave();
+                        }}
+                        className="pl-10"
+                        placeholder="Enter your full name"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        disabled
+                        className="pl-10 bg-muted cursor-not-allowed"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Email cannot be changed. Contact support if you need to update it.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number (Optional)</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) => {
+                          let value = e.target.value.replace(/\D/g, '');
+                          if (value.length > 0) {
+                            if (value.length <= 3) {
+                              value = `(${value}`;
+                            } else if (value.length <= 6) {
+                              value = `(${value.slice(0, 3)}) ${value.slice(3)}`;
+                            } else {
+                              value = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6, 10)}`;
+                            }
+                          }
+                          setFormData({ ...formData, phone: value });
+                          debouncedSave();
+                        }}
+                        className="pl-10"
+                        placeholder="+1 (555) 123-4567"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right: Profile Photo */}
                 <div id="avatar" className="flex-shrink-0">
                   <div className="space-y-3">
                     <Label className="text-sm">Profile Photo</Label>
@@ -463,7 +529,7 @@ const Settings = () => {
                         <img
                           src={profileData.avatar_url}
                           alt="Profile"
-                          className="w-32 h-32 object-cover rounded-lg border-2 border-border"
+                          className="w-40 h-40 object-cover rounded-lg border-2 border-border"
                         />
                         <Button
                           type="button"
@@ -512,7 +578,7 @@ const Settings = () => {
                         </Button>
                       </div>
                     ) : (
-                      <div className="w-32 h-32 rounded-lg bg-muted flex items-center justify-center border-2 border-dashed border-border">
+                      <div className="w-40 h-40 rounded-lg bg-muted flex items-center justify-center border-2 border-dashed border-border">
                         <Upload className="h-10 w-10 text-muted-foreground" />
                       </div>
                     )}
@@ -588,86 +654,8 @@ const Settings = () => {
                   </div>
                 </div>
               </div>
-            </CardHeader>
-             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="full_name">Full Name</Label>
-                <div className="relative">
-                  <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="full_name"
-                    value={formData.full_name}
-                    onChange={(e) => {
-                      setFormData({ ...formData, full_name: e.target.value });
-                      debouncedSave();
-                    }}
-                    className="pl-10"
-                    placeholder="Enter your full name"
-                  />
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    disabled
-                    className="pl-10 bg-muted cursor-not-allowed"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Email cannot be changed. Contact support if you need to update it.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number (Optional)</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => {
-                      let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
-                      
-                      // Format as (XXX) XXX-XXXX
-                      if (value.length > 0) {
-                        if (value.length <= 3) {
-                          value = `(${value}`;
-                        } else if (value.length <= 6) {
-                          value = `(${value.slice(0, 3)}) ${value.slice(3)}`;
-                        } else {
-                          value = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6, 10)}`;
-                        }
-                      }
-                      
-                      setFormData({ ...formData, phone: value });
-                      
-                      // Auto-save when complete (10 digits)
-                      const digitsOnly = value.replace(/\D/g, '');
-                      if (digitsOnly.length === 10) {
-                        // Save immediately
-                        if (saveTimeoutRef.current) {
-                          clearTimeout(saveTimeoutRef.current);
-                        }
-                        handleSave(false);
-                      } else {
-                        debouncedSave();
-                      }
-                    }}
-                    className="pl-10"
-                    placeholder="(555) 000-0000"
-                    maxLength={14}
-                  />
-                </div>
-              </div>
-
-              <p className="text-xs text-muted-foreground pt-2">
+              <p className="text-xs text-muted-foreground mt-4 pt-4 border-t">
                 Changes are saved automatically. Your theme preference is instantly synced.
               </p>
             </CardContent>
