@@ -35,15 +35,28 @@ serve(async (req) => {
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
+      
+      // CRITICAL: Only process if payment is successful
+      if (session.payment_status !== "paid") {
+        console.log("Payment not completed yet, skipping:", { payment_status: session.payment_status, session_id: session.id });
+        return new Response(JSON.stringify({ received: true, skipped: "payment_not_completed" }), {
+          headers: { "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+      
       const userId = session.metadata?.user_id;
       const credits = parseInt(session.metadata?.credits || "0");
 
       if (!userId || !credits) {
-        console.error("Missing user_id or credits in session metadata");
-        return new Response("Invalid metadata", { status: 400 });
+        console.error("Missing user_id or credits in session metadata", { session_id: session.id, metadata: session.metadata });
+        return new Response(JSON.stringify({ error: "Invalid metadata" }), { 
+          status: 400,
+          headers: { "Content-Type": "application/json" }
+        });
       }
 
-      console.log("Processing credit purchase:", { userId, credits });
+      console.log("Processing credit purchase:", { userId, credits, session_id: session.id, payment_status: session.payment_status });
 
       // Get current balance
       const { data: userCredit, error: fetchError } = await supabaseClient

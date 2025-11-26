@@ -61,20 +61,21 @@ export function IntegrationCard({
       
       <div className="space-y-2 flex-1">
         <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-lg">{title}</h3>
-          <AppAudioPlayer appId={id} audioUrl={audioUrl} size="sm" />
-          {tooltip && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                </TooltipTrigger>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-lg">{title}</h3>
+                  <AppAudioPlayer appId={id} audioUrl={audioUrl} size="sm" />
+                </div>
+              </TooltipTrigger>
+              {tooltip && (
                 <TooltipContent className="max-w-xs bg-popover border shadow-md z-50">
                   <p className="text-sm">{tooltip}</p>
                 </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
+              )}
+            </Tooltip>
+          </TooltipProvider>
         </div>
         <p className="text-xs text-muted-foreground">{subtitle}</p>
         <p className="text-sm text-muted-foreground leading-relaxed">
