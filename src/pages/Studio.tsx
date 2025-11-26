@@ -788,7 +788,7 @@ Closing Notes:
       
       <div className="flex flex-1 overflow-visible border-2 border-border">
         <ResizablePanelGroup direction="horizontal">
-          <ResizablePanel defaultSize={40} minSize={15}>
+          <ResizablePanel defaultSize={70} minSize={40}>
             {myPageStreamStatus.isLive && myPageStreamStatus.videoUrl ? (
               <div className="relative h-full w-full bg-muted">
                 <video
@@ -831,7 +831,7 @@ Closing Notes:
 
           <ResizableHandle />
 
-          <ResizablePanel defaultSize={60} minSize={30} maxSize={85} className="relative">
+          <ResizablePanel defaultSize={30} minSize={15} maxSize={60} className="relative">
             <StudioRightSidebar
               currentViewerCount={currentViewerCount}
               onAdSelect={(ad, type) => {
