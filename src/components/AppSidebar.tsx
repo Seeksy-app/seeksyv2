@@ -108,7 +108,8 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   const [isAdvertiser, setIsAdvertiser] = useState(false);
   const [advertiserStatus, setAdvertiserStatus] = useState<string | null>(null);
   const [moduleLauncherOpen, setModuleLauncherOpen] = useState(false);
-  const [adminViewMode, setAdminViewMode] = useState(false);
+  // Default to Admin View for admin users
+  const [adminViewMode, setAdminViewMode] = useState(isAdmin);
   const [modulePrefs, setModulePrefs] = useState({
     awards: false,
     media: false,
@@ -193,7 +194,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     monetization: true,
     project_management: true,
     engagement: true,
-    admin: false,
+    admin: isAdmin, // Open admin section by default for admin users
     adminCustomerSupport: true,
     adminManagement: false,
     adminClientManagement: false,
