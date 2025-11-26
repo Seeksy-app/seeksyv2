@@ -29,6 +29,28 @@ export function RSSMigrationWizard({ userId, podcastId }: RSSMigrationWizardProp
   const [migrationId, setMigrationId] = useState<string | null>(null);
   const [userNotes, setUserNotes] = useState('');
 
+  // Fetch podcast details to generate RSS URL
+  const { data: podcast } = useQuery({
+    queryKey: ['podcast', podcastId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('podcasts')
+        .select('*')
+        .eq('id', podcastId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Auto-generate new RSS URL from podcast title
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  };
+
   const { data: instructions } = useQuery({
     queryKey: ['rss-redirect-instructions'],
     queryFn: async () => {
@@ -136,10 +158,20 @@ export function RSSMigrationWizard({ userId, podcastId }: RSSMigrationWizardProp
   };
 
   const handleInputUrls = async () => {
-    if (!oldRssUrl || !newRssUrl) {
-      toast.error('Please enter both RSS feed URLs');
+    if (!oldRssUrl) {
+      toast.error('Please enter your current RSS feed URL');
       return;
     }
+    if (!podcast) {
+      toast.error('Unable to load podcast details');
+      return;
+    }
+    
+    // Auto-generate new RSS URL from podcast title
+    const slug = generateSlug(podcast.title);
+    const generatedRssUrl = `${window.location.origin}/rss/${slug}`;
+    setNewRssUrl(generatedRssUrl);
+    
     setStep('host_detection');
     detectHostType();
     await createMigration.mutateAsync();
@@ -206,23 +238,23 @@ export function RSSMigrationWizard({ userId, podcastId }: RSSMigrationWizardProp
                 onChange={(e) => setOldRssUrl(e.target.value)}
               />
               <p className="text-sm text-muted-foreground mt-1">
-                This is the RSS feed URL you're currently using on your old podcast host
+                Enter the RSS feed URL from your current podcast host
               </p>
             </div>
-            <div>
-              <Label htmlFor="newRssUrl">Your New Seeksy RSS Feed URL</Label>
-              <Input
-                id="newRssUrl"
-                type="url"
-                placeholder="https://seeksy.io/rss/yourpodcast"
-                value={newRssUrl}
-                onChange={(e) => setNewRssUrl(e.target.value)}
-              />
-              <p className="text-sm text-muted-foreground mt-1">
-                This is your new RSS feed URL from Seeksy
-              </p>
-            </div>
-            <Button onClick={handleInputUrls} className="w-full" disabled={createMigration.isPending}>
+            
+            {podcast && (
+              <Alert>
+                <CheckCircle2 className="h-4 w-4" />
+                <AlertDescription>
+                  Your new Seeksy RSS feed will be: <br />
+                  <code className="text-xs mt-1 block bg-muted px-2 py-1 rounded">
+                    {window.location.origin}/rss/{generateSlug(podcast.title)}
+                  </code>
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            <Button onClick={handleInputUrls} className="w-full" disabled={createMigration.isPending || !podcast}>
               Continue <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
