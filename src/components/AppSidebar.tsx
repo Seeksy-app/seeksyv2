@@ -354,7 +354,8 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     ...(pinnedModules.includes("polls") && modulePrefs.polls ? [{ title: "Polls", url: "/polls", icon: BarChart3 }] : []),
     ...(pinnedModules.includes("awards") && modulePrefs.awards ? [{ title: "Awards", url: "/awards", icon: Trophy }] : []),
     ...(pinnedModules.includes("qr_codes") && modulePrefs.qr_codes ? [{ title: "QR Codes", url: "/qr-codes", icon: QrCode }] : []),
-    ...(pinnedModules.includes("rss_podcast_posting") && modulePrefs.rss_podcast ? [{ title: "Podcasts", url: "/podcasts", icon: Mic }] : []),
+    // Podcasts - unified feature (RSS + Podcast in one)
+    ...((pinnedModules.includes("rss_podcast_posting") || pinnedModules.includes("podcasts")) && modulePrefs.rss_podcast ? [{ title: "Podcasts", url: "/podcasts", icon: Mic }] : []),
     // Media is shown as its own section with Studio, Media Library, Create Clips
     ...(pinnedModules.includes("civic") && modulePrefs.civic ? [{ title: "Civic Tools", url: "/civic-blog", icon: Building2 }] : []),
     ...(pinnedModules.includes("team_chat") && modulePrefs.team_chat ? [{ title: "Team Chat", url: "/team-chat", icon: MessageSquare }] : []),
