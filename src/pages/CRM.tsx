@@ -13,12 +13,15 @@ import { CreateContactDialog } from "@/components/crm/CreateContactDialog";
 import { TagManager } from "@/components/crm/TagManager";
 import { PipelineStagesManager } from "@/components/crm/PipelineStagesManager";
 import { BulkActions } from "@/components/crm/BulkActions";
+import { ContactViewDialog } from "@/components/contacts/ContactViewDialog";
 
 const CRM = () => {
   const [selectedList, setSelectedList] = useState<string | null>("all");
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("contacts");
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [viewingContact, setViewingContact] = useState<any>(null);
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
@@ -213,6 +216,10 @@ const CRM = () => {
                       : [...prev, id]
                   );
                 }}
+                onViewContact={(contact) => {
+                  setViewingContact(contact);
+                  setViewDialogOpen(true);
+                }}
                 onSelectAll={handleSelectAll}
                 isLoading={contactsLoading}
               />
@@ -238,6 +245,12 @@ const CRM = () => {
           </Tabs>
         </div>
       </div>
+
+      <ContactViewDialog
+        open={viewDialogOpen}
+        onOpenChange={setViewDialogOpen}
+        contact={viewingContact}
+      />
     </div>
   );
 };

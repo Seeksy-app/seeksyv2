@@ -32,6 +32,7 @@ interface ContactsGridProps {
   contacts: Contact[];
   selectedContacts: string[];
   onSelectContact: (id: string) => void;
+  onViewContact: (contact: Contact) => void;
   onSelectAll: () => void;
   isLoading: boolean;
 }
@@ -40,6 +41,7 @@ export function ContactsGrid({
   contacts,
   selectedContacts,
   onSelectContact,
+  onViewContact,
   onSelectAll,
   isLoading,
 }: ContactsGridProps) {
@@ -87,13 +89,15 @@ export function ContactsGrid({
         {contacts.map((contact) => (
           <Card
             key={contact.id}
-            className="p-4 hover:shadow-lg transition-all duration-200 hover:scale-[1.02] bg-card border-border/40"
+            className="p-4 hover:shadow-lg transition-all duration-200 hover:scale-[1.02] bg-card border-border/40 cursor-pointer"
+            onClick={() => onViewContact(contact)}
           >
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-start gap-3">
                 <Checkbox
                   checked={selectedContacts.includes(contact.id)}
                   onCheckedChange={() => onSelectContact(contact.id)}
+                  onClick={(e) => e.stopPropagation()}
                 />
                 <div className="flex-1">
                   <h3 className="font-semibold text-foreground mb-1">{contact.name}</h3>
@@ -105,11 +109,16 @@ export function ContactsGrid({
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-8 w-8 p-0"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <MoreVertical className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                   <DropdownMenuItem>
                     <Pencil className="w-4 h-4 mr-2" />
                     Edit
