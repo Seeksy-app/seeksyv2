@@ -113,14 +113,22 @@ export const ProfileQRCode = ({ username, themeColor = "#0064B1", logoUrl, shape
     <div className="space-y-4">
       <div 
         ref={qrRef} 
-        className="inline-flex items-center justify-center bg-white p-4"
-        style={shape === 'round' ? { borderRadius: '50%', width: '200px', height: '200px' } : { borderRadius: '8px' }}
+        className="inline-flex items-center justify-center bg-white p-4 overflow-hidden"
+        style={shape === 'round' ? { 
+          borderRadius: '50%', 
+          width: '200px', 
+          height: '200px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        } : { borderRadius: '8px' }}
       >
         <QRCodeSVG
           value={profileUrl}
-          size={160}
+          size={shape === 'round' ? 140 : 160}
           level="H"
           fgColor={themeColor}
+          bgColor="transparent"
         />
       </div>
       
