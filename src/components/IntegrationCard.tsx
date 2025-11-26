@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info, Edit2, LucideIcon } from "lucide-react";
+import { AppAudioPlayer } from "@/components/apps/AppAudioPlayer";
 
 interface IntegrationCardProps {
   id: string;
@@ -17,6 +18,7 @@ interface IntegrationCardProps {
   onToggle: () => void;
   onEdit?: () => void;
   actionLabel?: string;
+  audioUrl?: string | null;
 }
 
 export function IntegrationCard({
@@ -32,6 +34,7 @@ export function IntegrationCard({
   onToggle,
   onEdit,
   actionLabel,
+  audioUrl,
 }: IntegrationCardProps) {
   return (
     <Card className="p-6 hover:border-primary/50 transition-all flex flex-col h-full">
@@ -59,6 +62,7 @@ export function IntegrationCard({
       <div className="space-y-2 flex-1">
         <div className="flex items-center gap-2">
           <h3 className="font-semibold text-lg">{title}</h3>
+          <AppAudioPlayer appId={id} audioUrl={audioUrl} size="sm" />
           {tooltip && (
             <TooltipProvider>
               <Tooltip>
