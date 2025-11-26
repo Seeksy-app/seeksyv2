@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Upload as UploadIcon, Image as ImageIcon, Check } from "lucide-react";
+import { ArrowLeft, Upload as UploadIcon, Image as ImageIcon, Check, Camera, X } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import ImageUpload from "@/components/ImageUpload";
 
@@ -29,6 +29,8 @@ const UploadEpisode = () => {
   const [episodeArtwork, setEpisodeArtwork] = useState("");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
 
   const { data: user } = useQuery({
     queryKey: ["user"],
@@ -70,6 +72,24 @@ const UploadEpisode = () => {
         .from("podcast-audio")
         .getPublicUrl(fileName);
       
+      // Upload photos if any
+      const photoUrls: string[] = [];
+      for (const photo of photos) {
+        const photoExt = photo.name.split('.').pop();
+        const photoFileName = `${user.id}/${Date.now()}-${Math.random()}.${photoExt}`;
+        
+        const { error: photoUploadError } = await supabase.storage
+          .from("podcast-photos")
+          .upload(photoFileName, photo);
+        
+        if (!photoUploadError) {
+          const { data: { publicUrl: photoUrl } } = supabase.storage
+            .from("podcast-photos")
+            .getPublicUrl(photoFileName);
+          photoUrls.push(photoUrl);
+        }
+      }
+      
       // Determine published status and publish date
       const isPublished = publishOption === 'immediate';
       const publishDate = publishOption === 'scheduled' && scheduledDate 
@@ -92,6 +112,7 @@ const UploadEpisode = () => {
           file_size_bytes: audioFile.size,
           is_published: isPublished,
           publish_date: publishDate,
+          photos: photoUrls,
         })
         .select()
         .single();
@@ -166,6 +187,37 @@ const UploadEpisode = () => {
 
   const handleDragLeave = () => {
     setIsDragging(false);
+  };
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+    
+    if (imageFiles.length === 0) {
+      toast.error("Please select image files");
+      return;
+    }
+    
+    if (photos.length + imageFiles.length > 10) {
+      toast.error("Maximum 10 photos allowed");
+      return;
+    }
+    
+    setPhotos(prev => [...prev, ...imageFiles]);
+    
+    // Create previews
+    imageFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreviews(prev => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos(prev => prev.filter((_, i) => i !== index));
+    setPhotoPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -369,6 +421,82 @@ const UploadEpisode = () => {
                 <Label htmlFor="explicit" className="cursor-pointer">
                   This episode contains explicit material.
                 </Label>
+              </div>
+
+              {/* Photo Upload */}
+              <div>
+                <Label>Episode Photos (Optional)</Label>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Add up to 10 photos to your episode
+                </p>
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <label className="flex-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        asChild
+                      >
+                        <span>
+                          <Camera className="w-4 h-4 mr-2" />
+                          Take Photo
+                        </span>
+                      </Button>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={handlePhotoSelect}
+                        className="hidden"
+                        multiple
+                      />
+                    </label>
+                    <label className="flex-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        asChild
+                      >
+                        <span>
+                          <ImageIcon className="w-4 h-4 mr-2" />
+                          Choose from Library
+                        </span>
+                      </Button>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoSelect}
+                        className="hidden"
+                        multiple
+                      />
+                    </label>
+                  </div>
+                  
+                  {photoPreviews.length > 0 && (
+                    <div className="grid grid-cols-3 gap-3">
+                      {photoPreviews.map((preview, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={preview}
+                            alt={`Photo ${index + 1}`}
+                            className="w-full h-24 object-cover rounded-lg border"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removePhoto(index)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
