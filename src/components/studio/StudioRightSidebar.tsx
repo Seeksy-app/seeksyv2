@@ -3,7 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, Users } from "lucide-react";
+import { Send, Users, Sparkles, MessageSquare } from "lucide-react";
+import AIMeetingNotesPanel from "./AIMeetingNotesPanel";
 
 interface StudioRightSidebarProps {
   currentViewerCount: number;
@@ -25,6 +26,8 @@ interface StudioRightSidebarProps {
   onToggleChannelsExpanded: () => void;
   profileImageUrl?: string;
   sessionId?: string;
+  meetingId?: string;
+  showAINotes?: boolean;
 }
 
 export function StudioRightSidebar({
@@ -40,9 +43,13 @@ export function StudioRightSidebar({
   onToggleChannelsExpanded,
   profileImageUrl,
   sessionId,
+  meetingId,
+  showAINotes = true,
 }: StudioRightSidebarProps) {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Array<{ id: string; sender: string; text: string; avatar?: string }>>([]);
+  const [activeTab, setActiveTab] = useState<'chat' | 'ai'>('chat');
+  const [aiNotesVisible, setAiNotesVisible] = useState(showAINotes);
 
   const handleSendMessage = () => {
     if (!message.trim()) return;
@@ -96,54 +103,93 @@ export function StudioRightSidebar({
 
       {/* Chat Section */}
       <div className="flex-1 flex flex-col min-h-0">
-        <div className="p-4 border-b border-border/40">
-          <h3 className="text-sm font-semibold">Chat</h3>
+        <div className="p-4 border-b border-border/40 flex items-center gap-2">
+          <Button
+            variant={activeTab === 'chat' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setActiveTab('chat')}
+            className="flex-1"
+          >
+            <MessageSquare className="h-4 w-4 mr-2" />
+            Chat
+          </Button>
+          {meetingId && (
+            <Button
+              variant={activeTab === 'ai' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => {
+                setActiveTab('ai');
+                setAiNotesVisible(true);
+              }}
+              className="flex-1"
+            >
+              <Sparkles className="h-4 w-4 mr-2" />
+              AI Notes
+            </Button>
+          )}
         </div>
         
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4">
-            {messages.length === 0 ? (
-              <div className="text-center text-sm text-muted-foreground py-8">
-                No messages yet. Start the conversation!
-              </div>
-            ) : (
-              messages.map((msg) => (
-                <div key={msg.id} className="flex gap-2">
-                  <Avatar className="h-8 w-8 flex-shrink-0">
-                    <AvatarImage src={msg.avatar} />
-                    <AvatarFallback className="text-xs bg-primary/10">
-                      {msg.sender.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs font-medium mb-1">{msg.sender}</div>
-                    <div className="text-sm break-words">{msg.text}</div>
+        {activeTab === 'chat' ? (
+          <>
+            <ScrollArea className="flex-1 p-4">
+              <div className="space-y-4">
+                {messages.length === 0 ? (
+                  <div className="text-center text-sm text-muted-foreground py-8">
+                    No messages yet. Start the conversation!
                   </div>
-                </div>
-              ))
+                ) : (
+                  messages.map((msg) => (
+                    <div key={msg.id} className="flex gap-2">
+                      <Avatar className="h-8 w-8 flex-shrink-0">
+                        <AvatarImage src={msg.avatar} />
+                        <AvatarFallback className="text-xs bg-primary/10">
+                          {msg.sender.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-medium mb-1">{msg.sender}</div>
+                        <div className="text-sm break-words">{msg.text}</div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </ScrollArea>
+
+            {/* Message Input */}
+            <div className="p-4 border-t border-border/40">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Type message here..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="flex-1"
+                />
+                <Button 
+                  onClick={handleSendMessage}
+                  size="icon"
+                  disabled={!message.trim()}
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 relative">
+            {meetingId && aiNotesVisible && (
+              <AIMeetingNotesPanel
+                meetingId={meetingId}
+                isVisible={aiNotesVisible}
+                onClose={() => {
+                  setAiNotesVisible(false);
+                  setActiveTab('chat');
+                }}
+              />
             )}
           </div>
-        </ScrollArea>
-
-        {/* Message Input */}
-        <div className="p-4 border-t border-border/40">
-          <div className="flex gap-2">
-            <Input
-              placeholder="Type message here..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="flex-1"
-            />
-            <Button 
-              onClick={handleSendMessage}
-              size="icon"
-              disabled={!message.trim()}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

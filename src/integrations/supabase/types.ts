@@ -4353,6 +4353,50 @@ export type Database = {
           },
         ]
       }
+      meeting_intelligence: {
+        Row: {
+          action_items: Json | null
+          created_at: string | null
+          decisions: string[] | null
+          id: string
+          key_takeaways: string[] | null
+          meeting_id: string
+          summary: string | null
+          transcript: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          action_items?: Json | null
+          created_at?: string | null
+          decisions?: string[] | null
+          id?: string
+          key_takeaways?: string[] | null
+          meeting_id: string
+          summary?: string | null
+          transcript?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          action_items?: Json | null
+          created_at?: string | null
+          decisions?: string[] | null
+          id?: string
+          key_takeaways?: string[] | null
+          meeting_id?: string
+          summary?: string | null
+          transcript?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_intelligence_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_invitations: {
         Row: {
           created_at: string | null
@@ -4467,6 +4511,8 @@ export type Database = {
           location_details: string | null
           location_type: Database["public"]["Enums"]["location_type"]
           meeting_type_id: string | null
+          recording_url: string | null
+          show_ai_notes: boolean | null
           start_time: string
           status: Database["public"]["Enums"]["meeting_status"] | null
           title: string
@@ -4488,6 +4534,8 @@ export type Database = {
           location_details?: string | null
           location_type: Database["public"]["Enums"]["location_type"]
           meeting_type_id?: string | null
+          recording_url?: string | null
+          show_ai_notes?: boolean | null
           start_time: string
           status?: Database["public"]["Enums"]["meeting_status"] | null
           title: string
@@ -4509,6 +4557,8 @@ export type Database = {
           location_details?: string | null
           location_type?: Database["public"]["Enums"]["location_type"]
           meeting_type_id?: string | null
+          recording_url?: string | null
+          show_ai_notes?: boolean | null
           start_time?: string
           status?: Database["public"]["Enums"]["meeting_status"] | null
           title?: string
