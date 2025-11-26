@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useBeforeUnload } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
@@ -8,11 +8,10 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, User as UserIcon, Phone, Lock, Bell, FileText, Puzzle, Shield, Palette, Check, Eye, MessageSquare, Settings as SettingsIcon, Info } from "lucide-react";
+import { Loader2, Mail, User as UserIcon, Phone, Lock, Bell, FileText, Puzzle, Shield, Palette, Check, Eye, MessageSquare, Settings as SettingsIcon, Info, Save } from "lucide-react";
 import { NotificationPreferencesDialog } from "@/components/NotificationPreferencesDialog";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ProfileCompletionCard } from "@/components/ProfileCompletionCard";
 import ImageUpload from "@/components/ImageUpload";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
@@ -42,6 +41,9 @@ const Settings = () => {
   const [sendingReset, setSendingReset] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const initialDataRef = useRef<any>(null);
   const [formData, setFormData] = useState({
     full_name: "",
     phone: "",
@@ -128,6 +130,23 @@ const Settings = () => {
         // The ThemeToggle component will handle the initial theme setting
       }
 
+      // Store initial state for comparison
+      initialDataRef.current = {
+        formData: {
+          full_name: profile?.account_full_name || "",
+          phone: profile?.account_phone || "",
+          email: authUser.email || "",
+        },
+        profileData: {
+          avatar_url: profile?.account_avatar_url || null,
+        },
+        notificationPrefs: {
+          task_reminder_enabled: prefs?.task_reminder_enabled || false,
+          task_reminder_frequency: prefs?.task_reminder_frequency || "start_of_day",
+          sms_notifications_enabled: prefs?.sms_notifications_enabled || false,
+        },
+      };
+
       // Check admin status
       const { data: roles } = await supabase
         .from("user_roles")
@@ -213,6 +232,13 @@ const Settings = () => {
 
       // Show brief "saved" indicator
       setJustSaved(true);
+      setHasUnsavedChanges(false);
+      // Update initial data ref after successful save
+      initialDataRef.current = {
+        formData: { ...formData },
+        profileData: { avatar_url: profileData.avatar_url },
+        notificationPrefs: { ...notificationPrefs },
+      };
       setTimeout(() => setJustSaved(false), 2500);
 
       if (showToast) {
@@ -258,6 +284,28 @@ const Settings = () => {
       }
     };
   }, []);
+
+  // Track unsaved changes
+  useEffect(() => {
+    if (!initialDataRef.current) return;
+    
+    const hasChanges = 
+      JSON.stringify(formData) !== JSON.stringify(initialDataRef.current.formData) ||
+      profileData.avatar_url !== initialDataRef.current.profileData.avatar_url ||
+      JSON.stringify(notificationPrefs) !== JSON.stringify(initialDataRef.current.notificationPrefs);
+    
+    setHasUnsavedChanges(hasChanges);
+  }, [formData, profileData.avatar_url, notificationPrefs]);
+
+  // Warn before leaving with unsaved changes
+  useBeforeUnload(
+    useCallback((e) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        return (e.returnValue = "You have unsaved changes. Are you sure you want to leave?");
+      }
+    }, [hasUnsavedChanges])
+  );
 
   const handlePasswordReset = async () => {
     if (!formData.email) return;
@@ -317,6 +365,17 @@ const Settings = () => {
               <p className="text-muted-foreground">Manage your account information and security</p>
             </div>
             <div className="flex items-center gap-3">
+              {hasUnsavedChanges && !saving && !justSaved && (
+                <Button 
+                  onClick={() => handleSave(true)}
+                  disabled={saving}
+                  size="lg"
+                  className="gap-2"
+                >
+                  <Save className="h-4 w-4" />
+                  Save Changes
+                </Button>
+              )}
               {(saving || justSaved) && (
                 <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg bg-muted/50 border border-border animate-in fade-in slide-in-from-right-5 duration-300">
                   {saving ? (
@@ -341,6 +400,41 @@ const Settings = () => {
           </div>
         </div>
 
+        {/* Unsaved Changes Dialog */}
+        <AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>You have unsaved changes</AlertDialogTitle>
+              <AlertDialogDescription>
+                You've made changes to your settings. Would you like to save them before leaving?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setShowUnsavedDialog(false)}>
+                Cancel
+              </AlertDialogCancel>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setHasUnsavedChanges(false);
+                  setShowUnsavedDialog(false);
+                }}
+              >
+                Discard Changes
+              </Button>
+              <Button 
+                onClick={() => {
+                  handleSave(true);
+                  setShowUnsavedDialog(false);
+                }}
+              >
+                <Save className="mr-2 h-4 w-4" />
+                Save Changes
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         <div className="space-y-6">
           {/* My Page Preview Link */}
           {profileData.username && profileData.my_page_visited && (
@@ -363,14 +457,6 @@ const Settings = () => {
               </CardContent>
             </Card>
           )}
-
-          {/* Profile Completion */}
-          <ProfileCompletionCard
-            fullName={formData.full_name}
-            phone={formData.phone}
-            avatarUrl={profileData.avatar_url}
-            myPageVisited={profileData.my_page_visited}
-          />
 
           {/* Account Information */}
           <Card>

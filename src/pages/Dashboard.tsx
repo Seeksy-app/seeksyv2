@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { InteractiveCard } from "@/components/ui/interactive-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar, Users, Clock, Mail, TrendingUp, MousePointerClick, BarChart3, ArrowRight, CalendarDays, Vote, Link as LinkIcon, ExternalLink, Info, Building2 } from "lucide-react";
-import { ProfileCompletionCard } from "@/components/ProfileCompletionCard";
+
 import { useToast } from "@/hooks/use-toast";
 import { useMyPageEnabled } from "@/hooks/useMyPageEnabled";
 import { SpinWheelDialog } from "@/components/credits/SpinWheelDialog";
@@ -638,16 +638,6 @@ const Dashboard = () => {
             </Card>
           </div>
         )}
-
-        {/* Profile Completion */}
-        <div className="mb-8">
-        <ProfileCompletionCard
-          fullName={profileData.full_name}
-          phone={profileData.phone}
-          avatarUrl={profileData.avatar_url}
-          myPageVisited={profileData.my_page_visited}
-        />
-        </div>
 
         {/* Social Accounts Banner */}
         <SocialAccountsBanner />
