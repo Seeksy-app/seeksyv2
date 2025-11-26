@@ -928,7 +928,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   };
 
   const renderMediaSection = () => {
-    if (isAdvertiser || !modulePrefs.media || mediaItems.length === 0) return null;
+    if (isAdvertiser || !modulePrefs.media || mediaItems.length === 0 || adminViewMode) return null;
     const isPinned = pinnedModules.includes("media");
     
     return (
