@@ -25,6 +25,7 @@ const contactSchema = z.object({
   phone: z.string().optional(),
   title: z.string().optional(),
   company: z.string().optional(),
+  address: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -42,6 +43,7 @@ export function CreateContactDialog() {
       phone: "",
       title: "",
       company: "",
+      address: "",
       notes: "",
     },
   });
@@ -58,6 +60,7 @@ export function CreateContactDialog() {
           phone: data.phone || null,
           title: data.title || null,
           company: data.company || null,
+          address: data.address || null,
           notes: data.notes || null,
           user_id: user.id,
         },
@@ -159,6 +162,20 @@ export function CreateContactDialog() {
                   <FormLabel>Company</FormLabel>
                   <FormControl>
                     <Input placeholder="Acme Inc." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address</FormLabel>
+                  <FormControl>
+                    <Input placeholder="123 Main St, City, State 12345" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

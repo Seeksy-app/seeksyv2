@@ -204,9 +204,9 @@ export default function FieldLeadCapture() {
         email: formData.email,
         phone: formData.phone || null,
         company: formData.company || null,
+        address: formData.address || null,
         notes: [
           formData.notes,
-          formData.address ? `Address: ${formData.address}` : "",
           location ? `GPS: ${location.lat}, ${location.lng}` : "",
           photoUrls.length > 0 ? `Photos: ${photoUrls.join(', ')}` : ""
         ].filter(Boolean).join('\n'),
