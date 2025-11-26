@@ -415,7 +415,7 @@ const AppContent = () => {
             </Routes>
           </main>
         </div>
-        {user && !location.pathname.includes('/meeting-studio/') && <SeeksyAIChatWidget />}
+        {user && !location.pathname.includes('/meeting-studio/') && !location.pathname.includes('/studio/') && <SeeksyAIChatWidget />}
       </div>
     </SidebarProvider>
   );

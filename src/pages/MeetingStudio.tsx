@@ -1,12 +1,10 @@
 import { useParams } from "react-router-dom";
 import { StudioRightSidebar } from "@/components/studio/StudioRightSidebar";
 import { Button } from "@/components/ui/button";
-import { Video, VideoOff, Mic, MicOff, PhoneOff, Moon, Users, Sparkles } from "lucide-react";
+import { Video, VideoOff, Mic, MicOff, PhoneOff, Moon, Users } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { toast } from "sonner";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { DeviceTestDialog } from "@/components/meeting/DeviceTestDialog";
 
 const MeetingStudio = () => {
@@ -15,7 +13,6 @@ const MeetingStudio = () => {
   const streamRef = useRef<MediaStream | null>(null);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
-  const [showAINotes, setShowAINotes] = useState(true);
   const [showDeviceTest, setShowDeviceTest] = useState(true);
   const [selectedDevices, setSelectedDevices] = useState<{
     videoDeviceId: string | null;
@@ -140,25 +137,13 @@ const MeetingStudio = () => {
             <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
               <Moon className="h-5 w-5" />
             </Button>
-
-            <div className="flex items-center gap-2">
-              <Switch 
-                id="ai-notes" 
-                checked={showAINotes}
-                onCheckedChange={setShowAINotes}
-              />
-              <Label htmlFor="ai-notes" className="text-white cursor-pointer flex items-center gap-1">
-                <Sparkles className="h-4 w-4" />
-                AI Notes
-              </Label>
-            </div>
           </div>
         </div>
 
         {/* Main Content with Resizable Panels */}
         <ResizablePanelGroup direction="horizontal" className="flex-1">
           {/* Video Area */}
-          <ResizablePanel defaultSize={70} minSize={15}>
+          <ResizablePanel defaultSize={40} minSize={15}>
             <div className="flex flex-col h-full">
               {/* Video Grid */}
               <div className="flex-1 bg-zinc-900 flex items-center justify-center relative">
@@ -212,8 +197,8 @@ const MeetingStudio = () => {
 
           <ResizableHandle withHandle />
 
-          {/* Right Sidebar */}
-          <ResizablePanel defaultSize={30} minSize={15} maxSize={85}>
+          {/* Right Sidebar - Now twice as large */}
+          <ResizablePanel defaultSize={60} minSize={30} maxSize={85}>
             <StudioRightSidebar
               currentViewerCount={2}
               onAdSelect={() => {}}
@@ -233,7 +218,7 @@ const MeetingStudio = () => {
               channelsExpanded={false}
               onToggleChannelsExpanded={() => {}}
               meetingId={id}
-              showAINotes={showAINotes}
+              showAINotes={true}
             />
           </ResizablePanel>
         </ResizablePanelGroup>

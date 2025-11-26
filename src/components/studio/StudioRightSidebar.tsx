@@ -106,14 +106,17 @@ export function StudioRightSidebar({
         </ScrollArea>
       </div>
 
-      {/* Chat Section */}
-      <div className="flex-1 flex flex-col min-h-0">
-        <div className="p-4 border-b border-border/40 flex items-center gap-2">
+      {/* Tabs at the top */}
+      <div className="border-b border-border/40">
+        <div className="flex items-center">
           <Button
             variant={activeTab === 'chat' ? 'default' : 'ghost'}
-            size="sm"
+            size="lg"
             onClick={() => setActiveTab('chat')}
-            className="flex-1"
+            className="flex-1 rounded-none border-b-2"
+            style={{
+              borderBottomColor: activeTab === 'chat' ? 'hsl(var(--primary))' : 'transparent'
+            }}
           >
             <MessageSquare className="h-4 w-4 mr-2" />
             Chat
@@ -121,18 +124,26 @@ export function StudioRightSidebar({
           {meetingId && (
             <Button
               variant={activeTab === 'ai' ? 'default' : 'ghost'}
-              size="sm"
+              size="lg"
               onClick={() => {
                 setActiveTab('ai');
                 setAiNotesVisible(true);
               }}
-              className="flex-1"
+              className="flex-1 rounded-none border-b-2"
+              style={{
+                borderBottomColor: activeTab === 'ai' ? 'hsl(var(--primary))' : 'transparent'
+              }}
             >
               <Sparkles className="h-4 w-4 mr-2" />
               AI Notes
             </Button>
           )}
         </div>
+      </div>
+
+      {/* Content Section */}
+      <div className="flex-1 flex flex-col min-h-0">
+        
         
         {activeTab === 'chat' ? (
           <>
