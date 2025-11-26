@@ -30,6 +30,7 @@ import EditMeetingType from "./pages/EditMeetingType";
 import CreateMeeting from "./pages/CreateMeeting";
 import EditMeeting from "./pages/EditMeeting";
 import Meetings from "./pages/Meetings";
+import MeetingStudio from "./pages/MeetingStudio";
 import Availability from "./pages/Availability";
 import BookMeetings from "./pages/BookMeetings";
 import BookMeetingSlot from "./pages/BookMeetingSlot";
@@ -275,6 +276,7 @@ const AppContent = () => {
               <Route path="/meeting-types/create" element={<CreateMeetingType />} />
               <Route path="/meeting-types/:id/edit" element={<EditMeetingType />} />
             <Route path="/meetings" element={<Meetings />} />
+            <Route path="/meeting-studio/:id" element={<MeetingStudio />} />
             <Route path="/meetings/create" element={<CreateMeeting />} />
             <Route path="/meetings/edit/:id" element={<EditMeeting />} />
             <Route path="/events" element={<Events />} />
@@ -411,7 +413,7 @@ const AppContent = () => {
             </Routes>
           </main>
         </div>
-        {user && <SeeksyAIChatWidget />}
+        {user && !location.pathname.includes('/meeting-studio/') && <SeeksyAIChatWidget />}
       </div>
     </SidebarProvider>
   );
