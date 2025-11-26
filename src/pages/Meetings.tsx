@@ -284,16 +284,6 @@ const Meetings = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
-                        {showStartButton && !isCancelled && (
-                          <Button
-                            size="sm"
-                            onClick={() => handleStartMeeting(meeting)}
-                            className="gap-2"
-                          >
-                            <Video className="w-4 h-4" />
-                            Start
-                          </Button>
-                        )}
                         <Button
                           size="sm"
                           variant="ghost"

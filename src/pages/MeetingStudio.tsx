@@ -20,12 +20,25 @@ const MeetingStudio = () => {
 
   // Request camera and microphone permissions and display stream
   useEffect(() => {
+    let mounted = true;
+    
     const startMediaStream = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true
+          }
         });
+        
+        if (!mounted) {
+          stream.getTracks().forEach(track => track.stop());
+          return;
+        }
         
         streamRef.current = stream;
         
@@ -34,16 +47,18 @@ const MeetingStudio = () => {
         }
         
         localStorage.setItem('mediaPermissionsGranted', 'true');
-        toast.success("Camera and microphone access granted");
       } catch (error) {
         console.error("Media permission error:", error);
-        toast.error("Could not access camera or microphone. Please check your browser settings.");
+        if (mounted) {
+          toast.error("Unable to access camera or microphone. Please check your browser permissions.");
+        }
       }
     };
 
     startMediaStream();
 
     return () => {
+      mounted = false;
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
@@ -175,7 +190,7 @@ const MeetingStudio = () => {
         <ResizableHandle withHandle />
 
         {/* Right Sidebar */}
-        <ResizablePanel defaultSize={25} minSize={15}>
+        <ResizablePanel defaultSize={25} minSize={15} maxSize={70}>
           <StudioRightSidebar
             currentViewerCount={2}
             onAdSelect={() => {}}
