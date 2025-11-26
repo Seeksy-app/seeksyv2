@@ -84,6 +84,21 @@ const Integrations = () => {
     },
   });
 
+  const { data: audioDescriptions } = useQuery({
+    queryKey: ["app-audio-descriptions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_audio_descriptions")
+        .select("*");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const getAudioUrl = (appId: string) => {
+    return audioDescriptions?.find(desc => desc.app_id === appId)?.audio_url;
+  };
+
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -635,6 +650,7 @@ const Integrations = () => {
                   isAdmin={isAdmin}
                   onToggle={() => toggleModule('my_page')}
                   onEdit={() => handleEditMetadata('my_page')}
+                  audioUrl={getAudioUrl('my-page')}
                 />
               )}
 

@@ -749,6 +749,39 @@ export type Database = {
           },
         ]
       }
+      app_audio_descriptions: {
+        Row: {
+          app_id: string
+          app_name: string
+          audio_url: string | null
+          created_at: string | null
+          id: string
+          script: string
+          updated_at: string | null
+          voice_id: string | null
+        }
+        Insert: {
+          app_id: string
+          app_name: string
+          audio_url?: string | null
+          created_at?: string | null
+          id?: string
+          script: string
+          updated_at?: string | null
+          voice_id?: string | null
+        }
+        Update: {
+          app_id?: string
+          app_name?: string
+          audio_url?: string | null
+          created_at?: string | null
+          id?: string
+          script?: string
+          updated_at?: string | null
+          voice_id?: string | null
+        }
+        Relationships: []
+      }
       audio_ads: {
         Row: {
           ad_type: string

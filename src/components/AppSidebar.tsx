@@ -49,7 +49,8 @@ import {
   Briefcase,
   Video,
   LineChart,
-  Receipt
+  Receipt,
+  Volume2
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import seeksyLogo from "@/assets/seeksy-logo.png";
@@ -513,6 +514,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     { title: "Meetings", url: "/meetings", icon: Calendar },
     { title: "Sign-ups", url: "/signup-sheets", icon: ClipboardList },
     { title: "Events", url: "/events", icon: CalendarDays },
+    { title: "App Audio", url: "/admin/app-audio", icon: Volume2 },
   ];
 
   const adminFinancials = [
