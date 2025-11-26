@@ -3205,10 +3205,14 @@ export type Database = {
           created_at: string
           description: string | null
           duration_seconds: number | null
+          episode_artwork_url: string | null
           episode_number: number | null
+          episode_type: string | null
           file_size_bytes: number | null
           id: string
+          is_explicit: boolean | null
           is_published: boolean | null
+          photos: string[] | null
           podcast_id: string
           publish_date: string
           season_number: number | null
@@ -3221,10 +3225,14 @@ export type Database = {
           created_at?: string
           description?: string | null
           duration_seconds?: number | null
+          episode_artwork_url?: string | null
           episode_number?: number | null
+          episode_type?: string | null
           file_size_bytes?: number | null
           id?: string
+          is_explicit?: boolean | null
           is_published?: boolean | null
+          photos?: string[] | null
           podcast_id: string
           publish_date?: string
           season_number?: number | null
@@ -3237,10 +3245,14 @@ export type Database = {
           created_at?: string
           description?: string | null
           duration_seconds?: number | null
+          episode_artwork_url?: string | null
           episode_number?: number | null
+          episode_type?: string | null
           file_size_bytes?: number | null
           id?: string
+          is_explicit?: boolean | null
           is_published?: boolean | null
+          photos?: string[] | null
           podcast_id?: string
           publish_date?: string
           season_number?: number | null
