@@ -4213,6 +4213,66 @@ export type Database = {
           },
         ]
       }
+      keys_vault: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_configured: boolean | null
+          is_required: boolean | null
+          key_description: string | null
+          key_name: string
+          last_updated_at: string | null
+          last_updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_configured?: boolean | null
+          is_required?: boolean | null
+          key_description?: string | null
+          key_name: string
+          last_updated_at?: string | null
+          last_updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_configured?: boolean | null
+          is_required?: boolean | null
+          key_description?: string | null
+          key_name?: string
+          last_updated_at?: string | null
+          last_updated_by?: string | null
+        }
+        Relationships: []
+      }
+      keys_vault_audit: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          key_name: string | null
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          key_name?: string | null
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          key_name?: string | null
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       lead_photos: {
         Row: {
           caption: string | null
@@ -7966,6 +8026,30 @@ export type Database = {
           created_at?: string | null
           id?: string
           timezone?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vault_access_codes: {
+        Row: {
+          code_hash: string
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string | null
+          id?: string
           updated_at?: string | null
           user_id?: string
         }

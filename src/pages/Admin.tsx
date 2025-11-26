@@ -13,7 +13,8 @@ import {
   MessageSquare,
   Target,
   UserCheck,
-  Loader2
+  Loader2,
+  Shield
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -300,6 +301,17 @@ export default function Admin() {
               <div>
                 <p className="font-medium">Impersonate User</p>
                 <p className="text-sm text-muted-foreground">View as another user</p>
+              </div>
+            </Link>
+            
+            <Link 
+              to="/admin/keys-vault" 
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors"
+            >
+              <Shield className="h-5 w-5 text-primary" />
+              <div>
+                <p className="font-medium">Keys Vault</p>
+                <p className="text-sm text-muted-foreground">Manage API keys securely</p>
               </div>
             </Link>
           </CardContent>

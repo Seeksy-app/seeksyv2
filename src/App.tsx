@@ -139,6 +139,7 @@ import CreditManagement from "./pages/admin/CreditManagement";
 import AdminProfileSettings from "./pages/admin/AdminProfileSettings";
 import AdminCreators from "./pages/admin/AdminCreators";
 import AppAudioAdmin from "./pages/admin/AppAudioAdmin";
+import KeysVault from "./pages/KeysVault";
 import ManageInvestorSpreadsheets from "./pages/ManageInvestorSpreadsheets";
 import ModuleSelector from "./pages/ModuleSelector";
 import Modules from "./pages/Modules";
@@ -350,6 +351,7 @@ const AppContent = () => {
               <Route path="/admin/creators" element={<AdminCreators />} />
               <Route path="/admin/investor-spreadsheets" element={<ManageInvestorSpreadsheets />} />
               <Route path="/admin/app-audio" element={<AppAudioAdmin />} />
+              <Route path="/admin/keys-vault" element={<KeysVault />} />
           <Route path="/advertiser" element={<AdvertiserServices />} />
           <Route path="/advertiser/signup" element={<AdvertiserSignup />} />
           <Route path="/advertiser/dashboard" element={<AdvertiserDashboard />} />
