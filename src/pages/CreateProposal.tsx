@@ -33,6 +33,8 @@ export default function CreateProposal() {
   ]);
   const [notes, setNotes] = useState("");
   const [terms, setTerms] = useState("");
+  const [privacyPolicyId, setPrivacyPolicyId] = useState("");
+  const [termsConditionsId, setTermsConditionsId] = useState("");
 
   const { data: user } = useQuery({
     queryKey: ["user"],
@@ -51,6 +53,21 @@ export default function CreateProposal() {
         .select("*")
         .eq("user_id", user.id)
         .order("name", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const { data: legalDocs } = useQuery({
+    queryKey: ["legal-documents", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("legal_documents")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("title", { ascending: true });
       if (error) throw error;
       return data;
     },
@@ -107,6 +124,8 @@ export default function CreateProposal() {
           total_amount: totalAmount,
           notes,
           valid_until: validUntil || null,
+          privacy_policy_id: privacyPolicyId || null,
+          terms_conditions_id: termsConditionsId || null,
           status: 'draft',
         } as any)
         .select()
@@ -298,6 +317,47 @@ export default function CreateProposal() {
                   onChange={(e) => setTerms(e.target.value)}
                   rows={4}
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Legal Documents</CardTitle>
+              <CardDescription>Attach legal documents to this proposal</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="privacy">Privacy Policy (Optional)</Label>
+                <Select value={privacyPolicyId} onValueChange={setPrivacyPolicyId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select privacy policy" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {legalDocs?.filter(doc => doc.document_type === 'privacy_policy').map((doc) => (
+                      <SelectItem key={doc.id} value={doc.id}>
+                        {doc.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="terms-doc">Terms & Conditions (Optional)</Label>
+                <Select value={termsConditionsId} onValueChange={setTermsConditionsId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select terms & conditions" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {legalDocs?.filter(doc => doc.document_type === 'terms_conditions').map((doc) => (
+                      <SelectItem key={doc.id} value={doc.id}>
+                        {doc.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>

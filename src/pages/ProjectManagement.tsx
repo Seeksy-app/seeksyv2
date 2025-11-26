@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { ClientsTab } from "@/components/pm/ClientsTab";
 import { TicketsTab } from "@/components/pm/TicketsTab";
 import { DocumentsTab } from "@/components/pm/DocumentsTab";
+import { LegalDocumentsTab } from "@/components/pm/LegalDocumentsTab";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 
@@ -38,10 +39,11 @@ export default function ProjectManagement() {
         </div>
 
         <Tabs defaultValue="tickets" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="tickets">Tickets</TabsTrigger>
             <TabsTrigger value="clients">Clients</TabsTrigger>
             <TabsTrigger value="documents">E-Signatures</TabsTrigger>
+            <TabsTrigger value="legal">Legal Documents</TabsTrigger>
           </TabsList>
 
           <TabsContent value="tickets">
@@ -54,6 +56,10 @@ export default function ProjectManagement() {
 
           <TabsContent value="documents">
             <DocumentsTab userId={user.id} />
+          </TabsContent>
+
+          <TabsContent value="legal">
+            <LegalDocumentsTab userId={user.id} />
           </TabsContent>
         </Tabs>
       </main>

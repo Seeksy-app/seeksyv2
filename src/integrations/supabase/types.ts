@@ -3971,12 +3971,14 @@ export type Database = {
           notes: string | null
           paid_at: string | null
           payment_link: string | null
+          privacy_policy_id: string | null
           proposal_id: string | null
           status: string | null
           stripe_payment_intent_id: string | null
           subtotal: number
           tax_amount: number | null
           tax_rate: number | null
+          terms_conditions_id: string | null
           title: string
           total_amount: number
           updated_at: string
@@ -3994,12 +3996,14 @@ export type Database = {
           notes?: string | null
           paid_at?: string | null
           payment_link?: string | null
+          privacy_policy_id?: string | null
           proposal_id?: string | null
           status?: string | null
           stripe_payment_intent_id?: string | null
           subtotal?: number
           tax_amount?: number | null
           tax_rate?: number | null
+          terms_conditions_id?: string | null
           title: string
           total_amount?: number
           updated_at?: string
@@ -4017,12 +4021,14 @@ export type Database = {
           notes?: string | null
           paid_at?: string | null
           payment_link?: string | null
+          privacy_policy_id?: string | null
           proposal_id?: string | null
           status?: string | null
           stripe_payment_intent_id?: string | null
           subtotal?: number
           tax_amount?: number | null
           tax_rate?: number | null
+          terms_conditions_id?: string | null
           title?: string
           total_amount?: number
           updated_at?: string
@@ -4037,10 +4043,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "invoices_privacy_policy_id_fkey"
+            columns: ["privacy_policy_id"]
+            isOneToOne: false
+            referencedRelation: "legal_documents"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "invoices_proposal_id_fkey"
             columns: ["proposal_id"]
             isOneToOne: false
             referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_terms_conditions_id_fkey"
+            columns: ["terms_conditions_id"]
+            isOneToOne: false
+            referencedRelation: "legal_documents"
             referencedColumns: ["id"]
           },
         ]
@@ -4076,6 +4096,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      legal_documents: {
+        Row: {
+          content: string
+          created_at: string
+          document_type: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          document_type: string
+          id?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          document_type?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       link_clicks: {
         Row: {
@@ -5807,6 +5857,7 @@ export type Database = {
           id: string
           items: Json | null
           notes: string | null
+          privacy_policy_id: string | null
           proposal_number: string
           sent_at: string | null
           sent_to_email: string | null
@@ -5818,6 +5869,7 @@ export type Database = {
           subtotal: number
           tax_amount: number | null
           tax_rate: number | null
+          terms_conditions_id: string | null
           title: string
           total_amount: number
           updated_at: string
@@ -5831,6 +5883,7 @@ export type Database = {
           id?: string
           items?: Json | null
           notes?: string | null
+          privacy_policy_id?: string | null
           proposal_number: string
           sent_at?: string | null
           sent_to_email?: string | null
@@ -5842,6 +5895,7 @@ export type Database = {
           subtotal?: number
           tax_amount?: number | null
           tax_rate?: number | null
+          terms_conditions_id?: string | null
           title: string
           total_amount?: number
           updated_at?: string
@@ -5855,6 +5909,7 @@ export type Database = {
           id?: string
           items?: Json | null
           notes?: string | null
+          privacy_policy_id?: string | null
           proposal_number?: string
           sent_at?: string | null
           sent_to_email?: string | null
@@ -5866,6 +5921,7 @@ export type Database = {
           subtotal?: number
           tax_amount?: number | null
           tax_rate?: number | null
+          terms_conditions_id?: string | null
           title?: string
           total_amount?: number
           updated_at?: string
@@ -5878,6 +5934,20 @@ export type Database = {
             columns: ["client_contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_privacy_policy_id_fkey"
+            columns: ["privacy_policy_id"]
+            isOneToOne: false
+            referencedRelation: "legal_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_terms_conditions_id_fkey"
+            columns: ["terms_conditions_id"]
+            isOneToOne: false
+            referencedRelation: "legal_documents"
             referencedColumns: ["id"]
           },
         ]
