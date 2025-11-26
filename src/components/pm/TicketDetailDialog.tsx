@@ -33,6 +33,7 @@ export function TicketDetailDialog({ ticketId, open, onOpenChange, onUpdate }: T
   const [assignedTo, setAssignedTo] = useState("");
   const [notes, setNotes] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState<any[]>([]);
 
@@ -71,6 +72,7 @@ export function TicketDetailDialog({ ticketId, open, onOpenChange, onUpdate }: T
       setAssignedTo((data as any).assigned_to || "");
       setNotes((data as any).notes || "");
       setDueDate(data.due_date ? new Date(data.due_date).toISOString().split('T')[0] : "");
+      setPaymentMethod((data as any).payment_method || "");
     } catch (error) {
       console.error("Error loading ticket:", error);
       toast.error("Failed to load ticket details");
@@ -169,6 +171,7 @@ export function TicketDetailDialog({ ticketId, open, onOpenChange, onUpdate }: T
         assigned_to: assignedTo || null,
         notes,
         due_date: dueDate || null,
+        payment_method: paymentMethod || null,
         last_activity_at: new Date().toISOString(),
       };
 
@@ -207,6 +210,9 @@ export function TicketDetailDialog({ ticketId, open, onOpenChange, onUpdate }: T
               <DialogHeader className="sticky top-0 bg-card pb-4 z-10">
                 <DialogTitle className="flex items-center gap-2">
                   {ticket.title}
+                  <Badge variant="outline" className="ml-2">
+                    Ticket #{ticket.id.slice(0, 8)}
+                  </Badge>
                 </DialogTitle>
                 <DialogDescription>
                   Client: {ticket.contacts?.name} {ticket.contacts?.company && `(${ticket.contacts.company})`}
@@ -223,9 +229,12 @@ export function TicketDetailDialog({ ticketId, open, onOpenChange, onUpdate }: T
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="created">Created</SelectItem>
                       <SelectItem value="open">Open</SelectItem>
+                      <SelectItem value="proposal_sent">Proposal Sent</SelectItem>
+                      <SelectItem value="scheduled">Scheduled</SelectItem>
                       <SelectItem value="in_progress">In Progress</SelectItem>
-                      <SelectItem value="waiting">Waiting</SelectItem>
+                      <SelectItem value="complete">Complete</SelectItem>
                       <SelectItem value="resolved">Resolved</SelectItem>
                       <SelectItem value="closed">Closed</SelectItem>
                     </SelectContent>
@@ -279,6 +288,26 @@ export function TicketDetailDialog({ ticketId, open, onOpenChange, onUpdate }: T
                     onChange={(e) => setDueDate(e.target.value)}
                   />
                 </div>
+              </div>
+
+              {/* Payment Method */}
+              <div className="space-y-2">
+                <Label htmlFor="paymentMethod">Payment Method</Label>
+                <Select value={paymentMethod || "none"} onValueChange={(value) => setPaymentMethod(value === "none" ? "" : value)}>
+                  <SelectTrigger id="paymentMethod">
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None Selected</SelectItem>
+                    <SelectItem value="stripe_ach">Stripe ACH</SelectItem>
+                    <SelectItem value="stripe_card">Stripe Card</SelectItem>
+                    <SelectItem value="cash">Cash</SelectItem>
+                    <SelectItem value="check">Check</SelectItem>
+                    <SelectItem value="zelle">Zelle</SelectItem>
+                    <SelectItem value="venmo">Venmo</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Description */}

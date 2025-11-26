@@ -89,12 +89,20 @@ export const TicketsTab = ({ userId }: TicketsTabProps) => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
+      case "created": return "secondary";
       case "open": return "default";
+      case "proposal_sent": return "default";
+      case "scheduled": return "default";
       case "in_progress": return "secondary";
+      case "complete": return "outline";
       case "resolved": return "outline";
       case "closed": return "outline";
       default: return "default";
     }
+  };
+
+  const formatStatus = (status: string) => {
+    return status?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Open';
   };
 
   // Filter tickets by search query
@@ -187,7 +195,7 @@ export const TicketsTab = ({ userId }: TicketsTabProps) => {
                     <div className="flex items-center gap-2">
                       <CardTitle className="text-lg">#{ticket.id.slice(0, 8)}</CardTitle>
                       <Badge variant={getPriorityColor(ticket.priority)}>{ticket.priority}</Badge>
-                      <Badge variant={getStatusColor(ticket.status)}>{ticket.status}</Badge>
+                      <Badge variant={getStatusColor(ticket.status)}>{formatStatus(ticket.status)}</Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">{ticket.title}</p>
                   </div>
