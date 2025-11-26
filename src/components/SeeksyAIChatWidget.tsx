@@ -248,24 +248,64 @@ export const SeeksyAIChatWidget = () => {
   ];
 
   if (!isOpen) {
+    const isThanksgiving = new Date().getMonth() === 10; // November
+    const isChristmas = new Date().getMonth() === 11; // December
+    
     return (
-      <Button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 right-6 h-16 w-16 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-gradient-to-br from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 z-50"
-        size="icon"
-      >
-        <Sparkles className="h-7 w-7 text-white" />
-      </Button>
+      <div className="fixed bottom-6 right-6 z-50">
+        {/* Holiday decorations */}
+        {isThanksgiving && (
+          <>
+            {/* Autumn leaves */}
+            <div className="absolute -top-2 -left-2 text-4xl animate-bounce" style={{ animationDelay: '0s', animationDuration: '3s' }}>🍂</div>
+            <div className="absolute -top-3 -right-1 text-3xl animate-bounce" style={{ animationDelay: '1s', animationDuration: '3.5s' }}>🍁</div>
+            <div className="absolute -bottom-1 -left-3 text-3xl animate-bounce" style={{ animationDelay: '2s', animationDuration: '4s' }}>🦃</div>
+          </>
+        )}
+        {isChristmas && (
+          <>
+            {/* Santa hat on top */}
+            <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-5xl">🎅</div>
+            {/* Snowflakes */}
+            <div className="absolute -top-2 -left-2 text-2xl animate-pulse">❄️</div>
+            <div className="absolute -top-3 -right-2 text-2xl animate-pulse" style={{ animationDelay: '1s' }}>⛄</div>
+            <div className="absolute -bottom-2 -left-3 text-2xl animate-pulse" style={{ animationDelay: '2s' }}>🎄</div>
+          </>
+        )}
+        <Button
+          onClick={() => setIsOpen(true)}
+          className="h-16 w-16 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-gradient-to-br from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 relative"
+          size="icon"
+        >
+          <Sparkles className="h-7 w-7 text-white" />
+        </Button>
+      </div>
     );
   }
 
+  const isThanksgiving = new Date().getMonth() === 10; // November
+  const isChristmas = new Date().getMonth() === 11; // December
+  
   return (
     <Card className={cn(
-      "fixed bottom-20 right-6 shadow-2xl transition-all duration-300 z-50 flex flex-col",
+      "fixed bottom-6 right-6 shadow-2xl transition-all duration-300 z-50 flex flex-col",
       isMinimized ? "h-14 w-80" : "h-[600px] w-[400px]"
     )}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-t-lg">
+      <div className="flex items-center justify-between p-4 border-b bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-t-lg relative overflow-hidden">
+        {/* Holiday decorations in header */}
+        {isThanksgiving && (
+          <>
+            <div className="absolute top-0 left-0 text-2xl opacity-30">🍂</div>
+            <div className="absolute bottom-0 right-0 text-2xl opacity-30">🍁</div>
+          </>
+        )}
+        {isChristmas && (
+          <>
+            <div className="absolute top-0 left-0 text-2xl opacity-30 animate-pulse">❄️</div>
+            <div className="absolute bottom-0 right-0 text-2xl opacity-30 animate-pulse">🎄</div>
+          </>
+        )}
         <div className="flex items-center gap-2">
           <div className="p-1.5 bg-white/20 rounded-lg">
             <Sparkles className="h-5 w-5" />
