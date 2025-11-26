@@ -58,7 +58,7 @@ export const MasterSearch = () => {
     { id: "sms", title: "SMS Marketing", type: "Page", category: "Pages", url: "/sms", icon: Smartphone },
     { id: "profile", title: "Profile Settings", type: "Page", category: "Pages", url: "/profile-settings", icon: User },
     { id: "admin", title: "Admin Dashboard", type: "Page", category: "Pages", url: "/admin", icon: Settings },
-    { id: "admin-audio", title: "App Audio Admin", type: "Page", category: "Admin", url: "/admin/app-audio-admin", icon: Settings, description: "Manage app audio descriptions" },
+    { id: "app-audio", title: "App Audio", type: "Page", category: "Marketing", url: "/marketing/app-audio", icon: Megaphone, description: "Manage app audio descriptions" },
   ];
 
   useEffect(() => {

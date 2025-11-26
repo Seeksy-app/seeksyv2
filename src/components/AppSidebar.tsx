@@ -514,7 +514,6 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     { title: "Meetings", url: "/meetings", icon: Calendar },
     { title: "Sign-ups", url: "/signup-sheets", icon: ClipboardList },
     { title: "Events", url: "/events", icon: CalendarDays },
-    { title: "App Audio", url: "/admin/app-audio", icon: Volume2 },
   ];
 
   const adminFinancials = [
@@ -535,6 +534,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   const adminMarketingSales = [
     { title: "Marketing", url: "/marketing", icon: Mail },
     { title: "Newsletter", url: "/newsletter", icon: Mail },
+    { title: "App Audio", url: "/marketing/app-audio", icon: Volume2 },
     { title: "Sales & Leads", url: "/admin/sales", icon: TrendingUp },
     { title: "Lead Pixel", url: "/leads-dashboard", icon: Code },
   ];

@@ -353,7 +353,7 @@ const AppContent = () => {
               <Route path="/admin/profile-settings" element={<AdminProfileSettings />} />
               <Route path="/admin/creators" element={<AdminCreators />} />
               <Route path="/admin/investor-spreadsheets" element={<ManageInvestorSpreadsheets />} />
-              <Route path="/admin/app-audio" element={<AppAudioAdmin />} />
+              <Route path="/marketing/app-audio" element={<AppAudioAdmin />} />
               <Route path="/admin/keys-vault" element={<KeysVault />} />
               <Route path="/admin/personas" element={<PersonaManagement />} />
           <Route path="/advertiser" element={<AdvertiserServices />} />
