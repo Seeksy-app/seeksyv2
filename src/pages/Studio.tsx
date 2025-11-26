@@ -665,17 +665,29 @@ Closing Notes:
         setCameraEnabled(videoTrack.enabled);
       }
     } else {
-      // No stream yet - request with camera enabled
+      // No stream yet - request both audio and video, then enable/disable as needed
       try {
         const newCameraState = !cameraEnabled;
-        setCameraEnabled(newCameraState);
         
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: newCameraState,
-          audio: micEnabled
+          video: true,
+          audio: true
         });
         
         streamRef.current = stream;
+        
+        // Set the correct enabled states
+        const videoTrack = stream.getVideoTracks()[0];
+        const audioTrack = stream.getAudioTracks()[0];
+        
+        if (videoTrack) {
+          videoTrack.enabled = newCameraState;
+        }
+        if (audioTrack) {
+          audioTrack.enabled = micEnabled;
+        }
+        
+        setCameraEnabled(newCameraState);
         
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -700,17 +712,29 @@ Closing Notes:
         setMicEnabled(audioTrack.enabled);
       }
     } else {
-      // No stream yet - request with mic enabled
+      // No stream yet - request both audio and video, then enable/disable as needed
       try {
         const newMicState = !micEnabled;
-        setMicEnabled(newMicState);
         
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: cameraEnabled,
-          audio: newMicState
+          video: true,
+          audio: true
         });
         
         streamRef.current = stream;
+        
+        // Set the correct enabled states
+        const videoTrack = stream.getVideoTracks()[0];
+        const audioTrack = stream.getAudioTracks()[0];
+        
+        if (videoTrack) {
+          videoTrack.enabled = cameraEnabled;
+        }
+        if (audioTrack) {
+          audioTrack.enabled = newMicState;
+        }
+        
+        setMicEnabled(newMicState);
         
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
