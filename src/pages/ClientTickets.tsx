@@ -32,12 +32,12 @@ export default function ClientTickets() {
     dueDate: "",
   });
 
-  const { data: user, isLoading: userLoading } = useQuery({
+  const { data: user, isLoading: userLoading, error: userError } = useQuery({
     queryKey: ["user"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        throw new Error("Not authenticated");
+        return null;
       }
       return user;
     },

@@ -340,6 +340,7 @@ const AppContent = () => {
               <Route path="/advertiser/pricing" element={<AdvertiserPricing />} />
           <Route path="/podcast-ads" element={<PodcastAds />} />
           <Route path="/podcast-revenue" element={<PodcastRevenue />} />
+          <Route path="/voice-protection" element={<VoiceProtection />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/notification-preferences" element={<NotificationPreferences />} />
               <Route path="/subscription" element={<SubscriptionSettings />} />
