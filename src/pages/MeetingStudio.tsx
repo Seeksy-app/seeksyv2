@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { StudioRightSidebar } from "@/components/studio/StudioRightSidebar";
 import { Button } from "@/components/ui/button";
 import { Video, VideoOff, Mic, MicOff, PhoneOff, Calendar, Moon, Users, Sparkles } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -11,26 +11,29 @@ import { Label } from "@/components/ui/label";
 
 const MeetingStudio = () => {
   const { id } = useParams();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
   const [showAINotes, setShowAINotes] = useState(true);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
 
-  // Request camera and microphone permissions on mount
+  // Request camera and microphone permissions and display stream
   useEffect(() => {
-    const requestMediaPermissions = async () => {
+    const startMediaStream = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: true
         });
         
-        // Store permission grant
+        streamRef.current = stream;
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+        
         localStorage.setItem('mediaPermissionsGranted', 'true');
-        
-        // Stop the stream immediately after getting permission
-        stream.getTracks().forEach(track => track.stop());
-        
         toast.success("Camera and microphone access granted");
       } catch (error) {
         console.error("Media permission error:", error);
@@ -38,12 +41,34 @@ const MeetingStudio = () => {
       }
     };
 
-    // Check if permissions were already granted
-    const permissionsGranted = localStorage.getItem('mediaPermissionsGranted');
-    if (!permissionsGranted) {
-      requestMediaPermissions();
-    }
+    startMediaStream();
+
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
   }, []);
+
+  // Toggle video track
+  useEffect(() => {
+    if (streamRef.current) {
+      const videoTrack = streamRef.current.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.enabled = isVideoOn;
+      }
+    }
+  }, [isVideoOn]);
+
+  // Toggle audio track
+  useEffect(() => {
+    if (streamRef.current) {
+      const audioTrack = streamRef.current.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = isMicOn;
+      }
+    }
+  }, [isMicOn]);
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -95,17 +120,25 @@ const MeetingStudio = () => {
       {/* Main Content with Resizable Panels */}
       <ResizablePanelGroup direction="horizontal" className="flex-1">
         {/* Video Area */}
-        <ResizablePanel defaultSize={75} minSize={50}>
+        <ResizablePanel defaultSize={75} minSize={30}>
           <div className="flex flex-col h-full">
             {/* Video Grid */}
             <div className="flex-1 bg-zinc-900 flex items-center justify-center relative">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-white text-center">
-                  <Video className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg opacity-75">Meeting Studio</p>
-                  <p className="text-sm opacity-50 mt-2">Meeting ID: {id}</p>
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover"
+              />
+              {!isVideoOn && (
+                <div className="absolute inset-0 flex items-center justify-center bg-zinc-900">
+                  <div className="text-white text-center">
+                    <VideoOff className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg opacity-75">Camera Off</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Controls Bar */}
@@ -142,7 +175,7 @@ const MeetingStudio = () => {
         <ResizableHandle withHandle />
 
         {/* Right Sidebar */}
-        <ResizablePanel defaultSize={25} minSize={20} maxSize={50}>
+        <ResizablePanel defaultSize={25} minSize={15}>
           <StudioRightSidebar
             currentViewerCount={2}
             onAdSelect={() => {}}
