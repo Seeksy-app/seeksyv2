@@ -29,8 +29,15 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Generating avatar for app: ${appName} (${appId})`);
 
+    // Randomly select gender and ethnicity for diversity
+    const genders = ['professional businesswoman', 'professional businessman'];
+    const ethnicities = ['white', 'Asian', 'Hispanic', 'Black', 'Middle Eastern', 'mixed ethnicity'];
+    const selectedGender = genders[Math.floor(Math.random() * genders.length)];
+    const selectedEthnicity = ethnicities[Math.floor(Math.random() * ethnicities.length)];
+    const isFemale = selectedGender.includes('woman');
+
     // Generate avatar image using Lovable AI
-    const prompt = `Create a professional, friendly avatar portrait for ${appName}. The avatar should be a diverse, approachable female person that represents the essence of ${appName}. Modern, clean style with good lighting. Headshot format, warm smile, professional business attire. Ensure diversity in ethnicity and representation. High quality, 512x512 dimensions.`;
+    const prompt = `Create a professional, friendly avatar portrait. The avatar should be a ${selectedEthnicity} ${selectedGender} that represents ${appName}. Modern, clean style with good lighting. Headshot format, warm genuine smile, professional business attire. High quality portrait photography style. 512x512 dimensions.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -93,10 +100,39 @@ const handler = async (req: Request): Promise<Response> => {
       .from('avatars')
       .getPublicUrl(filename);
 
-    // Update database
+    // Select appropriate voice based on avatar gender
+    const femaleVoices = [
+      'cgSgspJ2msm6clMCkdW9', // Jessica
+      'EXAVITQu4vr4xnSDxMaL', // Sarah
+      'FGY2WhTYpPnrIDTdsKH5', // Laura
+      'XB0fDUnXU5powFXDhCwa', // Charlotte
+      'Xb7hH8MSUJpSbSDYk0k2', // Alice
+      'XrExE9yKIg1WjnnlVkGX', // Matilda
+    ];
+    const maleVoices = [
+      'CwhRBWXzGAHq8TQ4Fs17', // Roger
+      'IKne3meq5aSn9XLyUdCD', // Charlie
+      'JBFqnCBsd6RMkjVDRZzb', // George
+      'N2lVS1w4EtoT3dr4eOWO', // Callum
+      'TX3LPaxmHKxFdv7VOQHJ', // Liam
+      'bIHbv24MWmeRgasZH58o', // Will
+      'cjVigY5qzO86Huf0OWal', // Eric
+      'iP95p4xoKVk53GoZ742B', // Chris
+      'nPczCjzI2devNBz1zQrb', // Brian
+      'onwK4e9ZLuTAKqWW03F9', // Daniel
+      'pqHfZKP75CvOlQylNhV4', // Bill
+    ];
+    
+    const voicePool = isFemale ? femaleVoices : maleVoices;
+    const selectedVoiceId = voicePool[Math.floor(Math.random() * voicePool.length)];
+
+    // Update database with avatar and matched voice
     const { error: updateError } = await supabase
       .from('app_audio_descriptions')
-      .update({ avatar_url: publicUrl })
+      .update({ 
+        avatar_url: publicUrl,
+        voice_id: selectedVoiceId 
+      })
       .eq('app_id', appId);
 
     if (updateError) {
@@ -104,10 +140,14 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(`Failed to update database: ${updateError.message}`);
     }
 
-    console.log(`Successfully generated and stored avatar for ${appName}`);
+    console.log(`Successfully generated and stored avatar for ${appName} (${isFemale ? 'Female' : 'Male'}, Voice: ${selectedVoiceId})`);
 
     return new Response(
-      JSON.stringify({ avatarUrl: publicUrl }),
+      JSON.stringify({ 
+        avatarUrl: publicUrl,
+        voiceId: selectedVoiceId,
+        gender: isFemale ? 'female' : 'male'
+      }),
       {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
