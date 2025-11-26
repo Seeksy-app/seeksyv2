@@ -7,14 +7,8 @@ import {
   VideoOff, 
   Monitor, 
   UserPlus, 
-  Plus, 
-  Circle,
-  Film,
-  DollarSign,
-  Scissors,
-  FileText
+  Circle
 } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { StudioBrandingOverlay } from "./StudioBrandingOverlay";
 import { BrandingSettings } from "./StudioBrandingMenu";
@@ -126,82 +120,6 @@ export function StudioMainView({
         )}
       </div>
 
-      {/* Markers and Script Buttons - Above Control Panel */}
-      <div className="absolute bottom-[88px] left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                onClick={onAddAdMarker}
-                size="sm"
-                variant="outline"
-                className="flex items-center gap-2 h-9 bg-background/95 backdrop-blur-sm"
-              >
-                <DollarSign className="h-4 w-4" />
-                <span className="text-sm">Ad Marker</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Mark ad spot during recording</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                onClick={onAddClipMarker}
-                size="sm"
-                variant="outline"
-                className="flex items-center gap-2 h-9 bg-background/95 backdrop-blur-sm"
-              >
-                <Scissors className="h-4 w-4" />
-                <span className="text-sm">Clip Marker</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Mark clip during recording</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                onClick={onReadScript}
-                size="sm"
-                variant="outline"
-                className="flex items-center gap-2 h-9 bg-background/95 backdrop-blur-sm"
-              >
-                <FileText className="h-4 w-4" />
-                <span className="text-sm">Ad Script</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>View advertiser script</p>
-            </TooltipContent>
-          </Tooltip>
-          
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                onClick={onOpenHostNotes}
-                size="sm"
-                variant="outline"
-                className="flex items-center gap-2 h-9 bg-background/95 backdrop-blur-sm"
-              >
-                <FileText className="h-4 w-4" />
-                <span className="text-sm">Host Notes</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Your personal notes and reminders</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
 
       {/* Bottom Controls - Fixed Position */}
       <div className="absolute bottom-0 left-0 right-0 border-t border-border/20 bg-background/95 backdrop-blur-sm">
@@ -241,7 +159,7 @@ export function StudioMainView({
               )}
             </Button>
 
-            {/* Record/Stop Button */}
+            {/* Start/Stop Button */}
             <Button
               onClick={isRecording ? onStopRecording : onStartRecording}
               size="lg"
@@ -256,24 +174,6 @@ export function StudioMainView({
                 isRecording ? "" : "fill-current"
               )} />
             </Button>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={onPlayVideo}
-                    size="lg"
-                    variant="default"
-                    className="h-12 w-12 rounded-full p-0 bg-green-600 hover:bg-green-700 flex-shrink-0"
-                  >
-                    <Film className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Stream Video</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
 
             <Button
               onClick={onScreenShare}

@@ -806,7 +806,7 @@ Closing Notes:
               className="font-semibold"
             >
               <Radio className="h-4 w-4 mr-2" />
-              End Live
+              End Stream
             </Button>
           ) : (
             <Button
@@ -815,7 +815,7 @@ Closing Notes:
               className="bg-red-600 hover:bg-red-700 text-white font-semibold"
             >
               <Radio className="h-4 w-4 mr-2" />
-              Go Live
+              Start
             </Button>
           )}
         </div>
@@ -823,20 +823,7 @@ Closing Notes:
       
       <div className="flex flex-1 overflow-visible border-2 border-border">
         <ResizablePanelGroup direction="horizontal">
-          <ResizablePanel defaultSize={12} minSize={10} maxSize={15}>
-            <StudioLeftSidebar
-              scenes={scenes}
-              activeSceneId={activeSceneId}
-              onSceneChange={handleSceneChange}
-              onAddScene={() => {}}
-              cameraEnabled={cameraEnabled}
-              profileImageUrl={profileImageUrl}
-            />
-          </ResizablePanel>
-          
-          <ResizableHandle />
-          
-          <ResizablePanel defaultSize={78} minSize={70}>
+          <ResizablePanel defaultSize={90} minSize={85}>
             {myPageStreamStatus.isLive && myPageStreamStatus.videoUrl ? (
               <div className="relative h-full w-full bg-muted">
                 <video
