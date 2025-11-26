@@ -47,50 +47,9 @@ function StudioContent() {
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [showBrandingMenu, setShowBrandingMenu] = useState(false);
   const [markers, setMarkers] = useState<RecordingMarker[]>([]);
-  const [isMeetingLive, setIsMeetingLive] = useState(false);
-  const [showAINotesDialog, setShowAINotesDialog] = useState(false);
-  const [dontShowAINotesAgain, setDontShowAINotesAgain] = useState(false);
   const [showScriptDialog, setShowScriptDialog] = useState(false);
   const [showHostNotesPanel, setShowHostNotesPanel] = useState(false);
-  const [showMeetingEndedDialog, setShowMeetingEndedDialog] = useState(false);
-  const [showSendAINotesDialog, setShowSendAINotesDialog] = useState(false);
-  
-  // Assume user in studio is the host (guests would have different entry point)
-  const isHost = true;
-
-  // Check if user has dismissed AI Notes dialog before
-  useEffect(() => {
-    const dismissed = localStorage.getItem('hideAINotesDialog');
-    if (dismissed === 'true') {
-      setDontShowAINotesAgain(true);
-    }
-  }, []);
-
-  // Show AI Notes dialog when meeting starts (host only)
-  useEffect(() => {
-    if (isMeetingLive && !dontShowAINotesAgain && isHost) {
-      setShowAINotesDialog(true);
-    }
-  }, [isMeetingLive, dontShowAINotesAgain, isHost]);
-
-  const handleEnableAINotes = () => {
-    setShowAINotes(true);
-    setShowAINotesDialog(false);
-  };
-
-  const handleDismissAINotesDialog = () => {
-    setShowAINotesDialog(false);
-  };
-
-  const handleDontShowAgainChange = (checked: boolean) => {
-    if (checked) {
-      localStorage.setItem('hideAINotesDialog', 'true');
-      setDontShowAINotesAgain(true);
-    } else {
-      localStorage.removeItem('hideAINotesDialog');
-      setDontShowAINotesAgain(false);
-    }
-  };
+  const [showAINotes, setShowAINotes] = useState(true);
   const [hostNotes] = useState(`Topics to Cover:
 • Introduction - Welcome viewers and introduce today's topic
 • Guest background - Ask about their journey and experience
@@ -177,7 +136,6 @@ Closing Notes:
   });
   const [channelsExpanded, setChannelsExpanded] = useState(true);
   const [videoLayout, setVideoLayout] = useState<VideoLayout>("speaker");
-  const [showAINotes, setShowAINotes] = useState(true);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -193,8 +151,6 @@ Closing Notes:
     loadMyPageStatus();
     subscribeToViewerCount();
     // Don't start preview automatically since camera/mic start as disabled
-    
-    // Don't auto-start for meetings - let user control via Start button
     
     return () => {
       stopStream();
@@ -760,7 +716,7 @@ Closing Notes:
         await startRecording();
         toast({
           title: "Auto-recording enabled",
-          description: "Your meeting will be saved to Media Library",
+          description: "Your recording will be saved to Media Library",
           duration: 2000,
         });
       }
@@ -771,21 +727,20 @@ Closing Notes:
         // Recording will be auto-saved via handleRecordingStopped
       }
       
-      // For meetings, we don't update My Page - just track local state
       setIsLiveOnProfile(newLiveStatus);
       
       toast({
-        title: newLiveStatus ? "Meeting Started" : "Meeting Ended",
+        title: newLiveStatus ? "Stream Started" : "Stream Ended",
         description: newLiveStatus 
-          ? "Your meeting is now in session"
-          : "Meeting has been saved to Media Library",
+          ? "Your stream is now live"
+          : "Stream has been saved to Media Library",
         duration: 3000,
       });
     } catch (error) {
       console.error("Error toggling live status:", error);
       toast({
         title: "Error",
-        description: "Failed to update meeting status",
+        description: "Failed to update stream status",
         variant: "destructive",
       });
     }
@@ -891,128 +846,8 @@ Closing Notes:
           
           <ThemeToggle />
           
-          <div className="h-6 w-px bg-border" />
-          
-          {isMeetingLive ? (
-            <Button
-              onClick={() => {
-                setIsMeetingLive(false);
-                setShowMeetingEndedDialog(true);
-              }}
-              size="sm"
-              className="bg-red-600 hover:bg-red-700 text-white font-semibold gap-2"
-            >
-              <Square className="h-4 w-4" />
-              STOP MEETING
-            </Button>
-          ) : (
-            <Button
-              onClick={() => setIsMeetingLive(true)}
-              size="sm"
-              className="bg-green-600 hover:bg-green-700 text-white font-semibold gap-2"
-            >
-              <Play className="h-4 w-4" />
-              START MEETING
-            </Button>
-          )}
         </div>
       </div>
-      
-      {/* AI Notes Dialog */}
-      <Dialog open={showAINotesDialog} onOpenChange={setShowAINotesDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              Turn on AI Notes?
-            </DialogTitle>
-            <DialogDescription>
-              AI Notes will automatically capture key points, decisions, and action items from your meeting in real-time.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex-col sm:flex-row gap-3">
-            <div className="flex items-center gap-2 mr-auto">
-              <Checkbox
-                id="dont-show"
-                checked={dontShowAINotesAgain}
-                onCheckedChange={handleDontShowAgainChange}
-              />
-              <label
-                htmlFor="dont-show"
-                className="text-sm text-muted-foreground cursor-pointer"
-              >
-                Don't show this again
-              </label>
-            </div>
-            <Button variant="outline" onClick={handleDismissAINotesDialog}>
-              Not Now
-            </Button>
-            <Button onClick={handleEnableAINotes} className="gap-2">
-              <Sparkles className="h-4 w-4" />
-              Enable AI Notes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Meeting Ended Dialog */}
-      <Dialog open={showMeetingEndedDialog} onOpenChange={setShowMeetingEndedDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Meeting has ended</DialogTitle>
-            <DialogDescription>
-              The meeting has been stopped and all participants have been removed.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button onClick={() => {
-              setShowMeetingEndedDialog(false);
-              if (isHost) {
-                setShowSendAINotesDialog(true);
-              }
-            }}>
-              OK
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Send AI Notes Dialog - Host Only */}
-      <Dialog open={showSendAINotesDialog} onOpenChange={setShowSendAINotesDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              Send AI Notes to Attendees?
-            </DialogTitle>
-            <DialogDescription>
-              Would you like to send the AI-generated meeting notes to all attendees via email?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setShowSendAINotesDialog(false);
-              toast({
-                title: "AI Notes not sent",
-                description: "You can always export and send notes manually later.",
-              });
-            }}>
-              No
-            </Button>
-            <Button onClick={() => {
-              setShowSendAINotesDialog(false);
-              toast({
-                title: "AI Notes sent",
-                description: "Meeting notes have been sent to all attendees.",
-              });
-              // TODO: Implement actual sending logic
-            }} className="gap-2">
-              <Sparkles className="h-4 w-4" />
-              Yes, Send Notes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
       
       <div className="flex flex-1 overflow-visible border-2 border-border">
         <ResizablePanelGroup direction="horizontal">
@@ -1076,8 +911,6 @@ Closing Notes:
                 onToggleChannelsExpanded={() => setChannelsExpanded(!channelsExpanded)}
                 profileImageUrl={profileImageUrl}
                 sessionId={sessionId}
-                meetingId={sessionId}
-                showAINotes={showAINotes}
               />
           </ResizablePanel>
         </ResizablePanelGroup>
