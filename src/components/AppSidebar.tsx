@@ -383,7 +383,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     : [
         { title: "Dashboard", url: dashboardUrl, icon: LayoutDashboard },
         ...(isAdmin && adminViewMode ? [{ title: "Admin", url: "/admin", icon: Shield }] : []),
-        ...(pinnedModules.includes("my_page") ? [{ title: "My Page", url: `/${username || 'profile'}`, icon: UserIcon }] : []),
+        ...(pinnedModules.includes("my_page") ? [{ title: "My Page", url: "/profile/edit", icon: UserIcon }] : []),
         { title: "Profile Settings", url: "/settings", icon: Settings },
       ];
 

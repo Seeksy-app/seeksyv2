@@ -14,9 +14,16 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        serif: ['Georgia', 'Cambria', 'Times New Roman', 'Times', 'serif'],
-        script: ['Brush Script MT', 'Lucida Handwriting', 'Apple Chancery', 'cursive'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        serif: ['Playfair Display', 'serif'],
+        script: ['Dancing Script', 'cursive'],
+        mono: ['Roboto Mono', 'monospace'],
+        poppins: ['Poppins', 'sans-serif'],
+        montserrat: ['Montserrat', 'sans-serif'],
+        lato: ['Lato', 'sans-serif'],
+        opensans: ['Open Sans', 'sans-serif'],
+        raleway: ['Raleway', 'sans-serif'],
+        ubuntu: ['Ubuntu', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
