@@ -53,15 +53,14 @@ export default function FieldLeadCapture() {
   });
 
   const { data: teamMembers } = useQuery({
-    queryKey: ["team-members", userId],
+    queryKey: ["team-members"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("user_roles")
-        .select("user_id, profiles(id, full_name)")
-        .in("role", ["admin", "super_admin", "member", "staff"]);
+        .from("profiles")
+        .select("id, full_name");
       
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 
@@ -301,7 +300,10 @@ export default function FieldLeadCapture() {
               {/* Photo Capture */}
               <div className="space-y-2">
                 <Label>Photos (Max 5, 5MB each)</Label>
-                <p className="text-sm text-muted-foreground mb-2">Take a photo or select from your phone</p>
+                <p className="text-sm text-muted-foreground mb-2">
+                  <Camera className="inline h-4 w-4 mr-1" />
+                  Take a photo or select from your library
+                </p>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {photoPreviews.map((preview, index) => (
                     <div key={index} className="relative">
@@ -318,13 +320,16 @@ export default function FieldLeadCapture() {
                     </div>
                   ))}
                 </div>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handlePhotoCapture}
-                  disabled={photos.length >= 5}
-                />
+                <label className="block">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handlePhotoCapture}
+                    disabled={photos.length >= 5}
+                    className="cursor-pointer"
+                  />
+                </label>
               </div>
 
               {/* Contact Info */}
@@ -403,14 +408,11 @@ export default function FieldLeadCapture() {
                             {currentUser.full_name} (You)
                           </SelectItem>
                         )}
-                        {teamMembers?.map((member: any) => {
-                          if (member.user_id === currentUser?.id) return null;
-                          return (
-                            <SelectItem key={member.user_id} value={member.user_id} className="cursor-pointer">
-                              {member.profiles?.full_name || "Unknown"}
-                            </SelectItem>
-                          );
-                        })}
+                        {teamMembers?.filter((member: any) => member.id !== currentUser?.id).map((member: any) => (
+                          <SelectItem key={member.id} value={member.id} className="cursor-pointer">
+                            {member.full_name || "Unknown"}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
