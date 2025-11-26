@@ -7,9 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Lock, FileSpreadsheet, Settings, ShieldCheck, Download } from "lucide-react";
+import { Lock, FileSpreadsheet, Settings, ShieldCheck, Download, TrendingUp } from "lucide-react";
 import { InteractiveSpreadsheet } from "@/components/cfo/InteractiveSpreadsheet";
 import { CFOAIChat } from "@/components/cfo/CFOAIChat";
+import { BusinessModelTab } from "@/components/cfo/BusinessModelTab";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -259,10 +260,14 @@ export default function InvestorPortal() {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="proforma" className="space-y-8">
-          <TabsList className="grid w-full max-w-md grid-cols-2 h-12 bg-muted/30 border border-border">
+          <TabsList className="grid w-full max-w-2xl grid-cols-3 h-12 bg-muted/30 border border-border">
             <TabsTrigger value="proforma" className="text-base font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <FileSpreadsheet className="h-5 w-5 mr-2" />
               3-Year Pro Forma
+            </TabsTrigger>
+            <TabsTrigger value="business-model" className="text-base font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TrendingUp className="h-5 w-5 mr-2" />
+              Business Model
             </TabsTrigger>
             <TabsTrigger value="assumptions" className="text-base font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Settings className="h-5 w-5 mr-2" />
@@ -302,6 +307,10 @@ export default function InvestorPortal() {
                 <CFOAIChat />
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="business-model" className="space-y-6">
+            <BusinessModelTab />
           </TabsContent>
 
           <TabsContent value="assumptions" className="space-y-6">
