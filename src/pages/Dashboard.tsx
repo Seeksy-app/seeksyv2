@@ -582,9 +582,15 @@ const Dashboard = () => {
         <div className="mb-8 flex items-start justify-between">
           <div className="flex items-center gap-4">
             <div>
-              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-brand-blue to-brand-navy bg-clip-text text-transparent">
-                Welcome back{firstName ? ` ${firstName}` : ""}!
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-brand-blue to-brand-navy bg-clip-text text-transparent">
+                  Welcome back{firstName ? ` ${firstName}` : ""}!
+                </h1>
+                {/* Thanksgiving decoration */}
+                {new Date().getMonth() === 10 && (
+                  <span className="text-3xl">🍂</span>
+                )}
+              </div>
               <p className="text-muted-foreground">Here's what's happening with your account.</p>
             </div>
             {profileData.avatar_url && (

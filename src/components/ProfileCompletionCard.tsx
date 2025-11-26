@@ -17,8 +17,12 @@ interface ProfileCompletionCardProps {
 export const ProfileCompletionCard = ({ fullName, phone, avatarUrl, myPageVisited }: ProfileCompletionCardProps) => {
   const navigate = useNavigate();
   const { data: myPageEnabled, isLoading: myPageLoading } = useMyPageEnabled();
+  
+  // Create a stable dismissal key that persists across sessions and view changes
+  const dismissalKey = `profileCompletionDismissed_${fullName || 'user'}`;
+  
   const [isDismissed, setIsDismissed] = useState(() => {
-    return localStorage.getItem("profileCompletionDismissed") === "true";
+    return localStorage.getItem(dismissalKey) === "true";
   });
   const [showMyPageWelcome, setShowMyPageWelcome] = useState(false);
 
@@ -51,12 +55,12 @@ export const ProfileCompletionCard = ({ fullName, phone, avatarUrl, myPageVisite
   const isComplete = completionPercentage === 100;
 
   // Clear dismissal if profile becomes complete
-  if (isComplete && localStorage.getItem("profileCompletionDismissed") === "true") {
-    localStorage.removeItem("profileCompletionDismissed");
+  if (isComplete && localStorage.getItem(dismissalKey) === "true") {
+    localStorage.removeItem(dismissalKey);
   }
 
   const handleDismiss = () => {
-    localStorage.setItem("profileCompletionDismissed", "true");
+    localStorage.setItem(dismissalKey, "true");
     setIsDismissed(true);
   };
 
