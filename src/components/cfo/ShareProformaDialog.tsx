@@ -65,14 +65,19 @@ export const ShareProformaDialog = ({ open, onOpenChange, proformaType }: ShareP
         : 1 - (adjustmentPercent / 100);
 
       // Store share configuration
+      // IMPORTANT: When sharing Custom Pro Forma, we ALWAYS use AI data as the source
+      // - 0% adjustment = exact copy of AI Pro Forma
+      // - Non-zero adjustment = AI Pro Forma data with adjustment applied
       const shareConfig = {
         proformaType: proformaType,
+        sourceData: 'ai', // Always use AI Pro Forma as the source for adjustments
         adjustmentMultiplier: adjustmentPercent !== 0 ? adjustmentMultiplier : 1,
         adjustmentPercent,
         adjustmentType,
         allowHtmlView,
         allowDownload,
         useRealTimeData,
+        copyFromAI: adjustmentPercent === 0, // Flag to indicate exact AI copy when 0%
       };
 
       // Insert access record with share configuration
@@ -248,7 +253,7 @@ export const ShareProformaDialog = ({ open, onOpenChange, proformaType }: ShareP
                           <span className="flex items-center text-sm text-muted-foreground font-medium">%</span>
                         </div>
                         <p className="text-xs text-muted-foreground italic">
-                          Example: -10% reduces all estimates by 10% across all scenarios. Your system data remains unchanged.
+                          0% = Exact copy of AI Pro Forma. -10% = AI data reduced by 10%. +10% = AI data increased by 10%. Applies to all scenarios.
                         </p>
                       </div>
                     </div>
@@ -354,8 +359,9 @@ export const ShareProformaDialog = ({ open, onOpenChange, proformaType }: ShareP
             <div className="p-4 bg-muted rounded-lg text-sm space-y-3">
               <p className="font-semibold">Share Configuration:</p>
               <ul className="space-y-1 text-muted-foreground text-xs">
-                <li>• Proforma: {proformaType === 'ai' ? 'AI-Generated' : 'Custom'}{adjustmentPercent !== 0 ? ` with ${adjustmentType === 'increase' ? '+' : '−'}${adjustmentPercent}% adjustment` : ''}</li>
-                <li>• Adjustment: {adjustmentPercent !== 0 ? `Applies to all scenarios (Conservative, Growth, Aggressive)` : 'None'}</li>
+                <li>• Proforma: {proformaType === 'ai' ? 'AI-Generated' : 'Custom'}</li>
+                <li>• Source Data: AI Pro Forma {adjustmentPercent === 0 ? '(exact copy)' : `with ${adjustmentType === 'increase' ? '+' : '−'}${adjustmentPercent}% adjustment`}</li>
+                <li>• Adjustment: {adjustmentPercent !== 0 ? `${adjustmentType === 'increase' ? '+' : '−'}${adjustmentPercent}% applied to all scenarios (Conservative, Growth, Aggressive)` : 'None - exact copy of AI data'}</li>
                 <li>• Data: {useRealTimeData ? 'Real-time metrics' : 'Projected assumptions'}</li>
                 <li>• View: {allowHtmlView ? 'HTML spreadsheet enabled' : 'View-only mode'}</li>
                 <li>• Download: {allowDownload ? 'Enabled' : 'Disabled'}</li>
