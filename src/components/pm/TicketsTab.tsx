@@ -112,7 +112,7 @@ export const TicketsTab = ({ userId }: TicketsTabProps) => {
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <CardTitle className="text-lg">{ticket.ticket_number}</CardTitle>
+                    <CardTitle className="text-lg">#{ticket.id.slice(0, 8)}</CardTitle>
                     <Badge variant={getPriorityColor(ticket.priority)}>{ticket.priority}</Badge>
                     <Badge variant={getStatusColor(ticket.status)}>{ticket.status}</Badge>
                   </div>
