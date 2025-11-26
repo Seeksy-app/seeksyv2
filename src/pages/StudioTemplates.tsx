@@ -15,6 +15,7 @@ import podcastThumb from "@/assets/studio-template-podcast.jpg";
 import livestreamThumb from "@/assets/studio-template-livestream.jpg";
 import interviewThumb from "@/assets/studio-template-interview.jpg";
 import { AdminViewToggle } from "@/components/admin/AdminViewToggle";
+import { useCredits } from "@/hooks/useCredits";
 
 interface StudioSession {
   id: string;
@@ -29,6 +30,7 @@ interface StudioSession {
 export default function StudioTemplates() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { deductCredit, isDeducting } = useCredits();
   const [sessions, setSessions] = useState<StudioSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -192,6 +194,9 @@ export default function StudioTemplates() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
+
+      // Deduct credit for creating studio
+      await deductCredit("create_studio", `Created studio: ${sessionName.trim()}`);
 
       // Create session first
       const { data: session, error: sessionError } = await supabase
@@ -455,8 +460,8 @@ export default function StudioTemplates() {
                     >
                       Cancel
                     </Button>
-                    <Button onClick={handleCreateSession} disabled={creating}>
-                      {creating ? "Creating..." : "Create Studio"}
+                    <Button onClick={handleCreateSession} disabled={creating || isDeducting}>
+                      {creating || isDeducting ? "Creating..." : "Create Studio"}
                     </Button>
                   </div>
                 </DialogContent>
