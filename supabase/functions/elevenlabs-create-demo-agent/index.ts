@@ -31,9 +31,9 @@ serve(async (req) => {
         conversation_config: {
           agent: {
             prompt: {
-              prompt: prompt || "You are a helpful AI assistant for a demo advertisement. Answer questions about products and services in a friendly, professional manner."
+              prompt: prompt || "You are a professional customer service assistant. Answer questions clearly and professionally. If asked about specific products or services, provide helpful information and offer to transfer to the appropriate team."
             },
-            first_message: "Hi! Thanks for calling. How can I help you today?",
+            first_message: "Hello! How can I assist you today?",
             language: "en"
           },
           tts: {
