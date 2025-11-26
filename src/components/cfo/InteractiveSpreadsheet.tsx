@@ -295,6 +295,82 @@ export const InteractiveSpreadsheet = ({ isReadOnly = false }: { isReadOnly?: bo
 
   const forecast = calculateForecast();
 
+  // Generate AI baseline forecast for spreadsheet viewer
+  const generateAIForecast = () => {
+    const baseline = {
+      year1Revenue: 2100000,
+      year2Revenue: 8700000,
+      year3Revenue: 35800000,
+      year1Profit: 523000,
+      year2Profit: 2400000,
+      year3Profit: 10800000,
+    };
+
+    // Apply selected scenario multiplier
+    let multiplier = 1;
+    switch (selectedScenario) {
+      case 'conservative':
+        multiplier = 0.7; // Revenue
+        break;
+      case 'growth':
+        multiplier = 1.15;
+        break;
+      case 'aggressive':
+        multiplier = 1.5;
+        break;
+      default:
+        multiplier = 1;
+    }
+
+    const months = [];
+    const monthlyYear1Revenue = (baseline.year1Revenue * multiplier) / 12;
+    const monthlyYear2Revenue = (baseline.year2Revenue * (selectedScenario === 'conservative' ? 0.65 : selectedScenario === 'growth' ? 1.2 : selectedScenario === 'aggressive' ? 1.7 : 1)) / 12;
+    const monthlyYear3Revenue = (baseline.year3Revenue * (selectedScenario === 'conservative' ? 0.6 : selectedScenario === 'growth' ? 1.25 : selectedScenario === 'aggressive' ? 2.0 : 1)) / 12;
+
+    const monthlyYear1Profit = (baseline.year1Profit * (selectedScenario === 'conservative' ? 0.5 : selectedScenario === 'growth' ? 1.2 : selectedScenario === 'aggressive' ? 1.8 : 1)) / 12;
+    const monthlyYear2Profit = (baseline.year2Profit * (selectedScenario === 'conservative' ? 0.55 : selectedScenario === 'growth' ? 1.25 : selectedScenario === 'aggressive' ? 2.0 : 1)) / 12;
+    const monthlyYear3Profit = (baseline.year3Profit * (selectedScenario === 'conservative' ? 0.6 : selectedScenario === 'growth' ? 1.3 : selectedScenario === 'aggressive' ? 2.2 : 1)) / 12;
+
+    for (let month = 1; month <= 36; month++) {
+      let totalRevenue, netProfit;
+      
+      if (month <= 12) {
+        totalRevenue = monthlyYear1Revenue;
+        netProfit = monthlyYear1Profit;
+      } else if (month <= 24) {
+        totalRevenue = monthlyYear2Revenue;
+        netProfit = monthlyYear2Profit;
+      } else {
+        totalRevenue = monthlyYear3Revenue;
+        netProfit = monthlyYear3Profit;
+      }
+
+      const totalCosts = totalRevenue - netProfit;
+      const grossMargin = totalRevenue > 0 ? ((totalRevenue - totalCosts * 0.3) / totalRevenue) * 100 : 0;
+      const netMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+
+      months.push({
+        month,
+        totalUsers: Math.floor(1000 + (month * 100)),
+        podcasterRevenue: totalRevenue * 0.4,
+        eventCreatorRevenue: totalRevenue * 0.15,
+        myPageRevenue: totalRevenue * 0.25,
+        adRevenuePlatform: totalRevenue * 0.2,
+        totalRevenue,
+        aiCosts: totalCosts * 0.3,
+        storageCosts: totalCosts * 0.2,
+        streamingCosts: totalCosts * 0.25,
+        marketingCosts: totalCosts * 0.25,
+        totalCosts,
+        grossMargin,
+        netProfit,
+        netMargin,
+      });
+    }
+
+    return months;
+  };
+
   // Calculate scenario-adjusted AI projections with useMemo for optimal reactivity
   const scenarioProjections = useMemo(() => {
     const baseline = {
@@ -1896,7 +1972,8 @@ export const InteractiveSpreadsheet = ({ isReadOnly = false }: { isReadOnly?: bo
                         size="sm" 
                         className="text-xs px-2"
                         onClick={() => {
-                          setViewerData({ assumptions, forecast, type: 'ai' });
+                          const aiForecast = generateAIForecast();
+                          setViewerData({ assumptions, forecast: aiForecast, type: 'ai' });
                           setSpreadsheetViewerOpen(true);
                         }}
                       >
