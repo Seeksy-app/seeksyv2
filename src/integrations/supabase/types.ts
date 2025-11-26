@@ -4392,6 +4392,47 @@ export type Database = {
           },
         ]
       }
+      meeting_attendees: {
+        Row: {
+          attendee_email: string
+          attendee_name: string
+          attendee_phone: string | null
+          created_at: string | null
+          id: string
+          meeting_id: string
+          rsvp_status: string | null
+          rsvp_timestamp: string | null
+        }
+        Insert: {
+          attendee_email: string
+          attendee_name: string
+          attendee_phone?: string | null
+          created_at?: string | null
+          id?: string
+          meeting_id: string
+          rsvp_status?: string | null
+          rsvp_timestamp?: string | null
+        }
+        Update: {
+          attendee_email?: string
+          attendee_name?: string
+          attendee_phone?: string | null
+          created_at?: string | null
+          id?: string
+          meeting_id?: string
+          rsvp_status?: string | null
+          rsvp_timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_attendees_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_intelligence: {
         Row: {
           action_items: Json | null
@@ -4550,6 +4591,8 @@ export type Database = {
           location_details: string | null
           location_type: Database["public"]["Enums"]["location_type"]
           meeting_type_id: string | null
+          recording_duration: number | null
+          recording_size: number | null
           recording_url: string | null
           show_ai_notes: boolean | null
           start_time: string
@@ -4573,6 +4616,8 @@ export type Database = {
           location_details?: string | null
           location_type: Database["public"]["Enums"]["location_type"]
           meeting_type_id?: string | null
+          recording_duration?: number | null
+          recording_size?: number | null
           recording_url?: string | null
           show_ai_notes?: boolean | null
           start_time: string
@@ -4596,6 +4641,8 @@ export type Database = {
           location_details?: string | null
           location_type?: Database["public"]["Enums"]["location_type"]
           meeting_type_id?: string | null
+          recording_duration?: number | null
+          recording_size?: number | null
           recording_url?: string | null
           show_ai_notes?: boolean | null
           start_time?: string

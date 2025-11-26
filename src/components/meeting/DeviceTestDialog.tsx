@@ -269,7 +269,7 @@ export function DeviceTestDialog({ open, onContinue }: DeviceTestDialogProps) {
 
           {/* Microphone */}
           <div className="space-y-3">
-            <Label>Microphone</Label>
+            <Label className="text-base font-semibold">Microphone (Audio Input)</Label>
             <div className="flex items-center gap-3">
               <Button
                 variant="secondary"
@@ -289,17 +289,23 @@ export function DeviceTestDialog({ open, onContinue }: DeviceTestDialogProps) {
               </span>
             </div>
             <Select value={selectedAudioInput} onValueChange={setSelectedAudioInput}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select microphone" />
+              <SelectTrigger className="text-base">
+                <SelectValue placeholder="Select audio input source" />
               </SelectTrigger>
               <SelectContent>
                 {audioInputDevices.map((device) => (
-                  <SelectItem key={device.deviceId} value={device.deviceId}>
+                  <SelectItem key={device.deviceId} value={device.deviceId} className="text-base">
                     {device.label || `Microphone ${audioInputDevices.indexOf(device) + 1}`}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {audioInputDevices.length > 0 && (
+              <p className="text-xs text-muted-foreground">
+                {audioInputDevices.length} audio source{audioInputDevices.length > 1 ? 's' : ''} detected. 
+                Your computer microphone, earbuds, and other audio devices will appear here.
+              </p>
+            )}
           </div>
 
           {/* Speakers */}

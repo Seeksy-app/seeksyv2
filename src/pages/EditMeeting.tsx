@@ -85,7 +85,15 @@ export default function EditMeeting() {
     try {
       const { data, error } = await supabase
         .from("meetings")
-        .select("*")
+        .select(`
+          *,
+          meeting_attendees (
+            id,
+            attendee_name,
+            attendee_email,
+            attendee_phone
+          )
+        `)
         .eq("id", id)
         .single();
 
@@ -110,11 +118,27 @@ export default function EditMeeting() {
       
       setLocationType(data.location_type);
       setLocationDetails(data.location_details || "");
-      setAttendeeName(data.attendee_name);
-      setAttendeeEmail(data.attendee_email);
-      setAttendeePhone(data.attendee_phone || "");
-      setOriginalAttendeeEmail(data.attendee_email);
       setSelectedMeetingTypeId(data.meeting_type_id || "");
+
+      // Load attendees from meeting_attendees table
+      if (data.meeting_attendees && data.meeting_attendees.length > 0) {
+        const primaryAttendee = data.meeting_attendees[0];
+        setAttendeeName(primaryAttendee.attendee_name);
+        setAttendeeEmail(primaryAttendee.attendee_email);
+        setAttendeePhone(primaryAttendee.attendee_phone || "");
+        setOriginalAttendeeEmail(primaryAttendee.attendee_email);
+
+        // Load additional attendees as selected contacts
+        if (data.meeting_attendees.length > 1) {
+          const additionalAttendees = data.meeting_attendees.slice(1).map((att: any) => ({
+            id: att.id,
+            name: att.attendee_name,
+            email: att.attendee_email,
+            phone: att.attendee_phone
+          }));
+          setSelectedContacts(additionalAttendees);
+        }
+      }
       
       setLoading(false);
     } catch (error) {
@@ -144,7 +168,7 @@ export default function EditMeeting() {
       const endTime = new Date(startTime);
       endTime.setMinutes(endTime.getMinutes() + parseInt(duration));
 
-      // Update the existing meeting (primary attendee)
+      // Update the meeting record
       const { error } = await supabase
         .from("meetings")
         .update({
@@ -155,41 +179,39 @@ export default function EditMeeting() {
           end_time: endTime.toISOString(),
           location_type: locationType,
           location_details: locationDetails,
-          attendee_name: attendeeName,
-          attendee_email: attendeeEmail,
-          attendee_phone: attendeePhone || null,
         })
         .eq("id", id);
 
       if (error) throw error;
 
-      // Create new meetings for any additional contacts that were added
-      if (selectedContacts.length > 0) {
-        const additionalMeetings = selectedContacts
-          .filter(contact => contact.email !== originalAttendeeEmail) // Don't duplicate original attendee
-          .map(contact => ({
-            user_id: userId,
-            meeting_type_id: selectedMeetingTypeId || null,
-            title,
-            description,
-            start_time: startTime.toISOString(),
-            end_time: endTime.toISOString(),
-            location_type: locationType,
-            location_details: locationDetails,
-            attendee_name: contact.name,
-            attendee_email: contact.email,
-            attendee_phone: contact.phone || null,
-            status: "scheduled" as const,
-          }));
+      // Delete all existing attendees for this meeting
+      await supabase
+        .from("meeting_attendees")
+        .delete()
+        .eq("meeting_id", id);
 
-        if (additionalMeetings.length > 0) {
-          const { error: insertError } = await supabase
-            .from("meetings")
-            .insert(additionalMeetings);
+      // Insert primary attendee
+      const allAttendees = [
+        {
+          meeting_id: id,
+          attendee_name: attendeeName,
+          attendee_email: attendeeEmail,
+          attendee_phone: attendeePhone || null,
+        },
+        // Add selected contacts as additional attendees
+        ...selectedContacts.map(contact => ({
+          meeting_id: id,
+          attendee_name: contact.name,
+          attendee_email: contact.email,
+          attendee_phone: contact.phone || null,
+        }))
+      ];
 
-          if (insertError) throw insertError;
-        }
-      }
+      const { error: attendeesError } = await supabase
+        .from("meeting_attendees")
+        .insert(allAttendees);
+
+      if (attendeesError) throw attendeesError;
 
       toast.success("Meeting updated successfully");
       navigate("/meetings");

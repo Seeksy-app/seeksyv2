@@ -36,15 +36,23 @@ const Meetings = () => {
       const isAdmin = roles?.role === "admin" || roles?.role === "super_admin";
       const adminViewMode = localStorage.getItem('adminViewMode') === 'true';
 
-      // Build query
+      // Build query with attendees
       let query = supabase
         .from("meetings")
-        .select("*");
+        .select(`
+          *,
+          meeting_attendees (
+            id,
+            attendee_name,
+            attendee_email,
+            attendee_phone,
+            rsvp_status,
+            rsvp_timestamp
+          )
+        `);
       
       // If admin in Personal View, only show personal meetings
-      // (meetings without admin-created studio_templates)
       if (isAdmin && !adminViewMode) {
-        // For now, filter by user_id - in future, add created_in_admin_mode field
         query = query.eq("user_id", user.id);
       } else {
         query = query.eq("user_id", user.id);
@@ -54,10 +62,11 @@ const Meetings = () => {
 
       if (error) throw error;
       
-      // Generate meeting ID from UUID (first 12 characters)
+      // Generate meeting ID and flatten attendees
       return (data || []).map(meeting => ({
         ...meeting,
-        meeting_id: meeting.id.substring(0, 12).replace(/-/g, '').toUpperCase()
+        meeting_id: meeting.id.substring(0, 12).replace(/-/g, '').toUpperCase(),
+        attendees: meeting.meeting_attendees || []
       }));
     },
   });
@@ -179,10 +188,9 @@ const Meetings = () => {
               <TableRow className="bg-muted/30">
                 <TableHead className="font-semibold">Start Time</TableHead>
                 <TableHead className="font-semibold">Title</TableHead>
-                <TableHead className="font-semibold">Attendee</TableHead>
+                <TableHead className="font-semibold">Attendees</TableHead>
                 <TableHead className="font-semibold">Meeting ID</TableHead>
                 <TableHead className="font-semibold">Status</TableHead>
-                <TableHead className="font-semibold">RSVP</TableHead>
                 <TableHead className="text-right font-semibold">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -222,9 +230,35 @@ const Meetings = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{meeting.attendee_name}</span>
-                        <span className="text-sm text-muted-foreground">{meeting.attendee_email}</span>
+                      <div className="flex flex-col gap-2">
+                        {meeting.attendees?.map((attendee: any, idx: number) => (
+                          <div key={attendee.id} className="flex items-center gap-2">
+                            <div className="flex flex-col">
+                              <span className="font-medium">{attendee.attendee_name}</span>
+                              <span className="text-sm text-muted-foreground">{attendee.attendee_email}</span>
+                            </div>
+                            {attendee.rsvp_status === 'attending' && (
+                              <Badge variant="default" className="bg-green-500 hover:bg-green-600 text-xs">
+                                ✅ Attending
+                              </Badge>
+                            )}
+                            {attendee.rsvp_status === 'not_attending' && (
+                              <Badge variant="destructive" className="text-xs">
+                                ❌ Not Attending
+                              </Badge>
+                            )}
+                            {attendee.rsvp_status === 'maybe' && (
+                              <Badge variant="secondary" className="text-xs">
+                                ❓ Maybe
+                              </Badge>
+                            )}
+                            {attendee.rsvp_status === 'awaiting' && (
+                              <Badge variant="outline" className="text-xs">
+                                ⏳ Awaiting
+                              </Badge>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -239,49 +273,6 @@ const Meetings = () => {
                         <Badge variant="default">Scheduled</Badge>
                       )}
                     </TableCell>
-                    <TableCell>
-                      {meeting.attendee_rsvp_status === 'attending' && (
-                        <div className="flex flex-col gap-1">
-                          <Badge variant="default" className="bg-green-500 hover:bg-green-600 w-fit">
-                            ✅ Attending
-                          </Badge>
-                          {meeting.attendee_rsvp_timestamp && (
-                            <span className="text-xs text-muted-foreground">
-                              {format(new Date(meeting.attendee_rsvp_timestamp), "MMM d, h:mm a")}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      {meeting.attendee_rsvp_status === 'not_attending' && (
-                        <div className="flex flex-col gap-1">
-                          <Badge variant="destructive" className="w-fit">
-                            ❌ Not Attending
-                          </Badge>
-                          {meeting.attendee_rsvp_timestamp && (
-                            <span className="text-xs text-muted-foreground">
-                              {format(new Date(meeting.attendee_rsvp_timestamp), "MMM d, h:mm a")}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      {meeting.attendee_rsvp_status === 'maybe' && (
-                        <div className="flex flex-col gap-1">
-                          <Badge variant="secondary" className="w-fit">
-                            ❓ Maybe
-                          </Badge>
-                          {meeting.attendee_rsvp_timestamp && (
-                            <span className="text-xs text-muted-foreground">
-                              {format(new Date(meeting.attendee_rsvp_timestamp), "MMM d, h:mm a")}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      {meeting.attendee_rsvp_status === 'awaiting' && (
-                        <Badge variant="outline" className="w-fit">
-                          ⏳ Awaiting
-                        </Badge>
-                      )}
-                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
                         {!isPast && !isCancelled && showStartButton && (
@@ -291,8 +282,19 @@ const Meetings = () => {
                             onClick={() => handleStartMeeting(meeting)}
                             className="gap-2"
                           >
-                            <Video className="w-4 h-4" />
+                            <Video className="w-4 w-4" />
                             Start
+                          </Button>
+                        )}
+                        {isPast && meeting.recording_url && (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => window.open(meeting.recording_url, '_blank')}
+                            className="gap-2"
+                          >
+                            <Video className="w-4 h-4" />
+                            Download
                           </Button>
                         )}
                         <Button
