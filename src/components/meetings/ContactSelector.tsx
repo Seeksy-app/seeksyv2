@@ -33,6 +33,10 @@ export function ContactSelector({ userId, onSelectContacts, selectedContacts }: 
   const [newContactEmail, setNewContactEmail] = useState("");
   const [newContactPhone, setNewContactPhone] = useState("");
   const [saving, setSaving] = useState(false);
+  const [addManualAttendeeOpen, setAddManualAttendeeOpen] = useState(false);
+  const [manualName, setManualName] = useState("");
+  const [manualEmail, setManualEmail] = useState("");
+  const [manualPhone, setManualPhone] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -137,17 +141,102 @@ export function ContactSelector({ userId, onSelectContacts, selectedContacts }: 
     }
   };
 
+  const handleAddManualAttendee = () => {
+    if (!manualName || !manualEmail) {
+      toast({
+        title: "Missing information",
+        description: "Name and email are required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create a temporary contact object (not saved to database)
+    const tempContact: Contact = {
+      id: `temp-${Date.now()}-${Math.random()}`,
+      name: manualName,
+      email: manualEmail,
+      phone: manualPhone || null,
+    };
+
+    onSelectContacts([...selectedContacts, tempContact]);
+
+    toast({
+      title: "Attendee added",
+      description: `${manualName} has been added to the meeting`,
+    });
+
+    // Reset form
+    setManualName("");
+    setManualEmail("");
+    setManualPhone("");
+    setAddManualAttendeeOpen(false);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <Label>Meeting Attendees</Label>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm">
-              <UserPlus className="h-4 w-4 mr-2" />
-              Add from Contacts
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Dialog open={addManualAttendeeOpen} onOpenChange={setAddManualAttendeeOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Attendee
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add Attendee</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="manual-name">Name *</Label>
+                  <Input
+                    id="manual-name"
+                    value={manualName}
+                    onChange={(e) => setManualName(e.target.value)}
+                    placeholder="Enter attendee name"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="manual-email">Email *</Label>
+                  <Input
+                    id="manual-email"
+                    type="email"
+                    value={manualEmail}
+                    onChange={(e) => setManualEmail(e.target.value)}
+                    placeholder="Enter attendee email"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="manual-phone">Phone (Optional)</Label>
+                  <Input
+                    id="manual-phone"
+                    value={manualPhone}
+                    onChange={(e) => setManualPhone(e.target.value)}
+                    placeholder="Enter attendee phone"
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setAddManualAttendeeOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleAddManualAttendee}>
+                    Add Attendee
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+          
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Add from Contacts
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Select Contacts</DialogTitle>
@@ -263,7 +352,8 @@ export function ContactSelector({ userId, onSelectContacts, selectedContacts }: 
               </div>
             </div>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       {selectedContacts.length > 0 && (
