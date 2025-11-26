@@ -260,12 +260,12 @@ export const SeeksyAIChatWidget = () => {
     
     return (
       <div className="fixed bottom-6 right-6 z-50">
-        {/* Holiday decorations - minimal */}
+        {/* Holiday decorations - festive! */}
         {isThanksgiving && (
-          <div className="absolute -top-2 -right-2 text-2xl">🍂</div>
+          <div className="absolute -top-3 -right-3 text-3xl drop-shadow-lg">🍂</div>
         )}
         {isChristmas && (
-          <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-4xl">🎅</div>
+          <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-5xl drop-shadow-lg">🎅</div>
         )}
         <Button
           onClick={() => setIsOpen(true)}
