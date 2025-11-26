@@ -9,9 +9,10 @@ interface ProfileQRCodeProps {
   username: string;
   themeColor?: string;
   logoUrl?: string;
+  shape?: 'square' | 'round';
 }
 
-export const ProfileQRCode = ({ username, themeColor = "#0064B1", logoUrl }: ProfileQRCodeProps) => {
+export const ProfileQRCode = ({ username, themeColor = "#0064B1", logoUrl, shape = 'square' }: ProfileQRCodeProps) => {
   const qrRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const profileUrl = `${window.location.origin}/${username}`;
@@ -109,49 +110,43 @@ export const ProfileQRCode = ({ username, themeColor = "#0064B1", logoUrl }: Pro
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Your QR Code</CardTitle>
-        <CardDescription>
-          Share your profile page with a QR code
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div 
-          ref={qrRef} 
-          className="flex justify-center p-6 bg-white rounded-lg"
-        >
-          <QRCodeSVG
-            value={profileUrl}
-            size={200}
-            level="H"
-            fgColor={themeColor}
-          />
-        </div>
-        
-        <div className="text-sm text-center text-muted-foreground">
-          <p className="font-mono text-xs break-all">{profileUrl}</p>
-        </div>
+    <div className="space-y-4">
+      <div 
+        ref={qrRef} 
+        className={`inline-block p-4 bg-white ${shape === 'round' ? 'rounded-full' : 'rounded-lg'}`}
+      >
+        <QRCodeSVG
+          value={profileUrl}
+          size={160}
+          level="H"
+          fgColor={themeColor}
+        />
+      </div>
+      
+      <div className="text-sm text-muted-foreground">
+        <p className="font-mono text-xs break-all">{profileUrl}</p>
+      </div>
 
-        <div className="flex gap-2">
-          <Button
-            onClick={handleDownload}
-            variant="outline"
-            className="flex-1"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Download
-          </Button>
-          <Button
-            onClick={handleShare}
-            variant="outline"
-            className="flex-1"
-          >
-            <Share2 className="h-4 w-4 mr-2" />
-            Share Link
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+      <div className="flex gap-2">
+        <Button
+          onClick={handleDownload}
+          variant="outline"
+          className="flex-1"
+          size="sm"
+        >
+          <Download className="h-4 w-4 mr-2" />
+          Download
+        </Button>
+        <Button
+          onClick={handleShare}
+          variant="outline"
+          className="flex-1"
+          size="sm"
+        >
+          <Share2 className="h-4 w-4 mr-2" />
+          Share Link
+        </Button>
+      </div>
+    </div>
   );
 };

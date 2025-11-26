@@ -156,6 +156,7 @@ const ProfileEdit = () => {
   const [pageBackgroundColor, setPageBackgroundColor] = useState("#1a1a1a");
   const [qrCodeColor, setQrCodeColor] = useState("#000000");
   const [includeLogoInQR, setIncludeLogoInQR] = useState(false);
+  const [qrCodeShape, setQrCodeShape] = useState<'square' | 'round'>('square');
   const [heroSectionColor, setHeroSectionColor] = useState("#1a1a1a");
   const [customThemeColors, setCustomThemeColors] = useState<string[]>([]);
   const [customBgColors, setCustomBgColors] = useState<string[]>([]);
@@ -1251,36 +1252,61 @@ const ProfileEdit = () => {
             </div>
             
             {!collapsedSections.has('qr-code') && (
-              <>
+              <div className="space-y-4">
                 <div className="space-y-3">
-                  <div>
-                    <Label htmlFor="qrCodeColor" className="text-sm font-medium">QR Code Color</Label>
-                    <div className="flex gap-3 items-center mt-2">
-                      <Input
-                        id="qrCodeColor"
-                        type="color"
-                        value={qrCodeColor}
-                        onChange={(e) => setQrCodeColor(e.target.value)}
-                        className="w-16 h-10 cursor-pointer"
-                      />
-                      <div className="flex gap-2 flex-wrap">
-                        {['#000000', '#FF6B6B', '#4ECDC4', '#45B7D1', '#1F2937'].map((color) => (
-                          <button
-                            key={color}
-                            type="button"
-                            onClick={() => setQrCodeColor(color)}
-                            className="w-8 h-8 rounded-full border-2 border-border hover:scale-110 transition-transform"
-                            style={{ backgroundColor: color }}
-                            title={color}
-                          />
-                        ))}
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <Label htmlFor="qrCodeColor" className="text-sm font-medium">QR Code Color</Label>
+                      <div className="flex gap-3 items-center mt-2">
+                        <Input
+                          id="qrCodeColor"
+                          type="color"
+                          value={qrCodeColor}
+                          onChange={(e) => setQrCodeColor(e.target.value)}
+                          className="w-16 h-10 cursor-pointer"
+                        />
+                        <div className="flex gap-2 flex-wrap">
+                          {['#000000', '#FF6B6B', '#4ECDC4', '#45B7D1', '#1F2937'].map((color) => (
+                            <button
+                              key={color}
+                              type="button"
+                              onClick={() => setQrCodeColor(color)}
+                              className="w-8 h-8 rounded-full border-2 border-border hover:scale-110 transition-transform"
+                              style={{ backgroundColor: color }}
+                              title={color}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <Label className="text-sm font-medium">QR Shape</Label>
+                      <div className="flex gap-2 mt-2">
+                        <Button
+                          type="button"
+                          variant={qrCodeShape === 'square' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setQrCodeShape('square')}
+                          className="px-3"
+                        >
+                          Square
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={qrCodeShape === 'round' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setQrCodeShape('round')}
+                          className="px-3"
+                        >
+                          Round
+                        </Button>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                     <div>
-                      <p className="font-medium">Include Logo in QR Code</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="font-medium text-sm">Include Logo in QR Code</p>
+                      <p className="text-xs text-muted-foreground">
                         Show your profile image in the center of the QR code
                       </p>
                     </div>
@@ -1294,8 +1320,9 @@ const ProfileEdit = () => {
                   username={username} 
                   themeColor={qrCodeColor} 
                   logoUrl={includeLogoInQR ? avatarUrl : undefined}
+                  shape={qrCodeShape}
                 />
-              </>
+              </div>
             )}
           </div>
 
