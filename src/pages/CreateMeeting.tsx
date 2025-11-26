@@ -42,6 +42,7 @@ const CreateMeeting = () => {
   const [attendeeName, setAttendeeName] = useState("");
   const [attendeeEmail, setAttendeeEmail] = useState("");
   const [attendeePhone, setAttendeePhone] = useState("");
+  const [smsConsent, setSmsConsent] = useState(false);
   const [createCalendarEvent, setCreateCalendarEvent] = useState(false);
   
   const navigate = useNavigate();
@@ -210,8 +211,24 @@ const CreateMeeting = () => {
 
       if (error) throw error;
 
-      // Send SMS confirmation if phone provided
-      if (attendeePhone && meetingData?.id) {
+      // Store SMS consent if phone provided and consent given
+      if (attendeePhone && smsConsent && meetingData?.id) {
+        try {
+          await supabase.from("sms_consent_records").insert({
+            phone_number: attendeePhone,
+            consent_given: true,
+            consent_text: "I agree to receive SMS notifications about this meeting",
+            consent_method: "admin_meeting_form",
+            ip_address: null,
+            user_agent: navigator.userAgent,
+          });
+        } catch (consentError) {
+          console.error("Error storing SMS consent:", consentError);
+        }
+      }
+
+      // Send SMS confirmation if phone provided AND consent given
+      if (attendeePhone && smsConsent && meetingData?.id) {
         try {
           await supabase.functions.invoke("send-meeting-confirmation-sms", {
             body: { meetingId: meetingData.id },
@@ -545,6 +562,21 @@ const CreateMeeting = () => {
                     placeholder="(Optional)"
                   />
                 </div>
+
+                {attendeePhone && (
+                  <div className="flex items-start space-x-2 p-3 bg-muted/50 rounded-lg border">
+                    <input
+                      type="checkbox"
+                      id="sms-consent"
+                      checked={smsConsent}
+                      onChange={(e) => setSmsConsent(e.target.checked)}
+                      className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <label htmlFor="sms-consent" className="text-sm text-foreground cursor-pointer">
+                      I agree to receive SMS notifications about this meeting
+                    </label>
+                  </div>
+                )}
               </div>
             </div>
 
