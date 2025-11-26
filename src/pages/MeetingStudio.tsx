@@ -1,11 +1,13 @@
 import { useParams } from "react-router-dom";
 import { StudioRightSidebar } from "@/components/studio/StudioRightSidebar";
 import { Button } from "@/components/ui/button";
-import { Video, VideoOff, Mic, MicOff, PhoneOff, Moon, Users } from "lucide-react";
+import { Video, VideoOff, Mic, MicOff, PhoneOff, Moon, Users, Sparkles } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { toast } from "sonner";
 import { DeviceTestDialog } from "@/components/meeting/DeviceTestDialog";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 const MeetingStudio = () => {
   const { id } = useParams();
@@ -14,6 +16,7 @@ const MeetingStudio = () => {
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
   const [showDeviceTest, setShowDeviceTest] = useState(true);
+  const [showAINotes, setShowAINotes] = useState(true);
   const [selectedDevices, setSelectedDevices] = useState<{
     videoDeviceId: string | null;
     audioInputDeviceId: string | null;
@@ -133,7 +136,18 @@ const MeetingStudio = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="ai-notes"
+                checked={showAINotes}
+                onCheckedChange={setShowAINotes}
+              />
+              <Label htmlFor="ai-notes" className="text-white text-sm cursor-pointer flex items-center gap-1">
+                <Sparkles className="h-4 w-4" />
+                AI Notes
+              </Label>
+            </div>
             <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
               <Moon className="h-5 w-5" />
             </Button>
@@ -218,7 +232,7 @@ const MeetingStudio = () => {
               channelsExpanded={false}
               onToggleChannelsExpanded={() => {}}
               meetingId={id}
-              showAINotes={true}
+              showAINotes={showAINotes}
             />
           </ResizablePanel>
         </ResizablePanelGroup>
