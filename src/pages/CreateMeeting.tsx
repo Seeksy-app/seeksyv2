@@ -16,6 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
 import { ContactSelector } from "@/components/meetings/ContactSelector";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useCredits } from "@/hooks/useCredits";
 
 interface MeetingType {
   id: string;
@@ -35,6 +36,7 @@ interface Contact {
 const CreateMeeting = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
+  const { deductCredit, isDeducting } = useCredits();
   const [meetingTypes, setMeetingTypes] = useState<MeetingType[]>([]);
   const [calendarConnected, setCalendarConnected] = useState(false);
   const [microsoftConnected, setMicrosoftConnected] = useState(false);
@@ -193,6 +195,8 @@ const CreateMeeting = () => {
     setLoading(true);
 
     try {
+      // Deduct credit for creating meeting
+      await deductCredit("create_meeting", `Created meeting: ${title}`);
 
       // Build attendee list
       const attendees = selectedContacts.length > 0 
@@ -668,8 +672,8 @@ const CreateMeeting = () => {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading} className="flex-1">
-                {loading ? (
+              <Button type="submit" disabled={loading || isDeducting} className="flex-1">
+                {loading || isDeducting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Scheduling...
