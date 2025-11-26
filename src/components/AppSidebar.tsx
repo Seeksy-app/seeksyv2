@@ -196,6 +196,8 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     admin: false,
     adminCustomerSupport: true,
     adminManagement: false,
+    adminClientManagement: false,
+    adminAnalytics: false,
     adminOperations: false,
     adminFinancials: false,
     adminAdvertising: false,
@@ -466,6 +468,17 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     { title: "CRM / Contacts", url: "/crm", icon: Users },
     { title: "Impersonate User", url: "/admin/impersonate", icon: UserCog },
     { title: "Manage Credits", url: "/admin/credits", icon: Coins },
+  ];
+
+  const adminClientManagement = [
+    { title: "Creators", url: "/admin/creators", icon: Users },
+    { title: "Agency", url: "/admin/agency", icon: Building2 },
+  ];
+
+  const adminAnalytics = [
+    { title: "Overview", url: "/admin/analytics", icon: BarChart3 },
+    { title: "Podcast Analytics", url: "/admin/analytics/podcasts", icon: Mic },
+    { title: "Impressions & Listens", url: "/admin/analytics/impressions", icon: Activity },
   ];
 
   const adminOperations = [
@@ -1451,6 +1464,8 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         {/* Admin Categories */}
         {renderAdminCategory("Customer Support", adminCustomerSupport, "adminCustomerSupport")}
         {renderAdminCategory("Management", adminManagement, "adminManagement")}
+        {renderAdminCategory("Client Management", adminClientManagement, "adminClientManagement")}
+        {renderAdminCategory("Analytics", adminAnalytics, "adminAnalytics")}
         {renderAdminCategory("Operations", adminOperations, "adminOperations")}
         {renderAdminCategory("Financials", adminFinancials, "adminFinancials")}
         {renderAdminCategory("Advertising", adminAdvertising, "adminAdvertising")}
