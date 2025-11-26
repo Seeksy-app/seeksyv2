@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { UserPlus, Search, X } from "lucide-react";
+import { UserPlus, Search, X, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
 
 interface Contact {
   id: string;
@@ -27,6 +28,12 @@ export function ContactSelector({ userId, onSelectContacts, selectedContacts }: 
   const [searchQuery, setSearchQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [addContactOpen, setAddContactOpen] = useState(false);
+  const [newContactName, setNewContactName] = useState("");
+  const [newContactEmail, setNewContactEmail] = useState("");
+  const [newContactPhone, setNewContactPhone] = useState("");
+  const [saving, setSaving] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (open) {
@@ -79,6 +86,57 @@ export function ContactSelector({ userId, onSelectContacts, selectedContacts }: 
     onSelectContacts(selectedContacts.filter(c => c.id !== contactId));
   };
 
+  const handleAddNewContact = async () => {
+    if (!newContactName || !newContactEmail) {
+      toast({
+        title: "Missing information",
+        description: "Name and email are required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { data, error } = await supabase
+        .from("contacts")
+        .insert({
+          user_id: userId,
+          name: newContactName,
+          email: newContactEmail,
+          phone: newContactPhone || null,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Contact added",
+        description: "New contact has been added successfully",
+      });
+
+      // Add to contacts list and select it
+      const newContact = { id: data.id, name: data.name, email: data.email, phone: data.phone };
+      setContacts([...contacts, newContact]);
+      onSelectContacts([...selectedContacts, newContact]);
+
+      // Reset form
+      setNewContactName("");
+      setNewContactEmail("");
+      setNewContactPhone("");
+      setAddContactOpen(false);
+    } catch (error: any) {
+      toast({
+        title: "Error adding contact",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -96,14 +154,66 @@ export function ContactSelector({ userId, onSelectContacts, selectedContacts }: 
             </DialogHeader>
             
             <div className="space-y-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search contacts..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search contacts..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <Dialog open={addContactOpen} onOpenChange={setAddContactOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="icon">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New Contact</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="name">Name *</Label>
+                        <Input
+                          id="name"
+                          value={newContactName}
+                          onChange={(e) => setNewContactName(e.target.value)}
+                          placeholder="Enter name"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="email">Email *</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={newContactEmail}
+                          onChange={(e) => setNewContactEmail(e.target.value)}
+                          placeholder="Enter email"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="phone">Phone (Optional)</Label>
+                        <Input
+                          id="phone"
+                          value={newContactPhone}
+                          onChange={(e) => setNewContactPhone(e.target.value)}
+                          placeholder="Enter phone"
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setAddContactOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button onClick={handleAddNewContact} disabled={saving}>
+                          {saving ? "Adding..." : "Add Contact"}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
 
               <ScrollArea className="h-[400px] pr-4">
