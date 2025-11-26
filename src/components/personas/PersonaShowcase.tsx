@@ -16,6 +16,18 @@ interface Persona {
 
 const PERSONAS: Omit<Persona, "videoUrl">[] = [
   {
+    id: "christy",
+    name: "Christy",
+    role: "Platform Guide & Welcome Host",
+    tags: [
+      { icon: "👋", label: "Welcoming" },
+      { icon: "✨", label: "Enthusiastic" },
+      { icon: "🚀", label: "Inspiring" },
+    ],
+    description:
+      "Meet Christy! She's your friendly guide to Seeksy, here to show you how our all-in-one platform empowers creators to build, grow, and monetize their brand.",
+  },
+  {
     id: "creator",
     name: "Creator Alex",
     role: "Podcaster & Content Creator",
@@ -81,7 +93,8 @@ export const PersonaShowcase = () => {
           // Match by ID or by key terms in the name
           return (
             fileName.includes(persona.id) ||
-            (persona.id === "creator" && (fileName.includes("creator") || fileName.includes("podcaster") || fileName.includes("welcome"))) ||
+            (persona.id === "christy" && (fileName.includes("christy") || fileName.includes("welcome"))) ||
+            (persona.id === "creator" && (fileName.includes("creator") || fileName.includes("podcaster"))) ||
             (persona.id === "advertiser" && (fileName.includes("advertiser") || fileName.includes("brand") || fileName.includes("sarah"))) ||
             (persona.id === "agency" && (fileName.includes("agency") || fileName.includes("team") || fileName.includes("mike")))
           );
