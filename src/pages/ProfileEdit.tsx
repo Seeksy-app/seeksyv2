@@ -22,9 +22,10 @@ export default function ProfileEdit() {
   const [username, setUsername] = useState("johnny-rocket");
   const [bio, setBio] = useState("");
   const [imageStyle, setImageStyle] = useState<"circular" | "square" | "portrait">("portrait");
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   // Design
-  const [backgroundColor, setBackgroundColor] = useState("#6ee7b7");
+  const [backgroundColor, setBackgroundColor] = useState("#9ca3af");
   const [titleColor, setTitleColor] = useState("#1f2937");
   const [titleFont, setTitleFont] = useState("sans");
 
@@ -164,6 +165,41 @@ export default function ProfileEdit() {
                         rows={4}
                         className="mt-1.5 resize-none"
                       />
+                    </div>
+                    <div>
+                      <Label htmlFor="profileImage" className="text-sm font-medium">Profile Image</Label>
+                      <div className="mt-1.5">
+                        <div className="border-2 border-dashed rounded-lg p-4 text-center hover:border-primary transition-colors cursor-pointer">
+                          <input
+                            type="file"
+                            id="profileImage"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (e) => setProfileImage(e.target?.result as string);
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                          <label htmlFor="profileImage" className="cursor-pointer">
+                            {profileImage ? (
+                              <div className="flex flex-col items-center gap-2">
+                                <img src={profileImage} alt="Profile" className="w-20 h-20 rounded-full object-cover" />
+                                <p className="text-xs text-muted-foreground">Click to change</p>
+                              </div>
+                            ) : (
+                              <>
+                                <Upload className="w-6 h-6 mx-auto mb-2 text-muted-foreground" />
+                                <p className="text-sm font-medium">Upload profile image</p>
+                                <p className="text-xs text-muted-foreground mt-1">PNG, JPG up to 5MB</p>
+                              </>
+                            )}
+                          </label>
+                        </div>
+                      </div>
                     </div>
                     <div>
                       <Label className="text-sm font-medium">Image Style</Label>
@@ -496,8 +532,12 @@ export default function ProfileEdit() {
                           : imageStyle === "square"
                           ? "w-32 h-32 rounded-2xl"
                           : "w-40 h-56 rounded-2xl"
-                      } bg-gradient-to-br from-blue-400 to-purple-500 mb-4 shadow-lg`}
-                    />
+                      } mb-4 shadow-lg overflow-hidden ${!profileImage ? "bg-black" : ""}`}
+                    >
+                      {profileImage && (
+                        <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+                      )}
+                    </div>
 
                     {/* Name */}
                     <h1
