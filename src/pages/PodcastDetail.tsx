@@ -3,8 +3,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Copy, Rss, Edit, Trash2, Music2, Clock, RefreshCw } from "lucide-react";
+import { ArrowLeft, Plus, Edit, Trash2, Clock, CheckCircle, Sparkles } from "lucide-react";
 import { useState } from "react";
 import {
   AlertDialog,
@@ -62,14 +63,12 @@ const PodcastDetail = () => {
 
   const deleteEpisode = useMutation({
     mutationFn: async (episodeId: string) => {
-      // Get episode details first to track storage
       const { data: episode } = await supabase
         .from("episodes")
         .select("file_size_bytes")
         .eq("id", episodeId)
         .single();
       
-      // Delete the episode
       const { error } = await supabase
         .from("episodes")
         .delete()
@@ -77,18 +76,16 @@ const PodcastDetail = () => {
       
       if (error) throw error;
       
-      // Decrement storage usage if we have the file size and user
       if (episode?.file_size_bytes && user) {
         const fileSizeMB = Math.ceil(episode.file_size_bytes / (1024 * 1024));
         try {
           await supabase.rpc('increment_usage', {
             _user_id: user.id,
             _feature_type: 'podcast_storage_mb',
-            _increment: -fileSizeMB // Negative to decrement
+            _increment: -fileSizeMB
           });
         } catch (usageError) {
           console.error("Failed to update storage usage:", usageError);
-          // Don't fail the delete if usage tracking fails
         }
       }
     },
@@ -102,35 +99,6 @@ const PodcastDetail = () => {
     },
   });
 
-  const syncRssFeed = useMutation({
-    mutationFn: async () => {
-      const { data, error } = await supabase.functions.invoke("sync-rss-feed", {
-        body: { podcastId: id },
-      });
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["episodes", id] });
-      if (data.newEpisodesCount === 0) {
-        toast.success("No new episodes found");
-      } else {
-        toast.success(`Imported ${data.newEpisodesCount} new episodes!`);
-      }
-    },
-    onError: (error: any) => {
-      toast.error(error.message || "Failed to sync RSS feed");
-    },
-  });
-
-  const rssUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/podcast-rss?userId=${podcast?.user_id}&podcastId=${id}`;
-
-  const copyRssUrl = () => {
-    navigator.clipboard.writeText(rssUrl);
-    toast.success("RSS feed URL copied!");
-  };
-
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -139,167 +107,317 @@ const PodcastDetail = () => {
 
   if (!podcast) return null;
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-6">
-      <div className="max-w-7xl mx-auto">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/podcasts")}
-          className="mb-4"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Podcasts
-        </Button>
+  const episodeCount = episodes?.length || 0;
 
-        {/* Podcast Header */}
-        <Card className="p-6 mb-6">
-          <div className="flex flex-col md:flex-row gap-6">
-            {podcast.cover_image_url ? (
+  const recommendations = [
+    {
+      icon: <CheckCircle className="w-5 h-5" />,
+      title: "Add a title and description",
+      subtitle: "for a great first impression",
+      completed: !!podcast.title && !!podcast.description,
+    },
+    {
+      icon: <CheckCircle className="w-5 h-5" />,
+      title: "Add custom artwork",
+      subtitle: "to make your podcast stand out",
+      completed: !!podcast.cover_image_url,
+    },
+    {
+      icon: <CheckCircle className="w-5 h-5" />,
+      title: "Publish your first episode",
+      subtitle: "to launch your podcast",
+      completed: episodeCount > 0,
+    },
+    {
+      icon: <CheckCircle className="w-5 h-5" />,
+      title: "Submit to directories like Apple and Spotify",
+      subtitle: "to get discovered",
+      completed: false,
+    },
+    {
+      icon: <CheckCircle className="w-5 h-5" />,
+      title: "Upgrade to unlock features",
+      subtitle: "and power up your podcast",
+      completed: false,
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/podcasts")}
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            {podcast.cover_image_url && (
               <img
                 src={podcast.cover_image_url}
                 alt={podcast.title}
-                className="w-48 h-48 rounded-lg object-cover"
+                className="w-12 h-12 rounded-lg object-cover"
               />
-            ) : (
-              <div className="w-48 h-48 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                <Music2 className="w-16 h-16 text-muted-foreground" />
-              </div>
             )}
-            
-            <div className="flex-1">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h1 className="text-3xl font-bold mb-2">{podcast.title}</h1>
-                  <p className="text-muted-foreground">{podcast.description}</p>
-                </div>
-                <Button onClick={() => navigate(`/podcasts/${id}/edit`)}>
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit
-                </Button>
-              </div>
-
-              <div className="flex flex-wrap gap-2 mb-4">
-                {podcast.category && (
-                  <span className="px-3 py-1 bg-primary/10 text-primary text-sm rounded-full">
-                    {podcast.category}
-                  </span>
-                )}
-                {podcast.is_explicit && (
-                  <span className="px-3 py-1 bg-destructive/10 text-destructive text-sm rounded-full">
-                    Explicit
-                  </span>
-                )}
-                <span className={`px-3 py-1 text-sm rounded-full ${
-                  podcast.is_published
-                    ? 'bg-green-500/10 text-green-500'
-                    : 'bg-yellow-500/10 text-yellow-500'
-                }`}>
-                  {podcast.is_published ? 'Published' : 'Draft'}
-                </span>
-              </div>
-
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={copyRssUrl}>
-                  <Rss className="w-4 h-4 mr-2" />
-                  Copy RSS Feed
-                </Button>
-                {podcast.rss_feed_url && (
-                  <Button 
-                    variant="outline" 
-                    onClick={() => syncRssFeed.mutate()}
-                    disabled={syncRssFeed.isPending}
-                  >
-                    <RefreshCw className={`w-4 h-4 mr-2 ${syncRssFeed.isPending ? 'animate-spin' : ''}`} />
-                    {syncRssFeed.isPending ? 'Syncing...' : 'Sync from RSS'}
-                  </Button>
-                )}
-                <Button onClick={() => navigate(`/podcasts/${id}/upload`)}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Upload Episode
-                </Button>
-              </div>
-            </div>
+            <h1 className="text-2xl font-bold">{podcast.title}</h1>
           </div>
-        </Card>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-muted-foreground cursor-pointer hover:text-foreground">My Podcasts</span>
+            <span className="text-sm text-muted-foreground cursor-pointer hover:text-foreground">Resources</span>
+          </div>
+        </div>
 
-        {/* Episodes */}
-        <Card className="p-6">
-          <h2 className="text-2xl font-bold mb-4">Episodes</h2>
-          
-          {episodes && episodes.length > 0 ? (
-            <div className="space-y-4">
-              {episodes.map((episode) => (
-                <Card key={episode.id} className="p-4 hover:bg-muted/50 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        {episode.episode_number && (
-                          <span className="text-sm text-muted-foreground">
-                            #{episode.episode_number}
-                          </span>
-                        )}
-                        <h3 className="font-semibold">{episode.title}</h3>
-                        <span className={`px-2 py-0.5 text-xs rounded-full ${
-                          episode.is_published
-                            ? 'bg-green-500/10 text-green-500'
-                            : 'bg-yellow-500/10 text-yellow-500'
-                        }`}>
-                          {episode.is_published ? 'Published' : 'Draft'}
-                        </span>
+        {/* Tabs */}
+        <Tabs defaultValue="home" className="px-6">
+          <TabsList className="bg-transparent border-b-0 h-auto p-0 gap-2">
+            <TabsTrigger
+              value="home"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-green-600 data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none px-4 pb-3 text-base"
+            >
+              Home
+            </TabsTrigger>
+            <TabsTrigger
+              value="episodes"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-green-600 data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none px-4 pb-3 text-base"
+            >
+              Episodes
+            </TabsTrigger>
+            <TabsTrigger
+              value="players"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-green-600 data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none px-4 pb-3 text-base"
+            >
+              Players
+            </TabsTrigger>
+            <TabsTrigger
+              value="website"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-green-600 data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none px-4 pb-3 text-base"
+            >
+              Website
+            </TabsTrigger>
+            <TabsTrigger
+              value="directories"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-green-600 data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none px-4 pb-3 text-base"
+            >
+              Directories
+            </TabsTrigger>
+            <TabsTrigger
+              value="monetization"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-green-600 data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none px-4 pb-3 text-base"
+            >
+              Monetization
+            </TabsTrigger>
+            <TabsTrigger
+              value="stats"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-green-600 data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none px-4 pb-3 text-base"
+            >
+              Stats
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="home" className="mt-0">
+            <div className="p-6">
+              <div className="max-w-7xl mx-auto">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Main Content */}
+                  <div className="lg:col-span-2 space-y-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-3xl font-bold">Episodes</h2>
+                        <span className="text-sm text-muted-foreground">2h remaining</span>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                        {episode.description}
-                      </p>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {episode.duration_seconds 
-                            ? formatDuration(episode.duration_seconds)
-                            : 'Unknown'}
-                        </span>
-                        <span>
-                          {new Date(episode.publish_date).toLocaleDateString()}
-                        </span>
+                      <Button
+                        size="lg"
+                        className="bg-black text-white hover:bg-black/90"
+                        onClick={() => navigate(`/podcasts/${id}/upload`)}
+                      >
+                        Upload a New Episode
+                      </Button>
+                    </div>
+
+                    {episodeCount === 0 ? (
+                      <div className="text-center py-16">
+                        <p className="text-lg text-muted-foreground mb-4">
+                          There are no episodes in this podcast.
+                        </p>
+                        <div className="flex items-center justify-center gap-4">
+                          <button
+                            onClick={() => navigate(`/podcasts/${id}/upload`)}
+                            className="text-base underline hover:no-underline"
+                          >
+                            Upload an episode
+                          </button>
+                          <span className="text-muted-foreground">or</span>
+                          <button
+                            onClick={() => navigate("/podcasts/import")}
+                            className="text-base underline hover:no-underline"
+                          >
+                            copy in an existing podcast
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => navigate(`/podcasts/${id}/episodes/${episode.id}/edit`)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setEpisodeToDelete(episode.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {episodes?.map((episode) => (
+                          <Card key={episode.id} className="p-4 hover:bg-muted/50 transition-colors">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  {episode.episode_number && (
+                                    <span className="text-sm text-muted-foreground">
+                                      #{episode.episode_number}
+                                    </span>
+                                  )}
+                                  <h3 className="font-semibold">{episode.title}</h3>
+                                  <span className={`px-2 py-0.5 text-xs rounded-full ${
+                                    episode.is_published
+                                      ? 'bg-green-500/10 text-green-500'
+                                      : 'bg-yellow-500/10 text-yellow-500'
+                                  }`}>
+                                    {episode.is_published ? 'Published' : 'Draft'}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                                  {episode.description}
+                                </p>
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
+                                    {episode.duration_seconds 
+                                      ? formatDuration(episode.duration_seconds)
+                                      : 'Unknown'}
+                                  </span>
+                                  <span>
+                                    {new Date(episode.publish_date).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              </div>
+                              
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => navigate(`/podcasts/${id}/episodes/${episode.id}/edit`)}
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setEpisodeToDelete(episode.id)}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+
+                            {episode.audio_url && (
+                              <audio controls className="w-full mt-3">
+                                <source src={episode.audio_url} type="audio/mpeg" />
+                              </audio>
+                            )}
+                          </Card>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
-                  {episode.audio_url && (
-                    <audio controls className="w-full mt-3">
-                      <source src={episode.audio_url} type="audio/mpeg" />
-                    </audio>
-                  )}
-                </Card>
-              ))}
+                  {/* Sidebar */}
+                  <div className="space-y-6">
+                    {/* Recommendations */}
+                    <Card className="p-6">
+                      <h3 className="text-xl font-bold mb-6">
+                        Recommendations for your new podcast
+                      </h3>
+                      <div className="space-y-4">
+                        {recommendations.map((rec, index) => (
+                          <div
+                            key={index}
+                            className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 cursor-pointer group"
+                          >
+                            <div
+                              className={`${
+                                rec.completed
+                                  ? "text-green-500"
+                                  : "text-muted-foreground"
+                              }`}
+                            >
+                              {rec.icon}
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium">
+                                {rec.title}{" "}
+                                <span className="text-muted-foreground font-normal">
+                                  {rec.subtitle}
+                                </span>
+                              </p>
+                            </div>
+                            <span className="text-muted-foreground opacity-0 group-hover:opacity-100">
+                              →
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </Card>
+
+                    {/* Upgrade Promo */}
+                    <Card className="p-6 bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/20 dark:to-purple-800/20">
+                      <h3 className="text-xl font-bold mb-4">
+                        Unlock powerful podcasting features
+                      </h3>
+                      <div className="space-y-3 mb-6">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Sparkles className="w-4 h-4" />
+                          <span>Episodes are retained indefinitely</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Sparkles className="w-4 h-4" />
+                          <span>Fully customizable podcast website</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Sparkles className="w-4 h-4" />
+                          <span>Access to premium features & add-ons</span>
+                        </div>
+                      </div>
+                      <Button className="w-full bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90">
+                        Upgrade Now
+                      </Button>
+                      <p className="text-center text-sm text-muted-foreground mt-3">
+                        Starting at just $19/month
+                      </p>
+                    </Card>
+                  </div>
+                </div>
+              </div>
             </div>
-          ) : (
-            <div className="text-center py-12">
-              <Music2 className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground mb-4">No episodes yet</p>
-              <Button onClick={() => navigate(`/podcasts/${id}/upload`)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Upload Your First Episode
-              </Button>
-            </div>
-          )}
-        </Card>
+          </TabsContent>
+
+          <TabsContent value="episodes" className="mt-0 p-6">
+            <p className="text-muted-foreground">Episodes tab content coming soon...</p>
+          </TabsContent>
+
+          <TabsContent value="players" className="mt-0 p-6">
+            <p className="text-muted-foreground">Players tab content coming soon...</p>
+          </TabsContent>
+
+          <TabsContent value="website" className="mt-0 p-6">
+            <p className="text-muted-foreground">Website tab content coming soon...</p>
+          </TabsContent>
+
+          <TabsContent value="directories" className="mt-0 p-6">
+            <p className="text-muted-foreground">Directories tab content coming soon...</p>
+          </TabsContent>
+
+          <TabsContent value="monetization" className="mt-0 p-6">
+            <p className="text-muted-foreground">Monetization tab content coming soon...</p>
+          </TabsContent>
+
+          <TabsContent value="stats" className="mt-0 p-6">
+            <p className="text-muted-foreground">Stats tab content coming soon...</p>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Delete Confirmation Dialog */}
