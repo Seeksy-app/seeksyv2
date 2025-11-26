@@ -301,7 +301,7 @@ export default function FieldLeadCapture() {
               {/* Photo Capture */}
               <div className="space-y-2">
                 <Label>Photos (Max 5, 5MB each)</Label>
-                <p className="text-sm text-muted-foreground mb-2">Take a photo or access photos from your phone</p>
+                <p className="text-sm text-muted-foreground mb-2">Take a photo or select from your phone</p>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {photoPreviews.map((preview, index) => (
                     <div key={index} className="relative">
@@ -321,7 +321,6 @@ export default function FieldLeadCapture() {
                 <Input
                   type="file"
                   accept="image/*"
-                  capture="environment"
                   multiple
                   onChange={handlePhotoCapture}
                   disabled={photos.length >= 5}
@@ -395,19 +394,19 @@ export default function FieldLeadCapture() {
                   <div className="space-y-2">
                     <Label htmlFor="assignTo">Assign to Team Member</Label>
                     <Select value={assignedTo} onValueChange={setAssignedTo}>
-                      <SelectTrigger id="assignTo">
+                      <SelectTrigger id="assignTo" className="bg-background">
                         <SelectValue placeholder="Select team member" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-popover border border-border z-50">
                         {currentUser && (
-                          <SelectItem value={currentUser.id}>
+                          <SelectItem value={currentUser.id} className="cursor-pointer">
                             {currentUser.full_name} (You)
                           </SelectItem>
                         )}
                         {teamMembers?.map((member: any) => {
                           if (member.user_id === currentUser?.id) return null;
                           return (
-                            <SelectItem key={member.user_id} value={member.user_id}>
+                            <SelectItem key={member.user_id} value={member.user_id} className="cursor-pointer">
                               {member.profiles?.full_name || "Unknown"}
                             </SelectItem>
                           );
