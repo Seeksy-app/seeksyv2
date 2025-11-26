@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -50,6 +50,11 @@ export function StudioRightSidebar({
   const [messages, setMessages] = useState<Array<{ id: string; sender: string; text: string; avatar?: string }>>([]);
   const [activeTab, setActiveTab] = useState<'chat' | 'ai'>('chat');
   const [aiNotesVisible, setAiNotesVisible] = useState(showAINotes);
+
+  // Sync aiNotesVisible with showAINotes prop changes
+  useEffect(() => {
+    setAiNotesVisible(showAINotes);
+  }, [showAINotes]);
 
   const handleSendMessage = () => {
     if (!message.trim()) return;
