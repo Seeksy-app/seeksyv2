@@ -81,7 +81,7 @@ export const PersonaShowcase = () => {
           // Match by ID or by key terms in the name
           return (
             fileName.includes(persona.id) ||
-            (persona.id === "creator" && (fileName.includes("creator") || fileName.includes("podcaster"))) ||
+            (persona.id === "creator" && (fileName.includes("creator") || fileName.includes("podcaster") || fileName.includes("welcome"))) ||
             (persona.id === "advertiser" && (fileName.includes("advertiser") || fileName.includes("brand") || fileName.includes("sarah"))) ||
             (persona.id === "agency" && (fileName.includes("agency") || fileName.includes("team") || fileName.includes("mike")))
           );
