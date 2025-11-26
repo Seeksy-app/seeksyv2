@@ -18,12 +18,16 @@ export default function VoiceProtection() {
   const queryClient = useQueryClient();
   const [cloneType, setCloneType] = useState<CloneType>('instant');
   const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [voiceName, setVoiceName] = useState("");
   const [description, setDescription] = useState("");
   const [pricePerAd, setPricePerAd] = useState("");
   const [availableForAds, setAvailableForAds] = useState(false);
   const [usageTerms, setUsageTerms] = useState("");
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [recordingStream, setRecordingStream] = useState<MediaStream | null>(null);
+  const [recordingChunks, setRecordingChunks] = useState<BlobPart[]>([]);
 
   // Fetch user's voice profiles
   const { data: voiceProfiles } = useQuery({
@@ -43,26 +47,33 @@ export default function VoiceProtection() {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      const recorder = new MediaRecorder(stream);
       const chunks: BlobPart[] = [];
 
-      mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
-      mediaRecorder.onstop = () => {
+      recorder.ondataavailable = (e) => {
+        chunks.push(e.data);
+        setRecordingChunks(prev => [...prev, e.data]);
+      };
+      
+      recorder.onstop = () => {
         const blob = new Blob(chunks, { type: 'audio/mp3' });
         setAudioBlob(blob);
+        stream.getTracks().forEach(track => track.stop());
       };
 
-      mediaRecorder.start();
+      setMediaRecorder(recorder);
+      setRecordingStream(stream);
+      setRecordingChunks(chunks);
+      recorder.start();
       setIsRecording(true);
+      setIsPaused(false);
 
-      // Recording duration based on clone type
-      const duration = cloneType === 'instant' ? 10000 : 1800000; // 10 seconds or 30 minutes
-      
-      setTimeout(() => {
-        mediaRecorder.stop();
-        stream.getTracks().forEach(track => track.stop());
-        setIsRecording(false);
-      }, duration);
+      toast({
+        title: "Recording Started",
+        description: cloneType === 'professional' 
+          ? "Start speaking now. Best practice: Read aloud from a book for consistent quality."
+          : "Speak naturally for 2 minutes.",
+      });
     } catch (error) {
       toast({
         title: "Error",
@@ -70,6 +81,54 @@ export default function VoiceProtection() {
         variant: "destructive",
       });
     }
+  };
+
+  const pauseRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.pause();
+      setIsPaused(true);
+      toast({
+        title: "Recording Paused",
+        description: "Click Resume to continue recording",
+      });
+    }
+  };
+
+  const resumeRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === 'paused') {
+      mediaRecorder.resume();
+      setIsPaused(false);
+      toast({
+        title: "Recording Resumed",
+        description: "Continue speaking",
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      setIsPaused(false);
+      if (recordingStream) {
+        recordingStream.getTracks().forEach(track => track.stop());
+      }
+      toast({
+        title: "Recording Stopped",
+        description: "Your voice sample has been saved",
+      });
+    }
+  };
+
+  const deleteRecording = () => {
+    setAudioBlob(null);
+    setRecordingChunks([]);
+    setMediaRecorder(null);
+    setRecordingStream(null);
+    toast({
+      title: "Recording Deleted",
+      description: "You can record a new sample",
+    });
   };
 
   // Upload and clone voice
@@ -186,7 +245,7 @@ export default function VoiceProtection() {
                           Instant Voice Clone
                         </Label>
                         <p className="text-sm text-muted-foreground">
-                          Clone your voice with only two minutes of audio.
+                          Clone your voice with just 2 minutes of audio. Quick and easy setup.
                         </p>
                         <div className="flex items-center gap-2 text-sm">
                           <Clock className="h-4 w-4 text-muted-foreground" />
@@ -209,7 +268,7 @@ export default function VoiceProtection() {
                           <Info className="h-4 w-4 text-muted-foreground" />
                         </Label>
                         <p className="text-sm text-muted-foreground">
-                          Create the most realistic digital replica of your voice. Requires at least 30 minutes of 30 clean audio.
+                          Create the most realistic digital replica of your voice. Requires 30 minutes of clean audio. <strong>Best practice: Read from a book.</strong>
                         </p>
                         <div className="flex items-center gap-2 text-sm">
                           <Clock className="h-4 w-4 text-muted-foreground" />
@@ -243,25 +302,99 @@ export default function VoiceProtection() {
             </div>
 
             <div className="space-y-4">
-              <Button
-                onClick={startRecording}
-                disabled={isRecording || !!audioBlob}
-                className="w-full"
-                variant={audioBlob ? "outline" : "default"}
-              >
-                <Mic className="mr-2 h-4 w-4" />
-                {isRecording 
-                  ? `Recording... (${cloneType === 'instant' ? '10s' : '30 min'})`
-                  : audioBlob 
-                  ? "Sample Recorded ✓" 
-                  : `Record ${cloneType === 'instant' ? '10 Seconds' : '30 Minutes'}`
-                }
-              </Button>
+              {/* Recording Guidance */}
+              {!isRecording && !audioBlob && (
+                <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-5 w-5 text-primary mt-0.5" />
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">Recording Tips:</p>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>• Find a quiet environment</li>
+                        <li>• Use a good quality microphone</li>
+                        {cloneType === 'professional' && (
+                          <>
+                            <li>• <strong>Best practice:</strong> Read aloud from a book for 30 minutes</li>
+                            <li>• Use pause/resume if you need breaks</li>
+                            <li>• Maintain consistent tone and pace</li>
+                          </>
+                        )}
+                        {cloneType === 'instant' && (
+                          <li>• Speak naturally and clearly for 2 minutes</li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Recording Controls */}
+              {!audioBlob && (
+                <>
+                  <Button
+                    onClick={startRecording}
+                    disabled={isRecording}
+                    className="w-full"
+                  >
+                    <Mic className="mr-2 h-4 w-4" />
+                    {cloneType === 'instant' ? 'Start Recording (2 minutes)' : 'Start Recording (30 minutes)'}
+                  </Button>
+
+                  {isRecording && (
+                    <div className="space-y-2">
+                      <div className="bg-primary/10 p-4 rounded-lg text-center">
+                        <p className="text-sm font-medium text-primary mb-2">
+                          {isPaused ? "Recording Paused" : "Recording in Progress..."}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {cloneType === 'professional' 
+                            ? "Read aloud from a book. Use pause if you need a break."
+                            : "Speak naturally and clearly."
+                          }
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2">
+                        {isPaused ? (
+                          <Button onClick={resumeRecording} variant="default" className="w-full">
+                            Resume
+                          </Button>
+                        ) : (
+                          <Button onClick={pauseRecording} variant="secondary" className="w-full">
+                            Pause
+                          </Button>
+                        )}
+                        <Button onClick={stopRecording} variant="outline" className="w-full col-span-2">
+                          Stop Recording
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
               
+              {/* Recorded Audio Preview */}
               {audioBlob && (
-                <audio controls className="w-full">
-                  <source src={URL.createObjectURL(audioBlob)} type="audio/mp3" />
-                </audio>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-green-600 font-medium mb-2">
+                    <Check className="h-4 w-4" />
+                    Sample Recorded Successfully
+                  </div>
+                  <audio controls className="w-full">
+                    <source src={URL.createObjectURL(audioBlob)} type="audio/mp3" />
+                  </audio>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button onClick={deleteRecording} variant="destructive" size="sm">
+                      Delete
+                    </Button>
+                    <Button onClick={() => {
+                      deleteRecording();
+                      setTimeout(() => startRecording(), 100);
+                    }} variant="outline" size="sm">
+                      Re-record
+                    </Button>
+                  </div>
+                </div>
               )}
             </div>
 
