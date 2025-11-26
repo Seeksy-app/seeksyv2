@@ -344,10 +344,16 @@ const Meetings = () => {
               View and manage all your scheduled meetings
             </p>
           </div>
-          <Button onClick={() => navigate("/meetings/create")} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Schedule New Meeting
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => navigate("/meetings/now")} variant="secondary" className="gap-2">
+              <Video className="w-4 h-4" />
+              Meet Now
+            </Button>
+            <Button onClick={() => navigate("/meetings/create")} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Schedule New Meeting
+            </Button>
+          </div>
         </div>
 
         {/* Tabs */}
