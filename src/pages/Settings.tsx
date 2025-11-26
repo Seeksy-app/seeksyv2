@@ -467,6 +467,7 @@ const Settings = () => {
              <CardContent className="space-y-4">
               <div id="avatar">
                 <ImageUpload
+                  variant="avatar"
                   label="Profile Photo"
                   currentImage={profileData.avatar_url || ""}
                   onImageUploaded={async (url) => {

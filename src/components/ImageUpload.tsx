@@ -11,9 +11,10 @@ interface ImageUploadProps {
   currentImage?: string;
   label?: string;
   bucket?: string;
+  variant?: "default" | "avatar";
 }
 
-const ImageUpload = ({ onImageUploaded, currentImage, label = "Image", bucket = "event-images" }: ImageUploadProps) => {
+const ImageUpload = ({ onImageUploaded, currentImage, label = "Image", bucket = "event-images", variant = "default" }: ImageUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
 
@@ -70,6 +71,96 @@ const ImageUpload = ({ onImageUploaded, currentImage, label = "Image", bucket = 
   const handleRemove = () => {
     onImageUploaded("");
   };
+
+  if (variant === "avatar") {
+    return (
+      <div className="space-y-3">
+        <Label>{label}</Label>
+        <div className="flex items-center gap-4">
+          {currentImage ? (
+            <>
+              <div className="relative">
+                <img
+                  src={currentImage}
+                  alt="Profile"
+                  className="w-20 h-20 object-cover rounded-full border-2 border-border"
+                />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute -top-1 -right-1 h-6 w-6 rounded-full"
+                  onClick={handleRemove}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+              <div className="flex-1">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  disabled={uploading}
+                  className="hidden"
+                  id="avatar-upload"
+                />
+                <label htmlFor="avatar-upload">
+                  <Button type="button" variant="outline" size="sm" disabled={uploading} asChild>
+                    <span className="cursor-pointer">
+                      {uploading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="mr-2 h-4 w-4" />
+                          Change Photo
+                        </>
+                      )}
+                    </span>
+                  </Button>
+                </label>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center border-2 border-dashed border-border">
+                <Upload className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <div className="flex-1">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  disabled={uploading}
+                  className="hidden"
+                  id="avatar-upload"
+                />
+                <label htmlFor="avatar-upload">
+                  <Button type="button" variant="outline" size="sm" disabled={uploading} asChild>
+                    <span className="cursor-pointer">
+                      {uploading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="mr-2 h-4 w-4" />
+                          Upload Photo
+                        </>
+                      )}
+                    </span>
+                  </Button>
+                </label>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2">
