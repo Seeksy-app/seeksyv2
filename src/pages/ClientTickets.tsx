@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Loader2, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { Plus, Loader2, CheckCircle2, Clock, AlertCircle, Copy, Link as LinkIcon } from "lucide-react";
 import { format } from "date-fns";
 import { TicketDetailDialog } from "@/components/pm/TicketDetailDialog";
 
@@ -63,8 +63,6 @@ export default function ClientTickets() {
     queryFn: async () => {
       if (!user) return [];
       
-      // Admin view shows tickets submitted through support forms and AI chat
-      // These are client-submitted tickets, NOT tickets created by users in PM module
       const { data, error } = await supabase
         .from("client_tickets")
         .select(`
@@ -76,7 +74,7 @@ export default function ClientTickets() {
             company
           )
         `)
-        .in("source", ["support_form", "ai_chat"])
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -184,6 +182,15 @@ export default function ClientTickets() {
     return icons[status as keyof typeof icons] || icons.open;
   };
 
+  const copyLeadFormLink = () => {
+    const leadFormUrl = `${window.location.origin}/submit-ticket`;
+    navigator.clipboard.writeText(leadFormUrl);
+    toast({
+      title: "Link Copied! 📋",
+      description: "Lead form link has been copied to clipboard",
+    });
+  };
+
   return (
     <div className="container mx-auto py-8">
       <div className="space-y-6">
@@ -195,13 +202,18 @@ export default function ClientTickets() {
             </p>
           </div>
           
-          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                New Ticket
-              </Button>
-            </DialogTrigger>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={copyLeadFormLink}>
+              <Copy className="h-4 w-4 mr-2" />
+              Copy Lead Form Link
+            </Button>
+            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Ticket
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Create Client Ticket</DialogTitle>
@@ -308,6 +320,7 @@ export default function ClientTickets() {
               </div>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         <Card>
