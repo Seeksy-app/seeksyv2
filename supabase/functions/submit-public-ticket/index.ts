@@ -86,7 +86,6 @@ serve(async (req) => {
         email: submission.email,
         name: submission.name,
         tags: ["ticket_submission"],
-        pipeline_stage: "Lead",
       };
       
       if (submission.company) contactData.company = submission.company;
