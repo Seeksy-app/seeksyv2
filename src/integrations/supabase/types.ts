@@ -6162,6 +6162,7 @@ export type Database = {
           redirect_status: string | null
           redirect_verified_at: string | null
           third_party_platform: string | null
+          user_id: string
           user_notes: string | null
         }
         Insert: {
@@ -6180,6 +6181,7 @@ export type Database = {
           redirect_status?: string | null
           redirect_verified_at?: string | null
           third_party_platform?: string | null
+          user_id?: string
           user_notes?: string | null
         }
         Update: {
@@ -6198,6 +6200,7 @@ export type Database = {
           redirect_status?: string | null
           redirect_verified_at?: string | null
           third_party_platform?: string | null
+          user_id?: string
           user_notes?: string | null
         }
         Relationships: [

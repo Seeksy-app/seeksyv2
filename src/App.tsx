@@ -70,6 +70,7 @@ import PodcastDetail from "./pages/PodcastDetail";
 import EditPodcast from "./pages/EditPodcast";
 import ImportPodcast from "./pages/ImportPodcast";
 import UploadEpisode from "./pages/UploadEpisode";
+import RSSMigrationPage from "./pages/RSSMigrationPage";
 import SubscriptionSettings from "./pages/SubscriptionSettings";
 import { SeeksyAIChatWidget } from "./components/SeeksyAIChatWidget";
 import AdminAds from "./pages/AdminAds";
@@ -321,6 +322,7 @@ const AppContent = () => {
               <Route path="/podcasts/:id" element={<PodcastDetail />} />
               <Route path="/podcasts/:id/edit" element={<EditPodcast />} />
               <Route path="/podcasts/:id/upload" element={<UploadEpisode />} />
+              <Route path="/podcasts/:id/migrate" element={<RSSMigrationPage />} />
               <Route path="/my-blog" element={<Blog />} />
               <Route path="/my-blog/create" element={<CreateBlogPost />} />
               <Route path="/my-blog/edit/:id" element={<CreateBlogPost />} />

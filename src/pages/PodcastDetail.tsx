@@ -362,6 +362,23 @@ const PodcastDetail = () => {
                       </div>
                     </Card>
 
+                    {/* RSS Migration Card */}
+                    <Card className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20">
+                      <h3 className="text-xl font-bold mb-2">
+                        Moving from another host?
+                      </h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Seamlessly migrate your podcast RSS feed to Seeksy with automatic 301 redirects
+                      </p>
+                      <Button 
+                        className="w-full" 
+                        variant="outline"
+                        onClick={() => navigate(`/podcasts/${id}/migrate`)}
+                      >
+                        Start RSS Migration
+                      </Button>
+                    </Card>
+
                     {/* Upgrade Promo */}
                     <Card className="p-6 bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-900/20 dark:to-purple-800/20">
                       <h3 className="text-xl font-bold mb-4">
