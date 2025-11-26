@@ -7926,10 +7926,6 @@ export type Database = {
           revenue_generated: number
         }[]
       }
-      can_view_meeting: {
-        Args: { _meeting_id: string; _user_id: string }
-        Returns: boolean
-      }
       create_meeting_public: {
         Args: {
           p_attendee_email: string
