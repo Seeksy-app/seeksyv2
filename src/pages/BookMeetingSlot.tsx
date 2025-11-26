@@ -229,7 +229,7 @@ const BookMeetingSlot = () => {
         description: notes,
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
-        location_type: meetingType.location_type as "phone" | "zoom" | "teams" | "meet" | "in-person" | "custom",
+        location_type: meetingType.location_type as "phone" | "zoom" | "teams" | "meet" | "in-person" | "custom" | "seeksy_studio",
         location_details: finalLocationDetails,
         attendee_name: attendeeName,
         attendee_email: attendeeEmail,

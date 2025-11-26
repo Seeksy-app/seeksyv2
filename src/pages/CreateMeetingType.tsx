@@ -103,7 +103,7 @@ const CreateMeetingType = () => {
           name,
           description,
           duration: parseInt(duration),
-          location_type: locationType as "phone" | "zoom" | "teams" | "meet" | "in-person" | "custom",
+          location_type: locationType as "phone" | "zoom" | "teams" | "meet" | "in-person" | "custom" | "seeksy_studio",
           custom_location_url: locationType === "custom" ? customLocationUrl : null,
           pre_meeting_questions: filteredQuestions as any,
         },
@@ -195,6 +195,7 @@ const CreateMeetingType = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="seeksy_studio">Seeksy Studio</SelectItem>
                     <SelectItem value="zoom">Zoom</SelectItem>
                     <SelectItem value="meet">
                       Google Meet {calendarConnected && '✓ Connected'}
