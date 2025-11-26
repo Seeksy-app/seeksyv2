@@ -67,18 +67,35 @@ export const PersonaShowcase = () => {
         .from("persona-videos")
         .list();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Storage list error:", error);
+        throw error;
+      }
+
+      console.log("Files in persona-videos bucket:", files);
 
       const personasWithVideos = PERSONAS.map((persona) => {
-        const videoFile = files?.find((file) =>
-          file.name.toLowerCase().includes(persona.id)
-        );
+        // Try multiple matching strategies
+        const videoFile = files?.find((file) => {
+          const fileName = file.name.toLowerCase();
+          // Match by ID or by key terms in the name
+          return (
+            fileName.includes(persona.id) ||
+            (persona.id === "creator" && (fileName.includes("creator") || fileName.includes("podcaster"))) ||
+            (persona.id === "advertiser" && (fileName.includes("advertiser") || fileName.includes("brand") || fileName.includes("sarah"))) ||
+            (persona.id === "agency" && (fileName.includes("agency") || fileName.includes("team") || fileName.includes("mike")))
+          );
+        });
+
+        console.log(`Persona ${persona.id} matched file:`, videoFile?.name);
 
         const videoUrl = videoFile
           ? supabase.storage
               .from("persona-videos")
               .getPublicUrl(videoFile.name).data.publicUrl
           : "";
+
+        console.log(`Persona ${persona.id} video URL:`, videoUrl);
 
         return {
           ...persona,
@@ -90,6 +107,8 @@ export const PersonaShowcase = () => {
     } catch (error) {
       console.error("Error loading persona videos:", error);
       toast.error("Failed to load persona videos");
+      // Set personas without videos as fallback
+      setPersonas(PERSONAS.map(p => ({ ...p, videoUrl: "" })));
     }
   };
 
