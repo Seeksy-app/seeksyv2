@@ -44,7 +44,8 @@ import {
   Grid3x3,
   Pin,
   BookOpen,
-  UserCog
+  UserCog,
+  Coins
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import seeksyLogo from "@/assets/seeksy-logo.png";
@@ -444,6 +445,23 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     { title: "Pricing", url: "/advertiser/pricing", icon: DollarSign },
   ];
 
+  // Admin-only menu items (shown when adminViewMode is true)
+  const adminMenuItems = [
+    { title: "Meetings", url: "/meetings", icon: Calendar },
+    { title: "Sign-ups", url: "/signup-sheets", icon: ClipboardList },
+    { title: "Events", url: "/events", icon: CalendarDays },
+    { title: "CRM/Contacts", url: "/crm", icon: Users },
+    { title: "Marketing", url: "/marketing", icon: Target },
+    { title: "Lead Pixel", url: "/leads-dashboard", icon: Code },
+    { title: "Studio", url: "/studio", icon: Clapperboard },
+    { title: "Support Desk", url: "/admin/support", icon: UserCog },
+    { title: "Sales & Leads", url: "/admin/sales", icon: TrendingUp },
+    { title: "Ad Management", url: "/admin/advertising", icon: Megaphone },
+    { title: "Financials", url: "/cfo-dashboard", icon: DollarSign },
+    { title: "Impersonate", url: "/admin/impersonate", icon: UserCog },
+    { title: "Credits", url: "/admin/credits", icon: Coins },
+  ];
+
   // Grey out items for pending advertisers
   const isPending = advertiserStatus === "pending";
 
@@ -492,19 +510,19 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   const getVisibleSections = () => {
     let sections = [...navigationSections];
     
+    // If admin is in admin view mode, return only admin section
+    if (isAdmin && adminViewMode) {
+      return [{ id: "admin", label: "Admin", order: 0 }];
+    }
+    
     // If admin is in personal view mode, hide admin section
     if (isAdmin && !adminViewMode) {
       sections = sections.filter(s => s.id !== 'admin');
     }
     
-    // If not admin or in personal view, hide admin section
-    if (!isAdmin || !adminViewMode) {
+    // If not admin, hide admin section
+    if (!isAdmin) {
       sections = sections.filter(s => s.id !== 'admin');
-    }
-    
-    if (isAdmin && adminViewMode) {
-      // Admins in admin view see all sections
-      return sections;
     }
     
     if (isAdvertiser) {
@@ -1309,6 +1327,54 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     </Collapsible>
   );
 
+  const renderAdminSection = () => {
+    if (!isAdmin || !adminViewMode) return null;
+    
+    return (
+      <Collapsible
+        key="admin"
+        open={true}
+        onOpenChange={() => {}}
+      >
+        <SidebarGroup className="py-0">
+          <SidebarGroupLabel className="text-base font-semibold mb-0 py-1.5">
+            Admin Dashboard
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="space-y-0">
+              {adminMenuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton asChild>
+                          <NavLink 
+                            to={item.url} 
+                            end 
+                            className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8 pl-4"
+                            activeClassName="bg-accent text-accent-foreground font-medium"
+                          >
+                            <item.icon className="h-4 w-4" />
+                            {!collapsed && <span>{item.title}</span>}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      {collapsed && (
+                        <TooltipContent side="right">
+                          <p>{item.title}</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </Collapsible>
+    );
+  };
+
   const sectionRenderers: Record<string, () => React.ReactNode> = {
     main: renderMainSection,
     settings: renderSettingsSection,
@@ -1322,6 +1388,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     influencer: renderInfluencerSection,
     agency: renderAgencySection,
     blog: renderBlogSection,
+    admin: renderAdminSection,
   };
 
   return (

@@ -121,6 +121,11 @@ import CreatorCampaignBrowser from "./pages/CreatorCampaignBrowser";
 import CreateMultiChannelCampaign from "./pages/CreateMultiChannelCampaign";
 import MetaOAuthCallback from "./pages/MetaOAuthCallback";
 import SeeksyArchitecture from "./pages/SeeksyArchitecture";
+import SupportDesk from "./pages/admin/SupportDesk";
+import SalesLeads from "./pages/admin/SalesLeads";
+import AdvertisingManagement from "./pages/admin/AdvertisingManagement";
+import ImpersonateUser from "./pages/admin/ImpersonateUser";
+import CreditManagement from "./pages/admin/CreditManagement";
 import ModuleSelector from "./pages/ModuleSelector";
 import Modules from "./pages/Modules";
 import InfluenceHub from "./pages/InfluenceHub";
@@ -296,13 +301,16 @@ const AppContent = () => {
               <Route path="/book/:username" element={<BookMeetings />} />
               <Route path="/book/:username/:meetingTypeId" element={<BookMeetingSlot />} />
               <Route path="/profile/edit" element={<ProfileEdit />} />
-          <Route path="/admin" element={<Admin />} />
+              <Route path="/admin" element={<Admin />} />
             <Route path="/admin/legal" element={<AdminLegal />} />
             <Route path="/admin/conversational-demo" element={<AdminConversationalDemo />} />
             <Route path="/admin/architecture" element={<SeeksyArchitecture />} />
-            <Route path="/voice-protection" element={<VoiceProtection />} />
-            <Route path="/seeksy-architecture" element={<SeeksyArchitecture />} />
             <Route path="/admin/master-blog" element={<AdminMasterBlog />} />
+            <Route path="/admin/support" element={<SupportDesk />} />
+            <Route path="/admin/sales" element={<SalesLeads />} />
+            <Route path="/admin/advertising" element={<AdvertisingManagement />} />
+            <Route path="/admin/impersonate" element={<ImpersonateUser />} />
+            <Route path="/admin/credits" element={<CreditManagement />} />
           <Route path="/advertiser" element={<AdvertiserServices />} />
           <Route path="/advertiser/signup" element={<AdvertiserSignup />} />
           <Route path="/advertiser/dashboard" element={<AdvertiserDashboard />} />
