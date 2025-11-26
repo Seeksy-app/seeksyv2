@@ -518,6 +518,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
   const adminFinancials = [
     { title: "Financial Overview", url: "/cfo-dashboard", icon: DollarSign },
+    { title: "Investor Spreadsheets", url: "/admin/investor-spreadsheets", icon: FileText },
     { title: "Revenue Reports", url: "/admin/revenue-reports", icon: BarChart3 },
     { title: "Billing", url: "/admin/billing", icon: Receipt },
     { title: "Payments", url: "/admin/payments", icon: CreditCard },

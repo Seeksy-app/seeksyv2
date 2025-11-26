@@ -3874,6 +3874,45 @@ export type Database = {
         }
         Relationships: []
       }
+      investor_spreadsheets: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          file_path: string
+          file_type: string
+          id: string
+          name: string
+          period: string | null
+          updated_at: string | null
+          uploaded_at: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          file_path: string
+          file_type: string
+          id?: string
+          name: string
+          period?: string | null
+          updated_at?: string | null
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          file_path?: string
+          file_type?: string
+          id?: string
+          name?: string
+          period?: string | null
+          updated_at?: string | null
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       investor_talking_points: {
         Row: {
           assumptions_used: Json | null
