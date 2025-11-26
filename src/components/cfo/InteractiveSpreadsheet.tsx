@@ -1608,9 +1608,11 @@ export const InteractiveSpreadsheet = ({ isReadOnly = false }: { isReadOnly?: bo
           )}
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowAssumptions(!showAssumptions)}>
-            {showAssumptions ? "Hide" : "Edit"} Assumptions
-          </Button>
+          {!isReadOnly && (
+            <Button variant="outline" onClick={() => setShowAssumptions(!showAssumptions)}>
+              {showAssumptions ? "Hide" : "Edit"} Assumptions
+            </Button>
+          )}
           {!isReadOnly && (
             <Button onClick={() => setShareDialogOpen(true)}>
               <Share2 className="h-4 w-4 mr-2" />
@@ -1887,14 +1889,16 @@ export const InteractiveSpreadsheet = ({ isReadOnly = false }: { isReadOnly?: bo
                         Excel (.xlsx)
                       </Button>
                     </div>
-                    <Button 
-                      variant="default" 
-                      size="sm" 
-                      className="w-full"
-                      onClick={() => handleEmailReport('ai')}
-                    >
-                      Email AI Report
-                    </Button>
+                    {!isReadOnly && (
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => handleEmailReport('ai')}
+                      >
+                        Email AI Report
+                      </Button>
+                    )}
                   </div>
 
                   <p className="text-xs text-muted-foreground mt-4">
@@ -1973,14 +1977,16 @@ export const InteractiveSpreadsheet = ({ isReadOnly = false }: { isReadOnly?: bo
                       </Button>
                       <ProFormaSpreadsheetGenerator />
                     </div>
-                    <Button 
-                      variant="default" 
-                      size="sm" 
-                      className="w-full"
-                      onClick={() => handleEmailReport('custom')}
-                    >
-                      Email Custom Report
-                    </Button>
+                    {!isReadOnly && (
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => handleEmailReport('custom')}
+                      >
+                        Email Custom Report
+                      </Button>
+                    )}
                   </div>
 
                   <p className="text-xs text-muted-foreground mt-4">
