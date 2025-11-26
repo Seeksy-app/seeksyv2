@@ -76,6 +76,13 @@ export function SpinWheelDialog({ open, onOpenChange, onSpinComplete, isWelcomeS
       setTimeout(() => {
         onSpinComplete();
         setResult(null);
+        
+        // Redirect to credits page after welcome spin
+        if (data.isWelcomeSpin) {
+          setTimeout(() => {
+            window.location.href = '/credits';
+          }, 500);
+        }
       }, 5000);
     },
     onError: (error: Error) => {
@@ -153,7 +160,7 @@ export function SpinWheelDialog({ open, onOpenChange, onSpinComplete, isWelcomeS
               <div className="text-lg text-muted-foreground">{result.prizeLabel}</div>
               {result.isWelcomeSpin && (
                 <div className="text-sm text-primary font-semibold mt-2">
-                  Welcome bonus unlocked!
+                  Welcome bonus unlocked! Redirecting to purchase more...
                 </div>
               )}
             </div>
