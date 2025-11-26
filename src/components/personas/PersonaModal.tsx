@@ -53,6 +53,7 @@ export const PersonaModal = ({ open, onClose, persona }: PersonaModalProps) => {
               className="w-full h-full object-cover"
               loop
               playsInline
+              autoPlay
               muted={isMuted}
             />
             
