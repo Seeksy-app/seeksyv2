@@ -51,7 +51,7 @@ export const meetingConfirmationSchema = z.object({
   meetingTitle: z.string().min(1).max(200).trim(),
   startTime: dateSchema,
   endTime: dateSchema,
-  locationType: z.enum(['phone', 'zoom', 'teams', 'meet', 'in-person', 'custom']),
+  locationType: z.enum(['phone', 'zoom', 'teams', 'meet', 'in-person', 'custom', 'seeksy_studio']),
   locationDetails: z.string().max(500).optional(),
   description: z.string().max(2000).optional(),
   token: z.string().optional(),

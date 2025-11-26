@@ -54,19 +54,47 @@ const handler = async (req: Request): Promise<Response> => {
     
     const subject = `Meeting Confirmed: ${meetingTitle}`;
 
-    const formattedStartTime = new Date(startTime).toLocaleString('en-US', {
+    // Format times in UTC for clarity
+    const startDate = new Date(startTime);
+    const endDate = new Date(endTime);
+    
+    const formattedStartTime = startDate.toLocaleString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
+      timeZone: 'UTC',
       timeZoneName: 'short'
     });
 
-    const formattedEndTime = new Date(endTime).toLocaleTimeString('en-US', {
+    const formattedEndTime = endDate.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
+      timeZone: 'UTC',
+      timeZoneName: 'short'
+    });
+
+    // Also format in common US timezones for convenience
+    const formattedStartEST = startDate.toLocaleString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZone: 'America/New_York',
+      timeZoneName: 'short'
+    });
+
+    const formattedStartCST = startDate.toLocaleString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZone: 'America/Chicago',
+      timeZoneName: 'short'
+    });
+
+    const formattedStartPST = startDate.toLocaleString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZone: 'America/Los_Angeles',
       timeZoneName: 'short'
     });
 
@@ -136,8 +164,16 @@ const handler = async (req: Request): Promise<Response> => {
           <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h2 style="color: #333; margin-top: 0;">Meeting Details</h2>
             <p><strong>Title:</strong> ${safeMeetingTitle}</p>
-            <p><strong>Start:</strong> ${formattedStartTime}</p>
-            <p><strong>End:</strong> ${formattedEndTime}</p>
+            <p><strong>Date & Time:</strong> ${formattedStartTime}</p>
+            <p><strong>End Time:</strong> ${formattedEndTime}</p>
+            
+            <div style="background-color: #fff; padding: 12px; border-radius: 6px; margin: 12px 0;">
+              <p style="margin: 0 0 8px 0; color: #666; font-size: 14px;"><strong>Time Conversions:</strong></p>
+              <p style="margin: 4px 0; font-size: 14px;">🕐 Eastern: ${formattedStartEST}</p>
+              <p style="margin: 4px 0; font-size: 14px;">🕐 Central: ${formattedStartCST}</p>
+              <p style="margin: 4px 0; font-size: 14px;">🕐 Pacific: ${formattedStartPST}</p>
+            </div>
+            
             <p><strong>Location:</strong> ${locationLabel}</p>
             ${safeLocationDetails ? `<p><strong>Details:</strong> ${safeLocationDetails}</p>` : ''}
             ${safeDescription ? `<p><strong>Description:</strong> ${safeDescription}</p>` : ''}

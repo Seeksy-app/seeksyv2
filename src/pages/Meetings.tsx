@@ -181,6 +181,10 @@ const Meetings = () => {
                         </span>
                         <span className="text-sm text-muted-foreground">
                           {format(new Date(meeting.start_time), "h:mm a")}
+                          {" "}
+                          {new Date(meeting.start_time).toLocaleTimeString('en-US', { 
+                            timeZoneName: 'short' 
+                          }).split(' ').pop()}
                         </span>
                       </div>
                     </TableCell>

@@ -160,7 +160,7 @@ const CreateMeeting = () => {
       return;
     }
 
-    // Combine date and time - ensure we preserve timezone
+    // Combine date and time - CRITICAL: Handle timezone properly
     const [hours, minutes] = time.split(':');
     const startTime = new Date(date);
     startTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
@@ -176,10 +176,16 @@ const CreateMeeting = () => {
       return;
     }
     
-    // Log for debugging
+    // Calculate end time by adding duration
+    const endTime = new Date(startTime);
+    endTime.setMinutes(endTime.getMinutes() + parseInt(duration));
+    
+    // Log for debugging with timezone info
     console.log("Creating meeting:", {
       localTime: startTime.toString(),
       utcTime: startTime.toISOString(),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      timezoneOffset: startTime.getTimezoneOffset(),
       nowLocal: now.toString(),
       nowUTC: now.toISOString(),
     });
@@ -187,8 +193,6 @@ const CreateMeeting = () => {
     setLoading(true);
 
     try {
-      const endTime = new Date(startTime);
-      endTime.setMinutes(endTime.getMinutes() + parseInt(duration));
 
       // Build attendee list
       const attendees = selectedContacts.length > 0 
@@ -274,12 +278,15 @@ const CreateMeeting = () => {
                 attendeeName: attendee.name,
                 meetingTitle: title,
                 startTime: startTime.toISOString(),
-                duration: parseInt(duration),
-                location: finalLocationDetails || locationType,
+                endTime: endTime.toISOString(),
+                locationType: locationType,
+                locationDetails: finalLocationDetails,
+                description: description,
                 userId: user?.id,
                 meetingId: meetingData.id,
               },
             });
+            console.log("Meeting confirmation email sent to:", attendee.email);
           } catch (emailError) {
             console.error("Error sending email:", emailError);
           }
