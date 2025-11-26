@@ -749,6 +749,48 @@ export type Database = {
           },
         ]
       }
+      ai_personas: {
+        Row: {
+          created_at: string | null
+          description: string
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          role: string
+          tagline: string
+          thumbnail_url: string | null
+          updated_at: string | null
+          video_url: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          role: string
+          tagline: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
+          video_url: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          role?: string
+          tagline?: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
+          video_url?: string
+        }
+        Relationships: []
+      }
       app_audio_descriptions: {
         Row: {
           app_id: string
