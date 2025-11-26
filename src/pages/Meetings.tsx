@@ -162,6 +162,7 @@ const Meetings = () => {
                 <TableHead className="font-semibold">Attendee</TableHead>
                 <TableHead className="font-semibold">Meeting ID</TableHead>
                 <TableHead className="font-semibold">Status</TableHead>
+                <TableHead className="font-semibold">RSVP</TableHead>
                 <TableHead className="text-right font-semibold">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -216,6 +217,49 @@ const Meetings = () => {
                         <Badge variant="secondary">Completed</Badge>
                       ) : (
                         <Badge variant="default">Scheduled</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {meeting.attendee_rsvp_status === 'attending' && (
+                        <div className="flex flex-col gap-1">
+                          <Badge variant="default" className="bg-green-500 hover:bg-green-600 w-fit">
+                            ✅ Attending
+                          </Badge>
+                          {meeting.attendee_rsvp_timestamp && (
+                            <span className="text-xs text-muted-foreground">
+                              {format(new Date(meeting.attendee_rsvp_timestamp), "MMM d, h:mm a")}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {meeting.attendee_rsvp_status === 'not_attending' && (
+                        <div className="flex flex-col gap-1">
+                          <Badge variant="destructive" className="w-fit">
+                            ❌ Not Attending
+                          </Badge>
+                          {meeting.attendee_rsvp_timestamp && (
+                            <span className="text-xs text-muted-foreground">
+                              {format(new Date(meeting.attendee_rsvp_timestamp), "MMM d, h:mm a")}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {meeting.attendee_rsvp_status === 'maybe' && (
+                        <div className="flex flex-col gap-1">
+                          <Badge variant="secondary" className="w-fit">
+                            ❓ Maybe
+                          </Badge>
+                          {meeting.attendee_rsvp_timestamp && (
+                            <span className="text-xs text-muted-foreground">
+                              {format(new Date(meeting.attendee_rsvp_timestamp), "MMM d, h:mm a")}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {meeting.attendee_rsvp_status === 'awaiting' && (
+                        <Badge variant="outline" className="w-fit">
+                          ⏳ Awaiting
+                        </Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-right">

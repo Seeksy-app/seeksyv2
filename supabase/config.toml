@@ -71,3 +71,6 @@ verify_jwt = true
 
 [functions.stripe-webhook-credits]
 verify_jwt = false
+
+[functions.twilio-inbound-sms]
+verify_jwt = false

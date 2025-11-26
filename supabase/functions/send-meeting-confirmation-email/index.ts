@@ -179,6 +179,17 @@ const handler = async (req: Request): Promise<Response> => {
             ${safeDescription ? `<p><strong>Description:</strong> ${safeDescription}</p>` : ''}
           </div>
           
+          <div style="background-color: #e8f5e9; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4caf50;">
+            <h3 style="color: #333; margin-top: 0; font-size: 16px;">📱 Confirm Your Attendance</h3>
+            <p style="margin: 10px 0;"><strong>Reply to this email with:</strong></p>
+            <ul style="margin: 10px 0; padding-left: 20px;">
+              <li><strong>YES</strong> - I'll be there</li>
+              <li><strong>NO</strong> - Can't make it</li>
+              <li><strong>MAYBE</strong> - Not sure yet</li>
+            </ul>
+            <p style="margin: 10px 0; font-size: 14px; color: #666;">We'll automatically update your RSVP status and notify the meeting host.</p>
+          </div>
+          
           <p>We look forward to speaking with you!</p>
           <p style="margin: 20px 0;">
             <strong>📅 Add to Calendar:</strong> A calendar invitation (.ics file) is attached to this email. 

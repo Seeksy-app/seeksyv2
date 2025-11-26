@@ -44,7 +44,7 @@ serve(async (req) => {
       timeStyle: 'short'
     });
 
-    const message = `✅ Meeting Confirmed!\n\n${meeting.title}\n${startTime}\n${meeting.location_type === 'in_person' ? meeting.location_details : 'Virtual meeting'}\n\n📧 Check your email for calendar invite.\n\n💡 Create your free Seeksy account to manage meetings & more: https://seeksy.io/auth?mode=signup`;
+    const message = `✅ Meeting Confirmed!\n\n${meeting.title}\n${startTime}\n${meeting.location_type === 'in_person' ? meeting.location_details : 'Virtual meeting'}\n\n📧 Check your email for calendar invite.\n\n📱 Reply YES, NO, or MAYBE to confirm your attendance.\n\n💡 Create your free Seeksy account: https://seeksy.io/auth?mode=signup`;
 
 
     // Send SMS via Twilio

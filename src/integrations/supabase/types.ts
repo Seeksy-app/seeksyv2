@@ -4457,6 +4457,9 @@ export type Database = {
           attendee_name: string
           attendee_phone: string | null
           attendee_responses: Json | null
+          attendee_rsvp_method: string | null
+          attendee_rsvp_status: string | null
+          attendee_rsvp_timestamp: string | null
           created_at: string | null
           description: string | null
           end_time: string
@@ -4475,6 +4478,9 @@ export type Database = {
           attendee_name: string
           attendee_phone?: string | null
           attendee_responses?: Json | null
+          attendee_rsvp_method?: string | null
+          attendee_rsvp_status?: string | null
+          attendee_rsvp_timestamp?: string | null
           created_at?: string | null
           description?: string | null
           end_time: string
@@ -4493,6 +4499,9 @@ export type Database = {
           attendee_name?: string
           attendee_phone?: string | null
           attendee_responses?: Json | null
+          attendee_rsvp_method?: string | null
+          attendee_rsvp_status?: string | null
+          attendee_rsvp_timestamp?: string | null
           created_at?: string | null
           description?: string | null
           end_time?: string
