@@ -2053,12 +2053,14 @@ export type Database = {
       }
       client_tickets: {
         Row: {
+          assigned_to: string | null
           category: string | null
           client_contact_id: string | null
           created_at: string
           description: string | null
           due_date: string | null
           id: string
+          notes: string | null
           priority: string | null
           source: string | null
           status: string | null
@@ -2067,12 +2069,14 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          assigned_to?: string | null
           category?: string | null
           client_contact_id?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
           id?: string
+          notes?: string | null
           priority?: string | null
           source?: string | null
           status?: string | null
@@ -2081,12 +2085,14 @@ export type Database = {
           user_id: string
         }
         Update: {
+          assigned_to?: string | null
           category?: string | null
           client_contact_id?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
           id?: string
+          notes?: string | null
           priority?: string | null
           source?: string | null
           status?: string | null
