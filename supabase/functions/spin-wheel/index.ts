@@ -16,18 +16,28 @@ const PRIZES = [
   { credits: 25, weight: 2, label: "25 Credits! 🎉" },
 ];
 
-function getRandomPrize() {
-  const totalWeight = PRIZES.reduce((sum, prize) => sum + prize.weight, 0);
+// Welcome spin prizes for first-time users (5-20 credits)
+const WELCOME_PRIZES = [
+  { credits: 5, weight: 30, label: "5 Credits" },
+  { credits: 8, weight: 25, label: "8 Credits" },
+  { credits: 10, weight: 20, label: "10 Credits" },
+  { credits: 15, weight: 15, label: "15 Credits" },
+  { credits: 20, weight: 10, label: "20 Credits! 🎉" },
+];
+
+function getRandomPrize(isWelcomeSpin = false) {
+  const prizePool = isWelcomeSpin ? WELCOME_PRIZES : PRIZES;
+  const totalWeight = prizePool.reduce((sum, prize) => sum + prize.weight, 0);
   let random = Math.random() * totalWeight;
   
-  for (const prize of PRIZES) {
+  for (const prize of prizePool) {
     random -= prize.weight;
     if (random <= 0) {
       return prize;
     }
   }
   
-  return PRIZES[0]; // Fallback
+  return prizePool[0]; // Fallback
 }
 
 serve(async (req) => {
@@ -61,41 +71,51 @@ serve(async (req) => {
 
     const totalSpent = userCredit?.total_spent || 0;
     
-    // Check if eligible (every 20 credits)
-    if (totalSpent === 0 || totalSpent % 20 !== 0) {
-      return new Response(
-        JSON.stringify({ 
-          error: "Not eligible for spin",
-          creditsUntilNextSpin: 20 - (totalSpent % 20)
-        }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 403,
-        }
-      );
-    }
-
-    // Check if already spun for this milestone
-    const currentThreshold = Math.floor(totalSpent / 20) * 20;
-    const { data: existingSpin } = await supabaseClient
+    // Check if this is a first-time welcome spin
+    const { data: spinHistory } = await supabaseClient
       .from("spin_wheel_history")
       .select("id")
-      .eq("user_id", user.id)
-      .eq("credits_spent_threshold", currentThreshold)
-      .single();
+      .eq("user_id", user.id);
+    
+    const isWelcomeSpin = !spinHistory || spinHistory.length === 0;
+    
+    if (!isWelcomeSpin) {
+      // Regular spin eligibility check (every 20 credits)
+      if (totalSpent === 0 || totalSpent % 20 !== 0) {
+        return new Response(
+          JSON.stringify({ 
+            error: "Not eligible for spin",
+            creditsUntilNextSpin: 20 - (totalSpent % 20)
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 403,
+          }
+        );
+      }
 
-    if (existingSpin) {
-      return new Response(
-        JSON.stringify({ error: "Already spun for this milestone" }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 403,
-        }
-      );
+      // Check if already spun for this milestone
+      const currentThreshold = Math.floor(totalSpent / 20) * 20;
+      const { data: existingSpin } = await supabaseClient
+        .from("spin_wheel_history")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("credits_spent_threshold", currentThreshold)
+        .single();
+
+      if (existingSpin) {
+        return new Response(
+          JSON.stringify({ error: "Already spun for this milestone" }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 403,
+          }
+        );
+      }
     }
 
-    // Get random prize
-    const prize = getRandomPrize();
+    // Get random prize (welcome spin gives 5-20 credits, regular gives 1-25)
+    const prize = getRandomPrize(isWelcomeSpin);
     const currentBalance = userCredit?.balance || 0;
     const newBalance = currentBalance + prize.credits;
 
@@ -110,6 +130,7 @@ serve(async (req) => {
       .eq("user_id", user.id);
 
     // Record spin in history
+    const currentThreshold = isWelcomeSpin ? 0 : Math.floor(totalSpent / 20) * 20;
     await supabaseClient
       .from("spin_wheel_history")
       .insert({
@@ -137,7 +158,8 @@ serve(async (req) => {
         success: true,
         creditsWon: prize.credits,
         balance: newBalance,
-        prizeLabel: prize.label
+        prizeLabel: prize.label,
+        isWelcomeSpin
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

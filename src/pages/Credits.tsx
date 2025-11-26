@@ -6,11 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Coins, Sparkles, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { SpinWheelDialog } from "@/components/credits/SpinWheelDialog";
+import { useWelcomeSpin } from "@/hooks/useWelcomeSpin";
 
 export default function Credits() {
   const queryClient = useQueryClient();
   const [showSpinWheel, setShowSpinWheel] = useState(false);
   const [isEligibleForSpin, setIsEligibleForSpin] = useState(false);
+  const { showWelcomeSpin, setShowWelcomeSpin } = useWelcomeSpin();
 
   // Fetch user credits
   const { data: userCredits, isLoading: creditsLoading } = useQuery({
@@ -201,6 +203,17 @@ export default function Credits() {
         open={showSpinWheel}
         onOpenChange={setShowSpinWheel}
         onSpinComplete={handleSpinComplete}
+      />
+      
+      <SpinWheelDialog
+        open={showWelcomeSpin}
+        onOpenChange={setShowWelcomeSpin}
+        onSpinComplete={() => {
+          queryClient.invalidateQueries({ queryKey: ["user-credits"] });
+          queryClient.invalidateQueries({ queryKey: ["spin-history"] });
+          setShowWelcomeSpin(false);
+        }}
+        isWelcomeSpin={true}
       />
     </div>
   );
