@@ -108,13 +108,23 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   const [isAdvertiser, setIsAdvertiser] = useState(false);
   const [advertiserStatus, setAdvertiserStatus] = useState<string | null>(null);
   const [moduleLauncherOpen, setModuleLauncherOpen] = useState(false);
-  // Default to Admin View for admin users
-  const [adminViewMode, setAdminViewMode] = useState(false);
+  // Initialize adminViewMode from localStorage or isAdmin prop
+  const [adminViewMode, setAdminViewMode] = useState(() => {
+    const saved = localStorage.getItem('adminViewMode');
+    if (saved !== null) {
+      return saved === 'true';
+    }
+    return isAdmin || false;
+  });
   
   // Update adminViewMode when isAdmin prop changes
   useEffect(() => {
     if (isAdmin) {
-      setAdminViewMode(true);
+      const currentMode = localStorage.getItem('adminViewMode');
+      if (currentMode === null) {
+        setAdminViewMode(true);
+        localStorage.setItem('adminViewMode', 'true');
+      }
       setOpenSections(prev => ({
         ...prev,
         admin: true,
@@ -122,6 +132,11 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       }));
     }
   }, [isAdmin]);
+  
+  // Persist adminViewMode to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('adminViewMode', adminViewMode.toString());
+  }, [adminViewMode]);
   const [modulePrefs, setModulePrefs] = useState({
     awards: false,
     media: false,
@@ -1565,10 +1580,13 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                 adminViewMode={adminViewMode}
                 onToggle={(enabled) => {
                   setAdminViewMode(enabled);
+                  localStorage.setItem('adminViewMode', enabled.toString());
                   toast({
                     title: enabled ? "Admin View Enabled" : "Personal View Enabled",
                     description: enabled ? "Showing admin-related menu items" : "Showing your personal menu items",
                   });
+                  // Force re-render of menu sections
+                  window.location.reload();
                 }}
               />
             </>

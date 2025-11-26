@@ -115,6 +115,7 @@ export default function ClientTickets() {
           category: ticketData.category || null,
           due_date: ticketData.dueDate || null,
           status: "open",
+          source: "internal",
         })
         .select()
         .single();
