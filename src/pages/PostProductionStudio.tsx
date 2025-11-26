@@ -20,6 +20,7 @@ import { AIBRollGenerator } from "@/components/media/AIBRollGenerator";
 import { ThumbnailManager } from "@/components/media/ThumbnailManager";
 import { IntroOutroManager } from "@/components/media/IntroOutroManager";
 import { SpeakerDetectionManager } from "@/components/media/SpeakerDetectionManager";
+import { MusicGeneratorManager } from "@/components/media/MusicGeneratorManager";
 import { 
   ArrowLeft, 
   Play, 
@@ -39,7 +40,8 @@ import {
   Camera,
   HelpCircle,
   BookOpen,
-  Video
+  Video,
+  Music
 } from "lucide-react";
 
 interface Marker {
@@ -841,6 +843,13 @@ export default function PostProductionStudio() {
                   <ImageIcon className="h-4 w-4" />
                   <span>Thumbnail</span>
                 </TabsTrigger>
+                <TabsTrigger 
+                  value="music" 
+                  className="flex flex-col items-center gap-1 py-2 text-xs data-[state=active]:bg-background"
+                >
+                  <Music className="h-4 w-4" />
+                  <span>Music</span>
+                </TabsTrigger>
               </div>
             </TabsList>
 
@@ -1173,6 +1182,16 @@ export default function PostProductionStudio() {
                 currentThumbnail={mediaFile?.file_url}
                 onThumbnailUpdate={(url) => {
                   console.log('Thumbnail updated:', url);
+                }}
+              />
+            </TabsContent>
+
+            <TabsContent value="music" className="flex-1 p-4">
+              <MusicGeneratorManager 
+                mediaId={mediaId || ''}
+                onMusicGenerated={(audioUrl) => {
+                  console.log('Background music generated:', audioUrl);
+                  toast.success('Music added to your library!');
                 }}
               />
             </TabsContent>

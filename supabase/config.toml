@@ -21,6 +21,9 @@ verify_jwt = true
 [functions.generate-ai-thumbnail]
 verify_jwt = true
 
+[functions.elevenlabs-generate-music]
+verify_jwt = true
+
 [functions.submit-public-ticket]
 verify_jwt = false
 
