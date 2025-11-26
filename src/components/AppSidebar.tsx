@@ -45,7 +45,11 @@ import {
   Pin,
   BookOpen,
   UserCog,
-  Coins
+  Coins,
+  Briefcase,
+  Video,
+  LineChart,
+  Receipt
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import seeksyLogo from "@/assets/seeksy-logo.png";
@@ -190,12 +194,12 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     project_management: true,
     engagement: true,
     admin: false,
-    adminCustomer: true,
-    adminMarketing: true,
-    adminContent: true,
-    adminSupport: true,
-    adminPlatform: true,
-    adminSystem: true,
+    adminCustomerSupport: true,
+    adminManagement: false,
+    adminOperations: false,
+    adminFinancials: false,
+    adminAdvertising: false,
+    adminMarketingSales: false,
     advertising: true,
     civic: true,
     influencer: true,
@@ -453,35 +457,42 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   ];
 
   // Admin-only menu items - organized by category
-  const adminCustomerManagement = [
+  const adminCustomerSupport = [
+    { title: "Tickets & Projects", url: "/tickets", icon: Briefcase },
+    { title: "Email History", url: "/email-history", icon: Mail },
+  ];
+
+  const adminManagement = [
+    { title: "CRM / Contacts", url: "/crm", icon: Users },
+    { title: "Impersonate User", url: "/admin/impersonate", icon: UserCog },
+    { title: "Manage Credits", url: "/admin/credits", icon: Coins },
+  ];
+
+  const adminOperations = [
     { title: "Meetings", url: "/meetings", icon: Calendar },
     { title: "Sign-ups", url: "/signup-sheets", icon: ClipboardList },
     { title: "Events", url: "/events", icon: CalendarDays },
-    { title: "CRM/Contacts", url: "/crm", icon: Users },
+    { title: "Studio", url: "/studio", icon: Video },
   ];
 
-  const adminMarketingGrowth = [
-    { title: "Marketing", url: "/marketing", icon: Target },
-    { title: "Lead Pixel", url: "/leads-dashboard", icon: Code },
+  const adminFinancials = [
+    { title: "Financial Overview", url: "/cfo-dashboard", icon: DollarSign },
+    { title: "Revenue Reports", url: "/admin/revenue-reports", icon: BarChart3 },
+    { title: "Billing", url: "/admin/billing", icon: Receipt },
+    { title: "Payments", url: "/admin/payments", icon: CreditCard },
   ];
 
-  const adminContentMedia = [
-    { title: "Studio", url: "/studio", icon: Clapperboard },
-  ];
-
-  const adminSupportSales = [
-    { title: "Support Desk", url: "/admin/support", icon: UserCog },
-    { title: "Sales & Leads", url: "/admin/sales", icon: TrendingUp },
-  ];
-
-  const adminPlatformOps = [
+  const adminAdvertising = [
     { title: "Ad Management", url: "/admin/advertising", icon: Megaphone },
-    { title: "Financials", url: "/cfo-dashboard", icon: DollarSign },
+    { title: "Campaigns", url: "/admin/ad-campaigns", icon: Target },
+    { title: "Advertisers", url: "/admin/advertisers", icon: Building2 },
+    { title: "Analytics", url: "/admin/ad-analytics", icon: LineChart },
   ];
 
-  const adminSystemTools = [
-    { title: "Impersonate", url: "/admin/impersonate", icon: UserCog },
-    { title: "Credits", url: "/admin/credits", icon: Coins },
+  const adminMarketingSales = [
+    { title: "Marketing", url: "/marketing", icon: Mail },
+    { title: "Sales & Leads", url: "/admin/sales", icon: TrendingUp },
+    { title: "Lead Pixel", url: "/leads-dashboard", icon: Code },
   ];
 
   // Grey out items for pending advertisers
@@ -1352,7 +1363,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   const renderAdminSection = () => {
     if (!isAdmin || !adminViewMode) return null;
 
-    const renderAdminCategory = (title: string, items: typeof adminCustomerManagement, sectionKey: string) => {
+    const renderAdminCategory = (title: string, items: typeof adminCustomerSupport, sectionKey: string) => {
       const isOpen = openSections[sectionKey as keyof typeof openSections] !== false;
       
       return (
@@ -1438,12 +1449,12 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         </SidebarGroup>
 
         {/* Admin Categories */}
-        {renderAdminCategory("Customer Management", adminCustomerManagement, "adminCustomer")}
-        {renderAdminCategory("Marketing & Growth", adminMarketingGrowth, "adminMarketing")}
-        {renderAdminCategory("Content & Media", adminContentMedia, "adminContent")}
-        {renderAdminCategory("Support & Sales", adminSupportSales, "adminSupport")}
-        {renderAdminCategory("Platform Operations", adminPlatformOps, "adminPlatform")}
-        {renderAdminCategory("System Tools", adminSystemTools, "adminSystem")}
+        {renderAdminCategory("Customer Support", adminCustomerSupport, "adminCustomerSupport")}
+        {renderAdminCategory("Management", adminManagement, "adminManagement")}
+        {renderAdminCategory("Operations", adminOperations, "adminOperations")}
+        {renderAdminCategory("Financials", adminFinancials, "adminFinancials")}
+        {renderAdminCategory("Advertising", adminAdvertising, "adminAdvertising")}
+        {renderAdminCategory("Marketing & Sales", adminMarketingSales, "adminMarketingSales")}
       </>
     );
   };
