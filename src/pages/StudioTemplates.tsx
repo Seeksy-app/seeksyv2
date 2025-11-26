@@ -9,11 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Filter, Globe, Upload, Play, Radio } from "lucide-react";
+import { Plus, Filter, Globe, Upload, Play, Radio, Video } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import podcastThumb from "@/assets/studio-template-podcast.jpg";
 import livestreamThumb from "@/assets/studio-template-livestream.jpg";
 import interviewThumb from "@/assets/studio-template-interview.jpg";
+import { AdminViewToggle } from "@/components/admin/AdminViewToggle";
 
 interface StudioSession {
   id: string;
@@ -34,6 +35,8 @@ export default function StudioTemplates() {
   const [creating, setCreating] = useState(false);
   const [selectedTab, setSelectedTab] = useState("videos");
   const [selectedSessions, setSelectedSessions] = useState<string[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminViewMode, setAdminViewMode] = useState(false);
   
   // Form state
   const [sessionName, setSessionName] = useState("");
@@ -76,8 +79,33 @@ export default function StudioTemplates() {
   ];
 
   useEffect(() => {
+    checkAdminStatus();
     loadSessions();
   }, []);
+
+  const checkAdminStatus = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .in("role", ["admin", "super_admin"])
+        .maybeSingle();
+
+      const isAdminUser = !!roleData;
+      setIsAdmin(isAdminUser);
+      
+      if (isAdminUser) {
+        const savedMode = localStorage.getItem('adminViewMode');
+        setAdminViewMode(savedMode === 'true');
+      }
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+    }
+  };
 
   const loadSessions = async () => {
     try {
@@ -257,8 +285,56 @@ export default function StudioTemplates() {
     );
   }
 
+  // Admin View Mode - show empty state
+  if (isAdmin && adminViewMode) {
+    return (
+      <div className="min-h-screen bg-background">
+        {isAdmin && (
+          <div className="border-b bg-card/50 px-6 py-3">
+            <AdminViewToggle 
+              adminViewMode={adminViewMode}
+              onToggle={(mode) => {
+                setAdminViewMode(mode);
+                localStorage.setItem('adminViewMode', String(mode));
+              }}
+            />
+          </div>
+        )}
+        <div className="container mx-auto px-6 py-8">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-4xl font-bold mb-2">Studio Management</h1>
+              <p className="text-muted-foreground">Admin view for managing studio sessions</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center justify-center py-16 min-h-[60vh] border-2 border-dashed border-muted rounded-lg bg-muted/10">
+            <Video className="h-20 w-20 text-muted-foreground mb-6" />
+            <h2 className="text-2xl font-semibold mb-3 text-foreground">Admin Studio View</h2>
+            <p className="text-muted-foreground text-center max-w-md mb-6">
+              This is the admin studio management view. Switch to Personal View to access your personal studio sessions and recordings.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
+      {/* Admin View Toggle */}
+      {isAdmin && (
+        <div className="border-b bg-card/50 px-6 py-3">
+          <AdminViewToggle 
+            adminViewMode={adminViewMode}
+            onToggle={(mode) => {
+              setAdminViewMode(mode);
+              localStorage.setItem('adminViewMode', String(mode));
+            }}
+          />
+        </div>
+      )}
+      
       {/* Tabs Navigation */}
       <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="container mx-auto px-6">
