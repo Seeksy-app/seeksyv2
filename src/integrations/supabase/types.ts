@@ -7656,6 +7656,15 @@ export type Database = {
         }
         Returns: string
       }
+      validate_ad_impression: {
+        Args: {
+          p_ad_slot_id: string
+          p_campaign_id: string
+          p_listener_ip_hash: string
+          p_user_agent: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       account_type:
