@@ -156,7 +156,14 @@ const PodcastDetail = () => {
                 className="w-12 h-12 rounded-lg object-cover"
               />
             )}
-            <h1 className="text-2xl font-bold">{podcast.title}</h1>
+            <div className="flex flex-col">
+              <h1 className="text-2xl font-bold">{podcast.title}</h1>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="px-2 py-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded text-xs font-medium text-white">
+                  Hosted by Seeksy
+                </div>
+              </div>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground cursor-pointer hover:text-foreground">My Podcasts</span>
