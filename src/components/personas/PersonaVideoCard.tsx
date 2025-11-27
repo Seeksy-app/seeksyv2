@@ -8,6 +8,7 @@ interface PersonaVideoCardProps {
   videoUrl: string;
   thumbnailUrl?: string;
   onClick: () => void;
+  onHoverChange?: (isHovering: boolean) => void;
 }
 
 // CSS to completely hide ALL video controls
@@ -58,9 +59,9 @@ export const PersonaVideoCard = ({
   videoUrl,
   thumbnailUrl,
   onClick,
+  onHoverChange,
 }: PersonaVideoCardProps) => {
   const [isHovering, setIsHovering] = useState(false);
-  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
   const videoRef = useRef<HTMLVideoElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   
@@ -68,19 +69,12 @@ export const PersonaVideoCard = ({
 
   const handleMouseEnter = () => {
     setIsHovering(true);
+    onHoverChange?.(true);
   };
 
   const handleMouseLeave = () => {
     setIsHovering(false);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    setCursorPosition({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
+    onHoverChange?.(false);
   };
 
   return (
@@ -94,7 +88,6 @@ export const PersonaVideoCard = ({
         className="group cursor-pointer"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        onMouseMove={handleMouseMove}
         onClick={onClick}
       >
         <div className="relative overflow-hidden rounded-2xl shadow-2xl bg-black aspect-square">
@@ -127,14 +120,20 @@ export const PersonaVideoCard = ({
                 autoPlay
                 preload="auto"
                 disablePictureInPicture
-                controlsList="nodownload nofullscreen noremoteplayback"
+                controls={false}
                 poster={thumbnailUrl}
                 style={{ 
                   objectFit: 'cover',
                   pointerEvents: 'none'
                 }}
-                onLoadedData={(e) => {
+                onCanPlay={(e) => {
                   const video = e.currentTarget;
+                  video.muted = true;
+                  video.play().catch(() => {});
+                }}
+                onLoadedMetadata={(e) => {
+                  const video = e.currentTarget;
+                  video.muted = true;
                   video.play().catch(() => {});
                 }}
                 onContextMenu={(e) => e.preventDefault()}
@@ -152,28 +151,6 @@ export const PersonaVideoCard = ({
               }}
               transition={{ duration: 0.12, ease: "easeOut" }}
             />
-            
-            {/* "More about" pill that follows cursor - Fruitful style */}
-            <motion.div 
-              className="absolute z-20 pointer-events-none"
-              animate={{ 
-                opacity: isHovering ? 1 : 0,
-                left: cursorPosition.x + 12,
-                top: cursorPosition.y + 12,
-              }}
-              transition={{ 
-                opacity: { duration: 0.12, ease: "easeOut" },
-                left: { duration: 0.15, ease: "easeOut" },
-                top: { duration: 0.15, ease: "easeOut" }
-              }}
-              style={{
-                willChange: 'transform, opacity'
-              }}
-            >
-              <div className="bg-white text-black px-5 py-2.5 rounded-full text-sm font-semibold shadow-xl whitespace-nowrap">
-                More about {name}
-              </div>
-            </motion.div>
           </div>
 
           {/* Content - animated text overlay Fruitful style */}
