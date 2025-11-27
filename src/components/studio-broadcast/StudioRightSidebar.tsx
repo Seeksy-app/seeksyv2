@@ -56,8 +56,8 @@ export function StudioRightSidebar({
 
   return (
     <>
-      {/* Icon Navigation Bar - Left Side */}
-      <div className="w-16 bg-background/95 backdrop-blur-sm border-r border-border/50 flex flex-col items-center py-6 gap-2">
+      {/* Icon Navigation Bar - Right Side */}
+      <div className="w-16 bg-background/95 backdrop-blur-sm border-l border-border/50 flex flex-col items-center py-6 gap-2">
         {sidebarItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -78,9 +78,9 @@ export function StudioRightSidebar({
         })}
       </div>
 
-      {/* Slide-out Panel - From Left */}
+      {/* Slide-out Panel - From Right */}
       <Sheet open={activePanel !== null} onOpenChange={() => setActivePanel(null)}>
-        <SheetContent side="left" className="w-[420px] p-0 border-r border-border/50 ml-16">
+        <SheetContent side="right" className="w-[420px] p-0 border-l border-border/50 mr-16">
           <SheetHeader className="px-6 py-4 border-b border-border/50">
             <SheetTitle className="text-lg font-semibold">
               {getPanelTitle(activePanel || "")}
