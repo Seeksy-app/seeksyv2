@@ -801,18 +801,11 @@ export default function VoiceProtection() {
                           </div>
                         </div>
 
-                        <Accordion type="single" collapsible>
-                          <AccordionItem value="script">
-                            <AccordionTrigger>Recording Script</AccordionTrigger>
-                            <AccordionContent>
-                              <ScriptEditor 
-                                script={script}
-                                onScriptChange={setScript}
-                                cloneType={cloneType}
-                              />
-                            </AccordionContent>
-                          </AccordionItem>
-                        </Accordion>
+                        <ScriptEditor 
+                          script={script}
+                          onScriptChange={setScript}
+                          cloneType={cloneType}
+                        />
                       </>
                     )}
 
