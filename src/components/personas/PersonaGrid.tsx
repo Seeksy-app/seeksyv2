@@ -18,7 +18,7 @@ interface Persona {
 
 export const PersonaGrid = () => {
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
-  const [hoveredPersona, setHoveredPersona] = useState<string | null>(null);
+  const [hoveredPersona, setHoveredPersona] = useState<Persona | null>(null);
   const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -76,7 +76,22 @@ export const PersonaGrid = () => {
             videoUrl={persona.video_url}
             thumbnailUrl={persona.thumbnail_url || undefined}
             onClick={() => setSelectedPersona(persona)}
-            onHoverChange={(isHovering) => setHoveredPersona(isHovering ? persona.name : null)}
+            onHoverChange={(isHovering) => setHoveredPersona(isHovering ? persona : null)}
+            tags={
+              persona.name === "Christy" 
+                ? [
+                    { emoji: "🎧", label: "Podcaster" },
+                    { emoji: "📈", label: "Growth-focused" },
+                    { emoji: "🤝", label: "Collaborative" }
+                  ]
+                : persona.name === "Jackie"
+                ? [
+                    { emoji: "🎨", label: "Creative" },
+                    { emoji: "📚", label: "Teacher" },
+                    { emoji: "✨", label: "Encouraging" }
+                  ]
+                : []
+            }
           />
         ))}
         
@@ -92,7 +107,7 @@ export const PersonaGrid = () => {
             }}
           >
             <div className="bg-white text-black px-5 py-2.5 rounded-full text-sm font-semibold shadow-xl whitespace-nowrap">
-              More about {hoveredPersona}
+              More about {hoveredPersona.name}
             </div>
           </div>
         )}
