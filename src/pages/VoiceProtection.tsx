@@ -28,7 +28,7 @@ import ScriptEditor from "@/components/voice/ScriptEditor";
 import confetti from "canvas-confetti";
 import { VoiceCertifiedBadge } from "@/components/VoiceCertifiedBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { testVoiceProfileCreation } from "@/test-voice-profile";
+import { testVoiceNFTMinting } from "@/test-voice-profile";
 
 type CloneType = 'instant' | 'professional';
 
@@ -81,8 +81,8 @@ export default function VoiceProtection() {
 
   // Debug: Load test function
   useEffect(() => {
-    (window as any).testVoiceProfile = testVoiceProfileCreation;
-    console.log('🧪 Voice profile test function loaded. Run: window.testVoiceProfile()');
+    (window as any).testVoiceNFT = testVoiceNFTMinting;
+    console.log('🧪 Voice NFT test function loaded. Run: window.testVoiceNFT()');
   }, []);
 
   // Check if user is admin
