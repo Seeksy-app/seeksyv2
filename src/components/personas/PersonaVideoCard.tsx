@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 
 interface PersonaVideoCardProps {
@@ -42,13 +42,6 @@ export const PersonaVideoCard = ({
   
   const isIframe = videoUrl && (videoUrl.includes('heygen.com') || videoUrl.includes('iframe'));
 
-  // Autoplay video on mount
-  useEffect(() => {
-    if (videoRef.current && !isIframe) {
-      videoRef.current.play().catch(console.error);
-    }
-  }, [isIframe]);
-
   const handleMouseEnter = () => {
     setIsHovering(true);
   };
@@ -90,22 +83,27 @@ export const PersonaVideoCard = ({
                   />
                 </div>
               ) : (
-                <video
-                  ref={videoRef}
-                  src={videoUrl}
-                  className="absolute inset-0 w-full h-full"
-                  loop
-                  muted
-                  playsInline
-                  autoPlay
-                  preload="auto"
-                  disablePictureInPicture
-                  style={{ 
-                    objectFit: 'cover',
-                    pointerEvents: 'none'
-                  }}
-                  onContextMenu={(e) => e.preventDefault()}
-                />
+              <video
+                ref={videoRef}
+                src={videoUrl}
+                className="absolute inset-0 w-full h-full"
+                loop
+                muted
+                playsInline
+                autoPlay
+                preload="metadata"
+                disablePictureInPicture
+                poster={thumbnailUrl}
+                style={{ 
+                  objectFit: 'cover',
+                  pointerEvents: 'none'
+                }}
+                onLoadedMetadata={(e) => {
+                  const video = e.currentTarget;
+                  video.play().catch(() => {});
+                }}
+                onContextMenu={(e) => e.preventDefault()}
+              />
               )
             ) : (
               <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-accent/20" />
