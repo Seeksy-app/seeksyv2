@@ -232,7 +232,7 @@ export const PersonaVideoCard = ({
                   {/* Tags */}
                   {tags.length > 0 && (
                     <motion.div 
-                      className="flex flex-wrap gap-2 mt-4 max-w-[400px]"
+                      className="flex flex-wrap gap-2 mt-4 h-[72px] content-start"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.5, duration: 0.4 }}
@@ -240,7 +240,7 @@ export const PersonaVideoCard = ({
                       {tags.map((tag, index) => (
                         <div
                           key={index}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm text-white text-sm font-medium"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm text-white text-sm font-medium h-fit"
                         >
                           <span>{tag.emoji}</span>
                           <span>{tag.label}</span>
