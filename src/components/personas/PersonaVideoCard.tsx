@@ -313,7 +313,7 @@ export const PersonaVideoCard = ({
 
               <div className="grid md:grid-cols-2 gap-0">
                 {/* Left: Video */}
-                <div className="relative bg-gray-100 aspect-[3/4] md:aspect-auto md:min-h-[600px]">
+                <div className="relative bg-black aspect-[3/4] md:aspect-auto md:min-h-[600px] flex items-center justify-center overflow-hidden">
                   {videoUrl && !isIframe && (
                     <>
                       <video
@@ -371,11 +371,11 @@ export const PersonaVideoCard = ({
                     {tags.length > 0 && (
                       <div>
                         <p className="text-sm font-semibold text-gray-900 mb-3">{name}'s style</p>
-                        <div className="flex flex-wrap gap-3">
+                        <div className="flex flex-wrap gap-2">
                           {tags.map((tag, index) => (
                             <div
                               key={index}
-                              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 text-gray-800 text-sm font-medium"
+                              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-gray-700/80 backdrop-blur-sm text-white text-sm font-medium"
                             >
                               <span>{tag.emoji}</span>
                               <span>{tag.label}</span>
