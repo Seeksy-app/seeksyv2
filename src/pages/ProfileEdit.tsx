@@ -31,6 +31,16 @@ export default function ProfileEdit() {
   const [profileImageBgColor, setProfileImageBgColor] = useState("#ffffff");
   const [titleColor, setTitleColor] = useState("#1f2937");
   const [titleFont, setTitleFont] = useState("sans");
+  const [linkShade, setLinkShade] = useState<"none" | "minimal" | "light" | "color" | "dark">("color");
+  const [linkShape, setLinkShape] = useState<"rounded" | "oval" | "rectangle">("rounded");
+  const [linkStyle, setLinkStyle] = useState<"default" | "gradient" | "shadow" | "outline" | "filled" | "bw-outline">("default");
+  const [linkColor, setLinkColor] = useState("#3b82f6");
+  const [linkBorderColor, setLinkBorderColor] = useState("#3b82f6");
+  const [bioFontColor, setbioFontColor] = useState("#6b7280");
+  const [textSize, setTextSize] = useState<"small" | "medium" | "large">("medium");
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+  const [showBranding, setShowBranding] = useState(true);
+  const [showLibrary, setShowLibrary] = useState(false);
   
   // Device preview
   const [previewDevice, setPreviewDevice] = useState<"mobile" | "tablet" | "desktop">("mobile");
@@ -100,15 +110,9 @@ export default function ProfileEdit() {
     { value: "ubuntu", label: "Ubuntu" },
   ];
 
-  const colorSwatches = [
-    // Grays & blacks
-    "#000000", "#374151", "#6b7280", "#9ca3af", "#d1d5db", "#e5e7eb", "#ffffff",
-    // Reds & pinks
-    "#ef4444", "#f87171", "#ec4899", "#c084fc", "#a855f7", "#8b5cf6", "#6366f1",
-    // Blues
-    "#14b8a6", "#22d3ee", "#38bdf8", "#60a5fa", "#3b82f6", "#1e40af", "#1e3a8a",
-    // Greens & yellows
-    "#10b981", "#84cc16", "#a3e635", "#facc15", "#fbbf24", "#fb923c", "#f97316"
+  const defaultColorPalette = [
+    "#000000", "#6b7280", "#991b1b", "#dc2626", "#ea580c", "#f97316",
+    "#d946ef", "#a855f7", "#0000ff", "#3b82f6", "#06b6d4", "#10b981"
   ];
 
   const navItems = [
@@ -300,59 +304,87 @@ export default function ProfileEdit() {
                 <div>
                   <h2 className="text-lg font-semibold mb-4">Design</h2>
                   <div className="space-y-6">
+                    {/* Color */}
                     <div>
-                      <Label className="text-sm font-medium">Theme Color</Label>
-                      <p className="text-xs text-muted-foreground mb-3">Main accent color for buttons and links</p>
-                      <div className="flex gap-2 flex-wrap">
-                        {colorSwatches.map((color) => (
+                      <Label className="text-sm font-medium mb-3 flex items-center gap-2">
+                        <Palette className="w-4 h-4" />
+                        Pick your color
+                      </Label>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Input
+                          type="color"
+                          value={themeColor}
+                          onChange={(e) => setThemeColor(e.target.value)}
+                          className="w-12 h-12 p-1 border rounded-lg"
+                        />
+                        <Input
+                          type="text"
+                          value={themeColor}
+                          onChange={(e) => setThemeColor(e.target.value)}
+                          className="flex-1 font-mono uppercase"
+                          placeholder="#FFFFFF"
+                        />
+                      </div>
+                      <p className="text-xs font-medium mb-2">Default Colors</p>
+                      <div className="grid grid-cols-6 gap-2">
+                        {defaultColorPalette.map((color) => (
                           <button
                             key={color}
                             onClick={() => setThemeColor(color)}
                             className={`w-10 h-10 rounded-full border-2 hover:scale-110 transition-transform ${
-                              themeColor === color ? "border-primary ring-2 ring-primary ring-offset-2" : "border-border"
+                              themeColor === color ? "ring-2 ring-primary ring-offset-2" : ""
                             }`}
                             style={{ backgroundColor: color }}
                           />
                         ))}
                       </div>
                     </div>
+
+                    {/* Shade */}
                     <div>
-                      <Label className="text-sm font-medium">Background (Profile Image)</Label>
-                      <p className="text-xs text-muted-foreground mb-3">Color behind your profile image</p>
-                      <div className="flex gap-2 flex-wrap">
-                        {colorSwatches.map((color) => (
+                      <Label className="text-sm font-medium mb-3 flex items-center gap-2">
+                        Choose a shade
+                      </Label>
+                      <div className="grid grid-cols-5 gap-3">
+                        {[
+                          { value: "none", label: "None" },
+                          { value: "minimal", label: "Minimal" },
+                          { value: "light", label: "Light" },
+                          { value: "color", label: "Color" },
+                          { value: "dark", label: "Dark" },
+                        ].map((shade) => (
                           <button
-                            key={color}
-                            onClick={() => setProfileImageBgColor(color)}
-                            className={`w-10 h-10 rounded-full border-2 hover:scale-110 transition-transform ${
-                              profileImageBgColor === color ? "border-primary ring-2 ring-primary ring-offset-2" : "border-border"
+                            key={shade.value}
+                            onClick={() => setLinkShade(shade.value as any)}
+                            className={`flex flex-col items-center gap-2 p-2 rounded-lg border-2 transition-all ${
+                              linkShade === shade.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
                             }`}
-                            style={{ backgroundColor: color }}
-                          />
+                          >
+                            <div className={`w-10 h-10 rounded-full border flex items-center justify-center text-xs font-medium ${
+                              shade.value === "none" ? "bg-white border-gray-300" :
+                              shade.value === "minimal" ? "bg-gray-50 border-gray-200" :
+                              shade.value === "light" ? "bg-gray-100 border-gray-300" :
+                              shade.value === "color" ? "bg-primary/20 border-primary" :
+                              "bg-gray-800 text-white border-gray-900"
+                            }`}>
+                              Aa
+                            </div>
+                            <span className="text-xs font-medium">{shade.label}</span>
+                          </button>
                         ))}
                       </div>
                     </div>
+
+                    {/* Font */}
                     <div>
-                      <Label className="text-sm font-medium">Title Color</Label>
-                      <p className="text-xs text-muted-foreground mb-3">Color for your name and text</p>
-                      <div className="flex gap-2 flex-wrap">
-                        {colorSwatches.map((color) => (
-                          <button
-                            key={color}
-                            onClick={() => setTitleColor(color)}
-                            className={`w-10 h-10 rounded-full border-2 hover:scale-110 transition-transform ${
-                              titleColor === color ? "border-primary ring-2 ring-primary ring-offset-2" : "border-border"
-                            }`}
-                            style={{ backgroundColor: color }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium">Font</Label>
+                      <Label className="text-sm font-medium mb-2 flex items-center gap-2">
+                        Choose a Font
+                      </Label>
+                      <p className="text-xs text-muted-foreground mb-3">Choose from Google Fonts</p>
+                      <p className="text-xs text-muted-foreground mb-3">Customize fonts to your brand style</p>
                       <Select value={titleFont} onValueChange={setTitleFont}>
                         <SelectTrigger className="mt-1.5">
-                          <SelectValue />
+                          <SelectValue placeholder="Inter (default)" />
                         </SelectTrigger>
                         <SelectContent className="bg-popover z-50">
                           {fontOptions.map((f) => (
@@ -362,6 +394,216 @@ export default function ProfileEdit() {
                           ))}
                         </SelectContent>
                       </Select>
+                      <div className="grid grid-cols-3 gap-3 mt-4">
+                        <div>
+                          <Label className="text-xs font-medium mb-2 block">Bio Font Color</Label>
+                          <div className="flex items-center gap-1">
+                            <Input
+                              type="color"
+                              value={bioFontColor}
+                              onChange={(e) => setbioFontColor(e.target.value)}
+                              className="w-10 h-8 p-1 border rounded"
+                            />
+                            <Input
+                              type="text"
+                              value={bioFontColor}
+                              className="flex-1 text-xs font-mono uppercase h-8"
+                            />
+                          </div>
+                          <Button variant="link" size="sm" className="mt-1 h-auto p-0 text-xs" onClick={() => setbioFontColor("#6b7280")}>
+                            Reset
+                          </Button>
+                        </div>
+                        <div>
+                          <Label className="text-xs font-medium mb-2 block">Font Color</Label>
+                          <div className="flex items-center gap-1">
+                            <Input
+                              type="color"
+                              value={titleColor}
+                              onChange={(e) => setTitleColor(e.target.value)}
+                              className="w-10 h-8 p-1 border rounded"
+                            />
+                            <Input
+                              type="text"
+                              value={titleColor}
+                              className="flex-1 text-xs font-mono uppercase h-8"
+                            />
+                          </div>
+                          <Button variant="link" size="sm" className="mt-1 h-auto p-0 text-xs" onClick={() => setTitleColor("#1f2937")}>
+                            Reset
+                          </Button>
+                        </div>
+                        <div>
+                          <Label className="text-xs font-medium mb-2 block">Text Size</Label>
+                          <Select value={textSize} onValueChange={(v) => setTextSize(v as any)}>
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="Select" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-popover z-50">
+                              <SelectItem value="small">Small</SelectItem>
+                              <SelectItem value="medium">Medium</SelectItem>
+                              <SelectItem value="large">Large</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button variant="link" size="sm" className="mt-1 h-auto p-0 text-xs" onClick={() => setTextSize("medium")}>
+                            Reset
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Link Shape */}
+                    <div>
+                      <Label className="text-sm font-medium mb-3 flex items-center gap-2">
+                        Choose a link shape
+                      </Label>
+                      <div className="grid grid-cols-3 gap-4">
+                        {[
+                          { value: "rounded", label: "Rounded Rectangle", style: "rounded-2xl" },
+                          { value: "oval", label: "Oval", style: "rounded-full" },
+                          { value: "rectangle", label: "Rectangle", style: "rounded-md" },
+                        ].map((shape) => (
+                          <button
+                            key={shape.value}
+                            onClick={() => setLinkShape(shape.value as any)}
+                            className="flex flex-col items-center gap-2"
+                          >
+                            <div className={`w-full h-16 border-2 transition-all ${shape.style} ${
+                              linkShape === shape.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                            } bg-muted`} />
+                            <span className="text-xs font-medium">{shape.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Link Style */}
+                    <div>
+                      <Label className="text-sm font-medium mb-3 flex items-center gap-2">
+                        Choose a link style
+                      </Label>
+                      <div className="grid grid-cols-3 gap-4">
+                        {[
+                          { value: "default", label: "Default" },
+                          { value: "gradient", label: "Gradient" },
+                          { value: "shadow", label: "Drop Shadow" },
+                          { value: "outline", label: "Outline" },
+                          { value: "filled", label: "Filled" },
+                          { value: "bw-outline", label: "B/W Outline" },
+                        ].map((style) => (
+                          <button
+                            key={style.value}
+                            onClick={() => setLinkStyle(style.value as any)}
+                            className="flex flex-col items-center gap-2"
+                          >
+                            <div className={`w-full h-12 rounded-lg border-2 transition-all ${
+                              linkStyle === style.value ? "border-primary" : "border-border hover:border-primary/50"
+                            } ${
+                              style.value === "gradient" ? "bg-gradient-to-r from-primary to-primary/60" :
+                              style.value === "shadow" ? "shadow-lg bg-white" :
+                              style.value === "outline" ? "bg-transparent border-2 border-primary" :
+                              style.value === "filled" ? "bg-primary" :
+                              style.value === "bw-outline" ? "bg-transparent border-2 border-black" :
+                              "bg-muted"
+                            }`} />
+                            <span className="text-xs font-medium">{style.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Link Color */}
+                    <div>
+                      <Label className="text-sm font-medium mb-3 flex items-center gap-2">
+                        Choose a link color
+                      </Label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-xs font-medium mb-2 block">Link Color</Label>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="color"
+                              value={linkColor}
+                              onChange={(e) => setLinkColor(e.target.value)}
+                              className="w-12 h-10 p-1 border rounded-lg"
+                            />
+                            <Input
+                              type="text"
+                              value={linkColor}
+                              onChange={(e) => setLinkColor(e.target.value)}
+                              className="flex-1 font-mono uppercase"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-xs font-medium mb-2 block">Border Color</Label>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="color"
+                              value={linkBorderColor}
+                              onChange={(e) => setLinkBorderColor(e.target.value)}
+                              className="w-12 h-10 p-1 border rounded-lg"
+                            />
+                            <Input
+                              type="text"
+                              value={linkBorderColor}
+                              onChange={(e) => setLinkBorderColor(e.target.value)}
+                              className="flex-1 font-mono uppercase"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Background */}
+                    <div>
+                      <Label className="text-sm font-medium mb-3 flex items-center gap-2">
+                        Choose a background
+                      </Label>
+                      <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer">
+                        <input
+                          type="file"
+                          id="backgroundImage"
+                          accept="image/png, image/jpeg, image/svg+xml"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = (e) => setBackgroundImage(e.target?.result as string);
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                        <label htmlFor="backgroundImage" className="cursor-pointer">
+                          {backgroundImage ? (
+                            <div className="flex flex-col items-center gap-2">
+                              <img src={backgroundImage} alt="Background" className="w-20 h-20 rounded object-cover" />
+                              <p className="text-xs text-muted-foreground">Click to change</p>
+                            </div>
+                          ) : (
+                            <>
+                              <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                              <p className="text-sm font-medium">Upload file</p>
+                              <p className="text-xs text-muted-foreground mt-2">Accepted file types: image/png, image/jpeg, image/svg</p>
+                              <p className="text-xs text-muted-foreground">Max file size: 20MB</p>
+                            </>
+                          )}
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Branding */}
+                    <div>
+                      <Label className="text-sm font-medium mb-3 flex items-center gap-2">
+                        Seeksy Branding
+                      </Label>
+                      <div className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <p className="text-sm font-medium">Remove Seeksy branding from the footer</p>
+                        </div>
+                        <Switch checked={!showBranding} onCheckedChange={(checked) => setShowBranding(!checked)} />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -374,81 +616,17 @@ export default function ProfileEdit() {
                   <h2 className="text-lg font-semibold mb-4">Links</h2>
                   <div className="space-y-4">
                     <div>
-                      <Label className="text-sm font-medium mb-3 block">Seeksy Features</Label>
-                      <p className="text-xs text-muted-foreground mb-3">Only showing your activated apps</p>
+                      <Label className="text-sm font-medium mb-3 block">Seeksy Apps</Label>
+                      <p className="text-xs text-muted-foreground mb-3">Only Streaming is available for My Page</p>
                       <div className="space-y-3">
-                        {activatedApps.includes("meetings") && (
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-medium">Meetings</p>
-                              <p className="text-xs text-muted-foreground">Show Meetings link</p>
-                            </div>
-                            <Switch checked={showMeetings} onCheckedChange={setShowMeetings} />
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium">Streaming</p>
+                            <p className="text-xs text-muted-foreground">Show streaming on My Page</p>
                           </div>
-                        )}
-                        {activatedApps.includes("events") && (
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-medium">Events</p>
-                              <p className="text-xs text-muted-foreground">Show Events link</p>
-                            </div>
-                            <Switch checked={showEvents} onCheckedChange={setShowEvents} />
-                          </div>
-                        )}
-                        {activatedApps.includes("signupsheets") && (
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-medium">Sign-up Sheets</p>
-                              <p className="text-xs text-muted-foreground">Show Sign-up Sheets</p>
-                            </div>
-                            <Switch checked={showSignupSheets} onCheckedChange={setShowSignupSheets} />
-                          </div>
-                        )}
-                        {activatedApps.includes("polls") && (
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-medium">Polls</p>
-                              <p className="text-xs text-muted-foreground">Show Polls link</p>
-                            </div>
-                            <Switch checked={showPolls} onCheckedChange={setShowPolls} />
-                          </div>
-                        )}
-                        {activatedApps.includes("awards") && (
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-medium">Awards</p>
-                              <p className="text-xs text-muted-foreground">Show Awards link</p>
-                            </div>
-                            <Switch checked={showAwards} onCheckedChange={setShowAwards} />
-                          </div>
-                        )}
-                        {activatedApps.includes("qrcodes") && (
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-medium">QR Codes</p>
-                              <p className="text-xs text-muted-foreground">Show QR Codes link</p>
-                            </div>
-                            <Switch checked={showQRCodes} onCheckedChange={setShowQRCodes} />
-                          </div>
-                        )}
-                        {activatedApps.includes("newsletter") && (
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-medium">Newsletter</p>
-                              <p className="text-xs text-muted-foreground">Newsletter signup</p>
-                            </div>
-                            <Switch checked={showNewsletter} onCheckedChange={setShowNewsletter} />
-                          </div>
-                        )}
+                          <Switch checked={true} disabled />
+                        </div>
                       </div>
-                      <Button
-                        variant="link"
-                        size="sm"
-                        className="mt-3 w-full"
-                        onClick={() => navigate("/apps-settings")}
-                      >
-                        See more Seekies and Tools →
-                      </Button>
                     </div>
 
                     <div className="border-t pt-4">
@@ -671,117 +849,23 @@ export default function ProfileEdit() {
             {activeSection === "streaming" && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">Live Streaming</h3>
+                  <h3 className="text-lg font-semibold mb-2">Streaming</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Set up your live stream with video content, monetization features, and ad placements. Your viewers will see Subscribe and Tipping buttons during the stream.
+                    Enable streaming on your My Page
                   </p>
                   <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="streamingVideo" className="text-sm font-medium">Upload Video or Record in Studio</Label>
-                      <div className="mt-1.5 space-y-2">
-                        <input
-                          type="file"
-                          id="streamingVideo"
-                          accept="video/*"
-                          className="w-full px-3 py-2 border rounded-lg text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              setStreamingVideo(file.name);
-                            }
-                          }}
-                        />
-                        <Button variant="outline" className="w-full" onClick={() => navigate("/studio")}>
-                          <Video className="w-4 h-4 mr-2" />
-                          Record in Studio
-                        </Button>
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <p className="font-medium">Show Library</p>
+                        <p className="text-sm text-muted-foreground">Display your media library</p>
                       </div>
-                    </div>
-                    
-                    <div className="border-t pt-4">
-                      <h4 className="text-sm font-semibold mb-3">Ad Insertion</h4>
-                      <div className="space-y-3">
-                        <div>
-                          <Label className="text-xs font-medium">Ad Videos</Label>
-                          <Select value={selectedAdVideo} onValueChange={setSelectedAdVideo}>
-                            <SelectTrigger className="mt-1.5">
-                              <SelectValue placeholder="Select ad video" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-popover z-50">
-                              <SelectItem value="none">None</SelectItem>
-                              <SelectItem value="video1">Product Launch Video</SelectItem>
-                              <SelectItem value="video2">Brand Showcase</SelectItem>
-                              <SelectItem value="video3">Promotional Clip</SelectItem>
-                              <SelectItem value="video4">Service Introduction</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label className="text-xs font-medium">Pre-Roll Ad</Label>
-                          <Select value={selectedAd} onValueChange={setSelectedAd}>
-                            <SelectTrigger className="mt-1.5">
-                              <SelectValue placeholder="Select pre-roll ad" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-popover z-50">
-                              <SelectItem value="none">None</SelectItem>
-                              <SelectItem value="ad1">Quick Ad Campaign #1</SelectItem>
-                              <SelectItem value="ad2">Quick Ad Campaign #2</SelectItem>
-                              <SelectItem value="ad3">Platform Ad Network</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label className="text-xs font-medium">Mid-Roll Ad</Label>
-                          <Select>
-                            <SelectTrigger className="mt-1.5">
-                              <SelectValue placeholder="Select mid-roll ad" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-popover z-50">
-                              <SelectItem value="none">None</SelectItem>
-                              <SelectItem value="ad1">Quick Ad Campaign #1</SelectItem>
-                              <SelectItem value="ad2">Quick Ad Campaign #2</SelectItem>
-                              <SelectItem value="ad3">Platform Ad Network</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label className="text-xs font-medium">Post-Roll Ad</Label>
-                          <Select>
-                            <SelectTrigger className="mt-1.5">
-                              <SelectValue placeholder="Select post-roll ad" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-popover z-50">
-                              <SelectItem value="none">None</SelectItem>
-                              <SelectItem value="ad1">Quick Ad Campaign #1</SelectItem>
-                              <SelectItem value="ad2">Quick Ad Campaign #2</SelectItem>
-                              <SelectItem value="ad3">Platform Ad Network</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3 pt-4 border-t">
-                      <div className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <p className="font-medium">Enable Tipping</p>
-                          <p className="text-sm text-muted-foreground">Allow viewers to send tips</p>
-                        </div>
-                        <Switch checked={true} />
-                      </div>
-                      <div className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <p className="font-medium">Subscriptions</p>
-                          <p className="text-sm text-muted-foreground">Enable subscription button</p>
-                        </div>
-                        <Switch checked={true} />
-                      </div>
+                      <Switch checked={showLibrary} onCheckedChange={setShowLibrary} />
                     </div>
                     
                     <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-                      <h4 className="text-sm font-semibold mb-2">💡 Go Live from Your Phone</h4>
+                      <h4 className="text-sm font-semibold mb-2">💡 Go Live</h4>
                       <p className="text-xs text-muted-foreground mb-3">
-                        You can go live directly from your phone camera to your Seeksy stream! Viewers will see your Subscribe and Tipping buttons.
+                        Go to Studio to start streaming live on your My Page
                       </p>
                       <Button variant="outline" size="sm" className="w-full" onClick={() => navigate("/studio")}>
                         Open Studio to Go Live
@@ -844,7 +928,12 @@ export default function ProfileEdit() {
               "max-w-4xl"
             }`}>
               <CardContent className="p-0">
-                <div className="rounded-lg overflow-hidden" style={{ backgroundColor }}>
+                <div className="rounded-lg overflow-hidden" style={{ 
+                  backgroundColor,
+                  backgroundImage: backgroundImage ? `url(${backgroundImage})` : undefined,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center"
+                }}>
                   <div className={`p-8 flex flex-col items-center ${
                     previewDevice === "mobile" ? "aspect-[9/16]" : "min-h-[600px]"
                   }`}>
@@ -876,44 +965,24 @@ export default function ProfileEdit() {
 
                     {/* Bio */}
                     {bio && (
-                      <p className="text-sm text-center mb-4 opacity-90 px-4" style={{ color: titleColor }}>
+                      <p className={`text-center mb-4 opacity-90 px-4 ${
+                        textSize === "small" ? "text-xs" :
+                        textSize === "large" ? "text-base" :
+                        "text-sm"
+                      }`} style={{ color: bioFontColor }}>
                         {bio}
                       </p>
                     )}
 
-                    {/* Feature Links */}
-                    <div className={`w-full space-y-2 mb-4 ${
-                      previewDevice === "desktop" ? "max-w-2xl grid grid-cols-2 gap-2" : ""
-                    }`}>
-                      {showMeetings && activatedApps.includes("meetings") && (
-                        <Button style={{ backgroundColor: themeColor }} className="w-full font-semibold text-white" size="sm">
-                          📅 Book a Meeting
-                        </Button>
-                      )}
-                      {showEvents && activatedApps.includes("events") && (
-                        <Button style={{ backgroundColor: themeColor }} className="w-full font-semibold text-white" size="sm">
-                          🎉 View Events
-                        </Button>
-                      )}
-                      {showSignupSheets && activatedApps.includes("signupsheets") && (
-                        <Button style={{ backgroundColor: themeColor }} className="w-full font-semibold text-white" size="sm">
-                          📋 Sign Up
-                        </Button>
-                      )}
-                      {showPolls && activatedApps.includes("polls") && (
-                        <Button style={{ backgroundColor: themeColor }} className="w-full font-semibold text-white" size="sm">
-                          📊 Take a Poll
-                        </Button>
-                      )}
-                      {showAwards && activatedApps.includes("awards") && (
-                        <Button style={{ backgroundColor: themeColor }} className="w-full font-semibold text-white" size="sm">
-                          🏆 Awards
-                        </Button>
-                      )}
-                      {showNewsletter && activatedApps.includes("newsletter") && (
-                        <Button style={{ backgroundColor: themeColor }} className="w-full font-semibold text-white" size="sm">
-                          📧 Subscribe to Newsletter
-                        </Button>
+                    {/* Streaming Section (always visible as it's the only app) */}
+                    <div className="w-full mb-4">
+                      <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg flex items-center justify-center">
+                        <Video className="w-12 h-12 text-primary/40" />
+                      </div>
+                      {showLibrary && (
+                        <p className="text-xs text-center mt-2 opacity-75" style={{ color: titleColor }}>
+                          📚 View Library
+                        </p>
                       )}
                     </div>
 
@@ -923,15 +992,34 @@ export default function ProfileEdit() {
                         <h3 className="text-sm font-semibold mb-2" style={{ color: titleColor }}>{section.title}</h3>
                         <div className="space-y-2">
                           {section.links.filter(l => l.title).map((link) => (
-                            <Button
+                            <div
                               key={link.id}
-                              variant="outline"
-                              className="w-full"
-                              size="sm"
-                              style={{ borderColor: themeColor, color: titleColor }}
+                              className={`w-full px-6 py-3 text-center font-medium transition-all ${
+                                linkShape === "oval" ? "rounded-full" :
+                                linkShape === "rectangle" ? "rounded-md" :
+                                "rounded-2xl"
+                              } ${
+                                linkStyle === "gradient" ? "bg-gradient-to-r from-primary to-primary/60 text-white" :
+                                linkStyle === "shadow" ? "shadow-lg" :
+                                linkStyle === "outline" ? "bg-transparent border-2" :
+                                linkStyle === "filled" ? "text-white" :
+                                linkStyle === "bw-outline" ? "bg-transparent border-2 !border-black !text-black" :
+                                ""
+                              } ${
+                                linkShade === "none" ? "bg-transparent" :
+                                linkShade === "minimal" ? "bg-muted" :
+                                linkShade === "light" ? "bg-muted/80" :
+                                linkShade === "dark" ? "bg-gray-800 text-white" :
+                                ""
+                              }`}
+                              style={{
+                                backgroundColor: linkStyle === "filled" || linkStyle === "default" ? linkColor : undefined,
+                                borderColor: linkStyle === "outline" || linkStyle === "bw-outline" ? (linkStyle === "bw-outline" ? "#000000" : linkBorderColor) : undefined,
+                                color: linkStyle === "outline" ? linkColor : linkStyle === "bw-outline" ? "#000000" : (linkStyle === "filled" || linkStyle === "default") ? "#ffffff" : titleColor
+                              }}
                             >
                               {link.title}
-                            </Button>
+                            </div>
                           ))}
                         </div>
                       </div>
@@ -954,7 +1042,15 @@ export default function ProfileEdit() {
             </Card>
           </div>
         </div>
-      </div>
-    </div>
+                    {/* Footer Branding */}
+                    {showBranding && (
+                      <div className="mt-8">
+                        <p className="text-xs text-center opacity-60" style={{ color: titleColor }}>
+                          Made with Seeksy
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
   );
 }
