@@ -134,13 +134,13 @@ const Podcasts = () => {
                       className="flex items-center gap-1.5 mb-3 p-2 bg-muted/50 rounded-md hover:bg-muted/70 transition-colors cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
-                        const rssUrl = `https://seeksy.io/rss/${podcast.slug || podcast.id}`;
+                        const rssUrl = `https://taxqcioheqdqtlmjeaht.supabase.co/functions/v1/podcast-rss/${podcast.slug || podcast.id}`;
                         copyToClipboard(rssUrl, "RSS feed");
                       }}
                     >
                       <Rss className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                       <code className="text-[10px] flex-1 truncate text-muted-foreground">
-                        seeksy.io/rss/{podcast.slug || podcast.id}
+                        ...supabase.co/.../podcast-rss/{podcast.slug || podcast.id}
                       </code>
                       <Copy className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                     </div>
