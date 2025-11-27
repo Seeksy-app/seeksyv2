@@ -7,9 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Mic, DollarSign, Check, Clock, Zap, Star, Info, Trash2, BookOpen, Upload, User } from "lucide-react";
+import { Shield, Mic, DollarSign, Check, Clock, Zap, Star, Trash2, Upload, User, ChevronRight, CheckCircle2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Dialog,
   DialogContent,
@@ -19,33 +18,50 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import ScriptEditor from "@/components/voice/ScriptEditor";
 import confetti from "canvas-confetti";
 import { VoiceCertifiedBadge } from "@/components/VoiceCertifiedBadge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type CloneType = 'instant' | 'professional';
 
 export default function VoiceProtection() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Wizard state
+  const [currentStep, setCurrentStep] = useState(1);
+  
+  // Form state
   const [cloneType, setCloneType] = useState<CloneType>('instant');
-  const [isRecording, setIsRecording] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [voiceName, setVoiceName] = useState("");
   const [description, setDescription] = useState("");
   const [pricePerAd, setPricePerAd] = useState("");
   const [availableForAds, setAvailableForAds] = useState(false);
   const [usageTerms, setUsageTerms] = useState("");
+  const [script, setScript] = useState("");
+  
+  // Recording state
+  const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [recordingStream, setRecordingStream] = useState<MediaStream | null>(null);
   const [recordingChunks, setRecordingChunks] = useState<BlobPart[]>([]);
   const [timeRemaining, setTimeRemaining] = useState(120);
   const [countdownInterval, setCountdownInterval] = useState<NodeJS.Timeout | null>(null);
   const [autoStopTimeout, setAutoStopTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [script, setScript] = useState("");
+  
+  // Consent and images
   const [showConsentDialog, setShowConsentDialog] = useState(false);
   const [consentChecked, setConsentChecked] = useState(false);
+  const [consentGiven, setConsentGiven] = useState(false);
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
   const [showRecordingStudio, setShowRecordingStudio] = useState(false);
@@ -101,8 +117,6 @@ export default function VoiceProtection() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const [consentGiven, setConsentGiven] = useState(false);
-
   const handleStartRecordingClick = () => {
     if (!consentGiven) {
       setShowConsentDialog(true);
@@ -141,7 +155,6 @@ export default function VoiceProtection() {
         const blob = new Blob(chunks, { type: 'audio/mp3' });
         setAudioBlob(blob);
         stream.getTracks().forEach(track => track.stop());
-        // Clear timers
         if (countdownInterval) clearInterval(countdownInterval);
         if (autoStopTimeout) clearTimeout(autoStopTimeout);
       };
@@ -153,17 +166,14 @@ export default function VoiceProtection() {
       setIsRecording(true);
       setIsPaused(false);
 
-      // Set initial time based on clone type
       const duration = cloneType === 'professional' ? 1800 : 120;
       setTimeRemaining(duration);
 
-      // Start countdown
       const interval = setInterval(() => {
         setTimeRemaining((prev) => prev - 1);
       }, 1000);
       setCountdownInterval(interval);
 
-      // Auto-stop after duration
       const timeout = setTimeout(() => {
         stopRecording();
       }, duration * 1000);
@@ -216,12 +226,6 @@ export default function VoiceProtection() {
         clearTimeout(autoStopTimeout);
         setAutoStopTimeout(null);
       }
-      // Celebrate recording completion
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 }
-      });
     }
   };
 
@@ -257,7 +261,6 @@ export default function VoiceProtection() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
         title: "Invalid File",
@@ -267,7 +270,6 @@ export default function VoiceProtection() {
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "File Too Large",
@@ -291,7 +293,6 @@ export default function VoiceProtection() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Upload audio
       const fileName = `${user.id}/voice-samples/${Date.now()}.mp3`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('audio-ads-generated')
@@ -305,7 +306,6 @@ export default function VoiceProtection() {
         .from('audio-ads-generated')
         .getPublicUrl(fileName);
 
-      // Upload profile image if provided
       let profileImageUrl = null;
       if (profileImage) {
         const imageFileName = `${user.id}/voice-profile-images/${Date.now()}-${profileImage.name}`;
@@ -374,6 +374,7 @@ export default function VoiceProtection() {
       setProfileImage(null);
       setProfileImagePreview(null);
       setShowRecordingStudio(false);
+      setCurrentStep(1);
     },
     onError: (error) => {
       toast({
@@ -383,6 +384,17 @@ export default function VoiceProtection() {
       });
     },
   });
+
+  const steps = [
+    { number: 1, title: "Choose Clone Type", completed: currentStep > 1 },
+    { number: 2, title: "Add Voice Details", completed: currentStep > 2 },
+    { number: 3, title: "Record Your Voice", completed: currentStep > 3 },
+    { number: 4, title: "Monetization Settings", completed: currentStep > 4 },
+  ];
+
+  const canProceedFromStep1 = cloneType !== null;
+  const canProceedFromStep2 = voiceName.trim() !== "";
+  const canProceedFromStep3 = audioBlob !== null;
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -395,7 +407,6 @@ export default function VoiceProtection() {
           </div>
         </div>
         
-        {/* Admin Controls */}
         {isAdmin && (
           <div>
             {!showRecordingStudio ? (
@@ -420,7 +431,6 @@ export default function VoiceProtection() {
         )}
       </div>
 
-      {/* Show portfolio for admins by default, recording studio for non-admins or when button clicked */}
       {(isAdmin && !showRecordingStudio) ? (
         <>
           {/* Voice Profiles Portfolio View */}
@@ -429,119 +439,101 @@ export default function VoiceProtection() {
               <p className="text-muted-foreground">Loading your voice profiles...</p>
             </div>
           ) : voiceProfiles && voiceProfiles.length > 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-6 w-6 text-primary" />
-              Your Voice Profiles
-            </CardTitle>
-            <CardDescription>
-              Blockchain-certified voice ownership and licensing
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Blockchain Certification Banner */}
-            <div className="p-4 border-2 border-primary/20 rounded-lg bg-gradient-to-r from-primary/5 to-primary/10">
-              <div className="flex items-start gap-3">
-                <Shield className="h-6 w-6 text-primary mt-0.5" />
-                <div className="flex-1">
-                  <h3 className="font-semibold text-foreground mb-1">Voice Blockchain Certification Active</h3>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Your voice fingerprints are secured on-chain with cryptographic proof of ownership. Each profile includes tamper-proof metadata tracking creation, usage, and licensing terms.
-                  </p>
-                  <div className="flex flex-wrap gap-4 text-xs">
-                    <div className="flex items-center gap-1">
-                      <Check className="h-3 w-3 text-primary" />
-                      <span className="text-muted-foreground">On-chain certification</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Check className="h-3 w-3 text-primary" />
-                      <span className="text-muted-foreground">Cryptographic fingerprint</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Check className="h-3 w-3 text-primary" />
-                      <span className="text-muted-foreground">Usage tracking</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Check className="h-3 w-3 text-primary" />
-                      <span className="text-muted-foreground">Licensing proof</span>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-6 w-6 text-primary" />
+                  Your Voice Profiles
+                </CardTitle>
+                <CardDescription>
+                  Blockchain-certified voice ownership and licensing
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="p-4 border-2 border-primary/20 rounded-lg bg-gradient-to-r from-primary/5 to-primary/10">
+                  <div className="flex items-start gap-3">
+                    <Shield className="h-6 w-6 text-primary mt-0.5" />
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground mb-1">Voice Blockchain Certification Active</h3>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Your voice fingerprints are secured on-chain with cryptographic proof of ownership.
+                      </p>
+                      <div className="flex flex-wrap gap-4 text-xs">
+                        <div className="flex items-center gap-1">
+                          <Check className="h-3 w-3 text-primary" />
+                          <span className="text-muted-foreground">On-chain certification</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Check className="h-3 w-3 text-primary" />
+                          <span className="text-muted-foreground">Cryptographic fingerprint</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Check className="h-3 w-3 text-primary" />
+                          <span className="text-muted-foreground">Usage tracking</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Check className="h-3 w-3 text-primary" />
+                          <span className="text-muted-foreground">Licensing proof</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Voice Profile Cards */}
-            <div className="grid gap-4 md:grid-cols-3">
-              {voiceProfiles.map((profile) => (
-                <Card key={profile.id} className="border-primary/20">
-                  <CardHeader>
-                    <div className="flex items-start gap-3">
-                      {profile.profile_image_url ? (
-                        <img 
-                          src={profile.profile_image_url} 
-                          alt={profile.voice_name}
-                          className="w-16 h-16 rounded-full object-cover border-2 border-primary/20"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary/20">
-                          <User className="h-8 w-8 text-primary/50" />
+                <div className="grid gap-4 md:grid-cols-3">
+                  {voiceProfiles.map((profile) => (
+                    <Card key={profile.id} className="border-primary/20">
+                      <CardHeader>
+                        <div className="flex items-start gap-3">
+                          {profile.profile_image_url ? (
+                            <img 
+                              src={profile.profile_image_url} 
+                              alt={profile.voice_name}
+                              className="w-16 h-16 rounded-full object-cover border-2 border-primary/20"
+                            />
+                          ) : (
+                            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary/20">
+                              <User className="h-8 w-8 text-primary/50" />
+                            </div>
+                          )}
+                          <div className="flex-1 space-y-2">
+                            <CardTitle className="text-lg">{profile.voice_name}</CardTitle>
+                            <VoiceCertifiedBadge size="sm" />
+                          </div>
                         </div>
-                      )}
-                      <div className="flex-1 space-y-2">
-                        <CardTitle className="text-lg">{profile.voice_name}</CardTitle>
-                        <VoiceCertifiedBadge size="sm" />
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {profile.usage_terms && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {profile.usage_terms}
-                      </p>
-                    )}
-                    
-                    {/* Blockchain Status */}
-                    <div className="p-2 rounded-md bg-muted/50 space-y-1.5">
-                      <div className="flex items-center gap-2 text-xs">
-                        <Shield className="h-3 w-3 text-primary" />
-                        <span className="font-medium">Blockchain Status</span>
-                      </div>
-                      <div className="text-xs text-muted-foreground space-y-0.5">
-                        <div className="flex items-center justify-between">
-                          <span>Certification:</span>
-                          <span className="text-primary font-medium">Active</span>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {profile.usage_terms && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {profile.usage_terms}
+                          </p>
+                        )}
+                        
+                        <div className="p-2 rounded-md bg-muted/50 space-y-1.5">
+                          <div className="flex items-center gap-2 text-xs">
+                            <Shield className="h-3 w-3 text-primary" />
+                            <span className="font-medium">Blockchain Status</span>
+                          </div>
+                          <div className="text-xs text-muted-foreground space-y-0.5">
+                            <div className="flex items-center justify-between">
+                              <span>Certification:</span>
+                              <span className="text-primary font-medium">Active</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <span>Fingerprint:</span>
-                          <span className="text-primary font-mono text-[10px]">
-                            {profile.id.slice(0, 8)}...
+
+                        <div className="flex items-center justify-between text-sm pt-2 border-t">
+                          <span className="text-muted-foreground">Price per ad:</span>
+                          <span className="font-semibold text-primary">
+                            ${profile.price_per_ad}
                           </span>
                         </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between text-sm pt-2 border-t">
-                      <span className="text-muted-foreground">Price per ad:</span>
-                      <span className="font-semibold text-primary">
-                        ${profile.price_per_ad}
-                      </span>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="flex-1">
-                        Edit
-                      </Button>
-                      <Button variant="outline" size="sm" className="flex-1">
-                        Stats
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           ) : (
             <Card className="bg-muted/50">
               <CardContent className="py-12 text-center">
@@ -556,352 +548,448 @@ export default function VoiceProtection() {
         </>
       ) : (
         <>
-          {/* Recording Studio View */}
-          <div className="grid gap-6 lg:grid-cols-2">
-        {/* Left Column - Create Voice Profile */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Create Voice Profile</CardTitle>
-            <CardDescription>
-              Choose a cloning method and record your voice sample
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Clone Type Selection */}
-            <div className="space-y-4">
-              <Label>Select Clone Type</Label>
-              <RadioGroup value={cloneType} onValueChange={(value) => setCloneType(value as CloneType)}>
-                <Card className={cloneType === 'instant' ? 'border-primary border-2' : ''}>
-                  <CardContent className="pt-6">
-                    <div className="flex items-start space-x-4">
-                      <RadioGroupItem value="instant" id="instant" className="mt-1" />
-                      <div className="flex-1 space-y-2">
-                        <Label htmlFor="instant" className="flex items-center gap-2 cursor-pointer font-semibold text-base">
-                          <Zap className="h-5 w-5 text-primary" />
-                          Instant Voice Clone
-                        </Label>
-                        <p className="text-sm text-muted-foreground">
-                          Clone your voice with just 2 minutes of audio.
-                        </p>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">2 minutes</span>
-                        </div>
-                      </div>
+          {/* Wizard View */}
+          <div className="flex gap-8">
+            {/* Left Progress Bar */}
+            <div className="w-64 flex-shrink-0">
+              <div className="sticky top-6 space-y-4">
+                {steps.map((step) => (
+                  <div key={step.number} className="flex items-start gap-3">
+                    <div className={`
+                      w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border-2 transition-all
+                      ${step.completed 
+                        ? 'bg-primary border-primary text-primary-foreground' 
+                        : currentStep === step.number
+                        ? 'border-primary text-primary'
+                        : 'border-muted-foreground/30 text-muted-foreground'
+                      }
+                    `}>
+                      {step.completed ? (
+                        <CheckCircle2 className="h-5 w-5" />
+                      ) : (
+                        <span className="font-semibold">{step.number}</span>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
-
-                <Card className={cloneType === 'professional' ? 'border-primary border-2' : ''}>
-                  <CardContent className="pt-6">
-                    <div className="flex items-start space-x-4">
-                      <RadioGroupItem value="professional" id="professional" className="mt-1" />
-                      <div className="flex-1 space-y-2">
-                        <Label htmlFor="professional" className="flex items-center gap-2 cursor-pointer font-semibold text-base">
-                          <Star className="h-5 w-5 text-primary" />
-                          Professional Voice Clone
-                        </Label>
-                        <p className="text-sm text-muted-foreground">
-                          Most realistic digital replica. Requires 30 minutes.
-                        </p>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">30 minutes</span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </RadioGroup>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="voiceName">Voice Name</Label>
-              <Input
-                id="voiceName"
-                placeholder="My Professional Voice"
-                value={voiceName}
-                onChange={(e) => setVoiceName(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description (Optional)</Label>
-              <Textarea
-                id="description"
-                placeholder="Describe your voice tone and style..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-4">
-              {/* Timer Display - Large and Yellow - AT TOP */}
-              {isRecording && (
-                <div className="flex items-center justify-center p-6 bg-yellow-500/10 rounded-lg border-2 border-yellow-500">
-                  <Clock className="h-8 w-8 text-yellow-500 mr-3" />
-                  <span className="text-4xl font-bold text-yellow-500">
-                    {formatTime(timeRemaining)}
-                  </span>
-                </div>
-              )}
-
-              {/* Start Recording Button - ABOVE SCRIPT */}
-              {!audioBlob && !isRecording && (
-                <Button
-                  onClick={handleStartRecordingClick}
-                  className="w-full"
-                >
-                  <Mic className="mr-2 h-4 w-4" />
-                  {cloneType === 'instant' ? 'Start Recording (2 minutes)' : 'Start Recording (30 minutes)'}
-                </Button>
-              )}
-
-              {/* Recording Status Message - WHEN RECORDING */}
-              {isRecording && (
-                <div>
-                  <p className="text-sm font-medium text-primary mb-2">
-                    {isPaused ? "Recording Paused" : "Recording in Progress..."}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {cloneType === 'professional' 
-                      ? "Read aloud from a book. Use pause if you need a break."
-                      : "Speak naturally and clearly."
-                    }
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Script Editor - IN THE MIDDLE */}
-            <div className="space-y-2">
-              <Label>Recording Script</Label>
-              <ScriptEditor 
-                script={script}
-                onScriptChange={setScript}
-                cloneType={cloneType}
-              />
-            </div>
-
-            {/* Control Buttons - BELOW SCRIPT when recording */}
-            {isRecording && (
-              <div className="grid grid-cols-3 gap-2">
-                {isPaused ? (
-                  <Button onClick={resumeRecording} variant="default" className="w-full">
-                    Resume
-                  </Button>
-                ) : (
-                  <Button onClick={pauseRecording} variant="secondary" className="w-full">
-                    Pause
-                  </Button>
-                )}
-                <Button onClick={stopRecording} variant="outline" className="w-full">
-                  Stop
-                </Button>
-                <Button 
-                  onClick={deleteRecording} 
-                  variant="destructive" 
-                  size="icon"
-                  className="w-full"
-                  title="Delete and start over"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-
-            {/* Audio Preview */}
-            {audioBlob && (
-              <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
-                <div className="flex items-center gap-2">
-                  <Check className="h-5 w-5 text-primary" />
-                  <p className="text-sm font-medium">Recording Complete!</p>
-                </div>
-                <audio 
-                  controls 
-                  src={URL.createObjectURL(audioBlob)} 
-                  className="w-full"
-                />
-                <Button 
-                  onClick={deleteRecording} 
-                  variant="outline" 
-                  size="sm"
-                  className="w-full"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete & Re-record
-                </Button>
-              </div>
-            )}
-
-            {/* Monetization Options */}
-            {audioBlob && (
-              <>
-                {/* Profile Photo Upload */}
-                <div className="space-y-3">
-                  <Label>Profile Photo (Optional)</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Add your photo to help advertisers connect with your voice personality
-                  </p>
-                  
-                  <div className="flex items-start gap-4">
-                    {profileImagePreview ? (
-                      <div className="relative">
-                        <img 
-                          src={profileImagePreview} 
-                          alt="Profile preview"
-                          className="w-24 h-24 rounded-full object-cover border-2 border-primary"
-                        />
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-                          onClick={() => {
-                            setProfileImage(null);
-                            setProfileImagePreview(null);
-                          }}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
-                        <User className="h-10 w-10 text-muted-foreground/50" />
-                      </div>
-                    )}
-                    
-                    <div className="flex-1">
-                      <Button
-                        variant="outline"
-                        onClick={() => document.getElementById('profile-image-upload')?.click()}
-                        className="w-full"
-                      >
-                        <Upload className="mr-2 h-4 w-4" />
-                        {profileImagePreview ? 'Change Photo' : 'Upload Photo'}
-                      </Button>
-                      <input
-                        id="profile-image-upload"
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleImageUpload}
-                      />
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Max 5MB • JPG, PNG, or GIF
+                    <div className="pt-0.5">
+                      <p className={`
+                        text-sm font-medium
+                        ${currentStep === step.number ? 'text-foreground' : 'text-muted-foreground'}
+                      `}>
+                        {step.title}
                       </p>
                     </div>
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="price">Price per Ad Use</Label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="price"
-                      type="number"
-                      placeholder="50.00"
-                      value={pricePerAd}
-                      onChange={(e) => setPricePerAd(e.target.value)}
-                      className="pl-9"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="terms">Usage Terms (Optional)</Label>
-                  <Textarea
-                    id="terms"
-                    placeholder="Specify how advertisers can use your voice..."
-                    value={usageTerms}
-                    onChange={(e) => setUsageTerms(e.target.value)}
-                    rows={2}
-                  />
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="available"
-                    checked={availableForAds}
-                    onCheckedChange={setAvailableForAds}
-                  />
-                  <Label htmlFor="available" className="cursor-pointer">
-                    Make available for advertisers
-                  </Label>
-                </div>
-
-                <Button
-                  onClick={() => cloneVoice.mutate()}
-                  disabled={cloneVoice.isPending}
-                  className="w-full"
-                >
-                  {cloneVoice.isPending ? "Creating..." : "Create Voice Profile"}
-                </Button>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Right Column - Reading Tips */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="h-6 w-6 text-primary" />
-              Recording Tips
-            </CardTitle>
-            <CardDescription>
-              Get the best results from your voice cloning
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div className="p-4 border-l-4 border-primary bg-primary/5 rounded-r-lg">
-                <h3 className="font-semibold mb-2">📍 Environment</h3>
-                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                  <li>Record in a quiet space with minimal echo</li>
-                  <li>Use a quality microphone if available</li>
-                  <li>Avoid background noise and distractions</li>
-                </ul>
-              </div>
-
-              <div className="p-4 border-l-4 border-primary bg-primary/5 rounded-r-lg">
-                <h3 className="font-semibold mb-2">🎤 Voice Quality</h3>
-                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                  <li>Speak naturally at your normal pace</li>
-                  <li>Maintain consistent volume and energy</li>
-                  <li>Vary your tone to capture emotional range</li>
-                </ul>
-              </div>
-
-              <div className="p-4 border-l-4 border-primary bg-primary/5 rounded-r-lg">
-                <h3 className="font-semibold mb-2">📝 Content Tips</h3>
-                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                  <li>Read diverse content (questions, statements, emotions)</li>
-                  <li>Include pauses and natural breathing</li>
-                  <li>Pronounce words clearly without over-enunciating</li>
-                </ul>
-              </div>
-
-              <div className="p-4 border-l-4 border-primary bg-primary/5 rounded-r-lg">
-                <h3 className="font-semibold mb-2">⏱️ Duration</h3>
-                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                  <li><strong>Instant:</strong> 2 min minimum - good for basic cloning</li>
-                  <li><strong>Professional:</strong> 30 min - highest quality results</li>
-                  <li>Longer recordings capture more nuances</li>
-                </ul>
-              </div>
-
-              <div className="p-4 border-l-4 border-destructive bg-destructive/5 rounded-r-lg">
-                <h3 className="font-semibold mb-2 text-destructive">⚠️ Important</h3>
-                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                  <li>Only clone your own voice or voices you have permission to use</li>
-                  <li>Unauthorized voice cloning is illegal</li>
-                  <li>You'll be asked to confirm ownership before recording</li>
-                </ul>
+                ))}
               </div>
             </div>
-          </CardContent>
-        </Card>
+
+            {/* Main Content Area */}
+            <div className="flex-1 max-w-2xl mx-auto">
+              {/* Step 1: Choose Clone Type */}
+              {currentStep === 1 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Choose Clone Type</CardTitle>
+                    <CardDescription>
+                      Select the voice cloning method that best fits your needs
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Card 
+                      className={`cursor-pointer transition-all ${cloneType === 'instant' ? 'border-primary border-2 bg-primary/5' : 'hover:border-primary/50'}`}
+                      onClick={() => setCloneType('instant')}
+                    >
+                      <CardContent className="pt-6">
+                        <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <Zap className="h-6 w-6 text-primary" />
+                          </div>
+                          <div className="flex-1 space-y-2">
+                            <h3 className="text-lg font-semibold">Instant Voice Clone</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Fastest onboarding with just 2 minutes of audio
+                            </p>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Clock className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium">Requires 2 minutes</span>
+                            </div>
+                          </div>
+                          {cloneType === 'instant' && (
+                            <CheckCircle2 className="h-6 w-6 text-primary flex-shrink-0" />
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card 
+                      className={`cursor-pointer transition-all ${cloneType === 'professional' ? 'border-primary border-2 bg-primary/5' : 'hover:border-primary/50'}`}
+                      onClick={() => setCloneType('professional')}
+                    >
+                      <CardContent className="pt-6">
+                        <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <Star className="h-6 w-6 text-primary" />
+                          </div>
+                          <div className="flex-1 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-lg font-semibold">Professional Voice Clone</h3>
+                              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                                Recommended
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              Highest realism for professional creators
+                            </p>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Clock className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium">Requires 30 minutes</span>
+                            </div>
+                          </div>
+                          {cloneType === 'professional' && (
+                            <CheckCircle2 className="h-6 w-6 text-primary flex-shrink-0" />
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <div className="flex justify-end pt-4">
+                      <Button 
+                        onClick={() => setCurrentStep(2)}
+                        disabled={!canProceedFromStep1}
+                        size="lg"
+                      >
+                        Continue <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Step 2: Add Voice Details */}
+              {currentStep === 2 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Add Voice Details</CardTitle>
+                    <CardDescription>
+                      Give your voice profile a name and description
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="voiceName">Voice Name *</Label>
+                      <Input
+                        id="voiceName"
+                        placeholder="My Professional Voice"
+                        value={voiceName}
+                        onChange={(e) => setVoiceName(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="description">Voice Description (Optional)</Label>
+                      <Textarea
+                        id="description"
+                        placeholder="Describe your voice tone and style..."
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        rows={3}
+                      />
+                    </div>
+
+                    <Accordion type="single" collapsible>
+                      <AccordionItem value="tips">
+                        <AccordionTrigger>Voice Description Tips</AccordionTrigger>
+                        <AccordionContent>
+                          <div className="space-y-2 text-sm text-muted-foreground">
+                            <p>• Describe your vocal tone (warm, authoritative, friendly)</p>
+                            <p>• Mention your vocal range (deep, high, mid-range)</p>
+                            <p>• Note any unique characteristics or accent</p>
+                            <p>• Specify ideal use cases (commercials, narration, podcasts)</p>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+
+                    <div className="flex justify-between pt-4">
+                      <Button 
+                        onClick={() => setCurrentStep(1)}
+                        variant="outline"
+                      >
+                        Back
+                      </Button>
+                      <Button 
+                        onClick={() => setCurrentStep(3)}
+                        disabled={!canProceedFromStep2}
+                        size="lg"
+                      >
+                        Continue <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Step 3: Record Your Voice */}
+              {currentStep === 3 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Record Your Voice</CardTitle>
+                    <CardDescription>
+                      Record a {cloneType === 'instant' ? '2-minute' : '30-minute'} voice sample for cloning
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {!audioBlob && (
+                      <>
+                        <div className="max-w-md mx-auto space-y-4">
+                          {isRecording && (
+                            <div className="flex items-center justify-center p-6 bg-yellow-500/10 rounded-lg border-2 border-yellow-500">
+                              <Clock className="h-8 w-8 text-yellow-500 mr-3" />
+                              <span className="text-4xl font-bold text-yellow-500">
+                                {formatTime(timeRemaining)}
+                              </span>
+                            </div>
+                          )}
+
+                          {!isRecording && (
+                            <Button
+                              onClick={handleStartRecordingClick}
+                              className="w-full"
+                              size="lg"
+                            >
+                              <Mic className="mr-2 h-5 w-5" />
+                              Start Recording ({cloneType === 'instant' ? '2 minutes' : '30 minutes'})
+                            </Button>
+                          )}
+
+                          {isRecording && (
+                            <div className="space-y-3">
+                              <p className="text-sm font-medium text-primary text-center">
+                                {isPaused ? "Recording Paused" : "Recording in Progress..."}
+                              </p>
+                              <div className="grid grid-cols-3 gap-2">
+                                {isPaused ? (
+                                  <Button onClick={resumeRecording} variant="default" className="w-full">
+                                    Resume
+                                  </Button>
+                                ) : (
+                                  <Button onClick={pauseRecording} variant="secondary" className="w-full">
+                                    Pause
+                                  </Button>
+                                )}
+                                <Button onClick={stopRecording} variant="outline" className="w-full">
+                                  Stop
+                                </Button>
+                                <Button 
+                                  onClick={deleteRecording} 
+                                  variant="destructive" 
+                                  className="w-full"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="space-y-2 p-4 bg-muted/50 rounded-lg">
+                            <p className="text-sm font-medium">Quick Tips:</p>
+                            <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                              <li>Speak naturally at your normal pace</li>
+                              <li>Use a quiet space with minimal echo</li>
+                              <li>Avoid background noise and distractions</li>
+                            </ul>
+                          </div>
+                        </div>
+
+                        <Accordion type="single" collapsible>
+                          <AccordionItem value="script">
+                            <AccordionTrigger>Recording Script</AccordionTrigger>
+                            <AccordionContent>
+                              <ScriptEditor 
+                                script={script}
+                                onScriptChange={setScript}
+                                cloneType={cloneType}
+                              />
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      </>
+                    )}
+
+                    {audioBlob && (
+                      <div className="max-w-md mx-auto space-y-4">
+                        <div className="p-6 border rounded-lg bg-muted/50 space-y-4">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-5 w-5 text-primary" />
+                            <p className="text-sm font-medium">Recording Complete!</p>
+                          </div>
+                          <audio 
+                            controls 
+                            src={URL.createObjectURL(audioBlob)} 
+                            className="w-full"
+                          />
+                          <Button 
+                            onClick={deleteRecording} 
+                            variant="outline" 
+                            size="sm"
+                            className="w-full"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete & Re-record
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between pt-4">
+                      <Button 
+                        onClick={() => setCurrentStep(2)}
+                        variant="outline"
+                      >
+                        Back
+                      </Button>
+                      <Button 
+                        onClick={() => setCurrentStep(4)}
+                        disabled={!canProceedFromStep3}
+                        size="lg"
+                      >
+                        Continue <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Step 4: Monetization Settings */}
+              {currentStep === 4 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Monetization Settings</CardTitle>
+                    <CardDescription>
+                      Set up pricing and make your voice available for advertisers
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-3">
+                      <Label>Profile Photo (Optional)</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Add your photo to help advertisers connect with your voice personality
+                      </p>
+                      
+                      <div className="flex items-start gap-4">
+                        {profileImagePreview ? (
+                          <div className="relative">
+                            <img 
+                              src={profileImagePreview} 
+                              alt="Profile preview"
+                              className="w-24 h-24 rounded-full object-cover border-2 border-primary"
+                            />
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                              onClick={() => {
+                                setProfileImage(null);
+                                setProfileImagePreview(null);
+                              }}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
+                            <User className="h-10 w-10 text-muted-foreground/50" />
+                          </div>
+                        )}
+                        
+                        <div className="flex-1">
+                          <Button
+                            variant="outline"
+                            onClick={() => document.getElementById('profile-image-upload')?.click()}
+                            className="w-full"
+                          >
+                            <Upload className="mr-2 h-4 w-4" />
+                            {profileImagePreview ? 'Change Photo' : 'Upload Photo'}
+                          </Button>
+                          <input
+                            id="profile-image-upload"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleImageUpload}
+                          />
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Max 5MB • JPG, PNG, or GIF
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="price">Price per Ad Use</Label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="price"
+                          type="number"
+                          placeholder="50.00"
+                          value={pricePerAd}
+                          onChange={(e) => setPricePerAd(e.target.value)}
+                          className="pl-9"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="terms">Usage Terms (Optional)</Label>
+                      <Textarea
+                        id="terms"
+                        placeholder="Specify how advertisers can use your voice..."
+                        value={usageTerms}
+                        onChange={(e) => setUsageTerms(e.target.value)}
+                        rows={2}
+                      />
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="available"
+                        checked={availableForAds}
+                        onCheckedChange={setAvailableForAds}
+                      />
+                      <Label htmlFor="available" className="cursor-pointer">
+                        Make available for advertisers
+                      </Label>
+                    </div>
+
+                    <div className="p-4 border-l-4 border-primary/50 bg-primary/5 rounded-r-lg">
+                      <p className="text-sm font-medium mb-2">Important Information</p>
+                      <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
+                        <li>Only use your own voice or voices you have permission to use</li>
+                        <li>You must be at least 18 years of age</li>
+                        <li>Your voice may be used in commercial advertisements</li>
+                      </ul>
+                    </div>
+
+                    <div className="flex justify-between pt-4">
+                      <Button 
+                        onClick={() => setCurrentStep(3)}
+                        variant="outline"
+                      >
+                        Back
+                      </Button>
+                      <Button
+                        onClick={() => cloneVoice.mutate()}
+                        disabled={cloneVoice.isPending}
+                        size="lg"
+                      >
+                        {cloneVoice.isPending ? "Creating..." : "Create Voice Profile"}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </div>
         </>
       )}
@@ -938,14 +1026,12 @@ export default function VoiceProtection() {
                 </div>
               </div>
 
-              <div className="p-4 border-l-4 border-destructive bg-destructive/5 rounded-r-lg">
-                <p className="text-destructive font-semibold text-sm">
+              <div className="p-4 border-l-4 border-primary/50 bg-primary/5 rounded-r-lg">
+                <p className="text-primary/80 font-semibold text-sm">
                   ⚠️ Important Legal Notice
                 </p>
                 <p className="text-xs mt-2">
-                  Unauthorized voice cloning is illegal and may result in civil and criminal penalties. 
-                  By proceeding, you certify under penalty of perjury that you have the legal right to 
-                  clone and monetize this voice.
+                  Unauthorized voice cloning is illegal and may result in civil and criminal penalties.
                 </p>
               </div>
 
@@ -959,26 +1045,19 @@ export default function VoiceProtection() {
                   htmlFor="consent"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                 >
-                  I confirm that I am the owner of this voice and have the legal right to use it
+                  I confirm that I own this voice and have the legal right to clone and monetize it
                 </label>
               </div>
             </DialogDescription>
           </DialogHeader>
-            <DialogFooter className="gap-2 sm:gap-0">
-              <Button
-                variant="outline"
-                onClick={() => setShowConsentDialog(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleConsentConfirm}
-                disabled={!consentChecked}
-                className="bg-primary"
-              >
-                Continue
-              </Button>
-            </DialogFooter>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConsentDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleConsentConfirm}>
+              Continue to Recording
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
