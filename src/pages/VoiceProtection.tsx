@@ -568,7 +568,7 @@ export default function VoiceProtection() {
                 </div>
               )}
 
-              {/* Recording Control Buttons - BELOW TIMER */}
+              {/* Start Recording Button - ABOVE SCRIPT */}
               {!audioBlob && !isRecording && (
                 <Button
                   onClick={handleStartRecordingClick}
@@ -579,48 +579,23 @@ export default function VoiceProtection() {
                 </Button>
               )}
 
+              {/* Recording Status Message - WHEN RECORDING */}
               {isRecording && (
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm font-medium text-primary mb-2">
-                      {isPaused ? "Recording Paused" : "Recording in Progress..."}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {cloneType === 'professional' 
-                        ? "Read aloud from a book. Use pause if you need a break."
-                        : "Speak naturally and clearly."
-                      }
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2">
-                    {isPaused ? (
-                      <Button onClick={resumeRecording} variant="default" className="w-full">
-                        Resume
-                      </Button>
-                    ) : (
-                      <Button onClick={pauseRecording} variant="secondary" className="w-full">
-                        Pause
-                      </Button>
-                    )}
-                    <Button onClick={stopRecording} variant="outline" className="w-full">
-                      Stop
-                    </Button>
-                    <Button 
-                      onClick={deleteRecording} 
-                      variant="destructive" 
-                      size="icon"
-                      className="w-full"
-                      title="Delete and start over"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                <div>
+                  <p className="text-sm font-medium text-primary mb-2">
+                    {isPaused ? "Recording Paused" : "Recording in Progress..."}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {cloneType === 'professional' 
+                      ? "Read aloud from a book. Use pause if you need a break."
+                      : "Speak naturally and clearly."
+                    }
+                  </p>
                 </div>
               )}
             </div>
 
-            {/* Script Editor - BELOW CONTROLS */}
+            {/* Script Editor - IN THE MIDDLE */}
             <div className="space-y-2">
               <Label>Recording Script</Label>
               <ScriptEditor 
@@ -629,6 +604,33 @@ export default function VoiceProtection() {
                 cloneType={cloneType}
               />
             </div>
+
+            {/* Control Buttons - BELOW SCRIPT when recording */}
+            {isRecording && (
+              <div className="grid grid-cols-3 gap-2">
+                {isPaused ? (
+                  <Button onClick={resumeRecording} variant="default" className="w-full">
+                    Resume
+                  </Button>
+                ) : (
+                  <Button onClick={pauseRecording} variant="secondary" className="w-full">
+                    Pause
+                  </Button>
+                )}
+                <Button onClick={stopRecording} variant="outline" className="w-full">
+                  Stop
+                </Button>
+                <Button 
+                  onClick={deleteRecording} 
+                  variant="destructive" 
+                  size="icon"
+                  className="w-full"
+                  title="Delete and start over"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
 
             {/* Audio Preview */}
             {audioBlob && (
