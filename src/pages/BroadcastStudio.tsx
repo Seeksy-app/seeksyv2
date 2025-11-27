@@ -102,12 +102,46 @@ export default function BroadcastStudio() {
     if (!sessionId) return;
 
     try {
-      // Load or create broadcast
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Validate UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      
+      if (!uuidRegex.test(sessionId)) {
+        // Invalid UUID - create a new session with required daily_room_url
+        const { data: newSession, error: sessionError } = await supabase
+          .from('studio_sessions')
+          .insert({
+            user_id: user.id,
+            room_name: broadcastTitle || 'New Broadcast',
+            daily_room_url: `https://broadcast.seeksy.live/${Date.now()}`,
+            status: 'active'
+          })
+          .select()
+          .single();
+
+        if (sessionError || !newSession) {
+          console.error('Error creating session:', sessionError);
+          toast({
+            title: "Error",
+            description: "Failed to create broadcast session",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        // Navigate to the new session
+        navigate(`/studio/broadcast/${newSession.id}`, { replace: true });
+        return;
+      }
+
+      // Load existing session
       const { data: session } = await supabase
         .from('studio_sessions')
         .select('*')
         .eq('id', sessionId)
-        .single();
+        .maybeSingle();
 
       if (session) {
         setBroadcastTitle(session.room_name || 'Untitled Broadcast');
