@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Volume2, VolumeX, X } from "lucide-react";
+import { Volume2, VolumeX, X, Play } from "lucide-react";
 
 interface PersonaModalProps {
   open: boolean;
@@ -20,177 +21,222 @@ interface PersonaModalProps {
   } | null;
 }
 
-const personaQuotes = [
-  "With Seeksy, I can reach millions across every platform...",
-  "Creating content has never been this seamless and powerful.",
-  "From podcasts to live streams, everything I need is in one place.",
-  "I love how Seeksy helps me monetize while I focus on creating.",
-];
-
 export const PersonaModal = ({ open, onClose, persona }: PersonaModalProps) => {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isMuted, setIsMuted] = useState(false);
-  const [currentQuote, setCurrentQuote] = useState(0);
-  const [displayedText, setDisplayedText] = useState("");
-  const [isTyping, setIsTyping] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(true);
+
+  const isIframe = persona?.videoUrl && (persona.videoUrl.includes('heygen.com') || persona.videoUrl.includes('iframe'));
 
   useEffect(() => {
-    if (open && videoRef.current) {
-      videoRef.current.play();
+    if (open && videoRef.current && !isIframe) {
+      videoRef.current.play().catch(console.error);
+      setIsPlaying(true);
     } else if (!open && videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
+      setIsPlaying(false);
     }
-  }, [open]);
+  }, [open, isIframe]);
 
-  // Typewriter effect for quotes
-  useEffect(() => {
-    if (!open) {
-      setDisplayedText("");
-      setCurrentQuote(0);
-      return;
-    }
-
-    const quote = personaQuotes[currentQuote];
-    let charIndex = 0;
-    setIsTyping(true);
-
-    const typingInterval = setInterval(() => {
-      if (charIndex < quote.length) {
-        setDisplayedText(quote.substring(0, charIndex + 1));
-        charIndex++;
+  const togglePlayPause = () => {
+    if (isIframe) return; // Can't control iframe playback
+    
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
       } else {
-        setIsTyping(false);
-        clearInterval(typingInterval);
-        
-        // Wait 3 seconds then move to next quote
-        setTimeout(() => {
-          setCurrentQuote((prev) => (prev + 1) % personaQuotes.length);
-          setDisplayedText("");
-        }, 3000);
+        videoRef.current.play().catch(console.error);
       }
-    }, 50);
+      setIsPlaying(!isPlaying);
+    }
+  };
 
-    return () => clearInterval(typingInterval);
-  }, [open, currentQuote]);
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
 
   if (!persona) return null;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] p-0 gap-0 overflow-hidden">
+      <DialogContent className="max-w-7xl max-h-[90vh] p-0 gap-0 overflow-hidden bg-background">
+        {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-50 p-2 rounded-full bg-black/20 hover:bg-black/40 text-white transition-colors"
+          className="absolute top-4 right-4 z-50 p-2 rounded-full bg-background/80 hover:bg-background backdrop-blur-sm text-foreground transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
 
         <div className="flex flex-col lg:flex-row h-full">
           {/* Video Section - Left */}
-          <div className="relative lg:w-1/2 aspect-video lg:aspect-auto bg-black">
-            {persona.videoUrl.includes('heygen.com/embedded-player') || persona.videoUrl.includes('iframe') ? (
-              <iframe
-                className="w-full h-full object-cover"
-                src={persona.videoUrl}
-                allow="encrypted-media; fullscreen;"
-                allowFullScreen
-              />
-            ) : (
-              <video
-                ref={videoRef}
-                src={persona.videoUrl}
-                className="w-full h-full object-cover"
-                loop
-                playsInline
-                autoPlay
-                muted={isMuted}
-              />
-            )}
-            
-            {/* Mute Toggle - only show for regular videos */}
-            {!persona.videoUrl.includes('heygen.com/embedded-player') && (
-              <button
-                onClick={() => setIsMuted(!isMuted)}
-                className="absolute top-4 left-4 p-3 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/30 transition-colors"
-              >
-                {isMuted ? (
-                  <VolumeX className="w-5 h-5 text-white" />
+          <div 
+            className="relative lg:w-1/2 aspect-video lg:aspect-auto bg-muted/20 cursor-pointer"
+            onClick={togglePlayPause}
+          >
+            {persona.videoUrl ? (
+              <>
+                {isIframe ? (
+                  <iframe
+                    className="w-full h-full object-cover"
+                    src={persona.videoUrl}
+                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                    allowFullScreen
+                    frameBorder="0"
+                  />
                 ) : (
-                  <Volume2 className="w-5 h-5 text-white" />
+                  <video
+                    ref={videoRef}
+                    src={persona.videoUrl}
+                    className="w-full h-full object-cover"
+                    loop
+                    playsInline
+                    autoPlay
+                    muted={isMuted}
+                  />
                 )}
-              </button>
+                
+                {/* Mute Toggle - only show for regular videos, top left */}
+                {!isIframe && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleMute();
+                    }}
+                    className="absolute top-4 left-4 p-3 rounded-full bg-white hover:bg-white/90 backdrop-blur-md transition-colors shadow-lg z-10"
+                  >
+                    {isMuted ? (
+                      <VolumeX className="w-5 h-5 text-foreground" />
+                    ) : (
+                      <Volume2 className="w-5 h-5 text-foreground" />
+                    )}
+                  </button>
+                )}
+
+                {/* Play button overlay when paused */}
+                <AnimatePresence>
+                  {!isIframe && !isPlaying && (
+                    <motion.div
+                      className="absolute inset-0 flex items-center justify-center bg-black/20"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      <div className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center shadow-xl">
+                        <Play className="w-10 h-10 text-foreground ml-1" fill="currentColor" />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Subtitle caption when paused */}
+                <AnimatePresence>
+                  {!isIframe && !isPlaying && persona.tagline && (
+                    <motion.div
+                      className="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-white/95 backdrop-blur-md px-6 py-3 rounded-full shadow-lg max-w-[85%]"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 20 }}
+                    >
+                      <p className="text-sm md:text-base font-medium text-green-600 text-center">
+                        {persona.tagline}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 via-background to-accent/20">
+                <p className="text-muted-foreground">No video available</p>
+              </div>
             )}
           </div>
 
           {/* Info Section - Right */}
-          <div className="lg:w-1/2 p-8 lg:p-12 overflow-y-auto">
+          <div className="lg:w-1/2 p-8 lg:p-12 overflow-y-auto flex flex-col justify-between">
             <div className="space-y-6">
+              {/* Name and Role */}
               <div>
-                <h2 className="text-4xl font-bold text-foreground mb-2">
+                <motion.h2
+                  className="text-4xl md:text-5xl font-bold text-foreground mb-2"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
                   {persona.name}
-                </h2>
-                <p className="text-xl text-muted-foreground">
+                </motion.h2>
+                <motion.p
+                  className="text-lg text-muted-foreground"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
                   {persona.role}
-                </p>
+                </motion.p>
               </div>
 
-              {persona.tagline && (
-                <p className="text-lg text-muted-foreground italic border-l-4 border-primary pl-4">
-                  {persona.tagline}
-                </p>
-              )}
+              {/* Description */}
+              <motion.p
+                className="text-base text-muted-foreground leading-relaxed"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                {persona.description}
+              </motion.p>
 
-              <div className="prose prose-sm max-w-none">
-                <p className="text-foreground leading-relaxed text-base">
-                  {persona.description}
-                </p>
-              </div>
-
-              {/* Animated Quote Display */}
-              <div className="min-h-[60px] flex items-center">
-                <p className="text-lg text-primary font-medium italic">
-                  "{displayedText}
-                  {isTyping && <span className="animate-pulse">|</span>}"
-                </p>
-              </div>
-
-              {/* Tags */}
+              {/* Tags / Style */}
               {persona.tags && persona.tags.length > 0 && (
-                <div className="pt-4">
-                  <h3 className="text-sm font-semibold text-muted-foreground mb-3">
+                <motion.div
+                  className="space-y-3"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <h3 className="text-sm font-semibold text-muted-foreground">
                     {persona.name.split(" ")[0]}'s style
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {persona.tags.map((tag, index) => (
-                      <div
+                      <motion.div
                         key={index}
-                        className="px-4 py-2 rounded-full bg-secondary text-secondary-foreground text-sm font-medium flex items-center gap-2 transition-all duration-300 hover:scale-110 hover:-translate-y-1 hover:shadow-lg cursor-pointer animate-in fade-in-50 slide-in-from-bottom-3 hover-dance"
-                        style={{ animationDelay: `${index * 100}ms` }}
+                        className="px-4 py-2 rounded-full bg-muted/50 text-foreground text-sm font-medium flex items-center gap-2"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.5 + index * 0.1 }}
                       >
                         <span>{tag.icon}</span>
                         <span>{tag.label}</span>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
-                </div>
+                </motion.div>
               )}
-
-              {/* Action Button */}
-              <div className="pt-6">
-                <Button
-                  size="lg"
-                  onClick={() => {
-                    onClose();
-                    navigate("/auth");
-                  }}
-                  className="w-full text-lg py-6 transition-all duration-300 hover:scale-105 hover:-translate-y-1 hover:shadow-xl active:scale-95 hover-dance"
-                >
-                  Create your account
-                </Button>
-              </div>
             </div>
+
+            {/* CTA Button */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="mt-8"
+            >
+              <Button
+                size="lg"
+                onClick={() => {
+                  onClose();
+                  navigate("/auth");
+                }}
+                className="w-full text-lg py-6 rounded-full bg-green-600 hover:bg-green-700 text-white shadow-lg font-semibold"
+              >
+                Work with {persona.name.split(" ")[0]}
+              </Button>
+            </motion.div>
           </div>
         </div>
       </DialogContent>
