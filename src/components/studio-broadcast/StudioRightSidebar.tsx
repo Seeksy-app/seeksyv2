@@ -1,17 +1,15 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { IntroOutroLibrary } from "./IntroOutroLibrary";
 import { VideoAdsPanel } from "./VideoAdsPanel";
 import { 
   Palette, MessageSquare, Music, QrCode, StickyNote, 
   Image, Video, FileText, X, Upload, Sparkles, Play,
-  Maximize2, DollarSign, FileAudio
+  DollarSign, FileAudio
 } from "lucide-react";
 
 interface StudioRightSidebarProps {
@@ -33,7 +31,7 @@ export function StudioRightSidebar({
   onVideoAdSelect,
   onIntroOutroSelect
 }: StudioRightSidebarProps) {
-  const [activeTab, setActiveTab] = useState("graphics");
+  const [activePanel, setActivePanel] = useState<string | null>(null);
   const [selectedVideoAd, setSelectedVideoAd] = useState(null);
 
   const sidebarItems = [
@@ -48,74 +46,84 @@ export function StudioRightSidebar({
     { id: "theme", icon: Sparkles, label: "Theme" }
   ];
 
+  const togglePanel = (panelId: string) => {
+    setActivePanel(activePanel === panelId ? null : panelId);
+  };
+
+  const getPanelTitle = (panelId: string) => {
+    return sidebarItems.find(item => item.id === panelId)?.label || "";
+  };
+
   return (
-    <div className="h-full flex">
-      {/* Icon Navigation */}
-      <div className="w-20 bg-card/30 border-r border-border flex flex-col items-center py-4 gap-4">
+    <>
+      {/* Icon Navigation Bar */}
+      <div className="w-20 bg-background/95 backdrop-blur-sm border-l border-border/50 flex flex-col items-center py-6 gap-3">
         {sidebarItems.map((item) => {
           const Icon = item.icon;
           return (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`w-14 h-14 rounded-lg flex flex-col items-center justify-center gap-1 transition-colors ${
-                activeTab === item.id
-                  ? 'bg-primary text-primary-foreground'
-                  : 'hover:bg-accent text-muted-foreground'
+              onClick={() => togglePanel(item.id)}
+              className={`w-16 h-16 rounded-lg flex flex-col items-center justify-center gap-1.5 transition-all ${
+                activePanel === item.id
+                  ? 'bg-primary text-primary-foreground shadow-lg'
+                  : 'hover:bg-accent text-muted-foreground hover:text-foreground'
               }`}
+              title={item.label}
             >
               <Icon className="h-5 w-5" />
-              <span className="text-[10px] font-medium">{item.label}</span>
+              <span className="text-[9px] font-medium text-center leading-tight">{item.label}</span>
             </button>
           );
         })}
       </div>
 
-      {/* Content Panel */}
-      <div className="flex-1 overflow-hidden">
-        <ScrollArea className="h-full">
-          <div className="p-4 space-y-4">
-            {activeTab === "graphics" && <GraphicsPanel onAddMedia={onAddMedia} />}
-            {activeTab === "captions" && <CaptionsPanel onAddCaption={onAddCaption} />}
-            {activeTab === "video-ads" && (
-              <VideoAdsPanel 
-                onAdSelect={(ad) => {
-                  setSelectedVideoAd(ad);
-                  onVideoAdSelect?.(ad);
-                }}
-                selectedAd={selectedVideoAd}
-              />
-            )}
-            {activeTab === "intro-outro" && (
-              <IntroOutroLibrary
-                sessionId={sessionId}
-                onSelect={(item) => onIntroOutroSelect?.(item)}
-              />
-            )}
-            {activeTab === "qr" && <QRCodesPanel />}
-            {activeTab === "notes" && <NotesPanel broadcastId={broadcastId} />}
-            {activeTab === "chat" && <ChatPanel broadcastId={broadcastId} />}
-            {activeTab === "music" && <MusicPanel />}
-            {activeTab === "theme" && <ThemePanel onThemeChange={onThemeChange} />}
-          </div>
-        </ScrollArea>
-      </div>
-    </div>
+      {/* Slide-out Panel */}
+      <Sheet open={activePanel !== null} onOpenChange={() => setActivePanel(null)}>
+        <SheetContent side="right" className="w-[420px] p-0 border-l border-border/50">
+          <SheetHeader className="px-6 py-4 border-b border-border/50">
+            <SheetTitle className="text-lg font-semibold">
+              {getPanelTitle(activePanel || "")}
+            </SheetTitle>
+          </SheetHeader>
+          <ScrollArea className="h-[calc(100vh-73px)]">
+            <div className="p-6">
+              {activePanel === "graphics" && <GraphicsPanel onAddMedia={onAddMedia} />}
+              {activePanel === "captions" && <CaptionsPanel onAddCaption={onAddCaption} />}
+              {activePanel === "video-ads" && (
+                <VideoAdsPanel 
+                  onAdSelect={(ad) => {
+                    setSelectedVideoAd(ad);
+                    onVideoAdSelect?.(ad);
+                  }}
+                  selectedAd={selectedVideoAd}
+                />
+              )}
+              {activePanel === "intro-outro" && (
+                <IntroOutroLibrary
+                  sessionId={sessionId}
+                  onSelect={(item) => onIntroOutroSelect?.(item)}
+                />
+              )}
+              {activePanel === "qr" && <QRCodesPanel />}
+              {activePanel === "notes" && <NotesPanel broadcastId={broadcastId} />}
+              {activePanel === "chat" && <ChatPanel broadcastId={broadcastId} />}
+              {activePanel === "music" && <MusicPanel />}
+              {activePanel === "theme" && <ThemePanel onThemeChange={onThemeChange} />}
+            </div>
+          </ScrollArea>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }
 
 function GraphicsPanel({ onAddMedia }: { onAddMedia: (type: any) => void }) {
   return (
     <div className="space-y-4">
-      <div>
-        <h3 className="font-semibold mb-2 flex items-center gap-2">
-          <Image className="h-4 w-4" />
-          Graphics
-        </h3>
-        <p className="text-xs text-muted-foreground mb-4">
-          Add logos, overlays, videos, and backgrounds to your stream
-        </p>
-      </div>
+      <p className="text-sm text-muted-foreground mb-4">
+        Add logos, overlays, videos, and backgrounds to your stream
+      </p>
 
       <div className="space-y-3">
         <div>
@@ -199,13 +207,7 @@ function CaptionsPanel({ onAddCaption }: { onAddCaption: (type: any) => void }) 
   ]);
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="font-semibold mb-2 flex items-center gap-2">
-          <FileText className="h-4 w-4" />
-          Captions
-        </h3>
-      </div>
+    <div className="space-y-6">
 
       <div className="space-y-4">
         <div>
@@ -247,15 +249,9 @@ function CaptionsPanel({ onAddCaption }: { onAddCaption: (type: any) => void }) 
 function QRCodesPanel() {
   return (
     <div className="space-y-4">
-      <div>
-        <h3 className="font-semibold mb-2 flex items-center gap-2">
-          <QrCode className="h-4 w-4" />
-          QR Codes
-        </h3>
-        <p className="text-xs text-muted-foreground mb-4">
-          Generate QR codes for your stream
-        </p>
-      </div>
+      <p className="text-sm text-muted-foreground mb-4">
+        Generate QR codes for your stream
+      </p>
 
       <Button className="w-full" variant="outline">
         <Upload className="h-4 w-4 mr-2" />
@@ -278,15 +274,9 @@ function NotesPanel({ broadcastId }: { broadcastId: string }) {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h3 className="font-semibold mb-2 flex items-center gap-2">
-          <StickyNote className="h-4 w-4" />
-          Notes
-        </h3>
-        <p className="text-xs text-muted-foreground mb-4">
-          Keep track of important points during your stream
-        </p>
-      </div>
+      <p className="text-sm text-muted-foreground mb-4">
+        Keep track of important points during your stream
+      </p>
 
       <textarea
         value={notes}
@@ -303,15 +293,6 @@ function ChatPanel({ broadcastId }: { broadcastId: string }) {
 
   return (
     <div className="space-y-4">
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold flex items-center gap-2">
-            <MessageSquare className="h-4 w-4" />
-            Chat
-          </h3>
-          <X className="h-4 w-4 cursor-pointer text-muted-foreground hover:text-foreground" />
-        </div>
-      </div>
 
       <div className="flex items-center justify-between p-3 bg-muted rounded">
         <span className="text-sm">Show on stream</span>
@@ -346,12 +327,6 @@ function MusicPanel() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h3 className="font-semibold mb-2 flex items-center gap-2">
-          <Music className="h-4 w-4" />
-          Background Music
-        </h3>
-      </div>
 
       <div className="space-y-4">
         <div>
@@ -401,13 +376,7 @@ function ThemePanel({ onThemeChange }: { onThemeChange: (theme: string) => void 
   ];
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="font-semibold mb-2 flex items-center gap-2">
-          <Sparkles className="h-4 w-4" />
-          Theme
-        </h3>
-      </div>
+    <div className="space-y-6">
 
       <div>
         <span className="text-sm font-medium mb-3 block">Theme</span>
