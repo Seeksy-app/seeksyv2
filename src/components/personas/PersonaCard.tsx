@@ -66,7 +66,7 @@ export const PersonaCard = ({
   return (
     <motion.div
       ref={cardRef}
-      className="relative w-full h-[500px] cursor-pointer group"
+      className="relative w-full aspect-square cursor-pointer group"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onMouseMove={handleMouseMove}
@@ -100,6 +100,7 @@ export const PersonaCard = ({
                 muted
                 loop
                 playsInline
+                preload="metadata"
               />
             )
           ) : (

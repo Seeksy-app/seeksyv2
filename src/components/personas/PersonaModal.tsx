@@ -76,7 +76,7 @@ export const PersonaModal = ({ open, onClose, persona }: PersonaModalProps) => {
         <div className="flex flex-col lg:flex-row h-full">
           {/* Video Section - Left */}
           <div 
-            className="relative lg:w-1/2 aspect-video lg:aspect-auto bg-muted/20 cursor-pointer"
+            className="relative lg:w-1/2 aspect-square lg:aspect-square bg-muted/20 cursor-pointer"
             onClick={togglePlayPause}
           >
             {persona.videoUrl ? (
@@ -98,6 +98,8 @@ export const PersonaModal = ({ open, onClose, persona }: PersonaModalProps) => {
                     playsInline
                     autoPlay
                     muted={isMuted}
+                    controlsList="nodownload nofullscreen noremoteplayback"
+                    disablePictureInPicture
                   />
                 )}
                 
