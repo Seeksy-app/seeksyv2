@@ -119,50 +119,48 @@ export const PersonaVideoCard = ({
               />
             </div>
           ) : (
-          <video
-            ref={videoRef}
-            src={videoUrl}
-            className="absolute inset-0 w-full h-full block"
-            loop
-            muted
-            playsInline
-            autoPlay
-            preload="auto"
-            poster={thumbnailUrl}
-            style={{ 
-              objectFit: 'cover',
-              pointerEvents: 'none',
-              display: 'block',
-              margin: 0,
-              padding: 0,
-              border: 'none',
-              outline: 'none',
-              width: '100%',
-              height: '100%'
-            }}
-            onCanPlay={(e) => {
-              const video = e.currentTarget;
-              video.muted = true;
-              video.removeAttribute('controls');
-              video.setAttribute('playsinline', 'true');
-              video.play().catch(() => {});
-            }}
-            onLoadedMetadata={(e) => {
-              const video = e.currentTarget;
-              video.muted = true;
-              video.removeAttribute('controls');
-              video.setAttribute('playsinline', 'true');
-              video.play().catch(() => {});
-            }}
-            onPlay={(e) => {
-              e.currentTarget.removeAttribute('controls');
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-            }}
-            onContextMenu={(e) => e.preventDefault()}
-          />
+          <div className="absolute inset-0 w-full h-full overflow-hidden">
+            <video
+              ref={videoRef}
+              src={videoUrl}
+              className="absolute inset-0 w-full h-full block"
+              loop
+              muted
+              playsInline
+              autoPlay
+              preload="auto"
+              poster={thumbnailUrl}
+              controlsList="nodownload nofullscreen noremoteplayback"
+              disablePictureInPicture
+              style={{ 
+                objectFit: 'cover',
+                pointerEvents: 'none',
+                display: 'block',
+                margin: 0,
+                padding: 0,
+                border: 'none',
+                outline: 'none',
+                width: '100%',
+                height: '110%',
+                top: '-5%'
+              }}
+              onCanPlay={(e) => {
+                const video = e.currentTarget;
+                video.controls = false;
+                video.muted = true;
+                video.removeAttribute('controls');
+                video.play().catch(() => {});
+              }}
+              onLoadedMetadata={(e) => {
+                const video = e.currentTarget;
+                video.controls = false;
+                video.muted = true;
+                video.removeAttribute('controls');
+                video.play().catch(() => {});
+              }}
+              onContextMenu={(e) => e.preventDefault()}
+            />
+          </div>
           )
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-accent/20" />
