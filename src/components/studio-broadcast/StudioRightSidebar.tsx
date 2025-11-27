@@ -56,31 +56,31 @@ export function StudioRightSidebar({
 
   return (
     <>
-      {/* Icon Navigation Bar */}
-      <div className="w-20 bg-background/95 backdrop-blur-sm border-l border-border/50 flex flex-col items-center py-6 gap-3">
+      {/* Icon Navigation Bar - Left Side */}
+      <div className="w-16 bg-background/95 backdrop-blur-sm border-r border-border/50 flex flex-col items-center py-6 gap-2">
         {sidebarItems.map((item) => {
           const Icon = item.icon;
           return (
             <button
               key={item.id}
               onClick={() => togglePanel(item.id)}
-              className={`w-16 h-16 rounded-lg flex flex-col items-center justify-center gap-1.5 transition-all ${
+              className={`w-14 h-14 rounded-lg flex flex-col items-center justify-center gap-1 transition-all ${
                 activePanel === item.id
                   ? 'bg-primary text-primary-foreground shadow-lg'
                   : 'hover:bg-accent text-muted-foreground hover:text-foreground'
               }`}
               title={item.label}
             >
-              <Icon className="h-5 w-5" />
-              <span className="text-[9px] font-medium text-center leading-tight">{item.label}</span>
+              <Icon className="h-4 w-4" />
+              <span className="text-[8px] font-medium text-center leading-tight">{item.label}</span>
             </button>
           );
         })}
       </div>
 
-      {/* Slide-out Panel */}
+      {/* Slide-out Panel - From Left */}
       <Sheet open={activePanel !== null} onOpenChange={() => setActivePanel(null)}>
-        <SheetContent side="right" className="w-[420px] p-0 border-l border-border/50">
+        <SheetContent side="left" className="w-[420px] p-0 border-r border-border/50 ml-16">
           <SheetHeader className="px-6 py-4 border-b border-border/50">
             <SheetTitle className="text-lg font-semibold">
               {getPanelTitle(activePanel || "")}

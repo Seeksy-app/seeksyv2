@@ -661,6 +661,49 @@ export default function BroadcastStudio() {
         </div>
       </div>
 
+      {/* Main Content - With Left Icon Bar */}
+      <div className="flex-1 flex">
+        {/* Studio Sidebar - Icon Bar on Left */}
+        <StudioRightSidebar
+          broadcastId={broadcastId || ''}
+          sessionId={sessionId || ''}
+          onAddMedia={(type) => {
+            toast({
+              title: "Add Media",
+              description: `Add ${type} to your stream`,
+              duration: 2000
+            });
+          }}
+          onAddCaption={(type) => {
+            toast({
+              title: "Add Caption",
+              description: `Add ${type} caption`,
+              duration: 2000
+            });
+          }}
+          onThemeChange={(theme) => {
+            toast({
+              title: "Theme Changed",
+              description: `Switched to ${theme} theme`,
+              duration: 2000
+            });
+          }}
+          onVideoAdSelect={(ad) => {
+            toast({
+              title: "Video Ad Selected",
+              description: `${ad.title} ready to insert`,
+              duration: 2000
+            });
+          }}
+          onIntroOutroSelect={(item) => {
+            toast({
+              title: `${item.type === 'intro' ? 'Intro' : 'Outro'} Selected`,
+              description: `Ready to use: ${item.title}`,
+              duration: 2000
+            });
+          }}
+        />
+
       <ResizablePanelGroup direction="horizontal" className="flex-1">
         {/* Left Sidebar - Scenes */}
         <ResizablePanel defaultSize={18} minSize={15} maxSize={22}>
@@ -688,8 +731,8 @@ export default function BroadcastStudio() {
 
         <ResizableHandle />
 
-        {/* Main Content */}
-        <ResizablePanel defaultSize={52} minSize={40}>
+          {/* Main Content - Larger Video Preview */}
+          <ResizablePanel defaultSize={85} minSize={60}>
           <div className="h-full flex flex-col">
             {/* Video Preview */}
             <div className="flex-1 bg-black relative">
@@ -805,51 +848,8 @@ export default function BroadcastStudio() {
           </div>
         </ResizablePanel>
 
-        <ResizableHandle />
-
-        {/* Right Sidebar - Full Featured */}
-        <ResizablePanel defaultSize={28} minSize={22} maxSize={35}>
-          <StudioRightSidebar
-            broadcastId={broadcastId || ''}
-            sessionId={sessionId || ''}
-            onAddMedia={(type) => {
-              toast({
-                title: "Add Media",
-                description: `Add ${type} to your stream`,
-                duration: 2000
-              });
-            }}
-            onAddCaption={(type) => {
-              toast({
-                title: "Add Caption",
-                description: `Add ${type} caption`,
-                duration: 2000
-              });
-            }}
-            onThemeChange={(theme) => {
-              toast({
-                title: "Theme Changed",
-                description: `Switched to ${theme} theme`,
-                duration: 2000
-              });
-            }}
-            onVideoAdSelect={(ad) => {
-              toast({
-                title: "Video Ad Selected",
-                description: `${ad.title} ready to insert`,
-                duration: 2000
-              });
-            }}
-            onIntroOutroSelect={(item) => {
-              toast({
-                title: `${item.type === 'intro' ? 'Intro' : 'Outro'} Selected`,
-                description: `Ready to use: ${item.title}`,
-                duration: 2000
-              });
-            }}
-          />
-        </ResizablePanel>
-      </ResizablePanelGroup>
+        </ResizablePanelGroup>
+      </div>
 
       {/* Scene Dialog */}
       <SceneDialog
