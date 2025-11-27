@@ -6055,6 +6055,11 @@ export type Database = {
           title: string
           updated_at: string
           user_id: string
+          verification_duration: string | null
+          verification_email: string | null
+          verification_email_expires_at: string | null
+          verification_email_permanent: boolean | null
+          verification_expires_at: string | null
           website_url: string | null
         }
         Insert: {
@@ -6074,6 +6079,11 @@ export type Database = {
           title: string
           updated_at?: string
           user_id: string
+          verification_duration?: string | null
+          verification_email?: string | null
+          verification_email_expires_at?: string | null
+          verification_email_permanent?: boolean | null
+          verification_expires_at?: string | null
           website_url?: string | null
         }
         Update: {
@@ -6093,6 +6103,11 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+          verification_duration?: string | null
+          verification_email?: string | null
+          verification_email_expires_at?: string | null
+          verification_email_permanent?: boolean | null
+          verification_expires_at?: string | null
           website_url?: string | null
         }
         Relationships: []
