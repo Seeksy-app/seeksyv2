@@ -81,11 +81,18 @@ export const PersonaVideoCard = ({
   const handleMouseEnter = () => {
     setIsHovering(true);
     onHoverChange?.(true);
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {});
+    }
   };
 
   const handleMouseLeave = () => {
     setIsHovering(false);
     onHoverChange?.(false);
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
   };
 
   return (
@@ -126,7 +133,6 @@ export const PersonaVideoCard = ({
               loop
               muted
               playsInline
-              autoPlay
               preload="auto"
               poster={thumbnailUrl}
               controls={false}
@@ -148,14 +154,12 @@ export const PersonaVideoCard = ({
                 video.controls = false;
                 video.muted = true;
                 video.removeAttribute('controls');
-                video.play().catch(() => {});
               }}
               onLoadedMetadata={(e) => {
                 const video = e.currentTarget;
                 video.controls = false;
                 video.muted = true;
                 video.removeAttribute('controls');
-                video.play().catch(() => {});
               }}
               onContextMenu={(e) => e.preventDefault()}
             />
