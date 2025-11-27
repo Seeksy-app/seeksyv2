@@ -337,22 +337,25 @@ export default function VoiceProtection() {
 
       if (cloneError) throw cloneError;
 
-      const { error: insertError } = await supabase
-        .from('creator_voice_profiles')
-        .insert({
-          user_id: user.id,
-          voice_name: voiceName,
-          elevenlabs_voice_id: cloneData.voiceId,
-          sample_audio_url: publicUrl,
-          is_available_for_ads: availableForAds,
-          price_per_ad: pricePerAd ? parseFloat(pricePerAd) : null,
-          usage_terms: usageTerms,
-          profile_image_url: profileImageUrl,
-        });
+      // Create voice profile via edge function (bypasses RLS issues)
+      const { data: profileData, error: profileError } = await supabase.functions.invoke(
+        'create-voice-profile',
+        {
+          body: {
+            voiceName,
+            elevenlabsVoiceId: cloneData.voiceId,
+            sampleAudioUrl: publicUrl,
+            isAvailableForAds: availableForAds,
+            pricePerAd: pricePerAd ? parseFloat(pricePerAd) : null,
+            usageTerms,
+            profileImageUrl,
+          },
+        }
+      );
 
-      if (insertError) throw insertError;
+      if (profileError) throw profileError;
 
-      return cloneData;
+      return profileData;
     },
     onSuccess: () => {
       confetti({
