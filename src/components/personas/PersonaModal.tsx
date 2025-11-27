@@ -31,7 +31,9 @@ export const PersonaModal = ({ open, onClose, persona }: PersonaModalProps) => {
 
   useEffect(() => {
     if (open && videoRef.current && !isIframe) {
+      videoRef.current.muted = false; // Unmute when modal opens
       videoRef.current.play().catch(console.error);
+      setIsMuted(false);
       setIsPlaying(true);
     } else if (!open && videoRef.current) {
       videoRef.current.pause();

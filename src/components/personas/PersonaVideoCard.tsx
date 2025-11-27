@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 
 interface PersonaVideoCardProps {
@@ -23,19 +23,19 @@ export const PersonaVideoCard = ({
   
   const isIframe = videoUrl && (videoUrl.includes('heygen.com') || videoUrl.includes('iframe'));
 
-  const handleMouseEnter = () => {
-    setIsHovering(true);
+  // Autoplay video on mount
+  useEffect(() => {
     if (videoRef.current && !isIframe) {
       videoRef.current.play().catch(console.error);
     }
+  }, [isIframe]);
+
+  const handleMouseEnter = () => {
+    setIsHovering(true);
   };
 
   const handleMouseLeave = () => {
     setIsHovering(false);
-    if (videoRef.current && !isIframe) {
-      videoRef.current.pause();
-      videoRef.current.currentTime = 0;
-    }
   };
 
   return (
@@ -52,7 +52,7 @@ export const PersonaVideoCard = ({
       <div className="relative overflow-hidden rounded-2xl shadow-2xl">
         {/* Video Container */}
         <div className="relative aspect-square overflow-hidden">
-          {/* Video or Iframe */}
+          {/* Video or Iframe - autoplay muted with no controls */}
           {videoUrl ? (
             isIframe ? (
               <iframe
@@ -69,7 +69,9 @@ export const PersonaVideoCard = ({
                 loop
                 muted
                 playsInline
+                autoPlay
                 preload="auto"
+                style={{ objectFit: 'cover' }}
               />
             )
           ) : (
@@ -78,6 +80,17 @@ export const PersonaVideoCard = ({
 
           {/* Gradient Overlay for Text */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+          
+          {/* "More about" hover overlay */}
+          <div 
+            className={`absolute top-6 left-6 transition-opacity duration-300 z-20 ${
+              isHovering ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            <div className="bg-white text-black px-4 py-2 rounded-full text-sm font-medium shadow-lg">
+              More about {name}
+            </div>
+          </div>
         </div>
 
         {/* Content */}
