@@ -107,6 +107,7 @@ import MediaLibrary from "./pages/MediaLibrary";
 import PostProductionStudio from "./pages/PostProductionStudio";
 import CreateClips from "./pages/CreateClips";
 import SystemStatus from "./pages/SystemStatus";
+import AdminSystemStatus from "./pages/admin/SystemStatus";
 import Pricing from "./pages/Pricing";
 import Awards from "./pages/Awards";
 import CreateAwardsProgram from "./pages/CreateAwardsProgram";
@@ -345,6 +346,7 @@ const AppContent = () => {
             <Route path="/admin/conversational-demo" element={<AdminConversationalDemo />} />
             <Route path="/admin/architecture" element={<SeeksyArchitecture />} />
             <Route path="/admin/master-blog" element={<AdminMasterBlog />} />
+            <Route path="/admin/system-status" element={<AdminSystemStatus />} />
               <Route path="/admin/support" element={<SupportDesk />} />
               <Route path="/admin/sales" element={<SalesLeads />} />
               <Route path="/admin/advertising" element={<AdvertisingManagement />} />

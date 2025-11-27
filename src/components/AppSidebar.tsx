@@ -476,8 +476,17 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     { title: "Tech Stack", url: "/tech-stack", icon: Code },
   ];
 
+  const adminAccountSettings = [
+    { title: "Team", url: "/team", icon: Contact },
+    { title: "Seekies", url: "/integrations", icon: Puzzle },
+    { title: "System Status", url: "/admin/system-status", icon: Activity },
+    { title: "Help Center", url: "/help-center", icon: BookOpen },
+    { title: "Architecture", url: "/seeksy-architecture", icon: Network },
+    { title: "Tech Stack", url: "/tech-stack", icon: Code },
+  ];
+
   // Advertisers see the same settings items
-  const settingsItems = allSettingsItems;
+  const settingsItems = adminViewMode && isAdmin ? adminAccountSettings : allSettingsItems;
 
   const advertiserItems = [
     { title: "Create Ad", url: "/advertiser/campaigns/create-type", icon: Plus },
