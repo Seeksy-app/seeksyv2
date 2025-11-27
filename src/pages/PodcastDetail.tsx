@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { ArrowLeft, Plus, Edit, Trash2, Clock, CheckCircle, Sparkles } from "lucide-react";
 import { useState } from "react";
+import { VoiceCertifiedBadge } from "@/components/VoiceCertifiedBadge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,6 +60,23 @@ const PodcastDetail = () => {
       if (error) throw error;
       return data;
     },
+  });
+
+  const { data: certificates } = useQuery({
+    queryKey: ["episode-certificates", id],
+    queryFn: async () => {
+      if (!episodes) return [];
+      const episodeIds = episodes.map(ep => ep.id);
+      
+      const { data, error } = await supabase
+        .from("episode_blockchain_certificates")
+        .select("episode_id, certificate_hash")
+        .in("episode_id", episodeIds);
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!episodes && episodes.length > 0,
   });
 
   const deleteEpisode = useMutation({
@@ -259,10 +277,10 @@ const PodcastDetail = () => {
                     ) : (
                       <div className="space-y-4">
                         {episodes?.map((episode) => (
-                          <Card key={episode.id} className="p-4 hover:bg-muted/50 transition-colors">
+                           <Card key={episode.id} className="p-4 hover:bg-muted/50 transition-colors">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
                                   {episode.episode_number && (
                                     <span className="text-sm text-muted-foreground">
                                       #{episode.episode_number}
@@ -276,6 +294,9 @@ const PodcastDetail = () => {
                                   }`}>
                                     {episode.is_published ? 'Published' : 'Draft'}
                                   </span>
+                                  {certificates?.some(cert => cert.episode_id === episode.id) && (
+                                    <VoiceCertifiedBadge size="sm" showText={false} />
+                                  )}
                                 </div>
                                 <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
                                   {episode.description}
