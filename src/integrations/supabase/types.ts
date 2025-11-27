@@ -7039,6 +7039,266 @@ export type Database = {
         }
         Relationships: []
       }
+      studio_ad_slots: {
+        Row: {
+          ad_creative_id: string | null
+          assigned_campaign_id: string | null
+          broadcast_id: string | null
+          click_through_count: number | null
+          created_at: string | null
+          duration_seconds: number | null
+          host_read_script: string | null
+          id: string
+          impressions_delivered: number | null
+          marker_id: string | null
+          read_completed: boolean | null
+          script_displayed: boolean | null
+          slot_type: string | null
+          timestamp_seconds: number
+        }
+        Insert: {
+          ad_creative_id?: string | null
+          assigned_campaign_id?: string | null
+          broadcast_id?: string | null
+          click_through_count?: number | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          host_read_script?: string | null
+          id?: string
+          impressions_delivered?: number | null
+          marker_id?: string | null
+          read_completed?: boolean | null
+          script_displayed?: boolean | null
+          slot_type?: string | null
+          timestamp_seconds: number
+        }
+        Update: {
+          ad_creative_id?: string | null
+          assigned_campaign_id?: string | null
+          broadcast_id?: string | null
+          click_through_count?: number | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          host_read_script?: string | null
+          id?: string
+          impressions_delivered?: number | null
+          marker_id?: string | null
+          read_completed?: boolean | null
+          script_displayed?: boolean | null
+          slot_type?: string | null
+          timestamp_seconds?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "studio_ad_slots_ad_creative_id_fkey"
+            columns: ["ad_creative_id"]
+            isOneToOne: false
+            referencedRelation: "ad_creatives"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "studio_ad_slots_assigned_campaign_id_fkey"
+            columns: ["assigned_campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "studio_ad_slots_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "studio_broadcasts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "studio_ad_slots_marker_id_fkey"
+            columns: ["marker_id"]
+            isOneToOne: false
+            referencedRelation: "studio_timeline_markers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      studio_ai_transcriptions: {
+        Row: {
+          broadcast_id: string | null
+          chapter_title: string | null
+          confidence: number | null
+          created_at: string | null
+          id: string
+          is_chapter_start: boolean | null
+          is_key_moment: boolean | null
+          sentiment: string | null
+          speaker_id: string | null
+          text: string
+          timestamp_seconds: number
+        }
+        Insert: {
+          broadcast_id?: string | null
+          chapter_title?: string | null
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          is_chapter_start?: boolean | null
+          is_key_moment?: boolean | null
+          sentiment?: string | null
+          speaker_id?: string | null
+          text: string
+          timestamp_seconds: number
+        }
+        Update: {
+          broadcast_id?: string | null
+          chapter_title?: string | null
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          is_chapter_start?: boolean | null
+          is_key_moment?: boolean | null
+          sentiment?: string | null
+          speaker_id?: string | null
+          text?: string
+          timestamp_seconds?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "studio_ai_transcriptions_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "studio_broadcasts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      studio_broadcasts: {
+        Row: {
+          audio_only_mode: boolean | null
+          broadcast_to_my_page: boolean | null
+          broadcast_to_spotify: boolean | null
+          broadcast_to_youtube: boolean | null
+          created_at: string | null
+          description: string | null
+          enable_subscriptions: boolean | null
+          enable_tipping: boolean | null
+          ended_at: string | null
+          id: string
+          is_live: boolean | null
+          peak_viewers: number | null
+          session_id: string | null
+          spotify_stream_key: string | null
+          started_at: string | null
+          ticket_price: number | null
+          title: string
+          total_interactions: number | null
+          total_viewers: number | null
+          updated_at: string | null
+          user_id: string
+          youtube_stream_key: string | null
+        }
+        Insert: {
+          audio_only_mode?: boolean | null
+          broadcast_to_my_page?: boolean | null
+          broadcast_to_spotify?: boolean | null
+          broadcast_to_youtube?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          enable_subscriptions?: boolean | null
+          enable_tipping?: boolean | null
+          ended_at?: string | null
+          id?: string
+          is_live?: boolean | null
+          peak_viewers?: number | null
+          session_id?: string | null
+          spotify_stream_key?: string | null
+          started_at?: string | null
+          ticket_price?: number | null
+          title: string
+          total_interactions?: number | null
+          total_viewers?: number | null
+          updated_at?: string | null
+          user_id: string
+          youtube_stream_key?: string | null
+        }
+        Update: {
+          audio_only_mode?: boolean | null
+          broadcast_to_my_page?: boolean | null
+          broadcast_to_spotify?: boolean | null
+          broadcast_to_youtube?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          enable_subscriptions?: boolean | null
+          enable_tipping?: boolean | null
+          ended_at?: string | null
+          id?: string
+          is_live?: boolean | null
+          peak_viewers?: number | null
+          session_id?: string | null
+          spotify_stream_key?: string | null
+          started_at?: string | null
+          ticket_price?: number | null
+          title?: string
+          total_interactions?: number | null
+          total_viewers?: number | null
+          updated_at?: string | null
+          user_id?: string
+          youtube_stream_key?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "studio_broadcasts_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "studio_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      studio_clip_suggestions: {
+        Row: {
+          accepted: boolean | null
+          ai_confidence_score: number | null
+          broadcast_id: string | null
+          created_as_clip: boolean | null
+          created_at: string | null
+          end_timestamp_seconds: number
+          id: string
+          reason: string | null
+          start_timestamp_seconds: number
+          suggested_title: string | null
+        }
+        Insert: {
+          accepted?: boolean | null
+          ai_confidence_score?: number | null
+          broadcast_id?: string | null
+          created_as_clip?: boolean | null
+          created_at?: string | null
+          end_timestamp_seconds: number
+          id?: string
+          reason?: string | null
+          start_timestamp_seconds: number
+          suggested_title?: string | null
+        }
+        Update: {
+          accepted?: boolean | null
+          ai_confidence_score?: number | null
+          broadcast_id?: string | null
+          created_as_clip?: boolean | null
+          created_at?: string | null
+          end_timestamp_seconds?: number
+          id?: string
+          reason?: string | null
+          start_timestamp_seconds?: number
+          suggested_title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "studio_clip_suggestions_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "studio_broadcasts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       studio_guests: {
         Row: {
           created_at: string | null
@@ -7076,6 +7336,113 @@ export type Database = {
             columns: ["studio_session_id"]
             isOneToOne: false
             referencedRelation: "studio_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      studio_live_chat: {
+        Row: {
+          broadcast_id: string | null
+          created_at: string | null
+          id: string
+          is_moderated: boolean | null
+          is_pinned: boolean | null
+          message: string
+          message_type: string | null
+          metadata: Json | null
+          user_id: string | null
+          username: string
+        }
+        Insert: {
+          broadcast_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_moderated?: boolean | null
+          is_pinned?: boolean | null
+          message: string
+          message_type?: string | null
+          metadata?: Json | null
+          user_id?: string | null
+          username: string
+        }
+        Update: {
+          broadcast_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_moderated?: boolean | null
+          is_pinned?: boolean | null
+          message?: string
+          message_type?: string | null
+          metadata?: Json | null
+          user_id?: string | null
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "studio_live_chat_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "studio_broadcasts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      studio_live_polls: {
+        Row: {
+          broadcast_id: string | null
+          closed_at: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          marker_id: string | null
+          options: Json
+          poll_type: string | null
+          question: string
+          results: Json | null
+          results_visible: boolean | null
+          total_votes: number | null
+        }
+        Insert: {
+          broadcast_id?: string | null
+          closed_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          marker_id?: string | null
+          options: Json
+          poll_type?: string | null
+          question: string
+          results?: Json | null
+          results_visible?: boolean | null
+          total_votes?: number | null
+        }
+        Update: {
+          broadcast_id?: string | null
+          closed_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          marker_id?: string | null
+          options?: Json
+          poll_type?: string | null
+          question?: string
+          results?: Json | null
+          results_visible?: boolean | null
+          total_votes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "studio_live_polls_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "studio_broadcasts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "studio_live_polls_marker_id_fkey"
+            columns: ["marker_id"]
+            isOneToOne: false
+            referencedRelation: "studio_timeline_markers"
             referencedColumns: ["id"]
           },
         ]
@@ -7259,6 +7626,103 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      studio_timeline_markers: {
+        Row: {
+          broadcast_id: string | null
+          completed: boolean | null
+          created_at: string | null
+          description: string | null
+          duration_seconds: number | null
+          id: string
+          marker_type: string
+          metadata: Json | null
+          timestamp_seconds: number
+          title: string | null
+          triggered: boolean | null
+          user_id: string
+        }
+        Insert: {
+          broadcast_id?: string | null
+          completed?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          marker_type: string
+          metadata?: Json | null
+          timestamp_seconds: number
+          title?: string | null
+          triggered?: boolean | null
+          user_id: string
+        }
+        Update: {
+          broadcast_id?: string | null
+          completed?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          marker_type?: string
+          metadata?: Json | null
+          timestamp_seconds?: number
+          title?: string | null
+          triggered?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "studio_timeline_markers_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "studio_broadcasts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      studio_viewer_analytics: {
+        Row: {
+          broadcast_id: string | null
+          chat_messages_count: number | null
+          id: string
+          poll_votes_count: number | null
+          reactions_count: number | null
+          recorded_at: string | null
+          timestamp_seconds: number
+          tips_count: number | null
+          viewer_count: number | null
+        }
+        Insert: {
+          broadcast_id?: string | null
+          chat_messages_count?: number | null
+          id?: string
+          poll_votes_count?: number | null
+          reactions_count?: number | null
+          recorded_at?: string | null
+          timestamp_seconds: number
+          tips_count?: number | null
+          viewer_count?: number | null
+        }
+        Update: {
+          broadcast_id?: string | null
+          chat_messages_count?: number | null
+          id?: string
+          poll_votes_count?: number | null
+          reactions_count?: number | null
+          recorded_at?: string | null
+          timestamp_seconds?: number
+          tips_count?: number | null
+          viewer_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "studio_viewer_analytics_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "studio_broadcasts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscriptions: {
         Row: {
