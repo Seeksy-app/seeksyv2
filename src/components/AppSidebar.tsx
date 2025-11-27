@@ -587,7 +587,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
   const adminContentManagement = [
     { title: "Persona Management", url: "/admin/personas", icon: Sparkles },
-    { title: "Voice Tag & Certification", url: "/voice-tag", icon: Shield },
+    { title: "Voice Tag & Certification", url: "/admin/voice-tag-certification", icon: Shield },
     { title: "Voice Cloning", url: "/voice-protection", icon: Shield },
     { title: "Screenshot Generator", url: "/admin/screenshot-generator", icon: Camera },
   ];

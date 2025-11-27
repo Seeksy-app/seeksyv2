@@ -190,6 +190,7 @@ import PublicForm from "./pages/PublicForm";
 import Personas from "./pages/Personas";
 import VoiceCertification from "./pages/VoiceCertification";
 import VoiceTag from "./pages/VoiceTag";
+import VoiceTagAdmin from "./pages/VoiceTagAdmin";
 import ScreenshotGenerator from "./pages/admin/ScreenshotGenerator";
 
 const queryClient = new QueryClient();
@@ -279,6 +280,7 @@ const AppContent = () => {
               <Route path="/personas" element={<Personas />} />
               <Route path="/voice-certification" element={<VoiceCertification />} />
               <Route path="/voice-tag" element={<VoiceTag />} />
+              <Route path="/admin/voice-tag-certification" element={<VoiceTagAdmin />} />
             <Route path="/investor" element={<InvestorPortal />} />
             <Route path="/project-management" element={<ProjectManagement />} />
             <Route path="/client-tickets" element={<ClientTickets />} />
