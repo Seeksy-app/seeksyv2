@@ -494,18 +494,8 @@ export default function VoiceProtection() {
               />
             </div>
 
-            {/* Script Editor */}
-            <div className="space-y-2">
-              <Label>Recording Script</Label>
-              <ScriptEditor 
-                script={script}
-                onScriptChange={setScript}
-                cloneType={cloneType}
-              />
-            </div>
-
             <div className="space-y-4">
-              {/* Timer Display - Large and Yellow */}
+              {/* Timer Display - Large and Yellow - AT TOP */}
               {isRecording && (
                 <div className="flex items-center justify-center p-6 bg-yellow-500/10 rounded-lg border-2 border-yellow-500">
                   <Clock className="h-8 w-8 text-yellow-500 mr-3" />
@@ -515,7 +505,7 @@ export default function VoiceProtection() {
                 </div>
               )}
 
-              {/* Recording Controls */}
+              {/* Recording Control Buttons - BELOW TIMER */}
               {!audioBlob && !isRecording && (
                 <Button
                   onClick={handleStartRecordingClick}
@@ -565,31 +555,41 @@ export default function VoiceProtection() {
                   </div>
                 </div>
               )}
-
-              {/* Audio Preview */}
-              {audioBlob && (
-                <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
-                  <div className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-primary" />
-                    <p className="text-sm font-medium">Recording Complete!</p>
-                  </div>
-                  <audio 
-                    controls 
-                    src={URL.createObjectURL(audioBlob)} 
-                    className="w-full"
-                  />
-                  <Button 
-                    onClick={deleteRecording} 
-                    variant="outline" 
-                    size="sm"
-                    className="w-full"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete & Re-record
-                  </Button>
-                </div>
-              )}
             </div>
+
+            {/* Script Editor - BELOW CONTROLS */}
+            <div className="space-y-2">
+              <Label>Recording Script</Label>
+              <ScriptEditor 
+                script={script}
+                onScriptChange={setScript}
+                cloneType={cloneType}
+              />
+            </div>
+
+            {/* Audio Preview */}
+            {audioBlob && (
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+                <div className="flex items-center gap-2">
+                  <Check className="h-5 w-5 text-primary" />
+                  <p className="text-sm font-medium">Recording Complete!</p>
+                </div>
+                <audio 
+                  controls 
+                  src={URL.createObjectURL(audioBlob)} 
+                  className="w-full"
+                />
+                <Button 
+                  onClick={deleteRecording} 
+                  variant="outline" 
+                  size="sm"
+                  className="w-full"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete & Re-record
+                </Button>
+              </div>
+            )}
 
             {/* Monetization Options */}
             {audioBlob && (
