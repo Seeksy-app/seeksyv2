@@ -100,9 +100,8 @@ export const PersonaGrid = () => {
           <div
             className="fixed z-50 pointer-events-none"
             style={{
-              left: cursorPosition.x + 12,
-              top: cursorPosition.y + 12,
-              transition: 'left 0.15s ease-out, top 0.15s ease-out, opacity 0.12s ease-out',
+              transform: `translate(${cursorPosition.x + 12}px, ${cursorPosition.y + 12}px)`,
+              transition: 'opacity 0.12s ease-out',
               opacity: 1,
             }}
           >
