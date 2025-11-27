@@ -76,7 +76,6 @@ export const PersonaVideoCard = ({
   const [isHovering, setIsHovering] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [pillPosition, setPillPosition] = useState({ x: 0, y: 0 });
   const videoRef = useRef<HTMLVideoElement>(null);
   const modalVideoRef = useRef<HTMLVideoElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -97,16 +96,6 @@ export const PersonaVideoCard = ({
     if (videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
-    }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (cardRef.current) {
-      const rect = cardRef.current.getBoundingClientRect();
-      setPillPosition({
-        x: e.clientX - rect.left + 12,
-        y: e.clientY - rect.top + 12,
-      });
     }
   };
 
@@ -143,7 +132,6 @@ export const PersonaVideoCard = ({
           className="persona-video-card relative w-full h-full cursor-pointer"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
-          onMouseMove={handleMouseMove}
           onClick={handleClick}
         >
           {/* Card - Video with Text Overlays */}
@@ -264,23 +252,6 @@ export const PersonaVideoCard = ({
               </div>
             </div>
           </div>
-
-          {/* Cursor-following pill */}
-          <motion.div
-            className="absolute pointer-events-none z-10 px-6 py-3 bg-white rounded-full shadow-lg text-gray-900 font-medium whitespace-nowrap"
-            style={{
-              transform: `translate(${pillPosition.x}px, ${pillPosition.y}px)`,
-            }}
-            initial={{ opacity: 0 }}
-            animate={{ 
-              opacity: isHovering ? 1 : 0,
-              transition: {
-                opacity: { duration: 0.12 },
-              }
-            }}
-          >
-            More about {name}
-          </motion.div>
 
         </motion.div>
       </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PersonaVideoCard } from "./PersonaVideoCard";
@@ -20,6 +20,31 @@ export const PersonaGrid = () => {
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [hoveredPersona, setHoveredPersona] = useState<Persona | null>(null);
   const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+  const [smoothPosition, setSmoothPosition] = useState({ x: 0, y: 0 });
+  const animationFrameRef = useRef<number>();
+
+  // Smooth interpolation using requestAnimationFrame
+  useEffect(() => {
+    const lerp = (start: number, end: number, factor: number) => {
+      return start + (end - start) * factor;
+    };
+
+    const animate = () => {
+      setSmoothPosition((prev) => ({
+        x: lerp(prev.x, cursorPosition.x, 0.15),
+        y: lerp(prev.y, cursorPosition.y, 0.15),
+      }));
+      animationFrameRef.current = requestAnimationFrame(animate);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [cursorPosition]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     setCursorPosition({
@@ -100,12 +125,12 @@ export const PersonaGrid = () => {
           <div
             className="fixed z-50 pointer-events-none"
             style={{
-              transform: `translate(${cursorPosition.x + 12}px, ${cursorPosition.y + 12}px)`,
-              transition: 'opacity 0.12s ease-out',
+              transform: `translate3d(${smoothPosition.x + 12}px, ${smoothPosition.y + 12}px, 0)`,
+              willChange: 'transform',
               opacity: 1,
             }}
           >
-            <div className="bg-white text-black px-5 py-2.5 rounded-full text-sm font-semibold shadow-xl whitespace-nowrap">
+            <div className="bg-white text-gray-900 px-6 py-3 rounded-full text-sm font-medium shadow-lg whitespace-nowrap">
               More about {hoveredPersona.name}
             </div>
           </div>
