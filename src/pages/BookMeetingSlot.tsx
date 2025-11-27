@@ -222,50 +222,38 @@ const BookMeetingSlot = () => {
       console.log('Start Time:', startTime.toISOString());
       console.log('End Time:', endTime.toISOString());
 
-      const insertData = {
-        user_id: meetingType.user_id,
-        meeting_type_id: meetingType.id,
-        title: `${meetingType.name} with ${attendeeName}`,
-        description: notes,
-        start_time: startTime.toISOString(),
-        end_time: endTime.toISOString(),
-        location_type: meetingType.location_type as "phone" | "zoom" | "teams" | "meet" | "in-person" | "custom" | "seeksy_studio",
-        location_details: finalLocationDetails,
-        attendee_name: attendeeName,
-        attendee_email: attendeeEmail,
-        attendee_phone: attendeePhone || null,
-        attendee_responses: questionResponses as any,
-        status: "scheduled" as const,
-      };
-      
-      console.log('Insert data:', JSON.stringify(insertData, null, 2));
+      // Create meeting first
+      const { data: meetingData, error: meetingError } = await supabase
+        .from("meetings")
+        .insert({
+          user_id: meetingType.user_id,
+          meeting_type_id: meetingType.id,
+          title: `${meetingType.name} with ${attendeeName}`,
+          description: notes,
+          start_time: startTime.toISOString(),
+          end_time: endTime.toISOString(),
+          location_type: meetingType.location_type as "phone" | "zoom" | "teams" | "meet" | "in-person" | "custom" | "seeksy_studio",
+          location_details: finalLocationDetails,
+          status: "scheduled" as const,
+        })
+        .select()
+        .single();
 
-      // Use the security definer function to bypass RLS issues
-      const { data: meetingId, error } = await supabase.rpc('create_meeting_public', {
-        p_user_id: meetingType.user_id,
-        p_meeting_type_id: meetingType.id,
-        p_title: `${meetingType.name} with ${attendeeName}`,
-        p_description: notes,
-        p_start_time: startTime.toISOString(),
-        p_end_time: endTime.toISOString(),
-        p_location_type: meetingType.location_type as any,
-        p_location_details: finalLocationDetails,
-        p_attendee_name: attendeeName,
-        p_attendee_email: attendeeEmail,
-        p_attendee_phone: attendeePhone || null,
-        p_attendee_responses: questionResponses as any,
-        p_status: "scheduled" as any,
-      });
+      if (meetingError) throw meetingError;
+      const meetingId = meetingData.id;
 
-      console.log('Insert response - meetingId:', meetingId);
-      console.log('Insert response - error:', error);
+      // Insert attendee record
+      const { error: attendeeError } = await supabase
+        .from("meeting_attendees")
+        .insert({
+          meeting_id: meetingId,
+          attendee_name: attendeeName,
+          attendee_email: attendeeEmail,
+          attendee_phone: attendeePhone || null,
+          rsvp_status: 'awaiting',
+        });
 
-      if (error) {
-        console.error('=== DETAILED ERROR ===');
-        console.error('Error object:', JSON.stringify(error, null, 2));
-        console.error('Error message:', error.message);
-        throw new Error(`Failed to book meeting: ${error.message}`);
-      }
+      if (attendeeError) throw attendeeError;
 
       console.log('Meeting inserted successfully! ID:', meetingId);
       console.log('=== BOOKING DEBUG END ===');

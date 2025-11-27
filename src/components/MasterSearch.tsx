@@ -146,23 +146,33 @@ export const MasterSearch = () => {
         description: ticket.ticket_number,
       }));
 
-      // Search meetings
+      // Search meetings with attendees
       const { data: meetings } = await supabase
         .from("meetings")
-        .select("id, title, attendee_name")
+        .select(`
+          id, 
+          title, 
+          start_time,
+          meeting_attendees (
+            attendee_name
+          )
+        `)
         .eq("user_id", user.id)
-        .or(`title.ilike.%${searchQuery}%,attendee_name.ilike.%${searchQuery}%`)
+        .ilike('title', `%${searchQuery}%`)
         .limit(5);
 
-      const meetingResults: SearchResult[] = (meetings || []).map(meeting => ({
-        id: meeting.id,
-        title: meeting.title,
-        type: "Meeting",
-        category: "Meetings",
-        url: "/meetings",
-        icon: Calendar,
-        description: `with ${meeting.attendee_name}`,
-      }));
+      const meetingResults: SearchResult[] = (meetings || []).map(meeting => {
+        const firstAttendee = (meeting.meeting_attendees as any)?.[0];
+        return {
+          id: meeting.id,
+          title: meeting.title,
+          type: "Meeting",
+          category: "Meetings",
+          url: "/meetings",
+          icon: Calendar,
+          description: firstAttendee ? `with ${firstAttendee.attendee_name}` : 'Meeting',
+        };
+      });
 
       // Search events
       const { data: events } = await supabase

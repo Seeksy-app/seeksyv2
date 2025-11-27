@@ -36,6 +36,7 @@ import EditMeeting from "./pages/EditMeeting";
 import Meetings from "./pages/Meetings";
 import MeetNow from "./pages/MeetNow";
 import MeetingStudio from "./pages/MeetingStudio";
+import MeetingRSVP from "./pages/MeetingRSVP";
 import Availability from "./pages/Availability";
 import BookMeetings from "./pages/BookMeetings";
 import BookMeetingSlot from "./pages/BookMeetingSlot";
@@ -303,11 +304,12 @@ const AppContent = () => {
               <Route path="/meeting-types" element={<MeetingTypes />} />
               <Route path="/meeting-types/create" element={<CreateMeetingType />} />
               <Route path="/meeting-types/:id/edit" element={<EditMeetingType />} />
-            <Route path="/meetings" element={<Meetings />} />
-            <Route path="/meetings/now" element={<MeetNow />} />
-            <Route path="/meeting-studio/:id" element={<MeetingStudio />} />
-            <Route path="/meetings/create" element={<CreateMeeting />} />
-            <Route path="/meetings/edit/:id" element={<EditMeeting />} />
+              <Route path="/meetings" element={<Meetings />} />
+              <Route path="/meetings/now" element={<MeetNow />} />
+              <Route path="/meeting-studio/:id" element={<MeetingStudio />} />
+              <Route path="/meetings/create" element={<CreateMeeting />} />
+              <Route path="/meetings/edit/:id" element={<EditMeeting />} />
+              <Route path="/meeting-rsvp" element={<MeetingRSVP />} />
             <Route path="/events" element={<Events />} />
             <Route path="/signup-sheets" element={<SignupSheets />} />
               <Route path="/meetings/create" element={<CreateMeeting />} />

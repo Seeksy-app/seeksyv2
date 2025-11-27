@@ -4970,8 +4970,10 @@ export type Database = {
           created_at: string | null
           id: string
           meeting_id: string
+          rsvp_method: string | null
           rsvp_status: string | null
           rsvp_timestamp: string | null
+          rsvp_token: string | null
         }
         Insert: {
           attendee_email: string
@@ -4980,8 +4982,10 @@ export type Database = {
           created_at?: string | null
           id?: string
           meeting_id: string
+          rsvp_method?: string | null
           rsvp_status?: string | null
           rsvp_timestamp?: string | null
+          rsvp_token?: string | null
         }
         Update: {
           attendee_email?: string
@@ -4990,8 +4994,10 @@ export type Database = {
           created_at?: string | null
           id?: string
           meeting_id?: string
+          rsvp_method?: string | null
           rsvp_status?: string | null
           rsvp_timestamp?: string | null
+          rsvp_token?: string | null
         }
         Relationships: [
           {
@@ -5147,13 +5153,6 @@ export type Database = {
       }
       meetings: {
         Row: {
-          attendee_email: string
-          attendee_name: string
-          attendee_phone: string | null
-          attendee_responses: Json | null
-          attendee_rsvp_method: string | null
-          attendee_rsvp_status: string | null
-          attendee_rsvp_timestamp: string | null
           created_at: string | null
           description: string | null
           end_time: string
@@ -5172,13 +5171,6 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          attendee_email: string
-          attendee_name: string
-          attendee_phone?: string | null
-          attendee_responses?: Json | null
-          attendee_rsvp_method?: string | null
-          attendee_rsvp_status?: string | null
-          attendee_rsvp_timestamp?: string | null
           created_at?: string | null
           description?: string | null
           end_time: string
@@ -5197,13 +5189,6 @@ export type Database = {
           user_id: string
         }
         Update: {
-          attendee_email?: string
-          attendee_name?: string
-          attendee_phone?: string | null
-          attendee_responses?: Json | null
-          attendee_rsvp_method?: string | null
-          attendee_rsvp_status?: string | null
-          attendee_rsvp_timestamp?: string | null
           created_at?: string | null
           description?: string | null
           end_time?: string
@@ -9129,6 +9114,7 @@ export type Database = {
         Returns: string
       }
       generate_investor_code: { Args: never; Returns: string }
+      generate_rsvp_token: { Args: never; Returns: string }
       generate_ticket_number: { Args: never; Returns: string }
       get_current_usage: {
         Args: { _feature_type: string; _user_id: string }

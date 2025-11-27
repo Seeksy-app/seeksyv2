@@ -65,8 +65,6 @@ export default function MeetNow() {
           status: "scheduled",
           location_type: "seeksy_studio",
           location_details: "Seeksy Meeting Studio",
-          attendee_name: firstAttendee.name,
-          attendee_email: firstAttendee.email
         }])
         .select()
         .single();

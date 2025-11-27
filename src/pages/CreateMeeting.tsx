@@ -231,6 +231,7 @@ const CreateMeeting = () => {
           }
         }
 
+        // Create meeting first
         const { data: meetingData, error } = await supabase.from("meetings").insert([
           {
             user_id: user?.id,
@@ -240,9 +241,6 @@ const CreateMeeting = () => {
             end_time: endTime.toISOString(),
             location_type: locationType as "phone" | "zoom" | "teams" | "meet" | "in-person" | "custom" | "seeksy_studio",
             location_details: finalLocationDetails || null,
-            attendee_name: attendee.name,
-            attendee_email: attendee.email,
-            attendee_phone: attendee.phone || null,
             meeting_type_id: selectedMeetingType && selectedMeetingType !== "custom" ? selectedMeetingType : null,
             status: "scheduled",
           },
@@ -251,6 +249,19 @@ const CreateMeeting = () => {
         .single();
 
         if (error) throw error;
+
+        // Insert attendee record
+        const { error: attendeeError } = await supabase
+          .from("meeting_attendees")
+          .insert({
+            meeting_id: meetingData.id,
+            attendee_name: attendee.name,
+            attendee_email: attendee.email,
+            attendee_phone: attendee.phone || null,
+            rsvp_status: 'awaiting',
+          });
+
+        if (attendeeError) throw attendeeError;
 
         // Store SMS consent if phone provided (contacts from DB already have implicit consent)
         if (attendee.phone) {
