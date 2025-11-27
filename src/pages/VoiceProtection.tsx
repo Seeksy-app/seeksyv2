@@ -48,9 +48,40 @@ export default function VoiceProtection() {
   const [consentChecked, setConsentChecked] = useState(false);
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
+  const [showRecordingStudio, setShowRecordingStudio] = useState(false);
+
+  // Get current user
+  const [user, setUser] = useState<any>(null);
+  
+  useQuery({
+    queryKey: ['auth-user'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      return user;
+    },
+  });
+
+  // Check if user is admin
+  const { data: userRoles } = useQuery({
+    queryKey: ['user-roles', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  const isAdmin = userRoles?.some(r => r.role === 'admin' || r.role === 'super_admin');
 
   // Fetch user's voice profiles
-  const { data: voiceProfiles } = useQuery({
+  const { data: voiceProfiles, isLoading: isLoadingProfiles } = useQuery({
     queryKey: ['voiceProfiles'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -342,6 +373,7 @@ export default function VoiceProtection() {
       setAudioBlob(null);
       setProfileImage(null);
       setProfileImagePreview(null);
+      setShowRecordingStudio(false);
     },
     onError: (error) => {
       toast({
@@ -354,16 +386,49 @@ export default function VoiceProtection() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <Shield className="h-8 w-8 text-primary" />
-        <div>
-          <h1 className="text-3xl font-bold">Voice Protection & Marketplace</h1>
-          <p className="text-muted-foreground">Protect your voice and monetize it through ads</p>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Shield className="h-8 w-8 text-primary" />
+          <div>
+            <h1 className="text-3xl font-bold">Voice Protection & Marketplace</h1>
+            <p className="text-muted-foreground">Protect your voice and monetize it through ads</p>
+          </div>
         </div>
+        
+        {/* Admin Controls */}
+        {isAdmin && (
+          <div>
+            {!showRecordingStudio ? (
+              <Button 
+                onClick={() => setShowRecordingStudio(true)}
+                size="lg"
+                className="gap-2"
+              >
+                <Mic className="h-5 w-5" />
+                New Voice Recording
+              </Button>
+            ) : (
+              <Button 
+                onClick={() => setShowRecordingStudio(false)}
+                variant="outline"
+                size="lg"
+              >
+                View Voice Portfolio
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Voice Profiles at Top */}
-      {voiceProfiles && voiceProfiles.length > 0 && (
+      {/* Show portfolio for admins by default, recording studio for non-admins or when button clicked */}
+      {(isAdmin && !showRecordingStudio) ? (
+        <>
+          {/* Voice Profiles Portfolio View */}
+          {isLoadingProfiles ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">Loading your voice profiles...</p>
+            </div>
+          ) : voiceProfiles && voiceProfiles.length > 0 ? (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -477,9 +542,22 @@ export default function VoiceProtection() {
             </div>
           </CardContent>
         </Card>
-      )}
-
-      <div className="grid gap-6 lg:grid-cols-2">
+          ) : (
+            <Card className="bg-muted/50">
+              <CardContent className="py-12 text-center">
+                <Shield className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">No voice profiles yet</h3>
+                <p className="text-muted-foreground mb-6">
+                  Click "New Voice Recording" above to create your first voice profile
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </>
+      ) : (
+        <>
+          {/* Recording Studio View */}
+          <div className="grid gap-6 lg:grid-cols-2">
         {/* Left Column - Create Voice Profile */}
         <Card>
           <CardHeader>
@@ -824,7 +902,9 @@ export default function VoiceProtection() {
             </div>
           </CardContent>
         </Card>
-      </div>
+          </div>
+        </>
+      )}
 
       {/* Consent Dialog */}
       <Dialog open={showConsentDialog} onOpenChange={setShowConsentDialog}>
