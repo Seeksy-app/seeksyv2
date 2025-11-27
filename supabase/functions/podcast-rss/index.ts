@@ -13,28 +13,26 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
     
-    // Read from query parameters
-    const userId = url.searchParams.get("userId");
-    const podcastId = url.searchParams.get("podcastId");
+    // Extract slug from URL path (e.g., /rss/veteran-benefits-podcast)
+    const pathParts = url.pathname.split('/').filter(p => p);
+    const slug = pathParts[pathParts.length - 1];
     
-    if (!userId || !podcastId) {
-      return new Response("Invalid RSS feed URL - userId and podcastId required", { 
+    if (!slug) {
+      return new Response("Invalid RSS feed URL - podcast slug required", { 
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "text/plain" }
       });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Fetch podcast details
+    // Fetch podcast details by slug
     const { data: podcast, error: podcastError } = await supabase
       .from("podcasts")
       .select("*")
-      .eq("id", podcastId)
-      .eq("user_id", userId)
+      .eq("slug", slug)
       .eq("is_published", true)
       .maybeSingle();
 
@@ -46,7 +44,7 @@ serve(async (req) => {
     const { data: episodes, error: episodesError } = await supabase
       .from("episodes")
       .select("*")
-      .eq("podcast_id", podcastId)
+      .eq("podcast_id", podcast.id)
       .eq("is_published", true)
       .order("publish_date", { ascending: false });
 

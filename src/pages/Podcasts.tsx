@@ -179,18 +179,16 @@ const Podcasts = () => {
                     
                     {/* Individual Podcast RSS Feed */}
                     <div 
-                      className="flex items-center gap-1.5 mb-3 p-2 bg-muted/50 rounded-md hover:bg-muted/70 transition-colors"
+                      className="flex items-center gap-1.5 mb-3 p-2 bg-muted/50 rounded-md hover:bg-muted/70 transition-colors cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
-                        copyToClipboard(
-                          `${window.location.origin}/api/podcast-rss?userId=${user?.id}&podcastId=${podcast.id}`,
-                          "RSS feed"
-                        );
+                        const rssUrl = `https://seeksy.io/rss/${podcast.slug || podcast.id}`;
+                        copyToClipboard(rssUrl, "RSS feed");
                       }}
                     >
                       <Rss className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                       <code className="text-[10px] flex-1 truncate text-muted-foreground">
-                        {`/api/podcast-rss?podcastId=${podcast.id}`}
+                        seeksy.io/rss/{podcast.slug || podcast.id}
                       </code>
                       <Copy className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                     </div>

@@ -6051,6 +6051,7 @@ export type Database = {
           language: string | null
           rss_feed_url: string | null
           show_on_profile: boolean | null
+          slug: string
           title: string
           updated_at: string
           user_id: string
@@ -6069,6 +6070,7 @@ export type Database = {
           language?: string | null
           rss_feed_url?: string | null
           show_on_profile?: boolean | null
+          slug: string
           title: string
           updated_at?: string
           user_id: string
@@ -6087,6 +6089,7 @@ export type Database = {
           language?: string | null
           rss_feed_url?: string | null
           show_on_profile?: boolean | null
+          slug?: string
           title?: string
           updated_at?: string
           user_id?: string
