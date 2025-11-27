@@ -7,11 +7,11 @@ import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/componen
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BroadcastTimeline } from "@/components/studio-broadcast/BroadcastTimeline";
-import { MultiPlatformControls } from "@/components/studio-broadcast/MultiPlatformControls";
+import { ChannelsDialog } from "@/components/studio-broadcast/ChannelsDialog";
 import { AdIntegrationPanel } from "@/components/studio-broadcast/AdIntegrationPanel";
 import { AIToolsPanel } from "@/components/studio-broadcast/AIToolsPanel";
 import { StudioLeftSidebar } from "@/components/studio/StudioLeftSidebar";
-import { Video, Mic, MicOff, VideoOff, Monitor, UserPlus, Radio, ArrowLeft, DollarSign, Scissors, Plus, Settings, Film, FileText } from "lucide-react";
+import { Video, Mic, MicOff, VideoOff, Monitor, UserPlus, Radio, ArrowLeft, DollarSign, Scissors, Plus, Settings, Film, FileText, Users, Youtube, Music } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function BroadcastStudio() {
@@ -42,10 +42,11 @@ export default function BroadcastStudio() {
   // Multi-Platform Settings
   const [audioOnlyMode, setAudioOnlyMode] = useState(false);
   const [platforms, setPlatforms] = useState({
-    myPage: { enabled: true, paired: true, title: 'My Page' },
-    youtube: { enabled: false, paired: false, title: 'YouTube' },
-    spotify: { enabled: false, paired: false, title: 'Spotify' }
+    myPage: { enabled: true, paired: true, title: 'My Page', icon: 'Users' },
+    youtube: { enabled: false, paired: false, title: 'YouTube', icon: 'Youtube' },
+    spotify: { enabled: false, paired: false, title: 'Spotify', icon: 'Music' }
   });
+  const [showChannelsDialog, setShowChannelsDialog] = useState(false);
   
   // Host Read Script
   const [showHostScript, setShowHostScript] = useState(false);
@@ -543,12 +544,57 @@ export default function BroadcastStudio() {
             <p className="text-xs text-muted-foreground">Multi-Platform Live Streaming</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {isLive && (
-            <Badge variant="destructive" className="animate-pulse">
-              <Radio className="h-3 w-3 mr-1" />
-              LIVE
+        
+        {/* Channels & Go Live Section */}
+        <div className="flex items-center gap-3">
+          {/* Active Channel Icons */}
+          {Object.entries(platforms)
+            .filter(([_, p]) => p.enabled)
+            .map(([key, platform]) => {
+              const iconMap: Record<string, any> = { Users, Youtube, Music };
+              const Icon = iconMap[platform.icon] || Radio;
+              return (
+                <div key={key} className="flex items-center gap-1">
+                  <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center">
+                    <Icon className="h-4 w-4 text-primary" />
+                  </div>
+                </div>
+              );
+            })}
+          
+          {/* Channels Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowChannelsDialog(true)}
+            disabled={isLive}
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Channels
+            <Badge variant="secondary" className="ml-2 text-xs">
+              {Object.values(platforms).filter(p => p.enabled).length} of {Object.keys(platforms).length}
             </Badge>
+          </Button>
+
+          {/* Go Live Button */}
+          {!isLive ? (
+            <Button
+              onClick={handleGoLive}
+              disabled={isPreparing || Object.values(platforms).filter(p => p.enabled).length === 0}
+              className="bg-red-600 hover:bg-red-700 text-white"
+              size="lg"
+            >
+              <Radio className="h-5 w-5 mr-2" />
+              GO LIVE
+            </Button>
+          ) : (
+            <Button
+              onClick={handleStopBroadcast}
+              variant="destructive"
+              size="lg"
+            >
+              STOP BROADCAST
+            </Button>
           )}
         </div>
       </div>
@@ -698,77 +744,9 @@ export default function BroadcastStudio() {
 
         <ResizableHandle />
 
-        {/* Right Sidebar - Channels & Tools */}
-        <ResizablePanel defaultSize={30} minSize={25} maxSize={35}>
+        {/* Right Sidebar - AI Tools Only */}
+        <ResizablePanel defaultSize={25} minSize={20} maxSize={30}>
           <div className="h-full overflow-y-auto p-4 space-y-4 bg-card/50">
-            {/* Channels Panel */}
-            <Card>
-              <CardContent className="pt-6 space-y-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold">Channels</h3>
-                  <Badge variant="secondary" className="text-xs">
-                    {Object.values(platforms).filter(p => p.enabled).length} of {Object.keys(platforms).length} active
-                  </Badge>
-                </div>
-
-                {Object.entries(platforms).map(([key, platform]) => (
-                  <div key={key} className="flex items-center justify-between p-3 rounded-lg border bg-card">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center">
-                        <Radio className="h-4 w-4 text-primary" />
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium">{platform.title}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {platform.paired ? '🟢 Connected' : '⚪ Not paired'}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {!platform.paired && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setPlatforms(prev => ({
-                              ...prev,
-                              [key]: { ...prev[key], paired: true }
-                            }));
-                            toast({
-                              title: "Connected",
-                              description: `${platform.title} paired successfully`
-                            });
-                          }}
-                        >
-                          Pair
-                        </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant={platform.enabled ? "default" : "outline"}
-                        onClick={() => {
-                          if (!platform.paired) {
-                            toast({
-                              title: "Not Paired",
-                              description: `Please pair ${platform.title} first`,
-                              variant: "destructive"
-                            });
-                            return;
-                          }
-                          setPlatforms(prev => ({
-                            ...prev,
-                            [key]: { ...prev[key], enabled: !prev[key].enabled }
-                          }));
-                        }}
-                      >
-                        {platform.enabled ? 'ON' : 'OFF'}
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
             {/* AI Tools */}
             <AIToolsPanel
               broadcastId={broadcastId || ''}
@@ -803,6 +781,49 @@ export default function BroadcastStudio() {
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
+
+      {/* Channels Dialog */}
+      <ChannelsDialog
+        open={showChannelsDialog}
+        onOpenChange={setShowChannelsDialog}
+        platforms={platforms}
+        onPlatformToggle={(key) => {
+          const platform = platforms[key as keyof typeof platforms];
+          if (!platform.paired && key !== 'myPage') {
+            toast({
+              title: "Not Paired",
+              description: `Please pair ${platform.title} first`,
+              variant: "destructive"
+            });
+            return;
+          }
+          setPlatforms(prev => ({
+            ...prev,
+            [key]: { ...prev[key as keyof typeof prev], enabled: !prev[key as keyof typeof prev].enabled }
+          }));
+        }}
+        onPlatformPair={(key) => {
+          setPlatforms(prev => ({
+            ...prev,
+            [key]: { ...prev[key as keyof typeof prev], paired: true }
+          }));
+          toast({
+            title: "Connected",
+            description: `${platforms[key as keyof typeof platforms].title} paired successfully`
+          });
+        }}
+        onToggleAll={() => {
+          const allEnabled = Object.values(platforms).every(p => p.enabled);
+          setPlatforms(prev => {
+            const updated = { ...prev };
+            Object.keys(updated).forEach(key => {
+              const k = key as keyof typeof updated;
+              updated[k] = { ...updated[k], enabled: !allEnabled };
+            });
+            return updated;
+          });
+        }}
+      />
 
       {/* Host Read Script Popup */}
       {showHostScript && (
