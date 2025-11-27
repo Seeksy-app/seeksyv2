@@ -534,7 +534,7 @@ const Profile = () => {
   // Helper to get section visibility and order
   const getSectionVisibility = (sectionType: string) => {
     const sectionConfig = sectionOrder.find(s => s.section_type === sectionType);
-    return sectionConfig ? sectionConfig.is_visible : true; // Default to visible if not configured
+    return sectionConfig ? sectionConfig.is_visible : false; // Default to hidden if not configured
   };
 
   // Helper to get section display order

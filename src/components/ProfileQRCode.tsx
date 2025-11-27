@@ -110,10 +110,10 @@ export const ProfileQRCode = ({ username, themeColor = "#0064B1", logoUrl, shape
   };
 
   return (
-    <div className="space-y-4">
+    <div className="inline-flex flex-col items-center">
       <div 
         ref={qrRef} 
-        className="inline-flex items-center justify-center bg-white p-4 overflow-hidden"
+        className="inline-flex items-center justify-center p-0 overflow-hidden bg-transparent"
         style={shape === 'round' ? { 
           borderRadius: '50%', 
           width: '200px', 
@@ -121,40 +121,19 @@ export const ProfileQRCode = ({ username, themeColor = "#0064B1", logoUrl, shape
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
-        } : { borderRadius: '8px' }}
+        } : {}}
       >
         <QRCodeSVG
           value={profileUrl}
-          size={shape === 'round' ? 140 : 160}
+          size={shape === 'round' ? 140 : 200}
           level="H"
           fgColor={themeColor}
           bgColor="transparent"
         />
       </div>
       
-      <div className="text-sm text-muted-foreground">
-        <p className="font-mono text-xs break-all">{profileUrl}</p>
-      </div>
-
-      <div className="flex gap-2">
-        <Button
-          onClick={handleDownload}
-          variant="outline"
-          className="flex-1"
-          size="sm"
-        >
-          <Download className="h-4 w-4 mr-2" />
-          Download
-        </Button>
-        <Button
-          onClick={handleShare}
-          variant="outline"
-          className="flex-1"
-          size="sm"
-        >
-          <Share2 className="h-4 w-4 mr-2" />
-          Share Link
-        </Button>
+      <div className="text-sm text-muted-foreground mt-2">
+        <p className="font-mono text-xs break-all text-center">{profileUrl}</p>
       </div>
     </div>
   );
