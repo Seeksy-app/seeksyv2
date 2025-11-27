@@ -126,7 +126,7 @@ export const PersonaVideoCard = ({
           onClick={handleClick}
           style={{ transformStyle: 'preserve-3d' }}
         >
-          {/* Front Side - Video */}
+          {/* Front Side - Video with Text Overlays */}
           <div 
             className="absolute inset-0 backface-hidden rounded-2xl shadow-2xl bg-black overflow-hidden"
             style={{ backfaceVisibility: 'hidden' }}
@@ -191,84 +191,99 @@ export const PersonaVideoCard = ({
             ) : (
               <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-accent/20" />
             )}
+            
+            {/* Text Overlays */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none">
+              <div className="absolute inset-0 flex flex-col justify-between p-6">
+                {/* Role at top */}
+                <motion.p 
+                  className="text-xs uppercase tracking-widest text-white/90 font-semibold"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.4 }}
+                >
+                  {role}
+                </motion.p>
+                
+                {/* Name and tagline at bottom */}
+                <div className="space-y-2">
+                  <motion.h3 
+                    className="text-5xl font-bold text-white tracking-tight"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.4 }}
+                  >
+                    {name}
+                  </motion.h3>
+                  <motion.p 
+                    className="text-lg text-white/90 font-light"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, duration: 0.4 }}
+                  >
+                    {tagline}
+                  </motion.p>
+                  
+                  {/* Tags */}
+                  {tags.length > 0 && (
+                    <motion.div 
+                      className="flex flex-wrap gap-2 mt-4"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5, duration: 0.4 }}
+                    >
+                      {tags.map((tag, index) => (
+                        <div
+                          key={index}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm text-white text-sm font-medium"
+                        >
+                          <span>{tag.emoji}</span>
+                          <span>{tag.label}</span>
+                        </div>
+                      ))}
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Back Side - Info */}
+          {/* Back Side - Video with Audio */}
           <div 
-            className="absolute inset-0 backface-hidden rounded-2xl shadow-2xl overflow-hidden bg-gradient-to-br from-primary via-accent to-primary/80 p-8 flex flex-col justify-between"
+            className="absolute inset-0 backface-hidden rounded-2xl shadow-2xl bg-black overflow-hidden"
             style={{ 
               backfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)'
             }}
           >
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: isFlipped ? 1 : 0, y: isFlipped ? 0 : 20 }}
-              transition={{ delay: 0.3, duration: 0.4 }}
-              className="space-y-4"
-            >
-              <motion.p 
-                className="text-xs uppercase tracking-widest text-white/90 font-semibold"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: isFlipped ? 1 : 0, x: isFlipped ? 0 : -20 }}
-                transition={{ delay: 0.4, duration: 0.3 }}
-              >
-                {role}
-              </motion.p>
-              <motion.h3 
-                className="text-5xl font-bold text-white tracking-tight"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: isFlipped ? 1 : 0, x: isFlipped ? 0 : -20 }}
-                transition={{ delay: 0.5, duration: 0.3 }}
-              >
-                {name}
-              </motion.h3>
-              <motion.p 
-                className="text-lg text-white/90 font-light leading-relaxed"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: isFlipped ? 1 : 0 }}
-                transition={{ delay: 0.6, duration: 0.3 }}
-              >
-                {tagline}
-              </motion.p>
-            </motion.div>
-
-            {/* Tags on back */}
-            {tags.length > 0 && (
-              <motion.div 
-                className="flex flex-wrap gap-2"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: isFlipped ? 1 : 0, y: isFlipped ? 0 : 20 }}
-                transition={{ delay: 0.7, duration: 0.3 }}
-              >
-                {tags.map((tag, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: isFlipped ? 1 : 0, scale: isFlipped ? 1 : 0.8 }}
-                    transition={{ delay: 0.8 + index * 0.1, duration: 0.2 }}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-white text-sm font-medium"
-                  >
-                    <span>{tag.emoji}</span>
-                    <span>{tag.label}</span>
-                  </motion.div>
-                ))}
-              </motion.div>
+            {videoUrl && !isIframe && (
+              <div className="absolute inset-0 w-full h-full overflow-hidden">
+                <video
+                  src={videoUrl}
+                  className="absolute w-full h-full block"
+                  style={{ 
+                    objectFit: 'cover',
+                    objectPosition: 'center center',
+                    pointerEvents: 'none',
+                    display: 'block',
+                    margin: 0,
+                    padding: 0,
+                    border: 'none',
+                    outline: 'none',
+                    width: '100%',
+                    height: '100%'
+                  }}
+                  autoPlay
+                  loop
+                  playsInline
+                  preload="auto"
+                  controls={false}
+                  controlsList="nodownload nofullscreen noremoteplayback"
+                  disablePictureInPicture
+                  onContextMenu={(e) => e.preventDefault()}
+                />
+              </div>
             )}
-
-            {/* CTA Button */}
-            <motion.button
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: isFlipped ? 1 : 0, y: isFlipped ? 0 : 20 }}
-              transition={{ delay: 0.9, duration: 0.3 }}
-              className="w-full py-4 px-6 bg-white text-primary rounded-xl font-semibold text-lg hover:bg-white/90 transition-colors"
-              onClick={(e) => {
-                e.stopPropagation();
-                onClick();
-              }}
-            >
-              Start Journey with {name}
-            </motion.button>
           </div>
         </motion.div>
       </div>
