@@ -88,6 +88,7 @@ import { VideoMarkerPanel } from "@/components/media/VideoMarkerPanel";
 import { VideoEditingControls } from "@/components/media/VideoEditingControls";
 import { BRollManager } from "@/components/media/BRollManager";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { ClipsGallery } from "@/components/media/ClipsGallery";
 
 interface Recording {
   id: string;
@@ -918,6 +919,13 @@ export default function MediaLibrary() {
               >
                 Podcasts
               </TabsTrigger>
+              <TabsTrigger 
+                value="clips" 
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3"
+              >
+                <Scissors className="h-4 w-4 mr-1.5" />
+                Clips
+              </TabsTrigger>
             </TabsList>
 
             {/* Filter Button */}
@@ -1532,6 +1540,10 @@ export default function MediaLibrary() {
                 </p>
                 <Button onClick={() => navigate("/podcasts")}>View Podcasts</Button>
               </div>
+            </TabsContent>
+
+            <TabsContent value="clips" className="mt-0 py-6">
+              <ClipsGallery />
             </TabsContent>
 
             <TabsContent value="ai-edited" className="mt-0">

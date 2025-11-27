@@ -31,6 +31,8 @@ export default function BroadcastStudio() {
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [micEnabled, setMicEnabled] = useState(false);
   const [screenSharing, setScreenSharing] = useState(false);
+  const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
   // Timeline
   const [currentTime, setCurrentTime] = useState(0);
@@ -181,6 +183,18 @@ export default function BroadcastStudio() {
       // Start with both enabled for preview
       setCameraEnabled(true);
       setMicEnabled(true);
+      
+      // Initialize MediaRecorder for capturing
+      if (stream) {
+        const options = { mimeType: 'video/webm;codecs=vp9,opus' };
+        mediaRecorderRef.current = new MediaRecorder(stream, options);
+        
+        mediaRecorderRef.current.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            setRecordedChunks(prev => [...prev, event.data]);
+          }
+        };
+      }
     } catch (error) {
       console.error('Error starting preview:', error);
       toast({
@@ -275,6 +289,12 @@ export default function BroadcastStudio() {
       setBroadcastId(newBroadcast.id);
       setIsLive(true);
       setCurrentTime(0);
+      setRecordedChunks([]); // Reset chunks
+
+      // Start recording
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'inactive') {
+        mediaRecorderRef.current.start(1000); // Capture data every second
+      }
 
       toast({
         title: "🎉 You're Live!",
@@ -300,6 +320,10 @@ export default function BroadcastStudio() {
     if (!broadcastId) return;
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Stop the broadcast
       await supabase
         .from('studio_broadcasts')
         .update({
@@ -311,22 +335,133 @@ export default function BroadcastStudio() {
       setIsLive(false);
       
       toast({
-        title: "Broadcast Ended",
-        description: "Your broadcast has been saved"
+        title: "Processing broadcast...",
+        description: "Saving recording and generating clips"
       });
 
-      // Navigate to analytics/post-production
-      setTimeout(() => {
-        navigate(`/media-library`);
-      }, 2000);
+      // Save recording to media library with markers and metadata
+      const recordingBlob = await captureRecording();
+      if (recordingBlob && streamRef.current) {
+        const fileName = `broadcast-${broadcastTitle || 'recording'}-${Date.now()}.webm`;
+        
+        // Upload to Supabase Storage
+        const filePath = `${user.id}/${fileName}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('media')
+          .upload(filePath, recordingBlob);
 
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('media')
+          .getPublicUrl(filePath);
+
+        // Create media file record with broadcast metadata
+        const { data: mediaFile, error: mediaError } = await supabase
+          .from('media_files')
+          .insert({
+            user_id: user.id,
+            file_url: publicUrl,
+            file_name: fileName,
+            file_type: 'video/webm',
+            duration_seconds: currentTime,
+            file_size_bytes: recordingBlob.size,
+            broadcast_id: broadcastId,
+            metadata: {
+              broadcast_title: broadcastTitle,
+              platforms: platforms,
+              markers: markers,
+              transcriptions: transcriptions,
+              clip_suggestions: clipSuggestions
+            }
+          })
+          .select()
+          .single();
+
+        if (mediaError) throw mediaError;
+
+        // Auto-generate clips from AI suggestions
+        if (clipSuggestions.length > 0) {
+          await generateClipsWithText(mediaFile.id, clipSuggestions, transcriptions);
+        }
+
+        toast({
+          title: "Broadcast Saved! 🎉",
+          description: `Recording and ${clipSuggestions.length} clips saved to Media Library`,
+          duration: 5000
+        });
+
+        // Navigate to media library
+        setTimeout(() => {
+          navigate(`/media-library`);
+        }, 2000);
+      }
     } catch (error) {
       console.error('Error stopping broadcast:', error);
       toast({
         title: "Error",
-        description: "Failed to stop broadcast",
+        description: "Failed to save broadcast",
         variant: "destructive"
       });
+    }
+  };
+
+  const captureRecording = async (): Promise<Blob | null> => {
+    if (recordedChunks.length === 0) return null;
+    
+    // Stop the MediaRecorder if still recording
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+    }
+    
+    // Create blob from recorded chunks
+    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+    return blob;
+  };
+
+  const generateClipsWithText = async (
+    mediaFileId: string,
+    suggestions: any[],
+    transcripts: any[]
+  ) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      for (const suggestion of suggestions) {
+        const startTime = suggestion.start_timestamp_seconds;
+        const endTime = suggestion.end_timestamp_seconds;
+        
+        // Get transcription text for this time range
+        const clipTranscripts = transcripts.filter(t => 
+          t.timestamp_seconds >= startTime && 
+          t.timestamp_seconds <= endTime
+        );
+        const transcriptText = clipTranscripts.map(t => t.text).join(' ');
+
+        // Create clip record with text overlay
+        await supabase
+          .from('media_clips')
+          .insert({
+            user_id: user.id,
+            source_media_id: mediaFileId,
+            title: suggestion.title || `Clip: ${suggestion.reason}`,
+            start_time: startTime,
+            end_time: endTime,
+            duration_seconds: endTime - startTime,
+            clip_type: 'ai_generated',
+            text_overlay: transcriptText,
+            metadata: {
+              reason: suggestion.reason,
+              engagement_score: suggestion.engagement_score,
+              has_captions: true
+            }
+          });
+      }
+
+      console.log(`Generated ${suggestions.length} clips with text overlays`);
+    } catch (error) {
+      console.error('Error generating clips:', error);
     }
   };
 

@@ -4517,8 +4517,81 @@ export type Database = {
           },
         ]
       }
+      media_clips: {
+        Row: {
+          broadcast_id: string | null
+          clip_type: string | null
+          clip_url: string | null
+          created_at: string | null
+          duration_seconds: number
+          end_time: number
+          id: string
+          metadata: Json | null
+          source_media_id: string | null
+          start_time: number
+          status: string | null
+          text_overlay: string | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          broadcast_id?: string | null
+          clip_type?: string | null
+          clip_url?: string | null
+          created_at?: string | null
+          duration_seconds: number
+          end_time: number
+          id?: string
+          metadata?: Json | null
+          source_media_id?: string | null
+          start_time: number
+          status?: string | null
+          text_overlay?: string | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          broadcast_id?: string | null
+          clip_type?: string | null
+          clip_url?: string | null
+          created_at?: string | null
+          duration_seconds?: number
+          end_time?: number
+          id?: string
+          metadata?: Json | null
+          source_media_id?: string | null
+          start_time?: number
+          status?: string | null
+          text_overlay?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_clips_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "studio_broadcasts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_clips_source_media_id_fkey"
+            columns: ["source_media_id"]
+            isOneToOne: false
+            referencedRelation: "media_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       media_files: {
         Row: {
+          broadcast_id: string | null
           clip_metadata: Json | null
           converted_to_episode_id: string | null
           created_at: string | null
@@ -4536,6 +4609,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          broadcast_id?: string | null
           clip_metadata?: Json | null
           converted_to_episode_id?: string | null
           created_at?: string | null
@@ -4553,6 +4627,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          broadcast_id?: string | null
           clip_metadata?: Json | null
           converted_to_episode_id?: string | null
           created_at?: string | null
@@ -4570,6 +4645,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "media_files_broadcast_id_fkey"
+            columns: ["broadcast_id"]
+            isOneToOne: false
+            referencedRelation: "studio_broadcasts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "media_files_converted_to_episode_id_fkey"
             columns: ["converted_to_episode_id"]
