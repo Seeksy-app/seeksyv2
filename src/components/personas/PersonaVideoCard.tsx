@@ -10,10 +10,11 @@ interface PersonaVideoCardProps {
   onClick: () => void;
 }
 
-// CSS to completely hide video controls
+// CSS to completely hide ALL video controls
 const videoStyles = `
   video::-webkit-media-controls {
     display: none !important;
+    opacity: 0 !important;
   }
   video::-webkit-media-controls-enclosure {
     display: none !important;
@@ -27,6 +28,27 @@ const videoStyles = `
   video::-webkit-media-controls-start-playback-button {
     display: none !important;
   }
+  video::-webkit-media-controls-timeline {
+    display: none !important;
+  }
+  video::-webkit-media-controls-current-time-display {
+    display: none !important;
+  }
+  video::-webkit-media-controls-time-remaining-display {
+    display: none !important;
+  }
+  video::-webkit-media-controls-volume-slider {
+    display: none !important;
+  }
+  video::-webkit-media-controls-mute-button {
+    display: none !important;
+  }
+  video::-webkit-media-controls-fullscreen-button {
+    display: none !important;
+  }
+  video::--webkit-media-controls-overlay-play-button {
+    display: none !important;
+  }
 `;
 
 export const PersonaVideoCard = ({
@@ -38,31 +60,41 @@ export const PersonaVideoCard = ({
   onClick,
 }: PersonaVideoCardProps) => {
   const [isHovering, setIsHovering] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
   const videoRef = useRef<HTMLVideoElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   
   const isIframe = videoUrl && (videoUrl.includes('heygen.com') || videoUrl.includes('iframe'));
 
   const handleMouseEnter = () => {
     setIsHovering(true);
-    if (videoRef.current && !isIframe) {
-      videoRef.current.play().catch(() => {});
-    }
   };
 
   const handleMouseLeave = () => {
     setIsHovering(false);
   };
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    setCursorPosition({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
   return (
     <>
       <style>{videoStyles}</style>
       <motion.div
+        ref={cardRef}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="group cursor-pointer"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onMouseMove={handleMouseMove}
         onClick={onClick}
       >
         <div className="relative overflow-hidden rounded-2xl shadow-2xl bg-black aspect-square">
@@ -88,15 +120,17 @@ export const PersonaVideoCard = ({
               <video
                 ref={videoRef}
                 src={videoUrl}
-                className="absolute inset-0 w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full"
                 loop
                 muted
                 playsInline
                 autoPlay
                 preload="auto"
                 disablePictureInPicture
+                controlsList="nodownload nofullscreen noremoteplayback"
                 poster={thumbnailUrl}
                 style={{ 
+                  objectFit: 'cover',
                   pointerEvents: 'none'
                 }}
                 onLoadedData={(e) => {
@@ -119,15 +153,22 @@ export const PersonaVideoCard = ({
               transition={{ duration: 0.3 }}
             />
             
-            {/* "More about" hover overlay with animation */}
+            {/* "More about" pill that follows cursor */}
             <motion.div 
-              className="absolute top-6 left-6 z-20"
-              initial={{ opacity: 0, y: -10 }}
+              className="absolute z-20 pointer-events-none"
+              initial={{ opacity: 0, scale: 0.9 }}
               animate={{ 
                 opacity: isHovering ? 1 : 0,
-                y: isHovering ? 0 : -10
+                scale: isHovering ? 1 : 0.9,
+                x: cursorPosition.x - 80,
+                y: cursorPosition.y - 25,
               }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
+              transition={{ 
+                opacity: { duration: 0.2 },
+                scale: { duration: 0.2 },
+                x: { type: "spring", stiffness: 300, damping: 30 },
+                y: { type: "spring", stiffness: 300, damping: 30 }
+              }}
             >
               <div className="bg-white text-black px-5 py-2.5 rounded-full text-sm font-semibold shadow-xl whitespace-nowrap">
                 More about {name}
