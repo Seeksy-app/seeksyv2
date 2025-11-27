@@ -37,7 +37,7 @@ export function useAutoTheme() {
     };
 
     loadUserTheme();
-  }, [hasInitialized, theme, setTheme, isStudio]);
+  }, [hasInitialized, setTheme, isStudio]);
 
   // Handle Studio theme switching
   useEffect(() => {
@@ -81,5 +81,5 @@ export function useAutoTheme() {
       restoreTheme();
       return;
     }
-  }, [theme, resolvedTheme, setTheme, isStudio, location.pathname]);
+  }, [resolvedTheme, setTheme, isStudio, location.pathname]);
 }
