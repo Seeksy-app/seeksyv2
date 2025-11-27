@@ -11,6 +11,8 @@ import { ChannelsDialog } from "@/components/studio-broadcast/ChannelsDialog";
 import { AdIntegrationPanel } from "@/components/studio-broadcast/AdIntegrationPanel";
 import { AIToolsPanel } from "@/components/studio-broadcast/AIToolsPanel";
 import { StudioLeftSidebar } from "@/components/studio/StudioLeftSidebar";
+import { StudioRightSidebar } from "@/components/studio-broadcast/StudioRightSidebar";
+import { SceneDialog } from "@/components/studio-broadcast/SceneDialog";
 import { Video, Mic, MicOff, VideoOff, Monitor, UserPlus, Radio, ArrowLeft, DollarSign, Scissors, Plus, Settings, Film, FileText, Users, Youtube, Music } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -51,6 +53,9 @@ export default function BroadcastStudio() {
   // Host Read Script
   const [showHostScript, setShowHostScript] = useState(false);
   const [currentScript, setCurrentScript] = useState("");
+  
+  // Scene Dialog
+  const [showSceneDialog, setShowSceneDialog] = useState(false);
 
   // AI Features
   const [aiFeatures, setAIFeatures] = useState({
@@ -663,7 +668,7 @@ export default function BroadcastStudio() {
             <Button
               variant="outline"
               className="w-full justify-start gap-2"
-              onClick={() => {}}
+              onClick={() => setShowSceneDialog(true)}
             >
               <Plus className="h-4 w-4" />
               Add Scene
@@ -671,9 +676,10 @@ export default function BroadcastStudio() {
             
             <div className="space-y-2">
               <div className="text-xs font-semibold text-muted-foreground mb-2">Scenes</div>
-              {['Countdown', 'Greeting', 'Introduction', 'Q&A'].map((scene) => (
+              {['Welcome', 'Demo'].map((scene) => (
                 <Card key={scene} className="p-3 hover:bg-accent cursor-pointer transition-colors">
                   <div className="text-sm font-medium">{scene}</div>
+                  <div className="text-xs text-muted-foreground mt-1">720p</div>
                 </Card>
               ))}
             </div>
@@ -702,50 +708,50 @@ export default function BroadcastStudio() {
                 </Badge>
               </div>
 
-              {/* Marker Buttons - Above Controls */}
-              <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-2">
+              {/* Marker Buttons - Above Controls - More Visible */}
+              <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-3">
                 <Button
-                  size="sm"
+                  size="lg"
                   variant="secondary"
-                  className="bg-black/60 backdrop-blur-sm hover:bg-black/80 gap-2"
+                  className="bg-gradient-to-r from-blue-600/90 to-blue-700/90 hover:from-blue-700 hover:to-blue-800 backdrop-blur-md border border-white/20 shadow-lg gap-2 px-4 py-2 text-white"
                   onClick={() => handleAddMarker('broll', currentTime)}
                   disabled={!isLive}
                 >
-                  <Film className="h-4 w-4" />
-                  <span className="text-xs">B-roll</span>
+                  <Film className="h-5 w-5" />
+                  <span className="text-sm font-semibold">B-roll</span>
                 </Button>
                 <Button
-                  size="sm"
+                  size="lg"
                   variant="secondary"
-                  className="bg-black/60 backdrop-blur-sm hover:bg-black/80 gap-2"
+                  className="bg-gradient-to-r from-purple-600/90 to-purple-700/90 hover:from-purple-700 hover:to-purple-800 backdrop-blur-md border border-white/20 shadow-lg gap-2 px-4 py-2 text-white"
                   onClick={() => handleAddMarker('clip', currentTime)}
                   disabled={!isLive}
                 >
-                  <Scissors className="h-4 w-4" />
-                  <span className="text-xs">Clip</span>
+                  <Scissors className="h-5 w-5" />
+                  <span className="text-sm font-semibold">Clip</span>
                 </Button>
                 <Button
-                  size="sm"
+                  size="lg"
                   variant="secondary"
-                  className="bg-black/60 backdrop-blur-sm hover:bg-black/80 gap-2"
+                  className="bg-gradient-to-r from-green-600/90 to-green-700/90 hover:from-green-700 hover:to-green-800 backdrop-blur-md border border-white/20 shadow-lg gap-2 px-4 py-2 text-white"
                   onClick={() => handleAddMarker('ad', currentTime)}
                   disabled={!isLive}
                 >
-                  <DollarSign className="h-4 w-4" />
-                  <span className="text-xs">Ad</span>
+                  <DollarSign className="h-5 w-5" />
+                  <span className="text-sm font-semibold">Ad</span>
                 </Button>
                 <Button
-                  size="sm"
+                  size="lg"
                   variant="secondary"
-                  className="bg-black/60 backdrop-blur-sm hover:bg-black/80 gap-2"
+                  className="bg-gradient-to-r from-orange-600/90 to-orange-700/90 hover:from-orange-700 hover:to-orange-800 backdrop-blur-md border border-white/20 shadow-lg gap-2 px-4 py-2 text-white"
                   onClick={() => {
                     setCurrentScript("This is your host-read ad script. Read this to your audience during the live broadcast.");
                     setShowHostScript(true);
                   }}
                   disabled={!isLive}
                 >
-                  <FileText className="h-4 w-4" />
-                  <span className="text-xs">Script</span>
+                  <FileText className="h-5 w-5" />
+                  <span className="text-sm font-semibold">Script</span>
                 </Button>
               </div>
 
@@ -801,43 +807,47 @@ export default function BroadcastStudio() {
 
         <ResizableHandle />
 
-        {/* Right Sidebar - AI Tools Only */}
-        <ResizablePanel defaultSize={25} minSize={20} maxSize={30}>
-          <div className="h-full overflow-y-auto p-4 space-y-4 bg-card/50">
-            {/* AI Tools */}
-            <AIToolsPanel
-              broadcastId={broadcastId || ''}
-              transcriptions={transcriptions}
-              clipSuggestions={clipSuggestions}
-              aiFeatures={aiFeatures}
-              onToggleFeature={(feature) => {
-                setAIFeatures(prev => ({ ...prev, [feature]: !prev[feature] }));
-              }}
-              onAcceptClip={(clipId) => {
-                toast({
-                  title: "Clip Created",
-                  description: "Clip added to your media library",
-                  duration: 2000
-                });
-              }}
-              onSeekToTime={(timestamp) => setCurrentTime(timestamp)}
-            />
-
-            {/* Ad Integration */}
-            <AdIntegrationPanel
-              broadcastId={broadcastId || ''}
-              adSlots={adSlots}
-              currentTime={currentTime}
-              onDisplayScript={(slotId) => {
-                setCurrentScript("Host-read ad script for this slot");
-                setShowHostScript(true);
-              }}
-              onCompleteRead={(slotId) => console.log('Complete read:', slotId)}
-              onSeekToAd={(timestamp) => setCurrentTime(timestamp)}
-            />
-          </div>
+        {/* Right Sidebar - Full Featured */}
+        <ResizablePanel defaultSize={28} minSize={22} maxSize={35}>
+          <StudioRightSidebar
+            broadcastId={broadcastId || ''}
+            onAddMedia={(type) => {
+              toast({
+                title: "Add Media",
+                description: `Add ${type} to your stream`,
+                duration: 2000
+              });
+            }}
+            onAddCaption={(type) => {
+              toast({
+                title: "Add Caption",
+                description: `Add ${type} caption`,
+                duration: 2000
+              });
+            }}
+            onThemeChange={(theme) => {
+              toast({
+                title: "Theme Changed",
+                description: `Switched to ${theme} theme`,
+                duration: 2000
+              });
+            }}
+          />
         </ResizablePanel>
       </ResizablePanelGroup>
+
+      {/* Scene Dialog */}
+      <SceneDialog
+        open={showSceneDialog}
+        onOpenChange={setShowSceneDialog}
+        onSelectScene={(type) => {
+          toast({
+            title: "Scene Added",
+            description: `${type} scene added to your studio`,
+            duration: 2000
+          });
+        }}
+      />
 
       {/* Channels Dialog */}
       <ChannelsDialog
