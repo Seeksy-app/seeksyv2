@@ -216,7 +216,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   
   // Helper function to determine which section should be open based on current route
   const getActiveSectionFromPath = (pathname: string) => {
-    if (pathname.startsWith('/studio') || pathname.startsWith('/media-library') || pathname.startsWith('/create-clips')) return 'media';
+    if (pathname.startsWith('/studio') || pathname.startsWith('/media-library') || pathname.startsWith('/create-clips') || pathname.startsWith('/voice-protection') || pathname.startsWith('/voice-credentials')) return 'media';
     if (pathname.startsWith('/creator/campaign-browser') || pathname.startsWith('/podcast-ads') || pathname.startsWith('/podcast-revenue')) return 'monetization';
     if (pathname.startsWith('/pm-') || pathname.startsWith('/client-tickets')) return 'project_management';
     if (pathname.startsWith('/events') || pathname.startsWith('/meetings') || pathname.startsWith('/polls') || pathname.startsWith('/signup-sheets') || pathname.startsWith('/qr-codes') || pathname.startsWith('/forms')) return 'engagement';
@@ -466,6 +466,8 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       { title: "Studio", url: "/studio", icon: Video },
       { title: "Media Library", url: "/media-library", icon: FileAudio },
       { title: "Create Clips", url: "/create-clips", icon: TrendingUp },
+      { title: "Voice Cloning", url: "/voice-protection", icon: Mic },
+      { title: "Voice Credentials", url: "/voice-credentials", icon: Shield },
     ] : []),
   ];
 
