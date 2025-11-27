@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,8 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Camera, Download, Loader2, CheckCircle } from "lucide-react";
+import { Camera, Download, Loader2, CheckCircle, Trash2, Upload, FolderPlus, Folder } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface Screenshot {
   pageName: string;
@@ -16,6 +18,8 @@ interface Screenshot {
   fileName: string;
   imageUrl: string;
   status: 'pending' | 'generating' | 'complete' | 'error';
+  path?: string;
+  selected?: boolean;
 }
 
 const SCREENSHOT_CATEGORIES = [
@@ -56,11 +60,57 @@ const PRESET_PAGES = [
 
 export default function ScreenshotGenerator() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [screenshots, setScreenshots] = useState<Screenshot[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [customPageName, setCustomPageName] = useState("");
   const [customDescription, setCustomDescription] = useState("");
   const [customCategory, setCustomCategory] = useState("internal");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Fetch existing screenshots from storage
+  const { data: existingScreenshots, isLoading: isLoadingScreenshots } = useQuery({
+    queryKey: ['ui-screenshots'],
+    queryFn: async () => {
+      const { data, error } = await supabase.storage
+        .from('ui-screenshots')
+        .list('', { limit: 1000 });
+
+      if (error) throw error;
+
+      const screenshotsWithUrls = await Promise.all(
+        data.map(async (file) => {
+          const { data: urlData } = supabase.storage
+            .from('ui-screenshots')
+            .getPublicUrl(file.name);
+
+          return {
+            pageName: file.name.replace(/_/g, ' ').replace(/\.[^.]+$/, ''),
+            category: 'existing',
+            fileName: file.name,
+            imageUrl: urlData.publicUrl,
+            status: 'complete' as const,
+            path: file.name,
+            selected: false,
+          };
+        })
+      );
+
+      return screenshotsWithUrls;
+    },
+  });
+
+  useEffect(() => {
+    if (existingScreenshots) {
+      setScreenshots(prev => {
+        const newScreenshots = existingScreenshots.filter(
+          existing => !prev.some(s => s.fileName === existing.fileName)
+        );
+        return [...prev, ...newScreenshots];
+      });
+    }
+  }, [existingScreenshots]);
 
   const generateScreenshot = async (pageName: string, description: string, category: string) => {
     const fileName = pageName.toLowerCase().replace(/[^a-z0-9]+/g, '_');
@@ -146,32 +196,156 @@ export default function ScreenshotGenerator() {
     setCustomDescription("");
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    setScreenshots(prev => prev.map(s => ({ ...s, selected: checked })));
+  };
+
+  const handleSelectScreenshot = (fileName: string, checked: boolean) => {
+    setScreenshots(prev => prev.map(s => 
+      s.fileName === fileName ? { ...s, selected: checked } : s
+    ));
+  };
+
+  const deleteSelectedScreenshots = async () => {
+    const selected = screenshots.filter(s => s.selected);
+    
+    if (selected.length === 0) {
+      toast({
+        title: "No Selection",
+        description: "Please select screenshots to delete",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      const filesToDelete = selected
+        .filter(s => s.path)
+        .map(s => s.path as string);
+
+      if (filesToDelete.length > 0) {
+        const { error } = await supabase.storage
+          .from('ui-screenshots')
+          .remove(filesToDelete);
+
+        if (error) throw error;
+      }
+
+      setScreenshots(prev => prev.filter(s => !s.selected));
+      queryClient.invalidateQueries({ queryKey: ['ui-screenshots'] });
+
+      toast({
+        title: "Deleted",
+        description: `${selected.length} screenshot(s) deleted successfully`,
+      });
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast({
+        title: "Delete Failed",
+        description: error instanceof Error ? error.message : "Failed to delete screenshots",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    for (const file of Array.from(files)) {
+      try {
+        const fileName = `uploaded_${Date.now()}_${file.name}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('ui-screenshots')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('ui-screenshots')
+          .getPublicUrl(fileName);
+
+        setScreenshots(prev => [...prev, {
+          pageName: file.name,
+          category: customCategory,
+          fileName,
+          imageUrl: urlData.publicUrl,
+          status: 'complete',
+          path: fileName,
+          selected: false,
+        }]);
+
+        toast({
+          title: "Uploaded",
+          description: `${file.name} uploaded successfully`,
+        });
+      } catch (error) {
+        console.error("Upload error:", error);
+        toast({
+          title: "Upload Failed",
+          description: `Failed to upload ${file.name}`,
+          variant: "destructive",
+        });
+      }
+    }
+
+    queryClient.invalidateQueries({ queryKey: ['ui-screenshots'] });
+  };
+
+  const filteredScreenshots = selectedCategory === 'all' 
+    ? screenshots 
+    : screenshots.filter(s => s.category === selectedCategory);
+
+  const selectedCount = screenshots.filter(s => s.selected).length;
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Platform Screenshot Generator</h1>
           <p className="text-muted-foreground mt-2">
-            Generate professional screenshots for tutorials, documentation, and b-roll
+            Generate, upload, and organize screenshots for tutorials and documentation
           </p>
         </div>
-        <Button 
-          size="lg" 
-          onClick={generateAllPresets}
-          disabled={isGenerating}
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Generating All...
-            </>
-          ) : (
-            <>
-              <Camera className="mr-2 h-4 w-4" />
-              Generate All Presets ({PRESET_PAGES.length})
-            </>
-          )}
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => document.getElementById('screenshot-upload')?.click()}
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            Upload Screenshots
+          </Button>
+          <input
+            id="screenshot-upload"
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={handleFileUpload}
+          />
+          <Button 
+            size="lg" 
+            onClick={generateAllPresets}
+            disabled={isGenerating}
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generating All...
+              </>
+            ) : (
+              <>
+                <Camera className="mr-2 h-4 w-4" />
+                Generate All Presets ({PRESET_PAGES.length})
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -270,15 +444,74 @@ export default function ScreenshotGenerator() {
       {screenshots.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Generated Screenshots ({screenshots.length})</CardTitle>
-            <CardDescription>
-              All screenshots are stored in Supabase Storage under "ui-screenshots" bucket
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Screenshots Library ({filteredScreenshots.length})</CardTitle>
+                <CardDescription>
+                  All screenshots are stored in Supabase Storage under "ui-screenshots" bucket
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="w-[180px]">
+                    <Folder className="mr-2 h-4 w-4" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {SCREENSHOT_CATEGORIES.map(cat => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedCount > 0 && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={deleteSelectedScreenshots}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete Selected ({selectedCount})
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/50">
+              <Checkbox
+                id="select-all"
+                checked={screenshots.length > 0 && screenshots.every(s => s.selected)}
+                onCheckedChange={handleSelectAll}
+              />
+              <Label htmlFor="select-all" className="cursor-pointer">
+                Select All ({filteredScreenshots.length} screenshots)
+              </Label>
+            </div>
             <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {screenshots.map((screenshot, index) => (
-                <div key={index} className="border rounded-lg overflow-hidden">
+              {filteredScreenshots.map((screenshot, index) => (
+                <div key={index} className="border rounded-lg overflow-hidden relative group">
+                  <div className="absolute top-2 left-2 z-10">
+                    <Checkbox
+                      checked={screenshot.selected || false}
+                      onCheckedChange={(checked) => 
+                        handleSelectScreenshot(screenshot.fileName, checked as boolean)
+                      }
+                      className="bg-background"
+                    />
+                  </div>
                   <div className="aspect-video bg-muted flex items-center justify-center relative">
                     {screenshot.status === 'generating' && (
                       <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
