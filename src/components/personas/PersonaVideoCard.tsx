@@ -88,6 +88,7 @@ export const PersonaVideoCard = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="group cursor-pointer relative overflow-hidden rounded-2xl shadow-2xl bg-black aspect-square"
+        style={{ padding: 0, margin: 0 }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onClick={onClick}
@@ -119,20 +120,24 @@ export const PersonaVideoCard = ({
             autoPlay
             preload="auto"
             disablePictureInPicture
-            controls={false}
+            controlsList="nodownload nofullscreen noremoteplayback"
             poster={thumbnailUrl}
             style={{ 
               objectFit: 'cover',
-              pointerEvents: 'none'
+              pointerEvents: 'none',
+              margin: 0,
+              padding: 0
             }}
             onCanPlay={(e) => {
               const video = e.currentTarget;
               video.muted = true;
+              video.controls = false;
               video.play().catch(() => {});
             }}
             onLoadedMetadata={(e) => {
               const video = e.currentTarget;
               video.muted = true;
+              video.controls = false;
               video.play().catch(() => {});
             }}
             onContextMenu={(e) => e.preventDefault()}
