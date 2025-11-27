@@ -213,30 +213,62 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     return sections;
   });
   
-  // State for collapsible sections
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    main: true,
-    settings: true,
-    seekies: true,
-    media: true,
-    monetization: true,
-    project_management: true,
-    engagement: true,
-    admin: false, // Will be set to true by useEffect when isAdmin becomes true
-    adminCustomerSupport: true,
-    adminManagement: false,
-    adminClientManagement: false,
-    adminAnalytics: false,
-    adminOperations: false,
-    adminFinancials: false,
-    adminAdvertising: false,
-    adminMarketingSales: false,
-    advertising: true,
-    civic: true,
-    influencer: true,
-    agency: true,
-    blog: true,
-  });
+  // Helper function to determine which section should be open based on current route
+  const getActiveSectionFromPath = (pathname: string) => {
+    if (pathname.startsWith('/studio') || pathname.startsWith('/media-library') || pathname.startsWith('/create-clips')) return 'media';
+    if (pathname.startsWith('/creator/campaign-browser') || pathname.startsWith('/podcast-ads') || pathname.startsWith('/podcast-revenue')) return 'monetization';
+    if (pathname.startsWith('/pm-') || pathname.startsWith('/client-tickets')) return 'project_management';
+    if (pathname.startsWith('/events') || pathname.startsWith('/meetings') || pathname.startsWith('/polls') || pathname.startsWith('/signup-sheets') || pathname.startsWith('/qr-codes') || pathname.startsWith('/forms')) return 'engagement';
+    if (pathname.startsWith('/marketing') || pathname.startsWith('/newsletter') || pathname.startsWith('/sms') || pathname.startsWith('/leads-dashboard')) return 'advertising';
+    if (pathname.startsWith('/podcast') || pathname.startsWith('/blog')) return 'blog';
+    if (pathname.startsWith('/civic')) return 'civic';
+    if (pathname.startsWith('/influencer') || pathname.startsWith('/my-page')) return 'influencer';
+    if (pathname.startsWith('/agency')) return 'agency';
+    if (pathname === '/' || pathname.startsWith('/dashboard') || pathname.startsWith('/contacts') || pathname.startsWith('/media-suite')) return 'main';
+    if (pathname.startsWith('/profile') || pathname.startsWith('/my-settings')) return 'settings';
+    if (pathname.startsWith('/admin')) {
+      // Determine which admin subsection
+      if (pathname.includes('/personas') || pathname.includes('/voice-protection')) return 'adminContentManagement';
+      if (pathname.includes('/sales') || pathname.includes('/marketing') || pathname.includes('/newsletter')) return 'adminMarketingSales';
+      if (pathname.includes('/tickets') || pathname.includes('/communication-history')) return 'adminCustomerSupport';
+      if (pathname.includes('/team') || pathname.includes('/projects')) return 'adminManagement';
+      if (pathname.includes('/clients') || pathname.includes('/creators') || pathname.includes('/agencies')) return 'adminClientManagement';
+      if (pathname.includes('/analytics') || pathname.includes('/impressions')) return 'adminAnalytics';
+      if (pathname.includes('/storage') || pathname.includes('/upload-logs')) return 'adminOperations';
+      if (pathname.includes('/cfo') || pathname.includes('/investor') || pathname.includes('/reports')) return 'adminFinancials';
+      if (pathname.includes('/advertiser') || pathname.includes('/campaigns')) return 'adminAdvertising';
+      return 'adminCustomerSupport'; // default admin section
+    }
+    return 'main'; // default fallback
+  };
+
+  const activeSection = getActiveSectionFromPath(location.pathname);
+
+  // State for collapsible sections - all start collapsed except the active one
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => ({
+    main: activeSection === 'main',
+    settings: activeSection === 'settings',
+    seekies: false,
+    media: activeSection === 'media',
+    monetization: activeSection === 'monetization',
+    project_management: activeSection === 'project_management',
+    engagement: activeSection === 'engagement',
+    admin: false,
+    adminCustomerSupport: activeSection === 'adminCustomerSupport',
+    adminManagement: activeSection === 'adminManagement',
+    adminClientManagement: activeSection === 'adminClientManagement',
+    adminAnalytics: activeSection === 'adminAnalytics',
+    adminOperations: activeSection === 'adminOperations',
+    adminFinancials: activeSection === 'adminFinancials',
+    adminAdvertising: activeSection === 'adminAdvertising',
+    adminMarketingSales: activeSection === 'adminMarketingSales',
+    adminContentManagement: activeSection === 'adminContentManagement',
+    advertising: activeSection === 'advertising',
+    civic: activeSection === 'civic',
+    influencer: activeSection === 'influencer',
+    agency: activeSection === 'agency',
+    blog: activeSection === 'blog',
+  }));
 
   useEffect(() => {
     if (user) {
@@ -430,7 +462,6 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       { title: "Studio", url: "/studio", icon: Video },
       { title: "Media Library", url: "/media-library", icon: FileAudio },
       { title: "Create Clips", url: "/create-clips", icon: TrendingUp },
-      { title: "Voice Cloning", url: "/voice-protection", icon: Shield },
     ] : []),
   ];
 
@@ -549,6 +580,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
   const adminContentManagement = [
     { title: "Persona Management", url: "/admin/personas", icon: Sparkles },
+    { title: "Voice Cloning", url: "/voice-protection", icon: Shield },
   ];
 
   // Grey out items for pending advertisers
