@@ -290,10 +290,17 @@ export const PersonaVideoCard = ({
                       <video
                         ref={modalVideoRef}
                         src={videoUrl}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover cursor-pointer"
                         autoPlay
                         loop
                         playsInline
+                        onClick={(e) => {
+                          if (e.currentTarget.paused) {
+                            e.currentTarget.play();
+                          } else {
+                            e.currentTarget.pause();
+                          }
+                        }}
                         onLoadedMetadata={(e) => {
                           e.currentTarget.muted = false;
                         }}
