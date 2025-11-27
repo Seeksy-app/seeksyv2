@@ -12,11 +12,15 @@ interface PersonaVideoCardProps {
   tags?: Array<{ emoji: string; label: string }>;
 }
 
-// CSS to completely hide ALL video controls
+// CSS to completely hide ALL video controls - aggressive approach
 const videoStyles = `
+  video {
+    display: block !important;
+  }
   video::-webkit-media-controls {
     display: none !important;
     opacity: 0 !important;
+    visibility: hidden !important;
   }
   video::-webkit-media-controls-enclosure {
     display: none !important;
@@ -48,7 +52,10 @@ const videoStyles = `
   video::-webkit-media-controls-fullscreen-button {
     display: none !important;
   }
-  video::--webkit-media-controls-overlay-play-button {
+  video::-webkit-media-controls-overlay-play-button {
+    display: none !important;
+  }
+  video::-internal-media-controls-overlay-cast-button {
     display: none !important;
   }
 `;
@@ -113,32 +120,39 @@ export const PersonaVideoCard = ({
           <video
             ref={videoRef}
             src={videoUrl}
-            className="absolute top-0 left-0 w-full h-full"
+            className="absolute inset-0 w-full h-full block"
             loop
             muted
             playsInline
             autoPlay
             preload="auto"
             disablePictureInPicture
-            controlsList="nodownload nofullscreen noremoteplayback"
+            disableRemotePlayback
             poster={thumbnailUrl}
             style={{ 
               objectFit: 'cover',
               pointerEvents: 'none',
+              display: 'block',
               margin: 0,
-              padding: 0
+              padding: 0,
+              border: 'none',
+              outline: 'none'
             }}
             onCanPlay={(e) => {
               const video = e.currentTarget;
               video.muted = true;
-              video.controls = false;
+              video.removeAttribute('controls');
               video.play().catch(() => {});
             }}
             onLoadedMetadata={(e) => {
               const video = e.currentTarget;
               video.muted = true;
-              video.controls = false;
+              video.removeAttribute('controls');
               video.play().catch(() => {});
+            }}
+            onPlay={(e) => {
+              const video = e.currentTarget;
+              video.removeAttribute('controls');
             }}
             onContextMenu={(e) => e.preventDefault()}
           />
