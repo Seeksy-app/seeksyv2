@@ -244,7 +244,7 @@ export const PersonaVideoCard = ({
                   {/* Tags */}
                   {tags.length > 0 && (
                     <motion.div 
-                      className="flex flex-wrap gap-2 mt-4"
+                      className="flex flex-wrap gap-2 mt-4 max-w-[400px]"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.5, duration: 0.4 }}
