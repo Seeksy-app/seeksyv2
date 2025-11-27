@@ -689,8 +689,8 @@ export default function BroadcastStudio() {
 
         <ResizableHandle />
 
-          {/* Main Content - Larger Video Preview */}
-          <ResizablePanel defaultSize={82} minSize={60}>
+        {/* Main Content - Video Preview */}
+        <ResizablePanel defaultSize={77} minSize={55}>
           <div className="h-full flex flex-col">
             {/* Video Preview */}
             <div className="flex-1 bg-black relative">
@@ -806,48 +806,52 @@ export default function BroadcastStudio() {
           </div>
         </ResizablePanel>
 
-        </ResizablePanelGroup>
+        <ResizableHandle />
 
-      {/* Studio Sidebar - Icon Bar on Right Edge */}
-      <StudioRightSidebar
-        broadcastId={broadcastId || ''}
-        sessionId={sessionId || ''}
-        onAddMedia={(type) => {
-          toast({
-            title: "Add Media",
-            description: `Add ${type} to your stream`,
-            duration: 2000
-          });
-        }}
-        onAddCaption={(type) => {
-          toast({
-            title: "Add Caption",
-            description: `Add ${type} caption`,
-            duration: 2000
-          });
-        }}
-        onThemeChange={(theme) => {
-          toast({
-            title: "Theme Changed",
-            description: `Switched to ${theme} theme`,
-            duration: 2000
-          });
-        }}
-        onVideoAdSelect={(ad) => {
-          toast({
-            title: "Video Ad Selected",
-            description: `${ad.title} ready to insert`,
-            duration: 2000
-          });
-        }}
-        onIntroOutroSelect={(item) => {
-          toast({
-            title: `${item.type === 'intro' ? 'Intro' : 'Outro'} Selected`,
-            description: `Ready to use: ${item.title}`,
-            duration: 2000
-          });
-        }}
-      />
+        {/* Right Sidebar - Studio Tools */}
+        <ResizablePanel defaultSize={5} minSize={5} maxSize={8}>
+          <StudioRightSidebar
+            broadcastId={broadcastId || ''}
+            sessionId={sessionId || ''}
+            onAddMedia={(type) => {
+              toast({
+                title: "Add Media",
+                description: `Add ${type} to your stream`,
+                duration: 2000
+              });
+            }}
+            onAddCaption={(type) => {
+              toast({
+                title: "Add Caption",
+                description: `Add ${type} caption`,
+                duration: 2000
+              });
+            }}
+            onThemeChange={(theme) => {
+              toast({
+                title: "Theme Changed",
+                description: `Switched to ${theme} theme`,
+                duration: 2000
+              });
+            }}
+            onVideoAdSelect={(ad) => {
+              toast({
+                title: "Video Ad Selected",
+                description: `${ad.title} ready to insert`,
+                duration: 2000
+              });
+            }}
+            onIntroOutroSelect={(item) => {
+              toast({
+                title: `${item.type === 'intro' ? 'Intro' : 'Outro'} Selected`,
+                description: `Ready to use: ${item.title}`,
+                duration: 2000
+              });
+            }}
+          />
+        </ResizablePanel>
+
+      </ResizablePanelGroup>
 
       {/* Scene Dialog */}
       <SceneDialog
