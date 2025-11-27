@@ -11,6 +11,7 @@ import { Shield, Mic, DollarSign, Check, Clock, Zap, Star, Info, Trash2 } from "
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import ScriptEditor from "@/components/voice/ScriptEditor";
+import confetti from "canvas-confetti";
 
 type CloneType = 'instant' | 'professional';
 
@@ -74,6 +75,12 @@ export default function VoiceProtection() {
         // Clear timers
         if (countdownInterval) clearInterval(countdownInterval);
         if (autoStopTimeout) clearTimeout(autoStopTimeout);
+        // Celebrate completion
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
       };
 
       setMediaRecorder(recorder);
@@ -89,78 +96,16 @@ export default function VoiceProtection() {
 
       // Start countdown
       const interval = setInterval(() => {
-        setTimeRemaining((prev) => {
-          const newTime = prev - 1;
-          
-          // Show encouraging messages at specific intervals
-          if (cloneType === 'instant') {
-            if (newTime === 90) {
-              toast({
-                title: "Great start! Keep going! 🎤",
-                description: "You're doing amazing!",
-              });
-            } else if (newTime === 60) {
-              toast({
-                title: "Halfway there! 🌟",
-                description: "Your voice sounds great!",
-              });
-            } else if (newTime === 30) {
-              toast({
-                title: "Almost there! 🚀",
-                description: "Just 30 seconds left!",
-              });
-            } else if (newTime === 10) {
-              toast({
-                title: "Final countdown! ⭐",
-                description: "Finish strong!",
-              });
-            }
-          } else {
-            // Professional mode encouragements
-            if (newTime === 1500) {
-              toast({
-                title: "Excellent progress! 📖",
-                description: "Keep reading naturally!",
-              });
-            } else if (newTime === 900) {
-              toast({
-                title: "Halfway done! 🌟",
-                description: "You're doing great!",
-              });
-            } else if (newTime === 300) {
-              toast({
-                title: "Almost there! 🚀",
-                description: "Just 5 minutes left!",
-              });
-            } else if (newTime === 60) {
-              toast({
-                title: "One minute remaining! ⭐",
-                description: "Finish strong!",
-              });
-            }
-          }
-          
-          return newTime;
-        });
+        setTimeRemaining((prev) => prev - 1);
       }, 1000);
       setCountdownInterval(interval);
 
       // Auto-stop after duration
       const timeout = setTimeout(() => {
         stopRecording();
-        toast({
-          title: "Recording Complete!",
-          description: "Your voice sample has been saved successfully!",
-        });
       }, duration * 1000);
       setAutoStopTimeout(timeout);
 
-      toast({
-        title: "Recording Started",
-        description: cloneType === 'professional' 
-          ? "Start speaking now. Best practice: Read aloud from a book for consistent quality."
-          : "Speak naturally for 2 minutes.",
-      });
     } catch (error) {
       toast({
         title: "Error",
@@ -179,10 +124,6 @@ export default function VoiceProtection() {
         clearInterval(countdownInterval);
         setCountdownInterval(null);
       }
-      toast({
-        title: "Recording Paused",
-        description: "Click Resume to continue recording",
-      });
     }
   };
 
@@ -192,16 +133,9 @@ export default function VoiceProtection() {
       setIsPaused(false);
       // Resume countdown
       const interval = setInterval(() => {
-        setTimeRemaining((prev) => {
-          const newTime = prev - 1;
-          return newTime;
-        });
+        setTimeRemaining((prev) => prev - 1);
       }, 1000);
       setCountdownInterval(interval);
-      toast({
-        title: "Recording Resumed",
-        description: "Continue speaking",
-      });
     }
   };
 
@@ -222,10 +156,6 @@ export default function VoiceProtection() {
         clearTimeout(autoStopTimeout);
         setAutoStopTimeout(null);
       }
-      toast({
-        title: "Recording Stopped",
-        description: "Your voice sample has been saved",
-      });
     }
   };
 
@@ -258,11 +188,6 @@ export default function VoiceProtection() {
     setMediaRecorder(null);
     setRecordingStream(null);
     setTimeRemaining(cloneType === 'professional' ? 1800 : 120);
-    
-    toast({
-      title: "Recording Deleted",
-      description: "You can start a new recording",
-    });
   };
 
   // Upload and clone voice
@@ -323,8 +248,14 @@ export default function VoiceProtection() {
       return cloneData;
     },
     onSuccess: () => {
+      // Celebrate voice profile creation
+      confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 }
+      });
       toast({
-        title: "Success",
+        title: "Success! 🎉",
         description: "Voice profile created successfully!",
       });
       queryClient.invalidateQueries({ queryKey: ['voiceProfiles'] });
@@ -436,12 +367,25 @@ export default function VoiceProtection() {
               />
             </div>
 
-            {/* Script Editor */}
-            <ScriptEditor 
-              script={script}
-              onScriptChange={setScript}
-              cloneType={cloneType}
-            />
+            {/* Script Editor with Timer */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Recording Script</Label>
+                {isRecording && (
+                  <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full">
+                    <Clock className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-semibold text-primary">
+                      {formatTime(timeRemaining)}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <ScriptEditor 
+                script={script}
+                onScriptChange={setScript}
+                cloneType={cloneType}
+              />
+            </div>
 
             <div className="space-y-4">
               {/* Recording Guidance */}
@@ -484,33 +428,16 @@ export default function VoiceProtection() {
 
                   {isRecording && (
                     <div className="space-y-4">
-                      <div className="bg-primary/10 p-6 rounded-lg text-center space-y-4">
-                        {/* Countdown Timer */}
-                        <div className="text-5xl font-bold text-primary">
-                          {formatTime(timeRemaining)}
-                        </div>
-                        
-                        {/* Progress Bar */}
-                        <div className="w-full bg-secondary/30 rounded-full h-3 overflow-hidden">
-                          <div 
-                            className="bg-primary h-3 rounded-full transition-all duration-1000 ease-linear"
-                            style={{ 
-                              width: `${((cloneType === 'professional' ? 1800 : 120) - timeRemaining) / (cloneType === 'professional' ? 1800 : 120) * 100}%` 
-                            }}
-                          />
-                        </div>
-
-                        <div>
-                          <p className="text-sm font-medium text-primary mb-2">
-                            {isPaused ? "Recording Paused" : "Recording in Progress..."}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {cloneType === 'professional' 
-                              ? "Read aloud from a book. Use pause if you need a break."
-                              : "Speak naturally and clearly."
-                            }
-                          </p>
-                        </div>
+                      <div>
+                        <p className="text-sm font-medium text-primary mb-2">
+                          {isPaused ? "Recording Paused" : "Recording in Progress..."}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {cloneType === 'professional' 
+                            ? "Read aloud from a book. Use pause if you need a break."
+                            : "Speak naturally and clearly."
+                          }
+                        </p>
                       </div>
 
                       <div className="grid grid-cols-3 gap-2">
