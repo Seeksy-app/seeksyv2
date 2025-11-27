@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PersonaVideoCard } from "./PersonaVideoCard";
 import { PersonaModal } from "./PersonaModal";
 import { Skeleton } from "@/components/ui/skeleton";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Persona {
   id: string;
@@ -133,20 +133,25 @@ export const PersonaGrid = () => {
         ))}
         
         {/* Shared pill that follows cursor across all cards */}
-        {hoveredPersona && (
-          <div
-            className="fixed z-50 pointer-events-none"
-            style={{
-              transform: `translate3d(${smoothPosition.x + 12}px, ${smoothPosition.y + 12}px, 0)`,
-              willChange: 'transform',
-              opacity: 1,
-            }}
-          >
-            <div className="bg-white text-gray-900 px-6 py-3 rounded-full text-sm font-medium shadow-lg whitespace-nowrap">
-              More about {hoveredPersona.name}
-            </div>
-          </div>
-        )}
+        <AnimatePresence>
+          {hoveredPersona && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.12 }}
+              className="fixed z-50 pointer-events-none"
+              style={{
+                transform: `translate3d(${smoothPosition.x + 12}px, ${smoothPosition.y + 12}px, 0)`,
+                willChange: 'transform',
+              }}
+            >
+              <div className="bg-white text-gray-900 px-6 py-3 rounded-full text-sm font-medium shadow-lg whitespace-nowrap">
+                More about {hoveredPersona.name}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <PersonaModal
