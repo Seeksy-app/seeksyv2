@@ -286,13 +286,22 @@ export default function VoiceProtection() {
   // Upload and clone voice
   const cloneVoice = useMutation({
     mutationFn: async () => {
+      console.log('🚀 Starting voice profile creation...');
+      
       if (!audioBlob || !voiceName) {
+        console.error('❌ Missing audioBlob or voiceName');
         throw new Error("Missing audio or voice name");
       }
 
+      console.log('👤 Getting authenticated user...');
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      if (!user) {
+        console.error('❌ No authenticated user');
+        throw new Error("Not authenticated");
+      }
+      console.log('✅ User authenticated:', user.id);
 
+      console.log('📤 Uploading audio to storage...');
       const fileName = `${user.id}/voice-samples/${Date.now()}.mp3`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('audio-ads-generated')
@@ -300,14 +309,20 @@ export default function VoiceProtection() {
           contentType: 'audio/mp3',
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('❌ Audio upload failed:', uploadError);
+        throw uploadError;
+      }
+      console.log('✅ Audio uploaded successfully');
 
       const { data: { publicUrl } } = supabase.storage
         .from('audio-ads-generated')
         .getPublicUrl(fileName);
+      console.log('✅ Audio URL:', publicUrl);
 
       let profileImageUrl = null;
       if (profileImage) {
+        console.log('📤 Uploading profile image...');
         const imageFileName = `${user.id}/voice-profile-images/${Date.now()}-${profileImage.name}`;
         const { error: imageUploadError } = await supabase.storage
           .from('avatars')
@@ -320,9 +335,11 @@ export default function VoiceProtection() {
             .from('avatars')
             .getPublicUrl(imageFileName);
           profileImageUrl = imagePublicUrl;
+          console.log('✅ Image uploaded:', profileImageUrl);
         }
       }
 
+      console.log('🎙️ Calling elevenlabs-clone-voice...');
       const { data: cloneData, error: cloneError } = await supabase.functions.invoke(
         'elevenlabs-clone-voice',
         {
@@ -335,9 +352,14 @@ export default function VoiceProtection() {
         }
       );
 
-      if (cloneError) throw cloneError;
+      if (cloneError) {
+        console.error('❌ Voice cloning failed:', cloneError);
+        throw cloneError;
+      }
+      console.log('✅ Voice cloned:', cloneData);
 
       // Create voice profile via edge function (bypasses RLS issues)
+      console.log('💾 Calling create-voice-profile...');
       const { data: profileData, error: profileError } = await supabase.functions.invoke(
         'create-voice-profile',
         {
@@ -353,7 +375,11 @@ export default function VoiceProtection() {
         }
       );
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('❌ Profile creation failed:', profileError);
+        throw profileError;
+      }
+      console.log('✅ Profile created:', profileData);
 
       return profileData;
     },
