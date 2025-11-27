@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,7 @@ import ScriptEditor from "@/components/voice/ScriptEditor";
 import confetti from "canvas-confetti";
 import { VoiceCertifiedBadge } from "@/components/VoiceCertifiedBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { testVoiceProfileCreation } from "@/test-voice-profile";
 
 type CloneType = 'instant' | 'professional';
 
@@ -77,6 +78,12 @@ export default function VoiceProtection() {
       return user;
     },
   });
+
+  // Debug: Load test function
+  useEffect(() => {
+    (window as any).testVoiceProfile = testVoiceProfileCreation;
+    console.log('🧪 Voice profile test function loaded. Run: window.testVoiceProfile()');
+  }, []);
 
   // Check if user is admin
   const { data: userRoles } = useQuery({
