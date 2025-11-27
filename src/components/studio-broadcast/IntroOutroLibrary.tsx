@@ -21,6 +21,21 @@ export function IntroOutroLibrary({ sessionId, onSelect }: IntroOutroLibraryProp
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [createType, setCreateType] = useState<'intro' | 'outro'>('intro');
 
+  // Don't fetch if no sessionId
+  if (!sessionId) {
+    return (
+      <Card className="border-border/50 bg-card/50 backdrop-blur">
+        <CardContent className="p-6">
+          <div className="text-center py-8 text-muted-foreground">
+            <FileAudio className="h-12 w-12 mx-auto mb-3 opacity-50" />
+            <p className="text-sm">Session not initialized</p>
+            <p className="text-xs mt-1">Please start a broadcast session first</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // Fetch intro/outro library items
   const { data: libraryItems, isLoading, refetch } = useQuery({
     queryKey: ['intro-outro-library', sessionId],
@@ -136,6 +151,15 @@ export function IntroOutroLibrary({ sessionId, onSelect }: IntroOutroLibraryProp
     );
   };
 
+  const handleCloseDialog = () => {
+    setShowCreateDialog(false);
+  };
+
+  const handleSuccessfulCreate = () => {
+    refetch();
+    setShowCreateDialog(false);
+  };
+
   return (
     <>
       <Card className="border-border/50 bg-card/50 backdrop-blur">
@@ -192,36 +216,44 @@ export function IntroOutroLibrary({ sessionId, onSelect }: IntroOutroLibraryProp
       </Card>
 
       {/* Create Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Create {createType === 'intro' ? 'Intro' : 'Outro'}</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <Tabs defaultValue={createType} onValueChange={(v) => setCreateType(v as 'intro' | 'outro')}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="intro">Intro</TabsTrigger>
-                <TabsTrigger value="outro">Outro</TabsTrigger>
-              </TabsList>
+      {showCreateDialog && (
+        <Dialog open={showCreateDialog} onOpenChange={handleCloseDialog}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Create {createType === 'intro' ? 'Intro' : 'Outro'}</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <Tabs value={createType} onValueChange={(v) => setCreateType(v as 'intro' | 'outro')}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="intro">Intro</TabsTrigger>
+                  <TabsTrigger value="outro">Outro</TabsTrigger>
+                </TabsList>
 
-              <TabsContent value="intro" className="mt-4">
-                <StudioIntroOutroPanel 
-                  type="intro" 
-                  sessionId={sessionId}
-                />
-              </TabsContent>
+                <TabsContent value="intro" className="mt-4">
+                  {createType === 'intro' && (
+                    <StudioIntroOutroPanel 
+                      type="intro" 
+                      sessionId={sessionId}
+                      onSuccess={handleSuccessfulCreate}
+                    />
+                  )}
+                </TabsContent>
 
-              <TabsContent value="outro" className="mt-4">
-                <StudioIntroOutroPanel 
-                  type="outro" 
-                  sessionId={sessionId}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
-        </DialogContent>
-      </Dialog>
+                <TabsContent value="outro" className="mt-4">
+                  {createType === 'outro' && (
+                    <StudioIntroOutroPanel 
+                      type="outro" 
+                      sessionId={sessionId}
+                      onSuccess={handleSuccessfulCreate}
+                    />
+                  )}
+                </TabsContent>
+              </Tabs>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }

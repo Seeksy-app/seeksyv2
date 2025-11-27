@@ -23,9 +23,10 @@ interface Voice {
 interface StudioIntroOutroPanelProps {
   type: 'intro' | 'outro';
   sessionId: string;
+  onSuccess?: () => void;
 }
 
-export function StudioIntroOutroPanel({ type, sessionId }: StudioIntroOutroPanelProps) {
+export function StudioIntroOutroPanel({ type, sessionId, onSuccess }: StudioIntroOutroPanelProps) {
   const { toast } = useToast();
   const [script, setScript] = useState("");
   const [selectedVoice, setSelectedVoice] = useState<string>("");
@@ -51,6 +52,11 @@ export function StudioIntroOutroPanel({ type, sessionId }: StudioIntroOutroPanel
 
       if (error) {
         console.error('Voices fetch error:', error);
+        toast({
+          title: "Warning",
+          description: "Could not load voices. You can still enter a script.",
+          variant: "default",
+        });
         setVoices([]);
         return;
       }
@@ -174,6 +180,11 @@ export function StudioIntroOutroPanel({ type, sessionId }: StudioIntroOutroPanel
           title: "Success",
           description: `${type === 'intro' ? 'Intro' : 'Outro'} generated and saved to library!`,
         });
+
+        // Call success callback to close dialog and refresh list
+        if (onSuccess) {
+          onSuccess();
+        }
       }
     } catch (error) {
       console.error('Error generating:', error);
