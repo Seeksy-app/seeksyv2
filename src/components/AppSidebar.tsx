@@ -547,6 +547,10 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     { title: "Lead Pixel", url: "/leads-dashboard", icon: Code },
   ];
 
+  const adminContentManagement = [
+    { title: "Persona Management", url: "/admin/personas", icon: Sparkles },
+  ];
+
   // Grey out items for pending advertisers
   const isPending = advertiserStatus === "pending";
 
@@ -1508,6 +1512,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         {renderAdminCategory("Financials", adminFinancials, "adminFinancials")}
         {renderAdminCategory("Advertising", adminAdvertising, "adminAdvertising")}
         {renderAdminCategory("Marketing & Sales", adminMarketingSales, "adminMarketingSales")}
+        {renderAdminCategory("Content Management", adminContentManagement, "adminContentManagement")}
       </>
     );
   };
