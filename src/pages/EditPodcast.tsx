@@ -42,6 +42,9 @@ const EditPodcast = () => {
   const [isExplicit, setIsExplicit] = useState(false);
   const [isPublished, setIsPublished] = useState(false);
   const [showOnProfile, setShowOnProfile] = useState(true);
+  const [verificationEmail, setVerificationEmail] = useState("");
+  const [verificationEmailPermanent, setVerificationEmailPermanent] = useState(false);
+  const [verificationEmailExpiresAt, setVerificationEmailExpiresAt] = useState<string | null>(null);
 
   // Initialize form when podcast data loads
   useEffect(() => {
@@ -56,11 +59,27 @@ const EditPodcast = () => {
       setIsExplicit(podcast.is_explicit || false);
       setIsPublished(podcast.is_published || false);
       setShowOnProfile(podcast.show_on_profile !== false);
+      setVerificationEmail(podcast.verification_email || "");
+      setVerificationEmailPermanent(podcast.verification_email_permanent || false);
+      setVerificationEmailExpiresAt(podcast.verification_email_expires_at || null);
     }
   }, [podcast]);
 
   const updatePodcast = useMutation({
     mutationFn: async () => {
+      // Calculate expiration if adding temporary verification email
+      let expiresAt = null;
+      if (verificationEmail && !verificationEmailPermanent && !verificationEmailExpiresAt) {
+        // Set expiration to 48 hours from now if not already set
+        const fortyEightHours = new Date();
+        fortyEightHours.setHours(fortyEightHours.getHours() + 48);
+        expiresAt = fortyEightHours.toISOString();
+      } else if (verificationEmailPermanent) {
+        expiresAt = null; // Clear expiration if permanent
+      } else {
+        expiresAt = verificationEmailExpiresAt; // Keep existing expiration
+      }
+
       const { error } = await supabase
         .from("podcasts")
         .update({
@@ -74,6 +93,9 @@ const EditPodcast = () => {
           is_explicit: isExplicit,
           is_published: isPublished,
           show_on_profile: showOnProfile,
+          verification_email: verificationEmail || null,
+          verification_email_permanent: verificationEmailPermanent,
+          verification_email_expires_at: expiresAt,
         })
         .eq("id", id);
 
@@ -249,6 +271,46 @@ const EditPodcast = () => {
                 checked={showOnProfile}
                 onCheckedChange={setShowOnProfile}
               />
+            </div>
+
+            <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+              <div>
+                <Label className="text-base font-semibold">RSS Feed Email Verification</Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Some directories (like Spotify) require an email in your RSS feed for verification.
+                  Add a temporary email here - we'll automatically remove it after 48 hours to protect your inbox.
+                </p>
+              </div>
+              
+              <div>
+                <Label htmlFor="verificationEmail">Verification Email</Label>
+                <Input
+                  id="verificationEmail"
+                  type="email"
+                  value={verificationEmail}
+                  onChange={(e) => setVerificationEmail(e.target.value)}
+                  placeholder="podcast@example.com"
+                />
+                {verificationEmailExpiresAt && !verificationEmailPermanent && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Expires: {new Date(verificationEmailExpiresAt).toLocaleString()}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="permanentEmail">Keep Email in Feed Indefinitely</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Leave email in RSS feed permanently instead of removing after 48 hours
+                  </p>
+                </div>
+                <Switch
+                  id="permanentEmail"
+                  checked={verificationEmailPermanent}
+                  onCheckedChange={setVerificationEmailPermanent}
+                />
+              </div>
             </div>
 
             <div className="flex gap-3">

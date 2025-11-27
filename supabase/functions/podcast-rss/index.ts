@@ -35,6 +35,23 @@ serve(async (req) => {
       .eq("slug", slug)
       .eq("is_published", true)
       .maybeSingle();
+    
+    // Check if verification email has expired
+    if (podcast && podcast.verification_email && !podcast.verification_email_permanent) {
+      const now = new Date();
+      const expiresAt = podcast.verification_email_expires_at ? new Date(podcast.verification_email_expires_at) : null;
+      
+      if (expiresAt && now > expiresAt) {
+        // Auto-remove expired verification email
+        await supabase
+          .from("podcasts")
+          .update({ verification_email: null, verification_email_expires_at: null })
+          .eq("id", podcast.id);
+        
+        podcast.verification_email = null;
+        podcast.verification_email_expires_at = null;
+      }
+    }
 
     if (podcastError || !podcast) {
       return new Response("Podcast not found", { status: 404 });
@@ -113,8 +130,8 @@ function generateRSS(podcast: any, episodes: any[], feedUrl: string): string {
     <itunes:image href="${escapeXml(podcast.cover_image_url)}" />
     ` : ""}
     ${podcast.author_name ? `<itunes:author>${escapeXml(podcast.author_name)}</itunes:author>` : ""}
-    ${podcast.author_email ? `<itunes:owner>
-      <itunes:email>${escapeXml(podcast.author_email)}</itunes:email>
+    ${(podcast.verification_email || podcast.author_email) ? `<itunes:owner>
+      <itunes:email>${escapeXml(podcast.verification_email || podcast.author_email)}</itunes:email>
       ${podcast.author_name ? `<itunes:name>${escapeXml(podcast.author_name)}</itunes:name>` : ""}
     </itunes:owner>` : ""}
     ${podcast.category ? `<itunes:category text="${escapeXml(podcast.category)}" />` : ""}
