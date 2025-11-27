@@ -7,11 +7,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Mic, DollarSign, Check, Clock, Zap, Star, Info, Trash2 } from "lucide-react";
+import { Shield, Mic, DollarSign, Check, Clock, Zap, Star, Info, Trash2, BookOpen } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import ScriptEditor from "@/components/voice/ScriptEditor";
 import confetti from "canvas-confetti";
+import { VoiceCertifiedBadge } from "@/components/VoiceCertifiedBadge";
 
 type CloneType = 'instant' | 'professional';
 
@@ -30,10 +40,12 @@ export default function VoiceProtection() {
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [recordingStream, setRecordingStream] = useState<MediaStream | null>(null);
   const [recordingChunks, setRecordingChunks] = useState<BlobPart[]>([]);
-  const [timeRemaining, setTimeRemaining] = useState(120); // 2 minutes for instant, 1800 for professional
+  const [timeRemaining, setTimeRemaining] = useState(120);
   const [countdownInterval, setCountdownInterval] = useState<NodeJS.Timeout | null>(null);
   const [autoStopTimeout, setAutoStopTimeout] = useState<NodeJS.Timeout | null>(null);
   const [script, setScript] = useState("");
+  const [showConsentDialog, setShowConsentDialog] = useState(false);
+  const [consentChecked, setConsentChecked] = useState(false);
 
   // Fetch user's voice profiles
   const { data: voiceProfiles } = useQuery({
@@ -54,6 +66,24 @@ export default function VoiceProtection() {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleStartRecordingClick = () => {
+    setShowConsentDialog(true);
+    setConsentChecked(false);
+  };
+
+  const handleConsentConfirm = () => {
+    if (!consentChecked) {
+      toast({
+        title: "Consent Required",
+        description: "Please confirm that you own the rights to this voice.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setShowConsentDialog(false);
+    startRecording();
   };
 
   // Record audio
@@ -91,7 +121,7 @@ export default function VoiceProtection() {
       setIsPaused(false);
 
       // Set initial time based on clone type
-      const duration = cloneType === 'professional' ? 1800 : 120; // 30 min or 2 min
+      const duration = cloneType === 'professional' ? 1800 : 120;
       setTimeRemaining(duration);
 
       // Start countdown
@@ -119,7 +149,6 @@ export default function VoiceProtection() {
     if (mediaRecorder && mediaRecorder.state === 'recording') {
       mediaRecorder.pause();
       setIsPaused(true);
-      // Pause countdown
       if (countdownInterval) {
         clearInterval(countdownInterval);
         setCountdownInterval(null);
@@ -131,7 +160,6 @@ export default function VoiceProtection() {
     if (mediaRecorder && mediaRecorder.state === 'paused') {
       mediaRecorder.resume();
       setIsPaused(false);
-      // Resume countdown
       const interval = setInterval(() => {
         setTimeRemaining((prev) => prev - 1);
       }, 1000);
@@ -147,7 +175,6 @@ export default function VoiceProtection() {
       if (recordingStream) {
         recordingStream.getTracks().forEach(track => track.stop());
       }
-      // Clear timers
       if (countdownInterval) {
         clearInterval(countdownInterval);
         setCountdownInterval(null);
@@ -160,7 +187,6 @@ export default function VoiceProtection() {
   };
 
   const deleteRecording = () => {
-    // Stop recording if in progress
     if (mediaRecorder) {
       if (mediaRecorder.state === 'recording' || mediaRecorder.state === 'paused') {
         mediaRecorder.stop();
@@ -170,7 +196,6 @@ export default function VoiceProtection() {
       recordingStream.getTracks().forEach(track => track.stop());
     }
     
-    // Clear timers
     if (countdownInterval) {
       clearInterval(countdownInterval);
       setCountdownInterval(null);
@@ -180,7 +205,6 @@ export default function VoiceProtection() {
       setAutoStopTimeout(null);
     }
     
-    // Reset all states
     setIsRecording(false);
     setIsPaused(false);
     setAudioBlob(null);
@@ -197,11 +221,9 @@ export default function VoiceProtection() {
         throw new Error("Missing audio or voice name");
       }
 
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Upload audio to storage with user ID in path
       const fileName = `${user.id}/voice-samples/${Date.now()}.mp3`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('audio-ads-generated')
@@ -215,7 +237,6 @@ export default function VoiceProtection() {
         .from('audio-ads-generated')
         .getPublicUrl(fileName);
 
-      // Clone voice via ElevenLabs
       const { data: cloneData, error: cloneError } = await supabase.functions.invoke(
         'elevenlabs-clone-voice',
         {
@@ -223,14 +244,13 @@ export default function VoiceProtection() {
             voiceName,
             audioUrl: publicUrl,
             description,
-            cloneType, // 'instant' or 'professional'
+            cloneType,
           },
         }
       );
 
       if (cloneError) throw cloneError;
 
-      // Save voice profile (using user from above)
       const { error: insertError } = await supabase
         .from('creator_voice_profiles')
         .insert({
@@ -248,7 +268,6 @@ export default function VoiceProtection() {
       return cloneData;
     },
     onSuccess: () => {
-      // Celebrate voice profile creation
       confetti({
         particleCount: 150,
         spread: 100,
@@ -259,7 +278,6 @@ export default function VoiceProtection() {
         description: "Voice profile created successfully!",
       });
       queryClient.invalidateQueries({ queryKey: ['voiceProfiles'] });
-      // Reset form
       setVoiceName("");
       setDescription("");
       setPricePerAd("");
@@ -286,8 +304,60 @@ export default function VoiceProtection() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Create Voice Profile */}
+      {/* Voice Profiles at Top */}
+      {voiceProfiles && voiceProfiles.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-6 w-6 text-primary" />
+              Your Voice Profiles
+            </CardTitle>
+            <CardDescription>
+              Manage your voice profiles and earnings
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              {voiceProfiles.map((profile) => (
+                <Card key={profile.id} className="border-primary/20">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-2">
+                        <CardTitle className="text-lg">{profile.voice_name}</CardTitle>
+                        <VoiceCertifiedBadge size="sm" />
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {profile.usage_terms && (
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {profile.usage_terms}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Price per ad:</span>
+                      <span className="font-semibold text-primary">
+                        ${profile.price_per_ad}
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" className="flex-1">
+                        Edit
+                      </Button>
+                      <Button variant="outline" size="sm" className="flex-1">
+                        Stats
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Left Column - Create Voice Profile */}
         <Card>
           <CardHeader>
             <CardTitle>Create Voice Profile</CardTitle>
@@ -300,7 +370,6 @@ export default function VoiceProtection() {
             <div className="space-y-4">
               <Label>Select Clone Type</Label>
               <RadioGroup value={cloneType} onValueChange={(value) => setCloneType(value as CloneType)}>
-                {/* Instant Voice Clone */}
                 <Card className={cloneType === 'instant' ? 'border-primary border-2' : ''}>
                   <CardContent className="pt-6">
                     <div className="flex items-start space-x-4">
@@ -311,7 +380,7 @@ export default function VoiceProtection() {
                           Instant Voice Clone
                         </Label>
                         <p className="text-sm text-muted-foreground">
-                          Clone your voice with just 2 minutes of audio. Quick and easy setup.
+                          Clone your voice with just 2 minutes of audio.
                         </p>
                         <div className="flex items-center gap-2 text-sm">
                           <Clock className="h-4 w-4 text-muted-foreground" />
@@ -322,7 +391,6 @@ export default function VoiceProtection() {
                   </CardContent>
                 </Card>
 
-                {/* Professional Voice Clone */}
                 <Card className={cloneType === 'professional' ? 'border-primary border-2' : ''}>
                   <CardContent className="pt-6">
                     <div className="flex items-start space-x-4">
@@ -331,10 +399,9 @@ export default function VoiceProtection() {
                         <Label htmlFor="professional" className="flex items-center gap-2 cursor-pointer font-semibold text-base">
                           <Star className="h-5 w-5 text-primary" />
                           Professional Voice Clone
-                          <Info className="h-4 w-4 text-muted-foreground" />
                         </Label>
                         <p className="text-sm text-muted-foreground">
-                          Create the most realistic digital replica of your voice. Requires 30 minutes of clean audio. <strong>Best practice: Read from a book.</strong>
+                          Most realistic digital replica. Requires 30 minutes.
                         </p>
                         <div className="flex items-center gap-2 text-sm">
                           <Clock className="h-4 w-4 text-muted-foreground" />
@@ -388,37 +455,11 @@ export default function VoiceProtection() {
             </div>
 
             <div className="space-y-4">
-              {/* Recording Guidance */}
-              {!isRecording && !audioBlob && (
-                <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-                  <div className="flex items-start gap-2">
-                    <Info className="h-5 w-5 text-primary mt-0.5" />
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">Recording Tips:</p>
-                      <ul className="text-sm text-muted-foreground space-y-1">
-                        <li>• Find a quiet environment</li>
-                        <li>• Use a good quality microphone</li>
-                        {cloneType === 'professional' && (
-                          <>
-                            <li>• <strong>Best practice:</strong> Read aloud from a book for 30 minutes</li>
-                            <li>• Use pause/resume if you need breaks</li>
-                            <li>• Maintain consistent tone and pace</li>
-                          </>
-                        )}
-                        {cloneType === 'instant' && (
-                          <li>• Speak naturally and clearly for 2 minutes</li>
-                        )}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {/* Recording Controls */}
               {!audioBlob && (
                 <>
                   <Button
-                    onClick={startRecording}
+                    onClick={handleStartRecordingClick}
                     disabled={isRecording}
                     className="w-full"
                   >
@@ -451,7 +492,7 @@ export default function VoiceProtection() {
                           </Button>
                         )}
                         <Button onClick={stopRecording} variant="outline" className="w-full">
-                          Stop Recording
+                          Stop
                         </Button>
                         <Button 
                           onClick={deleteRecording} 
@@ -467,134 +508,221 @@ export default function VoiceProtection() {
                   )}
                 </>
               )}
-              
-              {/* Recorded Audio Preview */}
+
+              {/* Audio Preview */}
               {audioBlob && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-green-600 font-medium mb-2">
-                    <Check className="h-4 w-4" />
-                    Sample Recorded Successfully
+                <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-primary" />
+                    <p className="text-sm font-medium">Recording Complete!</p>
                   </div>
-                  <audio controls className="w-full">
-                    <source src={URL.createObjectURL(audioBlob)} type="audio/mp3" />
-                  </audio>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button 
-                      onClick={deleteRecording} 
-                      variant="destructive" 
-                      size="sm"
-                      className="flex items-center gap-2"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Delete & Start Over
-                    </Button>
-                    <Button onClick={() => {
-                      deleteRecording();
-                      setTimeout(() => startRecording(), 100);
-                    }} variant="outline" size="sm">
-                      Re-record
-                    </Button>
-                  </div>
+                  <audio 
+                    controls 
+                    src={URL.createObjectURL(audioBlob)} 
+                    className="w-full"
+                  />
+                  <Button 
+                    onClick={deleteRecording} 
+                    variant="outline" 
+                    size="sm"
+                    className="w-full"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete & Re-record
+                  </Button>
                 </div>
               )}
             </div>
 
-            <div className="space-y-4 pt-4 border-t">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="availableForAds">Make Available for Ads</Label>
-                <Switch
-                  id="availableForAds"
-                  checked={availableForAds}
-                  onCheckedChange={setAvailableForAds}
-                />
-              </div>
-
-              {availableForAds && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="pricePerAd">Price per Ad ($)</Label>
+            {/* Monetization Options */}
+            {audioBlob && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="price">Price per Ad Use</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="pricePerAd"
+                      id="price"
                       type="number"
                       placeholder="50.00"
                       value={pricePerAd}
                       onChange={(e) => setPricePerAd(e.target.value)}
+                      className="pl-9"
                     />
                   </div>
+                </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="usageTerms">Usage Terms</Label>
-                    <Textarea
-                      id="usageTerms"
-                      placeholder="Describe how advertisers can use your voice..."
-                      value={usageTerms}
-                      onChange={(e) => setUsageTerms(e.target.value)}
-                    />
-                  </div>
-                </>
-              )}
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="terms">Usage Terms (Optional)</Label>
+                  <Textarea
+                    id="terms"
+                    placeholder="Specify how advertisers can use your voice..."
+                    value={usageTerms}
+                    onChange={(e) => setUsageTerms(e.target.value)}
+                    rows={2}
+                  />
+                </div>
 
-            <Button
-              onClick={() => cloneVoice.mutate()}
-              disabled={!audioBlob || !voiceName || cloneVoice.isPending}
-              className="w-full"
-            >
-              {cloneVoice.isPending ? "Creating Voice Profile..." : "Create Voice Profile"}
-            </Button>
-          </CardContent>
-        </Card>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="available"
+                    checked={availableForAds}
+                    onCheckedChange={setAvailableForAds}
+                  />
+                  <Label htmlFor="available" className="cursor-pointer">
+                    Make available for advertisers
+                  </Label>
+                </div>
 
-        {/* Your Voice Profiles */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Voice Profiles</CardTitle>
-            <CardDescription>Manage your voice profiles and earnings</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {voiceProfiles?.map((profile) => (
-              <Card key={profile.id}>
-                <CardContent className="pt-6 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold">{profile.voice_name}</h3>
-                    {profile.is_verified && (
-                      <Check className="h-5 w-5 text-green-500" />
-                    )}
-                  </div>
-                  
-                  {profile.is_available_for_ads && profile.price_per_ad && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <DollarSign className="h-4 w-4" />
-                      ${profile.price_per_ad} per ad
-                    </div>
-                  )}
-
-                  {profile.sample_audio_url && (
-                    <audio controls className="w-full">
-                      <source src={profile.sample_audio_url} type="audio/mp3" />
-                    </audio>
-                  )}
-
-                  <div className="flex gap-2 pt-2">
-                    <Button variant="outline" size="sm" className="flex-1">
-                      Edit
-                    </Button>
-                    <Button variant="outline" size="sm" className="flex-1">
-                      View Stats
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-
-            {!voiceProfiles || voiceProfiles.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                No voice profiles yet. Create your first one!
-              </div>
+                <Button
+                  onClick={() => cloneVoice.mutate()}
+                  disabled={cloneVoice.isPending}
+                  className="w-full"
+                >
+                  {cloneVoice.isPending ? "Creating..." : "Create Voice Profile"}
+                </Button>
+              </>
             )}
           </CardContent>
         </Card>
+
+        {/* Right Column - Reading Tips */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="h-6 w-6 text-primary" />
+              Recording Tips
+            </CardTitle>
+            <CardDescription>
+              Get the best results from your voice cloning
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <div className="p-4 border-l-4 border-primary bg-primary/5 rounded-r-lg">
+                <h3 className="font-semibold mb-2">📍 Environment</h3>
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                  <li>Record in a quiet space with minimal echo</li>
+                  <li>Use a quality microphone if available</li>
+                  <li>Avoid background noise and distractions</li>
+                </ul>
+              </div>
+
+              <div className="p-4 border-l-4 border-primary bg-primary/5 rounded-r-lg">
+                <h3 className="font-semibold mb-2">🎤 Voice Quality</h3>
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                  <li>Speak naturally at your normal pace</li>
+                  <li>Maintain consistent volume and energy</li>
+                  <li>Vary your tone to capture emotional range</li>
+                </ul>
+              </div>
+
+              <div className="p-4 border-l-4 border-primary bg-primary/5 rounded-r-lg">
+                <h3 className="font-semibold mb-2">📝 Content Tips</h3>
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                  <li>Read diverse content (questions, statements, emotions)</li>
+                  <li>Include pauses and natural breathing</li>
+                  <li>Pronounce words clearly without over-enunciating</li>
+                </ul>
+              </div>
+
+              <div className="p-4 border-l-4 border-primary bg-primary/5 rounded-r-lg">
+                <h3 className="font-semibold mb-2">⏱️ Duration</h3>
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                  <li><strong>Instant:</strong> 2 min minimum - good for basic cloning</li>
+                  <li><strong>Professional:</strong> 30 min - highest quality results</li>
+                  <li>Longer recordings capture more nuances</li>
+                </ul>
+              </div>
+
+              <div className="p-4 border-l-4 border-destructive bg-destructive/5 rounded-r-lg">
+                <h3 className="font-semibold mb-2 text-destructive">⚠️ Important</h3>
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                  <li>Only clone your own voice or voices you have permission to use</li>
+                  <li>Unauthorized voice cloning is illegal</li>
+                  <li>You'll be asked to confirm ownership before recording</li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Consent Dialog */}
+      <Dialog open={showConsentDialog} onOpenChange={setShowConsentDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              Voice Ownership Confirmation
+            </DialogTitle>
+            <DialogDescription className="pt-4 space-y-4 text-left">
+              <p className="font-semibold text-foreground">
+                Before you begin recording, please confirm the following:
+              </p>
+              
+              <div className="space-y-3 text-sm">
+                <div className="flex items-start gap-2">
+                  <div className="min-w-[20px] text-primary font-bold">✓</div>
+                  <p>You are the legal owner of this voice</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="min-w-[20px] text-primary font-bold">✓</div>
+                  <p>You have full rights to use, license, and monetize this voice</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="min-w-[20px] text-primary font-bold">✓</div>
+                  <p>You are at least 18 years of age</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="min-w-[20px] text-primary font-bold">✓</div>
+                  <p>You understand that your voice may be used in commercial advertisements</p>
+                </div>
+              </div>
+
+              <div className="p-4 border-l-4 border-destructive bg-destructive/5 rounded-r-lg">
+                <p className="text-destructive font-semibold text-sm">
+                  ⚠️ Important Legal Notice
+                </p>
+                <p className="text-xs mt-2">
+                  Unauthorized voice cloning is illegal and may result in civil and criminal penalties. 
+                  By proceeding, you certify under penalty of perjury that you have the legal right to 
+                  clone and monetize this voice.
+                </p>
+              </div>
+
+              <div className="flex items-start space-x-2 pt-2">
+                <Checkbox
+                  id="consent"
+                  checked={consentChecked}
+                  onCheckedChange={(checked) => setConsentChecked(checked as boolean)}
+                />
+                <label
+                  htmlFor="consent"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                >
+                  I confirm that I am the owner of this voice and have the legal right to use it
+                </label>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setShowConsentDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConsentConfirm}
+              disabled={!consentChecked}
+              className="bg-primary"
+            >
+              I Confirm - Start Recording
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
