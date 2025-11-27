@@ -128,7 +128,12 @@ export const PersonaVideoCard = ({
           ref={cardRef}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          whileHover={{ scale: 1.02, y: -4 }}
+          transition={{ 
+            opacity: { duration: 0.5 },
+            y: { duration: 0.5 },
+            scale: { duration: 0.2 },
+          }}
           className="persona-video-card relative w-full h-full cursor-pointer"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
