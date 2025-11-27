@@ -98,8 +98,7 @@ export const PersonaModal = ({ open, onClose, persona }: PersonaModalProps) => {
                     playsInline
                     autoPlay
                     muted={isMuted}
-                    controlsList="nodownload nofullscreen noremoteplayback"
-                    disablePictureInPicture
+                    controls={false}
                   />
                 )}
                 
