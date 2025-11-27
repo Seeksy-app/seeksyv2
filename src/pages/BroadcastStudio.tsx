@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useVoiceFingerprint } from "@/hooks/useVoiceFingerprint";
 import { Button } from "@/components/ui/button";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,9 +23,11 @@ export default function BroadcastStudio() {
   const { toast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const { captureVoiceFingerprint, isCapturing: isCapturingFingerprint } = useVoiceFingerprint();
 
   // Broadcast State
   const [broadcastId, setBroadcastId] = useState<string | null>(null);
+  const [voiceFingerprintId, setVoiceFingerprintId] = useState<string | null>(null);
   const [broadcastTitle, setBroadcastTitle] = useState("");
   const [isLive, setIsLive] = useState(false);
   const [isPreparing, setIsPreparing] = useState(false);
@@ -378,6 +381,24 @@ export default function BroadcastStudio() {
           .eq('id', user.id);
       }
 
+      // Capture voice fingerprint at start of broadcast
+      if (streamRef.current) {
+        try {
+          const fingerprint = await captureVoiceFingerprint(
+            streamRef.current,
+            'livestream',
+            newBroadcast.id,
+            10 // 10-second capture during broadcast start
+          );
+          setVoiceFingerprintId(fingerprint.id);
+          
+          console.log('Voice fingerprint captured:', fingerprint.id);
+        } catch (fpError) {
+          console.error('Voice fingerprint capture failed:', fpError);
+          // Continue broadcast even if fingerprint fails
+        }
+      }
+
       // Start recording
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'inactive') {
         try {
@@ -389,7 +410,7 @@ export default function BroadcastStudio() {
 
       toast({
         title: "🎉 You're Live!",
-        description: "Broadcasting to My Page"
+        description: "Broadcasting to My Page. Voice authentication active.",
       });
 
       // Start real-time features

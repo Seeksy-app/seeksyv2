@@ -2788,6 +2788,51 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_voice_fingerprints: {
+        Row: {
+          audio_signature: Json
+          confidence_score: number | null
+          created_at: string
+          fingerprint_hash: string
+          id: string
+          is_primary: boolean | null
+          recording_date: string
+          sample_duration_seconds: number | null
+          source_id: string | null
+          source_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          audio_signature: Json
+          confidence_score?: number | null
+          created_at?: string
+          fingerprint_hash: string
+          id?: string
+          is_primary?: boolean | null
+          recording_date?: string
+          sample_duration_seconds?: number | null
+          source_id?: string | null
+          source_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          audio_signature?: Json
+          confidence_score?: number | null
+          created_at?: string
+          fingerprint_hash?: string
+          id?: string
+          is_primary?: boolean | null
+          recording_date?: string
+          sample_duration_seconds?: number | null
+          source_id?: string | null
+          source_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       creator_voice_profiles: {
         Row: {
           created_at: string | null
@@ -3412,6 +3457,8 @@ export type Database = {
           id: string
           metadata: Json | null
           podcast_id: string
+          voice_fingerprint_id: string | null
+          voice_verified: boolean | null
         }
         Insert: {
           blockchain_network?: string | null
@@ -3425,6 +3472,8 @@ export type Database = {
           id?: string
           metadata?: Json | null
           podcast_id: string
+          voice_fingerprint_id?: string | null
+          voice_verified?: boolean | null
         }
         Update: {
           blockchain_network?: string | null
@@ -3438,6 +3487,8 @@ export type Database = {
           id?: string
           metadata?: Json | null
           podcast_id?: string
+          voice_fingerprint_id?: string | null
+          voice_verified?: boolean | null
         }
         Relationships: [
           {
@@ -3452,6 +3503,13 @@ export type Database = {
             columns: ["podcast_id"]
             isOneToOne: false
             referencedRelation: "podcasts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "episode_blockchain_certificates_voice_fingerprint_id_fkey"
+            columns: ["voice_fingerprint_id"]
+            isOneToOne: false
+            referencedRelation: "creator_voice_fingerprints"
             referencedColumns: ["id"]
           },
         ]
