@@ -44,6 +44,9 @@ export const PersonaVideoCard = ({
 
   const handleMouseEnter = () => {
     setIsHovering(true);
+    if (videoRef.current && !isIframe) {
+      videoRef.current.play().catch(() => {});
+    }
   };
 
   const handleMouseLeave = () => {
@@ -57,15 +60,14 @@ export const PersonaVideoCard = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        whileHover={{ scale: 1.02, y: -5 }}
         className="group cursor-pointer"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onClick={onClick}
       >
-        <div className="relative overflow-hidden rounded-2xl shadow-2xl bg-black">
+        <div className="relative overflow-hidden rounded-2xl shadow-2xl bg-black aspect-square">
           {/* Video Container */}
-          <div className="relative aspect-square overflow-hidden">
+          <div className="absolute inset-0 overflow-hidden rounded-2xl">
             {/* Video or Iframe - autoplay muted with no controls */}
             {videoUrl ? (
               isIframe ? (
@@ -86,19 +88,18 @@ export const PersonaVideoCard = ({
               <video
                 ref={videoRef}
                 src={videoUrl}
-                className="absolute inset-0 w-full h-full"
+                className="absolute inset-0 w-full h-full object-cover"
                 loop
                 muted
                 playsInline
                 autoPlay
-                preload="metadata"
+                preload="auto"
                 disablePictureInPicture
                 poster={thumbnailUrl}
                 style={{ 
-                  objectFit: 'cover',
                   pointerEvents: 'none'
                 }}
-                onLoadedMetadata={(e) => {
+                onLoadedData={(e) => {
                   const video = e.currentTarget;
                   video.play().catch(() => {});
                 }}
@@ -109,31 +110,63 @@ export const PersonaVideoCard = ({
               <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-accent/20" />
             )}
 
-            {/* Gradient Overlay for Text */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none" />
+            {/* Gradient Overlay for Text - emphasizes on hover */}
+            <motion.div 
+              className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none"
+              animate={{ 
+                opacity: isHovering ? 1 : 0.9 
+              }}
+              transition={{ duration: 0.3 }}
+            />
             
-            {/* "More about" hover overlay */}
-            <div 
-              className={`absolute top-6 left-6 transition-all duration-300 z-20 ${
-                isHovering ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
-              }`}
+            {/* "More about" hover overlay with animation */}
+            <motion.div 
+              className="absolute top-6 left-6 z-20"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ 
+                opacity: isHovering ? 1 : 0,
+                y: isHovering ? 0 : -10
+              }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
             >
-              <div className="bg-white text-black px-5 py-2.5 rounded-full text-sm font-semibold shadow-xl">
+              <div className="bg-white text-black px-5 py-2.5 rounded-full text-sm font-semibold shadow-xl whitespace-nowrap">
                 More about {name}
               </div>
-            </div>
+            </motion.div>
           </div>
 
-          {/* Content - matching Paige card layout */}
-          <div className="absolute inset-x-0 bottom-0 p-6 text-white z-10 pointer-events-none">
-            <div className="space-y-1">
-              <p className="text-xs uppercase tracking-widest text-white/80 font-semibold">
+          {/* Content - animated text overlay matching Paige card */}
+          <motion.div 
+            className="absolute inset-x-0 bottom-0 p-8 text-white z-10 pointer-events-none"
+            animate={{ 
+              y: isHovering ? -8 : 0 
+            }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            <div className="space-y-2">
+              <motion.p 
+                className="text-xs uppercase tracking-widest text-white/90 font-semibold"
+                animate={{ opacity: isHovering ? 1 : 0.8 }}
+              >
                 {role}
-              </p>
-              <h3 className="text-3xl font-bold tracking-tight">{name}</h3>
-              <p className="text-base text-white/90 font-light">{tagline}</p>
+              </motion.p>
+              <motion.h3 
+                className="text-4xl font-bold tracking-tight"
+                animate={{ 
+                  scale: isHovering ? 1.02 : 1 
+                }}
+                transition={{ duration: 0.3 }}
+              >
+                {name}
+              </motion.h3>
+              <motion.p 
+                className="text-base text-white/90 font-light"
+                animate={{ opacity: isHovering ? 1 : 0.85 }}
+              >
+                {tagline}
+              </motion.p>
             </div>
-          </div>
+          </motion.div>
         </div>
       </motion.div>
     </>
