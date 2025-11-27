@@ -85,18 +85,11 @@ export const PersonaVideoCard = ({
   const handleMouseEnter = () => {
     setIsHovering(true);
     onHoverChange?.(true);
-    if (videoRef.current) {
-      videoRef.current.play().catch(() => {});
-    }
   };
 
   const handleMouseLeave = () => {
     setIsHovering(false);
     onHoverChange?.(false);
-    if (videoRef.current) {
-      videoRef.current.pause();
-      videoRef.current.currentTime = 0;
-    }
   };
 
   const handleClick = () => {
@@ -174,6 +167,7 @@ export const PersonaVideoCard = ({
                       width: '100%',
                       height: '100%'
                     }}
+                    autoPlay
                     loop
                     muted
                     playsInline
