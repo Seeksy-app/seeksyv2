@@ -105,3 +105,9 @@ verify_jwt = true
 
 [functions.generate-voice-fingerprint]
 verify_jwt = true
+
+[functions.elevenlabs-clone-voice]
+verify_jwt = true
+
+[functions.create-voice-profile]
+verify_jwt = true
