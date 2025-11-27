@@ -6,30 +6,41 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { IntroOutroLibrary } from "./IntroOutroLibrary";
+import { VideoAdsPanel } from "./VideoAdsPanel";
 import { 
   Palette, MessageSquare, Music, QrCode, StickyNote, 
   Image, Video, FileText, X, Upload, Sparkles, Play,
-  Maximize2
+  Maximize2, DollarSign, FileAudio
 } from "lucide-react";
 
 interface StudioRightSidebarProps {
   broadcastId: string;
+  sessionId: string;
   onAddMedia: (type: 'logo' | 'overlay' | 'video' | 'background') => void;
   onAddCaption: (type: 'lowerThird' | 'ticker') => void;
   onThemeChange: (theme: string) => void;
+  onVideoAdSelect?: (ad: any) => void;
+  onIntroOutroSelect?: (item: any) => void;
 }
 
 export function StudioRightSidebar({ 
   broadcastId,
+  sessionId,
   onAddMedia,
   onAddCaption,
-  onThemeChange 
+  onThemeChange,
+  onVideoAdSelect,
+  onIntroOutroSelect
 }: StudioRightSidebarProps) {
   const [activeTab, setActiveTab] = useState("graphics");
+  const [selectedVideoAd, setSelectedVideoAd] = useState(null);
 
   const sidebarItems = [
     { id: "graphics", icon: Palette, label: "Graphics" },
     { id: "captions", icon: FileText, label: "Captions" },
+    { id: "video-ads", icon: DollarSign, label: "Video Ads" },
+    { id: "intro-outro", icon: FileAudio, label: "Intro/Outro" },
     { id: "qr", icon: QrCode, label: "QR Codes" },
     { id: "notes", icon: StickyNote, label: "Notes" },
     { id: "chat", icon: MessageSquare, label: "Chat" },
@@ -66,6 +77,21 @@ export function StudioRightSidebar({
           <div className="p-4 space-y-4">
             {activeTab === "graphics" && <GraphicsPanel onAddMedia={onAddMedia} />}
             {activeTab === "captions" && <CaptionsPanel onAddCaption={onAddCaption} />}
+            {activeTab === "video-ads" && (
+              <VideoAdsPanel 
+                onAdSelect={(ad) => {
+                  setSelectedVideoAd(ad);
+                  onVideoAdSelect?.(ad);
+                }}
+                selectedAd={selectedVideoAd}
+              />
+            )}
+            {activeTab === "intro-outro" && (
+              <IntroOutroLibrary
+                sessionId={sessionId}
+                onSelect={(item) => onIntroOutroSelect?.(item)}
+              />
+            )}
             {activeTab === "qr" && <QRCodesPanel />}
             {activeTab === "notes" && <NotesPanel broadcastId={broadcastId} />}
             {activeTab === "chat" && <ChatPanel broadcastId={broadcastId} />}

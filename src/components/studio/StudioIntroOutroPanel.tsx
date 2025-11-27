@@ -150,9 +150,29 @@ export function StudioIntroOutroPanel({ type, sessionId }: StudioIntroOutroPanel
       
       if (data?.audioUrl) {
         setGeneratedAudioUrl(data.audioUrl);
+        
+        // Save to library
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const voiceName = voices.find(v => v.voice_id === selectedVoice)?.name || 'Unknown';
+          
+          await supabase.from('studio_intro_outro_library').insert({
+            user_id: user.id,
+            session_id: sessionId,
+            type,
+            title: `${type === 'intro' ? 'Intro' : 'Outro'} - ${new Date().toLocaleDateString()}`,
+            script,
+            audio_url: data.audioUrl,
+            voice_id: selectedVoice,
+            voice_name: voiceName,
+            music_asset_id: selectedMusic || null,
+            is_ai_generated: true
+          });
+        }
+        
         toast({
           title: "Success",
-          description: `${type === 'intro' ? 'Intro' : 'Outro'} generated successfully!`,
+          description: `${type === 'intro' ? 'Intro' : 'Outro'} generated and saved to library!`,
         });
       }
     } catch (error) {

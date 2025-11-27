@@ -7601,6 +7601,72 @@ export type Database = {
           },
         ]
       }
+      studio_intro_outro_library: {
+        Row: {
+          audio_url: string | null
+          created_at: string | null
+          id: string
+          is_ai_generated: boolean | null
+          media_file_id: string | null
+          music_asset_id: string | null
+          script: string | null
+          session_id: string | null
+          title: string | null
+          type: string
+          updated_at: string | null
+          user_id: string
+          voice_id: string | null
+          voice_name: string | null
+        }
+        Insert: {
+          audio_url?: string | null
+          created_at?: string | null
+          id?: string
+          is_ai_generated?: boolean | null
+          media_file_id?: string | null
+          music_asset_id?: string | null
+          script?: string | null
+          session_id?: string | null
+          title?: string | null
+          type: string
+          updated_at?: string | null
+          user_id: string
+          voice_id?: string | null
+          voice_name?: string | null
+        }
+        Update: {
+          audio_url?: string | null
+          created_at?: string | null
+          id?: string
+          is_ai_generated?: boolean | null
+          media_file_id?: string | null
+          music_asset_id?: string | null
+          script?: string | null
+          session_id?: string | null
+          title?: string | null
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+          voice_id?: string | null
+          voice_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "studio_intro_outro_library_media_file_id_fkey"
+            columns: ["media_file_id"]
+            isOneToOne: false
+            referencedRelation: "media_files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "studio_intro_outro_library_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "studio_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       studio_live_chat: {
         Row: {
           broadcast_id: string | null

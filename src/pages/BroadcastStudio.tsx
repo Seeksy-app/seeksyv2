@@ -811,6 +811,7 @@ export default function BroadcastStudio() {
         <ResizablePanel defaultSize={28} minSize={22} maxSize={35}>
           <StudioRightSidebar
             broadcastId={broadcastId || ''}
+            sessionId={sessionId || ''}
             onAddMedia={(type) => {
               toast({
                 title: "Add Media",
@@ -829,6 +830,20 @@ export default function BroadcastStudio() {
               toast({
                 title: "Theme Changed",
                 description: `Switched to ${theme} theme`,
+                duration: 2000
+              });
+            }}
+            onVideoAdSelect={(ad) => {
+              toast({
+                title: "Video Ad Selected",
+                description: `${ad.title} ready to insert`,
+                duration: 2000
+              });
+            }}
+            onIntroOutroSelect={(item) => {
+              toast({
+                title: `${item.type === 'intro' ? 'Intro' : 'Outro'} Selected`,
+                description: `Ready to use: ${item.title}`,
                 duration: 2000
               });
             }}
