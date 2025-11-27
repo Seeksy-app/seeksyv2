@@ -3026,6 +3026,146 @@ export type Database = {
           },
         ]
       }
+      digital_product_purchases: {
+        Row: {
+          buyer_email: string
+          buyer_name: string | null
+          buyer_user_id: string | null
+          created_at: string | null
+          currency: string
+          download_count: number | null
+          download_limit: number | null
+          expires_at: string | null
+          id: string
+          last_downloaded_at: string | null
+          product_id: string
+          purchase_amount: number
+          purchased_at: string | null
+          status: string | null
+          stripe_customer_id: string | null
+          stripe_payment_intent_id: string | null
+        }
+        Insert: {
+          buyer_email: string
+          buyer_name?: string | null
+          buyer_user_id?: string | null
+          created_at?: string | null
+          currency?: string
+          download_count?: number | null
+          download_limit?: number | null
+          expires_at?: string | null
+          id?: string
+          last_downloaded_at?: string | null
+          product_id: string
+          purchase_amount: number
+          purchased_at?: string | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
+        }
+        Update: {
+          buyer_email?: string
+          buyer_name?: string | null
+          buyer_user_id?: string | null
+          created_at?: string | null
+          currency?: string
+          download_count?: number | null
+          download_limit?: number | null
+          expires_at?: string | null
+          id?: string
+          last_downloaded_at?: string | null
+          product_id?: string
+          purchase_amount?: number
+          purchased_at?: string | null
+          status?: string | null
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "digital_product_purchases_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "digital_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      digital_products: {
+        Row: {
+          created_at: string | null
+          currency: string
+          description: string | null
+          download_limit: number | null
+          file_name: string | null
+          file_size_bytes: number | null
+          file_type: string | null
+          file_url: string | null
+          id: string
+          is_active: boolean | null
+          metadata: Json | null
+          preview_url: string | null
+          price: number
+          product_type: string
+          stripe_price_id: string | null
+          stripe_product_id: string | null
+          thumbnail_url: string | null
+          title: string
+          total_revenue: number | null
+          total_sales: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          currency?: string
+          description?: string | null
+          download_limit?: number | null
+          file_name?: string | null
+          file_size_bytes?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          preview_url?: string | null
+          price: number
+          product_type?: string
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          thumbnail_url?: string | null
+          title: string
+          total_revenue?: number | null
+          total_sales?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          currency?: string
+          description?: string | null
+          download_limit?: number | null
+          file_name?: string | null
+          file_size_bytes?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          preview_url?: string | null
+          price?: number
+          product_type?: string
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          total_revenue?: number | null
+          total_sales?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       document_templates: {
         Row: {
           created_at: string | null
