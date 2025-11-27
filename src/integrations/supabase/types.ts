@@ -5146,6 +5146,39 @@ export type Database = {
           },
         ]
       }
+      my_page_layouts: {
+        Row: {
+          created_at: string | null
+          custom_settings: Json | null
+          element_type: string
+          id: string
+          is_visible: boolean
+          position_order: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          custom_settings?: Json | null
+          element_type: string
+          id?: string
+          is_visible?: boolean
+          position_order?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          custom_settings?: Json | null
+          element_type?: string
+          id?: string
+          is_visible?: boolean
+          position_order?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       my_page_video_impressions: {
         Row: {
           id: string

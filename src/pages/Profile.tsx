@@ -531,11 +531,14 @@ const Profile = () => {
     });
   };
 
-  // Helper to get section visibility and order
-  const getSectionVisibility = (sectionType: string) => {
-    const sectionConfig = sectionOrder.find(s => s.section_type === sectionType);
-    return sectionConfig ? sectionConfig.is_visible : false; // Default to hidden if not configured
+  // Helper to get element visibility from page builder
+  const getElementVisibility = (elementType: string) => {
+    const element = layoutElements.find(el => el.element_type === elementType);
+    return element ? element.is_visible : false;
   };
+  
+  // Get sorted visible elements
+  const sortedElements = [...layoutElements].sort((a, b) => a.position_order - b.position_order);
 
   // Helper to get section display order
   const getSectionOrder = (sectionType: string) => {
