@@ -63,6 +63,10 @@ export const PersonaGrid = () => {
       x: e.clientX,
       y: e.clientY,
     });
+    // Debug log
+    if (hoveredPersona) {
+      console.log('Cursor position:', e.clientX, e.clientY, 'Hovered:', hoveredPersona.name);
+    }
   };
 
   const { data: personas, isLoading } = useQuery({
@@ -140,13 +144,15 @@ export const PersonaGrid = () => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.12 }}
-              className="fixed z-50 pointer-events-none"
+              className="fixed z-[9999] pointer-events-none"
               style={{
+                left: 0,
+                top: 0,
                 transform: `translate3d(${smoothPosition.x + 12}px, ${smoothPosition.y + 12}px, 0)`,
                 willChange: 'transform',
               }}
             >
-              <div className="bg-white text-gray-900 px-6 py-3 rounded-full text-sm font-medium shadow-lg whitespace-nowrap">
+              <div className="bg-white text-gray-900 px-6 py-3 rounded-full text-sm font-medium shadow-2xl whitespace-nowrap border border-gray-200">
                 More about {hoveredPersona.name}
               </div>
             </motion.div>
