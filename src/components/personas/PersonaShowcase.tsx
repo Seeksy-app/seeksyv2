@@ -1,129 +1,100 @@
 import { PersonaCard } from "./PersonaCard";
 import { PersonaModal } from "./PersonaModal";
 import { supabase } from "@/integrations/supabase/client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Persona {
   id: string;
   name: string;
   role: string;
+  tagline: string;
+  description: string;
   videoUrl: string;
   thumbnailUrl?: string;
-  tags: { icon: string; label: string }[];
-  description: string;
+  tags?: { icon: string; label: string }[];
 }
 
-const PERSONAS: Omit<Persona, "videoUrl">[] = [
-  {
-    id: "christy",
-    name: "Christy",
-    role: "Platform Guide & Welcome Host",
-    tags: [
-      { icon: "👋", label: "Welcoming" },
-      { icon: "✨", label: "Enthusiastic" },
-      { icon: "🚀", label: "Inspiring" },
-    ],
-    description:
-      "Meet Christy! She's your friendly guide to Seeksy, here to show you how our all-in-one platform empowers creators to build, grow, and monetize their brand.",
-  },
-  {
-    id: "creator",
-    name: "Creator Alex",
-    role: "Podcaster & Content Creator",
-    tags: [
-      { icon: "🎙️", label: "Creative" },
-      { icon: "⚡", label: "Innovative" },
-      { icon: "🎯", label: "Focused" },
-    ],
-    description:
-      "Meet Alex, a passionate podcaster who uses Seeksy to produce, distribute, and monetize content across all platforms effortlessly.",
-  },
-  {
-    id: "advertiser",
-    name: "Brand Manager Sarah",
-    role: "Advertising & Marketing Lead",
-    tags: [
-      { icon: "💼", label: "Strategic" },
-      { icon: "📊", label: "Data-Driven" },
-      { icon: "🎯", label: "Targeted" },
-    ],
-    description:
-      "Sarah manages campaigns for top brands, leveraging Seeksy's AI-powered ad insertion and precise audience targeting to maximize ROI.",
-  },
-  {
-    id: "agency",
-    name: "Agency Director Mike",
-    role: "Team Lead & Operations",
-    tags: [
-      { icon: "👥", label: "Collaborative" },
-      { icon: "⚙️", label: "Efficient" },
-      { icon: "📈", label: "Scalable" },
-    ],
-    description:
-      "Mike leads a creative agency using Seeksy's team features, project management, and multi-client tools to deliver exceptional results.",
-  },
-];
-
 export const PersonaShowcase = () => {
-  const [personas, setPersonas] = useState<Persona[]>([]);
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
 
-  useEffect(() => {
-    loadPersonaVideos();
-  }, []);
-
-  const loadPersonaVideos = async () => {
-    try {
-      const { data: files, error } = await supabase.storage
-        .from("persona-videos")
-        .list();
+  const { data: personas, isLoading } = useQuery({
+    queryKey: ["ai-personas-showcase"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ai_personas")
+        .select("*")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true })
+        .order("created_at", { ascending: true });
 
       if (error) {
-        console.error("Storage list error:", error);
+        console.error("Error loading personas:", error);
+        toast.error("Failed to load AI personas");
         throw error;
       }
 
-      console.log("Files in persona-videos bucket:", files);
+      // Transform database personas to component format
+      return data.map((p) => ({
+        id: p.id,
+        name: p.name,
+        role: p.role,
+        tagline: p.tagline,
+        description: p.description,
+        videoUrl: p.video_url,
+        thumbnailUrl: p.thumbnail_url || undefined,
+        tags: [], // Can be populated from metadata if needed
+      }));
+    },
+  });
 
-      const personasWithVideos = PERSONAS.map((persona) => {
-        // Try multiple matching strategies
-        const videoFile = files?.find((file) => {
-          const fileName = file.name.toLowerCase();
-          // Match by ID or by key terms in the name
-          return (
-            fileName.includes(persona.id) ||
-            (persona.id === "christy" && (fileName.includes("christy") || fileName.includes("welcome"))) ||
-            (persona.id === "creator" && (fileName.includes("creator") || fileName.includes("podcaster"))) ||
-            (persona.id === "advertiser" && (fileName.includes("advertiser") || fileName.includes("brand") || fileName.includes("sarah"))) ||
-            (persona.id === "agency" && (fileName.includes("agency") || fileName.includes("team") || fileName.includes("mike")))
-          );
-        });
+  if (isLoading) {
+    return (
+      <div className="w-full py-20 px-4 bg-gradient-to-b from-background to-muted/20">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              Meet Your AI Assistants
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Interactive AI personas designed to guide you through Seeksy's
+              powerful features
+            </p>
+          </div>
 
-        console.log(`Persona ${persona.id} matched file:`, videoFile?.name);
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="aspect-[3/4] rounded-2xl" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-        const videoUrl = videoFile
-          ? supabase.storage
-              .from("persona-videos")
-              .getPublicUrl(videoFile.name).data.publicUrl
-          : "";
+  if (!personas || personas.length === 0) {
+    return (
+      <div className="w-full py-20 px-4 bg-gradient-to-b from-background to-muted/20">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              Meet Your AI Assistants
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Interactive AI personas designed to guide you through Seeksy's
+              powerful features
+            </p>
+          </div>
 
-        console.log(`Persona ${persona.id} video URL:`, videoUrl);
-
-        return {
-          ...persona,
-          videoUrl,
-        };
-      });
-
-      setPersonas(personasWithVideos);
-    } catch (error) {
-      console.error("Error loading persona videos:", error);
-      toast.error("Failed to load persona videos");
-      // Set personas without videos as fallback
-      setPersonas(PERSONAS.map(p => ({ ...p, videoUrl: "" })));
-    }
-  };
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">AI personas coming soon! Check back tomorrow.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full py-20 px-4 bg-gradient-to-b from-background to-muted/20">

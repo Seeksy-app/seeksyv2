@@ -188,6 +188,7 @@ import Forms from "./pages/Forms";
 import FormBuilder from "./pages/FormBuilder";
 import PublicForm from "./pages/PublicForm";
 import Personas from "./pages/Personas";
+import VoiceCertification from "./pages/VoiceCertification";
 
 const queryClient = new QueryClient();
 
@@ -274,6 +275,7 @@ const AppContent = () => {
               <Route path="/comparison" element={<Comparison />} />
               <Route path="/credits" element={<Credits />} />
               <Route path="/personas" element={<Personas />} />
+              <Route path="/voice-certification" element={<VoiceCertification />} />
             <Route path="/investor" element={<InvestorPortal />} />
             <Route path="/project-management" element={<ProjectManagement />} />
             <Route path="/client-tickets" element={<ClientTickets />} />
