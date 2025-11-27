@@ -732,85 +732,86 @@ export default function VoiceProtection() {
               {/* Step 3: Record Your Voice */}
               {currentStep === 3 && (
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Record Your Voice</CardTitle>
-                    <CardDescription>
-                      Record a {cloneType === 'instant' ? '2-minute' : '30-minute'} voice sample for cloning
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
+                  <CardContent className="space-y-6 pt-6">
                     {!audioBlob && (
                       <>
-                        <ScriptEditor 
-                          script={script}
-                          onScriptChange={setScript}
-                          cloneType={cloneType}
-                        />
+                        <div className="w-full max-w-4xl mx-auto">
+                          <ScriptEditor 
+                            script={script}
+                            onScriptChange={setScript}
+                            cloneType={cloneType}
+                          />
+                        </div>
 
-                        <div className="max-w-3xl mx-auto space-y-4">
-                          {isRecording && (
-                            <div className="flex items-center justify-center p-6 bg-yellow-500/10 rounded-lg border-2 border-yellow-500">
-                              <Clock className="h-8 w-8 text-yellow-500 mr-3" />
-                              <span className="text-4xl font-bold text-yellow-500">
-                                {formatTime(timeRemaining)}
-                              </span>
-                            </div>
-                          )}
-
-                          {!isRecording && (
+                        {!consentGiven && (
+                          <div className="flex justify-center">
                             <Button
                               onClick={handleStartRecordingClick}
-                              className="w-full"
+                              className="w-full max-w-md"
                               size="lg"
                             >
-                              <Mic className="mr-2 h-5 w-5" />
-                              Start Recording ({cloneType === 'instant' ? '2 minutes' : '30 minutes'})
+                              Next
                             </Button>
-                          )}
-
-                          {isRecording && (
-                            <div className="space-y-3">
-                              <p className="text-sm font-medium text-primary text-center">
-                                {isPaused ? "Recording Paused" : "Recording in Progress..."}
-                              </p>
-                              <div className="grid grid-cols-3 gap-2">
-                                {isPaused ? (
-                                  <Button onClick={resumeRecording} variant="default" className="w-full">
-                                    Resume
-                                  </Button>
-                                ) : (
-                                  <Button onClick={pauseRecording} variant="secondary" className="w-full">
-                                    Pause
-                                  </Button>
-                                )}
-                                <Button onClick={stopRecording} variant="outline" className="w-full">
-                                  Stop
-                                </Button>
-                                <Button 
-                                  onClick={deleteRecording} 
-                                  variant="destructive" 
-                                  className="w-full"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          )}
-
-                          <div className="space-y-2 p-4 bg-muted/50 rounded-lg">
-                            <p className="text-sm font-medium">Quick Tips:</p>
-                            <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
-                              <li>Speak naturally at your normal pace</li>
-                              <li>Use a quiet space with minimal echo</li>
-                              <li>Avoid background noise and distractions</li>
-                            </ul>
                           </div>
-                        </div>
+                        )}
+
+                        {consentGiven && (
+                          <div className="w-full max-w-4xl mx-auto space-y-4">
+                            {isRecording && (
+                              <div className="flex items-center justify-center p-6 bg-yellow-500/10 rounded-lg border-2 border-yellow-500">
+                                <Clock className="h-8 w-8 text-yellow-500 mr-3" />
+                                <span className="text-4xl font-bold text-yellow-500">
+                                  {formatTime(timeRemaining)}
+                                </span>
+                              </div>
+                            )}
+
+                            {!isRecording && (
+                              <Button
+                                onClick={startRecording}
+                                className="w-full"
+                                size="lg"
+                              >
+                                <Mic className="mr-2 h-5 w-5" />
+                                Start Recording ({cloneType === 'instant' ? '2 minutes' : '30 minutes'})
+                              </Button>
+                            )}
+
+                            {isRecording && (
+                              <div className="space-y-3">
+                                <p className="text-sm font-medium text-primary text-center">
+                                  {isPaused ? "Recording Paused" : "Recording in Progress..."}
+                                </p>
+                                <div className="grid grid-cols-3 gap-2">
+                                  {isPaused ? (
+                                    <Button onClick={resumeRecording} variant="default" className="w-full">
+                                      Resume
+                                    </Button>
+                                  ) : (
+                                    <Button onClick={pauseRecording} variant="secondary" className="w-full">
+                                      Pause
+                                    </Button>
+                                  )}
+                                  <Button onClick={stopRecording} variant="outline" className="w-full">
+                                    Stop
+                                  </Button>
+                                  <Button 
+                                    onClick={deleteRecording} 
+                                    variant="destructive" 
+                                    className="w-full"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </>
                     )}
 
                     {audioBlob && (
-                      <div className="max-w-3xl mx-auto space-y-4">
+                      <div className="max-w-4xl mx-auto space-y-4">
                         <div className="p-6 border rounded-lg bg-muted/50 space-y-4">
                           <div className="flex items-center gap-2">
                             <CheckCircle2 className="h-5 w-5 text-primary" />
