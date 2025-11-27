@@ -97,7 +97,6 @@ export const PersonaVideoCard = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="persona-video-card group cursor-pointer relative overflow-hidden rounded-2xl shadow-2xl bg-black aspect-square"
-        style={{ padding: 0, margin: 0, width: '100%', height: '100%' }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onClick={onClick}
@@ -130,6 +129,7 @@ export const PersonaVideoCard = ({
               autoPlay
               preload="auto"
               poster={thumbnailUrl}
+              controls={false}
               controlsList="nodownload nofullscreen noremoteplayback"
               disablePictureInPicture
               style={{ 
@@ -141,8 +141,7 @@ export const PersonaVideoCard = ({
                 border: 'none',
                 outline: 'none',
                 width: '100%',
-                height: '110%',
-                top: '-5%'
+                height: '100%'
               }}
               onCanPlay={(e) => {
                 const video = e.currentTarget;
