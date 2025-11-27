@@ -50,7 +50,8 @@ import {
   Video,
   LineChart,
   Receipt,
-  Volume2
+  Volume2,
+  Camera
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import seeksyLogo from "@/assets/seeksy-logo.png";
@@ -588,6 +589,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     { title: "Persona Management", url: "/admin/personas", icon: Sparkles },
     { title: "Voice Tag & Certification", url: "/voice-tag", icon: Shield },
     { title: "Voice Cloning", url: "/voice-protection", icon: Shield },
+    { title: "Screenshot Generator", url: "/admin/screenshot-generator", icon: Camera },
   ];
 
   // Grey out items for pending advertisers

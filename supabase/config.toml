@@ -96,3 +96,9 @@ verify_jwt = false
 [[functions.daily-ai-blog-posts.schedules]]
 # Runs daily at 9:00 AM UTC (4:00 AM EST / 1:00 AM PST)
 cron = "0 9 * * *"
+
+[functions.generate-screenshot]
+verify_jwt = true
+
+[functions.generate-voice-fingerprint]
+verify_jwt = true
