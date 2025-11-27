@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Volume2, VolumeX } from "lucide-react";
 
 interface PersonaVideoCardProps {
   name: string;
@@ -73,8 +74,10 @@ export const PersonaVideoCard = ({
   tags = [],
 }: PersonaVideoCardProps) => {
   const [isHovering, setIsHovering] = useState(false);
-  const [isFlipped, setIsFlipped] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const modalVideoRef = useRef<HTMLVideoElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   
   const isIframe = videoUrl && (videoUrl.includes('heygen.com') || videoUrl.includes('iframe'));
@@ -82,7 +85,7 @@ export const PersonaVideoCard = ({
   const handleMouseEnter = () => {
     setIsHovering(true);
     onHoverChange?.(true);
-    if (videoRef.current && !isFlipped) {
+    if (videoRef.current) {
       videoRef.current.play().catch(() => {});
     }
   };
@@ -90,47 +93,49 @@ export const PersonaVideoCard = ({
   const handleMouseLeave = () => {
     setIsHovering(false);
     onHoverChange?.(false);
-    if (videoRef.current && !isFlipped) {
+    if (videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
     }
   };
 
   const handleClick = () => {
-    setIsFlipped(!isFlipped);
-    if (!isFlipped && videoRef.current) {
+    setIsModalOpen(true);
+    if (videoRef.current) {
       videoRef.current.pause();
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    if (modalVideoRef.current) {
+      modalVideoRef.current.pause();
+    }
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    if (modalVideoRef.current) {
+      modalVideoRef.current.muted = !isMuted;
     }
   };
 
   return (
     <>
       <style>{videoStyles}</style>
-      <div className="perspective-1000 w-full aspect-[3/4]">
+      <div className="w-full aspect-[3/4]">
         <motion.div
           ref={cardRef}
           initial={{ opacity: 0, y: 20 }}
-          animate={{ 
-            opacity: 1, 
-            y: 0,
-            rotateY: isFlipped ? 180 : 0
-          }}
-          transition={{ 
-            opacity: { duration: 0.5 },
-            y: { duration: 0.5 },
-            rotateY: { duration: 0.6, ease: "easeInOut" }
-          }}
-          className="persona-video-card relative w-full h-full preserve-3d cursor-pointer"
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="persona-video-card relative w-full h-full cursor-pointer"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onClick={handleClick}
-          style={{ transformStyle: 'preserve-3d' }}
         >
-          {/* Front Side - Video with Text Overlays */}
-          <div 
-            className="absolute inset-0 backface-hidden rounded-2xl shadow-2xl bg-black overflow-hidden"
-            style={{ backfaceVisibility: 'hidden' }}
-          >
+          {/* Card - Video with Text Overlays */}
+          <div className="absolute inset-0 rounded-2xl shadow-2xl bg-black overflow-hidden">
             {videoUrl ? (
               isIframe ? (
                 <div className="absolute inset-0 w-full h-full pointer-events-none">
@@ -248,45 +253,117 @@ export const PersonaVideoCard = ({
             </div>
           </div>
 
-          {/* Back Side - Video with Audio */}
-          <div 
-            className="absolute inset-0 backface-hidden rounded-2xl shadow-2xl bg-black overflow-hidden"
-            style={{ 
-              backfaceVisibility: 'hidden',
-              transform: 'rotateY(180deg)'
-            }}
-          >
-            {videoUrl && !isIframe && (
-              <div className="absolute inset-0 w-full h-full overflow-hidden">
-                <video
-                  src={videoUrl}
-                  className="absolute w-full h-full block"
-                  style={{ 
-                    objectFit: 'cover',
-                    objectPosition: 'center center',
-                    pointerEvents: 'none',
-                    display: 'block',
-                    margin: 0,
-                    padding: 0,
-                    border: 'none',
-                    outline: 'none',
-                    width: '100%',
-                    height: '100%'
-                  }}
-                  autoPlay
-                  loop
-                  playsInline
-                  preload="auto"
-                  controls={false}
-                  controlsList="nodownload nofullscreen noremoteplayback"
-                  disablePictureInPicture
-                  onContextMenu={(e) => e.preventDefault()}
-                />
-              </div>
-            )}
-          </div>
         </motion.div>
       </div>
+
+      {/* Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+            onClick={handleCloseModal}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="relative bg-white rounded-3xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button
+                onClick={handleCloseModal}
+                className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/90 hover:bg-white transition-colors"
+              >
+                <X className="w-6 h-6 text-gray-800" />
+              </button>
+
+              <div className="grid md:grid-cols-2 gap-0 h-full">
+                {/* Left: Video */}
+                <div className="relative bg-gray-100 min-h-[400px] md:min-h-[600px]">
+                  {videoUrl && !isIframe && (
+                    <>
+                      <video
+                        ref={modalVideoRef}
+                        src={videoUrl}
+                        className="w-full h-full object-cover"
+                        autoPlay
+                        loop
+                        playsInline
+                        muted={isMuted}
+                      />
+                      {/* Mute/Unmute Button */}
+                      <button
+                        onClick={toggleMute}
+                        className="absolute top-4 left-4 p-3 rounded-full bg-white/90 hover:bg-white transition-colors"
+                      >
+                        {isMuted ? (
+                          <VolumeX className="w-5 h-5 text-gray-800" />
+                        ) : (
+                          <Volume2 className="w-5 h-5 text-gray-800" />
+                        )}
+                      </button>
+                      {/* Name overlay on video */}
+                      <div className="absolute bottom-8 left-8">
+                        <h3 className="text-5xl font-bold text-white tracking-tight drop-shadow-lg">
+                          {name}
+                        </h3>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Right: Info */}
+                <div className="p-8 md:p-12 flex flex-col justify-between">
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-4xl font-bold text-gray-900 mb-2">{name}</h2>
+                      <p className="text-lg text-gray-600">{role}</p>
+                    </div>
+
+                    <p className="text-gray-700 leading-relaxed">
+                      {tagline}
+                    </p>
+
+                    {/* Tags */}
+                    {tags.length > 0 && (
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 mb-3">{name}'s style</p>
+                        <div className="flex flex-wrap gap-3">
+                          {tags.map((tag, index) => (
+                            <div
+                              key={index}
+                              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 text-gray-800 text-sm font-medium"
+                            >
+                              <span>{tag.emoji}</span>
+                              <span>{tag.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* CTA Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onClick();
+                    }}
+                    className="w-full py-4 px-6 bg-green-600 hover:bg-green-700 text-white rounded-full font-semibold text-lg transition-colors"
+                  >
+                    Work with {name}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };
