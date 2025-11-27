@@ -265,12 +265,36 @@ export default function BroadcastStudio() {
   };
 
   const handleGoLive = async () => {
-    if (!sessionId) return;
+    if (!sessionId) {
+      toast({
+        title: "Error",
+        description: "No session ID found",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setIsPreparing(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to broadcast",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Check if media stream is ready
+      if (!streamRef.current) {
+        toast({
+          title: "Error",
+          description: "Camera/microphone not ready. Please allow access.",
+          variant: "destructive"
+        });
+        return;
+      }
 
       // Create broadcast record
       const { data: newBroadcast, error: broadcastError } = await supabase
@@ -289,31 +313,54 @@ export default function BroadcastStudio() {
         .select()
         .single();
 
-      if (broadcastError) throw broadcastError;
+      if (broadcastError) {
+        console.error('Broadcast creation error:', broadcastError);
+        throw new Error(broadcastError.message || 'Failed to create broadcast');
+      }
+
+      if (!newBroadcast) {
+        throw new Error('No broadcast data returned');
+      }
 
       setBroadcastId(newBroadcast.id);
       setIsLive(true);
       setCurrentTime(0);
       setRecordedChunks([]); // Reset chunks
 
+      // Update profile to show live on My Page
+      if (platforms.myPage.enabled) {
+        await supabase
+          .from('profiles')
+          .update({
+            is_live_on_profile: true,
+            live_stream_title: broadcastTitle || 'Untitled Broadcast',
+            live_video_url: 'live' // Placeholder - in production this would be actual stream URL
+          })
+          .eq('id', user.id);
+      }
+
       // Start recording
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'inactive') {
-        mediaRecorderRef.current.start(1000); // Capture data every second
+        try {
+          mediaRecorderRef.current.start(1000); // Capture data every second
+        } catch (recError) {
+          console.error('Recording start error:', recError);
+        }
       }
 
       toast({
         title: "🎉 You're Live!",
-        description: "Broadcasting to selected platforms"
+        description: "Broadcasting to My Page"
       });
 
       // Start real-time features
       subscribeToChat(newBroadcast.id);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error going live:', error);
       toast({
         title: "Error",
-        description: "Failed to start broadcast",
+        description: error?.message || "Failed to start broadcast",
         variant: "destructive"
       });
     } finally {
@@ -336,6 +383,16 @@ export default function BroadcastStudio() {
           ended_at: new Date().toISOString()
         })
         .eq('id', broadcastId);
+
+      // Update profile to remove live status
+      await supabase
+        .from('profiles')
+        .update({
+          is_live_on_profile: false,
+          live_stream_title: null,
+          live_video_url: null
+        })
+        .eq('id', user.id);
 
       setIsLive(false);
       
