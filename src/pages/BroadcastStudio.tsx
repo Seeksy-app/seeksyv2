@@ -692,8 +692,8 @@ export default function BroadcastStudio() {
         {/* Main Content - Video Preview */}
         <ResizablePanel defaultSize={77} minSize={55}>
           <div className="h-full flex flex-col">
-            {/* Video Preview */}
-            <div className="flex-1 bg-black relative">
+          {/* Video Preview */}
+          <div className="h-[calc(100vh-280px)] bg-black relative">
               <video
                 ref={videoRef}
                 autoPlay
@@ -809,7 +809,7 @@ export default function BroadcastStudio() {
         <ResizableHandle />
 
         {/* Right Sidebar - Studio Tools */}
-        <ResizablePanel defaultSize={5} minSize={5} maxSize={8}>
+        <ResizablePanel defaultSize={6} minSize={5} maxSize={8}>
           <StudioRightSidebar
             broadcastId={broadcastId || ''}
             sessionId={sessionId || ''}
