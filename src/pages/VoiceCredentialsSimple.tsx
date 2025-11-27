@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,17 +16,25 @@ import {
   Globe,
   Download,
   ExternalLink,
-  AlertCircle
+  AlertCircle,
+  Share2,
+  Code,
+  QrCode
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { BlockchainExplainer } from "@/components/voice/BlockchainExplainer";
+import { PlatformMonitoringBadge } from "@/components/voice/PlatformMonitoringBadge";
+import { VoiceNFTBadge } from "@/components/VoiceNFTBadge";
 
 export default function VoiceCredentials() {
   const [loading, setLoading] = useState(true);
   const [voiceProfiles, setVoiceProfiles] = useState<any[]>([]);
+  const [certificates, setCertificates] = useState<any[]>([]);
   const [listenAnalytics, setListenAnalytics] = useState<any[]>([]);
   const [proposals, setProposals] = useState<any[]>([]);
   const [socialDetections, setSocialDetections] = useState<any[]>([]);
+  const [badgeShares, setBadgeShares] = useState<any[]>([]);
 
   useEffect(() => {
     fetchData();
@@ -44,6 +52,22 @@ export default function VoiceCredentials() {
         .eq("creator_id", user.id)
         .order("created_at", { ascending: false })
         .then(({ data }: any) => setVoiceProfiles(data || []));
+
+      // Fetch blockchain certificates
+      (supabase as any)
+        .from("voice_blockchain_certificates")
+        .select("*")
+        .eq("creator_id", user.id)
+        .order("created_at", { ascending: false })
+        .then(({ data }: any) => setCertificates(data || []));
+
+      // Fetch badge shares
+      (supabase as any)
+        .from("voice_badge_shares")
+        .select("*")
+        .eq("creator_id", user.id)
+        .order("created_at", { ascending: false })
+        .then(({ data }: any) => setBadgeShares(data || []));
 
       // Fetch listen analytics
       (supabase as any)
@@ -166,20 +190,44 @@ export default function VoiceCredentials() {
         </Card>
       </div>
 
+      {/* Platform Monitoring Active */}
+      <Card className="mb-6 border-2 border-primary/20">
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+              <h3 className="font-bold text-lg mb-1 flex items-center gap-2">
+                <Globe className="h-5 w-5 text-primary" />
+                Cross-Platform Monitoring Active
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Scanning YouTube, Spotify, TikTok, Instagram, Twitter for your certified voice
+              </p>
+            </div>
+            <PlatformMonitoringBadge platforms={['youtube', 'spotify', 'tiktok', 'instagram', 'twitter']} />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Main Content Tabs */}
-      <Tabs defaultValue="analytics">
-        <TabsList className="mb-6">
-          <TabsTrigger value="analytics">Listen Analytics</TabsTrigger>
+      <Tabs defaultValue="social">
+        <TabsList className="mb-6 grid w-full grid-cols-4">
+          <TabsTrigger value="social">
+            <Globe className="h-4 w-4 mr-2" />
+            Social Monitor
+          </TabsTrigger>
           <TabsTrigger value="proposals">
-            Licensing Proposals
+            Licensing
             {pendingProposals > 0 && (
               <Badge variant="destructive" className="ml-2 h-5 px-1.5">
                 {pendingProposals}
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="social">Social Monitor</TabsTrigger>
-          <TabsTrigger value="certificates">Certificates</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="badges">
+            <Share2 className="h-4 w-4 mr-2" />
+            Share
+          </TabsTrigger>
         </TabsList>
 
         {/* Analytics Tab */}
@@ -260,118 +308,215 @@ export default function VoiceCredentials() {
           </div>
         </TabsContent>
 
-        {/* Social Monitor Tab */}
+        {/* Social Monitor Tab - Enhanced */}
         <TabsContent value="social">
+          <Card className="mb-6">
+            <div className="p-6 bg-gradient-to-r from-primary/10 to-accent/10">
+              <div className="flex items-center gap-3 mb-2">
+                <Globe className="h-6 w-6 text-primary" />
+                <h3 className="text-xl font-bold">Cross-Platform Voice Monitoring</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                We track YouTube, Spotify, TikTok, Instagram, and Twitter for your certified voice. 
+                Detections appear automatically when your blockchain-verified voice is found.
+              </p>
+            </div>
+          </Card>
+
           <div className="space-y-4">
             {socialDetections.map((detection: any) => (
-              <Card key={detection.id} className="p-6">
+              <Card key={detection.id} className="p-6 border-2 hover:border-primary/50 transition-all">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <Globe className="h-5 w-5" />
+                    <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
+                      {detection.platform === 'youtube' && <span className="text-2xl">🎥</span>}
+                      {detection.platform === 'spotify' && <span className="text-2xl">🎵</span>}
+                      {detection.platform === 'tiktok' && <span className="text-2xl">📱</span>}
+                      {detection.platform === 'instagram' && <span className="text-2xl">📸</span>}
+                      {detection.platform === 'twitter' && <span className="text-2xl">🐦</span>}
+                      {!['youtube', 'spotify', 'tiktok', 'instagram', 'twitter'].includes(detection.platform) && <Globe className="h-6 w-6" />}
+                    </div>
                     <div>
-                      <h3 className="text-lg font-semibold capitalize">{detection.platform}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Detected {format(new Date(detection.detected_at), "MMM dd, yyyy")}
-                      </p>
+                      <h4 className="text-lg font-semibold line-clamp-1">
+                        {detection.content_title || 'Untitled Content'}
+                      </h4>
+                      <p className="text-sm text-muted-foreground capitalize">{detection.platform}</p>
                     </div>
                   </div>
-                  <Badge variant={detection.is_authorized ? "default" : "destructive"}>
-                    {detection.is_authorized ? "Authorized" : "Unauthorized"}
-                  </Badge>
+                  {detection.is_verified ? (
+                    <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Verified
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600">
+                      <Clock className="h-3 w-3 mr-1" />
+                      Pending
+                    </Badge>
+                  )}
                 </div>
 
-                {detection.post_url && (
-                  <div className="mb-4">
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={detection.post_url} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="mr-2 h-4 w-4" />
-                        View Post
-                      </a>
-                    </Button>
-                  </div>
+                {detection.content_description && (
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                    {detection.content_description}
+                  </p>
                 )}
 
-                <div className="flex items-center gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Confidence: </span>
-                    <span className="font-medium">{detection.confidence_score}%</span>
+                <div className="flex items-center gap-6 text-sm text-muted-foreground mb-4">
+                  <div className="flex items-center gap-1">
+                    <LineChart className="h-4 w-4" />
+                    <span>{detection.view_count?.toLocaleString() || 0} views</span>
                   </div>
-                  <div>
-                    <span className="text-muted-foreground">Status: </span>
-                    <span className="font-medium capitalize">{detection.verification_status}</span>
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    <span>{format(new Date(detection.detected_at), "MMM dd, yyyy")}</span>
                   </div>
+                  {detection.confidence_score && (
+                    <div className="flex items-center gap-1">
+                      <Shield className="h-4 w-4" />
+                      <span>{detection.confidence_score}% match</span>
+                    </div>
+                  )}
                 </div>
+
+                {detection.content_url && (
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={detection.content_url} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      View Content
+                    </a>
+                  </Button>
+                )}
               </Card>
             ))}
             {socialDetections.length === 0 && (
-              <Card className="p-12 text-center">
-                <Globe className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Detections Yet</h3>
-                <p className="text-muted-foreground">Voice usage across social platforms will appear here</p>
+              <Card className="p-12 text-center border-2 border-dashed">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 mx-auto mb-4 flex items-center justify-center">
+                  <Globe className="h-10 w-10 text-primary" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Monitoring Active</h3>
+                <p className="text-muted-foreground max-w-md mx-auto mb-4">
+                  We're scanning YouTube, Spotify, TikTok, Instagram, and Twitter for your certified voice. 
+                  Detections will appear here automatically.
+                </p>
+                <div className="flex items-center justify-center gap-4 text-sm">
+                  <Badge variant="outline" className="gap-1">
+                    <CheckCircle className="h-3 w-3" />
+                    YouTube
+                  </Badge>
+                  <Badge variant="outline" className="gap-1">
+                    <CheckCircle className="h-3 w-3" />
+                    Spotify
+                  </Badge>
+                  <Badge variant="outline" className="gap-1">
+                    <CheckCircle className="h-3 w-3" />
+                    TikTok
+                  </Badge>
+                  <Badge variant="outline" className="gap-1">
+                    <CheckCircle className="h-3 w-3" />
+                    Instagram
+                  </Badge>
+                  <Badge variant="outline" className="gap-1">
+                    <CheckCircle className="h-3 w-3" />
+                    Twitter
+                  </Badge>
+                </div>
               </Card>
             )}
           </div>
         </TabsContent>
 
-        {/* Certificates Tab */}
-        <TabsContent value="certificates">
-          <div className="space-y-4">
-            {voiceProfiles.map((profile: any) => (
-              <Card key={profile.id} className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-lg font-semibold">{profile.voice_name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Created {format(new Date(profile.created_at), "MMM dd, yyyy")}
-                    </p>
-                  </div>
-                  <Badge variant="default" className="gap-1">
-                    <Shield className="h-3 w-3" />
-                    Certified
-                  </Badge>
-                </div>
+        {/* Share Badges Tab */}
+        <TabsContent value="badges">
+          <div className="grid gap-6 mb-8">
+            {/* Blockchain Explainer */}
+            {certificates.length > 0 && (
+              <BlockchainExplainer 
+                tokenId={certificates[0]?.token_id}
+                transactionHash={certificates[0]?.transaction_hash}
+              />
+            )}
 
-                {profile.profile_image_url && (
-                  <img
-                    src={profile.profile_image_url}
-                    alt={profile.voice_name}
-                    className="w-20 h-20 rounded-full object-cover mb-4"
-                  />
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Price per Use</p>
-                    <p className="text-xl font-bold">${profile.price_per_ad}</p>
+            <div className="grid gap-6 md:grid-cols-3">
+              {/* Embed Badge */}
+              <Card>
+                <div className="p-6">
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                    <Code className="h-6 w-6 text-primary" />
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Status</p>
-                    <p className="font-medium">
-                      {profile.is_available_for_ads ? "Available" : "Not Available"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download Certificate
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    View QR Code
+                  <h3 className="font-bold text-lg mb-2">Embed on Website</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Add verification badge to your site or blog
+                  </p>
+                  <Button className="w-full" variant="outline">
+                    Get Code
                   </Button>
                 </div>
               </Card>
-            ))}
-            {voiceProfiles.length === 0 && (
-              <Card className="p-12 text-center">
-                <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Voice Profiles</h3>
-                <p className="text-muted-foreground mb-4">Create a voice profile to get started with voice credentials</p>
-                <Button asChild>
-                  <a href="/voice-protection">Create Voice Profile</a>
-                </Button>
+
+              {/* Share Link */}
+              <Card>
+                <div className="p-6">
+                  <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
+                    <Share2 className="h-6 w-6 text-accent" />
+                  </div>
+                  <h3 className="font-bold text-lg mb-2">Share Link</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Direct link to blockchain certificate
+                  </p>
+                  <Button className="w-full" variant="outline">
+                    Copy Link
+                  </Button>
+                </div>
+              </Card>
+
+              {/* QR Code */}
+              <Card>
+                <div className="p-6">
+                  <div className="w-12 h-12 rounded-lg bg-brand-gold/10 flex items-center justify-center mb-4">
+                    <QrCode className="h-6 w-6 text-brand-gold" />
+                  </div>
+                  <h3 className="font-bold text-lg mb-2">QR Code</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Download for offline verification
+                  </p>
+                  <Button className="w-full" variant="outline">
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+                </div>
+              </Card>
+            </div>
+
+            {/* Badge Share Stats */}
+            {badgeShares.length > 0 && (
+              <Card>
+                <div className="p-6">
+                  <h3 className="font-bold text-lg mb-4">Badge Share Activity</h3>
+                  <div className="space-y-3">
+                    {badgeShares.map((share: any) => (
+                      <div key={share.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-background flex items-center justify-center">
+                            {share.share_type === 'embed' && <Code className="h-5 w-5" />}
+                            {share.share_type === 'link' && <Share2 className="h-5 w-5" />}
+                            {share.share_type === 'qr_code' && <QrCode className="h-5 w-5" />}
+                          </div>
+                          <div>
+                            <p className="font-medium capitalize">{share.share_type.replace('_', ' ')}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {format(new Date(share.created_at), "MMM dd, yyyy")}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold">{share.view_count} views</p>
+                          <p className="text-xs text-muted-foreground">{share.verification_count} verified</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </Card>
             )}
           </div>

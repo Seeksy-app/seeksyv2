@@ -9163,6 +9163,53 @@ export type Database = {
           },
         ]
       }
+      voice_badge_shares: {
+        Row: {
+          created_at: string | null
+          creator_id: string
+          id: string
+          platform: string | null
+          share_type: string
+          shared_url: string | null
+          updated_at: string | null
+          verification_count: number | null
+          view_count: number | null
+          voice_profile_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          creator_id: string
+          id?: string
+          platform?: string | null
+          share_type: string
+          shared_url?: string | null
+          updated_at?: string | null
+          verification_count?: number | null
+          view_count?: number | null
+          voice_profile_id: string
+        }
+        Update: {
+          created_at?: string | null
+          creator_id?: string
+          id?: string
+          platform?: string | null
+          share_type?: string
+          shared_url?: string | null
+          updated_at?: string | null
+          verification_count?: number | null
+          view_count?: number | null
+          voice_profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_badge_shares_voice_profile_id_fkey"
+            columns: ["voice_profile_id"]
+            isOneToOne: false
+            referencedRelation: "creator_voice_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       voice_blockchain_certificates: {
         Row: {
           blockchain_network: string
@@ -9393,6 +9440,74 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "voice_social_detections_voice_profile_id_fkey"
+            columns: ["voice_profile_id"]
+            isOneToOne: false
+            referencedRelation: "creator_voice_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voice_social_media_usage: {
+        Row: {
+          confidence_score: number | null
+          content_description: string | null
+          content_title: string | null
+          content_url: string | null
+          created_at: string | null
+          creator_id: string
+          detected_at: string | null
+          engagement_metrics: Json | null
+          id: string
+          is_authorized: boolean | null
+          is_verified: boolean | null
+          metadata: Json | null
+          platform: string
+          thumbnail_url: string | null
+          updated_at: string | null
+          view_count: number | null
+          voice_profile_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          content_description?: string | null
+          content_title?: string | null
+          content_url?: string | null
+          created_at?: string | null
+          creator_id: string
+          detected_at?: string | null
+          engagement_metrics?: Json | null
+          id?: string
+          is_authorized?: boolean | null
+          is_verified?: boolean | null
+          metadata?: Json | null
+          platform: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
+          view_count?: number | null
+          voice_profile_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          content_description?: string | null
+          content_title?: string | null
+          content_url?: string | null
+          created_at?: string | null
+          creator_id?: string
+          detected_at?: string | null
+          engagement_metrics?: Json | null
+          id?: string
+          is_authorized?: boolean | null
+          is_verified?: boolean | null
+          metadata?: Json | null
+          platform?: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
+          view_count?: number | null
+          voice_profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_social_media_usage_voice_profile_id_fkey"
             columns: ["voice_profile_id"]
             isOneToOne: false
             referencedRelation: "creator_voice_profiles"
