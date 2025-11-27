@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PersonaVideoCard } from "./PersonaVideoCard";
 import { PersonaModal } from "./PersonaModal";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motion } from "framer-motion";
 
 interface Persona {
   id: string;
@@ -17,6 +18,15 @@ interface Persona {
 
 export const PersonaGrid = () => {
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
+  const [hoveredPersona, setHoveredPersona] = useState<string | null>(null);
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    setCursorPosition({
+      x: e.clientX,
+      y: e.clientY,
+    });
+  };
 
   const { data: personas, isLoading } = useQuery({
     queryKey: ["ai-personas"],
@@ -53,7 +63,10 @@ export const PersonaGrid = () => {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div 
+        className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+        onMouseMove={handleMouseMove}
+      >
         {personas.map((persona) => (
           <PersonaVideoCard
             key={persona.id}
@@ -63,8 +76,26 @@ export const PersonaGrid = () => {
             videoUrl={persona.video_url}
             thumbnailUrl={persona.thumbnail_url || undefined}
             onClick={() => setSelectedPersona(persona)}
+            onHoverChange={(isHovering) => setHoveredPersona(isHovering ? persona.name : null)}
           />
         ))}
+        
+        {/* Shared pill that follows cursor across all cards */}
+        {hoveredPersona && (
+          <div
+            className="fixed z-50 pointer-events-none"
+            style={{
+              left: cursorPosition.x + 12,
+              top: cursorPosition.y + 12,
+              transition: 'left 0.15s ease-out, top 0.15s ease-out, opacity 0.12s ease-out',
+              opacity: 1,
+            }}
+          >
+            <div className="bg-white text-black px-5 py-2.5 rounded-full text-sm font-semibold shadow-xl whitespace-nowrap">
+              More about {hoveredPersona}
+            </div>
+          </div>
+        )}
       </div>
 
       <PersonaModal
