@@ -1,15 +1,43 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Shield, Fingerprint, Plus, Calendar, CheckCircle2, Award, ExternalLink } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { Shield, Fingerprint, Plus, Calendar, CheckCircle2, Award, ExternalLink, Edit2, Trash2 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { VoiceCertifiedBadge } from "@/components/VoiceCertifiedBadge";
 import { VoiceNFTBadge } from "@/components/VoiceNFTBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 
 export default function VoiceTagAdmin() {
   const [showCreationFlow, setShowCreationFlow] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedVoice, setSelectedVoice] = useState<any>(null);
+  const [editForm, setEditForm] = useState({ voice_name: "", usage_terms: "", price_per_ad: 0 });
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Get current user
   const [user, setUser] = useState<any>(null);
@@ -61,13 +89,99 @@ export default function VoiceTagAdmin() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('voice_blockchain_certificates')
-        .select('*, creator_voice_profiles(voice_name)')
+        .select('*, creator_voice_profiles(voice_name, usage_terms, price_per_ad, id)')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       return data;
     },
   });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (voiceProfileId: string) => {
+      const { error } = await supabase
+        .from('creator_voice_profiles')
+        .delete()
+        .eq('id', voiceProfileId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['voice-blockchain-certificates'] });
+      toast({
+        title: "Voice Deleted",
+        description: "Voice profile has been permanently removed.",
+      });
+      setDeleteDialogOpen(false);
+      setSelectedVoice(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Delete Failed",
+        description: error instanceof Error ? error.message : "Failed to delete voice profile",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Edit mutation
+  const editMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: any }) => {
+      const { error } = await supabase
+        .from('creator_voice_profiles')
+        .update(updates)
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['voice-blockchain-certificates'] });
+      toast({
+        title: "Voice Updated",
+        description: "Voice profile has been updated successfully.",
+      });
+      setEditDialogOpen(false);
+      setSelectedVoice(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Update Failed",
+        description: error instanceof Error ? error.message : "Failed to update voice profile",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDelete = (cert: any) => {
+    setSelectedVoice(cert);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleEdit = (cert: any) => {
+    setSelectedVoice(cert);
+    setEditForm({
+      voice_name: cert.creator_voice_profiles?.voice_name || "",
+      usage_terms: cert.creator_voice_profiles?.usage_terms || "",
+      price_per_ad: cert.creator_voice_profiles?.price_per_ad || 0,
+    });
+    setEditDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (selectedVoice?.creator_voice_profiles?.id) {
+      deleteMutation.mutate(selectedVoice.creator_voice_profiles.id);
+    }
+  };
+
+  const confirmEdit = () => {
+    if (selectedVoice?.creator_voice_profiles?.id) {
+      editMutation.mutate({
+        id: selectedVoice.creator_voice_profiles.id,
+        updates: editForm,
+      });
+    }
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -231,6 +345,24 @@ export default function VoiceTagAdmin() {
                               showLink={false}
                             />
                           </div>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => handleEdit(cert)}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive hover:text-destructive"
+                              onClick={() => handleDelete(cert)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-4">
@@ -337,6 +469,81 @@ export default function VoiceTagAdmin() {
           </Card>
         </>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Voice Profile?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete "{selectedVoice?.creator_voice_profiles?.voice_name}" and cannot be undone. 
+              The blockchain certificate will remain on-chain but the profile will be removed from your account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit Voice Profile</DialogTitle>
+            <DialogDescription>
+              Update the details for your voice profile
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="voice_name">Voice Name</Label>
+              <Input
+                id="voice_name"
+                value={editForm.voice_name}
+                onChange={(e) => setEditForm({ ...editForm, voice_name: e.target.value })}
+                placeholder="Enter voice name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="usage_terms">Usage Terms</Label>
+              <Textarea
+                id="usage_terms"
+                value={editForm.usage_terms}
+                onChange={(e) => setEditForm({ ...editForm, usage_terms: e.target.value })}
+                placeholder="Usage terms for this voice..."
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="price_per_ad">Price per Ad ($)</Label>
+              <Input
+                id="price_per_ad"
+                type="number"
+                value={editForm.price_per_ad}
+                onChange={(e) => setEditForm({ ...editForm, price_per_ad: parseFloat(e.target.value) })}
+                placeholder="50"
+                min="0"
+                step="1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmEdit} disabled={editMutation.isPending}>
+              {editMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
