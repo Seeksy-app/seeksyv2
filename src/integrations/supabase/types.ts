@@ -2416,7 +2416,9 @@ export type Database = {
       contacts: {
         Row: {
           address: string | null
+          city: string | null
           company: string | null
+          country: string | null
           created_at: string
           email: string
           id: string
@@ -2427,13 +2429,18 @@ export type Database = {
           phone: string | null
           pipeline_stage_id: string | null
           sales_rep_id: string | null
+          state: string | null
+          street: string | null
           title: string | null
           updated_at: string
           user_id: string | null
+          zip_code: string | null
         }
         Insert: {
           address?: string | null
+          city?: string | null
           company?: string | null
+          country?: string | null
           created_at?: string
           email: string
           id?: string
@@ -2444,13 +2451,18 @@ export type Database = {
           phone?: string | null
           pipeline_stage_id?: string | null
           sales_rep_id?: string | null
+          state?: string | null
+          street?: string | null
           title?: string | null
           updated_at?: string
           user_id?: string | null
+          zip_code?: string | null
         }
         Update: {
           address?: string | null
+          city?: string | null
           company?: string | null
+          country?: string | null
           created_at?: string
           email?: string
           id?: string
@@ -2461,9 +2473,12 @@ export type Database = {
           phone?: string | null
           pipeline_stage_id?: string | null
           sales_rep_id?: string | null
+          state?: string | null
+          street?: string | null
           title?: string | null
           updated_at?: string
           user_id?: string | null
+          zip_code?: string | null
         }
         Relationships: [
           {

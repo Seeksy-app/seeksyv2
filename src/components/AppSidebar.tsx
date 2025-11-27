@@ -229,7 +229,8 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     if (pathname.startsWith('/admin')) {
       // Determine which admin subsection
       if (pathname.includes('/personas') || pathname.includes('/voice-protection')) return 'adminContentManagement';
-      if (pathname.includes('/sales') || pathname.includes('/marketing') || pathname.includes('/newsletter')) return 'adminMarketingSales';
+      if (pathname.includes('/sales')) return 'adminCRM';
+      if (pathname.includes('/marketing') || pathname.includes('/newsletter')) return 'adminMarketingSales';
       if (pathname.includes('/tickets') || pathname.includes('/communication-history')) return 'adminCustomerSupport';
       if (pathname.includes('/team') || pathname.includes('/projects')) return 'adminManagement';
       if (pathname.includes('/clients') || pathname.includes('/creators') || pathname.includes('/agencies')) return 'adminClientManagement';
@@ -239,6 +240,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       if (pathname.includes('/advertiser') || pathname.includes('/campaigns')) return 'adminAdvertising';
       return 'adminCustomerSupport'; // default admin section
     }
+    if (pathname.startsWith('/crm')) return 'adminCRM';
     return 'main'; // default fallback
   };
 
@@ -255,6 +257,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     engagement: activeSection === 'engagement',
     admin: false,
     adminCustomerSupport: activeSection === 'adminCustomerSupport',
+    adminCRM: activeSection === 'adminCRM',
     adminManagement: activeSection === 'adminManagement',
     adminClientManagement: activeSection === 'adminClientManagement',
     adminAnalytics: activeSection === 'adminAnalytics',
@@ -532,8 +535,12 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     { title: "Communication History", url: "/communication-history", icon: Mail },
   ];
 
+  const adminCRM = [
+    { title: "Contacts", url: "/crm", icon: Users },
+    { title: "Sales Pipeline", url: "/admin/sales", icon: TrendingUp },
+  ];
+
   const adminManagement = [
-    { title: "CRM / Contacts", url: "/crm", icon: Users },
     { title: "Impersonate User", url: "/admin/impersonate", icon: UserCog },
     { title: "Manage Credits", url: "/admin/credits", icon: Coins },
   ];
@@ -574,7 +581,6 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     { title: "Marketing", url: "/marketing", icon: Mail },
     { title: "Newsletter", url: "/newsletter", icon: Mail },
     { title: "App Audio", url: "/marketing/app-audio", icon: Volume2 },
-    { title: "Sales & Leads", url: "/admin/sales", icon: TrendingUp },
     { title: "Lead Pixel", url: "/leads-dashboard", icon: Code },
   ];
 
@@ -1537,6 +1543,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
         {/* Admin Categories */}
         {renderAdminCategory("Customer Support", adminCustomerSupport, "adminCustomerSupport")}
+        {renderAdminCategory("CRM", adminCRM, "adminCRM")}
         {renderAdminCategory("Management", adminManagement, "adminManagement")}
         {renderAdminCategory("Client Management", adminClientManagement, "adminClientManagement")}
         {renderAdminCategory("Analytics", adminAnalytics, "adminAnalytics")}
