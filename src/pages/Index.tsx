@@ -86,9 +86,12 @@ const Index = () => {
                   <span className="h-2 w-2 rounded-full bg-brand-gold" />
                   <span className="text-white font-semibold text-sm">100% Creator-Owned</span>
                 </div>
-                <div className="flex items-center gap-2 bg-black/40 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
+                <div 
+                  className="flex items-center gap-2 bg-black/40 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20 cursor-pointer hover:bg-white/10 transition-all"
+                  onClick={() => navigate("/voice-certification")}
+                >
                   <span className="h-2 w-2 rounded-full bg-brand-orange" />
-                  <span className="text-white font-semibold text-sm">Verified Creators</span>
+                  <span className="text-white font-semibold text-sm">Voice Certified ✓</span>
                 </div>
                 <div className="flex items-center gap-2 bg-black/40 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
                   <span className="h-2 w-2 rounded-full bg-brand-gold" />
@@ -594,8 +597,12 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t border-border/50 py-12 bg-muted/20">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-center items-center gap-6 mb-6">
+          <div className="flex flex-col md:flex-row justify-center items-center gap-6 mb-6 flex-wrap">
             <a href="/pricing" className="text-lg hover:text-brand-gold transition-colors font-medium">Pricing</a>
+            <span className="hidden md:inline text-brand-gold">•</span>
+            <a href="/personas" className="text-lg hover:text-brand-gold transition-colors font-medium">AI Personas</a>
+            <span className="hidden md:inline text-brand-gold">•</span>
+            <a href="/voice-certification" className="text-lg hover:text-brand-gold transition-colors font-medium">Voice Certification</a>
             <span className="hidden md:inline text-brand-gold">•</span>
             <a href="/security" className="text-lg hover:text-brand-gold transition-colors font-medium">Security</a>
             <span className="hidden md:inline text-brand-gold">•</span>
