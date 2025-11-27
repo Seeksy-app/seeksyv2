@@ -100,7 +100,6 @@ import VoiceProtection from "./pages/VoiceProtection";
 import CreateAudioAdCampaign from "./pages/CreateAudioAdCampaign";
 import AdvertiserCampaignDashboard from "./pages/AdvertiserCampaignDashboard";
 import AdvertiserCampaignDetail from "./pages/AdvertiserCampaignDetail";
-import Studio from "./pages/Studio";
 import BroadcastStudio from "./pages/BroadcastStudio";
 import CreditInfo from "./pages/CreditInfo";
 import StudioTemplates from "./pages/StudioTemplates";
@@ -387,7 +386,7 @@ const AppContent = () => {
               <Route path="/credit-info" element={<CreditInfo />} />
               <Route path="/qr-codes" element={<QRCodes />} />
           <Route path="/studio" element={<StudioTemplates />} />
-          <Route path="/studio/session/:id" element={<Studio />} />
+          <Route path="/studio/session/:id" element={<BroadcastStudio />} />
           <Route path="/studio/broadcast/:id" element={<BroadcastStudio />} />
           <Route path="/media-library" element={<MediaLibrary />} />
           <Route path="/update-media-durations" element={<UpdateMediaDurations />} />
