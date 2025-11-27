@@ -22,6 +22,18 @@ export const PersonaGrid = () => {
   const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
   const [smoothPosition, setSmoothPosition] = useState({ x: 0, y: 0 });
   const animationFrameRef = useRef<number>();
+  const isFirstHoverRef = useRef(true);
+
+  // When hovering starts, initialize smooth position to cursor position
+  useEffect(() => {
+    if (hoveredPersona && isFirstHoverRef.current) {
+      setSmoothPosition(cursorPosition);
+      isFirstHoverRef.current = false;
+    }
+    if (!hoveredPersona) {
+      isFirstHoverRef.current = true;
+    }
+  }, [hoveredPersona, cursorPosition]);
 
   // Smooth interpolation using requestAnimationFrame
   useEffect(() => {
