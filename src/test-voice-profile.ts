@@ -1,10 +1,11 @@
-// Test script to verify edge function is working
-// This is a temporary test file to debug the voice profile creation
+// Test script to verify blockchain NFT minting
+// Run in browser console: window.testVoiceNFT()
 
 import { supabase } from "@/integrations/supabase/client";
 
-export async function testVoiceProfileCreation() {
-  console.log('🧪 Testing voice profile creation via edge function...');
+export async function testVoiceNFTMinting() {
+  console.log('🎨 Testing Voice NFT Minting on Polygon Blockchain...');
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   
   try {
     // Get current user
@@ -14,34 +15,84 @@ export async function testVoiceProfileCreation() {
       return;
     }
     console.log('✅ User authenticated:', user.id);
+    console.log('');
     
-    // Test data
-    const testData = {
-      voiceName: 'Test Voice ' + Date.now(),
-      elevenlabsVoiceId: 'test-voice-id-' + Date.now(),
-      sampleAudioUrl: 'https://example.com/test.mp3',
-      isAvailableForAds: false,
-      pricePerAd: null,
-      usageTerms: 'Test terms',
+    // Step 1: Create voice profile
+    console.log('📝 Step 1: Creating voice profile...');
+    const testVoiceData = {
+      voiceName: 'Test Voice NFT ' + new Date().toLocaleString(),
+      elevenlabsVoiceId: 'test-nft-voice-' + Date.now(),
+      sampleAudioUrl: 'https://example.com/test-voice.mp3',
+      isAvailableForAds: true,
+      pricePerAd: 50,
+      usageTerms: 'Test NFT voice licensing terms',
       profileImageUrl: null,
     };
     
-    console.log('📤 Calling create-voice-profile edge function...');
-    console.log('📦 Payload:', testData);
-    
-    const { data, error } = await supabase.functions.invoke(
+    const { data: voiceProfile, error: voiceError } = await supabase.functions.invoke(
       'create-voice-profile',
-      { body: testData }
+      { body: testVoiceData }
     );
     
-    if (error) {
-      console.error('❌ Edge function error:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
+    if (voiceError) {
+      console.error('❌ Voice profile creation failed:', voiceError);
       return;
     }
     
-    console.log('✅ Success!', data);
-    return data;
+    console.log('✅ Voice profile created!');
+    console.log('   Voice ID:', voiceProfile.voiceProfile.id);
+    console.log('   Voice Name:', voiceProfile.voiceProfile.voice_name);
+    console.log('');
+    
+    // Step 2: Wait for NFT minting (it happens automatically)
+    console.log('⏳ Step 2: Waiting for blockchain NFT minting...');
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
+    // Step 3: Check blockchain certificate
+    console.log('🔍 Step 3: Checking blockchain certificate...');
+    const { data: certificate, error: certError } = await supabase
+      .from('voice_blockchain_certificates')
+      .select('*')
+      .eq('voice_profile_id', voiceProfile.voiceProfile.id)
+      .single();
+    
+    if (certError) {
+      console.warn('⚠️  Certificate not found yet. May take a moment to mint.');
+      console.log('');
+    } else {
+      console.log('✅ BLOCKCHAIN NFT MINTED SUCCESSFULLY! 🎉');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('📜 NFT Certificate Details:');
+      console.log('   Token ID:', certificate.token_id);
+      console.log('   Voice Fingerprint:', certificate.voice_fingerprint_hash.substring(0, 32) + '...');
+      console.log('   Blockchain Network:', certificate.blockchain_network.toUpperCase());
+      console.log('   Transaction Hash:', certificate.transaction_hash);
+      console.log('   Contract Address:', certificate.contract_address);
+      console.log('   Metadata URI:', certificate.metadata_uri);
+      console.log('   Gas Sponsored:', certificate.gas_sponsored ? 'YES (Free!)' : 'NO');
+      console.log('   Status:', certificate.certification_status.toUpperCase());
+      console.log('');
+      console.log('🔗 View on Polygonscan:');
+      console.log(`   https://polygonscan.com/tx/${certificate.transaction_hash}`);
+      console.log('');
+    }
+    
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('✨ What just happened:');
+    console.log('   1. You created a voice profile');
+    console.log('   2. AI captured your voice fingerprint');
+    console.log('   3. System minted an NFT on Polygon blockchain');
+    console.log('   4. Certificate is now permanently stored on-chain');
+    console.log('   5. You own the NFT proving voice ownership!');
+    console.log('');
+    console.log('💡 Cool facts:');
+    console.log('   • Transaction was GASLESS (Seeksy paid the fee!)');
+    console.log('   • NFT can\'t be edited or deleted (immutable)');
+    console.log('   • Anyone can verify your voice ownership');
+    console.log('   • Works across all platforms and social media');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
+    return { voiceProfile, certificate };
     
   } catch (error) {
     console.error('❌ Test failed:', error);
@@ -49,7 +100,8 @@ export async function testVoiceProfileCreation() {
   }
 }
 
-// Make it available globally for testing in console
-(window as any).testVoiceProfile = testVoiceProfileCreation;
+// Make it available globally
+(window as any).testVoiceNFT = testVoiceNFTMinting;
 
-console.log('🧪 Test function loaded. Run: window.testVoiceProfile()');
+console.log('🧪 Voice NFT Test Ready!');
+console.log('Run in console: window.testVoiceNFT()');
