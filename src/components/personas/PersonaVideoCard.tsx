@@ -12,50 +12,52 @@ interface PersonaVideoCardProps {
   tags?: Array<{ emoji: string; label: string }>;
 }
 
-// CSS to completely hide ALL video controls - aggressive approach
+// CSS to completely hide ALL video controls - most aggressive approach
 const videoStyles = `
-  video {
+  .persona-video-card video {
     display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
   }
-  video::-webkit-media-controls {
+  .persona-video-card video::-webkit-media-controls {
     display: none !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
+    -webkit-appearance: none !important;
   }
-  video::-webkit-media-controls-enclosure {
-    display: none !important;
-  }
-  video::-webkit-media-controls-panel {
-    display: none !important;
-  }
-  video::-webkit-media-controls-play-button {
+  .persona-video-card video::-webkit-media-controls-enclosure {
     display: none !important;
   }
-  video::-webkit-media-controls-start-playback-button {
+  .persona-video-card video::-webkit-media-controls-panel {
     display: none !important;
   }
-  video::-webkit-media-controls-timeline {
+  .persona-video-card video::-webkit-media-controls-play-button {
     display: none !important;
   }
-  video::-webkit-media-controls-current-time-display {
+  .persona-video-card video::-webkit-media-controls-start-playback-button {
     display: none !important;
   }
-  video::-webkit-media-controls-time-remaining-display {
+  .persona-video-card video::-webkit-media-controls-timeline {
     display: none !important;
   }
-  video::-webkit-media-controls-volume-slider {
+  .persona-video-card video::-webkit-media-controls-current-time-display {
     display: none !important;
   }
-  video::-webkit-media-controls-mute-button {
+  .persona-video-card video::-webkit-media-controls-time-remaining-display {
     display: none !important;
   }
-  video::-webkit-media-controls-fullscreen-button {
+  .persona-video-card video::-webkit-media-controls-volume-slider {
     display: none !important;
   }
-  video::-webkit-media-controls-overlay-play-button {
+  .persona-video-card video::-webkit-media-controls-mute-button {
     display: none !important;
   }
-  video::-internal-media-controls-overlay-cast-button {
+  .persona-video-card video::-webkit-media-controls-fullscreen-button {
+    display: none !important;
+  }
+  .persona-video-card video::-webkit-media-controls-overlay-play-button {
+    display: none !important;
+  }
+  .persona-video-card video::-internal-media-controls-overlay-cast-button {
     display: none !important;
   }
 `;
@@ -94,8 +96,8 @@ export const PersonaVideoCard = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="group cursor-pointer relative overflow-hidden rounded-2xl shadow-2xl bg-black aspect-square"
-        style={{ padding: 0, margin: 0 }}
+        className="persona-video-card group cursor-pointer relative overflow-hidden rounded-2xl shadow-2xl bg-black aspect-square"
+        style={{ padding: 0, margin: 0, width: '100%', height: '100%' }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onClick={onClick}
@@ -126,8 +128,6 @@ export const PersonaVideoCard = ({
             playsInline
             autoPlay
             preload="auto"
-            disablePictureInPicture
-            disableRemotePlayback
             poster={thumbnailUrl}
             style={{ 
               objectFit: 'cover',
@@ -136,23 +136,30 @@ export const PersonaVideoCard = ({
               margin: 0,
               padding: 0,
               border: 'none',
-              outline: 'none'
+              outline: 'none',
+              width: '100%',
+              height: '100%'
             }}
             onCanPlay={(e) => {
               const video = e.currentTarget;
               video.muted = true;
               video.removeAttribute('controls');
+              video.setAttribute('playsinline', 'true');
               video.play().catch(() => {});
             }}
             onLoadedMetadata={(e) => {
               const video = e.currentTarget;
               video.muted = true;
               video.removeAttribute('controls');
+              video.setAttribute('playsinline', 'true');
               video.play().catch(() => {});
             }}
             onPlay={(e) => {
-              const video = e.currentTarget;
-              video.removeAttribute('controls');
+              e.currentTarget.removeAttribute('controls');
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
             }}
             onContextMenu={(e) => e.preventDefault()}
           />
