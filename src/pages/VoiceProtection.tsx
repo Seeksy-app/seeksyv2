@@ -152,8 +152,12 @@ export default function VoiceProtection() {
         throw new Error("Missing audio or voice name");
       }
 
-      // Upload audio to storage
-      const fileName = `voice-samples/${Date.now()}.mp3`;
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Upload audio to storage with user ID in path
+      const fileName = `${user.id}/voice-samples/${Date.now()}.mp3`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('audio-ads-generated')
         .upload(fileName, audioBlob, {
@@ -181,14 +185,11 @@ export default function VoiceProtection() {
 
       if (cloneError) throw cloneError;
 
-      // Save voice profile
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Not authenticated");
-
+      // Save voice profile (using user from above)
       const { error: insertError } = await supabase
         .from('creator_voice_profiles')
         .insert({
-          user_id: user.user.id,
+          user_id: user.id,
           voice_name: voiceName,
           elevenlabs_voice_id: cloneData.voiceId,
           sample_audio_url: publicUrl,
