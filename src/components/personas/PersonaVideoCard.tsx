@@ -9,6 +9,7 @@ interface PersonaVideoCardProps {
   thumbnailUrl?: string;
   onClick: () => void;
   onHoverChange?: (isHovering: boolean) => void;
+  tags?: Array<{ emoji: string; label: string }>;
 }
 
 // CSS to completely hide ALL video controls
@@ -60,6 +61,7 @@ export const PersonaVideoCard = ({
   thumbnailUrl,
   onClick,
   onHoverChange,
+  tags = [],
 }: PersonaVideoCardProps) => {
   const [isHovering, setIsHovering] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -85,107 +87,126 @@ export const PersonaVideoCard = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="group cursor-pointer"
+        className="group cursor-pointer relative overflow-hidden rounded-2xl shadow-2xl bg-black aspect-square"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onClick={onClick}
       >
-        <div className="relative overflow-hidden rounded-2xl shadow-2xl bg-black aspect-square">
-          {/* Video Container */}
-          <div className="absolute inset-0 overflow-hidden rounded-2xl">
-            {/* Video or Iframe - autoplay muted with no controls */}
-            {videoUrl ? (
-              isIframe ? (
-                <div className="absolute inset-0 w-full h-full pointer-events-none">
-                  <iframe
-                    className="absolute inset-0 w-full h-full"
-                    src={`${videoUrl}${videoUrl.includes('?') ? '&' : '?'}controls=0&autoplay=1&loop=1&muted=1`}
-                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                    style={{ 
-                      border: 'none',
-                      objectFit: 'cover',
-                      width: '100%',
-                      height: '100%'
-                    }}
-                  />
-                </div>
-              ) : (
-              <video
-                ref={videoRef}
-                src={videoUrl}
+        {/* Video Container - absolutely positioned to fill entire card */}
+        {videoUrl ? (
+          isIframe ? (
+            <div className="absolute inset-0 w-full h-full pointer-events-none">
+              <iframe
                 className="absolute inset-0 w-full h-full"
-                loop
-                muted
-                playsInline
-                autoPlay
-                preload="auto"
-                disablePictureInPicture
-                controls={false}
-                poster={thumbnailUrl}
+                src={`${videoUrl}${videoUrl.includes('?') ? '&' : '?'}controls=0&autoplay=1&loop=1&muted=1`}
+                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                 style={{ 
+                  border: 'none',
                   objectFit: 'cover',
-                  pointerEvents: 'none'
+                  width: '100%',
+                  height: '100%'
                 }}
-                onCanPlay={(e) => {
-                  const video = e.currentTarget;
-                  video.muted = true;
-                  video.play().catch(() => {});
-                }}
-                onLoadedMetadata={(e) => {
-                  const video = e.currentTarget;
-                  video.muted = true;
-                  video.play().catch(() => {});
-                }}
-                onContextMenu={(e) => e.preventDefault()}
               />
-              )
-            ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-accent/20" />
-            )}
-
-            {/* Gradient Overlay for Text - Fruitful style */}
-            <motion.div 
-              className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none"
-              animate={{ 
-                opacity: isHovering ? 0.25 : 0.15
-              }}
-              transition={{ duration: 0.12, ease: "easeOut" }}
-            />
-          </div>
-
-          {/* Content - animated text overlay Fruitful style */}
-          <motion.div 
-            className="absolute inset-x-0 bottom-0 p-8 text-white z-10 pointer-events-none"
-            animate={{ 
-              y: isHovering ? -6 : 0 
-            }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-          >
-            <div className="space-y-2">
-              <motion.p 
-                className="text-xs uppercase tracking-widest text-white/90 font-semibold"
-                animate={{ opacity: isHovering ? 1 : 0.85 }}
-                transition={{ duration: 0.12, ease: "easeOut" }}
-              >
-                {role}
-              </motion.p>
-              <motion.h3 
-                className="text-4xl font-bold tracking-tight"
-                animate={{ opacity: isHovering ? 1 : 0.95 }}
-                transition={{ duration: 0.18, ease: "easeOut" }}
-              >
-                {name}
-              </motion.h3>
-              <motion.p 
-                className="text-base text-white/90 font-light"
-                animate={{ opacity: isHovering ? 1 : 0.85 }}
-                transition={{ duration: 0.12, ease: "easeOut" }}
-              >
-                {tagline}
-              </motion.p>
             </div>
-          </motion.div>
-        </div>
+          ) : (
+          <video
+            ref={videoRef}
+            src={videoUrl}
+            className="absolute top-0 left-0 w-full h-full"
+            loop
+            muted
+            playsInline
+            autoPlay
+            preload="auto"
+            disablePictureInPicture
+            controls={false}
+            poster={thumbnailUrl}
+            style={{ 
+              objectFit: 'cover',
+              pointerEvents: 'none'
+            }}
+            onCanPlay={(e) => {
+              const video = e.currentTarget;
+              video.muted = true;
+              video.play().catch(() => {});
+            }}
+            onLoadedMetadata={(e) => {
+              const video = e.currentTarget;
+              video.muted = true;
+              video.play().catch(() => {});
+            }}
+            onContextMenu={(e) => e.preventDefault()}
+          />
+          )
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-accent/20" />
+        )}
+
+        {/* Gradient Overlay for Text - Fruitful style */}
+        <motion.div 
+          className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent pointer-events-none"
+          animate={{ 
+            opacity: isHovering ? 0.25 : 0.15
+          }}
+          transition={{ duration: 0.12, ease: "easeOut" }}
+        />
+
+        {/* Content - animated text overlay Fruitful style */}
+        <motion.div 
+          className="absolute inset-x-0 bottom-0 p-8 text-white z-10 pointer-events-none"
+          animate={{ 
+            y: isHovering ? -6 : 0 
+          }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+        >
+          <div className="space-y-3">
+            <motion.p 
+              className="text-xs uppercase tracking-widest text-white/90 font-semibold"
+              animate={{ opacity: isHovering ? 1 : 0.85 }}
+              transition={{ duration: 0.12, ease: "easeOut" }}
+            >
+              {role}
+            </motion.p>
+            <motion.h3 
+              className="text-4xl font-bold tracking-tight"
+              animate={{ opacity: isHovering ? 1 : 0.95 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+            >
+              {name}
+            </motion.h3>
+            <motion.p 
+              className="text-base text-white/90 font-light"
+              animate={{ opacity: isHovering ? 1 : 0.85 }}
+              transition={{ duration: 0.12, ease: "easeOut" }}
+            >
+              {tagline}
+            </motion.p>
+            
+            {/* Description Pills - Fruitful style */}
+            {tags.length > 0 && (
+              <motion.div 
+                className="flex flex-wrap gap-2 pt-2"
+                animate={{ opacity: isHovering ? 1 : 0.9 }}
+                transition={{ duration: 0.12, ease: "easeOut" }}
+              >
+                {tags.map((tag, index) => (
+                  <motion.div
+                    key={index}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm text-white/95 text-sm font-medium"
+                    whileHover={{ 
+                      y: -2,
+                      backgroundColor: "rgba(255, 255, 255, 0.25)"
+                    }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
+                  >
+                    <span>{tag.emoji}</span>
+                    <span>{tag.label}</span>
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+          </div>
+        </motion.div>
       </motion.div>
     </>
   );
