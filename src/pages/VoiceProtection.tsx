@@ -68,9 +68,15 @@ export default function VoiceProtection() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const [consentGiven, setConsentGiven] = useState(false);
+
   const handleStartRecordingClick = () => {
-    setShowConsentDialog(true);
-    setConsentChecked(false);
+    if (!consentGiven) {
+      setShowConsentDialog(true);
+      setConsentChecked(false);
+    } else {
+      startRecording();
+    }
   };
 
   const handleConsentConfirm = () => {
@@ -83,7 +89,7 @@ export default function VoiceProtection() {
       return;
     }
     setShowConsentDialog(false);
-    startRecording();
+    setConsentGiven(true);
   };
 
   // Record audio
@@ -706,21 +712,21 @@ export default function VoiceProtection() {
               </div>
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              onClick={() => setShowConsentDialog(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleConsentConfirm}
-              disabled={!consentChecked}
-              className="bg-primary"
-            >
-              I Confirm - Start Recording
-            </Button>
-          </DialogFooter>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                variant="outline"
+                onClick={() => setShowConsentDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConsentConfirm}
+                disabled={!consentChecked}
+                className="bg-primary"
+              >
+                Continue
+              </Button>
+            </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
