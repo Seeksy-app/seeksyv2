@@ -213,6 +213,8 @@ import AdminAdvertisersList from "./pages/admin/advertising/AdminAdvertisersList
 import AdminCreateCampaign from "./pages/admin/advertising/CreateCampaign";
 import CampaignDetail from "./pages/admin/advertising/CampaignDetail";
 import CreateAd from "./pages/admin/advertising/CreateAd";
+import TranscriptLibrary from "./pages/transcripts/TranscriptLibrary";
+import TranscriptDetailPage from "./pages/transcripts/TranscriptDetailPage";
 import AdminCampaigns from "./pages/admin/AdminCampaigns";
 import AdminAdAnalytics from "./pages/admin/AdminAdAnalytics";
 import VoiceCertificationDashboard from "./pages/voice-certification/VoiceCertificationDashboard";
@@ -417,6 +419,9 @@ const AppContent = () => {
               <Route path="/blog/new" element={<BlogEditor />} />
               <Route path="/blog/:id/edit" element={<BlogEditor />} />
               <Route path="/blog/:id/certify" element={<BlogCertify />} />
+              <Route path="/blog-library" element={<BlogLibrary />} />
+              <Route path="/transcripts" element={<TranscriptLibrary />} />
+              <Route path="/transcripts/:id" element={<TranscriptDetailPage />} />
               <Route path="/marketing" element={<Marketing />} />
               <Route path="/create-event" element={<CreateEvent />} />
               <Route path="/event/:id" element={<EventDetail />} />
