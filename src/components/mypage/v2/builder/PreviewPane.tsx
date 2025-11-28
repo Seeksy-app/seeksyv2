@@ -3,7 +3,7 @@ import { MyPageTheme } from "@/config/myPageThemes";
 import { Button } from "@/components/ui/button";
 import { MyPagePreview } from "../public/MyPagePreview";
 import { cn } from "@/lib/utils";
-import iphoneFrame from "@/assets/iphone-16-plus-frame.png";
+import iphoneFrame from "@/assets/iphone-frame-realistic.png";
 
 interface PreviewPaneProps {
   theme: MyPageTheme;
@@ -92,16 +92,16 @@ export function PreviewPane({ theme, device, onDeviceChange, mode, onModeChange 
               height: "844px",
             }}
           >
-            {/* iPhone 16 Plus Frame with Screen Content */}
+            {/* iPhone Frame with Screen Content */}
             <div className="absolute inset-0">
-              {/* Screen Content - positioned to fit within frame */}
+              {/* Screen Content - positioned to fit within frame bezels */}
               <div 
                 className="absolute bg-white overflow-y-auto overflow-x-hidden"
                 style={{
-                  top: "20px",
-                  left: "12px",
-                  right: "12px",
-                  bottom: "20px",
+                  top: "3%",
+                  left: "3.5%",
+                  right: "3.5%",
+                  bottom: "3%",
                   borderRadius: "42px",
                 }}
               >
@@ -112,7 +112,7 @@ export function PreviewPane({ theme, device, onDeviceChange, mode, onModeChange 
               <img
                 src={iphoneFrame}
                 alt="iPhone 16 Plus"
-                className="absolute inset-0 w-full h-full pointer-events-none"
+                className="absolute inset-0 w-full h-full pointer-events-none drop-shadow-2xl"
                 style={{ objectFit: "contain" }}
               />
             </div>
