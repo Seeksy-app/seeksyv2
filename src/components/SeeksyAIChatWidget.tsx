@@ -293,24 +293,26 @@ export const SeeksyAIChatWidget = () => {
     const isHoliday = isHolidaySeason();
     
     return (
-      <div className="fixed bottom-6 right-6 z-50 group">
+      <div className="fixed bottom-6 right-6 z-50 group animate-in fade-in slide-in-from-bottom-4 duration-500">
         <Button
           onClick={() => setIsOpen(true)}
-          className={cn(
-            "h-16 w-16 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 relative p-0 overflow-hidden",
-            isHoliday
-              ? "bg-gradient-to-br from-red-600 to-green-600 hover:from-red-700 hover:to-green-700"
-              : "bg-gradient-to-br from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600"
-          )}
+          className="h-20 w-20 rounded-full bg-transparent hover:bg-accent/10 transition-all duration-300 relative p-0 border-0 shadow-2xl hover:shadow-3xl hover:scale-110 animate-bounce-gentle"
           size="icon"
+          variant="ghost"
         >
-          <div className="w-full h-full flex items-center justify-center p-2">
-            <SparkAvatar pose="idle" size={48} animated className="drop-shadow-lg" />
-          </div>
+          <SparkAvatar 
+            pose="waving" 
+            size={72} 
+            animated 
+            className="drop-shadow-2xl filter brightness-105 transition-transform duration-300 group-hover:scale-105" 
+          />
         </Button>
         
         {/* Subtle glow pulse animation */}
-        <div className="absolute inset-0 rounded-full bg-yellow-400/30 animate-pulse pointer-events-none" />
+        <div className={cn(
+          "absolute inset-0 rounded-full blur-xl opacity-40 animate-pulse pointer-events-none",
+          isHoliday ? "bg-red-500/30" : "bg-yellow-400/30"
+        )} />
       </div>
     );
   }
