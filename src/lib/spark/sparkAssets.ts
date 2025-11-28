@@ -18,8 +18,11 @@ export type SparkSize = "full" | "icon-32" | "icon-20" | "icon-16";
  */
 export const isHolidaySeason = (): boolean => {
   const now = new Date();
-  const month = now.getMonth(); // 0-indexed (11 = December)
-  return month === 11; // December
+  const month = now.getMonth();
+  const day = now.getDate();
+  
+  // December 1 - January 2
+  return (month === 11) || (month === 0 && day <= 2);
 };
 
 /**
@@ -56,28 +59,32 @@ export const getSparkAsset = (
   const theme = forceTheme || getCurrentTheme();
   const isHoliday = forceHoliday !== undefined ? forceHoliday : isHolidaySeason();
   
-  // Icon sizes (simplified face only)
+  // Icon sizes
   if (size !== "full") {
     if (isHoliday) {
-      return `/spark/icons/spark-santa-icon.png`;
+      return `/spark/icons/holiday/spark_icon_32_santa${theme === 'dark' ? '_dark' : ''}.png`;
     }
     return `/spark/icons/spark-icon-${size.replace("icon-", "")}.png`;
   }
   
-  // Full character assets
+  // Full character assets - Holiday variants
   if (isHoliday) {
-    // Holiday variants (santa mode)
-    if (theme === "dark") {
-      // Check if dark holiday variant exists for this pose
-      const darkHolidayPoses = ["idle", "waving"];
-      if (darkHolidayPoses.includes(pose)) {
-        return `/spark/holiday/spark-santa-${pose}-dark.png`;
-      }
-      // Fallback to light holiday version
-      return `/spark/holiday/spark-santa-${pose}.png`;
+    const poseMap: Record<SparkPose, string> = {
+      idle: 'idle',
+      happy: 'happy',
+      thinking: 'idle', // Fallback to idle
+      waving: 'wave',
+      idea: 'happy', // Fallback to happy
+      typing: 'typing'
+    };
+    
+    const holidayPose = poseMap[pose] || 'idle';
+    const darkSuffix = theme === 'dark' ? '_dark' : '';
+    
+    if (theme === 'dark') {
+      return `/spark/holiday/dark/spark_${holidayPose}_santa_dark.png`;
     }
-    // Light holiday
-    return `/spark/holiday/spark-santa-${pose}.png`;
+    return `/spark/holiday/spark_${holidayPose}_santa.png`;
   }
   
   // Regular assets (non-holiday)
