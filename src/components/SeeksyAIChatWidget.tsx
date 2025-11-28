@@ -296,9 +296,8 @@ export const SeeksyAIChatWidget = () => {
       <div className="fixed bottom-6 right-6 z-50 group animate-in fade-in slide-in-from-bottom-4 duration-500">
         <Button
           onClick={() => setIsOpen(true)}
-          className="h-20 w-20 rounded-full bg-transparent hover:bg-accent/10 transition-all duration-300 relative p-0 border-0 shadow-2xl hover:shadow-3xl hover:scale-110 animate-bounce-gentle"
+          className="h-20 w-20 rounded-full bg-transparent hover:bg-transparent transition-all duration-300 relative p-0 border-0 shadow-none hover:scale-110 animate-bounce-gentle"
           size="icon"
-          variant="ghost"
         >
           <SparkAvatar 
             pose="waving" 
