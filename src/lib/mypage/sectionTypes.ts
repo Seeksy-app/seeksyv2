@@ -5,7 +5,12 @@ export type SectionType =
   | 'meetings'
   | 'books'
   | 'promo_codes'
-  | 'store';
+  | 'store'
+  | 'tips'
+  | 'custom_links'
+  | 'podcast'
+  | 'blog'
+  | 'newsletter';
 
 export interface SectionConfig {
   // Featured Video
@@ -66,6 +71,39 @@ export interface SectionConfig {
     ctaLabel: string;
     ctaUrl: string;
   }>;
+
+  // Tips / Support Me
+  tipsEnabled?: boolean;
+  tipsMessage?: string;
+  tipAmounts?: number[];
+  paymentMethods?: Array<{
+    type: 'cashapp' | 'venmo' | 'paypal' | 'tipjar';
+    username: string;
+    url: string;
+  }>;
+
+  // Custom Links
+  customLinks?: Array<{
+    id: string;
+    label: string;
+    url: string;
+    thumbnail?: string;
+    groupName?: string;
+  }>;
+
+  // Podcast
+  podcastId?: string;
+  showLatestEpisodes?: boolean;
+  episodeCount?: number;
+
+  // Blog
+  blogDisplayMode?: 'latest' | 'featured';
+  blogPostCount?: number;
+
+  // Newsletter
+  newsletterTitle?: string;
+  newsletterDescription?: string;
+  subscriberListId?: string;
 }
 
 export interface MyPageSection {
@@ -118,5 +156,30 @@ export const SECTION_TYPE_INFO: Record<SectionType, {
     label: 'Store',
     description: 'Sell products directly from your page',
     icon: '🛍️',
+  },
+  tips: {
+    label: 'Tips / Support Me',
+    description: 'Accept tips and donations from supporters',
+    icon: '💰',
+  },
+  custom_links: {
+    label: 'Custom Links',
+    description: 'Add unlimited custom links with grouping',
+    icon: '🔗',
+  },
+  podcast: {
+    label: 'Podcast',
+    description: 'Showcase your podcast and episodes',
+    icon: '🎙️',
+  },
+  blog: {
+    label: 'Blog',
+    description: 'Display your blog posts',
+    icon: '✍️',
+  },
+  newsletter: {
+    label: 'Newsletter',
+    description: 'Collect email subscribers',
+    icon: '📧',
   },
 };
