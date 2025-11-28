@@ -569,11 +569,6 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            {new Date().getMonth() === 10 && (
-              <span className="text-2xl font-semibold text-orange-500">
-                Happy Thanksgiving! 🦃
-              </span>
-            )}
             <DashboardCustomizer widgets={widgets} onSave={handleWidgetsSave} />
           </div>
         </div>

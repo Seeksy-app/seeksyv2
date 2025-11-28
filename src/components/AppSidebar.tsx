@@ -1566,11 +1566,10 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
           <div className="flex items-center justify-between px-4 py-3">
             <Link to="/tasks" className="relative">
               <img src={seeksyLogo} alt="Seeksy" className="h-10 w-10" />
-              {/* Thanksgiving decoration */}
-              {new Date().getMonth() === 10 && (
-                <span className="absolute -top-1 -right-1 text-xl drop-shadow-md">🦃</span>
-              )}
               {/* Christmas decoration */}
+              {new Date().getMonth() === 11 && (
+                <span className="absolute -top-2 -right-2 text-2xl drop-shadow-md">🎅</span>
+              )}
               {new Date().getMonth() === 11 && (
                 <span className="absolute -top-2 -right-2 text-xl drop-shadow-md">🎄</span>
               )}
