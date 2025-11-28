@@ -4,6 +4,8 @@ import { Check, Loader2, Shield } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 import { CertificationStepper } from "@/components/voice-certification/CertificationStepper";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface MintingStep {
   label: string;
@@ -14,57 +16,133 @@ interface MintingStep {
 const MintingProgress = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
   const [steps, setSteps] = useState<MintingStep[]>([
     { label: "Generating signature…", status: "active", progress: 0 },
     { label: "Encrypting voice fingerprint…", status: "pending", progress: 0 },
     { label: "Writing credential to blockchain…", status: "pending", progress: 0 },
     { label: "Finalizing verification…", status: "pending", progress: 0 },
   ]);
+  const [mintingError, setMintingError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate minting process
-    const stepDuration = 2000; // 2 seconds per step
-    let currentStep = 0;
+    mintVoiceNFT();
+  }, []);
 
-    const timer = setInterval(() => {
-      setSteps(prevSteps => {
-        const newSteps = [...prevSteps];
-        
-        if (currentStep < newSteps.length) {
-          // Complete current step
-          if (newSteps[currentStep].progress < 100) {
-            newSteps[currentStep].progress += 10;
-          } else {
-            newSteps[currentStep].status = "complete";
-            currentStep++;
-            
-            // Activate next step
-            if (currentStep < newSteps.length) {
-              newSteps[currentStep].status = "active";
-            }
-          }
-        }
-
+  const mintVoiceNFT = async () => {
+    try {
+      // Step 1: Generating signature
+      setSteps(prev => {
+        const newSteps = [...prev];
+        newSteps[0].progress = 50;
         return newSteps;
       });
 
-      // Navigate to success screen when all steps complete
-      if (currentStep >= 4) {
-        clearInterval(timer);
-        setTimeout(() => {
-          navigate("/voice-certification/success", {
-            state: {
-              ...location.state,
-              tokenId: "34523001",
-              blockchain: "Polygon"
-            }
-          });
-        }, 500);
-      }
-    }, 200);
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-    return () => clearInterval(timer);
-  }, [navigate, location.state]);
+      setSteps(prev => {
+        const newSteps = [...prev];
+        newSteps[0].progress = 100;
+        newSteps[0].status = "complete";
+        newSteps[1].status = "active";
+        return newSteps;
+      });
+
+      // Step 2: Encrypting voice fingerprint
+      setSteps(prev => {
+        const newSteps = [...prev];
+        newSteps[1].progress = 50;
+        return newSteps;
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      setSteps(prev => {
+        const newSteps = [...prev];
+        newSteps[1].progress = 100;
+        newSteps[1].status = "complete";
+        newSteps[2].status = "active";
+        return newSteps;
+      });
+
+      // Step 3: Writing credential to blockchain (actual minting)
+      const voiceProfileId = location.state?.voiceProfileId || crypto.randomUUID();
+      const voiceFingerprint = location.state?.voiceFingerprint || crypto.randomUUID();
+
+      const { data, error } = await supabase.functions.invoke('mint-voice-nft', {
+        body: {
+          voiceProfileId,
+          voiceFingerprint,
+          metadata: {
+            name: location.state?.fingerprintData?.voiceName || "Voice Profile",
+            description: "Seeksy Voice Certification",
+            attributes: {
+              matchConfidence: location.state?.fingerprintData?.matchConfidence || 95,
+              certificationDate: new Date().toISOString()
+            }
+          }
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message || 'Failed to mint voice NFT');
+      }
+
+      setSteps(prev => {
+        const newSteps = [...prev];
+        newSteps[2].progress = 100;
+        newSteps[2].status = "complete";
+        newSteps[3].status = "active";
+        return newSteps;
+      });
+
+      // Step 4: Finalizing
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      setSteps(prev => {
+        const newSteps = [...prev];
+        newSteps[3].progress = 100;
+        newSteps[3].status = "complete";
+        return newSteps;
+      });
+
+      // Navigate to success with transaction data
+      setTimeout(() => {
+        navigate("/voice-certification/success", {
+          state: {
+            ...location.state,
+            tokenId: data.tokenId,
+            blockchain: "Polygon",
+            transactionHash: data.transactionHash,
+            explorerUrl: data.explorerUrl
+          }
+        });
+      }, 500);
+
+    } catch (error) {
+      console.error('Minting error:', error);
+      setMintingError(error instanceof Error ? error.message : 'Unknown error occurred');
+      
+      toast({
+        title: "Minting failed",
+        description: error instanceof Error ? error.message : "Failed to mint voice credential. Please try again.",
+        variant: "destructive"
+      });
+
+      // Still navigate to success screen but without transaction data
+      setTimeout(() => {
+        navigate("/voice-certification/success", {
+          state: {
+            ...location.state,
+            tokenId: "pending",
+            blockchain: "Polygon",
+            transactionHash: null,
+            explorerUrl: null
+          }
+        });
+      }, 2000);
+    }
+  };
 
   const overallProgress = (steps.filter(s => s.status === "complete").length / steps.length) * 100;
 

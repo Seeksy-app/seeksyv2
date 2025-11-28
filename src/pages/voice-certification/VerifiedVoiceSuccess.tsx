@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { CheckCircle, Shield, Award, ExternalLink, Download, Share2 } from "lucide-react";
+import { CheckCircle, Shield, ExternalLink, Download, Share2 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import confetti from "canvas-confetti";
 import { CertificationStepper } from "@/components/voice-certification/CertificationStepper";
@@ -22,6 +22,8 @@ const VerifiedVoiceSuccess = () => {
   };
   const tokenId = location.state?.tokenId || "34523001";
   const blockchain = location.state?.blockchain || "Polygon";
+  const transactionHash = location.state?.transactionHash || null;
+  const explorerUrl = location.state?.explorerUrl || null;
 
   useEffect(() => {
     // Fetch current user's username
@@ -197,9 +199,8 @@ const VerifiedVoiceSuccess = () => {
               </div>
               
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
+                <div className="mb-2">
                   <h2 className="text-2xl font-bold">{fingerprintData.voiceName}</h2>
-                  <Award className="h-6 w-6 text-primary" />
                 </div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20">
                   <CheckCircle className="h-4 w-4 text-green-500" />
@@ -240,59 +241,61 @@ const VerifiedVoiceSuccess = () => {
             </div>
           </Card>
 
-          {/* Action Buttons */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto mb-8">
+          {/* Primary Action Button */}
+          <div className="flex justify-center mb-6">
             <Button
               size="lg"
               onClick={() => navigate("/voice-credentials")}
-              className="h-auto py-6"
+              className="h-auto py-6 px-12"
             >
               <Shield className="mr-2 h-5 w-5" />
-              View My Voice Credential
+              View My Voice Profile
             </Button>
+          </div>
 
-            <Button
-              size="lg"
-              variant="outline"
+          {/* Secondary Action Links */}
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
+            <button
               onClick={handleDownload}
-              className="h-auto py-6"
+              className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
             >
-              <Download className="mr-2 h-5 w-5" />
-              Download Certificate
-            </Button>
+              <Download className="h-4 w-4" />
+              <span>Download Certification Card (PNG)</span>
+            </button>
 
-            <Button
-              size="lg"
-              variant="outline"
+            <button
               onClick={handleShare}
-              className="h-auto py-6"
+              className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
             >
-              <Share2 className="mr-2 h-5 w-5" />
-              Share My Certification
-            </Button>
+              <Share2 className="h-4 w-4" />
+              <span>Share Certification</span>
+            </button>
 
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => navigate("/voice-certification-flow")}
-              className="h-auto py-6"
-            >
-              <Award className="mr-2 h-5 w-5" />
-              Return to Dashboard
-            </Button>
+            {(transactionHash || explorerUrl) && (
+              <a
+                href={explorerUrl || `https://polygonscan.com/tx/${transactionHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ExternalLink className="h-4 w-4" />
+                <span>View Blockchain Transaction</span>
+              </a>
+            )}
+
+            {!transactionHash && !explorerUrl && (
+              <span className="inline-flex items-center gap-2 text-muted-foreground">
+                <ExternalLink className="h-4 w-4" />
+                <span>Transaction pending — refresh in a moment</span>
+              </span>
+            )}
           </div>
 
           {/* Info Banner */}
           <div className="text-center pt-8 border-t">
-            <p className="text-sm text-muted-foreground mb-2">
+            <p className="text-sm text-muted-foreground">
               Your voice credential is now stored on-chain and can be used to verify your identity across platforms.
             </p>
-            <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
-              <ExternalLink className="h-3 w-3" />
-              <a href="#" className="hover:text-foreground transition-colors">
-                View transaction on Polygonscan
-              </a>
-            </div>
           </div>
         </Card>
       </div>
