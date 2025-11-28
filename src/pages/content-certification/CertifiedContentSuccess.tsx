@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { CheckCircle, Shield, ExternalLink } from "lucide-react";
+import { CheckCircle, Shield, ExternalLink, Tag } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import confetti from "canvas-confetti";
+
+interface AdReadEvent {
+  timestamp: number;
+  adScriptId: string;
+  adScriptTitle: string;
+  duration: number;
+}
 
 const CertifiedContentSuccess = () => {
   const navigate = useNavigate();
@@ -19,6 +26,13 @@ const CertifiedContentSuccess = () => {
   const certificateId = location.state?.certificateId || "cert_1234567890";
   const tokenId = location.state?.tokenId || "87654321";
   const blockchain = location.state?.blockchain || "Polygon";
+  const adReadEvents: AdReadEvent[] = location.state?.adReadEvents || [];
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
 
   useEffect(() => {
     // Trigger confetti animation
@@ -129,6 +143,42 @@ const CertifiedContentSuccess = () => {
             </Button>
           </div>
         </Card>
+
+        {/* Ad Read Events Section */}
+        {adReadEvents.length > 0 && (
+          <Card className="bg-muted/50 p-6 space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Tag className="h-5 w-5 text-primary" />
+              <h3 className="text-lg font-bold">Certified Ad Reads in This Episode</h3>
+            </div>
+
+            <p className="text-sm text-muted-foreground mb-4">
+              The following ad reads are now part of this certified content:
+            </p>
+
+            <div className="space-y-3">
+              {adReadEvents.map((adRead, index) => (
+                <div
+                  key={index}
+                  className="flex justify-between items-center p-3 rounded-lg bg-background/50 border border-border"
+                >
+                  <div className="space-y-1">
+                    <p className="font-semibold text-sm">{adRead.adScriptTitle}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Duration: {adRead.duration}s
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-mono font-semibold text-primary">
+                      {formatTime(adRead.timestamp)}
+                    </p>
+                    <p className="text-xs text-green-600 font-medium">✓ Certified</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
 
         {/* View Profile Button */}
         <div className="flex justify-center pt-4">

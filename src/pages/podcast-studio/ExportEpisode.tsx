@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Download, Shield, ArrowRight } from "lucide-react";
+import { Download, Shield, ArrowRight, FileText } from "lucide-react";
 import { exportEpisode } from "@/lib/api/podcastStudioAPI";
 
 const ExportEpisode = () => {
@@ -23,16 +23,24 @@ const ExportEpisode = () => {
       // Simulate download
       console.log("Downloading from:", downloadUrls);
       
-      // Navigate to success
-      setTimeout(() => {
-        navigate("/podcast-studio/success", {
-          state: { episodeTitle },
-        });
-      }, 1500);
+      setIsExporting(false);
     } catch (error) {
       console.error("Export failed:", error);
       setIsExporting(false);
     }
+  };
+
+  const handleViewDetails = () => {
+    navigate(`/episodes/${episodeId}`, {
+      state: {
+        episodeTitle,
+        duration,
+        tracks,
+        cleanupMethod,
+        recordingDate: new Date(),
+        adReadEvents: adReadEvents || [],
+      },
+    });
   };
 
   const handleCertify = () => {
@@ -98,6 +106,15 @@ const ExportEpisode = () => {
                   Download Processed Audio
                 </>
               )}
+            </Button>
+
+            <Button
+              onClick={handleViewDetails}
+              variant="outline"
+              className="w-full h-12 border-[#053877] text-[#053877] hover:bg-[#053877]/5"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              View Episode Details
             </Button>
 
             <Button
