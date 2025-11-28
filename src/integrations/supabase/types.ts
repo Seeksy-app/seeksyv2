@@ -3982,6 +3982,184 @@ export type Database = {
         }
         Relationships: []
       }
+      external_content_mapping: {
+        Row: {
+          ad_campaign_id: string | null
+          created_at: string
+          episode_id: string | null
+          external_content_id: string
+          id: string
+          platform: string
+          updated_at: string
+          video_id: string | null
+        }
+        Insert: {
+          ad_campaign_id?: string | null
+          created_at?: string
+          episode_id?: string | null
+          external_content_id: string
+          id?: string
+          platform: string
+          updated_at?: string
+          video_id?: string | null
+        }
+        Update: {
+          ad_campaign_id?: string | null
+          created_at?: string
+          episode_id?: string | null
+          external_content_id?: string
+          id?: string
+          platform?: string
+          updated_at?: string
+          video_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_content_mapping_ad_campaign_id_fkey"
+            columns: ["ad_campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_content_mapping_episode_id_fkey"
+            columns: ["episode_id"]
+            isOneToOne: false
+            referencedRelation: "episodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_platform_accounts: {
+        Row: {
+          access_token: string | null
+          account_metadata: Json | null
+          account_name: string | null
+          created_at: string
+          external_account_id: string | null
+          id: string
+          is_active: boolean | null
+          platform: string
+          refresh_token: string | null
+          token_expires_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_token?: string | null
+          account_metadata?: Json | null
+          account_name?: string | null
+          created_at?: string
+          external_account_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          platform: string
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string | null
+          account_metadata?: Json | null
+          account_name?: string | null
+          created_at?: string
+          external_account_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          platform?: string
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      external_platform_ad_stats: {
+        Row: {
+          ad_campaign_id: string | null
+          ad_creative_id: string | null
+          clicks: number | null
+          completed_plays: number | null
+          created_at: string
+          date: string
+          episode_id: string | null
+          estimated_revenue: number | null
+          external_content_id: string
+          id: string
+          impressions: number | null
+          listen_time_ms: number | null
+          platform: string
+          raw_payload: Json | null
+          source_type: string
+          updated_at: string
+          video_id: string | null
+          views_or_listens: number | null
+          watch_time_ms: number | null
+        }
+        Insert: {
+          ad_campaign_id?: string | null
+          ad_creative_id?: string | null
+          clicks?: number | null
+          completed_plays?: number | null
+          created_at?: string
+          date: string
+          episode_id?: string | null
+          estimated_revenue?: number | null
+          external_content_id: string
+          id?: string
+          impressions?: number | null
+          listen_time_ms?: number | null
+          platform: string
+          raw_payload?: Json | null
+          source_type: string
+          updated_at?: string
+          video_id?: string | null
+          views_or_listens?: number | null
+          watch_time_ms?: number | null
+        }
+        Update: {
+          ad_campaign_id?: string | null
+          ad_creative_id?: string | null
+          clicks?: number | null
+          completed_plays?: number | null
+          created_at?: string
+          date?: string
+          episode_id?: string | null
+          estimated_revenue?: number | null
+          external_content_id?: string
+          id?: string
+          impressions?: number | null
+          listen_time_ms?: number | null
+          platform?: string
+          raw_payload?: Json | null
+          source_type?: string
+          updated_at?: string
+          video_id?: string | null
+          views_or_listens?: number | null
+          watch_time_ms?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_platform_ad_stats_ad_campaign_id_fkey"
+            columns: ["ad_campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_platform_ad_stats_ad_creative_id_fkey"
+            columns: ["ad_creative_id"]
+            isOneToOne: false
+            referencedRelation: "ad_creatives"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_platform_ad_stats_episode_id_fkey"
+            columns: ["episode_id"]
+            isOneToOne: false
+            referencedRelation: "episodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_assumptions: {
         Row: {
           assumption_name: string

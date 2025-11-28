@@ -44,6 +44,7 @@ import ProfileEdit from "./pages/ProfileEdit";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
+import AdAnalyticsImport from "./pages/admin/AdAnalyticsImport";
 import Contacts from "./pages/Contacts";
 import CRM from "./pages/CRM";
 import SMS from "./pages/SMS";
@@ -427,6 +428,7 @@ const AppContent = () => {
             <Route path="/admin/architecture" element={<SeeksyArchitecture />} />
             <Route path="/admin/master-blog" element={<AdminMasterBlog />} />
             <Route path="/admin/system-status" element={<AdminSystemStatus />} />
+            <Route path="/admin/ad-analytics-import" element={<AdAnalyticsImport />} />
               <Route path="/admin/support" element={<SupportDesk />} />
               <Route path="/admin/sales" element={<SalesLeads />} />
               <Route path="/admin/advertising" element={<AdvertisingManagement />} />
