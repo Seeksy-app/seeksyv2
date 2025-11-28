@@ -59,6 +59,9 @@ const Settings = () => {
     task_reminder_frequency: "start_of_day",
     sms_notifications_enabled: false,
   });
+  const [contentSettings, setContentSettings] = useState({
+    auto_transcribe_enabled: true,
+  });
   const [preferencesDialogOpen, setPreferencesDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -125,6 +128,9 @@ const Settings = () => {
           task_reminder_frequency: prefs.task_reminder_frequency || "start_of_day",
           sms_notifications_enabled: prefs.sms_notifications_enabled || false,
         });
+        setContentSettings({
+          auto_transcribe_enabled: prefs.auto_transcribe_enabled !== false,
+        });
         
         // Load theme preference but don't override it immediately
         // The ThemeToggle component will handle the initial theme setting
@@ -144,6 +150,9 @@ const Settings = () => {
           task_reminder_enabled: prefs?.task_reminder_enabled || false,
           task_reminder_frequency: prefs?.task_reminder_frequency || "start_of_day",
           sms_notifications_enabled: prefs?.sms_notifications_enabled || false,
+        },
+        contentSettings: {
+          auto_transcribe_enabled: prefs?.auto_transcribe_enabled !== false,
         },
       };
 
@@ -219,6 +228,7 @@ const Settings = () => {
           task_reminder_enabled: notificationPrefs.task_reminder_enabled,
           task_reminder_frequency: notificationPrefs.task_reminder_frequency,
           sms_notifications_enabled: notificationPrefs.sms_notifications_enabled,
+          auto_transcribe_enabled: contentSettings.auto_transcribe_enabled,
         }, {
           onConflict: 'user_id'
         });
@@ -238,6 +248,7 @@ const Settings = () => {
         formData: { ...formData },
         profileData: { avatar_url: profileData.avatar_url },
         notificationPrefs: { ...notificationPrefs },
+        contentSettings: { ...contentSettings },
       };
       setTimeout(() => setJustSaved(false), 2500);
 
@@ -292,7 +303,8 @@ const Settings = () => {
     const hasChanges = 
       JSON.stringify(formData) !== JSON.stringify(initialDataRef.current.formData) ||
       profileData.avatar_url !== initialDataRef.current.profileData.avatar_url ||
-      JSON.stringify(notificationPrefs) !== JSON.stringify(initialDataRef.current.notificationPrefs);
+      JSON.stringify(notificationPrefs) !== JSON.stringify(initialDataRef.current.notificationPrefs) ||
+      JSON.stringify(contentSettings) !== JSON.stringify(initialDataRef.current.contentSettings);
     
     setHasUnsavedChanges(hasChanges);
   }, [formData, profileData.avatar_url, notificationPrefs]);
@@ -683,6 +695,34 @@ const Settings = () => {
               <p className="text-xs text-muted-foreground pt-2">
                 Changes are saved automatically
               </p>
+            </CardContent>
+          </Card>
+
+          {/* Content & Automation */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Content & Automation</CardTitle>
+              <CardDescription>Control how Seeksy handles your content</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <p className="font-medium">Auto-transcribe my Studio recordings</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    When enabled, Seeksy will automatically generate transcripts from finished recordings and save them to your Transcript Library
+                  </p>
+                </div>
+                <Switch
+                  checked={contentSettings.auto_transcribe_enabled}
+                  onCheckedChange={(checked) => {
+                    setContentSettings({ ...contentSettings, auto_transcribe_enabled: checked });
+                    debouncedSave();
+                  }}
+                />
+              </div>
             </CardContent>
           </Card>
 

@@ -22,6 +22,7 @@ export default function BlogEditor() {
   const [content, setContent] = useState('');
   const [transcriptId, setTranscriptId] = useState<string | null>(null);
   const [transcriptText, setTranscriptText] = useState<string | null>(null);
+  const [certifyOnPublish, setCertifyOnPublish] = useState(false);
 
   useEffect(() => {
     if (id && id !== 'new') {
@@ -127,6 +128,25 @@ export default function BlogEditor() {
         title: publish ? "Blog post published" : "Blog post saved",
         description: `Your blog post has been ${publish ? 'published' : 'saved as draft'}.`,
       });
+
+      // Auto-certify if enabled and publishing
+      if (publish && certifyOnPublish && savedId) {
+        try {
+          await supabase.functions.invoke('mint-content-credential', {
+            body: {
+              content_type: 'blog_post',
+              blog_post_id: savedId,
+            },
+          });
+          toast({
+            title: "Content certified",
+            description: "Your blog post has been certified on-chain.",
+          });
+        } catch (certError) {
+          console.error('Certification error:', certError);
+          // Don't fail the publish if certification fails
+        }
+      }
 
       if (savedId !== id) {
         navigate(`/blog/${savedId}/edit`, { replace: true });
@@ -275,6 +295,34 @@ export default function BlogEditor() {
               </CardContent>
             </Card>
           )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Certification</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-start space-x-2">
+                <input
+                  type="checkbox"
+                  id="certify-on-publish"
+                  checked={certifyOnPublish}
+                  onChange={(e) => setCertifyOnPublish(e.target.checked)}
+                  className="mt-1"
+                />
+                <div>
+                  <label
+                    htmlFor="certify-on-publish"
+                    className="text-sm font-medium cursor-pointer"
+                  >
+                    Certify on publish
+                  </label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Mint a verifiable content credential so others can verify this blog was authored by you
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>

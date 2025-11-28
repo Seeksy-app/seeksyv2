@@ -65,15 +65,15 @@ const ExportEpisode = () => {
     }
   };
 
-  const handleViewDetails = () => {
-    navigate(`/episodes/${episodeId}`, {
-      state: {
-        episodeTitle,
+  const handleSuccess = () => {
+    const audioUrl = tracks?.[0]?.audioUrl || null;
+    
+    navigate(`/podcast-studio/success`, {
+      state: { 
+        episodeTitle, 
+        episodeId,
+        audioUrl,
         duration,
-        tracks,
-        cleanupMethod,
-        recordingDate: new Date(),
-        adReadEvents: adReadEvents || [],
       },
     });
   };
@@ -94,11 +94,13 @@ const ExportEpisode = () => {
   };
 
   const handleSendToPodcast = (podcastId: string) => {
+    const audioUrl = tracks?.[0]?.audioUrl || null;
+    
     // Navigate to new episode form with pre-filled data
     navigate(`/podcasts/${podcastId}/episodes/new-from-studio`, {
       state: {
         episodeId,
-        audioUrl: `mock-audio-${episodeId}.wav`, // Mock audio URL from export
+        audioUrl,
         title: episodeTitle || "Untitled Episode",
         duration,
         recordingDate: new Date().toISOString(),
@@ -226,12 +228,13 @@ const ExportEpisode = () => {
             </Sheet>
 
             <Button
-              onClick={handleViewDetails}
+              onClick={handleSuccess}
               variant="outline"
               className="w-full h-12 border-[#053877] text-[#053877] hover:bg-[#053877]/5"
             >
               <FileText className="w-4 h-4 mr-2" />
-              View Episode Details
+              Continue
+              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
 
             <Button

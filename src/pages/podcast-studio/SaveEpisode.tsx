@@ -34,6 +34,9 @@ const SaveEpisode = () => {
     try {
       const { episodeId } = await saveEpisode(metadata);
 
+      // Get the audio URL from tracks
+      const audioUrl = tracks?.[0]?.audioUrl || null;
+
       navigate("/podcast-studio/export", {
         state: {
           episodeId,
@@ -42,6 +45,7 @@ const SaveEpisode = () => {
           duration,
           cleanupMethod,
           adReadEvents,
+          audioUrl,
         },
       });
     } catch (error) {

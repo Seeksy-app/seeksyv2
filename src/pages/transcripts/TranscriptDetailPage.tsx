@@ -17,6 +17,7 @@ import {
   Calendar,
   ExternalLink,
   ArrowLeft,
+  Shield,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -40,6 +41,8 @@ export default function TranscriptDetailPage() {
   const [transcript, setTranscript] = useState<Transcript | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [credential, setCredential] = useState<any>(null);
+  const [certifying, setCertifying] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -62,6 +65,15 @@ export default function TranscriptDetailPage() {
 
       if (error) throw error;
       setTranscript(data);
+
+      // Check for existing credential
+      const { data: credData } = await supabase
+        .from("content_credentials")
+        .select("*")
+        .eq("transcript_id", id)
+        .maybeSingle();
+
+      setCredential(credData);
     } catch (error) {
       console.error("Error fetching transcript:", error);
       toast({
@@ -123,6 +135,45 @@ export default function TranscriptDetailPage() {
         description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleCertifyTranscript = async () => {
+    if (!transcript) return;
+
+    setCertifying(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('mint-content-credential', {
+        body: {
+          content_type: 'transcript',
+          transcript_id: transcript.id,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Transcript certified",
+        description: "Your transcript has been certified on-chain.",
+      });
+
+      // Refresh credential
+      const { data: credData } = await supabase
+        .from("content_credentials")
+        .select("*")
+        .eq("transcript_id", transcript.id)
+        .single();
+
+      setCredential(credData);
+    } catch (error) {
+      console.error("Error certifying transcript:", error);
+      toast({
+        title: "Error certifying transcript",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    } finally {
+      setCertifying(false);
     }
   };
 
@@ -334,6 +385,66 @@ export default function TranscriptDetailPage() {
               )}
             </CardContent>
           </Card>
+
+          {credential ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-green-600" />
+                  Content Credential
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <Badge variant="default" className="bg-green-600">
+                    Certified ✓
+                  </Badge>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  This transcript is certified on-chain
+                </div>
+                {credential.tx_hash && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => window.open(`https://polygonscan.com/tx/${credential.tx_hash}`, '_blank')}
+                  >
+                    View on Polygonscan
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => navigate(`/c/${credential.id}`)}
+                >
+                  View Public Credential
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Certification</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Certify this transcript on-chain to prove authorship and creation date
+                </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleCertifyTranscript}
+                  disabled={certifying}
+                >
+                  <Shield className="h-4 w-4 mr-2" />
+                  {certifying ? "Certifying..." : "Certify Transcript"}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>

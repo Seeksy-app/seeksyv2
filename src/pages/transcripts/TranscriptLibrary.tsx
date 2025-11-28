@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FileText, Clock, Filter, ExternalLink } from "lucide-react";
+import { FileText, Clock, Filter, ExternalLink, Shield } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface Transcript {
@@ -34,6 +34,7 @@ export default function TranscriptLibrary() {
   const [transcripts, setTranscripts] = useState<Transcript[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
+  const [credentials, setCredentials] = useState<Record<string, any>>({});
 
   useEffect(() => {
     fetchTranscripts();
@@ -53,6 +54,22 @@ export default function TranscriptLibrary() {
 
       if (error) throw error;
       setTranscripts(data || []);
+
+      // Fetch credentials for all transcripts
+      if (data && data.length > 0) {
+        const { data: credData } = await supabase
+          .from("content_credentials")
+          .select("*")
+          .in("transcript_id", data.map(t => t.id));
+
+        const credMap: Record<string, any> = {};
+        credData?.forEach(c => {
+          if (c.transcript_id) {
+            credMap[c.transcript_id] = c;
+          }
+        });
+        setCredentials(credMap);
+      }
     } catch (error) {
       console.error("Error fetching transcripts:", error);
       toast({
@@ -174,6 +191,7 @@ export default function TranscriptLibrary() {
                   <TableHead>Language</TableHead>
                   <TableHead>Duration</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Certified</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -197,6 +215,16 @@ export default function TranscriptLibrary() {
                       </div>
                     </TableCell>
                     <TableCell>{getStatusBadge(transcript)}</TableCell>
+                    <TableCell>
+                      {credentials[transcript.id] ? (
+                        <Badge variant="default" className="bg-green-600">
+                          <Shield className="h-3 w-3 mr-1" />
+                          Certified
+                        </Badge>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       {formatDistanceToNow(new Date(transcript.created_at), {
                         addSuffix: true,

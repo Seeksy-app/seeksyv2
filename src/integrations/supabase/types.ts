@@ -10396,6 +10396,7 @@ export type Database = {
       }
       user_preferences: {
         Row: {
+          auto_transcribe_enabled: boolean | null
           contacts_enabled: boolean | null
           created_at: string | null
           dismissed_dependency_warnings: string[] | null
@@ -10444,6 +10445,7 @@ export type Database = {
           user_type: string | null
         }
         Insert: {
+          auto_transcribe_enabled?: boolean | null
           contacts_enabled?: boolean | null
           created_at?: string | null
           dismissed_dependency_warnings?: string[] | null
@@ -10492,6 +10494,7 @@ export type Database = {
           user_type?: string | null
         }
         Update: {
+          auto_transcribe_enabled?: boolean | null
           contacts_enabled?: boolean | null
           created_at?: string | null
           dismissed_dependency_warnings?: string[] | null
