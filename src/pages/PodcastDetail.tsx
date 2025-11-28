@@ -427,6 +427,7 @@ const PodcastDetail = () => {
               
               <EmailVerificationWizard
                 podcastId={podcast.id}
+                podcastSlug={podcast.slug}
                 currentEmail={podcast.verification_email}
                 currentExpiration={podcast.verification_email_expires_at}
                 currentPermanent={podcast.verification_email_permanent}
