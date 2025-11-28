@@ -36,6 +36,8 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { RecordingWaveform } from "@/components/studio/audio/RecordingWaveform";
+import { MultiSegmentRecorder } from "@/components/studio/audio/MultiSegmentRecorder";
 
 interface PodcastStudioTabProps {
   podcastId: string;
@@ -65,7 +67,9 @@ export const PodcastStudioTab = ({ podcastId, userId }: PodcastStudioTabProps) =
     removeFillerWords: false,
     noiseReduction: false,
     trimSilence: false,
-    autoLeveling: false
+    autoLeveling: false,
+    enhanceVoice: false,
+    autoMixLevels: false,
   });
   
   // Marker Panel State
@@ -419,6 +423,12 @@ export const PodcastStudioTab = ({ podcastId, userId }: PodcastStudioTabProps) =
           </CardContent>
         </Card>
 
+        {/* Recording Waveform Preview */}
+        {isRecording && <RecordingWaveform isRecording={isRecording} />}
+        
+        {/* Multi-Segment Recorder */}
+        <MultiSegmentRecorder />
+
         {/* C) EDITING PANEL */}
         <Card className="shadow-md hover:shadow-lg transition-shadow backdrop-blur-sm bg-card/95">
           <CardHeader>
@@ -482,6 +492,34 @@ export const PodcastStudioTab = ({ podcastId, userId }: PodcastStudioTabProps) =
               <Switch 
                 checked={editingOptions.autoLeveling}
                 onCheckedChange={(checked) => setEditingOptions({...editingOptions, autoLeveling: checked})}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50 hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <Sparkles className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <Label className="text-sm font-medium">Enhance Voice (AI)</Label>
+                  <p className="text-xs text-muted-foreground">AI voice enhancement</p>
+                </div>
+              </div>
+              <Switch 
+                checked={editingOptions.enhanceVoice || false}
+                onCheckedChange={(checked) => setEditingOptions({...editingOptions, enhanceVoice: checked})}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50 hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <Music className="w-4 h-4 text-muted-foreground" />
+                <div>
+                  <Label className="text-sm font-medium">Auto-Mix Levels</Label>
+                  <p className="text-xs text-muted-foreground">Automatic mixing</p>
+                </div>
+              </div>
+              <Switch 
+                checked={editingOptions.autoMixLevels || false}
+                onCheckedChange={(checked) => setEditingOptions({...editingOptions, autoMixLevels: checked})}
               />
             </div>
             

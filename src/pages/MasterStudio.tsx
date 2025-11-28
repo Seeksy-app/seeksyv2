@@ -3,10 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mic, Video, User, Radio } from "lucide-react";
+import { Mic, Video, User, Radio, FolderOpen, Scissors, Wand2, FileAudio, BookOpen, Award, Sparkles, Palette } from "lucide-react";
+import { StudioModeSelector } from "@/components/studio/StudioModeSelector";
+import { RecentProjectsFeed } from "@/components/studio/RecentProjectsFeed";
+import { useState } from "react";
 
 export default function MasterStudio() {
   const navigate = useNavigate();
+  const [showModeSelector, setShowModeSelector] = useState(false);
 
   // Fetch user's podcasts for audio podcast routing
   const { data: podcasts } = useQuery({
@@ -70,8 +74,61 @@ export default function MasterStudio() {
     },
   ];
 
+  const studioTools = [
+    {
+      title: "Media Library",
+      description: "Browse all your recordings",
+      icon: FolderOpen,
+      route: "/media-library",
+    },
+    {
+      title: "Create Clips",
+      description: "Edit and create clips",
+      icon: Scissors,
+      route: "/create-clips",
+    },
+    {
+      title: "AI Audio Cleanup",
+      description: "Enhance audio quality",
+      icon: Wand2,
+      route: "/media-library",
+    },
+    {
+      title: "AI Script Generator",
+      description: "Generate podcast scripts",
+      icon: FileAudio,
+      route: "/podcasts",
+    },
+    {
+      title: "Tutorials",
+      description: "Learn studio features",
+      icon: BookOpen,
+      route: "#",
+    },
+    {
+      title: "Voice Certification",
+      description: "Certify your voice",
+      icon: Award,
+      route: "/voice-certification-flow",
+    },
+    {
+      title: "Voice Credentials",
+      description: "Manage voice profiles",
+      icon: Sparkles,
+      route: "/voice-credentials",
+    },
+    {
+      title: "Templates",
+      description: "Studio templates",
+      icon: Palette,
+      route: "#",
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <StudioModeSelector open={showModeSelector} onOpenChange={setShowModeSelector} />
+      
       <div className="container mx-auto px-4 py-16">
         {/* Hero Section */}
         <div className="text-center mb-16">
@@ -116,6 +173,45 @@ export default function MasterStudio() {
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* Quick Action Button */}
+        <div className="flex justify-center mt-8">
+          <Button
+            size="lg"
+            onClick={() => setShowModeSelector(true)}
+            className="gap-2 bg-gradient-to-r from-primary via-purple-500 to-pink-500 hover:from-primary/90 hover:via-purple-600 hover:to-pink-600"
+          >
+            <Sparkles className="w-5 h-5" />
+            Quick Start: Choose Mode
+          </Button>
+        </div>
+
+        {/* Studio Tools Panel */}
+        <div className="mt-16 max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-8">Studio Tools</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {studioTools.map((tool, index) => (
+              <Card
+                key={index}
+                className="group cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-2 hover:border-primary/50"
+                onClick={() => tool.route !== "#" && navigate(tool.route)}
+              >
+                <CardHeader className="text-center pb-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                    <tool.icon className="w-6 h-6 text-primary" />
+                  </div>
+                  <CardTitle className="text-sm">{tool.title}</CardTitle>
+                  <CardDescription className="text-xs">{tool.description}</CardDescription>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Projects */}
+        <div className="mt-16 max-w-6xl mx-auto">
+          <RecentProjectsFeed />
         </div>
 
         {/* Additional Info */}
