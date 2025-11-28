@@ -41,11 +41,13 @@ export function useAdvertiserGuard(): AdvertiserStatus {
 
         if (profileError) throw profileError;
 
-        // Check for advertiser record
+        // Check for advertiser record (limit 1 to handle duplicates)
         const { data: advertiser, error: advertiserError } = await supabase
           .from('advertisers')
           .select('id, status')
           .eq('owner_profile_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         if (!isMounted) return;
