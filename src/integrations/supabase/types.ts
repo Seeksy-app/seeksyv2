@@ -6743,6 +6743,7 @@ export type Database = {
           my_page_cta_button_text: string | null
           my_page_cta_phone_number: string | null
           my_page_cta_text_keyword: string | null
+          my_page_v2_theme: Json | null
           my_page_video_id: string | null
           my_page_video_loop: boolean | null
           my_page_video_type: string | null
@@ -6798,6 +6799,7 @@ export type Database = {
           my_page_cta_button_text?: string | null
           my_page_cta_phone_number?: string | null
           my_page_cta_text_keyword?: string | null
+          my_page_v2_theme?: Json | null
           my_page_video_id?: string | null
           my_page_video_loop?: boolean | null
           my_page_video_type?: string | null
@@ -6853,6 +6855,7 @@ export type Database = {
           my_page_cta_button_text?: string | null
           my_page_cta_phone_number?: string | null
           my_page_cta_text_keyword?: string | null
+          my_page_v2_theme?: Json | null
           my_page_video_id?: string | null
           my_page_video_loop?: boolean | null
           my_page_video_type?: string | null

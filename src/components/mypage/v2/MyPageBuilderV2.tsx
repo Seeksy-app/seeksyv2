@@ -32,14 +32,20 @@ export default function MyPageBuilderV2() {
         .single();
 
       if (profile) {
-        setTheme(prev => ({
-          ...prev,
-          displayName: profile.account_full_name || "",
-          username: profile.username || "",
-          bio: profile.bio || "",
-          profileImage: profile.account_avatar_url || null,
-          backgroundColor: profile.page_background_color || "#ffffff",
-        }));
+        // Load theme from my_page_v2_theme or construct from existing fields
+        if (profile.my_page_v2_theme) {
+          setTheme(profile.my_page_v2_theme as unknown as MyPageTheme);
+        } else {
+          setTheme(prev => ({
+            ...prev,
+            displayName: profile.account_full_name || profile.full_name || "",
+            username: profile.username || "",
+            bio: profile.bio || "",
+            profileImage: profile.account_avatar_url || profile.avatar_url || null,
+            backgroundColor: profile.page_background_color || "#ffffff",
+            themeColor: profile.theme_color || "#3b82f6",
+          }));
+        }
       }
     } catch (error) {
       console.error("Error loading theme data:", error);
@@ -55,14 +61,18 @@ export default function MyPageBuilderV2() {
         return;
       }
 
+      // Save full theme configuration to my_page_v2_theme
       await supabase
         .from("profiles")
         .update({
+          my_page_v2_theme: theme as any,
+          // Also update legacy fields for backward compatibility
           account_full_name: theme.displayName,
           username: theme.username,
           bio: theme.bio,
           account_avatar_url: theme.profileImage,
           page_background_color: theme.backgroundColor,
+          theme_color: theme.themeColor,
         })
         .eq("id", user.id);
 

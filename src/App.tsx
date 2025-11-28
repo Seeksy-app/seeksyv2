@@ -42,6 +42,7 @@ import BookMeetings from "./pages/BookMeetings";
 import BookMeetingSlot from "./pages/BookMeetingSlot";
 import ProfileEdit from "./pages/ProfileEdit";
 import MyPageBuilderV2 from "./components/mypage/v2/MyPageBuilderV2";
+import MyPagePublic from "./pages/MyPagePublic";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
@@ -538,7 +539,7 @@ const AppContent = () => {
           <Route path="/agency/campaigns" element={<AgencyCampaigns />} />
               <Route path="/:username.portfolio" element={<InfluencerPortfolio />} />
               <Route path="/:username.blog" element={<UserBlog />} />
-              <Route path="/:username" element={<Profile />} />
+              <Route path="/:username" element={<MyPagePublic />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             </RouteTransition>

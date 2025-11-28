@@ -1,7 +1,7 @@
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { MyPageTheme } from "@/config/myPageThemes";
-import { QrCode, Share2, Copy, MessageCircle } from "lucide-react";
+import { QrCode, Share2, Copy, MessageCircle, Eye } from "lucide-react";
 import { ProfileQRCode } from "@/components/ProfileQRCode";
 import { toast } from "sonner";
 
@@ -21,12 +21,16 @@ export function ShareSection({ theme }: ShareSectionProps) {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: theme.displayName,
-          text: `Check out ${theme.displayName}'s page on Seeksy`,
+          title: theme.displayName || "My Seeksy Page",
+          text: `Check out ${theme.displayName || "my"} page on Seeksy`,
           url: profileUrl,
         });
+        toast.success("Shared successfully!");
       } catch (err) {
-        console.error("Share failed:", err);
+        if ((err as Error).name !== "AbortError") {
+          console.error("Share failed:", err);
+          copyToClipboard();
+        }
       }
     } else {
       copyToClipboard();
@@ -36,6 +40,10 @@ export function ShareSection({ theme }: ShareSectionProps) {
   const shareViaText = () => {
     const message = `Check out my Seeksy page: ${profileUrl}`;
     window.open(`sms:?body=${encodeURIComponent(message)}`);
+  };
+
+  const openMyPage = () => {
+    window.open(profileUrl, "_blank");
   };
 
   return (
@@ -63,13 +71,21 @@ export function ShareSection({ theme }: ShareSectionProps) {
         </div>
 
         <div className="space-y-2">
-          <Button onClick={handleShare} className="w-full gap-2">
+          <Button onClick={copyToClipboard} size="lg" className="w-full gap-2">
+            <Copy className="w-4 h-4" />
+            Copy My Page Link
+          </Button>
+          <Button onClick={handleShare} variant="outline" className="w-full gap-2">
             <Share2 className="w-4 h-4" />
             Share via...
           </Button>
           <Button onClick={shareViaText} variant="outline" className="w-full gap-2">
             <MessageCircle className="w-4 h-4" />
             Share via Text Message
+          </Button>
+          <Button onClick={openMyPage} variant="ghost" className="w-full gap-2">
+            <Eye className="w-4 h-4" />
+            Open My Page
           </Button>
         </div>
 
