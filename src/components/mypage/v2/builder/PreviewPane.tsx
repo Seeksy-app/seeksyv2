@@ -98,11 +98,11 @@ export function PreviewPane({ theme, device, onDeviceChange, mode, onModeChange 
               <div 
                 className="absolute bg-white overflow-y-auto overflow-x-hidden"
                 style={{
-                  top: "3%",
-                  left: "3.5%",
-                  right: "3.5%",
-                  bottom: "3%",
-                  borderRadius: "42px",
+                  top: "24px",
+                  left: "14px",
+                  right: "14px",
+                  bottom: "24px",
+                  borderRadius: "38px",
                 }}
               >
                 <MyPagePreview theme={theme} mode={mode} />
