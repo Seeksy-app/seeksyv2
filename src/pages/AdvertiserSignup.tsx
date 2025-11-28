@@ -12,6 +12,24 @@ export default function AdvertiserSignup() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  // Clear any old cached advertiser signup data on mount
+  useEffect(() => {
+    const cachedData = localStorage.getItem("advertiserSignupData");
+    if (cachedData) {
+      try {
+        const parsed = JSON.parse(cachedData);
+        // If it contains legacy fields, clear it
+        if (parsed.sponsor_name || parsed.sponsor_email || parsed.sponsor_type) {
+          console.log("Clearing legacy cached data");
+          localStorage.removeItem("advertiserSignupData");
+        }
+      } catch (e) {
+        // Invalid JSON, clear it
+        localStorage.removeItem("advertiserSignupData");
+      }
+    }
+  }, []);
+
   const { data: user } = useQuery({
     queryKey: ["user"],
     queryFn: async () => {
@@ -56,6 +74,8 @@ export default function AdvertiserSignup() {
     mutationFn: async (formData: any) => {
       if (!user) throw new Error("Please log in to continue");
 
+      console.log("Mutation received data:", formData);
+
       // Filter to only include valid advertiser fields
       const validAdvertiserData = {
         user_id: user.id,
@@ -70,6 +90,8 @@ export default function AdvertiserSignup() {
         status: "pending",
       };
 
+      console.log("Inserting advertiser data:", validAdvertiserData);
+
       // Insert advertiser record with only valid fields
       const { data: advertiserData, error } = await supabase
         .from("advertisers")
@@ -77,7 +99,12 @@ export default function AdvertiserSignup() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Advertiser insert error:", error);
+        throw error;
+      }
+
+      console.log("Advertiser created:", advertiserData);
 
       // Add creator as super_admin team member
       await supabase.from("advertiser_team_members").insert({
@@ -161,13 +188,39 @@ export default function AdvertiserSignup() {
   const handleComplete = (formData: any) => {
     if (!user) {
       toast.error("Please create an account first to continue");
-      localStorage.setItem("advertiserSignupData", JSON.stringify(formData));
+      // Clean the data before storing
+      const cleanData = {
+        company_name: formData.company_name,
+        contact_name: formData.contact_name,
+        contact_email: formData.contact_email,
+        contact_phone: formData.contact_phone,
+        website_url: formData.website_url,
+        business_description: formData.business_description,
+        campaign_goals: formData.campaign_goals || [],
+        target_categories: formData.target_categories || [],
+        team_members: formData.team_members || [],
+      };
+      localStorage.setItem("advertiserSignupData", JSON.stringify(cleanData));
       localStorage.setItem("signupIntent", "/advertiser/signup");
       navigate("/auth?mode=signup");
       return;
     }
 
-    signupMutation.mutate(formData);
+    // Clean the data before submitting
+    const cleanData = {
+      company_name: formData.company_name,
+      contact_name: formData.contact_name,
+      contact_email: formData.contact_email,
+      contact_phone: formData.contact_phone,
+      website_url: formData.website_url,
+      business_description: formData.business_description,
+      campaign_goals: formData.campaign_goals || [],
+      target_categories: formData.target_categories || [],
+      team_members: formData.team_members || [],
+    };
+
+    console.log("Submitting cleaned data:", cleanData);
+    signupMutation.mutate(cleanData);
   };
 
   if (existingAdvertiser && profile?.advertiser_onboarding_completed !== false) {
