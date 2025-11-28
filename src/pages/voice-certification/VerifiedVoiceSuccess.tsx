@@ -8,6 +8,7 @@ import { CertificationStepper } from "@/components/voice-certification/Certifica
 import { useToast } from "@/hooks/use-toast";
 import { exportCardAsImage } from "@/lib/utils/exportCardAsImage";
 import { supabase } from "@/integrations/supabase/client";
+import { setupVoiceMonitoring } from "@/lib/voice/voiceMonitoringSetup";
 
 const VerifiedVoiceSuccess = () => {
   const navigate = useNavigate();
@@ -24,10 +25,15 @@ const VerifiedVoiceSuccess = () => {
   const blockchain = location.state?.blockchain || "Polygon";
   const transactionHash = location.state?.transactionHash || null;
   const explorerUrl = location.state?.explorerUrl || null;
+  const voiceProfileId = location.state?.voiceProfileId || null;
+  const voiceFingerprint = location.state?.voiceFingerprint || null;
 
   useEffect(() => {
     // Fetch current user's username
     fetchUsername();
+    
+    // Setup voice monitoring after certification
+    initializeVoiceMonitoring();
     
     // Trigger confetti animation
     setShowConfetti(true);
@@ -79,6 +85,36 @@ const VerifiedVoiceSuccess = () => {
       }
     } catch (error) {
       console.error('Error fetching username:', error);
+    }
+  };
+
+  const initializeVoiceMonitoring = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !voiceProfileId || !voiceFingerprint) {
+        console.log('Missing data for voice monitoring setup');
+        return;
+      }
+
+      const result = await setupVoiceMonitoring(
+        user.id,
+        voiceProfileId,
+        voiceFingerprint
+      );
+
+      if (result.success) {
+        console.log('Voice monitoring setup complete:', {
+          fingerprintId: result.fingerprintId,
+          sourcesCreated: result.monitoringSourcesCreated,
+        });
+        
+        toast({
+          title: "Cross-Platform Monitoring Active",
+          description: `Now monitoring your voice across ${result.monitoringSourcesCreated} platforms.`,
+        });
+      }
+    } catch (error) {
+      console.error('Error initializing voice monitoring:', error);
     }
   };
 

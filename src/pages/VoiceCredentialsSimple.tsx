@@ -31,6 +31,7 @@ import { VoiceDetectionsList } from "@/components/voice/VoiceDetectionsList";
 import { VoiceDetectionsFilters } from "@/components/voice/VoiceDetectionsFilters";
 import { getVoiceDetectionsForUser, getRecentDetectionCount } from "@/lib/api/voiceDetectionsAPI";
 import type { VoiceDetection } from "@/lib/api/voiceDetectionsAPI";
+import { hasVoiceFingerprint, hasActiveMonitoring } from "@/lib/voice/voiceMonitoringSetup";
 
 export default function VoiceCredentials() {
   const [loading, setLoading] = useState(true);
@@ -40,6 +41,8 @@ export default function VoiceCredentials() {
   const [proposals, setProposals] = useState<any[]>([]);
   const [voiceDetections, setVoiceDetections] = useState<VoiceDetection[]>([]);
   const [badgeShares, setBadgeShares] = useState<any[]>([]);
+  const [hasFingerprint, setHasFingerprint] = useState(false);
+  const [monitoringActive, setMonitoringActive] = useState(false);
   
   // Detection filters
   const [platformFilter, setPlatformFilter] = useState<string[]>([]);
@@ -98,6 +101,14 @@ export default function VoiceCredentials() {
 
       // Fetch voice detections using new API
       fetchVoiceDetections(user.id);
+      
+      // Check if user has voice fingerprint enabled
+      const fingerprintExists = await hasVoiceFingerprint(user.id);
+      setHasFingerprint(fingerprintExists);
+      
+      // Check if monitoring is active
+      const monitoringEnabled = await hasActiveMonitoring(user.id);
+      setMonitoringActive(monitoringEnabled);
 
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -384,7 +395,21 @@ export default function VoiceCredentials() {
             </div>
           </Card>
 
-          {voiceDetections.length > 0 ? (
+          {!hasFingerprint ? (
+            <Card className="p-12 text-center border-2 border-dashed">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 mx-auto mb-4 flex items-center justify-center">
+                <AlertCircle className="h-10 w-10 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Get Voice Certified</h3>
+              <p className="text-muted-foreground max-w-md mx-auto mb-6">
+                Complete Voice Certification to enable cross-platform voice monitoring. 
+                We'll automatically track where your voice appears across YouTube, Spotify, TikTok, Instagram, and Twitter.
+              </p>
+              <Button onClick={() => window.location.href = "/voice-certification-flow"}>
+                Start Voice Certification
+              </Button>
+            </Card>
+          ) : voiceDetections.length > 0 ? (
             <>
               {/* Filters */}
               <Card className="mb-6 p-6">
