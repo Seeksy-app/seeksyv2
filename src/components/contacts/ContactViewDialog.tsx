@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Mail, Phone, Building2, FileText, Image } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { AdvertisingOverview } from "./AdvertisingOverview";
 
 interface ContactViewDialogProps {
   open: boolean;
@@ -118,16 +119,22 @@ export const ContactViewDialog = ({ open, onOpenChange, contact }: ContactViewDi
                   </span>
                 </div>
               )}
-
-              {contact.notes && !contact.notes.includes('Photo') && !contact.notes.includes('Location:') && (
-                <div className="pt-2">
-                  <h4 className="text-sm font-medium mb-1">Notes</h4>
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                    {contact.notes}
-                  </p>
-                </div>
-              )}
             </div>
+
+            {/* Advertising Overview Section */}
+            <div className="pt-4">
+              <AdvertisingOverview contact={contact} />
+            </div>
+
+            {/* Notes Section */}
+            {contact.notes && !contact.notes.includes('Photo') && !contact.notes.includes('Location:') && (
+              <div className="pt-4">
+                <h4 className="text-sm font-medium mb-1">Notes</h4>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {contact.notes}
+                </p>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="photos" className="space-y-4">
