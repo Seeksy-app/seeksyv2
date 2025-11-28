@@ -691,6 +691,104 @@ export type Database = {
           },
         ]
       }
+      ad_inventory_units: {
+        Row: {
+          ceiling_cpm: number
+          created_at: string
+          expected_monthly_impressions: number
+          floor_cpm: number
+          id: string
+          is_active: boolean
+          name: string
+          placement: string
+          seasonality_factor: number
+          slug: string
+          target_cpm: number
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          ceiling_cpm?: number
+          created_at?: string
+          expected_monthly_impressions?: number
+          floor_cpm?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          placement: string
+          seasonality_factor?: number
+          slug: string
+          target_cpm?: number
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          ceiling_cpm?: number
+          created_at?: string
+          expected_monthly_impressions?: number
+          floor_cpm?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          placement?: string
+          seasonality_factor?: number
+          slug?: string
+          target_cpm?: number
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ad_rate_cards: {
+        Row: {
+          bulk_discount_cpm: number | null
+          created_at: string
+          id: string
+          inventory_unit_id: string
+          min_commit_impressions: number | null
+          notes: string | null
+          quarter: number
+          recommended_cpm: number
+          scenario_slug: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          bulk_discount_cpm?: number | null
+          created_at?: string
+          id?: string
+          inventory_unit_id: string
+          min_commit_impressions?: number | null
+          notes?: string | null
+          quarter: number
+          recommended_cpm: number
+          scenario_slug: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          bulk_discount_cpm?: number | null
+          created_at?: string
+          id?: string
+          inventory_unit_id?: string
+          min_commit_impressions?: number | null
+          notes?: string | null
+          quarter?: number
+          recommended_cpm?: number
+          scenario_slug?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_rate_cards_inventory_unit_id_fkey"
+            columns: ["inventory_unit_id"]
+            isOneToOne: false
+            referencedRelation: "ad_inventory_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ad_revenue_events: {
         Row: {
           ad_read_duration: number | null

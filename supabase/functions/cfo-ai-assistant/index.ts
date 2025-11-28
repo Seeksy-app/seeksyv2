@@ -36,6 +36,7 @@ ${JSON.stringify(financialData, null, 2)}
 
     let adFinancialContext = '';
     let combinedRevenueContext = '';
+    let rateDeskContext = '';
     try {
       const { data: summaries, error } = await supabase
         .from('ad_financial_model_summaries')
@@ -108,9 +109,50 @@ Year ${year}:
 
 When users ask about combined revenue or total platform revenue, use these numbers which include BOTH subscription and advertising streams.
 `;
-        }
-      }
-    } catch (err) {
+         }
+       }
+
+       // Fetch rate desk inventory data
+       const { data: inventoryUnits } = await supabase
+         .from('ad_inventory_units')
+         .select('*')
+         .eq('is_active', true);
+
+       if (inventoryUnits && inventoryUnits.length > 0) {
+         const totalMonthlyImpressions = inventoryUnits.reduce((sum, unit) => sum + Number(unit.expected_monthly_impressions), 0);
+         const avgCPM = inventoryUnits.reduce((sum, unit) => sum + Number(unit.target_cpm), 0) / inventoryUnits.length;
+         const potentialMonthlyRevenue = (totalMonthlyImpressions / 1000) * avgCPM;
+
+         rateDeskContext = `
+
+** SALES RATE DESK - AD INVENTORY OVERVIEW **
+
+Total Active Inventory Units: ${inventoryUnits.length}
+Total Monthly Sellable Impressions: ${(totalMonthlyImpressions / 1000).toFixed(0)}K
+Average Target CPM: $${avgCPM.toFixed(2)}
+Potential Monthly Gross Ad Spend: $${(potentialMonthlyRevenue / 1000).toFixed(1)}K
+Potential Quarterly Revenue: $${((potentialMonthlyRevenue * 3) / 1000).toFixed(1)}K
+Potential Annual Revenue: $${((potentialMonthlyRevenue * 12) / 1000000).toFixed(2)}M
+
+Inventory Breakdown by Type:
+${Array.from(new Set(inventoryUnits.map(u => u.type))).map(type => {
+  const units = inventoryUnits.filter(u => u.type === type);
+  const impressions = units.reduce((sum, u) => sum + Number(u.expected_monthly_impressions), 0);
+  const avgCPM = units.reduce((sum, u) => sum + Number(u.target_cpm), 0) / units.length;
+  return `  - ${type}: ${units.length} units, ${(impressions / 1000).toFixed(0)}K impressions/month, $${avgCPM.toFixed(2)} avg CPM`;
+}).join('\n')}
+
+CPM Ranges by Placement:
+${inventoryUnits.map(u => `  - ${u.name} (${u.type}): Floor $${u.floor_cpm} - Target $${u.target_cpm} - Ceiling $${u.ceiling_cpm}`).join('\n')}
+
+When users ask about:
+- "What CPM should we quote for...?" - Reference the target CPM ranges above and adjust based on scenario (Conservative: -15%, Base: 0%, Aggressive: +15%)
+- "Which inventory is underpriced?" - Compare target CPM to floor CPM, units near floor are underpriced
+- "How much revenue if we sell X% of impressions?" - Calculate: (total_impressions * X%) / 1000 * avg_CPM * 0.30 (platform share)
+- "What's our total ad inventory?" - Use the Total Monthly Sellable Impressions figure above
+`;
+       }
+     } catch (err) {
       console.error('Failed to load financial summaries:', err);
     }
 
@@ -187,6 +229,8 @@ Cost Structure: $2.50/user AI compute + infrastructure costs
 ${combinedRevenueContext}
 
 ${adFinancialContext}
+
+${rateDeskContext}
 
 ${contextString}
 

@@ -207,6 +207,7 @@ import Billing from "./pages/admin/Billing";
 import Payments from "./pages/admin/Payments";
 import AdFinancialModels from "./pages/admin/AdFinancialModels";
 import CombinedFinancialModels from "./pages/admin/CombinedFinancialModels";
+import AdminRateDesk from "./pages/admin/advertising/AdminRateDesk";
 import VoiceCertificationDashboard from "./pages/voice-certification/VoiceCertificationDashboard";
 import UploadOrRecordVoice from "./pages/voice-certification/UploadOrRecordVoice";
 import AIVoiceFingerprinting from "./pages/voice-certification/AIVoiceFingerprinting";
@@ -481,6 +482,7 @@ const AppContent = () => {
               <Route path="/admin/payments" element={<Payments />} />
               <Route path="/admin/financial-models/ads/*" element={<AdFinancialModels />} />
               <Route path="/admin/financial-models/combined" element={<CombinedFinancialModels />} />
+              <Route path="/admin/advertising/rate-desk" element={<AdminRateDesk />} />
           <Route path="/advertiser" element={<AdvertiserServices />} />
           <Route path="/advertiser/signup" element={<AdvertiserSignup />} />
           <Route path="/advertiser/dashboard" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserDashboard /></ProtectedRoute>} />

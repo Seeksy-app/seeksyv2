@@ -565,6 +565,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     { title: "Ad Management", url: "/admin/advertising", icon: Megaphone },
     { title: "Campaigns", url: "/admin/ad-campaigns", icon: Target },
     { title: "Advertisers", url: "/admin/advertisers", icon: Building2 },
+    { title: "Sales Rate Desk", url: "/admin/advertising/rate-desk", icon: TrendingUp },
     { title: "Analytics", url: "/admin/ad-analytics", icon: LineChart },
   ];
 
