@@ -1,15 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { CheckCircle, Shield, Award, ExternalLink, FileText } from "lucide-react";
+import { CheckCircle, Shield, Award, ExternalLink, Download, Share2 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import confetti from "canvas-confetti";
 import { CertificationStepper } from "@/components/voice-certification/CertificationStepper";
+import { useToast } from "@/hooks/use-toast";
+import { exportCardAsImage } from "@/lib/utils/exportCardAsImage";
+import { supabase } from "@/integrations/supabase/client";
 
 const VerifiedVoiceSuccess = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
+  const cardRef = useRef<HTMLDivElement>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [username, setUsername] = useState<string>("");
   
   const fingerprintData = location.state?.fingerprintData || {
     voiceName: "Christy Louis"
@@ -18,6 +24,9 @@ const VerifiedVoiceSuccess = () => {
   const blockchain = location.state?.blockchain || "Polygon";
 
   useEffect(() => {
+    // Fetch current user's username
+    fetchUsername();
+    
     // Trigger confetti animation
     setShowConfetti(true);
     
@@ -52,6 +61,101 @@ const VerifiedVoiceSuccess = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const fetchUsername = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile?.username) {
+          setUsername(profile.username);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching username:', error);
+    }
+  };
+
+  const handleDownload = async () => {
+    if (!cardRef.current || !username) {
+      toast({
+        title: "Download unavailable",
+        description: "Please wait while we prepare your certificate.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      await exportCardAsImage(cardRef.current, username);
+      toast({
+        title: "Certificate downloaded",
+        description: "Your voice certification has been saved as an image.",
+      });
+    } catch (error) {
+      console.error('Error downloading certificate:', error);
+      toast({
+        title: "Download failed",
+        description: "Could not download the certificate. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleShare = async () => {
+    if (!username) {
+      toast({
+        title: "Share unavailable",
+        description: "Please wait while we prepare your sharing link.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const shareUrl = `${window.location.origin}/v/${username}/voice-credential`;
+
+    // Check if Web Share API is available
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'My Verified Voice Credential',
+          text: 'Check out my blockchain-verified voice identity on Seeksy!',
+          url: shareUrl,
+        });
+        
+        toast({
+          title: "Shared successfully",
+          description: "Your voice credential has been shared.",
+        });
+      } catch (error) {
+        // User cancelled share or error occurred
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Error sharing:', error);
+        }
+      }
+    } else {
+      // Fallback: copy to clipboard
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({
+          title: "Link copied to clipboard",
+          description: "Share your voice credential link with anyone.",
+        });
+      } catch (error) {
+        console.error('Error copying to clipboard:', error);
+        toast({
+          title: "Copy failed",
+          description: "Could not copy link. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-4 md:p-8 relative overflow-hidden">
       {/* Confetti background effect */}
@@ -83,7 +187,10 @@ const VerifiedVoiceSuccess = () => {
           </div>
 
           {/* Voice Credential Card */}
-          <Card className="max-w-2xl mx-auto bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-primary/30 p-8 mb-12">
+          <Card 
+            ref={cardRef}
+            className="max-w-2xl mx-auto bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-primary/30 p-8 mb-12"
+          >
             <div className="flex items-start gap-6 mb-6">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent flex-shrink-0 flex items-center justify-center">
                 <Shield className="h-10 w-10 text-white" />
@@ -134,7 +241,7 @@ const VerifiedVoiceSuccess = () => {
           </Card>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto mb-8">
             <Button
               size="lg"
               onClick={() => navigate("/voice-credentials")}
@@ -147,19 +254,31 @@ const VerifiedVoiceSuccess = () => {
             <Button
               size="lg"
               variant="outline"
-              onClick={() => navigate("/voice-certification-flow")}
+              onClick={handleDownload}
               className="h-auto py-6"
             >
-              <Award className="mr-2 h-5 w-5" />
-              Return to Dashboard
+              <Download className="mr-2 h-5 w-5" />
+              Download Certificate
             </Button>
 
             <Button
               size="lg"
               variant="outline"
-              onClick={() => navigate("/ad-scripts")}
+              onClick={handleShare}
               className="h-auto py-6"
             >
+              <Share2 className="mr-2 h-5 w-5" />
+              Share My Certification
+            </Button>
+
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => navigate("/voice-certification-flow")}
+              className="h-auto py-6"
+            >
+              <Award className="mr-2 h-5 w-5" />
+              Return to Dashboard
             </Button>
           </div>
 
