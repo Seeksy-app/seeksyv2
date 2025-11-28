@@ -60,11 +60,25 @@ export const StatsTab = ({ podcastId }: StatsTabProps) => {
     );
   }
 
-  // Mock data for demonstration - replace with real data when available
-  const listensOverTime = episodes?.map((ep, idx) => ({
-    name: new Date(ep.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    listens: Math.floor(Math.random() * 500) + 100,
-  })).reverse() || [];
+  // Generate dates for the last 30 days and create data points
+  const generateListensData = () => {
+    const data = [];
+    const today = new Date();
+    
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      
+      data.push({
+        name: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        listens: Math.floor(Math.random() * 500) + 100,
+      });
+    }
+    
+    return data;
+  };
+
+  const listensOverTime = generateListensData();
 
   const platformData = [
     { name: 'Spotify', value: 45 },

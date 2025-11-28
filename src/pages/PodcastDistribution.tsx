@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import { OverviewTab } from "@/components/podcast/OverviewTab";
 import { EpisodesTab } from "@/components/podcast/EpisodesTab";
+import { PodcastStudioTab } from "@/components/podcast/PodcastStudioTab";
 import { PlayersTab } from "@/components/podcast/PlayersTab";
 import { WebsiteTab } from "@/components/podcast/WebsiteTab";
 import { MonetizationTab } from "@/components/podcast/MonetizationTab";
@@ -86,9 +87,10 @@ export default function PodcastDistribution() {
 
         {selectedPodcast ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-7 mb-8 sticky top-0 bg-background z-10">
+            <TabsList className="grid w-full grid-cols-8 mb-8 sticky top-0 bg-background z-10">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="episodes">Episodes</TabsTrigger>
+              <TabsTrigger value="studio">Studio</TabsTrigger>
               <TabsTrigger value="players">Players</TabsTrigger>
               <TabsTrigger value="website">Website</TabsTrigger>
               <TabsTrigger value="monetization">Monetization</TabsTrigger>
@@ -102,6 +104,10 @@ export default function PodcastDistribution() {
 
             <TabsContent value="episodes">
               <EpisodesTab podcastId={selectedPodcast} userId={user.id} />
+            </TabsContent>
+
+            <TabsContent value="studio">
+              <PodcastStudioTab podcastId={selectedPodcast} userId={user.id} />
             </TabsContent>
 
             <TabsContent value="players">

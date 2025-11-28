@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { useState, useEffect } from "react";
 import { OverviewTab } from "@/components/podcast/OverviewTab";
 import { EpisodesTab } from "@/components/podcast/EpisodesTab";
+import { PodcastStudioTab } from "@/components/podcast/PodcastStudioTab";
 import { PlayersTab } from "@/components/podcast/PlayersTab";
 import { WebsiteTab } from "@/components/podcast/WebsiteTab";
 import { MonetizationTab } from "@/components/podcast/MonetizationTab";
@@ -103,6 +104,12 @@ const PodcastDetail = () => {
               Episodes
             </TabsTrigger>
             <TabsTrigger
+              value="studio"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-3 text-base"
+            >
+              Studio
+            </TabsTrigger>
+            <TabsTrigger
               value="players"
               className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-3 text-base"
             >
@@ -140,6 +147,10 @@ const PodcastDetail = () => {
 
           <TabsContent value="episodes" className="mt-0 p-6">
             <EpisodesTab podcastId={id!} userId={user.id} />
+          </TabsContent>
+
+          <TabsContent value="studio" className="mt-0 p-6">
+            <PodcastStudioTab podcastId={id!} userId={user.id} />
           </TabsContent>
 
           <TabsContent value="players" className="mt-0 p-6">
