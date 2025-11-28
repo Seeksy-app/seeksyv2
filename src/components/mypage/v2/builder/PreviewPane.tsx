@@ -3,6 +3,7 @@ import { MyPageTheme } from "@/config/myPageThemes";
 import { Button } from "@/components/ui/button";
 import { MyPagePreview } from "../public/MyPagePreview";
 import { cn } from "@/lib/utils";
+import iphoneFrame from "@/assets/iphone-16-plus-frame.png";
 
 interface PreviewPaneProps {
   theme: MyPageTheme;
@@ -83,30 +84,49 @@ export function PreviewPane({ theme, device, onDeviceChange, mode, onModeChange 
               <MyPagePreview theme={theme} mode={mode} />
             </div>
           </div>
-        ) : (
+        ) : device === "mobile" ? (
           <div
             className="relative transition-all duration-300"
+            style={{
+              width: "390px",
+              height: "844px",
+            }}
+          >
+            {/* iPhone 16 Plus Frame with Screen Content */}
+            <div className="absolute inset-0">
+              {/* Screen Content - positioned to fit within frame */}
+              <div 
+                className="absolute bg-white overflow-y-auto overflow-x-hidden"
+                style={{
+                  top: "20px",
+                  left: "12px",
+                  right: "12px",
+                  bottom: "20px",
+                  borderRadius: "42px",
+                }}
+              >
+                <MyPagePreview theme={theme} mode={mode} />
+              </div>
+              
+              {/* iPhone Frame Overlay */}
+              <img
+                src={iphoneFrame}
+                alt="iPhone 16 Plus"
+                className="absolute inset-0 w-full h-full pointer-events-none"
+                style={{ objectFit: "contain" }}
+              />
+            </div>
+          </div>
+        ) : (
+          <div
+            className="transition-all duration-300 rounded-3xl shadow-2xl border-8 border-gray-900"
             style={{
               width: deviceSizes[device].width,
               height: deviceSizes[device].height,
             }}
           >
-            {/* iPhone Frame */}
-            <div className="absolute inset-0 rounded-[3rem] bg-black shadow-2xl">
-              {/* Dynamic Island */}
-              {device === "mobile" && (
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-32 h-8 bg-black rounded-full z-10" />
-              )}
-              
-              {/* Screen */}
-              <div className="absolute inset-[3px] rounded-[2.85rem] overflow-hidden bg-white">
-                <div className="w-full h-full overflow-y-auto overflow-x-hidden">
-                  <MyPagePreview theme={theme} mode={mode} />
-                </div>
-              </div>
-              
-              {/* Bezel highlight */}
-              <div className="absolute inset-0 rounded-[3rem] ring-1 ring-white/10 pointer-events-none" />
+            <div className="bg-white w-full h-full overflow-y-auto overflow-x-hidden">
+              <MyPagePreview theme={theme} mode={mode} />
             </div>
           </div>
         )}
