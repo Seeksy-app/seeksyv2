@@ -429,11 +429,10 @@ export function AdvertiserSignupSteps({ onComplete, isSubmitting }: AdvertiserSi
                     onChange={(e) => setNewTeamMember({ ...newTeamMember, role: e.target.value })}
                     className="w-full px-3 py-2 border rounded-md bg-background"
                   >
-                    <option value="super_admin">Super Admin</option>
-                    <option value="admin">Admin</option>
+                    <option value="owner">Owner</option>
                     <option value="ad_manager">Ad Manager</option>
-                    <option value="creative">Creative</option>
-                    <option value="sales">Sales</option>
+                    <option value="billing">Billing</option>
+                    <option value="viewer">Viewer</option>
                   </select>
                 </div>
               </div>

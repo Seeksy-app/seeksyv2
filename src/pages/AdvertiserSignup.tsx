@@ -5,12 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Building2 } from "lucide-react";
+import { Building2, CheckCircle2 } from "lucide-react";
 import { AdvertiserSignupSteps } from "@/components/advertiser/AdvertiserSignupSteps";
 
 export default function AdvertiserSignup() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   // Clear any old cached advertiser signup data on mount
   useEffect(() => {
@@ -24,7 +25,6 @@ export default function AdvertiserSignup() {
           localStorage.removeItem("advertiserSignupData");
         }
       } catch (e) {
-        // Invalid JSON, clear it
         localStorage.removeItem("advertiserSignupData");
       }
     }
@@ -74,70 +74,73 @@ export default function AdvertiserSignup() {
     mutationFn: async (formData: any) => {
       if (!user) throw new Error("Please log in to continue");
 
-      console.log("Mutation received data:", formData);
-
-      // Filter to only include valid advertiser fields
-      const validAdvertiserData = {
-        user_id: user.id,
-        company_name: formData.company_name,
-        contact_name: formData.contact_name,
-        contact_email: formData.contact_email,
-        contact_phone: formData.contact_phone || null,
-        website_url: formData.website_url || null,
-        business_description: formData.business_description || null,
-        status: "pending",
-      };
-
-      console.log("Inserting advertiser data:", validAdvertiserData);
-
-      // Insert advertiser record with only valid fields
-      const { data: advertiserData, error } = await supabase
+      // Step 1: Create advertiser record
+      const { data: advertiserData, error: advertiserError } = await supabase
         .from("advertisers")
-        .insert(validAdvertiserData)
+        .insert({
+          owner_profile_id: user.id,
+          company_name: formData.company_name,
+          contact_name: formData.contact_name,
+          contact_email: formData.contact_email,
+          contact_phone: formData.contact_phone || null,
+          website_url: formData.website_url || null,
+          business_description: formData.business_description || null,
+          status: "pending",
+        })
         .select()
         .single();
 
-      if (error) {
-        console.error("Advertiser insert error:", error);
-        throw error;
+      if (advertiserError) throw advertiserError;
+
+      // Step 2: Create advertiser preferences
+      const { error: preferencesError } = await supabase
+        .from("advertiser_preferences")
+        .insert({
+          advertiser_id: advertiserData.id,
+          objectives: { goals: formData.campaign_goals || [] },
+          target_categories: formData.target_categories || [],
+        });
+
+      if (preferencesError) throw preferencesError;
+
+      // Step 3: Add team members
+      if (formData.team_members && formData.team_members.length > 0) {
+        const teamMemberInserts = formData.team_members.map((member: any) => ({
+          advertiser_id: advertiserData.id,
+          profile_id: null, // Will be filled when they accept invite
+          role: member.role,
+          // Store email in a metadata field for now - you might want to add an invite system
+        }));
+
+        const { error: teamError } = await supabase
+          .from("advertiser_team_members")
+          .insert(teamMemberInserts);
+
+        if (teamError) console.error("Team member insert error:", teamError);
       }
 
-      console.log("Advertiser created:", advertiserData);
+      // Step 4: Mark onboarding as complete
+      await supabase
+        .from("profiles")
+        .update({ 
+          advertiser_onboarding_completed: true,
+          is_advertiser: true 
+        })
+        .eq("id", user.id);
 
-      // Add creator as super_admin team member
-      await supabase.from("advertiser_team_members").insert({
-        advertiser_id: advertiserData.id,
-        user_id: user.id,
-        role: "super_admin",
-        accepted_at: new Date().toISOString(),
-      });
-
-      // Create lead in contacts table
+      // Step 5: Create lead in contacts
       try {
-        const { error: contactError } = await supabase
+        await supabase
           .from("contacts")
           .insert({
             name: formData.contact_name,
             email: formData.contact_email,
             phone: formData.contact_phone || null,
             company: formData.company_name,
-            title: null,
             lead_source: "advertiser_signup",
             lead_status: "new",
-            notes: `Business Description: ${formData.business_description || "N/A"}\nWebsite: ${formData.website_url || "N/A"}\nCampaign Goals: ${formData.campaign_goals.join(", ")}\nTarget Categories: ${formData.target_categories.join(", ")}`,
+            notes: `Business: ${formData.business_description || "N/A"}\nWebsite: ${formData.website_url || "N/A"}\nGoals: ${formData.campaign_goals?.join(", ") || "N/A"}\nCategories: ${formData.target_categories?.join(", ") || "N/A"}`,
           });
-
-          // Create advertiser preferences
-          if (advertiserData) {
-            await supabase.from("advertiser_preferences").insert({
-              advertiser_id: advertiserData.id,
-              target_categories: formData.target_categories || [],
-            });
-          }
-
-        if (contactError) {
-          console.error("Failed to create lead:", contactError);
-        }
 
         // Notify sales team
         await supabase.functions.invoke('notify-sales-team-lead', {
@@ -149,10 +152,13 @@ export default function AdvertiserSignup() {
       } catch (leadError) {
         console.error('Lead creation failed:', leadError);
       }
+
+      return advertiserData;
     },
     onSuccess: async () => {
-      toast.success("Application submitted! We'll review it and get back to you soon.");
+      setShowConfirmation(true);
       queryClient.invalidateQueries({ queryKey: ["advertiser-status", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
     },
     onError: (error: any) => {
       toast.error("Failed to submit application: " + error.message);
@@ -166,10 +172,9 @@ export default function AdvertiserSignup() {
       if (advertiserData) {
         try {
           const data = JSON.parse(advertiserData);
-          // Clear the data immediately to prevent re-submission
           localStorage.removeItem("advertiserSignupData");
           
-          // Filter out any legacy fields (like sponsor_name) that might be cached
+          // Clean data - only include valid fields
           const cleanData = {
             company_name: data.company_name,
             contact_name: data.contact_name,
@@ -182,7 +187,6 @@ export default function AdvertiserSignup() {
             team_members: data.team_members || [],
           };
           
-          // Submit the cleaned advertiser application
           signupMutation.mutate(cleanData);
         } catch (e) {
           console.error("Failed to process advertiser data:", e);
@@ -194,7 +198,6 @@ export default function AdvertiserSignup() {
   const handleComplete = (formData: any) => {
     if (!user) {
       toast.error("Please create an account first to continue");
-      // Clean the data before storing
       const cleanData = {
         company_name: formData.company_name,
         contact_name: formData.contact_name,
@@ -225,12 +228,46 @@ export default function AdvertiserSignup() {
       team_members: formData.team_members || [],
     };
 
-    console.log("Submitting cleaned data:", cleanData);
     signupMutation.mutate(cleanData);
   };
 
+  // Confirmation screen
+  if (showConfirmation) {
+    return (
+      <div className="container max-w-2xl mx-auto py-12">
+        <Card>
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4">
+              <CheckCircle2 className="h-16 w-16 text-green-500" />
+            </div>
+            <CardTitle className="text-2xl">Application Submitted!</CardTitle>
+            <CardDescription>
+              We're reviewing your application and will get back to you soon.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-muted p-4 rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                You'll receive an email at <strong>{user?.email}</strong> once your account is activated.
+                This typically takes 1-2 business days.
+              </p>
+            </div>
+            <div className="flex gap-2 justify-center">
+              <Button onClick={() => navigate("/")}>
+                Return to Dashboard
+              </Button>
+              <Button variant="outline" onClick={() => navigate("/advertiser")}>
+                View Advertiser Portal
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (existingAdvertiser && profile?.advertiser_onboarding_completed !== false) {
-    // Redirect approved advertisers to dashboard (unless they explicitly reset onboarding)
+    // Show status for existing advertisers
     if (existingAdvertiser.status === "approved") {
       navigate("/advertiser/dashboard");
       return null;
