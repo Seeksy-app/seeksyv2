@@ -478,7 +478,7 @@ const AppContent = () => {
               <Route path="/admin/revenue-reports" element={<RevenueReports />} />
               <Route path="/admin/billing" element={<Billing />} />
               <Route path="/admin/payments" element={<Payments />} />
-              <Route path="/admin/financial-models/ads" element={<AdFinancialModels />} />
+              <Route path="/admin/financial-models/ads/*" element={<AdFinancialModels />} />
           <Route path="/advertiser" element={<AdvertiserServices />} />
           <Route path="/advertiser/signup" element={<AdvertiserSignup />} />
           <Route path="/advertiser/dashboard" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserDashboard /></ProtectedRoute>} />

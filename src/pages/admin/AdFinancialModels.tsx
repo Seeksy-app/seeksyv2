@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AssumptionsTab } from "@/components/cfo/AssumptionsTab";
 import { ScenariosTab } from "@/components/cfo/ScenariosTab";
@@ -7,7 +8,39 @@ import { InvestorViewTab } from "@/components/cfo/InvestorViewTab";
 import { DollarSign, TrendingUp, Users, PresentationIcon } from "lucide-react";
 
 export default function AdFinancialModels() {
-  const [activeTab, setActiveTab] = useState("assumptions");
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Map URL segments to tab values
+  const getTabFromPath = (pathname: string): string => {
+    if (pathname.endsWith('/scenarios')) return 'scenarios';
+    if (pathname.endsWith('/creator-earnings')) return 'earnings';
+    if (pathname.endsWith('/investor-view')) return 'investor';
+    return 'assumptions'; // default
+  };
+
+  const [activeTab, setActiveTab] = useState(() => getTabFromPath(location.pathname));
+
+  // Sync tab with URL changes
+  useEffect(() => {
+    const newTab = getTabFromPath(location.pathname);
+    if (newTab !== activeTab) {
+      setActiveTab(newTab);
+    }
+  }, [location.pathname]);
+
+  // Update URL when tab changes via UI
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    const basePath = '/admin/financial-models/ads';
+    const tabPaths: Record<string, string> = {
+      assumptions: basePath,
+      scenarios: `${basePath}/scenarios`,
+      earnings: `${basePath}/creator-earnings`,
+      investor: `${basePath}/investor-view`,
+    };
+    navigate(tabPaths[value] || basePath, { replace: true });
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -23,7 +56,7 @@ export default function AdFinancialModels() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="assumptions" className="gap-2">
             <TrendingUp className="h-4 w-4" />
