@@ -1,14 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
+import { OverviewTab } from "@/components/podcast/OverviewTab";
+import { EpisodesTab } from "@/components/podcast/EpisodesTab";
+import { PlayersTab } from "@/components/podcast/PlayersTab";
+import { WebsiteTab } from "@/components/podcast/WebsiteTab";
+import { MonetizationTab } from "@/components/podcast/MonetizationTab";
+import { StatsTab } from "@/components/podcast/StatsTab";
 import { DirectoriesTab } from "@/components/podcast/DirectoriesTab";
-import { RSSMigrationTab } from "@/components/podcast/RSSMigrationTab";
-import { RSSAutoUpdateTab } from "@/components/podcast/RSSAutoUpdateTab";
-import { BlockchainCertificationTab } from "@/components/podcast/BlockchainCertificationTab";
-import { AutoPublishTab } from "@/components/podcast/AutoPublishTab";
 
 export default function PodcastDistribution() {
+  const [selectedPodcast, setSelectedPodcast] = useState<string>("");
+  const [activeTab, setActiveTab] = useState("overview");
+
   const { data: user } = useQuery({
     queryKey: ["user"],
     queryFn: async () => {
@@ -17,6 +24,37 @@ export default function PodcastDistribution() {
     },
   });
 
+  const { data: podcasts } = useQuery({
+    queryKey: ["user-podcasts", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase
+        .from("podcasts")
+        .select("*")
+        .eq("user_id", user.id);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Persist tab selection in localStorage
+  useEffect(() => {
+    const savedTab = localStorage.getItem("podcast-dashboard-tab");
+    if (savedTab) setActiveTab(savedTab);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("podcast-dashboard-tab", activeTab);
+  }, [activeTab]);
+
+  // Auto-select first podcast if none selected
+  useEffect(() => {
+    if (!selectedPodcast && podcasts && podcasts.length > 0) {
+      setSelectedPodcast(podcasts[0].id);
+    }
+  }, [podcasts, selectedPodcast]);
+
   if (!user) return null;
 
   return (
@@ -24,39 +62,73 @@ export default function PodcastDistribution() {
       <Header />
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">Podcast Distribution</h1>
-          <p className="text-muted-foreground">Manage podcast directories, RSS feeds, and auto-publishing</p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-4xl font-bold text-foreground mb-2">Podcast Dashboard</h1>
+              <p className="text-muted-foreground">Manage your podcast content, analytics, and monetization</p>
+            </div>
+            {podcasts && podcasts.length > 0 && (
+              <Select value={selectedPodcast} onValueChange={setSelectedPodcast}>
+                <SelectTrigger className="w-[300px]">
+                  <SelectValue placeholder="Select a podcast" />
+                </SelectTrigger>
+                <SelectContent>
+                  {podcasts.map((podcast) => (
+                    <SelectItem key={podcast.id} value={podcast.id}>
+                      {podcast.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
         </div>
 
-        <Tabs defaultValue="directories" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-8">
-            <TabsTrigger value="directories">Directories</TabsTrigger>
-            <TabsTrigger value="auto-update">Auto-Update</TabsTrigger>
-            <TabsTrigger value="rss">RSS Migration</TabsTrigger>
-            <TabsTrigger value="blockchain">Blockchain</TabsTrigger>
-            <TabsTrigger value="autopublish">Auto-Publish</TabsTrigger>
-          </TabsList>
+        {selectedPodcast ? (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-7 mb-8 sticky top-0 bg-background z-10">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="episodes">Episodes</TabsTrigger>
+              <TabsTrigger value="players">Players</TabsTrigger>
+              <TabsTrigger value="website">Website</TabsTrigger>
+              <TabsTrigger value="monetization">Monetization</TabsTrigger>
+              <TabsTrigger value="stats">Stats</TabsTrigger>
+              <TabsTrigger value="directories">Directories</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="directories">
-            <DirectoriesTab userId={user.id} />
-          </TabsContent>
+            <TabsContent value="overview">
+              <OverviewTab podcastId={selectedPodcast} userId={user.id} />
+            </TabsContent>
 
-          <TabsContent value="auto-update">
-            <RSSAutoUpdateTab userId={user.id} />
-          </TabsContent>
+            <TabsContent value="episodes">
+              <EpisodesTab podcastId={selectedPodcast} userId={user.id} />
+            </TabsContent>
 
-          <TabsContent value="rss">
-            <RSSMigrationTab userId={user.id} />
-          </TabsContent>
+            <TabsContent value="players">
+              <PlayersTab podcastId={selectedPodcast} />
+            </TabsContent>
 
-          <TabsContent value="blockchain">
-            <BlockchainCertificationTab userId={user.id} />
-          </TabsContent>
+            <TabsContent value="website">
+              <WebsiteTab podcastId={selectedPodcast} />
+            </TabsContent>
 
-          <TabsContent value="autopublish">
-            <AutoPublishTab userId={user.id} />
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="monetization">
+              <MonetizationTab podcastId={selectedPodcast} />
+            </TabsContent>
+
+            <TabsContent value="stats">
+              <StatsTab podcastId={selectedPodcast} />
+            </TabsContent>
+
+            <TabsContent value="directories">
+              <DirectoriesTab userId={user.id} />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No podcasts found. Create your first podcast to get started.</p>
+          </div>
+        )}
       </main>
     </div>
   );
