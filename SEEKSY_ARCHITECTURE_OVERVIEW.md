@@ -598,6 +598,251 @@ Advertiser CPM Rates:
 **3. Advertiser Portal ↔ Monetization Engine**
 - Campaign budget tracking
 - Script performance analytics
+- Real-time impression reporting
+
+---
+
+## Ad Impression Tracking System
+
+### Overview
+Seeksy implements a unified ad impression tracking system that captures all advertising activity across multiple platforms and content types. All impressions flow into the `ad_impressions` table and feed into the Monetization Engine for revenue calculation and reporting.
+
+### Supported Ad Types
+
+#### 1. Native Seeksy Ads
+- **Podcast Episode Ads**: Host-read scripts, programmatic insertions
+- **Video Ads**: Pre-roll, mid-roll, post-roll in video content
+- **Clip Ads**: Short-form social media clips with ad placements
+
+#### 2. VAST-Based External Ads
+- **Integration**: Third-party ad networks via VAST tags
+- **Platforms**: External agencies, programmatic exchanges
+- **Tracking**: Maps VAST impressions to internal ad_id + campaign_id
+- **Reconciliation**: `external_impression_id` field stores VAST impression IDs
+
+#### 3. Blog Widget Ads
+- **Placement**: Seekies-powered blog posts
+- **Tracking**: Viewport visibility detection via `useAdSlotImpression` hook
+- **Source Type**: `blog` with `blog-widget` slot type
+
+#### 4. Newsletter Inline Ads
+- **Placement**: Email newsletters via click-through tracking
+- **Tracking**: Redirect URL pattern `/ad/click/:adId`
+- **Source Type**: `newsletter` with `newsletter-inline` slot type
+
+### Database Schema
+
+#### ad_impressions Table Extensions
+```sql
+-- Core tracking fields
+ad_slot_id          uuid        -- Internal ad slot reference
+campaign_id         uuid        -- Campaign reference (nullable)
+episode_id          uuid        -- Content source ID
+podcast_id          uuid        -- Parent podcast/channel
+creator_id          uuid        -- Content creator
+listener_ip_hash    text        -- Privacy-safe user identifier
+
+-- Extended tracking fields
+platform            text        -- 'seeksy' | 'spotify' | 'apple' | 'youtube' | 'other'
+source_type         text        -- 'podcast_episode' | 'video' | 'clip' | 'external' | 'blog' | 'newsletter'
+external_impression_id text     -- VAST or third-party impression ID (nullable)
+ad_slot_type        text        -- 'pre-roll' | 'mid-roll' | 'post-roll' | 'blog-widget' | 'newsletter-inline'
+playback_ms         integer     -- Ad playback duration in milliseconds
+fully_listened      boolean     -- True if 90%+ completion
+
+-- Geo and device data
+city                text
+country             text
+user_agent          text
+played_at           timestamp
+is_valid            boolean     -- Fraud detection flag
+```
+
+### VAST Ad Integration
+
+#### Configuration Pattern
+```typescript
+interface VASTAdSlotConfig {
+  adId: string;                    // Internal ad slot ID
+  campaignId?: string;             // Mapped campaign ID
+  vastTagUrl?: string;             // VAST tag endpoint
+  slotType: 'pre-roll' | 'mid-roll' | 'post-roll';
+  timestampSeconds?: number;       // Mid-roll position
+  maxDurationSeconds?: number;     // Ad duration limit
+}
+```
+
+#### Player Integration Points
+- **Podcast Player**: Pre-roll, mid-roll, post-roll ad slots
+- **Video Player**: Standard video ad positions
+- **Live Streaming**: Dynamic ad insertion
+
+#### Impression Tracking Flow
+1. VAST ad creative loads and begins playing
+2. Player detects ad start event
+3. Call `trackVASTAdImpression()`:
+   ```typescript
+   await trackVASTAdImpression({
+     adId: 'vast-ad-001',
+     campaignId: 'campaign-external',
+     episodeId: 'episode-123',
+     creatorId: 'creator-abc',
+     slotType: 'mid-roll',
+     playbackMs: 30000,
+     fullyListened: true,
+     externalImpressionId: 'vast-impression-xyz', // From VAST response
+   });
+   ```
+4. Impression recorded with `source_type: 'external'`
+5. Revenue attributed to campaign in Monetization Engine
+
+#### VAST-to-Internal Mapping
+- **Ad Network Campaign** → `campaign_id` (created in Advertiser Dashboard)
+- **VAST Impression ID** → `external_impression_id` (for reconciliation)
+- **Creative Duration** → `playback_ms` (actual playback time)
+- **Completion Status** → `fully_listened` (90%+ threshold)
+
+### Blog Ad Placements
+
+#### Implementation
+```typescript
+// In blog post component
+const BlogAdSlot = ({ adId, campaignId, blogPostId, creatorId }) => {
+  const { ref, impressionTracked } = useAdSlotImpression({
+    adId,
+    campaignId,
+    blogPostId,
+    creatorId,
+  });
+  
+  return (
+    <div ref={ref} className="ad-widget">
+      <img src={adImageUrl} alt="Sponsored Content" />
+    </div>
+  );
+};
+```
+
+#### Tracking Flow
+1. Ad widget renders in blog post
+2. `useAdSlotImpression` hook monitors viewport visibility
+3. When 50%+ of ad is visible, impression fires
+4. Recorded with `source_type: 'blog'`, `ad_slot_type: 'blog-widget'`
+
+### Newsletter Ad Placements
+
+#### Redirect URL Pattern
+```
+https://seeksy.io/ad/click/:adId?campaign=xxx&url=https://advertiser.com&newsletter=yyy&creator=zzz
+```
+
+#### Tracking Flow
+1. User clicks newsletter ad link
+2. Redirect to `/ad/click/:adId` with query params
+3. `AdClickRedirect` component:
+   - Extracts ad ID, campaign ID, creator ID
+   - Generates IP hash for privacy
+   - Logs impression with `source_type: 'newsletter'`
+   - Records CTA click in `ad_cta_clicks`
+   - 302 redirects to advertiser URL
+4. Impression counted with `ad_slot_type: 'newsletter-inline'`
+
+### Revenue Flow Integration
+
+#### To CFO Dashboard
+1. All impressions (VAST, blog, newsletter) → `ad_impressions` table
+2. Monetization Engine aggregates by:
+   - Campaign
+   - Platform
+   - Source type
+   - Time period
+3. Revenue calculated via CPM model:
+   ```
+   Revenue = (Total Impressions / 1000) × CPM Rate × Quality Multiplier
+   ```
+4. CFO Dashboard displays:
+   - Revenue by platform breakdown
+   - VAST vs. native ad performance
+   - Blog/newsletter ad ROI
+   - Geographic revenue distribution
+
+#### To Advertiser Dashboard
+1. Campaign performance metrics include:
+   - Total impressions (all sources)
+   - VAST external impressions reconciliation
+   - Blog/newsletter engagement rates
+   - Platform-specific reach
+2. Campaign analytics show source type breakdown
+3. External impression IDs enable third-party verification
+
+### Data Quality and Fraud Prevention
+
+#### Validation Rules
+- Duplicate impression prevention (IP hash + timestamp)
+- Playback duration validation (must be > 0ms)
+- Fully listened threshold (90% completion)
+- Geo data validation
+- User agent fingerprinting
+
+#### Privacy Considerations
+- IP addresses hashed using SHA-256
+- No PII stored in impressions table
+- GDPR-compliant data retention policies
+- User can opt out via notification preferences
+
+### Future Enhancements
+
+#### Planned Integrations
+- **Spotify Ad Exchange**: Platform-native ad serving
+- **Apple Podcasts**: Promotional placements
+- **YouTube Pre-roll**: Video ad sync
+- **Programmatic Networks**: Real-time bidding integration
+
+#### Advanced Tracking
+- **Attribution Modeling**: Multi-touch attribution across platforms
+- **Conversion Tracking**: Post-click conversion events
+- **A/B Testing**: Creative performance comparison
+- **Fraud Detection**: ML-based anomaly detection
+
+### API Endpoints
+
+#### Track Impression (Edge Function)
+```
+POST /functions/v1/track-ad-impression
+Body: {
+  adSlotId: string,
+  campaignId?: string,
+  platform: AdPlatform,
+  sourceType: AdSourceType,
+  externalImpressionId?: string,
+  playbackMs?: number,
+  ...
+}
+```
+
+#### Get Campaign Impressions
+```
+GET /api/financials/ad-impressions?campaignId=xxx&startDate=xxx&endDate=xxx
+Response: {
+  totalImpressions: number,
+  byPlatform: { [key: string]: number },
+  bySourceType: { [key: string]: number },
+  revenue: number,
+}
+```
+
+### Summary
+
+The unified Ad Impression Tracking system provides:
+- **Single Source of Truth**: All ad activity in one table
+- **Multi-Platform Support**: VAST, native, blog, newsletter
+- **Revenue Attribution**: Direct feed to Monetization Engine
+- **Advertiser Transparency**: Detailed performance metrics
+- **Scalability**: Ready for programmatic and exchange integrations
+
+All ad impressions, regardless of source or platform, are tracked consistently and feed into the same financial reporting pipeline, enabling accurate revenue modeling and advertiser ROI measurement.
+
+---
 - Ad delivery confirmation
 
 **4. Podcast Analytics ↔ Monetization Engine**

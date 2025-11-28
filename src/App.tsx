@@ -200,6 +200,7 @@ import AIVoiceFingerprinting from "./pages/voice-certification/AIVoiceFingerprin
 import MatchConfidence from "./pages/voice-certification/MatchConfidence";
 import ApproveAndMint from "./pages/voice-certification/ApproveAndMint";
 import MintingProgress from "./pages/voice-certification/MintingProgress";
+import AdClickRedirect from "./pages/ad/AdClickRedirect";
 import VoiceCredentialPublic from "./pages/public/VoiceCredentialPublic";
 import VerifiedVoiceSuccess from "./pages/voice-certification/VerifiedVoiceSuccess";
 import UploadContent from "./pages/content-certification/UploadContent";
@@ -368,6 +369,7 @@ const AppContent = () => {
           <Route path="/newsletter" element={<Newsletter />} />
           <Route path="/unsubscribe" element={<Unsubscribe />} />
           <Route path="/v/:username/voice-credential" element={<VoiceCredentialPublic />} />
+          <Route path="/ad/click/:adId" element={<AdClickRedirect />} />
               <Route path="/marketing" element={<Marketing />} />
               <Route path="/create-event" element={<CreateEvent />} />
               <Route path="/event/:id" element={<EventDetail />} />

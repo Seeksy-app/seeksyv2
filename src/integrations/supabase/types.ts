@@ -291,47 +291,65 @@ export type Database = {
       ad_impressions: {
         Row: {
           ad_slot_id: string
+          ad_slot_type: string | null
           campaign_id: string | null
           city: string | null
           country: string | null
           created_at: string | null
           creator_id: string
           episode_id: string
+          external_impression_id: string | null
+          fully_listened: boolean | null
           id: string
           is_valid: boolean | null
           listener_ip_hash: string
+          platform: string | null
+          playback_ms: number | null
           played_at: string | null
           podcast_id: string
+          source_type: string | null
           user_agent: string | null
         }
         Insert: {
           ad_slot_id: string
+          ad_slot_type?: string | null
           campaign_id?: string | null
           city?: string | null
           country?: string | null
           created_at?: string | null
           creator_id: string
           episode_id: string
+          external_impression_id?: string | null
+          fully_listened?: boolean | null
           id?: string
           is_valid?: boolean | null
           listener_ip_hash: string
+          platform?: string | null
+          playback_ms?: number | null
           played_at?: string | null
           podcast_id: string
+          source_type?: string | null
           user_agent?: string | null
         }
         Update: {
           ad_slot_id?: string
+          ad_slot_type?: string | null
           campaign_id?: string | null
           city?: string | null
           country?: string | null
           created_at?: string | null
           creator_id?: string
           episode_id?: string
+          external_impression_id?: string | null
+          fully_listened?: boolean | null
           id?: string
           is_valid?: boolean | null
           listener_ip_hash?: string
+          platform?: string | null
+          playback_ms?: number | null
           played_at?: string | null
           podcast_id?: string
+          source_type?: string | null
           user_agent?: string | null
         }
         Relationships: [
