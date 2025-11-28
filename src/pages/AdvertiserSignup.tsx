@@ -108,15 +108,16 @@ export default function AdvertiserSignup() {
         const teamMemberInserts = formData.team_members.map((member: any) => ({
           advertiser_id: advertiserData.id,
           profile_id: null, // Will be filled when they accept invite
+          email: member.email,
           role: member.role,
-          // Store email in a metadata field for now - you might want to add an invite system
         }));
 
         const { error: teamError } = await supabase
           .from("advertiser_team_members")
-          .insert(teamMemberInserts);
+          .insert(teamMemberInserts)
+          .select();
 
-        if (teamError) console.error("Team member insert error:", teamError);
+        if (teamError) throw teamError;
       }
 
       // Step 4: Mark onboarding as complete

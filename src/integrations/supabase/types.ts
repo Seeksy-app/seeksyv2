@@ -794,6 +794,7 @@ export type Database = {
         Row: {
           advertiser_id: string
           created_at: string | null
+          email: string | null
           id: string
           profile_id: string | null
           role: string
@@ -801,6 +802,7 @@ export type Database = {
         Insert: {
           advertiser_id: string
           created_at?: string | null
+          email?: string | null
           id?: string
           profile_id?: string | null
           role?: string
@@ -808,6 +810,7 @@ export type Database = {
         Update: {
           advertiser_id?: string
           created_at?: string | null
+          email?: string | null
           id?: string
           profile_id?: string | null
           role?: string
