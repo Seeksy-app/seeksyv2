@@ -3,7 +3,6 @@ import { MyPageTheme } from "@/config/myPageThemes";
 import { Button } from "@/components/ui/button";
 import { MyPagePreview } from "../public/MyPagePreview";
 import { cn } from "@/lib/utils";
-import iphoneFrame from "@/assets/iphone-frame-realistic.png";
 
 interface PreviewPaneProps {
   theme: MyPageTheme;
@@ -92,29 +91,21 @@ export function PreviewPane({ theme, device, onDeviceChange, mode, onModeChange 
               height: "844px",
             }}
           >
-            {/* iPhone Frame with Screen Content */}
-            <div className="absolute inset-0">
-              {/* Screen Content - positioned to fit within frame bezels */}
-              <div 
-                className="absolute bg-white overflow-y-auto overflow-x-hidden z-0"
-                style={{
-                  top: "26px",
-                  left: "16px",
-                  right: "16px",
-                  bottom: "26px",
-                  borderRadius: "36px",
-                }}
-              >
+            {/* Phone Frame Container */}
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-[60px] shadow-2xl p-3">
+              {/* Dynamic Island */}
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 w-32 h-8 bg-black rounded-full z-20" />
+              
+              {/* Screen Content */}
+              <div className="relative w-full h-full bg-white rounded-[48px] overflow-hidden">
                 <MyPagePreview theme={theme} mode={mode} />
               </div>
               
-              {/* iPhone Frame Overlay */}
-              <img
-                src={iphoneFrame}
-                alt="iPhone 16 Plus"
-                className="absolute inset-0 w-full h-full pointer-events-none drop-shadow-2xl z-10"
-                style={{ objectFit: "contain" }}
-              />
+              {/* Side Buttons */}
+              <div className="absolute left-0 top-32 w-1 h-16 bg-gray-800 rounded-r-sm" />
+              <div className="absolute left-0 top-52 w-1 h-12 bg-gray-800 rounded-r-sm" />
+              <div className="absolute left-0 top-68 w-1 h-12 bg-gray-800 rounded-r-sm" />
+              <div className="absolute right-0 top-44 w-1 h-20 bg-gray-800 rounded-l-sm" />
             </div>
           </div>
         ) : (
