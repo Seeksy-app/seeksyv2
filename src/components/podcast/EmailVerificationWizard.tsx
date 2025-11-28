@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
-import { CheckCircle2, Mail, Clock, Infinity, Copy, ExternalLink } from "lucide-react";
+import { CheckCircle2, Mail, Clock, Infinity, Copy, ExternalLink, Music, Mic, Rss } from "lucide-react";
 
 interface EmailVerificationWizardProps {
   podcastId: string;
@@ -280,58 +280,63 @@ export function EmailVerificationWizard({
             <div>
               <h3 className="font-semibold mb-3">Submit to Directories</h3>
               <div className="space-y-2">
+                {/* Spotify */}
                 <a
                   href="https://podcasters.spotify.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
-                      <span className="text-2xl">🎵</span>
+                    <div className="w-10 h-10 rounded-full bg-[#1DB954]/10 flex items-center justify-center">
+                      <div className="w-5 h-5 rounded-full bg-[#1DB954] flex items-center justify-center">
+                        <Music className="w-3 h-3 text-white" />
+                      </div>
                     </div>
                     <div>
                       <div className="font-medium">Spotify for Podcasters</div>
                       <div className="text-xs text-muted-foreground">Submit your RSS feed</div>
                     </div>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                  <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </a>
 
+                {/* Apple Podcasts */}
                 <a
                   href="https://podcastsconnect.apple.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
-                      <span className="text-2xl">🎙️</span>
+                    <div className="w-10 h-10 rounded-full bg-[#9333EA]/10 flex items-center justify-center">
+                      <Mic className="w-5 h-5 text-[#9333EA]" />
                     </div>
                     <div>
                       <div className="font-medium">Apple Podcasts Connect</div>
                       <div className="text-xs text-muted-foreground">Submit to Apple Podcasts</div>
                     </div>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                  <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </a>
 
+                {/* Google Podcasts */}
                 <a
                   href="https://play.google.com/console/podcasts"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-                      <span className="text-2xl">📱</span>
+                    <div className="w-10 h-10 rounded-full bg-[#4285F4]/10 flex items-center justify-center">
+                      <Rss className="w-5 h-5 text-[#4285F4]" />
                     </div>
                     <div>
                       <div className="font-medium">Google Podcasts Manager</div>
                       <div className="text-xs text-muted-foreground">Submit to Google Podcasts</div>
                     </div>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                  <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </a>
               </div>
             </div>
