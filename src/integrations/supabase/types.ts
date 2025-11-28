@@ -5904,6 +5904,39 @@ export type Database = {
         }
         Relationships: []
       }
+      my_page_sections: {
+        Row: {
+          config: Json | null
+          created_at: string | null
+          display_order: number
+          id: string
+          is_enabled: boolean
+          section_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          is_enabled?: boolean
+          section_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          is_enabled?: boolean
+          section_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       my_page_video_impressions: {
         Row: {
           id: string
@@ -6089,6 +6122,27 @@ export type Database = {
           unsubscribed_at?: string | null
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      nfc_waitlist: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -6760,6 +6814,7 @@ export type Database = {
           stripe_connect_details_submitted: boolean | null
           stripe_connect_payouts_enabled: boolean | null
           stripe_connect_status: string | null
+          tagline: string | null
           theme_color: string | null
           tipping_button_text: string | null
           tipping_enabled: boolean | null
@@ -6816,6 +6871,7 @@ export type Database = {
           stripe_connect_details_submitted?: boolean | null
           stripe_connect_payouts_enabled?: boolean | null
           stripe_connect_status?: string | null
+          tagline?: string | null
           theme_color?: string | null
           tipping_button_text?: string | null
           tipping_enabled?: boolean | null
@@ -6872,6 +6928,7 @@ export type Database = {
           stripe_connect_details_submitted?: boolean | null
           stripe_connect_payouts_enabled?: boolean | null
           stripe_connect_status?: string | null
+          tagline?: string | null
           theme_color?: string | null
           tipping_button_text?: string | null
           tipping_enabled?: boolean | null

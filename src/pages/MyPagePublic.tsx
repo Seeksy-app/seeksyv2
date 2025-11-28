@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { MyPageTheme, defaultTheme } from "@/config/myPageThemes";
 import { cn } from "@/lib/utils";
 import { VoiceCertifiedBadge } from "@/components/VoiceCertifiedBadge";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Video, Store, Calendar, Share2, Eye, Radio } from "lucide-react";
 import { Helmet } from "react-helmet";
+import { PublicSectionRenderer } from "@/components/mypage-v2/PublicSectionRenderer";
+import { MyPageSection } from "@/lib/mypage/sectionTypes";
 
 interface Profile {
   id: string;
@@ -202,78 +205,8 @@ export default function MyPagePublic() {
             )}
           </div>
 
-          {/* Sections */}
-          <div className="space-y-4">
-            {enabledSections.length === 0 ? (
-              <Card className="p-8 text-center">
-                <p className="text-muted-foreground">No sections enabled yet.</p>
-              </Card>
-            ) : (
-              enabledSections.map((section) => (
-                <Card key={section.id} className={cn(cardClasses, "p-6")}>
-                  {section.type === "stream" && (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2" style={{ color: theme.linkColor }}>
-                        {profile?.is_live_on_profile ? <Radio className="w-5 h-5 animate-pulse" /> : <Video className="w-5 h-5" />}
-                        <h3 className="font-semibold">
-                          {profile?.is_live_on_profile ? "🔴 Live Now" : "Featured Video"}
-                        </h3>
-                      </div>
-                      {profile?.is_live_on_profile && profile.live_video_url ? (
-                        <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                          <video src={profile.live_video_url} autoPlay controls className="w-full h-full object-cover" />
-                        </div>
-                      ) : (
-                        <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                          <Eye className="w-12 h-12 text-muted-foreground/50" />
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {section.type === "meetings" && (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2" style={{ color: theme.linkColor }}>
-                        <Calendar className="w-5 h-5" />
-                        <h3 className="font-semibold">Book a Meeting</h3>
-                      </div>
-                      <Link to={`/book/${profile.username}`}>
-                        <Button className="w-full" style={{ backgroundColor: theme.linkColor }}>
-                          Schedule a Meeting
-                        </Button>
-                      </Link>
-                    </div>
-                  )}
-
-                  {section.type === "social" && (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2" style={{ color: theme.linkColor }}>
-                        <Share2 className="w-5 h-5" />
-                        <h3 className="font-semibold">Connect With Me</h3>
-                      </div>
-                      <div className="flex gap-2 justify-center">
-                        {[1, 2, 3, 4].map((i) => (
-                          <div key={i} className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                            <Share2 className="w-5 h-5 text-muted-foreground" />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {section.type === "shop" && (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2" style={{ color: theme.linkColor }}>
-                        <Store className="w-5 h-5" />
-                        <h3 className="font-semibold">Shop</h3>
-                      </div>
-                      <p className="text-sm text-muted-foreground">Shop products coming soon</p>
-                    </div>
-                  )}
-                </Card>
-              ))
-            )}
-          </div>
+          {/* New Sections System */}
+          <PublicSectionRenderer sections={[]} username={profile.username} />
         </div>
       </div>
     </>
