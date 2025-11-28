@@ -87,7 +87,7 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
           const { error: advertiserError } = await supabase
             .from('advertisers')
             .insert({
-              user_id: user.id,
+              owner_profile_id: user.id,
               company_name: profile?.full_name || 'My Company',
               contact_name: profile?.full_name || 'Contact Name',
               contact_email: user.email || '',
@@ -153,7 +153,28 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     if (role === 'creator') {
       window.location.href = '/dashboard';
     } else if (role === 'advertiser') {
-      window.location.href = '/advertiser';
+      // Check if advertiser onboarding is complete before redirecting
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (currentUser) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('advertiser_onboarding_completed')
+          .eq('id', currentUser.id)
+          .single();
+
+        const { data: advertiser } = await supabase
+          .from('advertisers')
+          .select('id')
+          .eq('owner_profile_id', currentUser.id)
+          .maybeSingle();
+
+        // Redirect to signup if onboarding incomplete
+        if (!profile?.advertiser_onboarding_completed || !advertiser) {
+          window.location.href = '/advertiser/signup';
+        } else {
+          window.location.href = '/advertiser';
+        }
+      }
     }
   };
 

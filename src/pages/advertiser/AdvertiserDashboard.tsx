@@ -3,67 +3,35 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Plus } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { listCampaigns, type Campaign } from "@/lib/api/advertiserAPI";
-import { useToast } from "@/hooks/use-toast";
+import { useAdvertiserGuard } from "@/hooks/useAdvertiserGuard";
 
 const AdvertiserDashboard = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [advertiserId, setAdvertiserId] = useState<string | null>(null);
+  const { isOnboarded, advertiserId, isLoading: guardLoading } = useAdvertiserGuard();
+  const [isLoadingCampaigns, setIsLoadingCampaigns] = useState(false);
 
   useEffect(() => {
-    // Fetch current user's advertiser record
-    const fetchAdvertiserData = async () => {
+    // Only load campaigns once we have a valid advertiser ID
+    const fetchCampaigns = async () => {
+      if (!isOnboarded || !advertiserId) return;
+      
+      setIsLoadingCampaigns(true);
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          toast({
-            title: "Authentication required",
-            description: "Please log in to access the advertiser dashboard",
-            variant: "destructive",
-          });
-          navigate("/login");
-          return;
-        }
-
-        const { data: advertiser, error } = await supabase
-          .from("advertisers")
-          .select("id, status")
-          .eq("user_id", user.id)
-          .single();
-
-        if (error || !advertiser) {
-          toast({
-            title: "Advertiser account not found",
-            description: "Please complete advertiser onboarding first",
-            variant: "destructive",
-          });
-          setIsLoading(false);
-          return;
-        }
-
-        setAdvertiserId(advertiser.id);
-        
-        // Load campaigns using real advertiser ID
-        const { campaigns: fetchedCampaigns } = await listCampaigns(advertiser.id);
+        const { campaigns: fetchedCampaigns } = await listCampaigns(advertiserId);
         setCampaigns(fetchedCampaigns);
       } catch (error) {
-        console.error("Error loading advertiser data:", error);
-        toast({
-          title: "Error loading data",
-          description: "Failed to load advertiser information",
-          variant: "destructive",
-        });
+        console.error("Error loading campaigns:", error);
       } finally {
-        setIsLoading(false);
+        setIsLoadingCampaigns(false);
       }
     };
 
-    fetchAdvertiserData();
-  }, [navigate, toast]);
+    fetchCampaigns();
+  }, [isOnboarded, advertiserId]);
+
+  const isLoading = guardLoading || isLoadingCampaigns;
 
   const getStatusColor = (status: Campaign["status"]) => {
     switch (status) {

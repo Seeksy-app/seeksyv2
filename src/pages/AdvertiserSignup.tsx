@@ -70,6 +70,13 @@ export default function AdvertiserSignup() {
     enabled: !!user,
   });
 
+  // Check if already onboarded - redirect to dashboard if complete
+  useEffect(() => {
+    if (profile?.advertiser_onboarding_completed && existingAdvertiser) {
+      navigate('/advertiser', { replace: true });
+    }
+  }, [profile, existingAdvertiser, navigate]);
+
   const signupMutation = useMutation({
     mutationFn: async (formData: any) => {
       if (!user) throw new Error("Please log in to continue");
