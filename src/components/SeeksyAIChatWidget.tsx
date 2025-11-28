@@ -19,7 +19,7 @@ interface Message {
   content: string;
 }
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/seeksy-assistant`;
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cfo-ai-assistant`;
 
 export const SeeksyAIChatWidget = () => {
   const location = useLocation();
@@ -179,7 +179,10 @@ export const SeeksyAIChatWidget = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: newMessages, userId: user?.id }),
+        body: JSON.stringify({ 
+          message: newMessages[newMessages.length - 1].content,
+          financialData: {} 
+        }),
       });
 
       if (!response.ok) {
