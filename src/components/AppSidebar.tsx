@@ -202,7 +202,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   
   // Helper function to determine which section should be open based on current route
   const getActiveSectionFromPath = (pathname: string) => {
-    if (pathname.startsWith('/studio') || pathname.startsWith('/media-library') || pathname.startsWith('/create-clips') || pathname.startsWith('/voice-protection') || pathname.startsWith('/voice-credentials') || pathname.startsWith('/voice-certification')) return 'media';
+    if (pathname.startsWith('/studio') || pathname.startsWith('/media-library') || pathname.startsWith('/create-clips') || pathname.startsWith('/my-voice-identity') || pathname.startsWith('/voice-protection') || pathname.startsWith('/voice-certification')) return 'media';
     if (pathname.startsWith('/creator/campaign-browser') || pathname.startsWith('/podcast-ads') || pathname.startsWith('/podcast-revenue')) return 'monetization';
     if (pathname.startsWith('/pm-') || pathname.startsWith('/client-tickets')) return 'project_management';
     if (pathname.startsWith('/events') || pathname.startsWith('/meetings') || pathname.startsWith('/polls') || pathname.startsWith('/signup-sheets') || pathname.startsWith('/qr-codes') || pathname.startsWith('/forms')) return 'engagement';
@@ -445,9 +445,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       { title: "Master Studio", url: "/studio", icon: Clapperboard },
       { title: "Media Library", url: "/media-library", icon: FileAudio },
       { title: "Create Clips", url: "/create-clips", icon: TrendingUp },
-      { title: "Voice Cloning", url: "/voice-protection", icon: Mic },
-      { title: "Voice Certification", url: "/voice-certification-flow", icon: Shield },
-      { title: "Voice Credentials", url: "/voice-credentials", icon: Award },
+      { title: "My Voice Identity", url: "/my-voice-identity", icon: Shield },
     ] : []),
     ...(pinnedModules.includes("podcasts") ? [{ title: "Podcasts", url: "/podcasts", icon: Mic }] : []),
   ];

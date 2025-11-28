@@ -224,6 +224,7 @@ import MintingProgress from "./pages/voice-certification/MintingProgress";
 import AdClickRedirect from "./pages/ad/AdClickRedirect";
 import VoiceCredentialPublic from "./pages/public/VoiceCredentialPublic";
 import VerifiedVoiceSuccess from "./pages/voice-certification/VerifiedVoiceSuccess";
+import MyVoiceIdentity from "./pages/MyVoiceIdentity";
 import UploadContent from "./pages/content-certification/UploadContent";
 import AIFingerprintMatch from "./pages/content-certification/AIFingerprintMatch";
 import AuthenticityScan from "./pages/content-certification/AuthenticityScan";
@@ -344,6 +345,7 @@ const AppContent = () => {
               <Route path="/admin/voice-tag-certification" element={<VoiceTagAdmin />} />
               
               {/* Voice Certification Flow */}
+              <Route path="/my-voice-identity" element={<MyVoiceIdentity />} />
               <Route path="/voice-certification-flow" element={<VoiceCertificationDashboard />} />
               <Route path="/voice-certification/upload" element={<UploadOrRecordVoice />} />
               <Route path="/voice-certification/fingerprint" element={<AIVoiceFingerprinting />} />
@@ -522,7 +524,7 @@ const AppContent = () => {
           <Route path="/podcast-ads" element={<PodcastAds />} />
           <Route path="/podcast-revenue" element={<PodcastRevenue />} />
           <Route path="/voice-protection" element={<VoiceProtection />} />
-          <Route path="/voice-credentials" element={<VoiceCredentials />} />
+          <Route path="/voice-credentials" element={<MyVoiceIdentity />} />
           <Route path="/admin/voice-credentials" element={<VoiceCredentialsAdmin />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/notification-preferences" element={<NotificationPreferences />} />
