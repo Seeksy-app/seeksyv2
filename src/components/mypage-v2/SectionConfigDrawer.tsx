@@ -51,20 +51,20 @@ export function SectionConfigDrawer({ section, onClose, userId }: SectionConfigD
     if (!section) return;
 
     if (section.section_type === "featured_video") {
-      const { data } = await supabase
+      const result: any = await (supabase as any)
         .from("media_files")
         .select("id, file_name, file_url")
         .eq("user_id", userId)
         .eq("file_type", "video");
-      setVideos(data || []);
+      setVideos(result.data || []);
     }
 
     if (section.section_type === "meetings") {
-      const { data } = await supabase
+      const result: any = await (supabase as any)
         .from("meetings")
         .select("id, title")
         .eq("host_id", userId);
-      setMeetings(data || []);
+      setMeetings(result.data || []);
     }
   };
 
