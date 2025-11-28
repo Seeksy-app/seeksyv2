@@ -141,47 +141,72 @@ const Podcasts = () => {
                       {podcast.description || "No description"}
                     </p>
                     
-                    {/* Individual Podcast RSS Feed */}
-                    <div 
-                      className="flex items-center gap-1.5 mb-2 p-2 bg-muted/50 rounded-md hover:bg-muted/70 transition-colors cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const rssUrl = `https://taxqcioheqdqtlmjeaht.supabase.co/functions/v1/podcast-rss/${podcast.slug || podcast.id}`;
-                        copyToClipboard(rssUrl, "RSS feed");
-                      }}
-                    >
-                      <Rss className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-                      <code className="text-[10px] flex-1 truncate text-muted-foreground">
-                        seeksy.io/rss/{podcast.slug || podcast.id}
-                      </code>
-                      <Copy className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                    </div>
-
-                    {hasVerificationEmail && !isExpired && (
+                    {/* RSS Feed Section */}
+                    <div className="mb-3 space-y-2">
+                      <Label className="text-xs font-medium text-muted-foreground">RSS Feed for Spotify/Apple</Label>
                       <div 
-                        className="flex items-center gap-1.5 mb-3 p-2 bg-yellow-500/10 border border-yellow-500/30 rounded-md cursor-pointer hover:bg-yellow-500/20 transition-colors"
+                        className="flex items-center gap-2 p-2.5 bg-primary/5 border border-primary/20 rounded-md hover:bg-primary/10 transition-colors cursor-pointer group"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedPodcast(podcast);
-                          setVerificationDialogOpen(true);
+                          const rssUrl = `https://taxqcioheqdqtlmjeaht.supabase.co/functions/v1/podcast-rss/${podcast.slug || podcast.id}`;
+                          copyToClipboard(rssUrl, "RSS feed");
                         }}
                       >
-                        <Mail className="h-3.5 w-3.5 text-yellow-500 flex-shrink-0" />
-                        <span className="text-[10px] text-yellow-500 dark:text-yellow-400 font-medium">
-                          {podcast.verification_email_permanent ? (
-                            <>
-                              <Infinity className="h-3 w-3 inline mr-1" />
-                              Email Verified
-                            </>
-                          ) : (
-                            <>
-                              <Clock className="h-3 w-3 inline mr-1" />
-                              Verified (48h)
-                            </>
-                          )}
-                        </span>
+                        <Rss className="h-4 w-4 text-primary flex-shrink-0" />
+                        <code className="text-xs flex-1 truncate text-foreground font-mono">
+                          {`https://seeksy.io/rss/${podcast.slug || podcast.id}`}
+                        </code>
+                        <Copy className="h-3.5 w-3.5 text-primary flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
-                    )}
+                    </div>
+
+                    {/* Email Verification Section */}
+                    <div className="mb-3">
+                      {hasVerificationEmail && !isExpired ? (
+                        <div 
+                          className="flex items-center gap-2 p-2.5 bg-yellow-500/10 border border-yellow-500/30 rounded-md cursor-pointer hover:bg-yellow-500/20 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedPodcast(podcast);
+                            setVerificationDialogOpen(true);
+                          }}
+                        >
+                          <Mail className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-medium text-yellow-600 dark:text-yellow-400 flex items-center gap-1">
+                              {podcast.verification_email_permanent ? (
+                                <>
+                                  <Infinity className="h-3 w-3" />
+                                  Email Verified (Permanent)
+                                </>
+                              ) : (
+                                <>
+                                  <Clock className="h-3 w-3" />
+                                  Email Verified (48h)
+                                </>
+                              )}
+                            </div>
+                            <div className="text-[10px] text-yellow-600/70 dark:text-yellow-400/70 truncate">
+                              {podcast.verification_email}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full text-xs"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedPodcast(podcast);
+                            setVerificationDialogOpen(true);
+                          }}
+                        >
+                          <Mail className="h-3.5 w-3.5 mr-1.5" />
+                          Add Email for Spotify Verification
+                        </Button>
+                      )}
+                    </div>
                     
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">
