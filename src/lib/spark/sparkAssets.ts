@@ -21,8 +21,8 @@ export const isHolidaySeason = (): boolean => {
   const month = now.getMonth();
   const day = now.getDate();
   
-  // December 1 - January 2
-  return (month === 11) || (month === 0 && day <= 2);
+  // November 25 - January 2
+  return (month === 10 && day >= 25) || (month === 11) || (month === 0 && day <= 2);
 };
 
 /**
