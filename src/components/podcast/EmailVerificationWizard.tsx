@@ -63,7 +63,7 @@ export function EmailVerificationWizard({
   });
 
   const handleNext = () => {
-    if (step === 1) {
+    if (step === 2) {
       if (!email || !email.includes("@")) {
         toast.error("Please enter a valid email address");
         return;
