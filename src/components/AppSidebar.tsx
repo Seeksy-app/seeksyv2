@@ -97,7 +97,7 @@ const DEFAULT_SECTIONS: NavigationSection[] = [
   { id: "media", label: "Media", order: 5 },
   { id: "monetization", label: "Monetization", order: 6 },
   { id: "project_management", label: "Project Management", order: 7 },
-  { id: "advertising", label: "Advertising", order: 8 },
+  { id: "advertising", label: "Advertising & Sales", order: 8 },
   { id: "civic", label: "Civic", order: 9 },
   { id: "influencer", label: "Influencer", order: 10 },
   { id: "agency", label: "Agency", order: 11 },
@@ -426,12 +426,6 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       { title: "Manage Blog", url: "/my-blog", icon: FileText },
       { title: "Add Post", url: "/blog/create", icon: Plus },
     ] : []),
-  ];
-
-  const salesItems = [
-    { title: "Sales Dashboard", url: "/sales-dashboard", icon: BarChart3 },
-    { title: "Ad Video Library", url: "/sales/ad-library", icon: Clapperboard },
-    { title: "Create Campaign", url: "/sales/create-campaign", icon: Plus },
   ];
 
   const engagementItems = [
@@ -1537,8 +1531,8 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         {renderAdminCategory("Analytics", adminAnalytics, "adminAnalytics")}
         {renderAdminCategory("Operations", adminOperations, "adminOperations")}
         {renderAdminCategory("Financials", adminFinancials, "adminFinancials")}
-        {renderAdminCategory("Advertising", adminAdvertising, "adminAdvertising")}
-        {renderAdminCategory("Marketing & Sales", adminMarketingSales, "adminMarketingSales")}
+        {renderAdminCategory("Advertising & Sales", adminAdvertising, "adminAdvertising")}
+        {renderAdminCategory("Marketing", adminMarketingSales, "adminMarketingSales")}
         {renderAdminCategory("Content Management", adminContentManagement, "adminContentManagement")}
       </>
     );
