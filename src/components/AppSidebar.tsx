@@ -223,7 +223,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       if (pathname.includes('/clients') || pathname.includes('/creators') || pathname.includes('/agencies')) return 'adminClientManagement';
       if (pathname.includes('/analytics') || pathname.includes('/impressions')) return 'adminAnalytics';
       if (pathname.includes('/storage') || pathname.includes('/upload-logs')) return 'adminOperations';
-      if (pathname.includes('/cfo') || pathname.includes('/investor') || pathname.includes('/reports')) return 'adminFinancials';
+      if (pathname.includes('/cfo') || pathname.includes('/investor') || pathname.includes('/reports') || pathname.includes('/financial-models')) return 'adminFinancials';
       if (pathname.includes('/advertiser') || pathname.includes('/campaigns')) return 'adminAdvertising';
       return 'adminCustomerSupport'; // default admin section
     }
@@ -557,6 +557,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     { title: "Revenue Reports", url: "/admin/revenue-reports", icon: BarChart3 },
     { title: "Billing", url: "/admin/billing", icon: Receipt },
     { title: "Payments", url: "/admin/payments", icon: CreditCard },
+    { title: "Ad Revenue Financial Model", url: "/admin/financial-models/ads", icon: TrendingUp },
   ];
 
   const adminAdvertising = [
