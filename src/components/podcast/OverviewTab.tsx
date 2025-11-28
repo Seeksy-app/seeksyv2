@@ -17,7 +17,8 @@ import {
   FileText,
   CheckCircle2,
   Clock,
-  ExternalLink
+  ExternalLink,
+  Video
 } from "lucide-react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
@@ -126,8 +127,12 @@ export const OverviewTab = ({ podcastId, userId }: OverviewTabProps) => {
                   searchParams.set('tab', 'studio');
                   navigate(`/podcasts/${podcastId}?${searchParams.toString()}`);
                 }} size="lg" className="gap-2">
-                  <Radio className="w-4 h-4" />
-                  Podcast Studio
+                  <Mic className="w-4 h-4" />
+                  Record Audio Episode
+                </Button>
+                <Button variant="outline" onClick={() => navigate("/studio/video")} size="lg" className="gap-2">
+                  <Video className="w-4 h-4" />
+                  Record Video Podcast
                 </Button>
                 <Button variant="outline" onClick={handleShare} size="lg" className="gap-2">
                   <Share2 className="w-4 h-4" />

@@ -217,7 +217,7 @@ export const PodcastStudioTab = ({ podcastId, userId }: PodcastStudioTabProps) =
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <Radio className="w-5 h-5 text-primary animate-pulse" />
-                <Badge variant="outline" className="text-primary border-primary/40">Podcast Studio (Audio)</Badge>
+                <Badge variant="outline" className="text-primary border-primary/40">Podcast Audio Studio</Badge>
               </div>
               <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">{podcast?.title}</h2>
               <p className="text-muted-foreground text-lg mb-6">

@@ -463,7 +463,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
   const mediaItems = [
     ...(pinnedModules.includes("media") && modulePrefs.media ? [
-      { title: "Media Studio (Live/Video)", url: "/studio", icon: Video },
+      { title: "Master Studio", url: "/studio", icon: Clapperboard },
       { title: "Media Library", url: "/media-library", icon: FileAudio },
       { title: "Create Clips", url: "/create-clips", icon: TrendingUp },
       { title: "Voice Certification", url: "/voice-certification-flow", icon: Shield },
