@@ -72,10 +72,19 @@ const UploadOrRecordVoice = () => {
         <Card className="p-8 space-y-6">
           <div className="text-center mb-4">
             <FileAudio className="h-12 w-12 text-primary mx-auto mb-3" />
-            <h2 className="text-2xl font-bold mb-2">Upload or Record Your Voice Sample</h2>
+            <h2 className="text-2xl font-bold mb-2">Submit Your Voice Sample</h2>
             <p className="text-muted-foreground">
-              Provide a short voice sample. You can upload an existing file or record one directly in your browser.
+              Upload a high-quality voice recording or record a new sample. This sample is used only to create your encrypted voice fingerprint.
             </p>
+          </div>
+
+          {/* Details Section */}
+          <div className="bg-muted/30 border border-border rounded-lg p-4 mb-6">
+            <ul className="text-sm text-muted-foreground space-y-2">
+              <li>• Supported formats: WAV, MP3, M4A</li>
+              <li>• Minimum recommended length: 10–15 seconds</li>
+              <li>• Your audio is processed securely and never shared</li>
+            </ul>
           </div>
 
           {/* File Upload Area */}
@@ -87,11 +96,6 @@ const UploadOrRecordVoice = () => {
             <p className="text-foreground font-medium mb-2">
               {selectedFile ? `✓ ${selectedFile.name}` : "Choose a file or drag it here"}
             </p>
-            {!selectedFile && (
-              <p className="text-sm text-muted-foreground">
-                WAV, MP3, and M4A supported
-              </p>
-            )}
           </div>
 
           <input

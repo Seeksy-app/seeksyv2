@@ -33,9 +33,9 @@ const MatchConfidence = () => {
               <CheckCircle className="h-10 w-10 text-green-500" />
             </div>
 
-            <h2 className="text-3xl font-bold">Your Voice Match Confidence</h2>
+            <h2 className="text-3xl font-bold">Voice Identity Match</h2>
             <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-              We compared your voice sample against our verification model. The score below reflects how strongly this recording matches your identity.
+              We compare your new sample to your voice fingerprint to confirm that the voice belongs to you.
             </p>
           </div>
 
@@ -60,20 +60,20 @@ const MatchConfidence = () => {
             </div>
           </div>
 
-          {/* Verification Details */}
+          {/* Details Section */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <Card className="p-4 border-2">
               <div className="flex items-center gap-2 mb-2">
                 <Shield className="h-5 w-5 text-primary" />
-                <span className="text-sm font-medium">Voice Identity</span>
+                <span className="text-sm font-medium">Match Confidence Score</span>
               </div>
-              <p className="text-lg font-semibold">{fingerprintData.voiceName}</p>
+              <p className="text-lg font-semibold">{fingerprintData.matchConfidence}%</p>
             </Card>
 
             <Card className="p-4 border-2">
               <div className="flex items-center gap-2 mb-2">
                 <CheckCircle className="h-5 w-5 text-green-500" />
-                <span className="text-sm font-medium">Authenticity</span>
+                <span className="text-sm font-medium">Voice Similarity Analysis</span>
               </div>
               <p className="text-lg font-semibold text-green-500">Verified</p>
             </Card>
@@ -81,20 +81,20 @@ const MatchConfidence = () => {
             <Card className="p-4 border-2">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="h-5 w-5 text-primary" />
-                <span className="text-sm font-medium">Audio Quality</span>
+                <span className="text-sm font-medium">Anti-Fraud Audio Checks</span>
               </div>
-              <p className="text-lg font-semibold">High</p>
+              <p className="text-lg font-semibold">Passed</p>
             </Card>
           </div>
 
-          {/* Next Steps Info */}
+          {/* Security note */}
           <div className="bg-primary/5 border border-primary/20 rounded-lg p-6 mb-8">
             <h3 className="font-semibold mb-2 flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" />
-              Higher scores indicate stronger identity verification
+              Security note
             </h3>
             <p className="text-sm text-muted-foreground">
-              Your voice will be minted as a blockchain-verified NFT credential, creating permanent proof of ownership and authenticity. This is a gasless transaction covered by Seeksy.
+              This process ensures no one can impersonate your voice across Seeksy.
             </p>
           </div>
 
