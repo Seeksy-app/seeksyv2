@@ -558,6 +558,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     { title: "Billing", url: "/admin/billing", icon: Receipt },
     { title: "Payments", url: "/admin/payments", icon: CreditCard },
     { title: "Ad Revenue Financial Model", url: "/admin/financial-models/ads", icon: TrendingUp },
+    { title: "Combined Revenue Model", url: "/admin/financial-models/combined", icon: LineChart },
   ];
 
   const adminAdvertising = [

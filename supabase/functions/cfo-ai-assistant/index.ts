@@ -35,6 +35,7 @@ ${JSON.stringify(financialData, null, 2)}
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     let adFinancialContext = '';
+    let combinedRevenueContext = '';
     try {
       const { data: summaries, error } = await supabase
         .from('ad_financial_model_summaries')
@@ -48,8 +49,69 @@ ${JSON.stringify(financialData, null, 2)}
 ${summaries.map(s => s.summary_text).join('\n\n')}
 `;
       }
+
+      // Fetch ad projections for combined context
+      const { data: scenarios } = await supabase
+        .from('ad_financial_scenarios')
+        .select('id, name')
+        .eq('name', 'Base Case')
+        .single();
+
+      if (scenarios) {
+        const { data: projections } = await supabase
+          .from('ad_financial_projections')
+          .select('*')
+          .eq('scenario_id', scenarios.id)
+          .order('month_index');
+
+        if (projections && projections.length > 0) {
+          // Calculate combined yearly summaries
+          const baseSubscriptionMRR = 82000;
+          const monthlyGrowth = 0.15;
+          const subscriptionMargin = 0.75;
+          
+          const yearlyData = new Map();
+          projections.forEach((proj, index) => {
+            const year = Math.ceil(proj.month_index / 12);
+            const subscriptionRevenue = baseSubscriptionMRR * Math.pow(1 + monthlyGrowth, index);
+            const adRevenue = Number(proj.constrained_gross_revenue) || 0;
+            const totalRevenue = subscriptionRevenue + adRevenue;
+            const totalPayouts = (subscriptionRevenue * subscriptionMargin) + (Number(proj.creator_payout) || 0);
+            const netProfit = totalRevenue - totalPayouts;
+
+            if (!yearlyData.has(year)) {
+              yearlyData.set(year, { subscriptionRevenue: 0, adRevenue: 0, totalRevenue: 0, totalPayouts: 0, netProfit: 0 });
+            }
+            const yearData = yearlyData.get(year);
+            yearData.subscriptionRevenue += subscriptionRevenue;
+            yearData.adRevenue += adRevenue;
+            yearData.totalRevenue += totalRevenue;
+            yearData.totalPayouts += totalPayouts;
+            yearData.netProfit += netProfit;
+          });
+
+          combinedRevenueContext = `
+
+** COMBINED REVENUE MODEL (Subscriptions + Ads) **
+
+This combines subscription revenue projections with ad revenue from the Ad Financial Model.
+
+${Array.from(yearlyData.entries()).map(([year, data]) => `
+Year ${year}:
+  - Total Revenue: $${(data.totalRevenue / 1000000).toFixed(2)}M
+  - Subscription Revenue: $${(data.subscriptionRevenue / 1000000).toFixed(2)}M (${((data.subscriptionRevenue / data.totalRevenue) * 100).toFixed(1)}%)
+  - Ad Revenue: $${(data.adRevenue / 1000000).toFixed(2)}M (${((data.adRevenue / data.totalRevenue) * 100).toFixed(1)}%)
+  - Creator Payouts: $${(data.totalPayouts / 1000000).toFixed(2)}M
+  - Net Profit: $${(data.netProfit / 1000000).toFixed(2)}M
+  - Gross Margin: ${((1 - data.totalPayouts / data.totalRevenue) * 100).toFixed(1)}%
+`).join('\n')}
+
+When users ask about combined revenue or total platform revenue, use these numbers which include BOTH subscription and advertising streams.
+`;
+        }
+      }
     } catch (err) {
-      console.error('Failed to load ad financial summaries:', err);
+      console.error('Failed to load financial summaries:', err);
     }
 
     const systemPrompt = `You are a CFO AI assistant specializing in financial analysis for Seeksy. 
@@ -122,21 +184,31 @@ Cost Structure: $2.50/user AI compute + infrastructure costs
 - Gross margins: 88-90% across all years
 - Net margins improve from 25% to 30% as scale efficiencies kick in
 
+${combinedRevenueContext}
+
 ${adFinancialContext}
 
 ${contextString}
 
 YOUR ROLE:
 1. Answer questions about financial forecasts using the data above
-2. When asked about specific years or projections, provide baseline numbers AND scenario ranges
-3. Calculate scenario projections by applying the multipliers above
-4. For subscriber/user questions, reference the starting numbers and growth rates
-5. Explain assumptions clearly when relevant
-6. Be concise but data-driven - always include specific numbers
+2. When asked about COMBINED or TOTAL revenue, use the Combined Revenue Model data which includes both subscriptions AND ads
+3. When asked specifically about subscription-only or ad-only revenue, reference the individual breakdowns
+4. When asked about specific years or projections, provide baseline numbers AND scenario ranges
+5. Calculate scenario projections by applying the multipliers above
+6. For subscriber/user questions, reference the starting numbers and growth rates
+7. Explain assumptions clearly when relevant
+8. Be concise but data-driven - always include specific numbers
 
 EXAMPLE RESPONSE FORMAT:
-Q: "How many subscribers in 2028?"
-A: "Based on our projections, we estimate approximately 10,000 total users by end of 2028 under baseline assumptions (15% monthly growth, 5% churn). 
+Q: "What's our total revenue in Year 3 combining subscriptions and ads?"
+A: "Based on our Combined Revenue Model, total platform revenue in Year 3 is projected at $X.XM under baseline assumptions.
+
+This breaks down as:
+- Subscription Revenue: $X.XM (XX%)
+- Ad Revenue: $X.XM (XX%)
+
+Creator payouts total $X.XM, leaving net profit of $X.XM with a gross margin of XX%."
 
 Under different scenarios:
 - Conservative: ~6,000 users (40% reduction)
