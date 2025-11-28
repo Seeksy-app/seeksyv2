@@ -9634,6 +9634,7 @@ export type Database = {
         Args: { _feature_type: string; _increment?: number; _user_id: string }
         Returns: undefined
       }
+      is_adm: { Args: never; Returns: boolean }
       is_team_owner: {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
