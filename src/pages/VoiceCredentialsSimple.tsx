@@ -19,7 +19,8 @@ import {
   AlertCircle,
   Share2,
   Code,
-  QrCode
+  QrCode,
+  Award
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -146,6 +147,31 @@ export default function VoiceCredentials() {
           Monitor your voice usage, manage licensing proposals, and track authenticity across platforms
         </p>
       </div>
+
+      {/* Start Certification CTA */}
+      <Card className="mb-8 border-2 border-primary/30 bg-gradient-to-r from-primary/5 to-accent/5">
+        <CardContent className="pt-6 pb-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+              <h3 className="font-bold text-xl mb-1 flex items-center gap-2">
+                <Award className="h-6 w-6 text-primary" />
+                Get Voice Certified
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Create your blockchain-verified voice certificate with our 7-step certification flow
+              </p>
+            </div>
+            <Button 
+              size="lg" 
+              className="whitespace-nowrap"
+              onClick={() => window.location.href = '/voice-certification-flow'}
+            >
+              <Shield className="mr-2 h-5 w-5" />
+              Start Certification
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
