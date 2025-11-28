@@ -209,6 +209,10 @@ import Payments from "./pages/admin/Payments";
 import AdFinancialModels from "./pages/admin/AdFinancialModels";
 import CombinedFinancialModels from "./pages/admin/CombinedFinancialModels";
 import AdminRateDesk from "./pages/admin/advertising/AdminRateDesk";
+import AdminAdvertisersList from "./pages/admin/advertising/AdminAdvertisersList";
+import AdminCreateCampaign from "./pages/admin/advertising/CreateCampaign";
+import CampaignDetail from "./pages/admin/advertising/CampaignDetail";
+import CreateAd from "./pages/admin/advertising/CreateAd";
 import AdminCampaigns from "./pages/admin/AdminCampaigns";
 import AdminAdAnalytics from "./pages/admin/AdminAdAnalytics";
 import VoiceCertificationDashboard from "./pages/voice-certification/VoiceCertificationDashboard";
@@ -487,6 +491,10 @@ const AppContent = () => {
               <Route path="/admin/financial-models/ads/*" element={<AdFinancialModels />} />
               <Route path="/admin/financial-models/combined" element={<CombinedFinancialModels />} />
               <Route path="/admin/advertising/rate-desk" element={<AdminRateDesk />} />
+              <Route path="/admin/advertising/advertisers" element={<AdminAdvertisersList />} />
+              <Route path="/admin/advertising/campaigns/create" element={<AdminCreateCampaign />} />
+              <Route path="/admin/advertising/campaigns/:campaignId" element={<CampaignDetail />} />
+              <Route path="/admin/advertising/ads/create" element={<CreateAd />} />
               <Route path="/admin/advertisers" element={<AdminAdvertisers />} />
               <Route path="/admin/ad-campaigns" element={<AdminCampaigns />} />
               <Route path="/admin/ad-analytics" element={<AdminAdAnalytics />} />

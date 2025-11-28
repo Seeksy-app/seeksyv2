@@ -24,8 +24,15 @@ export default function AdvertisingManagement() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">Manage Advertisers</Button>
-          <Button>Create Campaign</Button>
+          <Button variant="outline" onClick={() => window.location.href = "/admin/advertising/advertisers"}>
+            Manage Advertisers
+          </Button>
+          <Button onClick={() => window.location.href = "/admin/advertising/campaigns/create"}>
+            Create Campaign
+          </Button>
+          <Button variant="outline" onClick={() => window.location.href = "/admin/advertising/ads/create"}>
+            Create Ad
+          </Button>
         </div>
       </div>
 

@@ -187,11 +187,11 @@ export default function AdminAdvertisers() {
             </p>
           </div>
           <Button 
-            onClick={() => navigate("/advertiser/signup")}
+            onClick={() => navigate("/admin/advertising/advertisers")}
             className="gap-2"
           >
             <Plus className="h-4 w-4" />
-            Create Advertiser
+            Manage Advertisers
           </Button>
         </div>
 

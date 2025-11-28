@@ -187,12 +187,22 @@ export default function AdminCampaigns() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <div className="container mx-auto p-6 space-y-6">
-        {/* Header */}
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Ad Campaigns</h1>
           <p className="text-muted-foreground mt-1">
             Monitor and manage all advertising campaigns
           </p>
+        </div>
+        
+        <div className="flex gap-3">
+          <Button onClick={() => window.location.href = "/admin/advertising/campaigns/create"}>
+            <Target className="h-4 w-4 mr-2" />
+            Create Campaign
+          </Button>
+          <Button variant="outline" onClick={() => window.location.href = "/admin/advertising/ads/create"}>
+            <Activity className="h-4 w-4 mr-2" />
+            Create Ad
+          </Button>
         </div>
 
         {/* Summary Cards */}
@@ -391,7 +401,7 @@ export default function AdminCampaigns() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => toast.info("Campaign details view - Coming soon")}
+                            onClick={() => window.location.href = `/admin/advertising/campaigns/${campaign.id}`}
                             className="gap-2"
                           >
                             <Eye className="h-4 w-4" />
