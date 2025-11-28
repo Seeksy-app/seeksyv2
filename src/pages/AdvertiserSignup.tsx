@@ -56,21 +56,24 @@ export default function AdvertiserSignup() {
     mutationFn: async (formData: any) => {
       if (!user) throw new Error("Please log in to continue");
 
-      // Insert advertiser record
+      // Filter to only include valid advertiser fields
+      const validAdvertiserData = {
+        user_id: user.id,
+        company_name: formData.company_name,
+        contact_name: formData.contact_name,
+        contact_email: formData.contact_email,
+        contact_phone: formData.contact_phone || null,
+        website_url: formData.website_url || null,
+        business_description: formData.business_description || null,
+        campaign_goals: formData.campaign_goals || [],
+        target_categories: formData.target_categories || [],
+        status: "pending",
+      };
+
+      // Insert advertiser record with only valid fields
       const { data: advertiserData, error } = await supabase
         .from("advertisers")
-        .insert({
-          user_id: user.id,
-          company_name: formData.company_name,
-          contact_name: formData.contact_name,
-          contact_email: formData.contact_email,
-          contact_phone: formData.contact_phone,
-          website_url: formData.website_url,
-          business_description: formData.business_description,
-          campaign_goals: formData.campaign_goals,
-          target_categories: formData.target_categories,
-          status: "pending",
-        })
+        .insert(validAdvertiserData)
         .select()
         .single();
 
@@ -132,8 +135,22 @@ export default function AdvertiserSignup() {
           const data = JSON.parse(advertiserData);
           // Clear the data immediately to prevent re-submission
           localStorage.removeItem("advertiserSignupData");
-          // Submit the advertiser application
-          signupMutation.mutate(data);
+          
+          // Filter out any legacy fields (like sponsor_name) that might be cached
+          const cleanData = {
+            company_name: data.company_name,
+            contact_name: data.contact_name,
+            contact_email: data.contact_email,
+            contact_phone: data.contact_phone,
+            website_url: data.website_url,
+            business_description: data.business_description,
+            campaign_goals: data.campaign_goals || [],
+            target_categories: data.target_categories || [],
+            team_members: data.team_members || [],
+          };
+          
+          // Submit the cleaned advertiser application
+          signupMutation.mutate(cleanData);
         } catch (e) {
           console.error("Failed to process advertiser data:", e);
         }
