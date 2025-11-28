@@ -59,6 +59,8 @@ import seeksyLogo from "@/assets/seeksy-logo.png";
 import { ModuleLauncher } from "@/components/ModuleLauncher";
 import { RoleSwitcher } from "@/components/role/RoleSwitcher";
 import { RoleIndicator } from "@/components/role/RoleIndicator";
+import { useRole } from "@/contexts/RoleContext";
+import { AdvertiserSidebarNav } from "@/components/advertiser/AdvertiserSidebarNav";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
@@ -109,6 +111,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   const collapsed = state === "collapsed";
   const { toast } = useToast();
   const location = useLocation();
+  const { currentRole } = useRole();
   const [username, setUsername] = useState<string>("");
   const [isAdvertiser, setIsAdvertiser] = useState(false);
   const [advertiserStatus, setAdvertiserStatus] = useState<string | null>(null);
@@ -1673,20 +1676,34 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         </SidebarHeader>
 
       <SidebarContent className="pb-6 overflow-hidden">
-        {/* Scrollable navigation sections */}
-        <div className="overflow-y-auto">
-          {/* Other navigation sections (excluding settings) */}
-          {getVisibleSections()
-            .filter(section => section.id !== 'settings')
-            .sort((a, b) => a.order - b.order)
-            .map((section) => {
-              const renderer = sectionRenderers[section.id];
-              return renderer ? renderer() : null;
-            })}
-
-          {/* Settings section - Always rendered at bottom */}
-          {renderSettingsSection()}
-        </div>
+        {adminViewMode ? (
+          // Admin View: Show full admin sidebar
+          <div className="overflow-y-auto">
+            {getVisibleSections()
+              .filter(section => section.id !== 'settings')
+              .sort((a, b) => a.order - b.order)
+              .map((section) => {
+                const renderer = sectionRenderers[section.id];
+                return renderer ? renderer() : null;
+              })}
+            {renderSettingsSection()}
+          </div>
+        ) : currentRole === 'advertiser' ? (
+          // Advertiser View: Show advertiser-specific sidebar
+          <AdvertiserSidebarNav />
+        ) : (
+          // Creator View: Show creator sidebar (filtered to exclude admin items)
+          <div className="overflow-y-auto">
+            {getVisibleSections()
+              .filter(section => section.id !== 'settings' && section.id !== 'admin')
+              .sort((a, b) => a.order - b.order)
+              .map((section) => {
+                const renderer = sectionRenderers[section.id];
+                return renderer ? renderer() : null;
+              })}
+            {renderSettingsSection()}
+          </div>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="border-t">
