@@ -2,15 +2,30 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Upload } from "lucide-react";
+import { Upload, AlertCircle } from "lucide-react";
 import { MyPageTheme } from "@/config/myPageThemes";
+import { useState } from "react";
 
 interface ProfileSectionProps {
   theme: MyPageTheme;
   onUpdate: (theme: MyPageTheme) => void;
 }
 
+const normalizeUsername = (input: string): string => {
+  return input
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/--+/g, '-')
+    .replace(/^-+|-+$/g, '');
+};
+
+const isValidUsername = (username: string): boolean => {
+  return /^[a-z0-9]+(-[a-z0-9]+)*$/.test(username) && username.length > 0;
+};
+
 export function ProfileSection({ theme, onUpdate }: ProfileSectionProps) {
+  const [usernameError, setUsernameError] = useState<string>("");
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -46,10 +61,25 @@ export function ProfileSection({ theme, onUpdate }: ProfileSectionProps) {
           <Input
             id="username"
             value={theme.username}
-            onChange={(e) => onUpdate({ ...theme, username: e.target.value })}
+            onChange={(e) => {
+              const normalized = normalizeUsername(e.target.value);
+              onUpdate({ ...theme, username: normalized });
+              
+              if (normalized && !isValidUsername(normalized)) {
+                setUsernameError("Username can only contain lowercase letters, numbers, and single hyphens");
+              } else {
+                setUsernameError("");
+              }
+            }}
             placeholder="your-username"
             className="mt-1.5"
           />
+          {usernameError && (
+            <div className="flex items-center gap-1 mt-1 text-xs text-destructive">
+              <AlertCircle className="w-3 h-3" />
+              <span>{usernameError}</span>
+            </div>
+          )}
           <p className="text-xs text-muted-foreground mt-1">seeksy.io/{theme.username || "your-username"}</p>
         </div>
 

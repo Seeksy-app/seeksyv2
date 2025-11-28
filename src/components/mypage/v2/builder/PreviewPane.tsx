@@ -76,18 +76,20 @@ export function PreviewPane({ theme, device, onDeviceChange, mode, onModeChange 
       </div>
 
       {/* Device Preview */}
-      <div className="flex-1 flex items-center justify-center p-8 overflow-auto">
+      <div className="flex-1 flex items-center justify-center p-8">
         <div
           className={cn(
             "transition-all duration-300",
-            device === "desktop" ? "w-full h-full" : "rounded-3xl shadow-2xl overflow-hidden border-8 border-gray-900"
+            device === "desktop" 
+              ? "w-full h-full overflow-auto" 
+              : "rounded-3xl shadow-2xl border-8 border-gray-900 flex flex-col"
           )}
           style={device !== "desktop" ? {
             width: deviceSizes[device].width,
-            maxHeight: deviceSizes[device].height,
+            height: deviceSizes[device].height,
           } : undefined}
         >
-          <div className="bg-white h-full overflow-auto">
+          <div className="bg-white flex-1 overflow-auto">
             <MyPagePreview theme={theme} mode={mode} />
           </div>
         </div>
