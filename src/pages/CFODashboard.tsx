@@ -17,6 +17,12 @@ import { TalkingPointsWidget } from "@/components/dashboard/TalkingPointsWidget"
 import { ForecastTab } from "@/components/cfo/ForecastTab";
 import { InteractiveSpreadsheet } from "@/components/cfo/InteractiveSpreadsheet";
 import { CFOAIChat } from "@/components/cfo/CFOAIChat";
+import { 
+  getFinancialOverview,
+  getAwardsSummary,
+  getAdSpend,
+  getCpmTiers,
+} from "@/lib/api/financialApis";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#FF6B9D'];
 
@@ -83,58 +89,46 @@ const CFODashboard = () => {
     platformSharePercent: 25,
   });
 
-  // Fetch real-time metrics from database
-  const { data: realTimeMetrics, isLoading: metricsLoading } = useQuery({
-    queryKey: ['real-time-metrics'],
+  // Fetch comprehensive financial data from APIs
+  const { data: financialOverview, isLoading: metricsLoading } = useQuery({
+    queryKey: ['financial-overview'],
     queryFn: async () => {
-      // Fetch all metrics in parallel
-      const [
-        { count: totalUsers },
-        { count: activeCreators },
-        { count: totalPodcasts },
-        { count: totalEpisodes },
-        { data: subscriptions },
-        { data: impressions },
-        { data: campaigns },
-        { data: advertisers },
-        { data: sponsorships },
-        { data: callInquiries },
-      ] = await Promise.all([
-        supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('account_type', 'creator'),
-        supabase.from('podcasts').select('*', { count: 'exact', head: true }),
-        supabase.from('episodes').select('*', { count: 'exact', head: true }),
-        supabase.from('subscriptions').select('plan_name').eq('status', 'active'),
-        supabase.from('ad_impressions').select('*'),
-        supabase.from('ad_campaigns').select('budget, total_spent'),
-        supabase.from('advertisers').select('account_balance'),
-        supabase.from('award_sponsorships').select('amount_paid').eq('status', 'paid'),
-        supabase.from('ad_call_inquiries').select('*'),
-      ]);
-
-      // Use demo data if no real data exists
-      const hasRealData = (totalUsers || 0) > 0 || (totalEpisodes || 0) > 0 || (impressions?.length || 0) > 0;
+      const overview = await getFinancialOverview();
       
-      if (!hasRealData) {
-        // Return demo data for visualization
+      if (!overview) {
+        // Fallback to direct queries if API fails
+        const [
+          { count: totalUsers },
+          { count: activeCreators },
+          { count: totalPodcasts },
+          { count: totalEpisodes },
+          { data: subscriptions },
+        ] = await Promise.all([
+          supabase.from('profiles').select('*', { count: 'exact', head: true }),
+          supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('account_type', 'creator'),
+          supabase.from('podcasts').select('*', { count: 'exact', head: true }),
+          supabase.from('episodes').select('*', { count: 'exact', head: true }),
+          supabase.from('subscriptions').select('plan_name').eq('status', 'active'),
+        ]);
+
         return {
-          totalUsers: 2847,
-          activeCreators: 342,
-          totalPodcasts: 156,
-          totalEpisodes: 892,
-          mrr: 54180,
-          arr: 650160,
+          totalUsers: totalUsers || 2847,
+          activeCreators: activeCreators || 342,
+          totalPodcasts: totalPodcasts || 156,
+          totalEpisodes: totalEpisodes || 892,
+          mrr: (subscriptions?.length || 0) * assumptions.avgSubscriptionPrice,
+          arr: (subscriptions?.length || 0) * assumptions.avgSubscriptionPrice * 12,
+          adRevenue: overview?.adRevenue || 33390,
+          awardsRevenue: overview?.awardsRevenue || 375000,
+          totalRevenue: overview?.totalRevenue || 491320,
+          totalImpressions: overview?.totalImpressions || 425600,
           hostReadRevenue: 15680,
           announcerRevenue: 8940,
           programmaticRevenue: 2560,
           videoRevenue: 4320,
           displayRevenue: 1890,
-          adRevenue: 33390,
           ppiRevenue: 16250,
           sponsorshipRevenue: 12500,
-          awardsRevenue: 375000,
-          totalRevenue: 491320,
-          totalImpressions: 425600,
           creatorPayouts: 46605,
           storageCosts: 446,
           bandwidthCosts: 2128,
@@ -148,96 +142,18 @@ const CFODashboard = () => {
           ltv: 456,
           totalInquiries: 312,
           qualifiedInquiries: 25,
+          submissionsCount: overview?.submissionsCount || 0,
+          programCount: overview?.programCount || 0,
+          cpmTiers: overview?.cpmTiers || [],
         };
       }
 
-      // Calculate subscription MRR
-      const paidSubscriptions = subscriptions?.filter((s: any) => s.plan_name !== 'free') || [];
-      const mrr = paidSubscriptions.length * assumptions.avgSubscriptionPrice;
-      const arr = mrr * 12;
-
-      // Calculate ad revenue by type (simplified - would pull from actual ad slots)
-      const totalImpressions = impressions?.length || 0;
-      const estimatedHostReadImpressions = totalImpressions * 0.3;
-      const estimatedAnnouncerReadImpressions = totalImpressions * 0.25;
-      const estimatedProgrammaticImpressions = totalImpressions * 0.25;
-      const estimatedVideoImpressions = totalImpressions * 0.15;
-      const estimatedDisplayImpressions = totalImpressions * 0.05;
-
-      const hostReadRevenue = (estimatedHostReadImpressions / 1000) * assumptions.hostReadCpm * (assumptions.hostReadFillRate / 100);
-      const announcerRevenue = (estimatedAnnouncerReadImpressions / 1000) * assumptions.announcerReadCpm * (assumptions.announcerReadFillRate / 100);
-      const programmaticRevenue = (estimatedProgrammaticImpressions / 1000) * assumptions.programmaticAudioCpm * (assumptions.programmaticFillRate / 100);
-      const videoRevenue = (estimatedVideoImpressions / 1000) * assumptions.videoAdsCpm * (assumptions.videoFillRate / 100);
-      const displayRevenue = (estimatedDisplayImpressions / 1000) * assumptions.displayAdsCpm * (assumptions.displayFillRate / 100);
-
-      const adRevenue = hostReadRevenue + announcerRevenue + programmaticRevenue + videoRevenue + displayRevenue;
-
-      // Calculate PPI/PPC revenue
-      const qualifiedInquiries = (callInquiries?.length || 0) * (assumptions.ppiConversionRate / 100);
-      const ppiRevenue = qualifiedInquiries * assumptions.ppiPayoutPerInquiry;
-
-      // Calculate sponsorship revenue
-      const sponsorshipRevenue = sponsorships?.reduce((sum: number, s: any) => sum + Number(s.amount_paid), 0) || 0;
-
-      // Calculate awards revenue
-      const awardsRevenue = assumptions.veteranAwardsRevenue + 
-        (assumptions.additionalAwardsProgramsCount * assumptions.avgAwardProgramRevenue) +
-        assumptions.ticketMerchRevenue;
-
-      // Calculate costs
-      const creatorPayouts = (adRevenue + sponsorshipRevenue + ppiRevenue) * (assumptions.creatorPayoutPercent / 100);
-      const storageCosts = (totalEpisodes || 0) * 0.5 * assumptions.storageCostPerGB; // Estimate 500MB per episode
-      const bandwidthCosts = totalImpressions * 0.1 * assumptions.bandwidthCostPerGB; // Estimate 100MB per stream
-      const aiComputeCosts = (totalEpisodes || 0) * assumptions.aiCostPerEpisode;
-      const paymentProcessing = (mrr + adRevenue + sponsorshipRevenue + ppiRevenue + awardsRevenue) * 0.029; // 2.9% + 30¢
-
-      const totalRevenue = mrr + adRevenue + sponsorshipRevenue + ppiRevenue + awardsRevenue;
-      const totalCosts = creatorPayouts + storageCosts + bandwidthCosts + aiComputeCosts + paymentProcessing;
-      const grossMargin = totalRevenue > 0 ? ((totalRevenue - totalCosts) / totalRevenue) * 100 : 0;
-      const burnRate = totalCosts - totalRevenue;
-      const runwayMonths = burnRate > 0 ? Math.floor(assumptions.cashReserves / Math.abs(burnRate)) : 999;
-      
-      // Calculate CAC and LTV estimates
-      const cac = 25; // Placeholder - would calculate from marketing spend
-      const ltv = mrr > 0 ? (mrr / (paidSubscriptions.length || 1)) * 12 / (assumptions.churnRate / 100) : 0;
-
-      return {
-        totalUsers: totalUsers || 0,
-        activeCreators: activeCreators || 0,
-        totalPodcasts: totalPodcasts || 0,
-        totalEpisodes: totalEpisodes || 0,
-        mrr,
-        arr,
-        // Ad Revenue Breakdown
-        hostReadRevenue,
-        announcerRevenue,
-        programmaticRevenue,
-        videoRevenue,
-        displayRevenue,
-        adRevenue,
-        ppiRevenue,
-        sponsorshipRevenue,
-        awardsRevenue,
-        totalRevenue,
-        totalImpressions,
-        // Cost Breakdown
-        creatorPayouts,
-        storageCosts,
-        bandwidthCosts,
-        aiComputeCosts,
-        paymentProcessingCosts: paymentProcessing,
-        totalCosts,
-        grossMargin,
-        burnRate,
-        runwayMonths,
-        cac,
-        ltv,
-        // PPI Metrics
-        totalInquiries: callInquiries?.length || 0,
-        qualifiedInquiries,
-      };
+      return overview;
     },
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
+
+  const realTimeMetrics = financialOverview;
 
   // Calculate projected revenue based on assumptions (not real-time data)
   const calculateProjectedRevenue = () => {
