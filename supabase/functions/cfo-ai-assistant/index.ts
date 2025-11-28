@@ -37,7 +37,148 @@ ${JSON.stringify(financialData, null, 2)}
     let adFinancialContext = '';
     let combinedRevenueContext = '';
     let rateDeskContext = '';
+    let advertiserContext = '';
+    let campaignContext = '';
+    let scenarioAssumptionsContext = '';
+    
     try {
+      // Fetch financial scenarios and assumptions
+      const { data: scenariosData } = await supabase
+        .from('ad_financial_scenarios')
+        .select(`
+          *,
+          ad_financial_assumptions (*)
+        `)
+        .order('is_default', { ascending: false });
+
+      if (scenariosData && scenariosData.length > 0) {
+        scenarioAssumptionsContext = `
+
+** AI REVENUE SCENARIOS & ASSUMPTIONS **
+
+${scenariosData.map(scenario => {
+  const assumptions = scenario.ad_financial_assumptions?.[0];
+  if (!assumptions) return '';
+  
+  const assumpJson = assumptions.assumptions_json || {};
+  return `
+${scenario.name} ${scenario.is_default ? '(DEFAULT)' : ''}:
+${scenario.description}
+
+Core Financial Metrics:
+  - Average CPM: $${assumpJson.average_cpm || 'N/A'}
+  - Pre-Roll CPM: $${assumptions.cpm_preroll}
+  - Mid-Roll CPM: $${assumptions.cpm_midroll}
+  - Post-Roll CPM: $${assumptions.cpm_postroll}
+  - Creator Revenue Share: ${(assumptions.creator_rev_share * 100).toFixed(0)}%
+  - Platform Variable Costs: ${(assumptions.platform_variable_cost_pct * 100).toFixed(1)}%
+
+Growth Assumptions:
+  - Monthly User Growth: ${((assumpJson.monthly_user_growth || 0) * 100).toFixed(1)}%
+  - Creator Growth: ${((assumpJson.creator_growth || 0) * 100).toFixed(1)}%
+  - Starting Campaigns: ${assumptions.starting_campaigns}
+  - Monthly Campaign Growth: ${(assumptions.monthly_campaign_growth * 100).toFixed(1)}%
+  - Average Campaign Budget: $${assumpJson.avg_campaign_budget || assumptions.avg_campaign_monthly_budget}
+
+Performance Metrics:
+  - Impressions Per User: ${assumpJson.impressions_per_user || 'N/A'}
+  - Advertiser Conversion Rate: ${((assumpJson.advertiser_conversion_rate || 0) * 100).toFixed(1)}%
+  - Campaign Renewal Rate: ${((assumpJson.campaign_renewal_rate || 0) * 100).toFixed(1)}%
+  - Churn Rate: ${((assumpJson.churn_rate || 0) * 100).toFixed(2)}%
+  - Fill Rate: ${(assumptions.fill_rate * 100).toFixed(0)}%
+`;
+}).join('\n---\n')}
+
+Use these scenarios to answer questions like:
+- "What's the difference between Base and Aggressive revenue in Year 1?"
+- "Which scenario has the highest CPM?"
+- "What are our creator growth assumptions?"
+`;
+      }
+
+      // Fetch advertiser inventory
+      const { data: advertisers } = await supabase
+        .from('advertisers')
+        .select('id, company_name, business_description, status, created_at')
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (advertisers && advertisers.length > 0) {
+        advertiserContext = `
+
+** ADVERTISER INVENTORY (${advertisers.length} Active) **
+
+${advertisers.map((adv, i) => `${i + 1}. ${adv.company_name}
+   - ${adv.business_description}
+   - Status: ${adv.status}
+   - Onboarded: ${new Date(adv.created_at).toLocaleDateString()}`).join('\n\n')}
+
+Use this to answer questions about advertiser types, industries represented, and platform adoption.
+`;
+      }
+
+      // Fetch active campaign performance
+      const { data: campaigns } = await supabase
+        .from('ad_campaigns')
+        .select(`
+          id,
+          name,
+          total_budget,
+          total_spent,
+          total_impressions,
+          cpm_bid,
+          status,
+          start_date,
+          end_date,
+          advertisers (company_name)
+        `)
+        .in('status', ['active', 'completed'])
+        .order('total_spent', { ascending: false })
+        .limit(15);
+
+      if (campaigns && campaigns.length > 0) {
+        const totalBudget = campaigns.reduce((sum, c) => sum + Number(c.total_budget), 0);
+        const totalSpent = campaigns.reduce((sum, c) => sum + Number(c.total_spent), 0);
+        const totalImpressions = campaigns.reduce((sum, c) => sum + Number(c.total_impressions), 0);
+        const avgCPM = campaigns.filter(c => c.total_impressions > 0)
+          .reduce((sum, c) => sum + Number(c.cpm_bid), 0) / campaigns.filter(c => c.total_impressions > 0).length;
+        
+        const activeCampaigns = campaigns.filter(c => c.status === 'active');
+        const completedCampaigns = campaigns.filter(c => c.status === 'completed');
+
+        campaignContext = `
+
+** CAMPAIGN PERFORMANCE OVERVIEW **
+
+Total Campaigns: ${campaigns.length} (${activeCampaigns.length} active, ${completedCampaigns.length} completed)
+Total Campaign Budget: $${(totalBudget / 1000).toFixed(1)}K
+Total Spent to Date: $${(totalSpent / 1000).toFixed(1)}K (${((totalSpent / totalBudget) * 100).toFixed(1)}% of budget)
+Total Impressions Delivered: ${(totalImpressions / 1000).toFixed(0)}K
+Platform Average CPM: $${avgCPM.toFixed(2)}
+
+Top Performing Campaigns by Spend:
+${campaigns.slice(0, 5).map((camp, i) => {
+  const advertiserName = Array.isArray(camp.advertisers) && camp.advertisers.length > 0 
+    ? camp.advertisers[0].company_name 
+    : 'Unknown';
+  const spendPct = (Number(camp.total_spent) / Number(camp.total_budget)) * 100;
+  const actualCPM = camp.total_impressions > 0 ? (Number(camp.total_spent) / (camp.total_impressions / 1000)) : 0;
+  return `${i + 1}. ${camp.name} (${advertiserName})
+   - Budget: $${(Number(camp.total_budget) / 1000).toFixed(1)}K | Spent: $${(Number(camp.total_spent) / 1000).toFixed(1)}K (${spendPct.toFixed(0)}%)
+   - Impressions: ${(camp.total_impressions / 1000).toFixed(0)}K
+   - CPM Bid: $${camp.cpm_bid} | Actual CPM: $${actualCPM.toFixed(2)}
+   - Status: ${camp.status}`;
+}).join('\n\n')}
+
+Use this to answer questions like:
+- "Which campaign is performing best for CPM?"
+- "How much have we delivered in total impressions?"
+- "What's the average campaign budget?"
+- "Which advertisers are most active?"
+`;
+      }
+
       const { data: summaries, error } = await supabase
         .from('ad_financial_model_summaries')
         .select('*');
@@ -45,7 +186,7 @@ ${JSON.stringify(financialData, null, 2)}
       if (!error && summaries && summaries.length > 0) {
         adFinancialContext = `
 
-** AD REVENUE FINANCIAL MODEL SCENARIOS **
+** AD REVENUE FINANCIAL MODEL SUMMARIES **
 
 ${summaries.map(s => s.summary_text).join('\n\n')}
 `;
@@ -228,6 +369,12 @@ Cost Structure: $2.50/user AI compute + infrastructure costs
 
 ${combinedRevenueContext}
 
+${scenarioAssumptionsContext}
+
+${advertiserContext}
+
+${campaignContext}
+
 ${adFinancialContext}
 
 ${rateDeskContext}
@@ -235,14 +382,22 @@ ${rateDeskContext}
 ${contextString}
 
 YOUR ROLE:
-1. Answer questions about financial forecasts using the data above
-2. When asked about COMBINED or TOTAL revenue, use the Combined Revenue Model data which includes both subscriptions AND ads
-3. When asked specifically about subscription-only or ad-only revenue, reference the individual breakdowns
-4. When asked about specific years or projections, provide baseline numbers AND scenario ranges
-5. Calculate scenario projections by applying the multipliers above
-6. For subscriber/user questions, reference the starting numbers and growth rates
+1. Answer questions about financial forecasts using ALL the data above
+2. When asked about scenarios (Conservative, Base, Aggressive), reference the AI REVENUE SCENARIOS section with exact assumptions
+3. When asked about campaigns or advertisers, use the CAMPAIGN PERFORMANCE and ADVERTISER INVENTORY sections
+4. When asked about CPMs or rate desk, reference the SALES RATE DESK section
+5. When asked about COMBINED or TOTAL revenue, use the Combined Revenue Model data
+6. Calculate scenario comparisons by applying the specific assumptions from each scenario
 7. Explain assumptions clearly when relevant
 8. Be concise but data-driven - always include specific numbers
+
+EXAMPLE QUESTIONS YOU CAN NOW ANSWER:
+- "Which campaign is performing best for CPM?" → Reference Campaign Performance section
+- "What's the revenue difference between Base and Aggressive in Year 1?" → Use scenario assumptions to calculate
+- "How much ad supply is sellable next 30 days?" → Use Rate Desk total monthly impressions
+- "What industries are our advertisers from?" → Reference Advertiser Inventory
+- "What's our average campaign renewal rate?" → Pull from Base scenario assumptions (56%)
+- "Which CPM should we quote for podcast mid-roll?" → Reference Rate Desk CPM ranges
 
 EXAMPLE RESPONSE FORMAT:
 Q: "What's our total revenue in Year 3 combining subscriptions and ads?"
