@@ -2,15 +2,20 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Mic, Square, Pause, Play } from "lucide-react";
-import { initializeRecordingSession, startRecording, stopRecording, type AudioTrack } from "@/lib/api/podcastStudioAPI";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Mic, Square, Pause, Play, FileText, Tag } from "lucide-react";
+import { initializeRecordingSession, startRecording, stopRecording, fetchAvailableAdScripts, logAdReadEvent, type AudioTrack } from "@/lib/api/podcastStudioAPI";
+import type { AdScript } from "@/lib/api/advertiserAPI";
 
 type RecordingState = "idle" | "recording" | "paused";
 
-// Placeholder for future ad-read features
-const adScriptPlaceholder = null;
-const selectedAdScript = null;
-const adReadEvents: any[] = [];
+interface AdReadEvent {
+  timestamp: number;
+  adScriptId: string;
+  adScriptTitle: string;
+  duration: number;
+}
 
 const RecordingConsole = () => {
   const navigate = useNavigate();
@@ -23,6 +28,12 @@ const RecordingConsole = () => {
   const [audioTracks, setAudioTracks] = useState<AudioTrack[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Ad-read features
+  const [availableScripts, setAvailableScripts] = useState<AdScript[]>([]);
+  const [selectedAdScript, setSelectedAdScript] = useState<string>("");
+  const [showScriptDialog, setShowScriptDialog] = useState(false);
+  const [adReadEvents, setAdReadEvents] = useState<AdReadEvent[]>([]);
+
   // Multitrack recording architecture
   const [participants] = useState([
     { id: "host", name: "Host" },
@@ -33,6 +44,11 @@ const RecordingConsole = () => {
     // Initialize multitrack session on mount
     initializeRecordingSession(participants).then(({ sessionId }) => {
       setSessionId(sessionId);
+    });
+
+    // Fetch available ad scripts
+    fetchAvailableAdScripts().then((scripts) => {
+      setAvailableScripts(scripts);
     });
 
     return () => {
@@ -81,15 +97,35 @@ const RecordingConsole = () => {
     setDuration(finalDuration);
     setRecordingState("idle");
 
-    // Navigate to cleanup with recording data
+    // Navigate to cleanup with recording data including ad-read events
     navigate("/podcast-studio/cleanup", {
       state: {
         tracks,
         duration: finalDuration,
         micSettings,
+        adReadEvents,
       },
     });
   };
+
+  const handleMarkAdRead = async () => {
+    if (!selectedAdScript || !sessionId) return;
+
+    const script = availableScripts.find(s => s.id === selectedAdScript);
+    if (!script) return;
+
+    const adReadEvent: AdReadEvent = {
+      timestamp: duration,
+      adScriptId: script.id,
+      adScriptTitle: `${script.brandName} — ${script.title}`,
+      duration: script.readLengthSeconds,
+    };
+
+    setAdReadEvents([...adReadEvents, adReadEvent]);
+    await logAdReadEvent(sessionId, adReadEvent);
+  };
+
+  const selectedScript = availableScripts.find(s => s.id === selectedAdScript);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -201,13 +237,94 @@ const RecordingConsole = () => {
             )}
           </div>
 
-          {/* Placeholder space for future Script Popup and Ad Dropdown */}
-          {/* Will be implemented when ad-read marketplace is integrated */}
-          <div className="hidden" data-future-feature="script-popup">
-            {adScriptPlaceholder}
-            {selectedAdScript}
-            {adReadEvents}
-          </div>
+          {/* Ad-Read Controls */}
+          {recordingState !== "idle" && (
+            <div className="space-y-4 border-t pt-6">
+              <h3 className="text-sm font-semibold text-[#053877]">Ad Script Controls</h3>
+              
+              <div className="flex items-end gap-3">
+                <div className="flex-1 space-y-2">
+                  <label className="text-xs text-muted-foreground">Select Ad Script</label>
+                  <Select value={selectedAdScript} onValueChange={setSelectedAdScript}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose an ad script..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableScripts.map((script) => (
+                        <SelectItem key={script.id} value={script.id}>
+                          {script.brandName} — {script.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button
+                  variant="outline"
+                  onClick={() => setShowScriptDialog(true)}
+                  disabled={!selectedAdScript}
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Show Script
+                </Button>
+
+                <Button
+                  onClick={handleMarkAdRead}
+                  disabled={!selectedAdScript}
+                  className="bg-[#2C6BED] hover:bg-[#2C6BED]/90 text-white"
+                >
+                  <Tag className="w-4 h-4 mr-2" />
+                  Mark Ad Read
+                </Button>
+              </div>
+
+              {adReadEvents.length > 0 && (
+                <div className="mt-4 p-3 bg-muted/30 rounded-lg">
+                  <p className="text-xs font-semibold text-[#053877] mb-2">
+                    Ad Reads Recorded ({adReadEvents.length})
+                  </p>
+                  <div className="space-y-1">
+                    {adReadEvents.map((event, idx) => (
+                      <div key={idx} className="text-xs text-muted-foreground">
+                        {formatTime(event.timestamp)} - {event.adScriptTitle}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Script Dialog */}
+          <Dialog open={showScriptDialog} onOpenChange={setShowScriptDialog}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>
+                  {selectedScript ? `${selectedScript.brandName} — ${selectedScript.title}` : "Ad Script"}
+                </DialogTitle>
+              </DialogHeader>
+              {selectedScript && (
+                <div className="space-y-4">
+                  <div className="p-4 bg-muted/30 rounded-lg">
+                    <p className="text-sm leading-relaxed">{selectedScript.scriptText}</p>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <span>Read time: {selectedScript.readLengthSeconds}s</span>
+                    <div className="flex gap-1">
+                      {selectedScript.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-2 py-0.5 bg-[#2C6BED]/10 text-[#2C6BED] rounded"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </Card>
     </div>

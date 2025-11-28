@@ -8,7 +8,7 @@ import { applyAICleanup, type AudioTrack, type CleanupOptions } from "@/lib/api/
 const AICleanup = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { tracks, duration, micSettings } = location.state || {};
+  const { tracks, duration, micSettings, adReadEvents } = location.state || {};
 
   const [selectedLevel, setSelectedLevel] = useState<"basic" | "advanced" | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -38,6 +38,7 @@ const AICleanup = () => {
           duration,
           micSettings,
           cleanupMethod: selectedLevel,
+          adReadEvents,
         },
       });
     } catch (error) {

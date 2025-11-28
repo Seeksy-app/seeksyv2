@@ -11,7 +11,7 @@ import { saveEpisode, type EpisodeMetadata } from "@/lib/api/podcastStudioAPI";
 const SaveEpisode = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { tracks, duration, micSettings, cleanupMethod } = location.state || {};
+  const { tracks, duration, micSettings, cleanupMethod, adReadEvents } = location.state || {};
 
   const [episodeTitle, setEpisodeTitle] = useState("");
   const [includeMetadata, setIncludeMetadata] = useState(true);
@@ -41,6 +41,7 @@ const SaveEpisode = () => {
           tracks,
           duration,
           cleanupMethod,
+          adReadEvents,
         },
       });
     } catch (error) {

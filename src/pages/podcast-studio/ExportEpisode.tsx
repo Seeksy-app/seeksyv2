@@ -8,7 +8,7 @@ import { exportEpisode } from "@/lib/api/podcastStudioAPI";
 const ExportEpisode = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { episodeId, episodeTitle, tracks, duration, cleanupMethod } = location.state || {};
+  const { episodeId, episodeTitle, tracks, duration, cleanupMethod, adReadEvents } = location.state || {};
 
   const [isExporting, setIsExporting] = useState(false);
 
@@ -36,12 +36,16 @@ const ExportEpisode = () => {
   };
 
   const handleCertify = () => {
-    // Placeholder for future integration with Content Certification Flow
+    // Navigate to Content Certification Flow with full episode metadata
     navigate("/content-certification", {
       state: {
         contentType: "podcast-episode",
         episodeId,
         episodeTitle,
+        tracks,
+        cleanupMethod,
+        recordingDate: new Date(),
+        adReadEvents: adReadEvents || [],
       },
     });
   };
