@@ -39,6 +39,8 @@ import MeetingStudio from "./pages/MeetingStudio";
 import MeetingRSVP from "./pages/MeetingRSVP";
 import Availability from "./pages/Availability";
 import MasterStudio from "./pages/MasterStudio";
+import VideoStudio from "./pages/VideoStudio";
+import LiveStudio from "./pages/LiveStudio";
 import BookMeetings from "./pages/BookMeetings";
 import BookMeetingSlot from "./pages/BookMeetingSlot";
 import ProfileEdit from "./pages/ProfileEdit";
@@ -392,8 +394,9 @@ const AppContent = () => {
               
               {/* Master Studio Routes */}
               <Route path="/studio" element={<MasterStudio />} />
-              <Route path="/studio/video" element={<MeetingStudio />} />
-              <Route path="/studio/live" element={<MeetingStudio />} />
+              <Route path="/studio/video" element={<VideoStudio />} />
+              <Route path="/studio/solo" element={<VideoStudio />} />
+              <Route path="/studio/live" element={<LiveStudio />} />
               
             <Route path="/events" element={<Events />} />
             <Route path="/signup-sheets" element={<SignupSheets />} />
