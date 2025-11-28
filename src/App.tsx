@@ -207,6 +207,13 @@ import AuthenticityScan from "./pages/content-certification/AuthenticityScan";
 import ApproveAndMintContent from "./pages/content-certification/ApproveAndMintContent";
 import MintingProgressContent from "./pages/content-certification/MintingProgressContent";
 import CertifiedContentSuccess from "./pages/content-certification/CertifiedContentSuccess";
+import StudioHome from "./pages/podcast-studio/StudioHome";
+import MicrophoneSetup from "./pages/podcast-studio/MicrophoneSetup";
+import RecordingConsole from "./pages/podcast-studio/RecordingConsole";
+import AICleanup from "./pages/podcast-studio/AICleanup";
+import SaveEpisode from "./pages/podcast-studio/SaveEpisode";
+import ExportEpisode from "./pages/podcast-studio/ExportEpisode";
+import StudioSuccess from "./pages/podcast-studio/StudioSuccess";
 
 const queryClient = new QueryClient();
 
@@ -313,6 +320,15 @@ const AppContent = () => {
               <Route path="/content-certification/approve-mint" element={<ApproveAndMintContent />} />
               <Route path="/content-certification/minting-progress" element={<MintingProgressContent />} />
               <Route path="/content-certification/success" element={<CertifiedContentSuccess />} />
+              
+              {/* Podcast Studio Flow */}
+              <Route path="/podcast-studio" element={<StudioHome />} />
+              <Route path="/podcast-studio/mic-setup" element={<MicrophoneSetup />} />
+              <Route path="/podcast-studio/record" element={<RecordingConsole />} />
+              <Route path="/podcast-studio/cleanup" element={<AICleanup />} />
+              <Route path="/podcast-studio/save" element={<SaveEpisode />} />
+              <Route path="/podcast-studio/export" element={<ExportEpisode />} />
+              <Route path="/podcast-studio/success" element={<StudioSuccess />} />
               
             <Route path="/investor" element={<InvestorPortal />} />
             <Route path="/project-management" element={<ProjectManagement />} />
