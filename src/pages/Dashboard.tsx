@@ -47,6 +47,8 @@ import { SocialAccountsBanner } from "@/components/creator/SocialAccountsBanner"
 import { SocialMediaAnalytics } from "@/components/dashboard/widgets/SocialMediaAnalytics";
 import alexMorganAvatar from "@/assets/demo-influencer-alex-morgan.jpg";
 import { HolidayDecoration } from "@/components/dashboard/HolidayDecoration";
+import { SparkWelcomeModal } from "@/components/spark/SparkWelcomeModal";
+import { useRole } from "@/contexts/RoleContext";
 
 interface DashboardStats {
   totalEvents: number;
@@ -149,6 +151,8 @@ const Dashboard = () => {
   const { data: myPageEnabled } = useMyPageEnabled();
   const queryClient = useQueryClient();
   const [showWelcomeSpin, setShowWelcomeSpin] = useState(false);
+  const { currentRole } = useRole();
+  const [showSparkWelcome, setShowSparkWelcome] = useState(false);
 
   const handleWidgetsSave = (newWidgets: WidgetConfig[]) => {
     setWidgets(newWidgets);
@@ -181,6 +185,12 @@ const Dashboard = () => {
         setShowWelcomeSpin(true);
         localStorage.removeItem('show_welcome_spin');
       }, 800);
+    }
+    
+    // Check if we should show Spark welcome modal
+    const hasSeenWelcome = localStorage.getItem('spark_welcome_seen');
+    if (!hasSeenWelcome && currentRole) {
+      setTimeout(() => setShowSparkWelcome(true), 1000);
     }
     
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -757,6 +767,14 @@ const Dashboard = () => {
         }}
         isWelcomeSpin={true}
       />
+      
+      {/* Spark Welcome Modal */}
+      {currentRole && (
+        <SparkWelcomeModal 
+          role={currentRole === 'creator' ? 'creator' : currentRole === 'advertiser' ? 'advertiser' : 'guest'}
+          onComplete={() => setShowSparkWelcome(false)}
+        />
+      )}
     </div>
   );
 };

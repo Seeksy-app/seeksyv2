@@ -3,8 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Send, Loader2 } from "lucide-react";
+import { Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { SparkAvatar } from "@/components/spark/SparkAvatar";
 
 interface Message {
   role: "user" | "assistant";
@@ -116,8 +117,8 @@ export const CFOAIChat = ({ financialData }: CFOAIChatProps) => {
     <Card className="flex flex-col min-h-[600px] h-full">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
-          <Sparkles className="h-4 w-4 text-primary" />
-          Ask CFO AI
+          <SparkAvatar pose="thinking" size={20} />
+          Ask Seeksy Spark
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col gap-3 min-h-0 pb-4">
