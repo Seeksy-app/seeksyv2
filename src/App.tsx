@@ -234,6 +234,7 @@ import AdvertiserCreators from "./pages/advertiser/AdvertiserCreators";
 import AdvertiserReports from "./pages/advertiser/AdvertiserReports";
 import AdvertiserBilling from "./pages/advertiser/AdvertiserBilling";
 import AdvertiserIntegrations from "./pages/advertiser/AdvertiserIntegrations";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import EpisodeDetails from "./pages/episodes/EpisodeDetails";
 import NewEpisodeFromStudio from "./pages/podcasts/NewEpisodeFromStudio";
 import EpisodeDetailPublic from "./pages/podcasts/EpisodeDetailPublic";
@@ -357,15 +358,15 @@ const AppContent = () => {
               <Route path="/podcast-studio/success" element={<StudioSuccess />} />
               
               {/* Advertiser Ad-Read Marketplace Routes */}
-            <Route path="/advertiser" element={<AdvertiserDashboardNew />} />
-            <Route path="/advertiser/campaigns" element={<AdvertiserCampaignsList />} />
-            <Route path="/advertiser/campaigns/:id" element={<CampaignDetails />} />
-            <Route path="/advertiser/creatives" element={<AdvertiserCreatives />} />
-            <Route path="/advertiser/scripts/new" element={<CreateScript />} />
-            <Route path="/advertiser/creators" element={<AdvertiserCreators />} />
-            <Route path="/advertiser/reports" element={<AdvertiserReports />} />
-            <Route path="/advertiser/billing" element={<AdvertiserBilling />} />
-            <Route path="/advertiser/integrations" element={<AdvertiserIntegrations />} />
+            <Route path="/advertiser" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserDashboardNew /></ProtectedRoute>} />
+            <Route path="/advertiser/campaigns" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserCampaignsList /></ProtectedRoute>} />
+            <Route path="/advertiser/campaigns/:id" element={<ProtectedRoute requiredRole="advertiser"><CampaignDetails /></ProtectedRoute>} />
+            <Route path="/advertiser/creatives" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserCreatives /></ProtectedRoute>} />
+            <Route path="/advertiser/scripts/new" element={<ProtectedRoute requiredRole="advertiser"><CreateScript /></ProtectedRoute>} />
+            <Route path="/advertiser/creators" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserCreators /></ProtectedRoute>} />
+            <Route path="/advertiser/reports" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserReports /></ProtectedRoute>} />
+            <Route path="/advertiser/billing" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserBilling /></ProtectedRoute>} />
+            <Route path="/advertiser/integrations" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserIntegrations /></ProtectedRoute>} />
             
             {/* Episode Details */}
             <Route path="/episodes/:id" element={<EpisodeDetails />} />
@@ -474,25 +475,25 @@ const AppContent = () => {
               <Route path="/admin/screenshot-generator" element={<ScreenshotGenerator />} />
           <Route path="/advertiser" element={<AdvertiserServices />} />
           <Route path="/advertiser/signup" element={<AdvertiserSignup />} />
-          <Route path="/advertiser/dashboard" element={<AdvertiserDashboard />} />
-          <Route path="/advertiser/campaigns" element={<AdvertiserCampaigns />} />
-          <Route path="/advertiser/ads" element={<AdvertiserAdLibrary />} />
-          <Route path="/advertiser/campaigns/create" element={<CreateCampaign />} />
-          <Route path="/advertiser/campaigns/:campaignId" element={<AdvertiserCampaignDetail />} />
-          <Route path="/advertiser/campaigns/:campaignId/edit" element={<EditCampaign />} />
-          <Route path="/advertiser/campaigns/create-type" element={<CreateCampaignTypeSelection />} />
-              <Route path="/advertiser/create-ad-wizard" element={<CreateAudioAdWizard />} />
-              <Route path="/advertiser/create-audio-ad" element={<CreateAudioAd />} />
-              <Route path="/advertiser/create-conversational-ad" element={<CreateConversationalAd />} />
-              <Route path="/advertiser/create-host-script" element={<CreateHostScript />} />
-              <Route path="/advertiser/create-sponsorship" element={<CreateSponsorship />} />
-              <Route path="/advertiser/audio-ads/create" element={<CreateAudioAd />} />
-              <Route path="/advertiser/audio-ads/create-campaign" element={<CreateAudioAdCampaign />} />
-              <Route path="/advertiser/campaigns/:adId/dashboard" element={<AdvertiserCampaignDashboard />} />
-              <Route path="/advertiser/ads/create-digital" element={<CreateDigitalAd />} />
-              <Route path="/advertiser/conversational-ads/create" element={<CreateConversationalAd />} />
-              <Route path="/advertiser/upload-ad" element={<UploadReadyAd />} />
-              <Route path="/advertiser/pricing" element={<AdvertiserPricing />} />
+          <Route path="/advertiser/dashboard" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserDashboard /></ProtectedRoute>} />
+          <Route path="/advertiser/campaigns" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserCampaigns /></ProtectedRoute>} />
+          <Route path="/advertiser/ads" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserAdLibrary /></ProtectedRoute>} />
+          <Route path="/advertiser/campaigns/create" element={<ProtectedRoute requiredRole="advertiser"><CreateCampaign /></ProtectedRoute>} />
+          <Route path="/advertiser/campaigns/:campaignId" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserCampaignDetail /></ProtectedRoute>} />
+          <Route path="/advertiser/campaigns/:campaignId/edit" element={<ProtectedRoute requiredRole="advertiser"><EditCampaign /></ProtectedRoute>} />
+          <Route path="/advertiser/campaigns/create-type" element={<ProtectedRoute requiredRole="advertiser"><CreateCampaignTypeSelection /></ProtectedRoute>} />
+              <Route path="/advertiser/create-ad-wizard" element={<ProtectedRoute requiredRole="advertiser"><CreateAudioAdWizard /></ProtectedRoute>} />
+              <Route path="/advertiser/create-audio-ad" element={<ProtectedRoute requiredRole="advertiser"><CreateAudioAd /></ProtectedRoute>} />
+              <Route path="/advertiser/create-conversational-ad" element={<ProtectedRoute requiredRole="advertiser"><CreateConversationalAd /></ProtectedRoute>} />
+              <Route path="/advertiser/create-host-script" element={<ProtectedRoute requiredRole="advertiser"><CreateHostScript /></ProtectedRoute>} />
+              <Route path="/advertiser/create-sponsorship" element={<ProtectedRoute requiredRole="advertiser"><CreateSponsorship /></ProtectedRoute>} />
+              <Route path="/advertiser/audio-ads/create" element={<ProtectedRoute requiredRole="advertiser"><CreateAudioAd /></ProtectedRoute>} />
+              <Route path="/advertiser/audio-ads/create-campaign" element={<ProtectedRoute requiredRole="advertiser"><CreateAudioAdCampaign /></ProtectedRoute>} />
+              <Route path="/advertiser/campaigns/:adId/dashboard" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserCampaignDashboard /></ProtectedRoute>} />
+              <Route path="/advertiser/ads/create-digital" element={<ProtectedRoute requiredRole="advertiser"><CreateDigitalAd /></ProtectedRoute>} />
+              <Route path="/advertiser/conversational-ads/create" element={<ProtectedRoute requiredRole="advertiser"><CreateConversationalAd /></ProtectedRoute>} />
+              <Route path="/advertiser/upload-ad" element={<ProtectedRoute requiredRole="advertiser"><UploadReadyAd /></ProtectedRoute>} />
+              <Route path="/advertiser/pricing" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserPricing /></ProtectedRoute>} />
           <Route path="/podcast-ads" element={<PodcastAds />} />
           <Route path="/podcast-revenue" element={<PodcastRevenue />} />
           <Route path="/voice-protection" element={<Navigate to="/voice-certification-flow" replace />} />
