@@ -121,9 +121,13 @@ export const OverviewTab = ({ podcastId, userId }: OverviewTabProps) => {
                   <Mic className="w-4 h-4" />
                   Create Episode
                 </Button>
-                <Button variant="outline" onClick={() => navigate(`/podcasts/${podcastId}?tab=studio`)} size="lg" className="gap-2">
+                <Button variant="outline" onClick={() => {
+                  const searchParams = new URLSearchParams(window.location.search);
+                  searchParams.set('tab', 'studio');
+                  navigate(`/podcasts/${podcastId}?${searchParams.toString()}`);
+                }} size="lg" className="gap-2">
                   <Radio className="w-4 h-4" />
-                  Open Studio
+                  Podcast Studio
                 </Button>
                 <Button variant="outline" onClick={handleShare} size="lg" className="gap-2">
                   <Share2 className="w-4 h-4" />
