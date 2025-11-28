@@ -10,23 +10,23 @@ const VoiceCertificationDashboard = () => {
   const benefits = [
     {
       icon: Shield,
-      title: "Create a unique AI fingerprint of your voice",
-      description: "Generate a tamper-proof digital signature"
+      title: "Cryptographic Voice Fingerprint",
+      description: "We generate a unique, tamper-proof digital signature of your voice using AI audio embedding."
     },
     {
       icon: Check,
-      title: "Verify authenticity and protect your identity",
-      description: "Prove ownership with on-chain verification"
+      title: "Trusted Verification",
+      description: "Your voice sample is compared to your recorded fingerprint to confirm it's truly you."
     },
     {
       icon: Sparkles,
-      title: "Build trust with listeners and followers",
-      description: "Show your audience that your content is genuinely yours"
+      title: "Protect Your Voice Everywhere",
+      description: "Certification helps protect your identity across podcasts, videos, and AI systems."
     },
     {
       icon: Lock,
-      title: "Mint your certified voice profile on Polygon",
-      description: "Receive a permanent, blockchain-secured credential"
+      title: "Permanent Voice Credential",
+      description: "Receive a verified voice certificate stored on-chain for maximum trust and transparency."
     }
   ];
 
@@ -46,11 +46,11 @@ const VoiceCertificationDashboard = () => {
           </div>
           
           <h1 className="text-4xl md:text-6xl font-bold text-foreground">
-            Start Your Voice Certification
+            Certify Your Voice Identity
           </h1>
           
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Verify your identity, protect your voice, and build trust with your audience. This process will create a unique, AI-verified voice fingerprint secured on the blockchain.
+            Create a blockchain-verified voice credential that proves authenticity, protects your voice from misuse, and unlocks voice ownership across platforms.
           </p>
         </div>
 
@@ -71,7 +71,7 @@ const VoiceCertificationDashboard = () => {
             className="text-lg px-12 py-6 h-auto"
           >
             <Shield className="mr-2 h-5 w-5" />
-            Certify My Voice
+            Start Certification Process
           </Button>
         </div>
       </div>

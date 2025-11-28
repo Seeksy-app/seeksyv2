@@ -75,9 +75,9 @@ const AIVoiceFingerprinting = () => {
               </span>
             </div>
 
-            <h2 className="text-3xl font-bold">AI Voice Fingerprinting</h2>
+            <h2 className="text-3xl font-bold">Creating Your Voice Fingerprint</h2>
             <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-              We're analyzing your voice sample to generate a unique fingerprint. This ensures authenticity and prevents impersonation.
+              We analyze your recording to generate a unique, cryptographic fingerprint of your voice using advanced AI audio models.
             </p>
 
             {/* Circular Progress Visualization */}
@@ -160,13 +160,12 @@ const AIVoiceFingerprinting = () => {
               </div>
             </div>
 
-            {/* Current Task */}
-            {isAnalyzing && (
-              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground animate-pulse">
-                <Volume2 className="h-4 w-4" />
-                <span>{currentTask}</span>
-              </div>
-            )}
+            {/* Footer note */}
+            <div className="text-center pt-6 border-t">
+              <p className="text-sm text-muted-foreground">
+                Your fingerprint is encrypted and used only to verify your identity.
+              </p>
+            </div>
           </div>
 
           {/* Navigation Buttons */}

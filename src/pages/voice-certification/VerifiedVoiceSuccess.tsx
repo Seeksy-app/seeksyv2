@@ -75,9 +75,9 @@ const VerifiedVoiceSuccess = () => {
             </div>
 
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-3">Success — Your Voice Is Certified</h1>
+              <h1 className="text-4xl md:text-5xl font-bold mb-3">Your Voice Is Now Verified</h1>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Your voice has been verified and minted as a certified profile. You now have a permanent, blockchain-secured proof of authenticity.
+                You've created a permanent, blockchain-protected voice identity. This credential helps prove authenticity, prevents impersonation, and enables future voice-tracking features.
               </p>
             </div>
           </div>
@@ -123,8 +123,12 @@ const VerifiedVoiceSuccess = () => {
                 <p className="font-mono font-semibold text-sm">{tokenId}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Blockchain</p>
+                <p className="text-xs text-muted-foreground mb-1">Blockchain Network</p>
                 <p className="font-semibold text-sm">{blockchain}</p>
+              </div>
+              <div className="col-span-2">
+                <p className="text-xs text-muted-foreground mb-1">Issued On</p>
+                <p className="font-semibold text-sm">{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
               </div>
             </div>
           </Card>
@@ -137,7 +141,7 @@ const VerifiedVoiceSuccess = () => {
               className="h-auto py-6"
             >
               <Shield className="mr-2 h-5 w-5" />
-              View My Voice Profile
+              View My Voice Credential
             </Button>
 
             <Button
@@ -147,7 +151,7 @@ const VerifiedVoiceSuccess = () => {
               className="h-auto py-6"
             >
               <Award className="mr-2 h-5 w-5" />
-              Return to Voice Certification
+              Return to Dashboard
             </Button>
 
             <Button
@@ -156,8 +160,6 @@ const VerifiedVoiceSuccess = () => {
               onClick={() => navigate("/ad-scripts")}
               className="h-auto py-6"
             >
-              <FileText className="mr-2 h-5 w-5" />
-              Create an Ad-Ready Voice Script
             </Button>
           </div>
 

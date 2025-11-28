@@ -15,10 +15,10 @@ const MintingProgress = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [steps, setSteps] = useState<MintingStep[]>([
-    { label: "Preparing metadata", status: "active", progress: 0 },
-    { label: "Registering fingerprint", status: "pending", progress: 0 },
-    { label: "Writing to Polygon", status: "pending", progress: 0 },
-    { label: "Finalizing your profile", status: "pending", progress: 0 },
+    { label: "Generating signature…", status: "active", progress: 0 },
+    { label: "Encrypting voice fingerprint…", status: "pending", progress: 0 },
+    { label: "Writing credential to blockchain…", status: "pending", progress: 0 },
+    { label: "Finalizing verification…", status: "pending", progress: 0 },
   ]);
 
   useEffect(() => {
@@ -82,9 +82,9 @@ const MintingProgress = () => {
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-4">
               <Shield className="h-10 w-10 text-primary animate-pulse" />
             </div>
-            <h2 className="text-3xl font-bold">Minting Your Certified Voice…</h2>
+            <h2 className="text-3xl font-bold">Securing Your Voice on the Blockchain</h2>
             <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-              Your voice profile is being registered and secured on the blockchain. This normally takes a few moments.
+              Your voice credential is being minted. This creates a permanent, verifiable record of your identity and protects your content against misuse.
             </p>
           </div>
 

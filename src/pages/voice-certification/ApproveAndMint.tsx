@@ -32,9 +32,9 @@ const ApproveAndMint = () => {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
               <Award className="h-8 w-8 text-primary" />
             </div>
-            <h2 className="text-3xl font-bold">Approve & Mint Your Certified Voice</h2>
+            <h2 className="text-3xl font-bold">Approve & Mint Your Voice Credential</h2>
             <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-              Your voice is ready to be minted as a certified digital voice profile on the Polygon network. This creates a permanent authenticity record tied to you.
+              Your verified voice identity will be minted as a secure credential on the blockchain. This protects your voice and proves ownership anywhere your audio appears.
             </p>
           </div>
 
@@ -46,7 +46,7 @@ const ApproveAndMint = () => {
               </div>
               <div className="flex-1">
                 <h3 className="text-2xl font-bold mb-1">{fingerprintData.voiceName}</h3>
-                <p className="text-sm text-muted-foreground">Verified Voice Identity</p>
+                <p className="text-sm text-muted-foreground">Voice Owner</p>
               </div>
             </div>
 
@@ -64,8 +64,8 @@ const ApproveAndMint = () => {
                 <span className="font-semibold">Polygon</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Transaction Fee</span>
-                <span className="font-semibold text-green-500">Gasless (Free)</span>
+                <span className="text-sm text-muted-foreground">Credential Type</span>
+                <span className="font-semibold">Voice Identity NFT (non-transferable)</span>
               </div>
             </div>
           </Card>
@@ -98,7 +98,7 @@ const ApproveAndMint = () => {
               onClick={handleMintNFT}
             >
               <Shield className="mr-2 h-5 w-5" />
-              Mint Voice NFT
+              Mint Voice Credential
             </Button>
           </div>
         </Card>
