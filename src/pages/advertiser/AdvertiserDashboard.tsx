@@ -145,11 +145,9 @@ const AdvertiserDashboard = () => {
                       <span className={`font-medium ${getStatusColor(campaign.status)}`}>
                         {campaign.status.toUpperCase()}
                       </span>
-                      {campaign.budget && (
-                        <span className="text-muted-foreground">
-                          Budget: ${campaign.budget.toLocaleString()}
-                        </span>
-                      )}
+                      <span className="text-muted-foreground">
+                        Budget: ${(campaign as any).total_budget?.toLocaleString() || '0'}
+                      </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {campaign.targeting.map((tag) => (

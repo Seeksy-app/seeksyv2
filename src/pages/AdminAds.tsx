@@ -95,7 +95,7 @@ export default function AdminAds() {
         .insert({
           advertiser_id: user.id,
           name: formData.name,
-          budget: parseFloat(formData.budget),
+          total_budget: parseFloat(formData.budget),
           cpm_bid: parseFloat(formData.cpm_bid),
           start_date: formData.start_date,
           end_date: formData.end_date,
@@ -112,9 +112,11 @@ export default function AdminAds() {
         .from("ad_creatives")
         .insert({
           campaign_id: campaign.id,
-          audio_url: publicUrl,
+          advertiser_id: campaign.advertiser_id,
+          name: "Audio Creative",
+          format: "audio",
           duration_seconds: parseInt(formData.duration_seconds),
-          creative_type: "audio",
+          status: "ready",
         });
 
       if (creativeError) throw creativeError;
@@ -384,7 +386,7 @@ export default function AdminAds() {
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                           <div>
                             <p className="text-muted-foreground">Budget</p>
-                            <p className="font-medium">${campaign.budget}</p>
+                            <p className="font-medium">${campaign.total_budget}</p>
                           </div>
                           <div>
                             <p className="text-muted-foreground">CPM</p>

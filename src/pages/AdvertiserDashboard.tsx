@@ -85,7 +85,7 @@ export default function AdvertiserDashboard() {
         let status = campaign.status;
         
         // Auto-activate if within date range and has budget
-        if (status === 'draft' && startDate <= now && endDate >= now && campaign.budget > 0) {
+        if (status === 'draft' && startDate <= now && endDate >= now && campaign.total_budget > 0) {
           status = 'active';
         }
         // Mark as stopped if out of budget during active period
@@ -206,8 +206,9 @@ export default function AdvertiserDashboard() {
     );
   }
 
-  const balance = Number(advertiser.account_balance || 0);
-  const needsPayment = !advertiser.stripe_customer_id || balance < 50;
+  // TODO: Fetch from wallets table
+  const balance = 0;
+  const needsPayment = balance < 50;
 
   return (
     <div className="container mx-auto py-8 bg-gradient-to-br from-background via-brand-red/5 to-brand-darkRed/5 min-h-screen">
@@ -258,9 +259,7 @@ export default function AdvertiserDashboard() {
             <CardContent>
               <div className="text-2xl font-bold text-brand-gold">${balance.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                {balance < Number(advertiser.auto_topup_threshold) && advertiser.auto_topup_enabled
-                  ? "Auto top-up will trigger soon"
-                  : "Available to spend"}
+                Available to spend
               </p>
             </CardContent>
           </Card>
@@ -369,8 +368,8 @@ export default function AdvertiserDashboard() {
           </Card>
         )}
 
-        {/* Auto Top-up Settings */}
-        {advertiser.stripe_customer_id && (
+        {/* Auto Top-up Settings - TODO: Implement with wallets */}
+        {false && (
           <Card>
             <CardHeader>
               <CardTitle>Auto Top-up Settings</CardTitle>
@@ -387,14 +386,12 @@ export default function AdvertiserDashboard() {
                   </p>
                 </div>
                 <Switch
-                  checked={advertiser.auto_topup_enabled}
-                  onCheckedChange={(checked) =>
-                    updateSettingsMutation.mutate({ auto_topup_enabled: checked })
-                  }
+                  checked={false}
+                  disabled
                 />
               </div>
 
-              {advertiser.auto_topup_enabled && (
+              {false && (
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="threshold">Top-up When Balance Below ($)</Label>
@@ -479,7 +476,7 @@ export default function AdvertiserDashboard() {
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-medium">Budget</p>
-                      <p className="text-lg font-bold">${Number(campaign.budget).toFixed(2)}</p>
+                      <p className="text-lg font-bold">${Number(campaign.total_budget).toFixed(2)}</p>
                       <p className="text-xs text-muted-foreground">
                         Spent: ${Number(campaign.total_spent || 0).toFixed(2)}
                       </p>

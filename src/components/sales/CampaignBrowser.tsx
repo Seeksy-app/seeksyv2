@@ -239,7 +239,7 @@ export function CampaignBrowser() {
                         <DollarSign className="h-4 w-4" />
                         <span className="text-sm">Budget</span>
                       </div>
-                      <p className="text-2xl font-bold">${Number(campaign.budget).toLocaleString()}</p>
+                      <p className="text-2xl font-bold">${Number(campaign.total_budget).toLocaleString()}</p>
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-muted-foreground">

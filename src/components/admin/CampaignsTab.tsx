@@ -103,7 +103,7 @@ export default function CampaignsTab() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div>
                     <div className="text-muted-foreground">Budget</div>
-                    <div className="font-medium">${campaign.budget.toFixed(2)}</div>
+                    <div className="font-medium">${campaign.total_budget.toFixed(2)}</div>
                   </div>
                   <div>
                     <div className="text-muted-foreground">CPM Bid</div>

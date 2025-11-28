@@ -151,8 +151,8 @@ const AdvertiserCampaignsList = () => {
                       )}
                     </div>
                     <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                      {campaign.budget && (
-                        <span>Budget: ${campaign.budget.toLocaleString()}</span>
+                      {campaign.total_budget && (
+                        <span>Budget: ${campaign.total_budget.toLocaleString()}</span>
                       )}
                       {campaign.cpm_bid && (
                         <span>CPM: ${campaign.cpm_bid}</span>

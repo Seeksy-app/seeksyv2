@@ -201,7 +201,7 @@ export default function AdsTab() {
                       <DollarSign className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <div className="text-muted-foreground">Budget</div>
-                        <div className="font-medium">${Number(campaign.budget).toFixed(2)}</div>
+                        <div className="font-medium">${Number(campaign.total_budget).toFixed(2)}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">

@@ -211,13 +211,11 @@ export default function AdminAdvertisers() {
                           <div className="text-sm space-y-1">
                             <div>
                               <span className="text-muted-foreground">Balance: </span>
-                              <span className="font-semibold">${Number(advertiser.account_balance).toFixed(2)}</span>
+                              <span className="font-semibold">$0.00</span>
                             </div>
                             <div>
                               <span className="text-muted-foreground">Payment: </span>
-                              <span className={advertiser.stripe_customer_id ? "text-green-600" : "text-yellow-600"}>
-                                {advertiser.stripe_customer_id ? "Setup Complete" : "Pending Setup"}
-                              </span>
+                              <span className="text-yellow-600">Pending Setup</span>
                             </div>
                           </div>
                         )}

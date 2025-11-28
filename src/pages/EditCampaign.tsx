@@ -73,7 +73,7 @@ export default function EditCampaign() {
   useEffect(() => {
     if (campaign) {
       setCampaignName(campaign.name);
-      setBudget(campaign.budget.toString());
+      setBudget(campaign.total_budget.toString());
       setCpmBid(campaign.cpm_bid.toString());
       setStartDate(campaign.start_date);
       setEndDate(campaign.end_date);
@@ -120,7 +120,7 @@ export default function EditCampaign() {
       const { data, error } = await supabase
         .from("ad_videos")
         .select("*")
-        .eq("created_by_user_id", advertiser.user_id)
+        .eq("created_by_user_id", advertiser.owner_profile_id)
         .eq("is_active", true)
         .order("created_at", { ascending: false });
       

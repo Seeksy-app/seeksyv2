@@ -107,7 +107,7 @@ export default function CreateCampaign() {
         .insert({
           advertiser_id: advertiser.id,
           name: campaignName,
-          budget: parseFloat(budget),
+          total_budget: parseFloat(budget),
           cpm_bid: parseFloat(cpmBid),
           start_date: startDate,
           end_date: endDate,
@@ -124,9 +124,10 @@ export default function CreateCampaign() {
         .from("ad_creatives")
         .insert({
           campaign_id: campaign.id,
-          creative_type: "audio",
-          audio_url: audioUrl,
-          duration_seconds: duration,
+          advertiser_id: campaign.advertiser_id,
+          name: "Audio Creative",
+          format: "audio",
+          status: "ready",
         });
 
       if (creativeError) throw creativeError;

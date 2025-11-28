@@ -17,12 +17,12 @@ const AdvertiserBilling = () => {
 
         const { data: advertiser } = await supabase
           .from("advertisers")
-          .select("account_balance")
-          .eq("user_id", user.id)
+          .select("id")
+          .eq("owner_profile_id", user.id)
           .single();
 
         if (advertiser) {
-          setBalance(advertiser.account_balance || 0);
+          setBalance(0); // TODO: Fetch from wallets table
         }
       } catch (error) {
         console.error("Error loading balance:", error);

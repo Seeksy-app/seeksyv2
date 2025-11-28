@@ -173,8 +173,9 @@ export default function AdvertiserCampaigns() {
   };
 
   const canActivateCampaign = (campaign: any) => {
-    const hasBalance = Number(advertiser.account_balance) >= 100;
-    const hasBudget = Number(campaign.budget) > 0;
+    // TODO: Check wallet balance instead of account_balance
+    const hasBalance = true; // Placeholder until wallet integration
+    const hasBudget = Number(campaign.total_budget) > 0;
     const isValidDates = new Date(campaign.start_date) <= new Date() && new Date(campaign.end_date) >= new Date();
     return hasBalance && hasBudget && isValidDates;
   };
@@ -213,8 +214,8 @@ export default function AdvertiserCampaigns() {
           </div>
         </div>
 
-        {/* Account Balance Warning */}
-        {Number(advertiser.account_balance) < 100 && (
+        {/* Account Balance Warning - TODO: Use wallets table */}
+        {false && (
           <Card className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950">
             <CardContent className="pt-6">
               <div className="flex items-start gap-3">
@@ -250,8 +251,8 @@ export default function AdvertiserCampaigns() {
             </Card>
           ) : campaigns && campaigns.length > 0 ? (
             campaigns.map((campaign) => {
-              const budgetRemaining = Number(campaign.budget) - Number(campaign.total_spent || 0);
-              const percentSpent = (Number(campaign.total_spent || 0) / Number(campaign.budget)) * 100;
+              const budgetRemaining = Number(campaign.total_budget) - Number(campaign.total_spent || 0);
+              const percentSpent = (Number(campaign.total_spent || 0) / Number(campaign.total_budget)) * 100;
               
               return (
                   <Card key={campaign.id}>
@@ -271,7 +272,7 @@ export default function AdvertiserCampaigns() {
                             )}
                             {campaign.ad_creatives && campaign.ad_creatives.length > 0 && (
                               <Badge variant="outline">
-                                {campaign.ad_creatives[0].creative_type === "video" ? "📹 Video" : 
+                                {campaign.ad_creatives[0].format === "video" ? "📹 Video" : 
                                  campaign.audio_ads?.[0]?.ad_type === "conversational" ? "🎙️ Conversational" : "🔊 Audio"} Ad
                               </Badge>
                             )}
@@ -365,7 +366,7 @@ export default function AdvertiserCampaigns() {
                     <div className="grid grid-cols-4 gap-4">
                       <div>
                         <p className="text-sm text-muted-foreground">Budget</p>
-                        <p className="text-lg font-semibold">${Number(campaign.budget).toFixed(2)}</p>
+                        <p className="text-lg font-semibold">${Number(campaign.total_budget).toFixed(2)}</p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Spent</p>

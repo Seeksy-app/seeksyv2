@@ -58,10 +58,10 @@ export function QuickCampaignDialog({ open, onOpenChange, adId, adType }: QuickC
       const impressions = parseInt(maxImpressions);
       const totalBudget = (cpm * impressions) / 1000;
 
-      // Use selected categories or fall back to advertiser's target categories
+      // Use selected categories or fall back to empty array
       const targetCategories = selectedCategories.length > 0 
         ? selectedCategories 
-        : advertiser.target_categories || [];
+        : [];
 
       console.log('Invoking create-quick-campaign with:', {
         adId,
@@ -159,9 +159,9 @@ export function QuickCampaignDialog({ open, onOpenChange, adId, adType }: QuickC
                 );
               })}
             </div>
-            {selectedCategories.length === 0 && advertiser?.target_categories && advertiser.target_categories.length > 0 && (
+            {selectedCategories.length === 0 && (
               <p className="text-xs text-muted-foreground">
-                No categories selected. Will use your account's default categories: {advertiser.target_categories.join(", ")}
+                No categories selected. Default targeting will apply.
               </p>
             )}
           </div>
