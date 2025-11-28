@@ -110,21 +110,31 @@ export default function AdvertiserSignup() {
 
       if (preferencesError) throw preferencesError;
 
-      // Step 3: Add team members
+      // Step 3: Add team members (only non-empty ones)
       if (formData.team_members && formData.team_members.length > 0) {
-        const teamMemberInserts = formData.team_members.map((member: any) => ({
-          advertiser_id: advertiserData.id,
-          profile_id: null, // Will be filled when they accept invite
-          email: member.email,
-          role: member.role,
-        }));
+        // Filter out empty/placeholder members
+        const validMembers = formData.team_members.filter(
+          (member: any) => member.email && member.email.trim() !== ""
+        );
 
-        const { error: teamError } = await supabase
-          .from("advertiser_team_members")
-          .insert(teamMemberInserts)
-          .select();
+        if (validMembers.length > 0) {
+          const teamMemberInserts = validMembers.map((member: any) => ({
+            advertiser_id: advertiserData.id,
+            profile_id: null, // Will be filled when they accept invite
+            email: member.email.trim().toLowerCase(),
+            role: member.role,
+          }));
 
-        if (teamError) throw teamError;
+          const { error: teamError } = await supabase
+            .from("advertiser_team_members")
+            .upsert(teamMemberInserts, {
+              onConflict: "advertiser_id,email",
+              ignoreDuplicates: false,
+            })
+            .select();
+
+          if (teamError) throw teamError;
+        }
       }
 
       // Step 4: Mark onboarding as complete
