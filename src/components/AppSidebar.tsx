@@ -202,12 +202,12 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   
   // Helper function to determine which section should be open based on current route
   const getActiveSectionFromPath = (pathname: string) => {
-    if (pathname.startsWith('/studio') || pathname.startsWith('/media-library') || pathname.startsWith('/create-clips') || pathname.startsWith('/my-voice-identity') || pathname.startsWith('/voice-protection') || pathname.startsWith('/voice-certification')) return 'media';
+    if (pathname.startsWith('/studio') || pathname.startsWith('/media-library') || pathname.startsWith('/create-clips') || pathname.startsWith('/my-voice-identity') || pathname.startsWith('/voice-protection') || pathname.startsWith('/voice-certification') || pathname.startsWith('/transcripts')) return 'media';
     if (pathname.startsWith('/creator/campaign-browser') || pathname.startsWith('/podcast-ads') || pathname.startsWith('/podcast-revenue')) return 'monetization';
     if (pathname.startsWith('/pm-') || pathname.startsWith('/client-tickets')) return 'project_management';
     if (pathname.startsWith('/events') || pathname.startsWith('/meetings') || pathname.startsWith('/polls') || pathname.startsWith('/signup-sheets') || pathname.startsWith('/qr-codes') || pathname.startsWith('/forms')) return 'engagement';
     if (pathname.startsWith('/marketing') || pathname.startsWith('/newsletter') || pathname.startsWith('/sms') || pathname.startsWith('/leads-dashboard')) return 'advertising';
-    if (pathname.startsWith('/podcast') || pathname.startsWith('/blog')) return 'blog';
+    if (pathname.startsWith('/podcast') || pathname.startsWith('/blog-library') || pathname.startsWith('/blog')) return 'blog';
     if (pathname.startsWith('/civic')) return 'civic';
     if (pathname.startsWith('/influencer') || pathname.startsWith('/my-page')) return 'influencer';
     if (pathname.startsWith('/agency')) return 'agency';
@@ -423,7 +423,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
   const blogItems = [
     ...(pinnedModules.includes("blog") && modulePrefs.blog ? [
-      { title: "Manage Blog", url: "/my-blog", icon: FileText },
+      { title: "Blog Library", url: "/blog-library", icon: BookOpen },
       { title: "Add Post", url: "/blog/create", icon: Plus },
     ] : []),
   ];
@@ -446,6 +446,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       { title: "Media Library", url: "/media-library", icon: FileAudio },
       { title: "Create Clips", url: "/create-clips", icon: TrendingUp },
       { title: "My Voice Identity", url: "/my-voice-identity", icon: Shield },
+      { title: "Transcripts", url: "/transcripts", icon: FileText },
     ] : []),
     ...(pinnedModules.includes("podcasts") ? [{ title: "Podcasts", url: "/podcasts", icon: Mic }] : []),
   ];
