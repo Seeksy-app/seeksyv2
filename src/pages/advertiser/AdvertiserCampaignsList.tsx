@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Megaphone } from "lucide-react";
+import { Plus, Megaphone, Radio, Users } from "lucide-react";
 
 const AdvertiserCampaignsList = () => {
   const navigate = useNavigate();
@@ -42,9 +42,37 @@ const AdvertiserCampaignsList = () => {
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-      return data || [];
+
+      // For each active campaign, check if any creators are live with this campaign
+      const campaignsWithLiveStatus = await Promise.all(
+        (data || []).map(async (campaign) => {
+          if (campaign.status !== 'active') {
+            return { ...campaign, liveCreatorCount: 0, liveCreators: [] };
+          }
+
+          // Check for creators who are currently live streaming
+          const { data: liveCreators, error: liveError } = await supabase
+            .from('profiles')
+            .select('id, username, full_name, avatar_url')
+            .eq('is_live', true)
+            .limit(5);
+
+          if (liveError || !liveCreators) {
+            return { ...campaign, liveCreatorCount: 0, liveCreators: [] };
+          }
+
+          return {
+            ...campaign,
+            liveCreatorCount: liveCreators.length,
+            liveCreators: liveCreators,
+          };
+        })
+      );
+
+      return campaignsWithLiveStatus;
     },
     enabled: !!advertiser,
+    refetchInterval: 30000, // Refresh every 30 seconds to update live status
   });
 
   const getStatusColor = (status: string) => {
@@ -109,40 +137,64 @@ const AdvertiserCampaignsList = () => {
               onClick={() => navigate(`/advertiser/campaigns/${campaign.id}`)}
             >
               <div className="flex items-start justify-between">
-                <div className="space-y-2 flex-1">
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-xl font-semibold">{campaign.name}</h3>
-                    <Badge className={getStatusColor(campaign.status)}>
-                      {campaign.status}
-                    </Badge>
-                  </div>
-                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                    {campaign.budget && (
-                      <span>Budget: ${campaign.budget.toLocaleString()}</span>
-                    )}
-                    {campaign.cpm_bid && (
-                      <span>CPM: ${campaign.cpm_bid}</span>
-                    )}
-                    {campaign.start_date && (
-                      <span>
-                        Start: {new Date(campaign.start_date).toLocaleDateString()}
-                      </span>
-                    )}
-                    {campaign.end_date && (
-                      <span>
-                        End: {new Date(campaign.end_date).toLocaleDateString()}
-                      </span>
-                    )}
-                  </div>
-                  {campaign.total_impressions !== undefined && (
-                    <div className="text-sm">
-                      <span className="font-medium">
-                        {campaign.total_impressions?.toLocaleString() || 0}
-                      </span>{" "}
-                      impressions
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-xl font-semibold">{campaign.name}</h3>
+                      <Badge className={getStatusColor(campaign.status)}>
+                        {campaign.status}
+                      </Badge>
+                      {campaign.status === 'active' && (campaign as any).liveCreatorCount > 0 && (
+                        <Badge className="bg-red-500 animate-pulse">
+                          <Radio className="w-3 h-3 mr-1" />
+                          LIVE on {(campaign as any).liveCreatorCount} {(campaign as any).liveCreatorCount === 1 ? 'stream' : 'streams'}
+                        </Badge>
+                      )}
                     </div>
-                  )}
-                </div>
+                    <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                      {campaign.budget && (
+                        <span>Budget: ${campaign.budget.toLocaleString()}</span>
+                      )}
+                      {campaign.cpm_bid && (
+                        <span>CPM: ${campaign.cpm_bid}</span>
+                      )}
+                      {campaign.start_date && (
+                        <span>
+                          Start: {new Date(campaign.start_date).toLocaleDateString()}
+                        </span>
+                      )}
+                      {campaign.end_date && (
+                        <span>
+                          End: {new Date(campaign.end_date).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                    {campaign.total_impressions !== undefined && (
+                      <div className="text-sm">
+                        <span className="font-medium">
+                          {campaign.total_impressions?.toLocaleString() || 0}
+                        </span>{" "}
+                        impressions
+                      </div>
+                    )}
+                    {(campaign as any).liveCreators && (campaign as any).liveCreators.length > 0 && (
+                      <div className="mt-3 pt-3 border-t">
+                        <p className="text-sm font-medium mb-2 flex items-center gap-2">
+                          <Users className="w-4 h-4" />
+                          Currently streaming:
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {(campaign as any).liveCreators.map((creator: any) => (
+                            <Badge key={creator.id} variant="secondary" className="gap-1">
+                              {creator.avatar_url && (
+                                <img src={creator.avatar_url} alt="" className="w-4 h-4 rounded-full" />
+                              )}
+                              {creator.full_name || creator.username}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 <Button
                   variant="outline"
                   onClick={(e) => {
