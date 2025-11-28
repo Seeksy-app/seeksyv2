@@ -86,13 +86,23 @@ const AdvertiserDashboard = () => {
             <h1 className="text-3xl font-bold text-white">Advertiser Dashboard</h1>
             <p className="text-white/70 mt-1">Manage your campaigns and ad scripts</p>
           </div>
-          <Button
-            onClick={() => navigate("/advertiser/campaigns/new")}
-            className="bg-[#2C6BED] hover:bg-[#2C6BED]/90 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create New Campaign
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => navigate("/advertiser/campaigns/create-type")}
+              variant="outline"
+              className="bg-white/10 hover:bg-white/20 text-white border-white/20"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Ad
+            </Button>
+            <Button
+              onClick={() => navigate("/advertiser/campaigns/create")}
+              className="bg-[#2C6BED] hover:bg-[#2C6BED]/90 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Campaign
+            </Button>
+          </div>
         </div>
 
         {isLoading ? (
@@ -102,12 +112,21 @@ const AdvertiserDashboard = () => {
         ) : campaigns.length === 0 ? (
           <Card className="p-8 bg-white/95 backdrop-blur text-center">
             <p className="text-muted-foreground mb-4">No campaigns yet</p>
-            <Button
-              onClick={() => navigate("/advertiser/campaigns/new")}
-              className="bg-[#2C6BED] hover:bg-[#2C6BED]/90 text-white"
-            >
-              Create Your First Campaign
-            </Button>
+            <p className="text-sm text-muted-foreground mb-6">Get started by creating an ad first, then launch a campaign</p>
+            <div className="flex gap-2 justify-center">
+              <Button
+                onClick={() => navigate("/advertiser/campaigns/create-type")}
+                variant="outline"
+              >
+                Create Ad First
+              </Button>
+              <Button
+                onClick={() => navigate("/advertiser/campaigns/create")}
+                className="bg-[#2C6BED] hover:bg-[#2C6BED]/90 text-white"
+              >
+                Create Campaign
+              </Button>
+            </div>
           </Card>
         ) : (
           <div className="grid gap-4">

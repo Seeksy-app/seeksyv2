@@ -226,6 +226,7 @@ import SaveEpisode from "./pages/podcast-studio/SaveEpisode";
 import ExportEpisode from "./pages/podcast-studio/ExportEpisode";
 import StudioSuccess from "./pages/podcast-studio/StudioSuccess";
 import AdvertiserDashboardNew from "./pages/advertiser/AdvertiserDashboard";
+import AdvertiserCampaignsList from "./pages/advertiser/AdvertiserCampaignsList";
 import CampaignDetails from "./pages/advertiser/CampaignDetails";
 import CreateScript from "./pages/advertiser/CreateScript";
 import AdvertiserCreatives from "./pages/advertiser/AdvertiserCreatives";
@@ -357,7 +358,7 @@ const AppContent = () => {
               
               {/* Advertiser Ad-Read Marketplace Routes */}
             <Route path="/advertiser" element={<AdvertiserDashboardNew />} />
-            <Route path="/advertiser/campaigns" element={<CampaignDetails />} />
+            <Route path="/advertiser/campaigns" element={<AdvertiserCampaignsList />} />
             <Route path="/advertiser/campaigns/:id" element={<CampaignDetails />} />
             <Route path="/advertiser/creatives" element={<AdvertiserCreatives />} />
             <Route path="/advertiser/scripts/new" element={<CreateScript />} />

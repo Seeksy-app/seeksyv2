@@ -9,6 +9,7 @@ import {
   Plug,
   HelpCircle,
   MessageSquare,
+  FolderOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -28,8 +29,8 @@ const advertiserNavSections: NavSection[] = [
     title: 'Main',
     items: [
       { title: 'Dashboard', href: '/advertiser', icon: LayoutDashboard },
-      { title: 'Campaigns', href: '/advertiser/campaigns', icon: Megaphone },
-      { title: 'Creatives & Scripts', href: '/advertiser/creatives', icon: FileText },
+      { title: 'My Campaigns', href: '/advertiser/campaigns', icon: Megaphone },
+      { title: 'Ad Library', href: '/advertiser/ads', icon: FolderOpen },
       { title: 'Creators & Shows', href: '/advertiser/creators', icon: Users },
       { title: 'Performance & Reports', href: '/advertiser/reports', icon: BarChart3 },
     ],
