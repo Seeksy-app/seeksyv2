@@ -208,6 +208,8 @@ import Payments from "./pages/admin/Payments";
 import AdFinancialModels from "./pages/admin/AdFinancialModels";
 import CombinedFinancialModels from "./pages/admin/CombinedFinancialModels";
 import AdminRateDesk from "./pages/admin/advertising/AdminRateDesk";
+import AdminCampaigns from "./pages/admin/AdminCampaigns";
+import AdminAdAnalytics from "./pages/admin/AdminAdAnalytics";
 import VoiceCertificationDashboard from "./pages/voice-certification/VoiceCertificationDashboard";
 import UploadOrRecordVoice from "./pages/voice-certification/UploadOrRecordVoice";
 import AIVoiceFingerprinting from "./pages/voice-certification/AIVoiceFingerprinting";
@@ -483,6 +485,9 @@ const AppContent = () => {
               <Route path="/admin/financial-models/ads/*" element={<AdFinancialModels />} />
               <Route path="/admin/financial-models/combined" element={<CombinedFinancialModels />} />
               <Route path="/admin/advertising/rate-desk" element={<AdminRateDesk />} />
+              <Route path="/admin/advertisers" element={<AdminAdvertisers />} />
+              <Route path="/admin/ad-campaigns" element={<AdminCampaigns />} />
+              <Route path="/admin/ad-analytics" element={<AdminAdAnalytics />} />
           <Route path="/advertiser" element={<AdvertiserServices />} />
           <Route path="/advertiser/signup" element={<AdvertiserSignup />} />
           <Route path="/advertiser/dashboard" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserDashboard /></ProtectedRoute>} />
