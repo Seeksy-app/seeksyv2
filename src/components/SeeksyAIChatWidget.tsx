@@ -321,27 +321,20 @@ export const SeeksyAIChatWidget = () => {
 
   const isHoliday = isHolidaySeason();
   
-  const headerGradient = isHoliday
-    ? 'from-red-600 to-green-600'
-    : 'from-yellow-400 to-amber-500';
-  
   return (
     <Card className={cn(
-      "fixed bottom-6 right-6 shadow-2xl transition-all duration-300 z-50 flex flex-col animate-in slide-in-from-bottom-4",
+      "fixed bottom-6 right-6 shadow-2xl transition-all duration-300 z-50 flex flex-col animate-in slide-in-from-bottom-4 bg-background/95 backdrop-blur-sm border-border",
       isMinimized ? "h-14 w-80" : "h-[600px] w-[400px]"
     )}>
       {/* Header */}
-      <div className={cn(
-        "flex items-center justify-between p-4 border-b text-white rounded-t-lg relative overflow-hidden",
-        `bg-gradient-to-br ${headerGradient}`
-      )}>
+      <div className="flex items-center justify-between p-4 border-b rounded-t-lg">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8">
             <SparkAvatar pose="waving" size={32} />
           </div>
           <div>
             <h3 className="font-semibold text-sm">Seeksy Spark</h3>
-            <p className="text-xs text-white/80">Your AI Guide ✨</p>
+            <p className="text-xs text-muted-foreground">Your AI Guide ✨</p>
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -349,7 +342,7 @@ export const SeeksyAIChatWidget = () => {
             size="icon"
             variant="ghost"
             onClick={() => setIsMinimized(!isMinimized)}
-            className="h-8 w-8 hover:bg-white/20 text-white"
+            className="h-8 w-8"
           >
             <Minimize2 className="h-4 w-4" />
           </Button>
@@ -357,7 +350,7 @@ export const SeeksyAIChatWidget = () => {
             size="icon"
             variant="ghost"
             onClick={() => setIsOpen(false)}
-            className="h-8 w-8 hover:bg-white/20 text-white"
+            className="h-8 w-8"
           >
             <X className="h-4 w-4" />
           </Button>
