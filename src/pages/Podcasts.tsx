@@ -7,10 +7,15 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { EmailVerificationWizard } from "@/components/podcast/EmailVerificationWizard";
 import podcastStudio from "@/assets/podcast-studio.jpg";
+import { useState } from "react";
 
 const Podcasts = () => {
   const navigate = useNavigate();
+  const [verificationDialogOpen, setVerificationDialogOpen] = useState(false);
+  const [selectedPodcast, setSelectedPodcast] = useState<any>(null);
 
   const { data: user } = useQuery({
     queryKey: ["user"],
@@ -152,11 +157,17 @@ const Podcasts = () => {
                       <Copy className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                     </div>
 
-                    {/* Email Verification Status */}
                     {hasVerificationEmail && !isExpired && (
-                      <div className="flex items-center gap-1.5 mb-3 p-2 bg-primary/5 border border-primary/20 rounded-md">
-                        <Mail className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-                        <span className="text-[10px] text-primary font-medium">
+                      <div 
+                        className="flex items-center gap-1.5 mb-3 p-2 bg-yellow-500/10 border border-yellow-500/30 rounded-md cursor-pointer hover:bg-yellow-500/20 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedPodcast(podcast);
+                          setVerificationDialogOpen(true);
+                        }}
+                      >
+                        <Mail className="h-3.5 w-3.5 text-yellow-500 flex-shrink-0" />
+                        <span className="text-[10px] text-yellow-500 dark:text-yellow-400 font-medium">
                           {podcast.verification_email_permanent ? (
                             <>
                               <Infinity className="h-3 w-3 inline mr-1" />
@@ -211,6 +222,29 @@ const Podcasts = () => {
           </div>
         )}
       </div>
+
+      {/* Email Verification Dialog */}
+      <Dialog open={verificationDialogOpen} onOpenChange={setVerificationDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Update Email Verification</DialogTitle>
+            <DialogDescription>
+              Manage your podcast verification email for directory submissions
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedPodcast && (
+            <EmailVerificationWizard
+              podcastId={selectedPodcast.id}
+              podcastSlug={selectedPodcast.slug}
+              currentEmail={selectedPodcast.verification_email}
+              currentExpiration={selectedPodcast.verification_email_expires_at}
+              currentPermanent={selectedPodcast.verification_email_permanent}
+              onComplete={() => setVerificationDialogOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

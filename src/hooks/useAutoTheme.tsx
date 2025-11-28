@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,18 +10,14 @@ export function useAutoTheme() {
   const previousTheme = useRef<string | null>(null);
   const wasInStudio = useRef(false);
   const hasSetStudioTheme = useRef(false);
-  const [hasInitialized, setHasInitialized] = useState(false);
 
-  // Load user's theme preference on mount ONCE
+  // Load and maintain user's theme preference
   useEffect(() => {
-    if (hasInitialized || isStudio) return;
+    if (isStudio) return; // Skip when in Studio - let Studio effect handle it
     
     const loadUserTheme = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setHasInitialized(true);
-        return;
-      }
+      if (!user) return;
 
       const { data: prefs } = await supabase
         .from("user_preferences")
@@ -29,15 +25,13 @@ export function useAutoTheme() {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (prefs?.theme_preference) {
+      if (prefs?.theme_preference && prefs.theme_preference !== theme) {
         setTheme(prefs.theme_preference);
       }
-      
-      setHasInitialized(true);
     };
 
     loadUserTheme();
-  }, [hasInitialized, setTheme, isStudio]);
+  }, [location.pathname, setTheme, isStudio]); // Reload on every navigation
 
   // Handle Studio theme switching
   useEffect(() => {
