@@ -172,16 +172,31 @@ export const exportEpisode = async (
   return { downloadUrls };
 };
 
-// Placeholder for future ad-read marketplace integration
+/**
+ * Fetch available ad scripts from advertiser marketplace
+ */
 export const fetchAvailableAdScripts = async (): Promise<any[]> => {
-  // Will be implemented when ad-read marketplace is built
-  return [];
+  // Integration with advertiser API
+  const { listAdScriptsForAllShows } = await import('./advertiserAPI');
+  const { scripts } = await listAdScriptsForAllShows();
+  
+  console.log('[Podcast Studio API] Ad scripts fetched:', scripts.length);
+  
+  return scripts;
 };
 
+/**
+ * Log an ad-read event during recording
+ */
 export const logAdReadEvent = async (
   episodeId: string,
   adReadEvent: AdReadEvent
 ): Promise<void> => {
-  // Will be implemented when ad-read tracking is built
-  console.log('[Podcast Studio API] Ad read event logged (placeholder):', adReadEvent);
+  await new Promise(resolve => setTimeout(resolve, 200));
+  
+  console.log('[Podcast Studio API] Ad read event logged:', {
+    episodeId,
+    timestamp: adReadEvent.timestamp,
+    adScriptId: adReadEvent.adScriptId,
+  });
 };

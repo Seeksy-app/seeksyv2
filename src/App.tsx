@@ -214,6 +214,9 @@ import AICleanup from "./pages/podcast-studio/AICleanup";
 import SaveEpisode from "./pages/podcast-studio/SaveEpisode";
 import ExportEpisode from "./pages/podcast-studio/ExportEpisode";
 import StudioSuccess from "./pages/podcast-studio/StudioSuccess";
+import AdvertiserDashboardNew from "./pages/advertiser/AdvertiserDashboard";
+import CampaignDetails from "./pages/advertiser/CampaignDetails";
+import CreateScript from "./pages/advertiser/CreateScript";
 
 const queryClient = new QueryClient();
 
@@ -329,6 +332,11 @@ const AppContent = () => {
               <Route path="/podcast-studio/save" element={<SaveEpisode />} />
               <Route path="/podcast-studio/export" element={<ExportEpisode />} />
               <Route path="/podcast-studio/success" element={<StudioSuccess />} />
+              
+              {/* Advertiser Ad-Read Marketplace Routes */}
+              <Route path="/advertiser" element={<AdvertiserDashboardNew />} />
+              <Route path="/advertiser/campaigns/:id" element={<CampaignDetails />} />
+              <Route path="/advertiser/scripts/new" element={<CreateScript />} />
               
             <Route path="/investor" element={<InvestorPortal />} />
             <Route path="/project-management" element={<ProjectManagement />} />
