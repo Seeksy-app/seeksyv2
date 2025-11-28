@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, Shield } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
+import { CertificationStepper } from "@/components/voice-certification/CertificationStepper";
 
 interface MintingStep {
   label: string;
@@ -68,59 +69,76 @@ const MintingProgress = () => {
   const overallProgress = (steps.filter(s => s.status === "complete").length / steps.length) * 100;
 
   return (
-    <div className="min-h-screen bg-brand-navy flex items-center justify-center p-4">
-      <Card className="max-w-xl w-full bg-card p-8 space-y-6">
-        <h2 className="text-3xl font-bold text-center">Minting Your Voice NFT...</h2>
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-4 md:p-8">
+      <div className="max-w-4xl mx-auto">
+        <CertificationStepper 
+          currentStep={6} 
+          totalSteps={7} 
+          stepLabel="Minting in Progress"
+        />
 
-        <Progress value={overallProgress} className="w-full" />
-
-        <p className="text-sm text-muted-foreground text-center">
-          Lovable: update progress state every X ms
-        </p>
-
-        <div className="space-y-4 py-6">
-          {steps.map((step, index) => (
-            <div key={step.label} className="space-y-2">
-              <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
-                  step.status === "complete" 
-                    ? "bg-primary text-white" 
-                    : step.status === "active"
-                    ? "bg-primary/50 text-white"
-                    : "bg-muted text-muted-foreground"
-                }`}>
-                  {step.status === "complete" ? (
-                    <Check className="h-4 w-4" />
-                  ) : step.status === "active" ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <span className="text-sm font-medium">{index + 1}</span>
-                  )}
-                </div>
-                <span className={`text-lg font-medium ${
-                  step.status === "active" ? "text-foreground" : "text-muted-foreground"
-                }`}>
-                  {step.label}
-                </span>
-              </div>
-              
-              {step.status !== "pending" && (
-                <div className="ml-11">
-                  <Progress value={step.progress} className="h-2" />
-                </div>
-              )}
+        <Card className="p-8 md:p-12">
+          <div className="text-center space-y-6 mb-12">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-4">
+              <Shield className="h-10 w-10 text-primary animate-pulse" />
             </div>
-          ))}
-        </div>
+            <h2 className="text-3xl font-bold">Minting Your Voice Credential</h2>
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+              Creating your blockchain-verified voice NFT on Polygon network...
+            </p>
+          </div>
 
-        <p className="text-sm text-muted-foreground text-center pt-4">
-          This is a gasless transaction covered by Seeksy.
-        </p>
+          <Progress value={overallProgress} className="w-full h-3 mb-8" />
 
-        <div className="text-center pt-6">
-          <p className="text-foreground font-bold">Seeksy</p>
-        </div>
-      </Card>
+          <div className="space-y-6 max-w-2xl mx-auto">
+            {steps.map((step, index) => (
+              <div key={step.label} className="space-y-3">
+                <div className="flex items-center gap-4">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+                    step.status === "complete" 
+                      ? "bg-primary text-primary-foreground" 
+                      : step.status === "active"
+                      ? "bg-primary/20 text-primary border-2 border-primary"
+                      : "bg-muted text-muted-foreground"
+                  }`}>
+                    {step.status === "complete" ? (
+                      <Check className="h-6 w-6" />
+                    ) : step.status === "active" ? (
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    ) : (
+                      <span className="text-lg font-semibold">{index + 1}</span>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-lg font-semibold ${
+                        step.status === "active" ? "text-foreground" : "text-muted-foreground"
+                      }`}>
+                        {step.label}
+                      </span>
+                      {step.status !== "pending" && (
+                        <span className="text-sm text-muted-foreground">{step.progress}%</span>
+                      )}
+                    </div>
+                    {step.status !== "pending" && (
+                      <Progress value={step.progress} className="h-2" />
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center pt-12 mt-12 border-t">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20">
+              <Check className="h-4 w-4 text-green-500" />
+              <span className="text-sm text-green-600 dark:text-green-400 font-medium">
+                Gasless transaction covered by Seeksy
+              </span>
+            </div>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 };

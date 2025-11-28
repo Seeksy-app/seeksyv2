@@ -1,9 +1,10 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Upload, Mic, ArrowLeft } from "lucide-react";
+import { Upload, Mic, ArrowLeft, FileAudio } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { CertificationStepper } from "@/components/voice-certification/CertificationStepper";
 
 const UploadOrRecordVoice = () => {
   const navigate = useNavigate();
@@ -60,36 +61,35 @@ const UploadOrRecordVoice = () => {
   const hasAudio = selectedFile !== null || recordedBlob !== null;
 
   return (
-    <div className="min-h-screen bg-brand-navy flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-2 text-white">
-            <span className="font-bold text-xl">Seeksy</span>
-            <span className="text-white/60 text-sm">Voice Certification</span>
-          </div>
-          <div className="text-white/60 text-sm font-medium">LOVABLE</div>
-        </div>
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-4 md:p-8">
+      <div className="max-w-4xl mx-auto">
+        <CertificationStepper 
+          currentStep={2} 
+          totalSteps={7} 
+          stepLabel="Provide Voice Sample"
+        />
 
-        <Card className="bg-card p-8 space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">Upload an existing voice sample</h2>
+        <Card className="p-8 space-y-6">
+          <div className="text-center mb-4">
+            <FileAudio className="h-12 w-12 text-primary mx-auto mb-3" />
+            <h2 className="text-2xl font-bold mb-2">Upload or Record Your Voice</h2>
             <p className="text-muted-foreground">
-              Upload an existing voice recording or record a new sample.
+              Provide a voice sample for AI analysis and fingerprint generation.
             </p>
           </div>
 
           {/* File Upload Area */}
           <div 
-            className="border-2 border-dashed border-border rounded-lg p-12 text-center cursor-pointer hover:border-primary/50 transition-colors"
+            className="border-2 border-dashed border-primary/20 rounded-lg p-12 text-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all"
             onClick={handleUploadClick}
           >
             <Upload className="h-12 w-12 mx-auto mb-4 text-primary" />
             <p className="text-foreground font-medium mb-2">
-              {selectedFile ? selectedFile.name : "Choose a file or drag it here"}
+              {selectedFile ? `✓ ${selectedFile.name}` : "Choose a file or drag it here"}
             </p>
             {!selectedFile && (
               <p className="text-sm text-muted-foreground">
-                WAV, MP3, M4A supported
+                Supported formats: WAV, MP3, M4A • Maximum 10MB
               </p>
             )}
           </div>
@@ -103,28 +103,32 @@ const UploadOrRecordVoice = () => {
           />
 
           {/* Record Voice Section */}
-          <div className="pt-4">
-            <h3 className="text-sm font-semibold text-foreground uppercase mb-4">
-              RECORD VOICE
-            </h3>
-            <Button
-              size="lg"
-              variant="default"
-              onClick={handleRecordClick}
-              disabled={isRecording}
-              className="w-full bg-brand-navy text-white hover:bg-brand-navy/90 py-6 text-lg"
-            >
-              <Mic className="mr-2 h-5 w-5" />
-              {isRecording ? "Recording..." : recordedBlob ? "Re-record New Sample" : "Record New Sample"}
-            </Button>
+          <div className="relative">
+            <div className="absolute inset-x-0 top-0 flex items-center">
+              <div className="flex-1 border-t border-border"></div>
+              <span className="px-4 text-xs font-medium text-muted-foreground uppercase">Or</span>
+              <div className="flex-1 border-t border-border"></div>
+            </div>
+            
+            <div className="pt-8">
+              <Button
+                size="lg"
+                variant={recordedBlob ? "outline" : "default"}
+                onClick={handleRecordClick}
+                disabled={isRecording}
+                className="w-full py-6 text-lg"
+              >
+                <Mic className="mr-2 h-5 w-5" />
+                {isRecording ? "Recording... (3 seconds)" : recordedBlob ? "✓ Recorded - Click to Re-record" : "Record New Sample"}
+              </Button>
+            </div>
           </div>
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between items-center pt-4">
+          <div className="flex justify-between items-center pt-6">
             <Button
               variant="ghost"
-              onClick={() => navigate("/voice-certification")}
-              className="text-foreground hover:text-foreground/80"
+              onClick={() => navigate("/voice-certification-flow")}
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
@@ -134,9 +138,8 @@ const UploadOrRecordVoice = () => {
               size="lg"
               onClick={handleContinue}
               disabled={!hasAudio}
-              className="bg-primary hover:bg-primary/90 disabled:opacity-50"
             >
-              Continue
+              Continue to Analysis
             </Button>
           </div>
         </Card>

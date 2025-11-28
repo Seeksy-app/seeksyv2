@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { ArrowLeft, Shield, Check, X, Volume2 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
+import { CertificationStepper } from "@/components/voice-certification/CertificationStepper";
 
 const AIVoiceFingerprinting = () => {
   const navigate = useNavigate();
@@ -56,111 +58,137 @@ const AIVoiceFingerprinting = () => {
   };
 
   return (
-    <div className="min-h-screen bg-brand-navy flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full text-center space-y-8">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-2 text-white">
-            <span className="font-bold text-xl">SEEKSY</span>
-          </div>
-          <div className="text-white/60 text-sm font-medium">
-            Log progress state here
-          </div>
-        </div>
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-4 md:p-8">
+      <div className="max-w-4xl mx-auto">
+        <CertificationStepper 
+          currentStep={3} 
+          totalSteps={7} 
+          stepLabel="AI Voice Analysis"
+        />
 
-        <h1 className="text-4xl md:text-5xl font-bold text-white uppercase tracking-wide">
-          AI VOICE FINGERPRINTING
-        </h1>
-
-        <p className="text-white/80 text-xl">
-          Analyzing voice recording...
-        </p>
-
-        {/* Circular Progress Visualization */}
-        <div className="relative w-64 h-64 mx-auto my-12">
-          {/* Outer ring with dots */}
-          <svg className="w-full h-full" viewBox="0 0 200 200">
-            {/* Background circle */}
-            <circle
-              cx="100"
-              cy="100"
-              r="80"
-              fill="none"
-              stroke="rgba(255,255,255,0.1)"
-              strokeWidth="2"
-              strokeDasharray="4 4"
-            />
-            {/* Progress circle */}
-            <circle
-              cx="100"
-              cy="100"
-              r="80"
-              fill="none"
-              stroke="rgba(44,107,237,0.6)"
-              strokeWidth="2"
-              strokeDasharray={`${(progress / 100) * 502} 502`}
-              strokeDashoffset="0"
-              transform="rotate(-90 100 100)"
-              className="transition-all duration-300"
-            />
-          </svg>
-
-          {/* Center percentage */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <p className="text-5xl font-bold text-white">{progress}%</p>
+        <Card className="p-8 md:p-12">
+          <div className="text-center space-y-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
+              <Shield className="h-5 w-5 text-primary animate-pulse" />
+              <span className="text-sm font-medium text-primary">
+                {isAnalyzing ? "Analyzing..." : "Analysis Complete"}
+              </span>
             </div>
-          </div>
 
-          {/* Processing indicator */}
-          <div className="absolute right-0 top-1/2 transform translate-x-12 -translate-y-1/2">
-            <div className="bg-white/10 px-4 py-2 rounded-lg">
-              <p className="text-white text-sm font-medium">Processing</p>
+            <h2 className="text-3xl font-bold">AI Voice Fingerprinting</h2>
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+              Our AI is creating a unique cryptographic signature of your voice using advanced audio analysis.
+            </p>
+
+            {/* Circular Progress Visualization */}
+            <div className="relative w-48 h-48 mx-auto my-12">
+              <svg className="w-full h-full transform -rotate-90">
+                <circle
+                  cx="96"
+                  cy="96"
+                  r="88"
+                  fill="none"
+                  stroke="hsl(var(--muted))"
+                  strokeWidth="8"
+                />
+                <circle
+                  cx="96"
+                  cy="96"
+                  r="88"
+                  fill="none"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth="8"
+                  strokeDasharray={`${(progress / 100) * 553} 553`}
+                  className="transition-all duration-300"
+                  strokeLinecap="round"
+                />
+              </svg>
+
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center">
+                  <p className="text-5xl font-bold">{progress}%</p>
+                  <p className="text-xs text-muted-foreground mt-1">Complete</p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Status Items */}
-        <div className="space-y-4 text-left max-w-md mx-auto">
-          <div className="flex justify-between items-center text-white">
-            <span>Match Confidence</span>
-            <span className="text-white/60">...</span>
-          </div>
-          <div className="flex justify-between items-center text-white">
-            <span>Fraud Check</span>
-            <span className="text-white/60">...</span>
-          </div>
-          <div className="flex justify-between items-center text-white">
-            <span>Audio Quality</span>
-            <span className="text-white/60">...</span>
-          </div>
-        </div>
+            {/* AI Analysis Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
+              <div className="p-4 rounded-lg bg-muted/50 border">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">Match Confidence</span>
+                  {progress >= 100 ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                  )}
+                </div>
+                <p className="text-2xl font-bold text-primary">
+                  {progress >= 100 ? "98%" : "..."}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">AI Voice Match</p>
+              </div>
 
-        {/* Current Task */}
-        <div className="text-white/60 text-sm animate-pulse">
-          • {currentTask}
-        </div>
+              <div className="p-4 rounded-lg bg-muted/50 border">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">Fraud Detection</span>
+                  {progress >= 100 ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                  )}
+                </div>
+                <p className="text-2xl font-bold text-green-500">
+                  {progress >= 100 ? "Passed" : "..."}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">Authenticity Check</p>
+              </div>
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between items-center pt-8 max-w-md mx-auto">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/voice-certification/upload")}
-            disabled={isAnalyzing}
-            className="text-white hover:text-white/80 disabled:opacity-30"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
+              <div className="p-4 rounded-lg bg-muted/50 border">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">Audio Quality</span>
+                  {progress >= 100 ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                  )}
+                </div>
+                <p className="text-2xl font-bold">
+                  {progress >= 100 ? "High" : "..."}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">Signal Analysis</p>
+              </div>
+            </div>
 
-          <Button
-            size="lg"
-            onClick={handleContinue}
-            disabled={isAnalyzing}
-            className="bg-primary hover:bg-primary/90 disabled:opacity-30"
-          >
-            Continue
-          </Button>
-        </div>
+            {/* Current Task */}
+            {isAnalyzing && (
+              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground animate-pulse">
+                <Volume2 className="h-4 w-4" />
+                <span>{currentTask}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Navigation Buttons */}
+          <div className="flex justify-between items-center pt-8 mt-8 border-t">
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/voice-certification/upload")}
+              disabled={isAnalyzing}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+
+            <Button
+              size="lg"
+              onClick={handleContinue}
+              disabled={isAnalyzing}
+            >
+              View Results
+            </Button>
+          </div>
+        </Card>
       </div>
     </div>
   );
