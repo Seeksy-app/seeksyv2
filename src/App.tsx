@@ -202,6 +202,10 @@ import VoiceCertification from "./pages/VoiceCertification";
 import VoiceTag from "./pages/VoiceTag";
 import VoiceTagAdmin from "./pages/VoiceTagAdmin";
 import ScreenshotGenerator from "./pages/admin/ScreenshotGenerator";
+import RevenueReports from "./pages/admin/RevenueReports";
+import Billing from "./pages/admin/Billing";
+import Payments from "./pages/admin/Payments";
+import AdFinancialModels from "./pages/admin/AdFinancialModels";
 import VoiceCertificationDashboard from "./pages/voice-certification/VoiceCertificationDashboard";
 import UploadOrRecordVoice from "./pages/voice-certification/UploadOrRecordVoice";
 import AIVoiceFingerprinting from "./pages/voice-certification/AIVoiceFingerprinting";
@@ -471,6 +475,10 @@ const AppContent = () => {
               <Route path="/admin/keys-vault" element={<KeysVault />} />
               <Route path="/admin/personas" element={<PersonaManagement />} />
               <Route path="/admin/screenshot-generator" element={<ScreenshotGenerator />} />
+              <Route path="/admin/revenue-reports" element={<RevenueReports />} />
+              <Route path="/admin/billing" element={<Billing />} />
+              <Route path="/admin/payments" element={<Payments />} />
+              <Route path="/admin/financial-models/ads" element={<AdFinancialModels />} />
           <Route path="/advertiser" element={<AdvertiserServices />} />
           <Route path="/advertiser/signup" element={<AdvertiserSignup />} />
           <Route path="/advertiser/dashboard" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserDashboard /></ProtectedRoute>} />

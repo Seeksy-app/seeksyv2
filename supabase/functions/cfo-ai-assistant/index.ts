@@ -28,6 +28,30 @@ ${JSON.stringify(financialData, null, 2)}
 `;
     }
 
+    // Fetch ad financial model summaries from database
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.83.0');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    let adFinancialContext = '';
+    try {
+      const { data: summaries, error } = await supabase
+        .from('ad_financial_model_summaries')
+        .select('*');
+      
+      if (!error && summaries && summaries.length > 0) {
+        adFinancialContext = `
+
+** AD REVENUE FINANCIAL MODEL SCENARIOS **
+
+${summaries.map(s => s.summary_text).join('\n\n')}
+`;
+      }
+    } catch (err) {
+      console.error('Failed to load ad financial summaries:', err);
+    }
+
     const systemPrompt = `You are a CFO AI assistant specializing in financial analysis for Seeksy. 
 You help investors and stakeholders understand financial projections, assumptions, and business metrics.
 
@@ -97,6 +121,8 @@ Cost Structure: $2.50/user AI compute + infrastructure costs
 - LTV:CAC ratio improves from 3:1 to 5:1 by Year 3
 - Gross margins: 88-90% across all years
 - Net margins improve from 25% to 30% as scale efficiencies kick in
+
+${adFinancialContext}
 
 ${contextString}
 
