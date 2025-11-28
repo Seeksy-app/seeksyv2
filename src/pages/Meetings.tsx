@@ -34,7 +34,6 @@ const Meetings = () => {
         .single();
       
       const isAdmin = roles?.role === "admin" || roles?.role === "super_admin";
-      const adminViewMode = localStorage.getItem('adminViewMode') === 'true';
 
       // Build query with attendees
       let query = supabase
@@ -49,14 +48,8 @@ const Meetings = () => {
             rsvp_status,
             rsvp_timestamp
           )
-        `);
-      
-      // If admin in Personal View, only show personal meetings
-      if (isAdmin && !adminViewMode) {
-        query = query.eq("user_id", user.id);
-      } else {
-        query = query.eq("user_id", user.id);
-      }
+        `)
+        .eq("user_id", user.id);
 
       const { data, error } = await query.order("start_time", { ascending: true });
 

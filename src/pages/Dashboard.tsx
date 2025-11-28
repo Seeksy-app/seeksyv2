@@ -170,34 +170,6 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    // Check if admin mode is enabled and user has admin role - if so, redirect to /admin
-    const checkAdminModeAndRedirect = async () => {
-      const adminViewMode = localStorage.getItem('adminViewMode') === 'true';
-      
-      if (adminViewMode) {
-        // Check if user has admin role
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: roles } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", user.id);
-
-          const hasAdminRole = roles?.some(r => 
-            r.role === "admin" || 
-            r.role === "super_admin"
-          );
-          
-          if (hasAdminRole) {
-            navigate("/admin", { replace: true });
-            return;
-          }
-        }
-      }
-    };
-    
-    checkAdminModeAndRedirect();
-    
     // Mark that user has visited dashboard (for AI chatbot trigger)
     localStorage.setItem('visited_dashboard', 'true');
     

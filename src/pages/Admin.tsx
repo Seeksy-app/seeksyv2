@@ -48,17 +48,11 @@ export default function Admin() {
   });
 
   useEffect(() => {
-    // Check if admin mode is OFF - if so, redirect to /dashboard
-    const checkAdminModeAndRedirect = () => {
-      const adminViewMode = localStorage.getItem('adminViewMode') === 'true';
-      
-      if (!adminViewMode) {
-        navigate("/dashboard", { replace: true });
-        return;
-      }
+    // Admin accounts always stay on /admin
+    const checkRedirect = () => {
     };
     
-    checkAdminModeAndRedirect();
+    checkRedirect();
     checkAdminAccess();
   }, []);
 

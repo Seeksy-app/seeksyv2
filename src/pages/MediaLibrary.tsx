@@ -258,11 +258,8 @@ export default function MediaLibrary() {
         .maybeSingle();
       
       const isAdmin = roles?.role === "admin" || roles?.role === "super_admin";
-      const adminViewMode = localStorage.getItem('adminViewMode') === 'true';
 
       // Fetch studio recordings from media_files
-      // If admin in Personal View, we should ideally filter by context
-      // For now, all recordings are shown - future: add created_in_admin_mode field
       const { data: recordingsData, error: recordingsError } = await supabase
         .from("media_files")
         .select("*")

@@ -81,7 +81,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { NavigationCustomizer, NavigationSection } from "@/components/navigation/NavigationCustomizer";
 import { useToast } from "@/hooks/use-toast";
-import { AdminViewToggle } from "@/components/admin/AdminViewToggle";
+
 
 interface AppSidebarProps {
   user?: User | null;
@@ -114,23 +114,10 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   const [isAdvertiser, setIsAdvertiser] = useState(false);
   const [advertiserStatus, setAdvertiserStatus] = useState<string | null>(null);
   const [moduleLauncherOpen, setModuleLauncherOpen] = useState(false);
-  // Initialize adminViewMode from localStorage or isAdmin prop
-  const [adminViewMode, setAdminViewMode] = useState(() => {
-    const saved = localStorage.getItem('adminViewMode');
-    if (saved !== null) {
-      return saved === 'true';
-    }
-    return isAdmin || false;
-  });
   
-  // Update adminViewMode when isAdmin prop changes
+  // Auto-expand admin sections for admins
   useEffect(() => {
     if (isAdmin) {
-      const currentMode = localStorage.getItem('adminViewMode');
-      if (currentMode === null) {
-        setAdminViewMode(true);
-        localStorage.setItem('adminViewMode', 'true');
-      }
       setOpenSections(prev => ({
         ...prev,
         admin: true,
@@ -138,11 +125,6 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       }));
     }
   }, [isAdmin]);
-  
-  // Persist adminViewMode to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('adminViewMode', adminViewMode.toString());
-  }, [adminViewMode]);
   const [modulePrefs, setModulePrefs] = useState({
     awards: false,
     media: false,
@@ -423,7 +405,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     ? []
     : [
         { title: "Dashboard", url: dashboardUrl, icon: LayoutDashboard },
-        ...(isAdmin && adminViewMode ? [{ title: "Admin", url: "/admin", icon: Shield }] : []),
+        ...(isAdmin ? [{ title: "Admin", url: "/admin", icon: Shield }] : []),
         ...(pinnedModules.includes("my_page") ? [{ title: "My Page", url: "/profile/edit", icon: UserIcon }] : []),
         { title: "Profile Settings", url: "/settings", icon: Settings },
       ];
@@ -527,7 +509,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   ];
 
   // Advertisers see the same settings items
-  const settingsItems = adminViewMode && isAdmin ? adminAccountSettings : allSettingsItems;
+  const settingsItems = isAdmin ? adminAccountSettings : allSettingsItems;
 
   const advertiserItems = [
     { title: "Create Ad", url: "/advertiser/campaigns/create-type", icon: Plus },
@@ -643,24 +625,17 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     window.dispatchEvent(new Event("pinnedModulesChanged"));
   };
 
-  // Filter sections based on user role and admin view mode
+  // Filter sections based on user role
   const getVisibleSections = () => {
     let sections = [...navigationSections];
     
-    // If admin is in admin view mode, return only admin section
-    if (isAdmin && adminViewMode) {
+    // Admin accounts see only admin section
+    if (isAdmin) {
       return [{ id: "admin", label: "Admin", order: 0 }];
     }
     
-    // If admin is in personal view mode, hide admin section
-    if (isAdmin && !adminViewMode) {
-      sections = sections.filter(s => s.id !== 'admin');
-    }
-    
-    // If not admin, hide admin section
-    if (!isAdmin) {
-      sections = sections.filter(s => s.id !== 'admin');
-    }
+    // Non-admins never see admin section
+    sections = sections.filter(s => s.id !== 'admin');
     
     if (isAdvertiser) {
       // Advertisers MUST see: settings, advertising
@@ -1005,7 +980,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   };
 
   const renderMediaSection = () => {
-    if (isAdvertiser || !modulePrefs.media || mediaItems.length === 0 || adminViewMode) return null;
+    if (isAdvertiser || !modulePrefs.media || mediaItems.length === 0 || isAdmin) return null;
     const isPinned = pinnedModules.includes("media");
     
     return (
@@ -1464,7 +1439,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   );
 
   const renderAdminSection = () => {
-    if (!isAdmin || !adminViewMode) return null;
+    if (!isAdmin) return null;
 
     const renderAdminCategory = (title: string, items: typeof adminCustomerSupport, sectionKey: string) => {
       const isOpen = openSections[sectionKey as keyof typeof openSections] !== false;
@@ -1644,31 +1619,11 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
               </div>
             )}
           </div>
-          
-          
-          {/* Admin View Toggle - Only show for admins */}
-          {isAdmin && (
-            <>
-              <AdminViewToggle
-                adminViewMode={adminViewMode}
-                onToggle={(enabled) => {
-                  setAdminViewMode(enabled);
-                  localStorage.setItem('adminViewMode', enabled.toString());
-                  toast({
-                    title: enabled ? "Admin View Enabled" : "Personal View Enabled",
-                    description: enabled ? "Showing admin-related menu items" : "Showing your personal menu items",
-                  });
-                  // Force re-render of menu sections
-                  window.location.reload();
-                }}
-              />
-            </>
-          )}
         </SidebarHeader>
 
       <SidebarContent className="pb-6 overflow-hidden">
-        {adminViewMode ? (
-          // Admin View: Show full admin sidebar
+        {isAdmin ? (
+          // Admin View: Show admin sidebar only
           <div className="overflow-y-auto">
             {getVisibleSections()
               .filter(section => section.id !== 'settings')
@@ -1683,10 +1638,10 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
           // Advertiser View: Show advertiser-specific sidebar
           <AdvertiserSidebarNav />
         ) : (
-          // Creator View: Show creator sidebar (filtered to exclude admin items)
+          // Creator View: Show creator sidebar
           <div className="overflow-y-auto">
             {getVisibleSections()
-              .filter(section => section.id !== 'settings' && section.id !== 'admin')
+              .filter(section => section.id !== 'settings')
               .sort((a, b) => a.order - b.order)
               .map((section) => {
                 const renderer = sectionRenderers[section.id];
