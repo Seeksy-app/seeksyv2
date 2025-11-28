@@ -65,7 +65,7 @@ export default function AdvertiserAdLibrary() {
       const { data, error } = await supabase
         .from("advertisers")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("owner_profile_id", user.id)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();

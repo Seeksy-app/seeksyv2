@@ -80,7 +80,7 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
         const { data: existingAdvertiser } = await supabase
           .from('advertisers')
           .select('id')
-          .eq('user_id', user.id)
+          .eq('owner_profile_id', user.id)
           .single();
 
         if (!existingAdvertiser) {

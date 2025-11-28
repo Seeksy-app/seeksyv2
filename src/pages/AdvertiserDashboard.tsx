@@ -38,7 +38,7 @@ export default function AdvertiserDashboard() {
           *,
           pricing_tier:advertiser_pricing_tiers(*)
         `)
-        .eq("user_id", user.id)
+        .eq("owner_profile_id", user.id)
         .single();
       
       if (error && error.code !== "PGRST116") throw error;

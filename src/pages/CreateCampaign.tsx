@@ -37,7 +37,7 @@ export default function CreateCampaign() {
       const { data, error } = await supabase
         .from("advertisers")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("owner_profile_id", user.id)
         .single();
       
       if (error && error.code !== "PGRST116") throw error;
@@ -128,6 +128,7 @@ export default function CreateCampaign() {
           name: "Audio Creative",
           format: "audio",
           status: "ready",
+          duration_seconds: duration,
         });
 
       if (creativeError) throw creativeError;
