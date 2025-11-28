@@ -6774,6 +6774,7 @@ export type Database = {
           admin_email: string | null
           admin_full_name: string | null
           admin_phone: string | null
+          advertiser_onboarding_completed: boolean | null
           auto_publish_rss: boolean | null
           avatar_url: string | null
           bio: string | null
@@ -6781,6 +6782,7 @@ export type Database = {
           blog_rss_url: string | null
           categories: string[] | null
           created_at: string | null
+          creator_onboarding_completed: boolean | null
           custom_bg_colors: Json | null
           custom_hero_colors: Json | null
           custom_theme_colors: Json | null
@@ -6788,6 +6790,8 @@ export type Database = {
           hero_section_color: string | null
           id: string
           include_logo_in_qr: boolean | null
+          is_advertiser: boolean | null
+          is_creator: boolean | null
           is_live: boolean | null
           is_live_on_profile: boolean | null
           legal_on_profile: boolean | null
@@ -6805,6 +6809,7 @@ export type Database = {
           newsletter_enabled: boolean | null
           newsletter_heading: string | null
           page_background_color: string | null
+          preferred_role: string | null
           qr_code_color: string | null
           show_blog_on_profile: boolean | null
           show_latest_blog_only: boolean | null
@@ -6831,6 +6836,7 @@ export type Database = {
           admin_email?: string | null
           admin_full_name?: string | null
           admin_phone?: string | null
+          advertiser_onboarding_completed?: boolean | null
           auto_publish_rss?: boolean | null
           avatar_url?: string | null
           bio?: string | null
@@ -6838,6 +6844,7 @@ export type Database = {
           blog_rss_url?: string | null
           categories?: string[] | null
           created_at?: string | null
+          creator_onboarding_completed?: boolean | null
           custom_bg_colors?: Json | null
           custom_hero_colors?: Json | null
           custom_theme_colors?: Json | null
@@ -6845,6 +6852,8 @@ export type Database = {
           hero_section_color?: string | null
           id: string
           include_logo_in_qr?: boolean | null
+          is_advertiser?: boolean | null
+          is_creator?: boolean | null
           is_live?: boolean | null
           is_live_on_profile?: boolean | null
           legal_on_profile?: boolean | null
@@ -6862,6 +6871,7 @@ export type Database = {
           newsletter_enabled?: boolean | null
           newsletter_heading?: string | null
           page_background_color?: string | null
+          preferred_role?: string | null
           qr_code_color?: string | null
           show_blog_on_profile?: boolean | null
           show_latest_blog_only?: boolean | null
@@ -6888,6 +6898,7 @@ export type Database = {
           admin_email?: string | null
           admin_full_name?: string | null
           admin_phone?: string | null
+          advertiser_onboarding_completed?: boolean | null
           auto_publish_rss?: boolean | null
           avatar_url?: string | null
           bio?: string | null
@@ -6895,6 +6906,7 @@ export type Database = {
           blog_rss_url?: string | null
           categories?: string[] | null
           created_at?: string | null
+          creator_onboarding_completed?: boolean | null
           custom_bg_colors?: Json | null
           custom_hero_colors?: Json | null
           custom_theme_colors?: Json | null
@@ -6902,6 +6914,8 @@ export type Database = {
           hero_section_color?: string | null
           id?: string
           include_logo_in_qr?: boolean | null
+          is_advertiser?: boolean | null
+          is_creator?: boolean | null
           is_live?: boolean | null
           is_live_on_profile?: boolean | null
           legal_on_profile?: boolean | null
@@ -6919,6 +6933,7 @@ export type Database = {
           newsletter_enabled?: boolean | null
           newsletter_heading?: string | null
           page_background_color?: string | null
+          preferred_role?: string | null
           qr_code_color?: string | null
           show_blog_on_profile?: boolean | null
           show_latest_blog_only?: boolean | null
@@ -10332,6 +10347,13 @@ export type Database = {
         Args: { _feature_type: string; _user_id: string }
         Returns: number
       }
+      get_user_roles: {
+        Args: { _user_id: string }
+        Returns: {
+          role: string
+        }[]
+      }
+      has_multiple_roles: { Args: { _user_id: string }; Returns: boolean }
       has_permission: {
         Args: { _permission: string; _user_id: string }
         Returns: boolean

@@ -57,6 +57,8 @@ import {
 import { NavLink } from "@/components/NavLink";
 import seeksyLogo from "@/assets/seeksy-logo.png";
 import { ModuleLauncher } from "@/components/ModuleLauncher";
+import { RoleSwitcher } from "@/components/role/RoleSwitcher";
+import { RoleIndicator } from "@/components/role/RoleIndicator";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Sidebar,
@@ -1641,6 +1643,14 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
               </div>
             )}
           </div>
+          
+          {/* Role Switcher and Indicator */}
+          {!collapsed && (
+            <div className="px-4 py-2 space-y-2">
+              <RoleSwitcher />
+              <RoleIndicator />
+            </div>
+          )}
           
           {/* Admin View Toggle - Only show for admins */}
           {isAdmin && (

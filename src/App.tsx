@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { ThemeProvider } from "next-themes";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { RoleProvider } from "@/contexts/RoleContext";
+import { RoleChooser } from "@/components/role/RoleChooser";
 import Header from "@/components/Header";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -154,6 +156,7 @@ import KeysVault from "./pages/KeysVault";
 import ManageInvestorSpreadsheets from "./pages/ManageInvestorSpreadsheets";
 import ModuleSelector from "./pages/ModuleSelector";
 import Modules from "./pages/Modules";
+import RoleSettings from "./pages/RoleSettings";
 import InfluenceHub from "./pages/InfluenceHub";
 import InfluenceHubConnect from "./pages/InfluenceHubConnect";
 import InfluenceHubCreators from "./pages/InfluenceHubCreators";
@@ -296,10 +299,12 @@ const AppContent = () => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        {/* Hide Sidebar on Studio workspace (but show on Studio Hub) */}
-        {user && location.pathname !== '/studio/session/:id' && !location.pathname.includes('/studio/session/') && <AppSidebar user={user} isAdmin={isAdmin} />}
+    <RoleProvider>
+      <SidebarProvider>
+        <RoleChooser />
+        <div className="min-h-screen flex w-full bg-background">
+          {/* Hide Sidebar on Studio workspace (but show on Studio Hub) */}
+          {user && location.pathname !== '/studio/session/:id' && !location.pathname.includes('/studio/session/') && <AppSidebar user={user} isAdmin={isAdmin} />}
         
         <div className="flex-1 flex flex-col">
           {/* Hide Header on all Studio pages */}
@@ -435,6 +440,7 @@ const AppContent = () => {
               <Route path="/book/:username/:meetingTypeId" element={<BookMeetingSlot />} />
               <Route path="/profile/edit" element={<MyPageBuilderV2 />} />
               <Route path="/profile/edit/legacy" element={<ProfileEdit />} />
+              <Route path="/role-settings" element={<RoleSettings />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/legal" element={<AdminLegal />} />
             <Route path="/admin/conversational-demo" element={<AdminConversationalDemo />} />
@@ -556,8 +562,9 @@ const AppContent = () => {
           </main>
         </div>
         {user && !location.pathname.includes('/meeting-studio/') && !location.pathname.includes('/studio/') && <SeeksyAIChatWidget />}
-      </div>
-    </SidebarProvider>
+        </div>
+      </SidebarProvider>
+    </RoleProvider>
   );
 };
 
