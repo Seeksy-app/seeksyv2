@@ -128,7 +128,7 @@ export default function AdvertiserSignup() {
           const { error: teamError } = await supabase
             .from("advertiser_team_members")
             .upsert(teamMemberInserts, {
-              onConflict: "advertiser_team_members_advertiser_email_unique",
+              onConflict: "advertiser_id,email",
               ignoreDuplicates: false,
             })
             .select();
