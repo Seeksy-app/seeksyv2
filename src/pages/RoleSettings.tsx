@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function RoleSettings() {
-  const { currentRole, availableRoles, enableRole, switchRole } = useRole();
+  const { currentRole, availableRoles } = useRole();
 
   const { data: profile } = useQuery({
     queryKey: ['userProfile'],
@@ -56,9 +56,9 @@ export default function RoleSettings() {
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Current Role</CardTitle>
+          <CardTitle>Your Role</CardTitle>
           <CardDescription>
-            You are currently viewing Seeksy as a {currentRole || 'user'}
+            Your account is set up as a {currentRole || 'user'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -85,18 +85,19 @@ export default function RoleSettings() {
                   </div>
                 </>
               ) : (
-                <div className="text-muted-foreground">No role selected</div>
+                <div className="text-muted-foreground">No role assigned</div>
               )}
             </div>
+            <Badge variant="default" className="bg-green-500">Active</Badge>
           </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Available Roles</CardTitle>
+          <CardTitle>Role Information</CardTitle>
           <CardDescription>
-            Enable or disable roles for your account
+            Each Seeksy account has a single role
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -112,31 +113,9 @@ export default function RoleSettings() {
             </div>
             <div className="flex items-center gap-2">
               {availableRoles.includes('creator') ? (
-                <>
-                  <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  {currentRole !== 'creator' && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => switchRole('creator')}
-                    >
-                      Switch to Creator
-                    </Button>
-                  )}
-                </>
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
               ) : (
-                <>
-                  <Circle className="h-5 w-5 text-muted-foreground" />
-                  {isAdmin && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => enableRole('creator')}
-                    >
-                      Enable
-                    </Button>
-                  )}
-                </>
+                <Circle className="h-5 w-5 text-muted-foreground" />
               )}
             </div>
           </div>
@@ -153,31 +132,9 @@ export default function RoleSettings() {
             </div>
             <div className="flex items-center gap-2">
               {availableRoles.includes('advertiser') ? (
-                <>
-                  <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  {currentRole !== 'advertiser' && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => switchRole('advertiser')}
-                    >
-                      Switch to Advertiser
-                    </Button>
-                  )}
-                </>
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
               ) : (
-                <>
-                  <Circle className="h-5 w-5 text-muted-foreground" />
-                  {isAdmin && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => enableRole('advertiser')}
-                    >
-                      Enable
-                    </Button>
-                  )}
-                </>
+                <Circle className="h-5 w-5 text-muted-foreground" />
               )}
             </div>
           </div>
@@ -186,8 +143,7 @@ export default function RoleSettings() {
             <div className="pt-4">
               <Separator className="mb-4" />
               <p className="text-sm text-muted-foreground">
-                <strong>Admin Note:</strong> You can enable both roles for testing and demos.
-                Regular users will need to choose a role during signup.
+                <strong>Admin Note:</strong> Each account is assigned a single role. Use separate accounts for testing different roles.
               </p>
             </div>
           )}
@@ -228,9 +184,9 @@ export default function RoleSettings() {
 
           {isAdmin && (
             <div className="pt-3">
-              <Button variant="outline" size="sm" className="w-full">
-                Reset Onboarding (Admin)
-              </Button>
+              <p className="text-xs text-muted-foreground">
+                Contact a super admin to reset onboarding status if needed.
+              </p>
             </div>
           )}
         </CardContent>

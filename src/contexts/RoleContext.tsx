@@ -46,21 +46,15 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
 
   const hasMultipleRoles = availableRoles.length > 1;
 
-  // Initialize current role from localStorage or profile preference
+  // Initialize current role from profile (single role per account)
   useEffect(() => {
     if (!profile || currentRole) return;
 
-    const storedRole = localStorage.getItem('seeksy_current_role') as UserRole | null;
-    
-    if (storedRole && availableRoles.includes(storedRole)) {
-      setCurrentRole(storedRole);
+    // Each account has only one role
+    if (availableRoles.length === 1) {
+      setCurrentRole(availableRoles[0]);
     } else if (profile.preferred_role && availableRoles.includes(profile.preferred_role as UserRole)) {
       setCurrentRole(profile.preferred_role as UserRole);
-    } else if (availableRoles.length === 1) {
-      setCurrentRole(availableRoles[0]);
-    } else if (availableRoles.length > 1) {
-      // User has multiple roles but hasn't chosen yet
-      setCurrentRole(null);
     }
   }, [profile, availableRoles, currentRole]);
 
@@ -121,19 +115,18 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     },
   });
 
-  // Function to switch roles
+  // Function to switch roles (kept for backward compatibility, but no longer used in UI)
   const switchRole = async (role: UserRole) => {
     if (!availableRoles.includes(role)) {
       toast({
         title: 'Role not available',
-        description: 'Please enable this role first.',
+        description: 'This role is not enabled for your account.',
         variant: 'destructive',
       });
       return;
     }
 
     setCurrentRole(role);
-    localStorage.setItem('seeksy_current_role', role);
 
     // Update preferred role in database
     const { data: { user } } = await supabase.auth.getUser();
@@ -144,37 +137,11 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
         .eq('id', user.id);
     }
 
-    toast({
-      title: 'Role switched',
-      description: `Now viewing Seeksy as ${role === 'creator' ? 'Creator' : 'Advertiser'}`,
-    });
-
     // Redirect based on role
     if (role === 'creator') {
       window.location.href = '/dashboard';
     } else if (role === 'advertiser') {
-      // Check if advertiser onboarding is complete before redirecting
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (currentUser) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('advertiser_onboarding_completed')
-          .eq('id', currentUser.id)
-          .single();
-
-        const { data: advertiser } = await supabase
-          .from('advertisers')
-          .select('id')
-          .eq('owner_profile_id', currentUser.id)
-          .maybeSingle();
-
-        // Redirect to signup if onboarding incomplete
-        if (!profile?.advertiser_onboarding_completed || !advertiser) {
-          window.location.href = '/advertiser/signup';
-        } else {
-          window.location.href = '/advertiser';
-        }
-      }
+      window.location.href = '/advertiser';
     }
   };
 

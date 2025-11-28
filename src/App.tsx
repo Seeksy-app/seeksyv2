@@ -7,7 +7,6 @@ import { ThemeProvider } from "next-themes";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { RoleProvider } from "@/contexts/RoleContext";
-import { RoleChooser } from "@/components/role/RoleChooser";
 import Header from "@/components/Header";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -308,7 +307,6 @@ const AppContent = () => {
   return (
     <RoleProvider>
       <SidebarProvider>
-        <RoleChooser />
         <div className="min-h-screen flex w-full bg-background">
           {/* Hide Sidebar on Studio workspace (but show on Studio Hub) */}
           {user && location.pathname !== '/studio/session/:id' && !location.pathname.includes('/studio/session/') && <AppSidebar user={user} isAdmin={isAdmin} />}
