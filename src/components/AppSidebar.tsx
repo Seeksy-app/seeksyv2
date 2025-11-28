@@ -406,7 +406,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     const { data } = await supabase
       .from("advertisers")
       .select("id, status")
-      .eq("user_id", user.id)
+      .eq("owner_profile_id", user.id)
       .maybeSingle();
     
     if (data) {
