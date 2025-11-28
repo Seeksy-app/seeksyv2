@@ -226,7 +226,7 @@ export default function CampaignBrowser({ podcastId, minimumCpm }: CampaignBrows
                           <TrendingUp className="h-3 w-3" />
                           Budget
                         </p>
-                        <p className="font-medium">${campaign.budget}</p>
+                        <p className="font-medium">${campaign.total_budget}</p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Impressions</p>
@@ -235,7 +235,7 @@ export default function CampaignBrowser({ podcastId, minimumCpm }: CampaignBrows
                       <div>
                         <p className="text-muted-foreground">Remaining</p>
                         <p className="font-medium">
-                          ${(campaign.budget - (campaign.total_spent || 0)).toFixed(2)}
+                          ${(campaign.total_budget - (campaign.total_spent || 0)).toFixed(2)}
                         </p>
                       </div>
                     </div>

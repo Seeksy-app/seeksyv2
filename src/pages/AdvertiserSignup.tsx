@@ -85,8 +85,6 @@ export default function AdvertiserSignup() {
         contact_phone: formData.contact_phone || null,
         website_url: formData.website_url || null,
         business_description: formData.business_description || null,
-        campaign_goals: formData.campaign_goals || [],
-        target_categories: formData.target_categories || [],
         status: "pending",
       };
 
@@ -128,6 +126,14 @@ export default function AdvertiserSignup() {
             lead_status: "new",
             notes: `Business Description: ${formData.business_description || "N/A"}\nWebsite: ${formData.website_url || "N/A"}\nCampaign Goals: ${formData.campaign_goals.join(", ")}\nTarget Categories: ${formData.target_categories.join(", ")}`,
           });
+
+          // Create advertiser preferences
+          if (advertiserData) {
+            await supabase.from("advertiser_preferences").insert({
+              advertiser_id: advertiserData.id,
+              target_categories: formData.target_categories || [],
+            });
+          }
 
         if (contactError) {
           console.error("Failed to create lead:", contactError);
@@ -252,8 +258,8 @@ export default function AdvertiserSignup() {
               {existingAdvertiser.status === "pending" && (
                 "We're reviewing your application. You'll receive an email once it's processed."
               )}
-              {existingAdvertiser.status === "rejected" && existingAdvertiser.rejection_reason && (
-                `Reason: ${existingAdvertiser.rejection_reason}`
+              {existingAdvertiser.status === "rejected" && (
+                `Your application was not approved. Please contact support for details.`
               )}
               {existingAdvertiser.status === "suspended" && (
                 "Please contact support for more information."

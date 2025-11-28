@@ -29,7 +29,7 @@ export const StudioAdInventory = ({ onAdSelect, selectedAd }: StudioAdInventoryP
             id,
             name,
             status,
-            budget,
+            total_budget,
             total_spent,
             cpm_bid,
             start_date,
@@ -51,7 +51,7 @@ export const StudioAdInventory = ({ onAdSelect, selectedAd }: StudioAdInventoryP
         new Date(ad.campaign.start_date) <= new Date() &&
         new Date(ad.campaign.end_date) >= new Date() &&
         (ad.campaign.remaining_impressions === null || ad.campaign.remaining_impressions > 0) &&
-        (ad.campaign.budget - (ad.campaign.total_spent || 0)) > 0
+        (ad.campaign.total_budget - (ad.campaign.total_spent || 0)) > 0
       ) || [];
     }
   });

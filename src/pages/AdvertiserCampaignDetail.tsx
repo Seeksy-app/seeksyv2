@@ -153,8 +153,8 @@ export default function AdvertiserCampaignDetail() {
     );
   }
 
-  const budgetRemaining = Number(campaign.budget) - Number(campaign.total_spent || 0);
-  const percentSpent = (Number(campaign.total_spent || 0) / Number(campaign.budget)) * 100;
+  const budgetRemaining = Number(campaign.total_budget) - Number(campaign.total_spent || 0);
+  const percentSpent = (Number(campaign.total_spent || 0) / Number(campaign.total_budget)) * 100;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -191,7 +191,7 @@ export default function AdvertiserCampaignDetail() {
                   </Badge>
                   {campaign.ad_creatives && campaign.ad_creatives.length > 0 && (
                     <Badge variant="outline">
-                      {campaign.ad_creatives[0].creative_type === "video" ? "📹 Video" : 
+                      {campaign.ad_creatives[0].format === "video" ? "📹 Video" : 
                        campaign.audio_ads?.[0]?.ad_type === "conversational" ? "🎙️ Conversational" : "🔊 Audio"} Ad
                     </Badge>
                   )}
@@ -295,7 +295,7 @@ export default function AdvertiserCampaignDetail() {
             <div className="grid grid-cols-4 gap-6 mb-6">
               <div>
                 <p className="text-sm text-muted-foreground">Budget</p>
-                <p className="text-2xl font-bold">${Number(campaign.budget).toFixed(2)}</p>
+                <p className="text-2xl font-bold">${Number(campaign.total_budget).toFixed(2)}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Spent</p>

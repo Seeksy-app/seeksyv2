@@ -288,7 +288,7 @@ export default function AdminCRM({ userManagementProps }: AdminCRMProps) {
                         <TableCell>
                           <div className="flex items-center gap-1 text-sm font-medium">
                             <DollarSign className="h-3 w-3" />
-                            {Number(advertiser.account_balance || 0).toFixed(2)}
+                            0.00
                           </div>
                         </TableCell>
                         <TableCell>
