@@ -1647,8 +1647,30 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         )}
       </SidebarContent>
 
-      <SidebarFooter className="border-t">
-        {/* Footer can remain for any future global actions */}
+      <SidebarFooter className="border-t p-3">
+        {/* Ask Spark Button */}
+        <button
+          onClick={() => {
+            // Trigger chat widget to open
+            const event = new CustomEvent('openSparkChat');
+            window.dispatchEvent(event);
+          }}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors group"
+        >
+          <div className="w-8 h-8 flex-shrink-0">
+            <img 
+              src="/spark/icons/spark-icon-32.png" 
+              alt="Seeksy Spark" 
+              className="w-full h-full object-contain group-hover:scale-110 transition-transform"
+            />
+          </div>
+          {!collapsed && (
+            <div className="flex-1 text-left">
+              <p className="text-sm font-medium">Ask Spark</p>
+              <p className="text-xs text-muted-foreground">Your AI Guide ✨</p>
+            </div>
+          )}
+        </button>
       </SidebarFooter>
     </Sidebar>
     

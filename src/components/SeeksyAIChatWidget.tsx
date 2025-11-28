@@ -4,12 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Loader2, X, Minimize2, MessageCircle } from "lucide-react";
+import { Send, Loader2, X, Minimize2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useLocation } from "react-router-dom";
-import seeksyAIIcon from "@/assets/seeksy-ai-agent-icon.png";
+import { SparkAvatar } from "@/components/spark/SparkAvatar";
+import { getSparkGreeting, type UserRole } from "@/lib/spark/sparkPersonality";
+import { useRole } from "@/contexts/RoleContext";
+import { isHolidaySeason } from "@/lib/spark/sparkAssets";
 
 interface Message {
   role: "user" | "assistant";
@@ -20,6 +23,7 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/seeksy-assis
 
 export const SeeksyAIChatWidget = () => {
   const location = useLocation();
+  const { currentRole } = useRole();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   
@@ -27,10 +31,40 @@ export const SeeksyAIChatWidget = () => {
   if (location.pathname === '/investor') {
     return null;
   }
+  
+  // Listen for sidebar "Ask Spark" click
+  useEffect(() => {
+    const handleOpenChat = () => setIsOpen(true);
+    window.addEventListener('openSparkChat', handleOpenChat);
+    return () => window.removeEventListener('openSparkChat', handleOpenChat);
+  }, []);
+  
+  // Global keyboard shortcut: Cmd+Shift+S (Mac) or Ctrl+Shift+S (Win)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'S') {
+        e.preventDefault();
+        setIsOpen(prev => !prev);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+  
+  // Determine user role for Spark personality
+  const userRole: UserRole = 
+    (currentRole === "admin" as any || currentRole === "super_admin" as any)
+      ? "admin" 
+      : (currentRole === "advertiser" as any)
+      ? "advertiser" 
+      : "creator";
+  
+  const greeting = getSparkGreeting(userRole);
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [messages, setMessages] = useState<Message[]>([{
     role: "assistant",
-    content: "Hi! I'm Seeksy AI. What do you need help with?"
+    content: greeting.text
   }]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -256,56 +290,55 @@ export const SeeksyAIChatWidget = () => {
   ];
 
   if (!isOpen) {
-    const isThanksgiving = new Date().getMonth() === 10; // November
-    const isChristmas = new Date().getMonth() === 11; // December
+    const isHoliday = isHolidaySeason();
     
     return (
-      <div className="fixed bottom-6 right-6 z-50">
-        {/* Holiday decorations - festive! */}
-        {isThanksgiving && (
-          <div className="absolute -top-3 -right-3 text-3xl drop-shadow-lg">🍂</div>
-        )}
-        {isChristmas && (
-          <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-5xl drop-shadow-lg">🎅</div>
-        )}
+      <div className="fixed bottom-6 right-6 z-50 group">
         <Button
           onClick={() => setIsOpen(true)}
-          className={`h-16 w-16 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 relative ${
-            isThanksgiving 
-              ? 'bg-gradient-to-br from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700'
-              : isChristmas
-              ? 'bg-gradient-to-br from-red-600 to-green-600 hover:from-red-700 hover:to-green-700'
-              : 'bg-gradient-to-br from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700'
-          }`}
+          className={cn(
+            "h-16 w-16 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 relative p-0 overflow-hidden",
+            isHoliday
+              ? "bg-gradient-to-br from-red-600 to-green-600 hover:from-red-700 hover:to-green-700"
+              : "bg-gradient-to-br from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600"
+          )}
           size="icon"
         >
-          <img src={seeksyAIIcon} alt="Seeksy AI" className="h-10 w-10" />
+          <div className="w-full h-full flex items-center justify-center p-2">
+            <SparkAvatar pose="idle" size={48} animated className="drop-shadow-lg" />
+          </div>
         </Button>
+        
+        {/* Subtle glow pulse animation */}
+        <div className="absolute inset-0 rounded-full bg-yellow-400/30 animate-pulse pointer-events-none" />
       </div>
     );
   }
 
-  const isThanksgiving = new Date().getMonth() === 10; // November
-  const isChristmas = new Date().getMonth() === 11; // December
+  const isHoliday = isHolidaySeason();
   
-  const headerGradient = isThanksgiving 
-    ? 'from-orange-500 to-amber-600'
-    : isChristmas 
+  const headerGradient = isHoliday
     ? 'from-red-600 to-green-600'
-    : 'from-purple-500 to-pink-600';
+    : 'from-yellow-400 to-amber-500';
   
   return (
     <Card className={cn(
-      "fixed bottom-6 right-6 shadow-2xl transition-all duration-300 z-50 flex flex-col",
+      "fixed bottom-6 right-6 shadow-2xl transition-all duration-300 z-50 flex flex-col animate-in slide-in-from-bottom-4",
       isMinimized ? "h-14 w-80" : "h-[600px] w-[400px]"
     )}>
       {/* Header */}
-      <div className={`flex items-center justify-between p-4 border-b bg-gradient-to-br ${headerGradient} text-white rounded-t-lg relative overflow-hidden`}>
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-white/20 rounded-lg">
-            <img src={seeksyAIIcon} alt="Seeksy AI" className="h-5 w-5" />
+      <div className={cn(
+        "flex items-center justify-between p-4 border-b text-white rounded-t-lg relative overflow-hidden",
+        `bg-gradient-to-br ${headerGradient}`
+      )}>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8">
+            <SparkAvatar pose="waving" size={32} />
           </div>
-          <h3 className="font-semibold">Seeksy AI</h3>
+          <div>
+            <h3 className="font-semibold text-sm">Seeksy Spark</h3>
+            <p className="text-xs text-white/80">Your AI Guide ✨</p>
+          </div>
         </div>
         <div className="flex items-center gap-1">
           <Button
@@ -360,8 +393,8 @@ export const SeeksyAIChatWidget = () => {
                   )}
                 >
                   {message.role === "assistant" && (
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center p-1">
-                      <img src={seeksyAIIcon} alt="Seeksy AI" className="h-full w-full object-contain" />
+                    <div className="flex-shrink-0 w-8 h-8">
+                      <SparkAvatar pose="idle" size={32} />
                     </div>
                   )}
                   <div
@@ -380,11 +413,11 @@ export const SeeksyAIChatWidget = () => {
               ))}
               {isLoading && (
                 <div className="flex gap-3 text-sm items-start">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center p-1">
-                    <img src={seeksyAIIcon} alt="Seeksy AI" className="h-full w-full object-contain" />
+                  <div className="flex-shrink-0 w-8 h-8">
+                    <SparkAvatar pose="typing" size={32} animated />
                   </div>
                   <div className="rounded-2xl px-4 py-2 bg-muted">
-                    <Loader2 className="h-4 w-4 animate-spin text-purple-500" />
+                    <Loader2 className="h-4 w-4 animate-spin text-yellow-500" />
                   </div>
                 </div>
               )}
