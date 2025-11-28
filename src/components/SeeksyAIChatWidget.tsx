@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sparkles, Send, Loader2, X, Minimize2, MessageCircle } from "lucide-react";
+import { Send, Loader2, X, Minimize2, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useLocation } from "react-router-dom";
+import seeksyAIIcon from "@/assets/seeksy-ai-agent-icon.png";
 
 interface Message {
   role: "user" | "assistant";
@@ -278,7 +279,7 @@ export const SeeksyAIChatWidget = () => {
           }`}
           size="icon"
         >
-          <Sparkles className="h-7 w-7 text-white" />
+          <img src={seeksyAIIcon} alt="Seeksy AI" className="h-10 w-10" />
         </Button>
       </div>
     );
@@ -302,7 +303,7 @@ export const SeeksyAIChatWidget = () => {
       <div className={`flex items-center justify-between p-4 border-b bg-gradient-to-br ${headerGradient} text-white rounded-t-lg relative overflow-hidden`}>
         <div className="flex items-center gap-2">
           <div className="p-1.5 bg-white/20 rounded-lg">
-            <Sparkles className="h-5 w-5" />
+            <img src={seeksyAIIcon} alt="Seeksy AI" className="h-5 w-5" />
           </div>
           <h3 className="font-semibold">Seeksy AI</h3>
         </div>
@@ -359,8 +360,8 @@ export const SeeksyAIChatWidget = () => {
                   )}
                 >
                   {message.role === "assistant" && (
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
-                      <Sparkles className="h-4 w-4 text-white" />
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center p-1">
+                      <img src={seeksyAIIcon} alt="Seeksy AI" className="h-full w-full object-contain" />
                     </div>
                   )}
                   <div
@@ -379,8 +380,8 @@ export const SeeksyAIChatWidget = () => {
               ))}
               {isLoading && (
                 <div className="flex gap-3 text-sm items-start">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
-                    <Sparkles className="h-4 w-4 text-white" />
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center p-1">
+                    <img src={seeksyAIIcon} alt="Seeksy AI" className="h-full w-full object-contain" />
                   </div>
                   <div className="rounded-2xl px-4 py-2 bg-muted">
                     <Loader2 className="h-4 w-4 animate-spin text-purple-500" />
