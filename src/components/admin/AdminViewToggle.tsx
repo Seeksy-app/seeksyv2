@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useRole } from "@/contexts/RoleContext";
 
 interface AdminViewToggleProps {
   adminViewMode: boolean;
@@ -23,6 +24,7 @@ export const AdminViewToggle = ({ adminViewMode, onToggle }: AdminViewToggleProp
   const [profile, setProfile] = useState<AdminProfile | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const { currentRole } = useRole();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -55,8 +57,12 @@ export const AdminViewToggle = ({ adminViewMode, onToggle }: AdminViewToggleProp
         // Switched to Admin View - always go to admin dashboard
         navigate('/admin');
       } else {
-        // Switched to Personal View - always go to creator dashboard  
-        navigate('/dashboard');
+        // Switched to Personal View - go to role-specific dashboard
+        if (currentRole === 'advertiser') {
+          navigate('/advertiser');
+        } else {
+          navigate('/dashboard');
+        }
       }
     }, 100);
   };
