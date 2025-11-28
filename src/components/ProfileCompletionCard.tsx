@@ -42,7 +42,7 @@ export const ProfileCompletionCard = ({ fullName, phone, avatarUrl, myPageVisite
 
   // Only add My Page field if integration is enabled
   const fields = myPageEnabled 
-    ? [...baseFields, { name: "Create My Page", value: myPageVisited ? "visited" : "", icon: Layout, page: "profile-edit", fieldId: "bio", isMyPage: true }]
+    ? [...baseFields, { name: "Create My Page", value: myPageVisited ? "visited" : "", icon: Layout, page: "/profile/edit", fieldId: "bio", isMyPage: true }]
     : baseFields;
 
   // More robust check: consider field complete if it has a truthy value with actual content

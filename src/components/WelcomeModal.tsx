@@ -107,7 +107,7 @@ const WelcomeModal = () => {
           </button>
 
           <button
-            onClick={() => handleAction("/profile-edit")}
+            onClick={() => handleAction("/profile/edit")}
             className="p-4 border border-primary/30 rounded-lg hover:border-primary hover:bg-primary/10 transition-all text-left"
           >
             <div className="flex items-start gap-3">

@@ -423,8 +423,8 @@ const AppContent = () => {
               <Route path="/seeksy-ai-boost-help" element={<SeeksyAIBoostHelp />} />
               <Route path="/book/:username" element={<BookMeetings />} />
               <Route path="/book/:username/:meetingTypeId" element={<BookMeetingSlot />} />
-              <Route path="/profile/edit" element={<ProfileEdit />} />
-              <Route path="/profile/edit/v2" element={<MyPageBuilderV2 />} />
+              <Route path="/profile/edit" element={<MyPageBuilderV2 />} />
+              <Route path="/profile/edit/legacy" element={<ProfileEdit />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/legal" element={<AdminLegal />} />
             <Route path="/admin/conversational-demo" element={<AdminConversationalDemo />} />
