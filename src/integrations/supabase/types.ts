@@ -354,6 +354,248 @@ export type Database = {
           },
         ]
       }
+      ad_financial_assumptions: {
+        Row: {
+          ad_slots_per_listen: number
+          assumptions_json: Json | null
+          avg_campaign_duration_months: number
+          avg_campaign_monthly_budget: number
+          cpm_midroll: number
+          cpm_postroll: number
+          cpm_preroll: number
+          created_at: string
+          creator_rev_share: number
+          currency: string
+          episodes_per_creator_per_month: number
+          fill_rate: number
+          id: string
+          listens_per_episode: number
+          monthly_campaign_growth: number
+          monthly_creator_growth: number
+          percent_creators_monetized: number
+          platform_variable_cost_pct: number
+          projection_months: number
+          scenario_id: string
+          share_midroll: number
+          share_postroll: number
+          share_preroll: number
+          starting_campaigns: number
+          starting_creators: number
+        }
+        Insert: {
+          ad_slots_per_listen: number
+          assumptions_json?: Json | null
+          avg_campaign_duration_months: number
+          avg_campaign_monthly_budget: number
+          cpm_midroll: number
+          cpm_postroll: number
+          cpm_preroll: number
+          created_at?: string
+          creator_rev_share: number
+          currency?: string
+          episodes_per_creator_per_month: number
+          fill_rate: number
+          id?: string
+          listens_per_episode: number
+          monthly_campaign_growth: number
+          monthly_creator_growth: number
+          percent_creators_monetized: number
+          platform_variable_cost_pct: number
+          projection_months?: number
+          scenario_id: string
+          share_midroll: number
+          share_postroll: number
+          share_preroll: number
+          starting_campaigns: number
+          starting_creators: number
+        }
+        Update: {
+          ad_slots_per_listen?: number
+          assumptions_json?: Json | null
+          avg_campaign_duration_months?: number
+          avg_campaign_monthly_budget?: number
+          cpm_midroll?: number
+          cpm_postroll?: number
+          cpm_preroll?: number
+          created_at?: string
+          creator_rev_share?: number
+          currency?: string
+          episodes_per_creator_per_month?: number
+          fill_rate?: number
+          id?: string
+          listens_per_episode?: number
+          monthly_campaign_growth?: number
+          monthly_creator_growth?: number
+          percent_creators_monetized?: number
+          platform_variable_cost_pct?: number
+          projection_months?: number
+          scenario_id?: string
+          share_midroll?: number
+          share_postroll?: number
+          share_preroll?: number
+          starting_campaigns?: number
+          starting_creators?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_financial_assumptions_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "ad_financial_scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_financial_model_summaries: {
+        Row: {
+          created_at: string
+          id: string
+          scenario_id: string
+          summary_text: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          scenario_id: string
+          summary_text: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          scenario_id?: string
+          summary_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_financial_model_summaries_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "ad_financial_scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_financial_projections: {
+        Row: {
+          active_campaigns: number
+          constrained_gross_revenue: number
+          created_at: string
+          creator_payout: number
+          creators: number
+          episodes: number
+          gross_revenue_midroll: number
+          gross_revenue_postroll: number
+          gross_revenue_preroll: number
+          gross_revenue_total: number
+          id: string
+          impressions_midroll: number
+          impressions_postroll: number
+          impressions_preroll: number
+          max_billable_revenue: number
+          monetized_creators: number
+          month_index: number
+          period_end: string
+          period_start: string
+          platform_net_revenue: number
+          platform_variable_costs: number
+          scenario_id: string
+          total_impressions: number
+        }
+        Insert: {
+          active_campaigns: number
+          constrained_gross_revenue: number
+          created_at?: string
+          creator_payout: number
+          creators: number
+          episodes: number
+          gross_revenue_midroll: number
+          gross_revenue_postroll: number
+          gross_revenue_preroll: number
+          gross_revenue_total: number
+          id?: string
+          impressions_midroll: number
+          impressions_postroll: number
+          impressions_preroll: number
+          max_billable_revenue: number
+          monetized_creators: number
+          month_index: number
+          period_end: string
+          period_start: string
+          platform_net_revenue: number
+          platform_variable_costs: number
+          scenario_id: string
+          total_impressions: number
+        }
+        Update: {
+          active_campaigns?: number
+          constrained_gross_revenue?: number
+          created_at?: string
+          creator_payout?: number
+          creators?: number
+          episodes?: number
+          gross_revenue_midroll?: number
+          gross_revenue_postroll?: number
+          gross_revenue_preroll?: number
+          gross_revenue_total?: number
+          id?: string
+          impressions_midroll?: number
+          impressions_postroll?: number
+          impressions_preroll?: number
+          max_billable_revenue?: number
+          monetized_creators?: number
+          month_index?: number
+          period_end?: string
+          period_start?: string
+          platform_net_revenue?: number
+          platform_variable_costs?: number
+          scenario_id?: string
+          total_impressions?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_financial_projections_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "ad_financial_scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_financial_scenarios: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_financial_scenarios_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ad_impressions: {
         Row: {
           ad_slot_id: string
@@ -701,6 +943,42 @@ export type Database = {
           title?: string
           updated_at?: string | null
           video_url?: string
+        }
+        Relationships: []
+      }
+      admin_revenue_reports: {
+        Row: {
+          created_at: string
+          currency: string
+          gross_revenue: number
+          id: string
+          net_revenue: number
+          period_end: string
+          period_start: string
+          refunds: number
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          gross_revenue?: number
+          id?: string
+          net_revenue?: number
+          period_end: string
+          period_start: string
+          refunds?: number
+          source: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          gross_revenue?: number
+          id?: string
+          net_revenue?: number
+          period_end?: string
+          period_start?: string
+          refunds?: number
+          source?: string
         }
         Relationships: []
       }
@@ -1823,6 +2101,48 @@ export type Database = {
           voting_close_date?: string | null
           voting_method?: Database["public"]["Enums"]["voting_method"]
           voting_open_date?: string | null
+        }
+        Relationships: []
+      }
+      billing_invoices: {
+        Row: {
+          amount_due: number
+          amount_paid: number
+          created_at: string
+          currency: string
+          customer_id: string | null
+          customer_name: string | null
+          due_date: string | null
+          external_id: string | null
+          id: string
+          issued_at: string | null
+          status: string
+        }
+        Insert: {
+          amount_due: number
+          amount_paid: number
+          created_at?: string
+          currency?: string
+          customer_id?: string | null
+          customer_name?: string | null
+          due_date?: string | null
+          external_id?: string | null
+          id?: string
+          issued_at?: string | null
+          status: string
+        }
+        Update: {
+          amount_due?: number
+          amount_paid?: number
+          created_at?: string
+          currency?: string
+          customer_id?: string | null
+          customer_name?: string | null
+          due_date?: string | null
+          external_id?: string | null
+          id?: string
+          issued_at?: string | null
+          status?: string
         }
         Relationships: []
       }
