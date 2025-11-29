@@ -1597,7 +1597,7 @@ export default function MediaLibrary() {
                   <Sparkles className="h-5 w-5 text-primary" />
                   <div>
                     <p className="font-semibold">AI Edited Videos</p>
-                    <p className="text-sm text-muted-foreground">Videos that have been processed with AI enhancements</p>
+                    <p className="text-sm text-muted-foreground">Videos processed with tracked AI enhancements</p>
                   </div>
                 </div>
 
@@ -1606,7 +1606,7 @@ export default function MediaLibrary() {
                     <Sparkles className="h-16 w-16 text-muted-foreground mb-4" />
                     <h3 className="text-xl font-semibold mb-2">No AI edited videos yet</h3>
                     <p className="text-muted-foreground mb-4">
-                      Use the Post Production Studio to apply AI enhancements
+                      Run Full AI Enhancement on any video to track edits
                     </p>
                     <Button onClick={() => navigate("/media-library")}>
                       Go to Media Library
