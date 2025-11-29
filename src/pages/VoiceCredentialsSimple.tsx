@@ -20,7 +20,8 @@ import {
   Share2,
   Code,
   QrCode,
-  Award
+  Award,
+  Scan
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -32,6 +33,7 @@ import { VoiceDetectionsFilters } from "@/components/voice/VoiceDetectionsFilter
 import { getVoiceDetectionsForUser, getRecentDetectionCount } from "@/lib/api/voiceDetectionsAPI";
 import type { VoiceDetection } from "@/lib/api/voiceDetectionsAPI";
 import { hasVoiceFingerprint, hasActiveMonitoring } from "@/lib/voice/voiceMonitoringSetup";
+import { RegisterFaceDialog } from "@/components/face-registration/RegisterFaceDialog";
 
 export default function VoiceCredentials() {
   const [loading, setLoading] = useState(true);
@@ -43,6 +45,7 @@ export default function VoiceCredentials() {
   const [badgeShares, setBadgeShares] = useState<any[]>([]);
   const [hasFingerprint, setHasFingerprint] = useState(false);
   const [monitoringActive, setMonitoringActive] = useState(false);
+  const [showFaceRegisterDialog, setShowFaceRegisterDialog] = useState(false);
   
   // Detection filters
   const [platformFilter, setPlatformFilter] = useState<string[]>([]);
