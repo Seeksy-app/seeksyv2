@@ -82,6 +82,8 @@ import RSSMigrationPage from "./pages/RSSMigrationPage";
 import PaidAdsTerms from "./pages/legal/PaidAdsTerms";
 import SubscriptionSettings from "./pages/SubscriptionSettings";
 import { SeeksyAIChatWidget } from "./components/SeeksyAIChatWidget";
+import { HOLIDAY_MODE } from "./config/holidayMode";
+import { HolidayWelcomeModal, SantaAssistantButton, Snowfall } from "./components/holiday";
 import AdminAds from "./pages/AdminAds";
 import AdminAudioAds from "./pages/AdminAudioAds";
 import PodcastAds from "./pages/PodcastAds";
@@ -619,6 +621,15 @@ const AppContent = () => {
           </main>
         </div>
         {user && !location.pathname.includes('/meeting-studio/') && !location.pathname.includes('/studio/') && <SeeksyAIChatWidget />}
+        
+        {/* Holiday Mode Elements */}
+        {HOLIDAY_MODE && (
+          <>
+            <HolidayWelcomeModal />
+            <SantaAssistantButton />
+            <Snowfall />
+          </>
+        )}
         </div>
       </SidebarProvider>
     </RoleProvider>
