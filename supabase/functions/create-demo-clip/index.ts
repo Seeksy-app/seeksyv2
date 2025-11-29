@@ -7,15 +7,13 @@ const corsHeaders = {
 };
 
 /**
- * CREATE DEMO CLIP - Phase 2 Pipeline Validation
+ * CREATE DEMO CLIP - Phase 3 Cloudflare Stream Pipeline
  * 
- * Creates a demo clip to validate the end-to-end pipeline:
+ * Creates a demo clip using the Phase 3 pipeline:
  * - Creates clips record with proper status tracking
- * - Calls process-clip-stream to generate vertical + thumbnail outputs
- * - Validates pipeline architecture with real file generation
- * 
- * Phase 2 MVP: Files are generated but not yet cropped/transformed
- * Phase 3: Add real video processing (FFmpeg or Cloudflare Stream API)
+ * - Calls process-clip-phase3 for OpusClip-quality processing
+ * - Generates vertical (9:16) and thumbnail (1:1) clips
+ * - Uses Cloudflare Stream for real video transformations
  */
 
 serve(async (req) => {
@@ -82,16 +80,17 @@ serve(async (req) => {
 
     console.log("Created clip record:", clipRecord.id);
 
-    // STEP 2: Call the processing function to generate real clip files
-    console.log("Calling process-clip-stream to generate transformed clips...");
+    // STEP 2: Call Phase 3 processing with Cloudflare Stream
+    console.log("Calling process-clip-phase3 to generate OpusClip-quality clips...");
     
-    const processResponse = await supabase.functions.invoke('process-clip-stream', {
+    const processResponse = await supabase.functions.invoke('process-clip-phase3', {
       body: {
         clipId: clipRecord.id,
         sourceVideoUrl: sourceVideo.file_url,
         startTime: startTime,
         duration: duration,
-        outputFormats: ['vertical', 'thumbnail'],
+        title: "Demo: AI Clip Test",
+        transcript: "This is a demonstration clip showing the complete Phase 3 pipeline with Cloudflare Stream transformations.",
       }
     });
 
@@ -103,7 +102,7 @@ serve(async (req) => {
     const processData = processResponse.data;
     console.log("Processing complete:", processData);
 
-    console.log("✅ Demo clip created successfully with real file outputs");
+    console.log("✅ Demo clip created successfully with Phase 3 processing");
 
     return new Response(
       JSON.stringify({
@@ -111,10 +110,10 @@ serve(async (req) => {
         clipId: clipRecord.id,
         title: "Demo: AI Clip Test",
         duration: duration,
-        processedClips: processData.processedClips,
-        message: "Phase 2 MVP: Clip pipeline validated with real file generation",
-        note: "Files are generated but not yet cropped/transformed. Phase 3 will add real video processing with FFmpeg or Cloudflare Stream.",
-        phase: "Phase 2 - Pipeline Architecture Validated",
+        vertical: processData.vertical,
+        thumbnail: processData.thumbnail,
+        message: "Phase 3: OpusClip-quality clips generated with Cloudflare Stream",
+        phase: "Phase 3 - Cloudflare Stream Processing",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
