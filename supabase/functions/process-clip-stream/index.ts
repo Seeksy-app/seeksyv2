@@ -204,6 +204,37 @@ serve(async (req) => {
 
       } catch (error) {
         console.error(`Failed to process ${format}:`, error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error(`Error details: ${errorMessage}`);
+        
+        // Try to create failed job record for visibility
+        try {
+          const { data: failedJob } = await supabase
+            .from("ai_jobs")
+            .insert({
+              user_id: user.id,
+              job_type: 'clips_generation',
+              engine: 'cloudflare_stream',
+              params: {
+                clip_id: clipId,
+                start_time: startTime,
+                duration: duration,
+                output_format: format,
+              },
+              status: 'failed',
+              error_message: errorMessage,
+              started_at: new Date().toISOString(),
+              completed_at: new Date().toISOString(),
+            })
+            .select()
+            .single();
+          
+          if (failedJob) {
+            console.log(`Created failed job record ${failedJob.id} for ${format}`);
+          }
+        } catch (jobError) {
+          console.error(`Could not create failed job record:`, jobError);
+        }
         // Continue with other formats
       }
     }
@@ -242,6 +273,10 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("Error processing clip:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorDetails = error instanceof Error ? error.stack : String(error);
+    
+    console.error(`Full error details: ${errorDetails}`);
 
     // Update clip status to failed if we have a clipRecord
     if (clipRecord?.id && supabase) {
@@ -249,15 +284,33 @@ serve(async (req) => {
         .from("clips")
         .update({
           status: 'failed',
-          error_message: error instanceof Error ? error.message : String(error)
+          error_message: errorMessage,
         })
         .eq("id", clipRecord.id);
+      
+      // Also try to create a failed ai_job record for tracking
+      try {
+        await supabase
+          .from("ai_jobs")
+          .insert({
+            user_id: clipRecord.user_id,
+            job_type: 'clips_generation',
+            engine: 'cloudflare_stream',
+            params: { clip_id: clipRecord.id, error: 'top_level_failure' },
+            status: 'failed',
+            error_message: errorMessage,
+            started_at: new Date().toISOString(),
+            completed_at: new Date().toISOString(),
+          });
+      } catch (jobError) {
+        console.error('Could not create failed job record:', jobError);
+      }
     }
 
     return new Response(
       JSON.stringify({
-        error: error instanceof Error ? error.message : "Unknown error",
-        details: String(error),
+        error: errorMessage,
+        details: errorDetails,
       }),
       {
         status: 500,
