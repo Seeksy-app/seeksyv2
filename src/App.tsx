@@ -355,7 +355,7 @@ const AppContent = () => {
               
               {/* Unified Voice Identity Hub */}
               <Route path="/my-voice-identity" element={<MyVoiceIdentity />} />
-              <Route path="/voice-cloning" element={<ProtectedRoute><VoiceCloningWizard /></ProtectedRoute>} />
+              <Route path="/voice-cloning" element={<ProtectedRoute requiredRole="creator"><VoiceCloningWizard /></ProtectedRoute>} />
               <Route path="/voice-certification-flow" element={<VoiceCertificationDashboard />} />
               <Route path="/voice-certification/upload" element={<UploadOrRecordVoice />} />
               <Route path="/voice-certification/fingerprint" element={<AIVoiceFingerprinting />} />
