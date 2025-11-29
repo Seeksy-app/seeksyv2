@@ -331,8 +331,9 @@ const AppContent = () => {
   return (
     <RoleProvider>
       <SidebarProvider>
-        <SparkSnowfall />
-        <SeeksySantaWidget />
+        {/* Holiday features temporarily disabled */}
+        {/* <SparkSnowfall /> */}
+        {/* <SeeksySantaWidget /> */}
         <div className="min-h-screen flex w-full bg-background">
           {/* Hide Sidebar on Studio workspace (but show on Studio Hub) */}
           {user && location.pathname !== '/studio/session/:id' && !location.pathname.includes('/studio/session/') && <AppSidebar user={user} isAdmin={isAdmin} />}

@@ -6,7 +6,7 @@ import { User } from "@supabase/supabase-js";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import seeksyLogo from "@/assets/seeksy-logo.png";
+const seeksyLogo = "/seeksy-logo.png";
 import { MasterSearch } from "@/components/MasterSearch";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CreditBalance } from "@/components/credits/CreditBalance";
