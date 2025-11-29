@@ -1321,6 +1321,145 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_edit_events: {
+        Row: {
+          ai_job_id: string
+          created_at: string
+          details: Json | null
+          event_type: string
+          id: string
+          timestamp_seconds: number | null
+        }
+        Insert: {
+          ai_job_id: string
+          created_at?: string
+          details?: Json | null
+          event_type: string
+          id?: string
+          timestamp_seconds?: number | null
+        }
+        Update: {
+          ai_job_id?: string
+          created_at?: string
+          details?: Json | null
+          event_type?: string
+          id?: string
+          timestamp_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_edit_events_ai_job_id_fkey"
+            columns: ["ai_job_id"]
+            isOneToOne: false
+            referencedRelation: "ai_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_edited_assets: {
+        Row: {
+          ai_job_id: string
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          metadata: Json | null
+          output_type: string
+          source_media_id: string
+          storage_path: string
+          thumbnail_url: string | null
+        }
+        Insert: {
+          ai_job_id: string
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          metadata?: Json | null
+          output_type: string
+          source_media_id: string
+          storage_path: string
+          thumbnail_url?: string | null
+        }
+        Update: {
+          ai_job_id?: string
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          metadata?: Json | null
+          output_type?: string
+          source_media_id?: string
+          storage_path?: string
+          thumbnail_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_edited_assets_ai_job_id_fkey"
+            columns: ["ai_job_id"]
+            isOneToOne: false
+            referencedRelation: "ai_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_edited_assets_source_media_id_fkey"
+            columns: ["source_media_id"]
+            isOneToOne: false
+            referencedRelation: "media_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          engine: string
+          error_message: string | null
+          id: string
+          job_type: string
+          params: Json | null
+          processing_time_seconds: number | null
+          source_media_id: string | null
+          started_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          engine?: string
+          error_message?: string | null
+          id?: string
+          job_type: string
+          params?: Json | null
+          processing_time_seconds?: number | null
+          source_media_id?: string | null
+          started_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          engine?: string
+          error_message?: string | null
+          id?: string
+          job_type?: string
+          params?: Json | null
+          processing_time_seconds?: number | null
+          source_media_id?: string | null
+          started_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_jobs_source_media_id_fkey"
+            columns: ["source_media_id"]
+            isOneToOne: false
+            referencedRelation: "media_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_messages: {
         Row: {
           content: string
@@ -2989,6 +3128,69 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      clips: {
+        Row: {
+          ai_job_id: string | null
+          created_at: string
+          duration_seconds: number | null
+          end_seconds: number
+          id: string
+          source_media_id: string
+          start_seconds: number
+          status: string
+          storage_path: string | null
+          suggested_caption: string | null
+          title: string | null
+          user_id: string
+          virality_score: number | null
+        }
+        Insert: {
+          ai_job_id?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          end_seconds: number
+          id?: string
+          source_media_id: string
+          start_seconds: number
+          status?: string
+          storage_path?: string | null
+          suggested_caption?: string | null
+          title?: string | null
+          user_id: string
+          virality_score?: number | null
+        }
+        Update: {
+          ai_job_id?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          end_seconds?: number
+          id?: string
+          source_media_id?: string
+          start_seconds?: number
+          status?: string
+          storage_path?: string | null
+          suggested_caption?: string | null
+          title?: string | null
+          user_id?: string
+          virality_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clips_ai_job_id_fkey"
+            columns: ["ai_job_id"]
+            isOneToOne: false
+            referencedRelation: "ai_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clips_source_media_id_fkey"
+            columns: ["source_media_id"]
+            isOneToOne: false
+            referencedRelation: "media_files"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       constituent_requests: {
         Row: {

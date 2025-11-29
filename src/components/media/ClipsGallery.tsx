@@ -16,14 +16,13 @@ import {
 
 interface Clip {
   id: string;
-  title: string;
-  clip_url: string | null;
-  start_time: number;
-  end_time: number;
+  title: string | null;
+  storage_path: string | null;
+  start_seconds: number;
+  end_seconds: number;
   duration_seconds: number;
-  clip_type: string;
-  text_overlay: string | null;
-  thumbnail_url: string | null;
+  suggested_caption: string | null;
+  virality_score: number | null;
   status: string;
   created_at: string;
   source_media: {
@@ -37,13 +36,13 @@ export function ClipsGallery() {
   const [previewOpen, setPreviewOpen] = useState(false);
 
   const { data: clips, isLoading, refetch } = useQuery({
-    queryKey: ["media-clips"],
+    queryKey: ["clips"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
       const { data, error } = await supabase
-        .from("media_clips")
+        .from("clips")
         .select(`
           *,
           source_media:source_media_id (
@@ -62,7 +61,7 @@ export function ClipsGallery() {
   const handleDelete = async (clipId: string) => {
     try {
       const { error } = await supabase
-        .from("media_clips")
+        .from("clips")
         .delete()
         .eq("id", clipId);
 
@@ -77,22 +76,25 @@ export function ClipsGallery() {
   };
 
   const handleDownload = async (clip: Clip) => {
-    if (!clip.clip_url) {
+    if (!clip.storage_path) {
       toast.error("Clip not yet processed");
       return;
     }
 
     try {
-      const response = await fetch(clip.clip_url);
+      // For now, clips are time-stamped URLs (demo mode)
+      // In production with FFmpeg, this would be actual clip files
+      const response = await fetch(clip.storage_path.split('#')[0]);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${clip.title}.mp4`;
+      a.download = `${clip.title || 'clip'}.mp4`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      toast.success("Note: This downloads the full video. Clip extraction requires FFmpeg integration.");
     } catch (error) {
       console.error("Error downloading clip:", error);
       toast.error("Failed to download clip");
@@ -148,10 +150,9 @@ export function ClipsGallery() {
           {clips.map((clip) => (
             <Card key={clip.id} className="overflow-hidden">
               <div className="relative aspect-video bg-muted">
-                {clip.thumbnail_url ? (
-                  <img
-                    src={clip.thumbnail_url}
-                    alt={clip.title}
+                {clip.source_media?.file_url ? (
+                  <video
+                    src={`${clip.source_media.file_url}#t=${clip.start_seconds}`}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -164,20 +165,24 @@ export function ClipsGallery() {
                     <Badge variant="secondary">Processing...</Badge>
                   </div>
                 )}
-                {clip.text_overlay && (
-                  <Badge className="absolute top-2 right-2" variant="secondary">
-                    <Type className="h-3 w-3 mr-1" />
-                    Captions
+                {clip.virality_score && clip.virality_score > 70 && (
+                  <Badge className="absolute top-2 right-2 bg-primary" variant="default">
+                    🔥 {clip.virality_score}% Viral
                   </Badge>
                 )}
               </div>
               
               <CardContent className="p-4 space-y-3">
                 <div>
-                  <h4 className="font-semibold line-clamp-2">{clip.title}</h4>
+                  <h4 className="font-semibold line-clamp-2">{clip.title || 'Untitled Clip'}</h4>
                   {clip.source_media && (
                     <p className="text-xs text-muted-foreground mt-1">
                       From: {clip.source_media.file_name}
+                    </p>
+                  )}
+                  {clip.suggested_caption && (
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                      {clip.suggested_caption}
                     </p>
                   )}
                 </div>
@@ -187,12 +192,10 @@ export function ClipsGallery() {
                     <Clock className="h-3 w-3" />
                     {formatDuration(clip.duration_seconds)}
                   </div>
-                  {clip.clip_type === "ai_generated" && (
-                    <Badge variant="outline" className="text-xs">
-                      <Sparkles className="h-3 w-3 mr-1" />
-                      AI
-                    </Badge>
-                  )}
+                  <Badge variant="outline" className="text-xs">
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    AI
+                  </Badge>
                 </div>
 
                 <div className="flex gap-2">
@@ -243,18 +246,26 @@ export function ClipsGallery() {
             </DialogDescription>
           </DialogHeader>
           
-          {selectedClip?.clip_url ? (
+          {selectedClip?.storage_path ? (
             <div className="space-y-4">
               <video
-                src={selectedClip.clip_url}
+                src={selectedClip.storage_path}
                 controls
                 className="w-full rounded-lg"
               />
               
-              {selectedClip.text_overlay && (
+              {selectedClip.suggested_caption && (
                 <div className="p-4 bg-muted rounded-lg">
-                  <p className="text-sm font-medium mb-2">Caption Text:</p>
-                  <p className="text-sm">{selectedClip.text_overlay}</p>
+                  <p className="text-sm font-medium mb-2">AI Suggested Caption:</p>
+                  <p className="text-sm">{selectedClip.suggested_caption}</p>
+                </div>
+              )}
+              
+              {selectedClip.virality_score && (
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">
+                    Virality Score: {selectedClip.virality_score}%
+                  </Badge>
                 </div>
               )}
             </div>

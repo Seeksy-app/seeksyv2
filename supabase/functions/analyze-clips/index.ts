@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,6 +12,18 @@ serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) throw new Error("Not authenticated");
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) throw new Error("Not authenticated");
+
     const { mediaId, fileUrl, duration, transcript } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
@@ -18,7 +31,29 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Analyzing video for clips:", { mediaId, duration, hasTranscript: !!transcript });
+    console.log("Analyzing video for clips:", { mediaId, duration, hasTranscript: !!transcript, userId: user.id });
+
+    // Create AI job for clips generation
+    const { data: aiJob, error: aiJobError } = await supabase
+      .from("ai_jobs")
+      .insert({
+        user_id: user.id,
+        source_media_id: mediaId,
+        job_type: 'clips_generation',
+        engine: 'lovable_ai',
+        params: { duration, has_transcript: !!transcript },
+        status: 'processing',
+        started_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (aiJobError) {
+      console.error("Error creating AI job:", aiJobError);
+      throw aiJobError;
+    }
+
+    const startTime = Date.now();
 
     // Build context for AI - use transcript if available
     let analysisContext = `Analyze a ${duration || 'unknown'}-second video and identify 3-5 viral-worthy clips.`;
@@ -103,6 +138,17 @@ Video duration: ${duration || 'unknown'} seconds`
     if (!response.ok) {
       const errorText = await response.text();
       console.error("AI API error:", response.status, errorText);
+      
+      // Mark job as failed
+      await supabase
+        .from("ai_jobs")
+        .update({
+          status: "failed",
+          error_message: `AI API error: ${response.status}`,
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", aiJob.id);
+      
       throw new Error(`AI API error: ${response.status}`);
     }
 
@@ -110,15 +156,79 @@ Video duration: ${duration || 'unknown'} seconds`
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     
     if (!toolCall) {
+      await supabase
+        .from("ai_jobs")
+        .update({
+          status: "failed",
+          error_message: "No clips identified by AI",
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", aiJob.id);
+      
       throw new Error("No clips identified by AI");
     }
 
     const result = JSON.parse(toolCall.function.arguments);
-    console.log("Clips identified:", result.clips.length);
+    console.log("AI identified", result.clips.length, "clips");
 
-    return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // Create clip records in database
+    const clipInserts = result.clips.map((clip: any) => ({
+      user_id: user.id,
+      source_media_id: mediaId,
+      ai_job_id: aiJob.id,
+      start_seconds: clip.start_time,
+      end_seconds: clip.end_time,
+      title: clip.title,
+      suggested_caption: clip.hook,
+      virality_score: clip.virality_score,
+      storage_path: `${fileUrl}#t=${clip.start_time},${clip.end_time}`, // Placeholder for demo
+      status: 'pending', // Would be 'processing' then 'ready' with FFmpeg
+    }));
+
+    const { data: insertedClips, error: clipsError } = await supabase
+      .from("clips")
+      .insert(clipInserts)
+      .select();
+
+    if (clipsError) {
+      console.error("Error creating clips:", clipsError);
+      
+      await supabase
+        .from("ai_jobs")
+        .update({
+          status: "failed",
+          error_message: `Failed to save clips: ${clipsError.message}`,
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", aiJob.id);
+      
+      throw clipsError;
+    }
+
+    // Mark job as completed
+    const processingTime = (Date.now() - startTime) / 1000;
+    await supabase
+      .from("ai_jobs")
+      .update({
+        status: "completed",
+        completed_at: new Date().toISOString(),
+        processing_time_seconds: processingTime,
+      })
+      .eq("id", aiJob.id);
+
+    console.log(`Clips job ${aiJob.id} completed in ${processingTime}s, created ${insertedClips.length} clips`);
+
+    return new Response(
+      JSON.stringify({ 
+        success: true,
+        clips: result.clips,
+        jobId: aiJob.id,
+        clipsCreated: insertedClips.length
+      }), 
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     console.error("Error in analyze-clips:", error);
     return new Response(
@@ -130,3 +240,29 @@ Video duration: ${duration || 'unknown'} seconds`
     );
   }
 });
+
+/*
+IMPLEMENTATION STATUS:
+
+✅ COMPLETED:
+- AI job tracking for clip generation
+- Real clip records in clips table with metadata
+- Virality scoring and hooks from AI
+- Proper error handling and job status updates
+- Processing time tracking
+
+⚠️ SIMULATED (Needs FFmpeg for production):
+- Actual clip file extraction (currently stores time-stamped URL fragments)
+- Physical clip file creation
+- Clip status progression (pending → processing → ready)
+
+For production with real clip extraction:
+1. After AI identifies clips, download source video
+2. Use FFmpeg to extract each time segment
+3. Upload extracted clips to storage
+4. Update storage_path with real clip URLs
+5. Set status to 'ready'
+
+Current implementation provides full clip metadata and tracking, allowing UI to display
+clips with time ranges while waiting for FFmpeg extraction.
+*/

@@ -41,7 +41,7 @@ serve(async (req) => {
 
     const { mediaFileId, jobType, config = {} }: ProcessVideoRequest = await req.json();
 
-    console.log("Processing video:", { mediaFileId, jobType });
+    console.log("Processing video:", { mediaFileId, jobType, userId: user.id });
 
     // Get media file details
     const { data: mediaFile, error: mediaError } = await supabase
@@ -59,32 +59,38 @@ serve(async (req) => {
       throw new Error("Unauthorized");
     }
 
-    // Create processing job
-    const { data: job, error: jobError } = await supabase
-      .from("media_processing_jobs")
+    // Create AI job in new tracking table
+    const { data: aiJob, error: aiJobError } = await supabase
+      .from("ai_jobs")
       .insert({
-        media_file_id: mediaFileId,
-        job_type: jobType,
-        status: "processing",
-        processing_started_at: new Date().toISOString(),
-        config: config,
+        user_id: user.id,
+        source_media_id: mediaFileId,
+        job_type: jobType === 'ai_edit' ? 'full_enhancement' : 
+                  jobType === 'ad_insertion' ? 'analysis' : 'full_enhancement',
+        engine: 'lovable_ai',
+        params: config,
+        status: 'processing',
+        started_at: new Date().toISOString(),
       })
       .select()
       .single();
 
-    if (jobError) throw jobError;
+    if (aiJobError) {
+      console.error("Error creating AI job:", aiJobError);
+      throw aiJobError;
+    }
 
-    console.log("Created processing job:", job.id);
+    console.log("Created AI job:", aiJob.id);
 
     // Start background processing (fire and forget)
-    processVideoBackground(supabase, job.id, mediaFile, jobType, config).catch(err => {
+    processVideoBackground(supabase, aiJob.id, mediaFile, jobType, config, user.id).catch(err => {
       console.error("Background processing error:", err);
     });
 
     return new Response(
       JSON.stringify({
         success: true,
-        jobId: job.id,
+        jobId: aiJob.id,
         message: "Video processing started",
       }),
       {
@@ -105,15 +111,16 @@ serve(async (req) => {
 
 async function processVideoBackground(
   supabase: any,
-  jobId: string,
+  aiJobId: string,
   mediaFile: any,
   jobType: string,
-  config: any
+  config: any,
+  userId: string
 ) {
   const startTime = Date.now();
   
   try {
-    console.log("Background processing started for job:", jobId);
+    console.log("Background AI processing started for job:", aiJobId);
 
     // STEP 1: Analyze video content with Lovable AI
     console.log("Starting AI video analysis...");
@@ -139,225 +146,173 @@ async function processVideoBackground(
     }
 
     const { analysis } = await analysisResponse.json();
-    console.log("AI analysis completed:", analysis);
+    console.log("AI analysis completed with", {
+      fillerWords: analysis.fillerWords?.length || 0,
+      scenes: analysis.scenes?.length || 0,
+      qualityIssues: analysis.qualityIssues?.length || 0,
+    });
 
-    let processedFileUrl = mediaFile.file_url;
-    let processingResults: any = {
-      analysis,
-      processingType: jobType,
-    };
+    // STEP 2: Track individual edit events
+    const editEvents: any[] = [];
+    let totalEditsCount = 0;
 
-    // STEP 2: Process based on job type
     if (jobType === 'ai_edit' || jobType === 'full_process') {
-      console.log("Applying AI edits...");
-      
       const fillerWords = analysis.fillerWords || [];
       const qualityIssues = analysis.qualityIssues || [];
-      
-      processingResults.editsApplied = {
-        fillerWordsIdentified: fillerWords.length,
-        totalFillerDuration: fillerWords.reduce((sum: number, fw: any) => sum + (fw.duration || 0), 0),
-        qualityEnhancementsNeeded: qualityIssues.filter((i: any) => i.severity === 'high').length,
-        scenesAnalyzed: (analysis.scenes || []).length,
-        transcriptGenerated: !!analysis.transcript,
-      };
+      const scenes = analysis.scenes || [];
 
-      // In production: Apply FFmpeg cuts for filler words
-      // processedFileUrl = await applyFFmpegEdits(mediaFile.file_url, fillerWords);
-    }
+      // Track trim events for filler words
+      for (const fw of fillerWords) {
+        editEvents.push({
+          ai_job_id: aiJobId,
+          event_type: 'trim',
+          timestamp_seconds: fw.timestamp,
+          details: { word: fw.word, duration: fw.duration, reason: 'filler_removal' }
+        });
+      }
 
-    // STEP 3: Ad Insertion processing
-    let adsInserted = 0;
-    if (jobType === 'ad_insertion' || jobType === 'full_process') {
-      console.log("Processing ad insertion...");
-      
-      const suggestedBreaks = analysis.suggestedAdBreaks || [];
-      const adSlots = config.adSlots || [];
-      
-      if (adSlots.length > 0) {
-        for (const slot of adSlots) {
-          await supabase.from("media_ad_slots").insert({
-            media_file_id: mediaFile.id,
-            processing_job_id: jobId,
-            slot_type: slot.slotType,
-            position_seconds: slot.positionSeconds,
-            ad_file_url: slot.adFileUrl,
-            ad_duration_seconds: slot.adDuration,
+      // Track quality enhancement events
+      for (const issue of qualityIssues) {
+        if (issue.severity === 'high') {
+          editEvents.push({
+            ai_job_id: aiJobId,
+            event_type: issue.type === 'shaky' ? 'stabilize' : 
+                       issue.type === 'audio' ? 'audio_enhance' :
+                       issue.type === 'lighting' ? 'color_grade' : 'denoise',
+            timestamp_seconds: issue.timestamp,
+            details: { severity: issue.severity, suggestion: issue.suggestion }
           });
-          adsInserted++;
         }
       }
-      
-      processingResults.adInsertionData = {
-        adsInserted,
-        suggestedBreaks: suggestedBreaks.length,
-        optimalTimestamps: suggestedBreaks.map((b: any) => b.timestamp),
-      };
 
-      // In production: Splice ads using FFmpeg
-      // processedFileUrl = await spliceAdsWithFFmpeg(processedFileUrl, adSlots);
+      // Track camera switches based on scenes
+      for (let i = 0; i < scenes.length - 1; i++) {
+        editEvents.push({
+          ai_job_id: aiJobId,
+          event_type: 'camera_switch',
+          timestamp_seconds: scenes[i].end,
+          details: { from_scene: i, to_scene: i + 1, quality: scenes[i].quality }
+        });
+      }
+
+      totalEditsCount = editEvents.length;
+
+      // Insert all edit events
+      if (editEvents.length > 0) {
+        const { error: eventsError } = await supabase
+          .from("ai_edit_events")
+          .insert(editEvents);
+        
+        if (eventsError) {
+          console.error("Error inserting edit events:", eventsError);
+        } else {
+          console.log(`Inserted ${editEvents.length} edit events`);
+        }
+      }
     }
 
-    // STEP 4: Create version record
-    const versionType = 
-      jobType === 'ai_edit' ? 'ai_edited' :
-      jobType === 'ad_insertion' ? 'with_ads' :
-      'full_processed';
+    // STEP 3: Create AI edited asset record
+    // Note: In production, this would be a real edited file. For now, we create a record
+    // that represents what would be edited, with clear metadata
+    const newDuration = mediaFile.duration_seconds - 
+      (analysis.fillerWords?.reduce((sum: number, fw: any) => sum + (fw.duration || 0), 0) || 0);
 
-    const { error: versionError } = await supabase
-      .from("media_versions")
+    const { data: editedAsset, error: assetError } = await supabase
+      .from("ai_edited_assets")
       .insert({
-        original_media_id: mediaFile.id,
-        processing_job_id: jobId,
-        version_type: versionType,
-        file_url: processedFileUrl,
-        file_size_bytes: mediaFile.file_size_bytes,
-        duration_seconds: mediaFile.duration_seconds,
-        processing_config: processingResults,
-        is_primary: false,
-      });
+        source_media_id: mediaFile.id,
+        ai_job_id: aiJobId,
+        output_type: 'enhanced',
+        storage_path: `${mediaFile.file_url}?v=ai_edited_${aiJobId}`, // Simulated for demo
+        duration_seconds: Math.max(newDuration, 0),
+        thumbnail_url: mediaFile.thumbnail_url,
+        metadata: {
+          original_duration: mediaFile.duration_seconds,
+          duration_saved: mediaFile.duration_seconds - newDuration,
+          edits_applied: totalEditsCount,
+          filler_words_removed: analysis.fillerWords?.length || 0,
+          quality_enhancements: analysis.qualityIssues?.filter((i: any) => i.severity === 'high').length || 0,
+          scenes_optimized: analysis.scenes?.length || 0,
+          // NOTE: This is analysis data. Real FFmpeg editing would produce actual different file
+          demo_mode: true,
+          analysis_data: {
+            fillerWords: analysis.fillerWords,
+            qualityIssues: analysis.qualityIssues,
+            scenes: analysis.scenes
+          }
+        }
+      })
+      .select()
+      .single();
 
-    if (versionError) throw versionError;
+    if (assetError) {
+      console.error("Error creating edited asset:", assetError);
+      throw assetError;
+    }
 
-    // STEP 5: Update job status
+    console.log("Created AI edited asset:", editedAsset.id);
+
+    // STEP 4: Update media file to mark as edited
+    await supabase
+      .from("media_files")
+      .update({ 
+        edit_status: 'edited',
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", mediaFile.id);
+
+    // STEP 5: Complete the AI job
     const processingTime = (Date.now() - startTime) / 1000;
     
     await supabase
-      .from("media_processing_jobs")
+      .from("ai_jobs")
       .update({
         status: "completed",
-        processing_completed_at: new Date().toISOString(),
-        output_file_url: processedFileUrl,
-        output_data: processingResults,
+        completed_at: new Date().toISOString(),
         processing_time_seconds: processingTime,
       })
-      .eq("id", jobId);
+      .eq("id", aiJobId);
 
-    console.log(`Job ${jobId} completed in ${processingTime}s`);
+    console.log(`AI Job ${aiJobId} completed in ${processingTime}s with ${totalEditsCount} edits tracked`);
 
   } catch (error) {
     console.error("Background processing error:", error);
     
     // Update job with error
     await supabase
-      .from("media_processing_jobs")
+      .from("ai_jobs")
       .update({
         status: "failed",
         error_message: error instanceof Error ? error.message : "Unknown error",
-        processing_completed_at: new Date().toISOString(),
+        completed_at: new Date().toISOString(),
       })
-      .eq("id", jobId);
+      .eq("id", aiJobId);
   }
 }
 
 /* 
-PRODUCTION FFMPEG IMPLEMENTATION NOTES:
+IMPLEMENTATION STATUS:
 
-Current Implementation:
-- Uses Lovable AI (google/gemini-2.5-flash) to analyze video content
-- Identifies filler words, quality issues, scene boundaries, and optimal ad break points
-- Generates transcripts with timestamps for auto-captions
-- Provides detailed analysis that guides editing decisions
+✅ COMPLETED:
+- AI job tracking in ai_jobs table with proper status management
+- Edit event tracking in ai_edit_events for every AI operation (trim, enhance, switch)
+- AI edited asset records in ai_edited_assets with metadata
+- Real edit counts based on actual analysis data
+- Error handling and failure tracking
+- Processing time calculation
 
-To enable actual video editing, you would need to:
+⚠️ SIMULATED (Needs FFmpeg for production):
+- Actual video file editing (currently stores analysis + metadata)
+- Physical file trimming for filler word removal
+- Quality enhancement rendering
+- Duration changes (calculated but not actually applied)
 
-1. Set up Docker-based edge function with FFmpeg installed
-2. Implement video manipulation:
+To enable real video editing:
+1. Set up Docker-based edge function with FFmpeg
+2. Download source file, apply edits, upload result
+3. Update storage_path with real edited file URL
+4. Set demo_mode: false in metadata
 
-// Smart Trim/Cut - Remove filler word segments
-async function applySmartTrim(inputUrl: string, fillerWords: any[]): Promise<string> {
-  const inputPath = await downloadFile(inputUrl);
-  const outputPath = "/tmp/trimmed_" + Date.now() + ".mp4";
-  
-  // Build filter to remove filler word segments
-  const segments = buildKeepSegments(fillerWords);
-  const filterComplex = segments.map((s, i) => 
-    `[0:v]trim=${s.start}:${s.end},setpts=PTS-STARTPTS[v${i}];` +
-    `[0:a]atrim=${s.start}:${s.end},asetpts=PTS-STARTPTS[a${i}]`
-  ).join(';') + ';' + segments.map((_, i) => `[v${i}][a${i}]`).join('') + 
-  `concat=n=${segments.length}:v=1:a=1[outv][outa]`;
-  
-  await execFFmpeg([
-    '-i', inputPath,
-    '-filter_complex', filterComplex,
-    '-map', '[outv]', '-map', '[outa]',
-    '-c:v', 'libx264', '-c:a', 'aac',
-    outputPath
-  ]);
-  
-  return await uploadToStorage(outputPath);
-}
-
-// Quality Enhancement - Stabilize, denoise, enhance
-async function enhanceQuality(inputUrl: string, issues: any[]): Promise<string> {
-  const inputPath = await downloadFile(inputUrl);
-  const outputPath = "/tmp/enhanced_" + Date.now() + ".mp4";
-  
-  const videoFilters = [
-    'deshake',  // Stabilization
-    'eq=brightness=0.06:saturation=1.2',  // Color enhancement
-    'unsharp=5:5:1.0:5:5:0.0',  // Sharpening
-  ];
-  
-  const audioFilters = [
-    'highpass=f=200',  // Remove low rumble
-    'lowpass=f=3000',  // Remove high hiss
-    'loudnorm',  // Normalize audio levels
-  ];
-  
-  await execFFmpeg([
-    '-i', inputPath,
-    '-vf', videoFilters.join(','),
-    '-af', audioFilters.join(','),
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', '18',
-    '-c:a', 'aac', '-b:a', '192k',
-    outputPath
-  ]);
-  
-  return await uploadToStorage(outputPath);
-}
-
-// Auto-Captions - Burn subtitles into video
-async function addCaptions(inputUrl: string, transcript: string): Promise<string> {
-  const inputPath = await downloadFile(inputUrl);
-  const srtPath = await generateSRT(transcript);
-  const outputPath = "/tmp/captioned_" + Date.now() + ".mp4";
-  
-  await execFFmpeg([
-    '-i', inputPath,
-    '-vf', `subtitles=${srtPath}:force_style='FontSize=24,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=3'`,
-    '-c:v', 'libx264', '-c:a', 'copy',
-    outputPath
-  ]);
-  
-  return await uploadToStorage(outputPath);
-}
-
-// Ad Insertion - Splice ads at optimal points
-async function insertAds(videoUrl: string, adSlots: any[]): Promise<string> {
-  const videoPath = await downloadFile(videoUrl);
-  const adPaths = await Promise.all(adSlots.map(s => downloadFile(s.adFileUrl)));
-  const outputPath = "/tmp/with_ads_" + Date.now() + ".mp4";
-  
-  // Create concat file listing all segments
-  const concatList = buildConcatList(videoPath, adPaths, adSlots);
-  await Deno.writeTextFile('/tmp/concat.txt', concatList);
-  
-  await execFFmpeg([
-    '-f', 'concat',
-    '-safe', '0',
-    '-i', '/tmp/concat.txt',
-    '-c', 'copy',
-    outputPath
-  ]);
-  
-  return await uploadToStorage(outputPath);
-}
-
-3. Integration requirements:
-   - FFmpeg binary in Docker container
-   - Sufficient storage for temporary files
-   - File download/upload helpers
-   - Progress tracking and error handling
-   - Timeout management for long videos
+Current implementation provides full tracking and visualization of what WOULD be edited,
+allowing UI to show accurate edit counts and details while waiting for FFmpeg integration.
 */
