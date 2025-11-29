@@ -46,7 +46,6 @@ import {
 import { SocialAccountsBanner } from "@/components/creator/SocialAccountsBanner";
 import { SocialMediaAnalytics } from "@/components/dashboard/widgets/SocialMediaAnalytics";
 import alexMorganAvatar from "@/assets/demo-influencer-alex-morgan.jpg";
-import { HolidayDecoration } from "@/components/dashboard/HolidayDecoration";
 import { SparkWelcomeModal } from "@/components/spark/SparkWelcomeModal";
 import { useRole } from "@/contexts/RoleContext";
 
@@ -558,7 +557,6 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-brand-navy/5 to-brand-blue/5">
-      <HolidayDecoration />
       <WelcomeModal />
       <main className="container mx-auto py-8 px-4">
         <div className="mb-8 flex items-start justify-between">

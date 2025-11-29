@@ -56,6 +56,7 @@ import {
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import seeksyLogo from "@/assets/seeksy-logo.png";
+const newSeeksyLogo = "/seeksy-logo.png";
 import { ModuleLauncher } from "@/components/ModuleLauncher";
 import { useRole } from "@/contexts/RoleContext";
 import { AdvertiserSidebarNav } from "@/components/advertiser/AdvertiserSidebarNav";
@@ -1560,14 +1561,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         <SidebarHeader>
           <div className="flex items-center justify-between px-4 py-3">
             <Link to="/tasks" className="relative">
-              <img src={seeksyLogo} alt="Seeksy" className="h-10 w-10" />
-              {/* Christmas decoration */}
-              {new Date().getMonth() === 11 && (
-                <span className="absolute -top-2 -right-2 text-2xl drop-shadow-md">🎅</span>
-              )}
-              {new Date().getMonth() === 11 && (
-                <span className="absolute -top-2 -right-2 text-xl drop-shadow-md">🎄</span>
-              )}
+              <img src={newSeeksyLogo} alt="Seeksy" className="h-10 object-contain" />
             </Link>
             {!collapsed && (
               <div className="flex items-center gap-4">
