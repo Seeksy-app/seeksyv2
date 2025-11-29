@@ -174,6 +174,7 @@ export default function MediaLibrary() {
   const [newFileName, setNewFileName] = useState("");
   const [isTranscribing, setIsTranscribing] = useState<string | null>(null);
   const [isGeneratingBlog, setIsGeneratingBlog] = useState<string | null>(null);
+  const [isGeneratingClips, setIsGeneratingClips] = useState<string | null>(null);
   const [convertForm, setConvertForm] = useState({
     podcastId: "",
     title: "",
@@ -720,6 +721,44 @@ export default function MediaLibrary() {
     }
   };
 
+  const handleGenerateClips = async (media: MediaFile | Recording) => {
+    setIsGeneratingClips(media.id);
+    try {
+      toast({
+        title: "Analyzing video...",
+        description: "AI is identifying viral-worthy clips",
+      });
+
+      const { data, error } = await supabase.functions.invoke("analyze-clips", {
+        body: {
+          mediaId: media.id,
+          fileUrl: media.file_url,
+          duration: media.duration_seconds,
+          transcript: media.edit_transcript?.transcript || null,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Clips generated!",
+        description: `AI identified ${data.clipsCreated} viral-worthy clips`,
+      });
+
+      // Navigate to clips tab
+      setCurrentTab('clips');
+      fetchData();
+    } catch (error: any) {
+      toast({
+        title: "Failed to generate clips",
+        description: error.message || "Could not analyze video for clips",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingClips(null);
+    }
+  };
+
   const fetchAvailableAds = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -1246,6 +1285,26 @@ export default function MediaLibrary() {
                                 </TooltipTrigger>
                                 <TooltipContent>
                                   <p>Generate Blog</p>
+                                </TooltipContent>
+                               </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0"
+                                    onClick={() => handleGenerateClips(file)}
+                                    disabled={isGeneratingClips === file.id || file.file_type !== 'video'}
+                                  >
+                                    {isGeneratingClips === file.id ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <Film className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Generate Clips</p>
                                 </TooltipContent>
                               </Tooltip>
                               <Tooltip>
