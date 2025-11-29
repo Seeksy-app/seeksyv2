@@ -259,6 +259,8 @@ import NewEpisodeFromStudio from "./pages/podcasts/NewEpisodeFromStudio";
 import NewEpisode from "./pages/podcasts/NewEpisode";
 import EpisodeDetailPublic from "./pages/podcasts/EpisodeDetailPublic";
 import PodcastStats from "./pages/podcasts/PodcastStats";
+import PodcastDashboard from "./pages/podcasts/PodcastDashboard";
+import VoiceCloningWizard from "./pages/voice-cloning/VoiceCloningWizard";
 
 const queryClient = new QueryClient();
 
@@ -351,8 +353,9 @@ const AppContent = () => {
               <Route path="/voice-tag" element={<VoiceTag />} />
               <Route path="/admin/voice-tag-certification" element={<VoiceTagAdmin />} />
               
-              {/* Voice Certification Flow */}
+              {/* Unified Voice Identity Hub */}
               <Route path="/my-voice-identity" element={<MyVoiceIdentity />} />
+              <Route path="/voice-cloning" element={<ProtectedRoute><VoiceCloningWizard /></ProtectedRoute>} />
               <Route path="/voice-certification-flow" element={<VoiceCertificationDashboard />} />
               <Route path="/voice-certification/upload" element={<UploadOrRecordVoice />} />
               <Route path="/voice-certification/fingerprint" element={<AIVoiceFingerprinting />} />

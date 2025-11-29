@@ -2333,6 +2333,8 @@ export type Database = {
       }
       blog_posts: {
         Row: {
+          approved: boolean | null
+          auto_generated: boolean | null
           content: string
           created_at: string
           episode_id: string | null
@@ -2345,6 +2347,7 @@ export type Database = {
           podcast_id: string | null
           publish_to_master: boolean | null
           published_at: string | null
+          seo_desc: string | null
           seo_description: string | null
           seo_keywords: string[] | null
           seo_title: string | null
@@ -2352,12 +2355,15 @@ export type Database = {
           source_platform: string | null
           source_rss_url: string | null
           status: string
+          subtitle: string | null
           title: string
           updated_at: string
           user_id: string
           views_count: number | null
         }
         Insert: {
+          approved?: boolean | null
+          auto_generated?: boolean | null
           content: string
           created_at?: string
           episode_id?: string | null
@@ -2370,6 +2376,7 @@ export type Database = {
           podcast_id?: string | null
           publish_to_master?: boolean | null
           published_at?: string | null
+          seo_desc?: string | null
           seo_description?: string | null
           seo_keywords?: string[] | null
           seo_title?: string | null
@@ -2377,12 +2384,15 @@ export type Database = {
           source_platform?: string | null
           source_rss_url?: string | null
           status?: string
+          subtitle?: string | null
           title: string
           updated_at?: string
           user_id: string
           views_count?: number | null
         }
         Update: {
+          approved?: boolean | null
+          auto_generated?: boolean | null
           content?: string
           created_at?: string
           episode_id?: string | null
@@ -2395,6 +2405,7 @@ export type Database = {
           podcast_id?: string | null
           publish_to_master?: boolean | null
           published_at?: string | null
+          seo_desc?: string | null
           seo_description?: string | null
           seo_keywords?: string[] | null
           seo_title?: string | null
@@ -2402,6 +2413,7 @@ export type Database = {
           source_platform?: string | null
           source_rss_url?: string | null
           status?: string
+          subtitle?: string | null
           title?: string
           updated_at?: string
           user_id?: string
@@ -3670,6 +3682,45 @@ export type Database = {
           processed_at?: string | null
           status?: string | null
           total_revenue?: number
+        }
+        Relationships: []
+      }
+      creator_rankings: {
+        Row: {
+          ai_momentum_score: number | null
+          created_at: string | null
+          creator_id: string
+          date: string
+          id: string
+          listens: number | null
+          rank: number | null
+          score: number | null
+          shares: number | null
+          views: number | null
+        }
+        Insert: {
+          ai_momentum_score?: number | null
+          created_at?: string | null
+          creator_id: string
+          date?: string
+          id?: string
+          listens?: number | null
+          rank?: number | null
+          score?: number | null
+          shares?: number | null
+          views?: number | null
+        }
+        Update: {
+          ai_momentum_score?: number | null
+          created_at?: string | null
+          creator_id?: string
+          date?: string
+          id?: string
+          listens?: number | null
+          rank?: number | null
+          score?: number | null
+          shares?: number | null
+          views?: number | null
         }
         Relationships: []
       }
@@ -11034,6 +11085,59 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "voice_fingerprints_voice_profile_id_fkey"
+            columns: ["voice_profile_id"]
+            isOneToOne: false
+            referencedRelation: "creator_voice_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voice_identity: {
+        Row: {
+          blockchain_network: string | null
+          blockchain_token_id: string | null
+          certification_status: string | null
+          clone_status: string | null
+          created_at: string | null
+          creator_id: string
+          earnings: number | null
+          fingerprint: string | null
+          id: string
+          listens: number | null
+          updated_at: string | null
+          voice_profile_id: string | null
+        }
+        Insert: {
+          blockchain_network?: string | null
+          blockchain_token_id?: string | null
+          certification_status?: string | null
+          clone_status?: string | null
+          created_at?: string | null
+          creator_id: string
+          earnings?: number | null
+          fingerprint?: string | null
+          id?: string
+          listens?: number | null
+          updated_at?: string | null
+          voice_profile_id?: string | null
+        }
+        Update: {
+          blockchain_network?: string | null
+          blockchain_token_id?: string | null
+          certification_status?: string | null
+          clone_status?: string | null
+          created_at?: string | null
+          creator_id?: string
+          earnings?: number | null
+          fingerprint?: string | null
+          id?: string
+          listens?: number | null
+          updated_at?: string | null
+          voice_profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_identity_voice_profile_id_fkey"
             columns: ["voice_profile_id"]
             isOneToOne: false
             referencedRelation: "creator_voice_profiles"
