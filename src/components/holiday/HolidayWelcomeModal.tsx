@@ -30,7 +30,7 @@ export const HolidayWelcomeModal = () => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-md max-w-[90vw]">
+      <DialogContent className="sm:max-w-md max-w-[90vw] bg-background border-border">
         <DialogHeader>
           <div className="flex justify-center mb-4">
             <div className="relative w-24 h-24 sm:w-32 sm:h-32">

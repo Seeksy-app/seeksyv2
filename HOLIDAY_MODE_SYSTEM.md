@@ -53,10 +53,13 @@ All holiday components are isolated in this directory and conditionally rendered
 - Appears once per user session when Holiday Mode is enabled
 - Uses `localStorage` flag `holiday_welcome_seen` to prevent repeat displays
 - Features Santa Spark with one-time wave animation (not looping)
+- **Theme-aware background**: Uses `bg-background border-border` for proper light/dark mode styling
 - Transparent background, soft drop shadow
 
 #### `SantaAssistantButton.tsx`
 - Fixed bottom-right floating button
+- **Only appears AFTER welcome modal is dismissed** (prevents double Santa issue)
+- Checks `localStorage.getItem("holiday_welcome_seen")` before rendering
 - Transparent with hover scale effect
 - Opens `SantaAssistantPopup` on click
 
@@ -124,10 +127,28 @@ All holiday elements are automatically removed when `holiday_mode=false`.
 ## Pages Using Holiday Mode
 
 When Holiday Mode is enabled, the following experiences are affected:
-- **All Pages**: Santa Spark replaces standard Spark in sidebar/widgets
-- **First Login**: `HolidayWelcomeModal` displays once per session
-- **Bottom-Right**: `SantaAssistantButton` appears globally (except Studio pages)
-- **Optional Snowfall**: Dashboard and homepage if `holiday_snow=true`
+- **Dashboard/Logged-in Pages**: Santa Spark replaces standard Spark in sidebar/widgets
+- **First Login**: `HolidayWelcomeModal` displays once per session with themed background
+- **Bottom-Right**: `SantaAssistantButton` appears globally after welcome modal is dismissed
+- **Optional Snowfall**: Dashboard pages if `holiday_snow=true`
+- **Homepage** (`/`): No holiday features (marketing page remains consistent year-round)
+
+## Recent Fixes (v2.1.0)
+
+### Fixed: White Background on Modal
+**Issue**: Holiday welcome modal had hardcoded white background  
+**Fix**: Added `bg-background border-border` classes for theme-aware styling  
+**Result**: Modal now properly adapts to light/dark mode
+
+### Fixed: Double Santa
+**Issue**: Both welcome modal and floating button appeared simultaneously  
+**Fix**: `SantaAssistantButton` now checks `localStorage` and hides until welcome modal is dismissed  
+**Result**: Clean single-Santa experience with proper sequencing
+
+### Confirmed: Homepage Behavior
+**Status**: Homepage (`/`) intentionally has no holiday features  
+**Reason**: Marketing page maintains consistent branding year-round  
+**Holiday Features**: Only appear in logged-in dashboard experience
 
 ## Usage
 
@@ -170,6 +191,6 @@ When Holiday Mode is disabled (`holiday_mode=false`):
 
 ---
 
-**Version**: 2.0.0 (Database-Backed Admin Control)  
+**Version**: 2.1.0 (Fixed White Background + Double Santa)  
 **Last Updated**: November 29, 2024  
 **Maintained By**: Seeksy Engineering Team

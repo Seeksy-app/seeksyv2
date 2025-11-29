@@ -8,6 +8,10 @@ import { SantaAssistantPopup } from "./SantaAssistantPopup";
 
 export const SantaAssistantButton = () => {
   const [isOpen, setIsOpen] = useState(false);
+  
+  // Hide button if welcome modal hasn't been seen yet
+  const hasSeenWelcome = localStorage.getItem("holiday_welcome_seen");
+  if (!hasSeenWelcome) return null;
 
   return (
     <>
