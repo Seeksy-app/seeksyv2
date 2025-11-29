@@ -87,19 +87,20 @@ export const SparkAvatar = ({
     : { width: "16px", height: "16px" };
 
   return (
-    <div className="relative inline-block bg-transparent">
+    <div className="relative inline-block">
       <img
         src={assetPath}
         alt={alt}
         className={cn(
           "object-contain select-none pointer-events-none",
+          "mix-blend-normal bg-transparent",
           shouldAnimate && "animate-bounce-once",
           animated && "transition-all duration-300 ease-in-out",
           animated && isHovering && "scale-110 brightness-110",
           onClick && "cursor-pointer pointer-events-auto",
           className
         )}
-        style={sizeStyles}
+        style={{ ...sizeStyles, background: 'transparent' }}
         onClick={onClick}
         onLoad={() => setHasLoaded(true)}
         onMouseEnter={() => animated && setIsHovering(true)}
