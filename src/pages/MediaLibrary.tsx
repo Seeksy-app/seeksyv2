@@ -91,6 +91,8 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { ClipsGallery } from "@/components/media/ClipsGallery";
 import { VideoOrientationBadge } from "@/components/media/VideoOrientationBadge";
 import { loadVideoMetadata, VideoOrientation } from "@/utils/videoOrientation";
+import { AIEditBadge } from "@/components/media/AIEditBadge";
+import { AIJobsDebugPanel } from "@/components/admin/AIJobsDebugPanel";
 
 interface Recording {
   id: string;
@@ -187,6 +189,8 @@ export default function MediaLibrary() {
   const [filterSource, setFilterSource] = useState<string | null>(null);
   const [aiEditsDialogOpen, setAiEditsDialogOpen] = useState(false);
   const [selectedFileForEdits, setSelectedFileForEdits] = useState<MediaFile | Recording | null>(null);
+  const [showAdminDebug, setShowAdminDebug] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   const { processVideo, isProcessing: isVideoProcessing } = useVideoProcessing();
   const { toast } = useToast();
@@ -243,7 +247,21 @@ export default function MediaLibrary() {
 
   useEffect(() => {
     fetchData();
+    checkAdminStatus();
   }, []);
+
+  const checkAdminStatus = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    
+    setIsAdmin(roles?.role === "admin" || roles?.role === "super_admin");
+  };
 
   const fetchData = async () => {
     try {
@@ -1648,33 +1666,14 @@ export default function MediaLibrary() {
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>
-                            {file.markers && file.markers.length > 0 ? (
-                              <div className="flex flex-wrap gap-1">
-                                {Array.from(new Set(file.markers.map((m: Marker) => m.type))).map((type) => {
-                                  const { icon: Icon, color, label } = getMarkerIcon(type as string);
-                                  const count = file.markers.filter((m: Marker) => m.type === type).length;
-                                  
-                                  return (
-                                    <TooltipProvider key={type}>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Badge variant="secondary" className={`text-xs gap-1 ${color}`}>
-                                            <Icon className="h-3 w-3" />
-                                            {count > 1 && <span className="font-medium">×{count}</span>}
-                                          </Badge>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          <p>{label}</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                  );
-                                })}
-                              </div>
-                            ) : (
-                              <Badge variant="secondary" className="text-xs">No markers</Badge>
-                            )}
+                           <TableCell>
+                            <AIEditBadge 
+                              mediaId={file.id}
+                              onRunAIEnhancement={() => {
+                                setSelectedMediaForAds(file);
+                                navigate(`/post-production-studio?id=${file.id}`);
+                              }}
+                            />
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
                             {formatDate(file.created_at)}
@@ -1701,6 +1700,19 @@ export default function MediaLibrary() {
                                 <Edit3 className="h-4 w-4 mr-1" />
                                 Edit More
                               </Button>
+                              {isAdmin && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setSelectedFileForEdits(file);
+                                    setShowAdminDebug(true);
+                                  }}
+                                >
+                                  <Info className="h-4 w-4 mr-1" />
+                                  Debug
+                                </Button>
+                              )}
                               <Button
                                 size="sm"
                                 variant="ghost"
@@ -2019,6 +2031,21 @@ export default function MediaLibrary() {
               Close
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Admin Debug Panel Dialog */}
+      <Dialog open={showAdminDebug} onOpenChange={setShowAdminDebug}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>AI Jobs Debug Panel</DialogTitle>
+            <DialogDescription>
+              Admin-only view of AI processing jobs for this media file
+            </DialogDescription>
+          </DialogHeader>
+          {selectedFileForEdits && (
+            <AIJobsDebugPanel mediaId={selectedFileForEdits.id} />
+          )}
         </DialogContent>
       </Dialog>
     </div>
