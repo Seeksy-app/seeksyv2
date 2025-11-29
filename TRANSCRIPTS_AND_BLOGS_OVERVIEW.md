@@ -29,8 +29,12 @@ Studio Recording → Transcription → Transcript Library → Blog Creation → 
 | `updated_at` | timestamptz | Last update timestamp |
 
 **RLS Policies:**
-- Creators can view/insert/update their own transcripts (`user_id = auth.uid()`)
-- Admins can view all transcripts
+- `Users can view own transcripts` (SELECT): Creators can only see transcripts they created (`owner_profile_id = auth.uid()`)
+- `Users can insert own transcripts` (INSERT): Creators can create transcripts linked to their profile
+- `Users can update own transcripts` (UPDATE): Creators can edit their own transcript metadata
+- `Users can delete own transcripts` (DELETE): Creators can remove their own transcripts
+- `Admins can view all transcripts` (SELECT): Admins and super_admins can see all transcripts via `has_role()` function
+- `Admins can manage all transcripts` (ALL): Admins have full CRUD access for moderation
 
 ### Transcription Flow
 
@@ -145,8 +149,13 @@ Location: `supabase/functions/transcribe-audio/index.ts`
 | `updated_at` | timestamptz | Last update timestamp |
 
 **RLS Policies:**
-- Creators can view/insert/update their own blog posts (`user_id = auth.uid()`)
-- Admins can view all blog posts
+- `Users can view own blog posts` (SELECT): Creators can only see blog posts they authored (`author_id = auth.uid()`)
+- `Users can insert own blog posts` (INSERT): Creators can create blog posts linked to their profile
+- `Users can update own blog posts` (UPDATE): Creators can edit their own blog content
+- `Users can delete own blog posts` (DELETE): Creators can remove their own blog posts
+- `Public can view published blogs` (SELECT): Any user can see blog posts with `is_published = true`
+- `Admins can view all blog posts` (SELECT): Admins and super_admins can see all blogs via `has_role()` function
+- `Admins can manage all blog posts` (ALL): Admins have full CRUD access for moderation
 
 ### Blog Creation Flow
 
