@@ -3164,6 +3164,9 @@ export type Database = {
           end_seconds: number
           error_message: string | null
           id: string
+          shotstack_job_id: string | null
+          shotstack_status: string | null
+          source_cloudflare_url: string | null
           source_media_id: string
           start_seconds: number
           status: string
@@ -3182,6 +3185,9 @@ export type Database = {
           end_seconds: number
           error_message?: string | null
           id?: string
+          shotstack_job_id?: string | null
+          shotstack_status?: string | null
+          source_cloudflare_url?: string | null
           source_media_id: string
           start_seconds: number
           status?: string
@@ -3200,6 +3206,9 @@ export type Database = {
           end_seconds?: number
           error_message?: string | null
           id?: string
+          shotstack_job_id?: string | null
+          shotstack_status?: string | null
+          source_cloudflare_url?: string | null
           source_media_id?: string
           start_seconds?: number
           status?: string

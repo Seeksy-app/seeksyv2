@@ -153,3 +153,9 @@ verify_jwt = true
 
 [functions.process-clip-phase3]
 verify_jwt = true
+
+[functions.submit-shotstack-render]
+verify_jwt = true
+
+[functions.shotstack-webhook]
+verify_jwt = false

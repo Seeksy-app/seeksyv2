@@ -7,13 +7,14 @@ const corsHeaders = {
 };
 
 /**
- * CREATE DEMO CLIP - Phase 3 Cloudflare Stream Pipeline
+ * CREATE DEMO CLIP - Shotstack Integration
  * 
- * Creates a demo clip using the Phase 3 pipeline:
+ * Creates a demo clip using Shotstack Edit API:
  * - Creates clips record with proper status tracking
- * - Calls process-clip-phase3 for OpusClip-quality processing
- * - Generates vertical (9:16) and thumbnail (1:1) clips
- * - Uses Cloudflare Stream for real video transformations
+ * - Extracts Cloudflare Stream MP4 download URL
+ * - Submits render job to Shotstack
+ * - Returns clipId for status polling
+ * - Shotstack webhook updates clip when rendering completes
  */
 
 serve(async (req) => {
@@ -89,62 +90,65 @@ serve(async (req) => {
 
     console.log("Created clip record:", clipRecord.id);
 
-    // STEP 2: Call Phase 3 processing with Cloudflare Stream
-    console.log("Calling process-clip-phase3 to generate OpusClip-quality clips...");
+    // STEP 2: Submit to Shotstack for rendering
+    console.log("Submitting to Shotstack for OpusClip-quality rendering...");
     
-    const processResponse = await supabase.functions.invoke('process-clip-phase3', {
+    // Get Cloudflare download URL for the source video
+    // Extract video ID from file_url (format: https://customer-xxx.cloudflarestream.com/VIDEO_ID/...)
+    const videoIdMatch = sourceVideo.file_url.match(/cloudflarestream\.com\/([^\/]+)/);
+    if (!videoIdMatch) {
+      throw new Error("Could not extract Cloudflare video ID from file_url");
+    }
+    
+    const videoId = videoIdMatch[1];
+    const CLOUDFLARE_ACCOUNT_ID = Deno.env.get("CLOUDFLARE_ACCOUNT_ID");
+    const cloudflareDownloadUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${videoId}/downloads/default.mp4`;
+    
+    console.log("Cloudflare download URL:", cloudflareDownloadUrl);
+
+    const shotstackResponse = await supabase.functions.invoke('submit-shotstack-render', {
       headers: {
         Authorization: authHeader, // Pass the user's JWT token
       },
       body: {
         clipId: clipRecord.id,
-        sourceVideoUrl: sourceVideo.file_url,
-        startTime: startTime,
-        duration: duration,
-        title: "Demo: AI Clip Test",
-        transcript: "This is a demonstration clip showing the complete Phase 3 pipeline with Cloudflare Stream transformations.",
+        cloudflareDownloadUrl: cloudflareDownloadUrl,
+        start: 0, // Clip from the beginning (Shotstack doesn't support trimming before render)
+        length: duration,
+        orientation: "vertical",
       }
     });
 
-    if (processResponse.error) {
-      // Extract actual error details from Phase 3
-      const phase3Error = processResponse.error;
-      const errorDetails = {
-        step: (phase3Error as any)?.step || 'unknown',
-        message: phase3Error.message || 'Phase 3 processing failed',
-        code: (phase3Error as any)?.code,
-        details: (phase3Error as any)?.details,
-      };
-      
-      console.error("Phase 3 processing failed:", JSON.stringify(errorDetails, null, 2));
+    if (shotstackResponse.error) {
+      const shotstackError = shotstackResponse.error;
+      console.error("Shotstack submission failed:", JSON.stringify(shotstackError, null, 2));
       
       throw new Error(JSON.stringify({
-        error: "Phase 3 processing failed",
-        ...errorDetails,
+        error: "Shotstack submission failed",
+        message: shotstackError.message || 'Failed to submit render job',
       }));
     }
 
-    const processData = processResponse.data;
-    console.log("Processing complete:", processData);
+    const shotstackData = shotstackResponse.data;
+    console.log("Shotstack job submitted:", shotstackData);
 
-    console.log("PHASE3 SUCCESS", JSON.stringify({
+    console.log("SHOTSTACK SUCCESS", JSON.stringify({
       clipId: clipRecord.id,
-      jobId: processData.vertical?.jobId,
-      engine: 'cloudflare_stream',
-      verticalUrl: processData.vertical?.url,
-      thumbnailUrl: processData.thumbnail?.url,
+      shotstackJobId: shotstackData.shotstackJobId,
+      engine: 'shotstack',
+      status: shotstackData.status,
     }, null, 2));
 
     return new Response(
       JSON.stringify({
         success: true,
         clipId: clipRecord.id,
+        shotstackJobId: shotstackData.shotstackJobId,
         title: "Demo: AI Clip Test",
         duration: duration,
-        vertical: processData.vertical,
-        thumbnail: processData.thumbnail,
-        message: "Phase 3: OpusClip-quality clips generated with Cloudflare Stream",
-        phase: "Phase 3 - Cloudflare Stream Processing",
+        status: "processing",
+        message: "Clip submitted to Shotstack. Use the clipId to poll for completion.",
+        instructions: "Poll GET /clips?id={clipId} to check status. When status='ready', vertical_url will contain the final video.",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -152,7 +156,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error("PHASE3 ERROR - Full details:", JSON.stringify({
+    console.error("SHOTSTACK ERROR - Full details:", JSON.stringify({
       message: error instanceof Error ? error.message : String(error),
       name: error instanceof Error ? error.name : 'Unknown',
       stack: error instanceof Error ? error.stack : undefined,
