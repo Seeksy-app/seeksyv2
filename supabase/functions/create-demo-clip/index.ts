@@ -25,11 +25,14 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let clipRecord: any = null;
+  let supabase: any = null;
+
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("Not authenticated");
 
-    const supabase = createClient(
+    supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
       { global: { headers: { Authorization: authHeader } } }
@@ -62,7 +65,7 @@ serve(async (req) => {
     console.log("Source video:", sourceVideo.file_name, "Duration:", duration);
 
     // STEP 1: Create clips record
-    const { data: clipRecord, error: clipError } = await supabase
+    const { data: clip, error: clipError } = await supabase
       .from("clips")
       .insert({
         user_id: user.id,
@@ -77,6 +80,7 @@ serve(async (req) => {
       .single();
 
     if (clipError) throw clipError;
+    clipRecord = clip;
 
     console.log("Created clip record:", clipRecord.id);
 
@@ -123,7 +127,7 @@ serve(async (req) => {
           .insert({
             ai_job_id: job.id,
             source_media_id: sourceVideo.id,
-            output_type: format === 'vertical' ? 'vertical_clip' : 'thumbnail_clip',
+            output_type: format,
             storage_path: assetUrl,
             duration_seconds: duration,
             metadata: {
@@ -237,6 +241,18 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("Error creating demo clip:", error);
+    
+    // Update clip status to failed if we have a clipRecord
+    if (clipRecord?.id) {
+      await supabase
+        .from("clips")
+        .update({ 
+          status: 'failed',
+          error_message: error instanceof Error ? error.message : String(error)
+        })
+        .eq("id", clipRecord.id);
+    }
+    
     return new Response(
       JSON.stringify({ 
         error: error instanceof Error ? error.message : "Unknown error",
