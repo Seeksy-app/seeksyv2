@@ -120,6 +120,13 @@ serve(async (req) => {
         error_message: null, // Clear any previous errors
       };
 
+      // Check if blockchain certification should be enabled
+      // For Phase 1: Auto-enable for all clips (later: check user/workspace settings)
+      if (clip.cert_status === 'not_requested') {
+        console.log("→ Clip eligible for blockchain certification");
+        updateData.cert_status = 'pending';
+      }
+
       // Optional: Create ai_edited_assets record for tracking
       try {
         await supabase.from("ai_edited_assets").insert({

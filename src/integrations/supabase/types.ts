@@ -3186,6 +3186,12 @@ export type Database = {
       clips: {
         Row: {
           ai_job_id: string | null
+          cert_chain: string | null
+          cert_created_at: string | null
+          cert_explorer_url: string | null
+          cert_status: string | null
+          cert_token_id: string | null
+          cert_tx_hash: string | null
           collection_id: string | null
           created_at: string
           duration_seconds: number | null
@@ -3209,6 +3215,12 @@ export type Database = {
         }
         Insert: {
           ai_job_id?: string | null
+          cert_chain?: string | null
+          cert_created_at?: string | null
+          cert_explorer_url?: string | null
+          cert_status?: string | null
+          cert_token_id?: string | null
+          cert_tx_hash?: string | null
           collection_id?: string | null
           created_at?: string
           duration_seconds?: number | null
@@ -3232,6 +3244,12 @@ export type Database = {
         }
         Update: {
           ai_job_id?: string | null
+          cert_chain?: string | null
+          cert_created_at?: string | null
+          cert_explorer_url?: string | null
+          cert_status?: string | null
+          cert_token_id?: string | null
+          cert_tx_hash?: string | null
           collection_id?: string | null
           created_at?: string
           duration_seconds?: number | null
