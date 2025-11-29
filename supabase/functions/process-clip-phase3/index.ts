@@ -161,7 +161,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error("PHASE3 ERROR - Full details:", JSON.stringify({
+    console.error("process-clip-phase3 error", {
       message: error instanceof Error ? error.message : String(error),
       name: error instanceof Error ? error.name : 'Unknown',
       stack: error instanceof Error ? error.stack : undefined,
@@ -170,7 +170,7 @@ serve(async (req) => {
       hint: (error as any)?.hint,
       clipId: clipRecord?.id,
       hasSupabaseClient: !!supabase,
-    }, null, 2));
+    });
 
     // Extract detailed error message (first 300 chars for UI display)
     let errorMessage = error instanceof Error ? error.message : String(error);
@@ -194,10 +194,15 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        error: error instanceof Error ? error.message : "Unknown error",
-        details: String(error),
-        code: (error as any)?.code,
-        hint: (error as any)?.hint,
+        error: "process-clip-phase3 failed",
+        details: {
+          message: error instanceof Error ? error.message : String(error),
+          name: error instanceof Error ? error.name : 'Unknown',
+          code: (error as any)?.code,
+          details: (error as any)?.details,
+          hint: (error as any)?.hint,
+          stack: error instanceof Error ? error.stack : undefined,
+        },
       }),
       {
         status: 500,
