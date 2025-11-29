@@ -48,7 +48,7 @@ serve(async (req) => {
       .ilike("file_type", "video%")
       .order("created_at", { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     if (videosError || !sourceVideos) {
       throw new Error("No source video found. Please upload a video first.");
@@ -92,7 +92,7 @@ serve(async (req) => {
           .from("ai_jobs")
           .insert({
             user_id: user.id,
-            job_type: 'clip_processing',
+            job_type: 'clips_generation',
             engine: 'lovable_ai',
             params: {
               clip_id: clipRecord.id,
