@@ -7,6 +7,77 @@ const corsHeaders = {
 };
 
 /**
+ * Mint Certificate (Background Process)
+ * 
+ * Simulates blockchain minting for a finished clip.
+ * Phase 1: Mock implementation with proper data structure.
+ * 
+ * Future integration points:
+ * - Real wallet connection (user or platform wallet)
+ * - Smart contract interaction (Polygon, Base, etc.)
+ * - IPFS/Arweave metadata storage
+ * - Real transaction submission and confirmation polling
+ */
+async function mintCertificate(supabase: any, clipId: string) {
+  try {
+    console.log(`→ Minting simulation started for clip: ${clipId}`);
+
+    // Set status to minting
+    await supabase
+      .from('clips')
+      .update({ cert_status: 'minting' })
+      .eq('id', clipId);
+
+    // Simulate minting delay (1-2 seconds)
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Generate mock certificate data
+    const mockTxHash = `0x${Array.from({length: 64}, () => 
+      Math.floor(Math.random() * 16).toString(16)).join('')}`;
+    
+    const mockTokenId = Math.floor(Math.random() * 1000000).toString();
+    const chain = 'polygon'; // Default chain for Phase 1
+    
+    const explorerUrl = `https://polygonscan.com/tx/${mockTxHash}`;
+
+    console.log(`→ Minting simulation completed`);
+    console.log(`  Chain: ${chain}`);
+    console.log(`  TX Hash: ${mockTxHash}`);
+    console.log(`  Token ID: ${mockTokenId}`);
+    console.log(`  Explorer: ${explorerUrl}`);
+
+    // Update clip with certificate details
+    const { error: certError } = await supabase
+      .from('clips')
+      .update({
+        cert_status: 'minted',
+        cert_chain: chain,
+        cert_tx_hash: mockTxHash,
+        cert_token_id: mockTokenId,
+        cert_explorer_url: explorerUrl,
+        cert_created_at: new Date().toISOString(),
+      })
+      .eq('id', clipId);
+
+    if (certError) {
+      throw certError;
+    }
+
+    console.log(`→ Certification written to database`);
+    console.log(`✓ Clip ${clipId} certified successfully`);
+
+  } catch (error) {
+    console.error(`❌ Certification failed for clip ${clipId}:`, error);
+    
+    // Set status to failed
+    await supabase
+      .from('clips')
+      .update({ cert_status: 'failed' })
+      .eq('id', clipId);
+  }
+}
+
+/**
  * Shotstack Webhook Handler
  * 
  * Receives status updates from Shotstack when render jobs complete.
@@ -25,7 +96,7 @@ const corsHeaders = {
  * 1. Parse webhook payload
  * 2. Look up clip by shotstack_job_id
  * 3. Update clip status based on Shotstack status
- * 4. When done, save final video URL to storage_path/vertical_url
+ * 4. When done, save final video URL and trigger certification
  */
 
 interface ShotstackWebhookPayload {
@@ -120,10 +191,10 @@ serve(async (req) => {
         error_message: null, // Clear any previous errors
       };
 
-      // Check if blockchain certification should be enabled
-      // For Phase 1: Auto-enable for all clips (later: check user/workspace settings)
+      // Blockchain certification trigger
+      // Phase 1: Auto-enable for all clips (later: check workspace.settings.enable_blockchain_certification)
       if (clip.cert_status === 'not_requested') {
-        console.log("→ Clip eligible for blockchain certification");
+        console.log("→ Certification triggered");
         updateData.cert_status = 'pending';
       }
 
@@ -175,6 +246,14 @@ serve(async (req) => {
     }
 
     console.log(`✓ Clip ${clip.id} updated successfully`);
+
+    // If certification was triggered, mint certificate in background
+    if (updateData.cert_status === 'pending') {
+      // Run minting asynchronously (don't block webhook response)
+      mintCertificate(supabase, clip.id).catch(err => {
+        console.error("❌ Background certification failed:", err);
+      });
+    }
 
     return new Response(
       JSON.stringify({
