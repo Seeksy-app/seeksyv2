@@ -1,125 +1,175 @@
 # Holiday Mode System
 
 ## Overview
-A modular, toggle-based system for seasonal holiday features that can be enabled/disabled instantly without code changes.
+Holiday Mode is an optional, toggleable seasonal feature system that transforms the Seeksy platform with festive Santa Spark branding, welcome modals, and optional snowfall effects. The system is now **admin-controlled via a database-backed settings UI** rather than static configuration files.
+
+## Admin Control
+
+### Database-Backed Settings
+Holiday Mode is managed through the `app_settings` table:
+- **Table**: `app_settings` (single global row with `key='global'`)
+- **Columns**: `holiday_mode` (boolean), `holiday_snow` (boolean)
+- **RLS**: Admin/super_admin only access
+- **UI**: `/admin/settings` page with toggle switches
+
+### Admin Settings Page (`/admin/settings`)
+Admins can control Holiday Mode through a dedicated settings page:
+- **Holiday Mode Toggle**: Enable/disable the entire festive experience
+- **Snowfall Toggle**: Enable/disable snowfall (only works when Holiday Mode is ON)
+- **Real-time Updates**: Changes persist immediately to database and affect all users on next page load
+- **Toast Notifications**: Confirms when settings are saved
+
+### Access Control
+- Only users with `admin` or `super_admin` role can access `/admin/settings`
+- Non-admin users cannot view or modify Holiday Mode settings
+- Settings changes are tracked with `updated_by` field
 
 ## Quick Toggle
+To enable/disable Holiday Mode globally:
+1. Log in as an admin user
+2. Navigate to `/admin/settings` (or Admin sidebar → Management → App Settings)
+3. Toggle "Holiday Mode" switch
+4. Optional: Toggle "Snowfall" for snow effects
+5. Changes take effect on next page load for all users
 
-**Location**: `src/config/holidayMode.ts`
+**No code changes required** — admins control the feature entirely through the UI.
 
-```typescript
-export const HOLIDAY_MODE = false; // Set to true to enable all holiday features
-export const HOLIDAY_SNOW = false; // Optional snowfall effect
-```
+## Technical Architecture
 
-## Components
+### Configuration (`src/config/holidayMode.ts`)
+- Defines `HolidaySettings` type and `DEFAULT_HOLIDAY_SETTINGS` fallback
+- Provides `isHolidaySeason()` helper for date-based seasonal logic
 
-All holiday components live in `src/components/holiday/`:
+### Hook (`src/hooks/useHolidaySettings.ts`)
+- `useHolidaySettings()`: React hook that fetches settings from database
+- `fetchHolidaySettings()`: Async function for server-side fetching
+- Auto-refetches on window focus, 5-minute stale time
+- Falls back to `DEFAULT_HOLIDAY_SETTINGS` on error
 
-### 1. HolidayWelcomeModal
-- Displays on first login when Holiday Mode is enabled
-- Uses transparent Santa Spark PNG with soft drop shadow
-- One-time subtle wave animation on load (no looping)
-- Welcome message: "Welcome to Seeksy! 🎄✨ I'm Santa Spark — your holiday guide..."
-- Stores flag in localStorage to prevent repeat displays
+### Components (`src/components/holiday/`)
+All holiday components are isolated in this directory and conditionally rendered:
 
-### 2. SantaAssistantButton
-- Floating bottom-right button with transparent Santa Spark
-- Only visible when `HOLIDAY_MODE = true`
-- No white background box — transparent with soft shadow only
-- Subtle hover scale effect
-- Opens SantaAssistantPopup on click
+#### `HolidayWelcomeModal.tsx`
+- Appears once per user session when Holiday Mode is enabled
+- Uses `localStorage` flag `holiday_welcome_seen` to prevent repeat displays
+- Features Santa Spark with one-time wave animation (not looping)
+- Transparent background, soft drop shadow
 
-### 3. SantaAssistantPopup
-- Modal with Santa greeting
-- Quick action buttons:
+#### `SantaAssistantButton.tsx`
+- Fixed bottom-right floating button
+- Transparent with hover scale effect
+- Opens `SantaAssistantPopup` on click
+
+#### `SantaAssistantPopup.tsx`
+- Quick action modal with navigation to:
   - Create Meeting
-  - Add Podcast
+  - Add Podcast  
   - Create Event
-- Routes to corresponding pages when clicked
+- Santa Spark avatar with drop shadow
 
-### 4. Snowfall (Optional)
-- Controlled by separate `HOLIDAY_SNOW` toggle
+#### `Snowfall.tsx`
 - Subtle canvas-based snowfall effect
-- Non-intrusive, doesn't block interactions
-- Can be disabled while keeping Santa features active
-- Optimized particle count based on screen size
+- Only renders when both `holiday_mode=true` AND `holiday_snow=true`
+- Performance-optimized with minimal overhead
 
 ## Integration
 
-All holiday elements are conditionally rendered in `src/App.tsx`:
-
+### App.tsx Wiring
+The `HolidayFeatures` component in `App.tsx` handles conditional rendering:
 ```tsx
-{HOLIDAY_MODE && (
-  <>
-    <HolidayWelcomeModal />
-    <SantaAssistantButton />
-    {HOLIDAY_SNOW && <Snowfall />}
-  </>
-)}
+const HolidayFeatures = () => {
+  const { data: settings } = useHolidaySettings();
+  const holidayMode = settings?.holidayMode ?? false;
+  const holidaySnow = settings?.holidaySnow ?? false;
+
+  if (!holidayMode) return null;
+
+  return (
+    <>
+      <HolidayWelcomeModal />
+      <SantaAssistantButton />
+      {holidaySnow && <Snowfall />}
+    </>
+  );
+};
 ```
+
+All holiday elements are automatically removed when `holiday_mode=false`.
 
 ## Design Principles
 
-✅ **Modular**: All holiday code in dedicated folder  
-✅ **Toggle-based**: Single config controls everything  
-✅ **Clean**: No white boxes, transparent PNGs only  
-✅ **Subtle**: One-time wave animation on load, no constant bouncing  
-✅ **Non-invasive**: Soft shadows, doesn't interfere with main UI  
-✅ **Performance**: Lightweight animations and effects  
-✅ **Optional Snow**: Separate toggle for snowfall effect  
-✅ **Zero Leftovers**: Complete removal when HOLIDAY_MODE = false  
+1. **Clean, Minimal Integration**: No visual clutter when disabled
+2. **Zero Performance Impact**: No holiday assets load when mode is OFF
+3. **Modular Architecture**: All holiday code isolated in `/components/holiday/`
+4. **Admin-Friendly**: One-click toggle, no code deployment required
+5. **Graceful Degradation**: Falls back to defaults if database fetch fails
 
 ## Assets
 
-Holiday assets are located in `public/spark/holiday/`:
-- `spark-santa-waving.png` - Primary Santa with wave gesture
-- `spark-santa-idle.png` - Default Santa pose
-- Additional dark mode variants available
+### Santa Spark Images (`/public/spark/holiday/`)
+- `spark-santa-waving.png`: Transparent PNG with Santa hat, used in modals/buttons
+- All assets use soft drop shadows, no white boxes or backgrounds
+- One-time wave animation on load (CSS: `animate-[wave_1.2s_ease-in-out]`)
 
-All assets are transparent PNGs with no backgrounds.
+### Animation Keyframes (`src/index.css`)
+```css
+@keyframes wave {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(15deg); }
+  50% { transform: rotate(-10deg); }
+  75% { transform: rotate(10deg); }
+}
+```
+
+## Pages Using Holiday Mode
+
+When Holiday Mode is enabled, the following experiences are affected:
+- **All Pages**: Santa Spark replaces standard Spark in sidebar/widgets
+- **First Login**: `HolidayWelcomeModal` displays once per session
+- **Bottom-Right**: `SantaAssistantButton` appears globally (except Studio pages)
+- **Optional Snowfall**: Dashboard and homepage if `holiday_snow=true`
 
 ## Usage
 
-### To Enable Holiday Mode:
-1. Open `src/config/holidayMode.ts`
-2. Change `export const HOLIDAY_MODE = false;` to `true`
-3. Optionally enable `HOLIDAY_SNOW = true` for snowfall
-4. Save and refresh
+### For Admins
+```
+1. Go to /admin/settings
+2. Toggle "Holiday Mode" ON
+3. (Optional) Toggle "Snowfall" ON
+4. Holiday features activate for all users
+```
 
-### To Disable Holiday Mode:
-1. Open `src/config/holidayMode.ts`
-2. Change `export const HOLIDAY_MODE = true;` to `false`
-3. Save and refresh
+### For Developers
+```tsx
+// Use the hook in any component
+import { useHolidaySettings } from "@/hooks/useHolidaySettings";
 
-No other code changes required! When disabled, zero holiday elements render.
+const MyComponent = () => {
+  const { data: settings, isLoading } = useHolidaySettings();
+  
+  if (settings?.holidayMode) {
+    // Render holiday variant
+  }
+};
+```
 
-## Animations
+## Removal / Cleanup
 
-- **Wave Animation**: One-time 1.2s wave gesture on modal load
-- **Hover Effects**: Subtle scale transform on button hover
-- **No Looping**: Animations play once, not continuously
-- **Drop Shadows**: Soft shadows for depth without white boxes
+When Holiday Mode is disabled (`holiday_mode=false`):
+- No holiday components render
+- No holiday assets are loaded
+- No localStorage checks occur
+- Zero visual or performance footprint
 
-## Testing Checklist
+## Future Enhancements
 
-When `HOLIDAY_MODE = true`:
-- ✅ Welcome modal appears on first login with wave animation
-- ✅ Santa button visible in bottom-right corner
-- ✅ No white boxes or backgrounds around Santa
-- ✅ Soft drop shadows only
-- ✅ Modal text matches holiday messaging
-- ✅ Quick actions route correctly
-- ✅ Snowfall appears if `HOLIDAY_SNOW = true`
-
-When `HOLIDAY_MODE = false`:
-- ✅ Zero holiday elements render
-- ✅ No Santa anywhere in app
-- ✅ No snowfall
-- ✅ Clean standard UI
+- Admin dashboard widget showing current Holiday Mode status
+- Scheduled auto-enable/disable based on `HOLIDAY_START_DATE` and `HOLIDAY_END_DATE`
+- Additional seasonal themes (Valentine's, Halloween, etc.) using same architecture
+- Per-user holiday preference overrides
 
 ---
 
-**Version**: 2.0 (Polished)  
-**Last Updated**: 2025-01-29  
-**Status**: Production-ready for seasonal activation
+**Version**: 2.0.0 (Database-Backed Admin Control)  
+**Last Updated**: November 29, 2024  
+**Maintained By**: Seeksy Engineering Team

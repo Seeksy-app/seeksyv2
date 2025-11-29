@@ -525,6 +525,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   ];
 
   const adminManagement = [
+    { title: "App Settings", url: "/admin/settings", icon: Settings },
     { title: "Impersonate User", url: "/admin/impersonate", icon: UserCog },
     { title: "Manage Credits", url: "/admin/credits", icon: Coins },
   ];

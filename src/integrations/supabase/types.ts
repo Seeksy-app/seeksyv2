@@ -1570,6 +1570,33 @@ export type Database = {
         }
         Relationships: []
       }
+      app_settings: {
+        Row: {
+          holiday_mode: boolean
+          holiday_snow: boolean
+          id: string
+          key: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          holiday_mode?: boolean
+          holiday_snow?: boolean
+          id?: string
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          holiday_mode?: boolean
+          holiday_snow?: boolean
+          id?: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       audio_ads: {
         Row: {
           ad_type: string

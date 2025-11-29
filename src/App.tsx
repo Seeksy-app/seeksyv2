@@ -82,8 +82,9 @@ import RSSMigrationPage from "./pages/RSSMigrationPage";
 import PaidAdsTerms from "./pages/legal/PaidAdsTerms";
 import SubscriptionSettings from "./pages/SubscriptionSettings";
 import { SeeksyAIChatWidget } from "./components/SeeksyAIChatWidget";
-import { HOLIDAY_MODE, HOLIDAY_SNOW } from "./config/holidayMode";
+import { useHolidaySettings } from "./hooks/useHolidaySettings";
 import { HolidayWelcomeModal, SantaAssistantButton, Snowfall } from "./components/holiday";
+import AdminSettings from "./pages/admin/Settings";
 import AdminAds from "./pages/AdminAds";
 import AdminAudioAds from "./pages/AdminAudioAds";
 import PodcastAds from "./pages/PodcastAds";
@@ -264,6 +265,22 @@ import PodcastDashboard from "./pages/podcasts/PodcastDashboard";
 import VoiceCloningWizard from "./pages/voice-cloning/VoiceCloningWizard";
 
 const queryClient = new QueryClient();
+
+const HolidayFeatures = () => {
+  const { data: settings } = useHolidaySettings();
+  const holidayMode = settings?.holidayMode ?? false;
+  const holidaySnow = settings?.holidaySnow ?? false;
+
+  if (!holidayMode) return null;
+
+  return (
+    <>
+      <HolidayWelcomeModal />
+      <SantaAssistantButton />
+      {holidaySnow && <Snowfall />}
+    </>
+  );
+};
 
 const AppContent = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -488,6 +505,7 @@ const AppContent = () => {
               <Route path="/profile/edit/legacy" element={<ProfileEdit />} />
               <Route path="/role-settings" element={<RoleSettings />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/settings" element={<AdminSettings />} />
             <Route path="/admin/legal" element={<AdminLegal />} />
             <Route path="/admin/conversational-demo" element={<AdminConversationalDemo />} />
             <Route path="/admin/architecture" element={<SeeksyArchitecture />} />
@@ -622,14 +640,7 @@ const AppContent = () => {
         </div>
         {user && !location.pathname.includes('/meeting-studio/') && !location.pathname.includes('/studio/') && <SeeksyAIChatWidget />}
         
-        {/* Holiday Mode Elements */}
-        {HOLIDAY_MODE && (
-          <>
-            <HolidayWelcomeModal />
-            <SantaAssistantButton />
-            {HOLIDAY_SNOW && <Snowfall />}
-          </>
-        )}
+        <HolidayFeatures />
         </div>
       </SidebarProvider>
     </RoleProvider>
