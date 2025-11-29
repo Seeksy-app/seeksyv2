@@ -104,8 +104,20 @@ serve(async (req) => {
     });
 
     if (processResponse.error) {
-      console.error("Processing error:", processResponse.error);
-      throw new Error(`Clip processing failed: ${processResponse.error.message || 'Unknown error'}`);
+      console.error("Phase 3 processing failed:", JSON.stringify({
+        error: processResponse.error,
+        status: (processResponse.error as any)?.status,
+        context: (processResponse.error as any)?.context,
+      }, null, 2));
+      
+      throw new Error(JSON.stringify({
+        error: "Phase 3 processing failed",
+        details: {
+          message: processResponse.error.message,
+          name: processResponse.error.name,
+          context: (processResponse.error as any)?.context,
+        }
+      }));
     }
 
     const processData = processResponse.data;
