@@ -25,10 +25,10 @@ const corsHeaders = {
  * - Supports gasless transactions via Biconomy (future)
  */
 
-// Minimal ERC-721 Certificate Contract ABI
+// SeeksyClipCertificate Contract ABI
 const CERTIFICATE_CONTRACT_ABI = [
-  "function mintCertificate(address to, string calldata clipId, string calldata clipUrl, string calldata metadataJsonUri, bytes32 contentHash) external returns (uint256)",
-  "event ClipCertified(uint256 indexed tokenId, string clipId, bytes32 contentHash)"
+  "function mintCertificate(address to, string calldata clipId, string calldata tokenUri) external returns (uint256)",
+  "event CertificateMinted(address indexed creator, uint256 indexed tokenId, string clipId, string tokenUri)"
 ];
 
 interface MintCertificateRequest {
@@ -132,25 +132,18 @@ serve(async (req) => {
       signer
     );
 
-    // 4. Compute content hash (hash of clip metadata)
-    const clipMetadata = JSON.stringify({
-      clipId: clip.id,
-      outputUrl: clip.output_url,
-      createdAt: clip.created_at,
-      userId: user.id,
-    });
-    const contentHash = ethers.keccak256(ethers.toUtf8Bytes(clipMetadata));
+    // 4. Build metadata URI (future: IPFS)
+    // For now, use a public URL that displays certificate info
+    const metadataUri = `https://seeksy.io/api/clip-metadata/${clip.id}`;
 
-    console.log(`Content hash: ${contentHash}`);
+    console.log(`Metadata URI: ${metadataUri}`);
 
     // 5. Mint certificate NFT
     try {
       const tx = await contract.mintCertificate(
         signer.address, // Platform wallet owns the NFT (future: creator wallet)
         clip.id,
-        clip.output_url || "",
-        "", // Metadata URI (future: IPFS)
-        contentHash
+        metadataUri
       );
 
       console.log(`Transaction submitted: ${tx.hash}`);
@@ -167,7 +160,7 @@ serve(async (req) => {
             topics: log.topics as string[],
             data: log.data,
           });
-          if (parsed && parsed.name === "ClipCertified") {
+          if (parsed && parsed.name === "CertificateMinted") {
             tokenId = parsed.args.tokenId.toString();
             console.log(`Token ID from event: ${tokenId}`);
             break;
