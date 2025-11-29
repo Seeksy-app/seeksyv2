@@ -315,13 +315,25 @@ export const SeeksyAIChatWidget = () => {
   if (!isOpen) {
     return (
       <div className="fixed bottom-6 right-6 z-50 group animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <Button
+        <button
           onClick={() => {
             setIsOpen(true);
             setTriggerSparkAnimation(true);
           }}
-          className="h-20 w-20 rounded-full bg-transparent hover:bg-transparent transition-all duration-300 relative p-0 border-0 shadow-none hover:scale-110"
-          size="icon"
+          style={{
+            width: '5rem',
+            height: '5rem',
+            background: 'transparent',
+            border: 'none',
+            padding: 0,
+            margin: 0,
+            cursor: 'pointer',
+            outline: 'none',
+            boxShadow: 'none',
+            position: 'relative',
+          }}
+          className="transition-all duration-300 hover:scale-110"
+          aria-label="Open Seeksy AI Chat"
         >
           <SparkAvatar 
             pose="waving" 
@@ -330,7 +342,7 @@ export const SeeksyAIChatWidget = () => {
             triggerAnimation={triggerSparkAnimation}
             className="drop-shadow-2xl filter brightness-105 transition-transform duration-300 group-hover:scale-105" 
           />
-        </Button>
+        </button>
         
         {/* Subtle glow pulse animation */}
         <div className={cn(

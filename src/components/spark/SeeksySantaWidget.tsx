@@ -21,12 +21,20 @@ export const SeeksySantaWidget = () => {
     <>
       <button
         onClick={() => setShowModal(true)}
-        className={cn(
-          "fixed bottom-6 right-6 z-40",
-          "bg-transparent p-0 m-0 shadow-none border-none",
-          "hover:scale-110 transition-transform duration-300",
-          "cursor-pointer drop-shadow-2xl"
-        )}
+        style={{
+          position: 'fixed',
+          bottom: '1.5rem',
+          right: '1.5rem',
+          zIndex: 40,
+          background: 'transparent',
+          border: 'none',
+          padding: 0,
+          margin: 0,
+          cursor: 'pointer',
+          outline: 'none',
+          boxShadow: 'none',
+        }}
+        className="hover:scale-110 transition-transform duration-300"
         aria-label="Open Seeksy Santa Surprise"
       >
         <SparkAvatar 
