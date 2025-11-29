@@ -244,37 +244,4 @@ body {
     animation: dance-bounce 0.6s ease-in-out infinite;
   }
 
-  /* Holiday Animations */
-  @keyframes bounce-gentle {
-    0%, 100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
-  }
-
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-15px);
-    }
-  }
-
-  @keyframes holiday-glow {
-    0%, 100% {
-      opacity: 0.15;
-      transform: scale(1);
-    }
-    50% {
-      opacity: 0.25;
-      transform: scale(1.1);
-    }
-  }
-
-  .animate-holiday-glow {
-    animation: holiday-glow 2.5s ease-in-out infinite;
-  }
 }

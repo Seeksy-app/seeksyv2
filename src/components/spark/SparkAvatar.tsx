@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { getSparkAsset, preloadSparkAssets, type SparkPose, type SparkSize, isHolidaySeason } from "@/lib/spark/sparkAssets";
+import { getSparkAsset, preloadSparkAssets, type SparkPose, type SparkSize } from "@/lib/spark/sparkAssets";
 
 interface SparkAvatarProps {
   pose?: SparkPose;
@@ -32,7 +32,6 @@ export const SparkAvatar = ({
   const [isHovering, setIsHovering] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [shouldAnimate, setShouldAnimate] = useState(false);
-  const isHoliday = isHolidaySeason();
 
   useEffect(() => {
     preloadSparkAssets();
@@ -107,15 +106,6 @@ export const SparkAvatar = ({
         onMouseLeave={() => animated && setIsHovering(false)}
         draggable={false}
       />
-      {/* Holiday glow pulse on Santa hat */}
-      {isHoliday && hasLoaded && (
-        <div 
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-1/3 rounded-full animate-holiday-glow pointer-events-none"
-          style={{
-            background: "radial-gradient(circle, rgba(239, 68, 68, 0.25) 0%, transparent 70%)",
-          }}
-        />
-      )}
     </div>
   );
 };

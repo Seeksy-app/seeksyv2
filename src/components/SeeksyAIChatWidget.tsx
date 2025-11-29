@@ -12,7 +12,7 @@ import { useLocation } from "react-router-dom";
 import { SparkAvatar } from "@/components/spark/SparkAvatar";
 import { getSparkGreeting, type UserRole } from "@/lib/spark/sparkPersonality";
 import { useRole } from "@/contexts/RoleContext";
-import { isHolidaySeason } from "@/lib/spark/sparkAssets";
+
 
 interface Message {
   role: "user" | "assistant";
@@ -64,14 +64,7 @@ export const SeeksyAIChatWidget = () => {
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [triggerSparkAnimation, setTriggerSparkAnimation] = useState(false);
   
-  // Add seasonal greeting for December
-  const isHoliday = isHolidaySeason();
-  const holidayGreeting = "🎄 Hi! I'm Seeksy Spark. Want help making a holiday-themed intro video or podcast opener?";
-  const hasShownHolidayGreeting = useRef(false);
-  
-  const initialMessage = isHoliday && !hasShownHolidayGreeting.current 
-    ? holidayGreeting 
-    : greeting.text;
+  const initialMessage = greeting.text;
   
   const [messages, setMessages] = useState<Message[]>([{
     role: "assistant",
@@ -83,14 +76,6 @@ export const SeeksyAIChatWidget = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
-  
-  // Mark holiday greeting as shown when chat opens
-  useEffect(() => {
-    if (isOpen && isHoliday && !hasShownHolidayGreeting.current) {
-      hasShownHolidayGreeting.current = true;
-      setTriggerSparkAnimation(true);
-    }
-  }, [isOpen, isHoliday]);
 
   // Check if user has reached dashboard before showing chat
   useEffect(() => {
@@ -347,7 +332,7 @@ export const SeeksyAIChatWidget = () => {
         {/* Subtle glow pulse animation */}
         <div className={cn(
           "absolute inset-0 rounded-full blur-xl opacity-40 animate-pulse pointer-events-none",
-          isHoliday ? "bg-red-500/30" : "bg-yellow-400/30"
+          "bg-yellow-400/30"
         )} />
       </div>
     );

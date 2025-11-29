@@ -13,17 +13,6 @@ export type SparkPose =
 
 export type SparkSize = "full" | "icon-32" | "icon-20" | "icon-16";
 
-/**
- * Check if we're in holiday season (December 1-31)
- */
-export const isHolidaySeason = (): boolean => {
-  const now = new Date();
-  const month = now.getMonth();
-  const day = now.getDate();
-  
-  // November 25 - January 2
-  return (month === 10 && day >= 25) || (month === 11) || (month === 0 && day <= 2);
-};
 
 /**
  * Detect current theme from DOM or system preference
@@ -53,41 +42,16 @@ export const getCurrentTheme = (): "light" | "dark" => {
 export const getSparkAsset = (
   pose: SparkPose = "idle",
   size: SparkSize = "full",
-  forceTheme?: "light" | "dark",
-  forceHoliday?: boolean
+  forceTheme?: "light" | "dark"
 ): string => {
   const theme = forceTheme || getCurrentTheme();
-  const isHoliday = forceHoliday !== undefined ? forceHoliday : isHolidaySeason();
   
   // Icon sizes
   if (size !== "full") {
-    if (isHoliday) {
-      return `/spark/icons/holiday/spark_icon_32_santa${theme === 'dark' ? '_dark' : ''}.png`;
-    }
     return `/spark/icons/spark-icon-${size.replace("icon-", "")}.png`;
   }
   
-  // Full character assets - Holiday variants
-  if (isHoliday) {
-    const poseMap: Record<SparkPose, string> = {
-      idle: 'idle',
-      happy: 'happy',
-      thinking: 'idle', // Fallback to idle
-      waving: 'wave',
-      idea: 'happy', // Fallback to happy
-      typing: 'typing'
-    };
-    
-    const holidayPose = poseMap[pose] || 'idle';
-    const darkSuffix = theme === 'dark' ? '_dark' : '';
-    
-    if (theme === 'dark') {
-      return `/spark/holiday/dark/spark_${holidayPose}_santa_dark.png`;
-    }
-    return `/spark/holiday/spark_${holidayPose}_santa.png`;
-  }
-  
-  // Regular assets (non-holiday)
+  // Regular assets
   if (theme === "dark") {
     return `/spark/dark/spark-${pose}-dark.png`;
   }
@@ -100,13 +64,12 @@ export const getSparkAsset = (
  */
 export const preloadSparkAssets = () => {
   const theme = getCurrentTheme();
-  const isHoliday = isHolidaySeason();
   
   const assetsToPreload = [
-    getSparkAsset("idle", "full", theme, isHoliday),
-    getSparkAsset("waving", "full", theme, isHoliday),
-    getSparkAsset("thinking", "full", theme, isHoliday),
-    getSparkAsset("typing", "full", theme, isHoliday),
+    getSparkAsset("idle", "full", theme),
+    getSparkAsset("waving", "full", theme),
+    getSparkAsset("thinking", "full", theme),
+    getSparkAsset("typing", "full", theme),
   ];
   
   assetsToPreload.forEach(src => {
