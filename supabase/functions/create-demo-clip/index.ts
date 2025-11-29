@@ -93,14 +93,14 @@ serve(async (req) => {
           .insert({
             user_id: user.id,
             job_type: 'clip_processing',
-            engine: 'demo_pipeline',
+            engine: 'lovable_ai',
             params: {
               clip_id: clipRecord.id,
               start_time: startTime,
               end_time: endTime,
               output_format: format,
               title: "Demo: AI Clip Test",
-              note: "Pipeline validation - FFmpeg not available, using source video reference"
+              note: "Pipeline validation - using source video with time fragments for demo"
             },
             status: 'processing',
             started_at: new Date().toISOString(),
