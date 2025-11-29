@@ -33,57 +33,70 @@ serve(async (req) => {
       throw new Error('Missing required field: audio_url');
     }
 
-    console.log('Starting transcription for asset:', asset_id, 'source:', source_type);
+    console.log('Starting transcription for asset:', asset_id, 'source:', source_type, 'url:', audio_url);
 
     let transcriptText = '';
     let aiModel = 'elevenlabs-stt-v1';
     let wordTimestamps = null;
+    let transcriptionError: string | null = null;
 
     // Try ElevenLabs first
     try {
       const elevenlabsKey = Deno.env.get('ELEVENLABS_API_KEY');
       
-      if (elevenlabsKey) {
-        console.log('Using ElevenLabs speech-to-text...');
-        
-        // Fetch audio file
-        const audioResponse = await fetch(audio_url);
-        const audioBlob = await audioResponse.blob();
-        
-        // Create form data for ElevenLabs
-        const formData = new FormData();
-        formData.append('audio', audioBlob);
-        formData.append('model_id', 'eleven_multilingual_v2');
-        formData.append('language_code', language);
-
-        const elevenlabsResponse = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
-          method: 'POST',
-          headers: {
-            'xi-api-key': elevenlabsKey,
-          },
-          body: formData,
-        });
-
-        if (!elevenlabsResponse.ok) {
-          throw new Error(`ElevenLabs API error: ${elevenlabsResponse.status}`);
-        }
-
-        const result = await elevenlabsResponse.json();
-        transcriptText = result.text || '';
-        
-        console.log('ElevenLabs transcription successful');
-      } else {
-        throw new Error('ElevenLabs API key not configured');
+      if (!elevenlabsKey) {
+        throw new Error('ELEVENLABS_API_KEY not configured');
       }
+
+      console.log('Using ElevenLabs speech-to-text...');
+      
+      // Fetch audio file
+      console.log('Fetching audio from URL...');
+      const audioResponse = await fetch(audio_url);
+      
+      if (!audioResponse.ok) {
+        throw new Error(`Failed to fetch audio file: ${audioResponse.status} ${audioResponse.statusText}`);
+      }
+      
+      const audioBlob = await audioResponse.blob();
+      console.log('Audio fetched, size:', audioBlob.size, 'bytes');
+      
+      // Create form data for ElevenLabs
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'audio.mp4');
+      formData.append('model_id', 'eleven_multilingual_v2');
+      formData.append('language_code', language);
+
+      console.log('Sending to ElevenLabs API...');
+      const elevenlabsResponse = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
+        method: 'POST',
+        headers: {
+          'xi-api-key': elevenlabsKey,
+        },
+        body: formData,
+      });
+
+      if (!elevenlabsResponse.ok) {
+        const errorText = await elevenlabsResponse.text();
+        console.error('ElevenLabs API error:', elevenlabsResponse.status, errorText);
+        throw new Error(`ElevenLabs API error (${elevenlabsResponse.status}): ${errorText}`);
+      }
+
+      const result = await elevenlabsResponse.json();
+      transcriptText = result.text || '';
+      
+      if (!transcriptText) {
+        throw new Error('ElevenLabs returned empty transcript');
+      }
+      
+      console.log('ElevenLabs transcription successful, length:', transcriptText.length);
     } catch (elevenlabsError) {
-      console.error('ElevenLabs transcription failed, using fallback:', elevenlabsError);
+      const errorMsg = elevenlabsError instanceof Error ? elevenlabsError.message : 'Unknown error';
+      transcriptionError = errorMsg;
+      console.error('ElevenLabs transcription failed:', errorMsg);
       
-      // Fallback: Use simple mock transcription (in production, this would call another provider)
-      aiModel = 'fallback-provider';
-      transcriptText = 'Transcript generated using fallback provider. Original audio transcription service unavailable.';
-      
-      // In production, you would call another transcription service here
-      // For now, we'll just provide a placeholder
+      // CRITICAL: Don't use fallback - fail fast so user knows transcription failed
+      throw new Error(`Transcription failed: ${errorMsg}`);
     }
 
     // Store transcript in database
@@ -126,8 +139,19 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error transcribing audio:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
+    // Log full error details for debugging
+    console.error('Full error details:', {
+      message: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+      type: error?.constructor?.name,
+    });
+    
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ 
+        error: errorMessage,
+        details: error instanceof Error ? error.stack : undefined 
+      }),
       {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

@@ -114,21 +114,37 @@ export default function CreateClips() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Transcription error details:", error);
+        throw error;
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
 
       toast({
         title: "Transcript generated!",
-        description: "Check your Transcript Library",
+        description: "Analyzing for clips now...",
       });
       
       // Refresh media files to get updated transcript
-      fetchMediaFiles();
+      await fetchMediaFiles();
+      
+      // Auto-trigger clip analysis if we have the transcript
+      if (data?.transcript?.raw_text) {
+        analyzeForClips({...media, edit_transcript: { transcript: data.transcript.raw_text }});
+      }
     } catch (error) {
       console.error("Transcription error:", error);
+      const errorMsg = error instanceof Error ? error.message : "Unknown error";
       toast({
         title: "Transcription failed",
-        description: "Could not generate transcript",
+        description: errorMsg.includes("ElevenLabs") 
+          ? "ElevenLabs API error. Please check your API key or try again."
+          : errorMsg,
         variant: "destructive",
+        duration: 6000,
       });
     }
   };
