@@ -6,3 +6,5 @@ export { SparkAvatar } from "./SparkAvatar";
 export { SparkWelcomeModal } from "./SparkWelcomeModal";
 export { SparkEmptyState } from "./SparkEmptyState";
 export { SparkSnowfall } from "./SparkSnowfall";
+export { SeeksySantaWidget } from "./SeeksySantaWidget";
+export { SeeksySantaSurprise } from "./SeeksySantaSurprise";

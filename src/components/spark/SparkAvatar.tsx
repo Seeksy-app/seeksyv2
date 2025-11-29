@@ -26,6 +26,7 @@ export const SparkAvatar = ({
 }: SparkAvatarProps) => {
   const [assetPath, setAssetPath] = useState<string>("");
   const [isHovering, setIsHovering] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
     // Preload assets on mount
@@ -65,13 +66,17 @@ export const SparkAvatar = ({
       alt={alt}
       className={cn(
         "object-contain select-none",
-        animated && "transition-all duration-200",
-        animated && isHovering && "scale-105",
+        // Initial load animation (1.5s bounce)
+        !hasLoaded && animated && "animate-bounce-gentle",
+        // Hover animation
+        animated && "transition-all duration-300 ease-in-out",
+        animated && isHovering && "scale-110 brightness-110",
         onClick && "cursor-pointer",
         className
       )}
       style={sizeStyles}
       onClick={onClick}
+      onLoad={() => setHasLoaded(true)}
       onMouseEnter={() => animated && setIsHovering(true)}
       onMouseLeave={() => animated && setIsHovering(false)}
       draggable={false}

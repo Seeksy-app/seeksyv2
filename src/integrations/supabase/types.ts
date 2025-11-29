@@ -3842,6 +3842,33 @@ export type Database = {
           },
         ]
       }
+      creator_faces: {
+        Row: {
+          created_at: string | null
+          creator_id: string
+          embedding: Json
+          id: string
+          thumbnail_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          creator_id: string
+          embedding: Json
+          id?: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          creator_id?: string
+          embedding?: Json
+          id?: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       creator_payouts: {
         Row: {
           created_at: string | null
