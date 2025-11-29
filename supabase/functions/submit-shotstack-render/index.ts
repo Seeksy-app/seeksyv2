@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getTemplatePayload } from "./templates.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -31,7 +32,9 @@ interface SubmitRenderRequest {
   cloudflareDownloadUrl: string;
   start?: number; // Start offset within the source video (defaults to 0)
   length: number; // Clip duration in seconds
-  orientation?: 'vertical' | 'horizontal'; // Output format
+  orientation?: 'vertical' | 'horizontal'; // Output format (legacy)
+  templateName?: string; // Template to use (e.g., "vertical_template_1")
+  collectionId?: string; // Optional collection to organize clip into
 }
 
 serve(async (req) => {
@@ -76,9 +79,11 @@ serve(async (req) => {
       start = 0,
       length,
       orientation = 'vertical',
+      templateName,
+      collectionId,
     } = requestData;
 
-    console.log(`✓ Request parsed - Clip: ${clipId}, Length: ${length}s, Orientation: ${orientation}`);
+    console.log(`✓ Request parsed - Clip: ${clipId}, Length: ${length}s, Template: ${templateName || 'auto'}`);
 
     // Validate clip exists and belongs to user
     const { data: clip, error: clipError } = await supabase
@@ -102,89 +107,30 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const callbackUrl = `${SUPABASE_URL}/functions/v1/shotstack-webhook`;
 
-    // Build Shotstack render payload using Vertical Template #1
-    // Dynamic values from clip metadata with sensible defaults
-    const titleText = clip.title || "Demo: AI Clip Test";
-    const subtitleText = clip.description || "AI-powered vertical clip";
-    const brandColor = "#8B5CF6"; // Seeksy brand purple - can be made dynamic later
-
-    const renderPayload = {
-      timeline: {
-        background: "#000000",
-        tracks: [
-          // Track 1: Main video
-          {
-            clips: [
-              {
-                asset: {
-                  type: "video",
-                  src: cloudflareDownloadUrl,
-                },
-                start: 0,
-                length: length,
-                fit: "crop",
-                position: "center"
-              }
-            ]
-          },
-          // Track 2: Title bar at top
-          {
-            clips: [
-              {
-                asset: {
-                  type: "title",
-                  text: titleText,
-                  style: "minimal",
-                  size: "medium",
-                  color: "#FFFFFF",
-                  background: brandColor
-                },
-                start: 0,
-                length: length,
-                position: "top",
-                margin: 0.05,
-                transition: {
-                  in: "fade",
-                  out: "fade"
-                }
-              }
-            ]
-          },
-          // Track 3: Subtitle text at bottom
-          {
-            clips: [
-              {
-                asset: {
-                  type: "title",
-                  text: subtitleText,
-                  style: "minimal",
-                  size: "small",
-                  color: "#FFFFFF",
-                  background: "rgba(0,0,0,0.4)"
-                },
-                start: 0,
-                length: length,
-                position: "bottom",
-                margin: 0.05
-              }
-            ]
-          }
-        ]
-      },
-      output: {
-        format: "mp4",
-        resolution: "hd",
-        aspectRatio: "9:16"
-      },
-      callback: callbackUrl,
-      disk: "local"
+    // Prepare dynamic placeholders from clip metadata
+    const placeholders = {
+      VIDEO_URL: cloudflareDownloadUrl,
+      CLIP_LENGTH_SECONDS: length,
+      TITLE_TEXT: clip.title || "Demo: AI Clip Test",
+      SUBTITLE_TEXT: clip.description || "AI-powered vertical clip",
+      HOOK_TEXT: clip.title || "Watch this!",
+      USERNAME_OR_TAGLINE: clip.user_id || "@creator",
+      CTA_TEXT: "Learn More",
+      BRAND_COLOR_PRIMARY: "#8B5CF6",
+      LOGO_URL: "", // Can be added later from user profile
     };
+
+    // Determine which template to use
+    const selectedTemplate = templateName || (orientation === 'horizontal' ? 'horizontal_template_1' : 'vertical_template_1');
+
+    // Get the template payload
+    const renderPayload = getTemplatePayload(selectedTemplate, placeholders, callbackUrl);
 
     console.log("→ Submitting render to Shotstack...");
     console.log("  Source:", cloudflareDownloadUrl);
-    console.log("  Template: Vertical Template #1 (9:16 with title + subtitle)");
-    console.log("  Title:", titleText);
-    console.log("  Subtitle:", subtitleText);
+    console.log("  Template:", selectedTemplate);
+    console.log("  Title:", placeholders.TITLE_TEXT);
+    console.log("  Subtitle:", placeholders.SUBTITLE_TEXT);
 
     // Submit to Shotstack Edit API
     const shotstackResponse = await fetch("https://api.shotstack.io/edit/v1/render", {
@@ -215,6 +161,8 @@ serve(async (req) => {
         shotstack_status: "queued",
         status: "processing",
         source_cloudflare_url: cloudflareDownloadUrl,
+        template_name: selectedTemplate,
+        collection_id: collectionId || null,
       })
       .eq("id", clipId);
 

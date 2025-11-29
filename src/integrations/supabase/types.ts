@@ -3156,9 +3156,37 @@ export type Database = {
         }
         Relationships: []
       }
+      clip_collections: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       clips: {
         Row: {
           ai_job_id: string | null
+          collection_id: string | null
           created_at: string
           duration_seconds: number | null
           end_seconds: number
@@ -3172,6 +3200,7 @@ export type Database = {
           status: string
           storage_path: string | null
           suggested_caption: string | null
+          template_name: string | null
           thumbnail_url: string | null
           title: string | null
           user_id: string
@@ -3180,6 +3209,7 @@ export type Database = {
         }
         Insert: {
           ai_job_id?: string | null
+          collection_id?: string | null
           created_at?: string
           duration_seconds?: number | null
           end_seconds: number
@@ -3193,6 +3223,7 @@ export type Database = {
           status?: string
           storage_path?: string | null
           suggested_caption?: string | null
+          template_name?: string | null
           thumbnail_url?: string | null
           title?: string | null
           user_id: string
@@ -3201,6 +3232,7 @@ export type Database = {
         }
         Update: {
           ai_job_id?: string | null
+          collection_id?: string | null
           created_at?: string
           duration_seconds?: number | null
           end_seconds?: number
@@ -3214,6 +3246,7 @@ export type Database = {
           status?: string
           storage_path?: string | null
           suggested_caption?: string | null
+          template_name?: string | null
           thumbnail_url?: string | null
           title?: string | null
           user_id?: string
@@ -3226,6 +3259,13 @@ export type Database = {
             columns: ["ai_job_id"]
             isOneToOne: false
             referencedRelation: "ai_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clips_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "clip_collections"
             referencedColumns: ["id"]
           },
           {
