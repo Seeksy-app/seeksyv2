@@ -67,7 +67,9 @@ serve(async (req) => {
       }
     );
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    // Extract and verify user JWT from Authorization header
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     if (userError || !user) throw new Error("Not authenticated");
 
     const requestData: ProcessClipRequest = await req.json();
