@@ -150,3 +150,6 @@ verify_jwt = true
 
 [functions.process-clip-stream]
 verify_jwt = true
+
+[functions.process-clip-phase3]
+verify_jwt = true

@@ -7,8 +7,8 @@ const corsHeaders = {
 };
 
 /**
- * PHASE 1: Generate both vertical (9:16) and thumbnail clips
- * Orchestrates FFmpeg processing for complete OpusClip-style output
+ * PHASE 3: Generate OpusClip-quality clips
+ * Routes to process-clip-phase3 for real video transformations
  */
 
 serve(async (req) => {
@@ -19,7 +19,7 @@ serve(async (req) => {
   try {
     const { mediaId, fileUrl, startTime, endTime, title, hook, transcript, caption } = await req.json();
     
-    console.log("Generating clip:", { mediaId, startTime, endTime, title });
+    console.log("[Phase 3] Generating clip:", { mediaId, startTime, endTime, title });
 
     // Get auth token from request
     const authHeader = req.headers.get('Authorization');
@@ -36,7 +36,7 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) throw new Error("Not authenticated");
 
-    console.log("Generating clips for:", { mediaId, startTime, endTime, title, userId: user.id });
+    console.log("User authenticated:", user.id);
 
     // Create clip record in database
     const { data: clipData, error: clipError } = await supabase
@@ -46,7 +46,7 @@ serve(async (req) => {
         source_media_id: mediaId,
         start_seconds: startTime,
         end_seconds: endTime,
-        title: title,
+        title: title || hook || "Viral Moment",
         suggested_caption: caption || hook,
         status: 'processing'
       })
@@ -60,96 +60,60 @@ serve(async (req) => {
 
     console.log("Created clip record:", clipData.id);
 
-    // Process BOTH formats sequentially (vertical first, then thumbnail)
-    // This ensures reliable completion and proper error handling
+    // Route to Phase 3 processor for real video transformations
+    console.log("Invoking Phase 3 processor...");
     
-    try {
-      // Process vertical clip (9:16)
-      console.log("Starting vertical clip processing...");
-      const { data: verticalData, error: verticalError } = await supabase.functions.invoke("process-clip-ffmpeg", {
-        body: {
-          clipId: clipData.id,
-          sourceVideoUrl: fileUrl,
-          startTime,
-          endTime,
-          title,
-          caption: caption || hook,
-          transcript,
-          outputFormat: 'vertical'
-        }
-      });
-      
-      if (verticalError) {
-        console.error("Vertical clip error:", verticalError);
-      } else {
-        console.log("Vertical clip complete:", verticalData?.clipUrl);
+    const { data: processingData, error: processingError } = await supabase.functions.invoke("process-clip-phase3", {
+      body: {
+        clipId: clipData.id,
+        sourceVideoUrl: fileUrl,
+        startTime,
+        duration: endTime - startTime,
+        title: title || hook,
+        transcript,
+        hook,
       }
+    });
 
-      // Process thumbnail clip (square)
-      console.log("Starting thumbnail clip processing...");
-      const { data: thumbnailData, error: thumbnailError } = await supabase.functions.invoke("process-clip-ffmpeg", {
-        body: {
-          clipId: clipData.id,
-          sourceVideoUrl: fileUrl,
-          startTime,
-          endTime,
-          title,
-          caption: caption || hook,
-          transcript,
-          outputFormat: 'thumbnail_square'
-        }
-      });
+    if (processingError) {
+      console.error("Phase 3 processing error:", processingError);
       
-      if (thumbnailError) {
-        console.error("Thumbnail clip error:", thumbnailError);
-      } else {
-        console.log("Thumbnail clip complete:", thumbnailData?.clipUrl);
-      }
-
-      // Update final status
-      const bothSucceeded = !verticalError && !thumbnailError;
-      const oneSucceeded = (!verticalError && thumbnailError) || (verticalError && !thumbnailError);
-      
-      await supabase
-        .from('clips')
-        .update({
-          status: bothSucceeded ? 'ready' : (oneSucceeded ? 'partial' : 'failed'),
-          vertical_url: verticalData?.clipUrl || null,
-          thumbnail_url: thumbnailData?.clipUrl || null,
-          error_message: verticalError || thumbnailError ? 
-            `Vertical: ${verticalError?.message || 'OK'}, Thumbnail: ${thumbnailError?.message || 'OK'}` : null
-        })
-        .eq('id', clipData.id);
-
-    } catch (processingError) {
-      console.error("Clip processing failed:", processingError);
+      // Update clip status
       await supabase
         .from('clips')
         .update({
           status: 'failed',
-          error_message: processingError instanceof Error ? processingError.message : 'Unknown processing error'
+          error_message: processingError.message || 'Phase 3 processing failed'
         })
         .eq('id', clipData.id);
+
+      throw processingError;
     }
+
+    console.log("Phase 3 processing complete:", processingData);
 
     // Return clip info
     return new Response(
       JSON.stringify({
         success: true,
         clipId: clipData.id,
-        message: "Clip generation started. Processing vertical and thumbnail formats...",
+        message: "OpusClip-quality clips being generated...",
         timeRange: { start: startTime, end: endTime },
         status: "processing",
-        formats: ["vertical", "thumbnail"]
+        formats: ["vertical", "thumbnail"],
+        phase: 3,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
   } catch (error) {
-    console.error("Error in generate-clip:", error);
+    console.error("[Phase 3] Error in generate-clip:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : "Unknown error",
+        phase: 3,
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
