@@ -147,3 +147,6 @@ verify_jwt = true
 
 [functions.create-demo-clip]
 verify_jwt = true
+
+[functions.process-clip-stream]
+verify_jwt = true
