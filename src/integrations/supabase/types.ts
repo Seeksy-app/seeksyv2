@@ -3195,6 +3195,7 @@ export type Database = {
           collection_id: string | null
           created_at: string
           duration_seconds: number | null
+          enable_certification: boolean | null
           end_seconds: number
           error_message: string | null
           id: string
@@ -3225,6 +3226,7 @@ export type Database = {
           collection_id?: string | null
           created_at?: string
           duration_seconds?: number | null
+          enable_certification?: boolean | null
           end_seconds: number
           error_message?: string | null
           id?: string
@@ -3255,6 +3257,7 @@ export type Database = {
           collection_id?: string | null
           created_at?: string
           duration_seconds?: number | null
+          enable_certification?: boolean | null
           end_seconds?: number
           error_message?: string | null
           id?: string

@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dialog";
 import { CertificationBadge } from "@/components/clips/CertificationBadge";
 import { CertificationSection } from "@/components/clips/CertificationSection";
+import { CertifyClipBanner } from "@/components/clips/CertifyClipBanner";
+import { CreateClipDialog } from "@/components/clips/CreateClipDialog";
 import { useNavigate } from "react-router-dom";
 
 interface Clip {
@@ -47,6 +49,8 @@ export function ClipsGallery() {
   const [selectedClip, setSelectedClip] = useState<Clip | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [isCreatingDemo, setIsCreatingDemo] = useState(false);
+  const [dismissedBanners, setDismissedBanners] = useState<Set<string>>(new Set());
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   const { data: clips, isLoading, refetch } = useQuery({
@@ -85,27 +89,28 @@ export function ClipsGallery() {
     },
   });
 
-  const createDemoClip = async () => {
+  const createDemoClip = async (enableCertification: boolean) => {
     setIsCreatingDemo(true);
     try {
       toast.loading("Creating demo clip...", { 
         id: "demo-clip",
-        description: "Processing pipeline validation" 
+        description: enableCertification ? "With blockchain certification" : "Processing pipeline validation"
       });
       
       const { data, error } = await supabase.functions.invoke("create-demo-clip", {
-        body: {},
+        body: { enableCertification },
       });
 
       if (error) throw error;
 
       toast.success("Demo clip created!", {
         id: "demo-clip",
-        description: "Pipeline validated successfully",
+        description: enableCertification ? "Certification will be added when ready" : "Pipeline validated successfully",
       });
 
       // Start polling for updates
       refetch();
+      setCreateDialogOpen(false);
     } catch (error) {
       console.error("Error creating demo:", error);
       toast.error("Failed to create demo clip", {
@@ -201,7 +206,7 @@ export function ClipsGallery() {
             No clips yet. Create a demo clip to test the pipeline!
           </p>
           <Button 
-            onClick={createDemoClip} 
+            onClick={() => setCreateDialogOpen(true)} 
             disabled={isCreatingDemo}
             className="w-full"
             size="lg"
@@ -232,7 +237,7 @@ export function ClipsGallery() {
             AI-Generated Clips ({clips.length})
           </h3>
           <Button 
-            onClick={createDemoClip} 
+            onClick={() => setCreateDialogOpen(true)} 
             disabled={isCreatingDemo}
             variant="outline"
             size="sm"
@@ -458,6 +463,19 @@ export function ClipsGallery() {
                 </div>
               )}
               
+              {/* Post-render certification CTA for non-certified clips */}
+              {selectedClip.cert_status === 'not_requested' && !dismissedBanners.has(selectedClip.id) && (
+                <CertifyClipBanner
+                  clipId={selectedClip.id}
+                  onCertified={() => {
+                    refetch();
+                  }}
+                  onDismiss={() => {
+                    setDismissedBanners(prev => new Set(prev).add(selectedClip.id));
+                  }}
+                />
+              )}
+              
               {/* Certification Section */}
               {selectedClip.cert_status && selectedClip.cert_status !== 'not_requested' && (
                 <CertificationSection
@@ -481,6 +499,14 @@ export function ClipsGallery() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Create Clip Dialog */}
+      <CreateClipDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onConfirm={createDemoClip}
+        isCreating={isCreatingDemo}
+      />
     </>
   );
 }

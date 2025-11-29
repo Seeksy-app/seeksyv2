@@ -17,6 +17,7 @@ interface Placeholders {
   CTA_TEXT: string;
   BRAND_COLOR_PRIMARY: string;
   LOGO_URL: string;
+  CERT_WATERMARK_URL?: string; // Optional watermark for certified clips
 }
 
 type TemplatePayload = {
@@ -41,6 +42,7 @@ function replacePlaceholders(template: string, placeholders: Placeholders): any 
   result = result.replace(/\{\{CTA_TEXT\}\}/g, placeholders.CTA_TEXT);
   result = result.replace(/\{\{BRAND_COLOR_PRIMARY\}\}/g, placeholders.BRAND_COLOR_PRIMARY);
   result = result.replace(/\{\{LOGO_URL\}\}/g, placeholders.LOGO_URL);
+  result = result.replace(/\{\{CERT_WATERMARK_URL\}\}/g, placeholders.CERT_WATERMARK_URL || "");
   
   // Replace numeric placeholders (CLIP_LENGTH_SECONDS and calculations)
   const lengthStr = String(placeholders.CLIP_LENGTH_SECONDS);
@@ -661,7 +663,8 @@ const TEMPLATES: Record<string, string> = {
 export function getTemplatePayload(
   templateName: string,
   placeholders: Placeholders,
-  callbackUrl: string
+  callbackUrl: string,
+  addWatermark: boolean = false
 ): TemplatePayload {
   const templateString = TEMPLATES[templateName];
   
@@ -671,11 +674,46 @@ export function getTemplatePayload(
   
   const payload = replacePlaceholders(templateString, placeholders);
   
+  // Add certification watermark if requested
+  if (addWatermark && placeholders.CERT_WATERMARK_URL) {
+    addCertificationWatermark(payload, placeholders);
+  }
+  
   // Add callback and disk settings
   payload.callback = callbackUrl;
   payload.disk = "local";
   
   return payload;
+}
+
+/**
+ * Add certification watermark overlay to a template payload
+ */
+function addCertificationWatermark(payload: any, placeholders: Placeholders): void {
+  if (!payload.timeline?.tracks) return;
+  
+  // Add a new track with the watermark image
+  const watermarkTrack = {
+    clips: [
+      {
+        asset: {
+          type: "image",
+          src: placeholders.CERT_WATERMARK_URL,
+        },
+        start: 0,
+        length: placeholders.CLIP_LENGTH_SECONDS,
+        position: "bottomRight",
+        offset: {
+          x: -0.05, // 5% from right edge
+          y: -0.05, // 5% from bottom edge
+        },
+        scale: 0.2, // 20% of video size
+        opacity: 0.9,
+      },
+    ],
+  };
+  
+  payload.timeline.tracks.push(watermarkTrack);
 }
 
 /**

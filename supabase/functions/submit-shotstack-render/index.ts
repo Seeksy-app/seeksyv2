@@ -35,6 +35,7 @@ interface SubmitRenderRequest {
   orientation?: 'vertical' | 'horizontal'; // Output format (legacy)
   templateName?: string; // Template to use (e.g., "vertical_template_1")
   collectionId?: string; // Optional collection to organize clip into
+  enableCertification?: boolean; // Whether to add certification watermark
 }
 
 serve(async (req) => {
@@ -81,6 +82,7 @@ serve(async (req) => {
       orientation = 'vertical',
       templateName,
       collectionId,
+      enableCertification = false,
     } = requestData;
 
     console.log(`✓ Request parsed - Clip: ${clipId}, Length: ${length}s, Template: ${templateName || 'auto'}`);
@@ -118,13 +120,14 @@ serve(async (req) => {
       CTA_TEXT: "Learn More",
       BRAND_COLOR_PRIMARY: "#8B5CF6",
       LOGO_URL: "", // Can be added later from user profile
+      CERT_WATERMARK_URL: enableCertification ? `${SUPABASE_URL}/storage/v1/object/public/assets/seeksy-certified-watermark.png` : undefined,
     };
 
     // Determine which template to use
     const selectedTemplate = templateName || (orientation === 'horizontal' ? 'horizontal_template_1' : 'vertical_template_1');
 
-    // Get the template payload
-    const renderPayload = getTemplatePayload(selectedTemplate, placeholders, callbackUrl);
+    // Get the template payload with optional watermark
+    const renderPayload = getTemplatePayload(selectedTemplate, placeholders, callbackUrl, enableCertification);
 
     console.log("→ Submitting render to Shotstack...");
     console.log("  Source:", cloudflareDownloadUrl);
@@ -160,6 +163,7 @@ serve(async (req) => {
       source_cloudflare_url: cloudflareDownloadUrl,
       template_name: selectedTemplate,
       collection_id: collectionId || null,
+      enable_certification: enableCertification,
     };
 
     // Store job ID in the appropriate field based on orientation
@@ -167,6 +171,11 @@ serve(async (req) => {
       updateFields.shotstack_job_id = shotstackJobId;
     } else {
       updateFields.shotstack_job_id_thumbnail = shotstackJobId;
+    }
+
+    // If certification enabled, set cert_status to pending
+    if (enableCertification) {
+      updateFields.cert_status = 'pending';
     }
 
     const { error: updateError } = await supabase
