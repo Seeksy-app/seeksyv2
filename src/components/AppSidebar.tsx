@@ -220,7 +220,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       if (pathname.includes('/sales')) return 'adminCRM';
       if (pathname.includes('/marketing') || pathname.includes('/newsletter')) return 'adminMarketingSales';
       if (pathname.includes('/tickets') || pathname.includes('/communication-history')) return 'adminCustomerSupport';
-      if (pathname.includes('/team') || pathname.includes('/projects') || pathname.includes('/settings')) return 'adminManagement';
+      if (pathname.includes('/team') || pathname.includes('/projects') || pathname.includes('/admin/settings') || pathname.includes('/admin/impersonate') || pathname.includes('/admin/credits')) return 'adminManagement';
       if (pathname.includes('/clients') || pathname.includes('/creators') || pathname.includes('/agencies')) return 'adminClientManagement';
       if (pathname.includes('/analytics') || pathname.includes('/impressions')) return 'adminAnalytics';
       if (pathname.includes('/storage') || pathname.includes('/upload-logs')) return 'adminOperations';
