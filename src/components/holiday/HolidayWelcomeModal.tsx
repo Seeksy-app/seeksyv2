@@ -10,12 +10,16 @@ import { ArrowRight } from "lucide-react";
 
 export const HolidayWelcomeModal = () => {
   const [open, setOpen] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
     const hasSeenHolidayWelcome = localStorage.getItem("holiday_welcome_seen");
     
     if (!hasSeenHolidayWelcome) {
-      setTimeout(() => setOpen(true), 500);
+      setTimeout(() => {
+        setOpen(true);
+        setIsAnimating(true);
+      }, 500);
     }
   }, []);
 
@@ -29,19 +33,22 @@ export const HolidayWelcomeModal = () => {
       <DialogContent className="sm:max-w-md max-w-[90vw]">
         <DialogHeader>
           <div className="flex justify-center mb-4">
-            <div className="w-24 h-24 sm:w-32 sm:h-32">
+            <div className="relative w-24 h-24 sm:w-32 sm:h-32">
               <img 
                 src="/spark/holiday/spark-santa-waving.png" 
-                alt="Seeksy Santa"
-                className="w-full h-full object-contain"
+                alt="Santa Spark"
+                className={`w-full h-full object-contain drop-shadow-md ${isAnimating ? 'animate-[wave_1.2s_ease-in-out]' : ''}`}
+                onAnimationEnd={() => setIsAnimating(false)}
               />
             </div>
           </div>
           <DialogTitle className="text-center text-xl sm:text-2xl px-2">
-            Welcome to Seeksy! 🚀
+            Welcome to Seeksy! 🎄✨
           </DialogTitle>
-          <DialogDescription className="text-center text-sm sm:text-base pt-2 px-4">
-            You're about to build your presence. Spark can help you set up your My Page, link your podcast, and launch your newsletter!
+          <DialogDescription className="text-center text-sm sm:text-base pt-2 px-4 leading-relaxed">
+            I'm Santa Spark — your holiday guide.<br />
+            Let's set up your creator page, launch your podcast,<br />
+            or grow your community for the season.
           </DialogDescription>
         </DialogHeader>
         

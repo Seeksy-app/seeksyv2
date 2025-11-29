@@ -5,6 +5,9 @@
 
 export const HOLIDAY_MODE = false;
 
+// Optional snowfall effect (independent of HOLIDAY_MODE)
+export const HOLIDAY_SNOW = false;
+
 // Holiday season dates (can be adjusted)
 export const HOLIDAY_START_DATE = new Date('2024-11-25');
 export const HOLIDAY_END_DATE = new Date('2025-01-02');

@@ -82,7 +82,7 @@ import RSSMigrationPage from "./pages/RSSMigrationPage";
 import PaidAdsTerms from "./pages/legal/PaidAdsTerms";
 import SubscriptionSettings from "./pages/SubscriptionSettings";
 import { SeeksyAIChatWidget } from "./components/SeeksyAIChatWidget";
-import { HOLIDAY_MODE } from "./config/holidayMode";
+import { HOLIDAY_MODE, HOLIDAY_SNOW } from "./config/holidayMode";
 import { HolidayWelcomeModal, SantaAssistantButton, Snowfall } from "./components/holiday";
 import AdminAds from "./pages/AdminAds";
 import AdminAudioAds from "./pages/AdminAudioAds";
@@ -627,7 +627,7 @@ const AppContent = () => {
           <>
             <HolidayWelcomeModal />
             <SantaAssistantButton />
-            <Snowfall />
+            {HOLIDAY_SNOW && <Snowfall />}
           </>
         )}
         </div>

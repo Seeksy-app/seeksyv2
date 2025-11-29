@@ -124,6 +124,20 @@ export default {
             transform: "translateY(-15px)"
           }
         },
+        "wave": {
+          "0%, 100%": {
+            transform: "rotate(0deg)"
+          },
+          "10%, 30%": {
+            transform: "rotate(-10deg)"
+          },
+          "20%, 40%": {
+            transform: "rotate(10deg)"
+          },
+          "50%": {
+            transform: "rotate(0deg)"
+          }
+        },
         "holiday-glow": {
           "0%, 100%": {
             opacity: "0.15",
@@ -140,6 +154,7 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         "bounce-once": "bounce-once 0.7s ease-out 1",
         "float": "float 3s ease-in-out infinite",
+        "wave": "wave 1.2s ease-in-out",
         "holiday-glow": "holiday-glow 2.5s ease-in-out infinite",
       },
     },

@@ -28,12 +28,12 @@ export const SantaAssistantPopup = ({ open, onOpenChange }: SantaAssistantPopupP
           <div className="flex justify-center mb-2">
             <img 
               src="/spark/holiday/spark-santa-waving.png" 
-              alt="Seeksy Santa"
-              className="w-20 h-20 object-contain"
+              alt="Santa Spark"
+              className="w-20 h-20 object-contain drop-shadow-md"
             />
           </div>
           <DialogTitle className="text-center text-xl">
-            Hi, I'm Seeksy Spark! 🌟
+            Hi, I'm Santa Spark! 🌟
           </DialogTitle>
         </DialogHeader>
 
