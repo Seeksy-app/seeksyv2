@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,10 +19,10 @@ import {
   CheckCircle2,
   Clock,
   ExternalLink,
-  Video
 } from "lucide-react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import { EpisodeCreationModal } from "./EpisodeCreationModal";
 
 interface OverviewTabProps {
   podcastId: string;
@@ -30,6 +31,7 @@ interface OverviewTabProps {
 
 export const OverviewTab = ({ podcastId, userId }: OverviewTabProps) => {
   const navigate = useNavigate();
+  const [showCreationModal, setShowCreationModal] = useState(false);
 
   const { data: podcast, isLoading: podcastLoading } = useQuery({
     queryKey: ["podcast", podcastId],
@@ -118,21 +120,9 @@ export const OverviewTab = ({ podcastId, userId }: OverviewTabProps) => {
                 Host: {podcast?.author_name || "Not specified"}
               </p>
               <div className="flex flex-wrap gap-2">
-                <Button onClick={() => navigate(`/podcasts/${podcastId}/episodes/new-from-studio`)} size="lg" className="gap-2">
+                <Button onClick={() => setShowCreationModal(true)} size="lg" className="gap-2">
                   <Mic className="w-4 h-4" />
                   Create Episode
-                </Button>
-                <Button variant="outline" onClick={() => {
-                  const searchParams = new URLSearchParams(window.location.search);
-                  searchParams.set('tab', 'studio');
-                  navigate(`/podcasts/${podcastId}?${searchParams.toString()}`);
-                }} size="lg" className="gap-2">
-                  <Mic className="w-4 h-4" />
-                  Record Audio Episode
-                </Button>
-                <Button variant="outline" onClick={() => navigate("/studio/video")} size="lg" className="gap-2">
-                  <Video className="w-4 h-4" />
-                  Record Video Podcast
                 </Button>
                 <Button variant="outline" onClick={handleShare} size="lg" className="gap-2">
                   <Share2 className="w-4 h-4" />
@@ -147,6 +137,13 @@ export const OverviewTab = ({ podcastId, userId }: OverviewTabProps) => {
                   </Button>
                 )}
               </div>
+              
+              <EpisodeCreationModal 
+                open={showCreationModal}
+                onOpenChange={setShowCreationModal}
+                podcastId={podcastId}
+                podcastTitle={podcast?.title || ""}
+              />
             </div>
           </div>
         </CardContent>

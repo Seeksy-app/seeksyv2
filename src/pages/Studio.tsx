@@ -30,6 +30,11 @@ function StudioContent() {
   const location = useLocation();
   const { toast } = useToast();
   
+  // Extract podcast context from URL params
+  const searchParams = new URLSearchParams(location.search);
+  const podcastId = searchParams.get('podcastId');
+  const podcastTitle = searchParams.get('podcastTitle');
+  
   const [inLobby, setInLobby] = useState(!location.state?.sessionName);
   const [sessionName, setSessionName] = useState(location.state?.sessionName || "");
   const [isRecording, setIsRecording] = useState(false);
@@ -631,7 +636,21 @@ Closing Notes:
         duration: 2000,
       });
 
-      navigate("/media-library");
+      // If recording for a podcast, navigate to episode creation
+      if (podcastId && mediaFileData) {
+        navigate(`/podcasts/${podcastId}/episodes/new-from-studio`, {
+          state: {
+            audioUrl: publicUrl,
+            mediaFileId: mediaFileData.id,
+            title: name,
+            duration: Math.floor(blob.size / (128 * 1024)), // Rough estimate
+            recordingDate: new Date().toISOString(),
+            tracks: [{ audioUrl: publicUrl, name }],
+          },
+        });
+      } else {
+        navigate("/media-library");
+      }
     } catch (error) {
       console.error("Error uploading recording:", error);
       toast({
@@ -821,7 +840,21 @@ Closing Notes:
   };
 
   if (inLobby) {
-    return <StudioLobby onEnterStudio={handleEnterStudio} />;
+    return (
+      <div className="min-h-screen bg-background">
+        {podcastId && podcastTitle && (
+          <div className="bg-primary/10 border-b border-primary/20 px-6 py-3">
+            <div className="max-w-7xl mx-auto flex items-center gap-2 text-sm">
+              <Radio className="w-4 h-4 text-primary" />
+              <span className="font-medium">Recording for podcast:</span>
+              <span className="text-muted-foreground">{decodeURIComponent(podcastTitle)}</span>
+              <span className="text-muted-foreground">– New Episode</span>
+            </div>
+          </div>
+        )}
+        <StudioLobby onEnterStudio={handleEnterStudio} />
+      </div>
+    );
   }
 
   if (isUploading) {

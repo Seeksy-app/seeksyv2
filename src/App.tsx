@@ -256,6 +256,7 @@ import AdvertiserIntegrations from "./pages/advertiser/AdvertiserIntegrations";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import EpisodeDetails from "./pages/episodes/EpisodeDetails";
 import NewEpisodeFromStudio from "./pages/podcasts/NewEpisodeFromStudio";
+import NewEpisode from "./pages/podcasts/NewEpisode";
 import EpisodeDetailPublic from "./pages/podcasts/EpisodeDetailPublic";
 import PodcastStats from "./pages/podcasts/PodcastStats";
 
@@ -466,6 +467,7 @@ const AppContent = () => {
               <Route path="/podcasts/:id/edit" element={<EditPodcast />} />
               <Route path="/podcasts/:id/upload" element={<UploadEpisode />} />
               <Route path="/podcasts/:podcastId/stats" element={<PodcastStats />} />
+              <Route path="/podcasts/:podcastId/episodes/new" element={<NewEpisode />} />
               <Route path="/podcasts/:podcastId/episodes/new-from-studio" element={<NewEpisodeFromStudio />} />
               <Route path="/podcasts/:podcastId/episodes/:episodeId" element={<EpisodeDetailPublic />} />
               <Route path="/podcasts/:id/migrate" element={<RSSMigrationPage />} />
