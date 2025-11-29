@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Download, Play, Trash2, Type, Clock } from "lucide-react";
+import { Sparkles, Download, Play, Trash2, Type, Clock, Calendar } from "lucide-react";
 import { toast } from "sonner";
+import { format } from "date-fns";
 import {
   Dialog,
   DialogContent,
@@ -104,18 +105,28 @@ export function ClipsGallery() {
 
   const handleDelete = async (clipId: string) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Must be logged in to delete clips");
+        return;
+      }
+
       const { error } = await supabase
         .from("clips")
         .delete()
-        .eq("id", clipId);
+        .eq("id", clipId)
+        .eq("user_id", user.id); // Explicitly check ownership
 
-      if (error) throw error;
+      if (error) {
+        console.error("Delete error:", error);
+        throw error;
+      }
 
       toast.success("Clip deleted");
       refetch();
     } catch (error) {
       console.error("Error deleting clip:", error);
-      toast.error("Failed to delete clip");
+      toast.error("Failed to delete clip: " + (error instanceof Error ? error.message : "Unknown error"));
     }
   };
 
@@ -310,6 +321,10 @@ export function ClipsGallery() {
                         From: {clip.source_media.file_name}
                       </p>
                     )}
+                    <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {format(new Date(clip.created_at), "MMM d, yyyy 'at' h:mm a")}
+                    </p>
                     {clip.suggested_caption && (
                       <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                         {clip.suggested_caption}
