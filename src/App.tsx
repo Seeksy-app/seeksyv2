@@ -196,6 +196,7 @@ import PublicTaskSubmission from "./pages/PublicTaskSubmission";
 import HelpCenter from "./pages/HelpCenter";
 import Comparison from "./pages/Comparison";
 import Credits from "./pages/Credits";
+import Certificate from "./pages/Certificate";
 import ZoomIntegration from "./pages/help/ZoomIntegration";
 import Forms from "./pages/Forms";
 import FormBuilder from "./pages/FormBuilder";
@@ -388,6 +389,9 @@ const AppContent = () => {
               <Route path="/content-certification/approve-mint" element={<ApproveAndMintContent />} />
               <Route path="/content-certification/minting-progress" element={<MintingProgressContent />} />
               <Route path="/content-certification/success" element={<CertifiedContentSuccess />} />
+              
+              {/* Clip Certification */}
+              <Route path="/certificate/:clipId" element={<Certificate />} />
               
               {/* Podcast Studio Flow */}
               <Route path="/podcast-studio" element={<StudioHome />} />

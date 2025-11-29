@@ -14,6 +14,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { CertificationBadge } from "@/components/clips/CertificationBadge";
+import { CertificationSection } from "@/components/clips/CertificationSection";
+import { useNavigate } from "react-router-dom";
 
 interface Clip {
   id: string;
@@ -29,6 +32,11 @@ interface Clip {
   virality_score: number | null;
   status: string;
   created_at: string;
+  cert_status: string;
+  cert_chain: string | null;
+  cert_tx_hash: string | null;
+  cert_explorer_url: string | null;
+  cert_created_at: string | null;
   source_media: {
     file_name: string;
     file_url: string;
@@ -39,6 +47,7 @@ export function ClipsGallery() {
   const [selectedClip, setSelectedClip] = useState<Clip | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [isCreatingDemo, setIsCreatingDemo] = useState(false);
+  const navigate = useNavigate();
 
   const { data: clips, isLoading, refetch } = useQuery({
     queryKey: ["clips"],
@@ -53,6 +62,11 @@ export function ClipsGallery() {
           vertical_url,
           thumbnail_url,
           error_message,
+          cert_status,
+          cert_chain,
+          cert_tx_hash,
+          cert_explorer_url,
+          cert_created_at,
           source_media:source_media_id (
             file_name,
             file_url
@@ -290,8 +304,16 @@ export function ClipsGallery() {
                     </div>
                   )}
                   
+                  {/* Certification Badge - top right */}
+                  {!isProcessing && !hasFailed && (
+                    <div className="absolute top-2 right-2">
+                      <CertificationBadge status={clip.cert_status as any} mini />
+                    </div>
+                  )}
+                  
+                  {/* Virality badge - top left if cert badge present, otherwise top right */}
                   {clip.virality_score && clip.virality_score > 70 && !isProcessing && (
-                    <Badge className="absolute top-2 right-2 bg-primary" variant="default">
+                    <Badge className={`absolute top-2 ${clip.cert_status !== 'not_requested' ? 'left-2' : 'right-2'} bg-primary`} variant="default">
                       🔥 {clip.virality_score}% Viral
                     </Badge>
                   )}
@@ -434,6 +456,18 @@ export function ClipsGallery() {
                     Virality Score: {selectedClip.virality_score}%
                   </Badge>
                 </div>
+              )}
+              
+              {/* Certification Section */}
+              {selectedClip.cert_status && selectedClip.cert_status !== 'not_requested' && (
+                <CertificationSection
+                  clipId={selectedClip.id}
+                  certStatus={selectedClip.cert_status}
+                  certChain={selectedClip.cert_chain}
+                  certTxHash={selectedClip.cert_tx_hash}
+                  certExplorerUrl={selectedClip.cert_explorer_url}
+                  certCreatedAt={selectedClip.cert_created_at}
+                />
               )}
             </div>
           ) : (
