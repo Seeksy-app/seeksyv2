@@ -102,14 +102,17 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const callbackUrl = `${SUPABASE_URL}/functions/v1/shotstack-webhook`;
 
-    // Build Shotstack render payload
-    const outputSize = orientation === 'vertical'
-      ? { width: 1080, height: 1920 } // 9:16 for Reels/TikTok/Shorts
-      : { width: 1920, height: 1080 }; // 16:9 for YouTube
+    // Build Shotstack render payload using Vertical Template #1
+    // Dynamic values from clip metadata with sensible defaults
+    const titleText = clip.title || "Demo: AI Clip Test";
+    const subtitleText = clip.description || "AI-powered vertical clip";
+    const brandColor = "#8B5CF6"; // Seeksy brand purple - can be made dynamic later
 
     const renderPayload = {
       timeline: {
+        background: "#000000",
         tracks: [
+          // Track 1: Main video
           {
             clips: [
               {
@@ -117,26 +120,71 @@ serve(async (req) => {
                   type: "video",
                   src: cloudflareDownloadUrl,
                 },
-                start: 0, // Always start at 0 within the clip timeline
-                length: length, // Duration of clip
-                scale: 1,
-                fit: "crop", // Crop to prevent pillarboxing
-              },
-            ],
+                start: 0,
+                length: length,
+                fit: "crop",
+                position: "center"
+              }
+            ]
           },
-        ],
+          // Track 2: Title bar at top
+          {
+            clips: [
+              {
+                asset: {
+                  type: "title",
+                  text: titleText,
+                  style: "minimal",
+                  size: "medium",
+                  color: "#FFFFFF",
+                  background: brandColor
+                },
+                start: 0,
+                length: length,
+                position: "top",
+                margin: 0.05,
+                transition: {
+                  in: "fade",
+                  out: "fade"
+                }
+              }
+            ]
+          },
+          // Track 3: Subtitle text at bottom
+          {
+            clips: [
+              {
+                asset: {
+                  type: "title",
+                  text: subtitleText,
+                  style: "minimal",
+                  size: "small",
+                  color: "#FFFFFF",
+                  background: "rgba(0,0,0,0.4)"
+                },
+                start: 0,
+                length: length,
+                position: "bottom",
+                margin: 0.05
+              }
+            ]
+          }
+        ]
       },
       output: {
         format: "mp4",
-        size: outputSize,
+        resolution: "hd",
+        aspectRatio: "9:16"
       },
       callback: callbackUrl,
-      disk: "local", // Store on Shotstack's CDN
+      disk: "local"
     };
 
     console.log("→ Submitting render to Shotstack...");
     console.log("  Source:", cloudflareDownloadUrl);
-    console.log("  Output:", `${outputSize.width}x${outputSize.height}`);
+    console.log("  Template: Vertical Template #1 (9:16 with title + subtitle)");
+    console.log("  Title:", titleText);
+    console.log("  Subtitle:", subtitleText);
 
     // Submit to Shotstack Edit API
     const shotstackResponse = await fetch("https://api.shotstack.io/edit/v1/render", {
