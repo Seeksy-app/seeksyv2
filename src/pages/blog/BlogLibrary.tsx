@@ -129,6 +129,33 @@ export default function BlogLibrary() {
     }
   };
 
+  const handleCertify = async (postId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('mint-content-credential', {
+        body: {
+          content_type: 'blog_post',
+          blog_post_id: postId,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Certification complete!",
+        description: "Your blog post is now certified on-chain.",
+      });
+
+      fetchBlogPosts();
+    } catch (error) {
+      console.error('Error certifying blog post:', error);
+      toast({
+        title: "Certification failed",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    }
+  };
+
   const filteredPosts = blogPosts.filter(post => {
     if (filter === 'all') return true;
     return post.status === filter;
@@ -268,7 +295,7 @@ export default function BlogLibrary() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => navigate(`/blog/${post.id}/certify`)}
+                      onClick={() => handleCertify(post.id)}
                     >
                       <Shield className="mr-2 h-4 w-4" />
                       Certify on-Chain

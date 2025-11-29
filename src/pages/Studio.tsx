@@ -579,7 +579,7 @@ Closing Notes:
         .from('studio-recordings')
         .getPublicUrl(filePath);
 
-      const { error: dbError } = await supabase
+      const { data: mediaFileData, error: dbError } = await supabase
         .from('media_files')
         .insert({
           user_id: user.id,
@@ -588,9 +588,42 @@ Closing Notes:
           file_url: publicUrl,
           file_size_bytes: blob.size,
           source: 'studio',
-        });
+        })
+        .select()
+        .single();
 
       if (dbError) throw dbError;
+
+      // Auto-transcription (if enabled)
+      if (mediaFileData) {
+        const { data: preferences } = await supabase
+          .from('user_preferences')
+          .select('auto_transcribe_enabled')
+          .eq('user_id', user.id)
+          .single();
+
+        if (preferences?.auto_transcribe_enabled) {
+          supabase.functions.invoke('transcribe-audio', {
+            body: {
+              asset_id: mediaFileData.id,
+              audio_url: publicUrl,
+              language: 'en',
+              source_type: 'studio_recording',
+            },
+          }).then(({ data, error }) => {
+            if (error) {
+              console.error('Transcription error:', error);
+            } else {
+              console.log('Transcription started:', data);
+              toast({
+                title: "Transcription in progress",
+                description: "Check Transcript Library shortly",
+                duration: 3000,
+              });
+            }
+          });
+        }
+      }
 
       toast({
         title: "Recording saved",

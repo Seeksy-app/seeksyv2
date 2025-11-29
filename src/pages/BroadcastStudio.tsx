@@ -507,6 +507,30 @@ export default function BroadcastStudio() {
           await generateClipsWithText(mediaFile.id, clipSuggestions, transcriptions);
         }
 
+        // Auto-transcription (if enabled)
+        const { data: preferences } = await supabase
+          .from('user_preferences')
+          .select('auto_transcribe_enabled')
+          .eq('user_id', user.id)
+          .single();
+
+        if (preferences?.auto_transcribe_enabled) {
+          supabase.functions.invoke('transcribe-audio', {
+            body: {
+              asset_id: mediaFile.id,
+              audio_url: publicUrl,
+              language: 'en',
+              source_type: 'video_recording',
+            },
+          }).then(({ data, error }) => {
+            if (error) {
+              console.error('Transcription error:', error);
+            } else {
+              console.log('Transcription started:', data);
+            }
+          });
+        }
+
         toast({
           title: "Broadcast Saved! 🎉",
           description: `Recording and ${clipSuggestions.length} clips saved to Media Library`,

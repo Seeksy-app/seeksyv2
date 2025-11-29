@@ -4,9 +4,16 @@ import { Input } from "@/components/ui/input";
 import { Copy, UserPlus, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { useMemo } from "react";
 
 export const GuestInvitePanel = () => {
-  const inviteLink = `${window.location.origin}/studio/join/abc123`;
+  // Generate unique session ID (in production, this would come from the session state)
+  const sessionId = useMemo(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('sessionId') || crypto.randomUUID().substring(0, 8);
+  }, []);
+  
+  const inviteLink = `${window.location.origin}/studio/guest/${sessionId}`;
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(inviteLink);

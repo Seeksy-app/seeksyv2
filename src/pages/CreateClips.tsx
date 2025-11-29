@@ -98,6 +98,41 @@ export default function CreateClips() {
     }
   };
 
+  const generateTranscript = async (media: MediaFile) => {
+    try {
+      toast({
+        title: "Generating transcript...",
+        description: "This may take a moment",
+      });
+
+      const { data, error } = await supabase.functions.invoke("transcribe-audio", {
+        body: {
+          asset_id: media.id,
+          audio_url: media.file_url,
+          language: "en",
+          source_type: "clip",
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Transcript generated!",
+        description: "Check your Transcript Library",
+      });
+      
+      // Refresh media files to get updated transcript
+      fetchMediaFiles();
+    } catch (error) {
+      console.error("Transcription error:", error);
+      toast({
+        title: "Transcription failed",
+        description: "Could not generate transcript",
+        variant: "destructive",
+      });
+    }
+  };
+
   const generateClip = async (clip: ClipSuggestion, index: number) => {
     setIsGenerating(index);
     
@@ -191,10 +226,17 @@ export default function CreateClips() {
                         )}
                       </CardDescription>
                     </div>
-                    <Button onClick={() => analyzeForClips(media)}>
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      Find Clips
-                    </Button>
+                    <div className="flex flex-col gap-2">
+                      <Button onClick={() => analyzeForClips(media)}>
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Find Clips
+                      </Button>
+                      {!(media as any).edit_transcript && (
+                        <Button onClick={() => generateTranscript(media)} variant="outline" size="sm">
+                          Generate Transcript
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </CardHeader>
               </Card>

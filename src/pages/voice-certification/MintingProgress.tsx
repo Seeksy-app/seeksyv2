@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { Check, Loader2, Shield } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Check, Loader2, Shield, AlertCircle } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 import { CertificationStepper } from "@/components/voice-certification/CertificationStepper";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 
 interface MintingStep {
   label: string;
@@ -88,6 +89,10 @@ const MintingProgress = () => {
         throw new Error(error.message || 'Failed to mint voice NFT');
       }
 
+      if (!data?.success) {
+        throw new Error('Minting returned unsuccessful status');
+      }
+
       setSteps(prev => {
         const newSteps = [...prev];
         newSteps[2].progress = 100;
@@ -114,7 +119,9 @@ const MintingProgress = () => {
             tokenId: data.tokenId,
             blockchain: "Polygon",
             transactionHash: data.transactionHash,
-            explorerUrl: data.explorerUrl
+            explorerUrl: data.explorerUrl,
+            voiceProfileId: location.state?.voiceProfileId,
+            voiceFingerprint: location.state?.voiceFingerprint
           }
         });
       }, 500);
@@ -123,24 +130,21 @@ const MintingProgress = () => {
       console.error('Minting error:', error);
       setMintingError(error instanceof Error ? error.message : 'Unknown error occurred');
       
+      // Mark all steps as failed
+      setSteps(prev => prev.map(step => ({
+        ...step,
+        status: step.status === 'complete' ? 'complete' : 'pending',
+        progress: step.status === 'complete' ? 100 : 0
+      })));
+
       toast({
         title: "Minting failed",
-        description: error instanceof Error ? error.message : "Failed to mint voice credential. Please try again.",
-        variant: "destructive"
+        description: "Please retry the certification process.",
+        variant: "destructive",
+        duration: 5000
       });
 
-      // Still navigate to success screen but without transaction data
-      setTimeout(() => {
-        navigate("/voice-certification/success", {
-          state: {
-            ...location.state,
-            tokenId: "pending",
-            blockchain: "Polygon",
-            transactionHash: null,
-            explorerUrl: null
-          }
-        });
-      }, 2000);
+      // Do NOT navigate on error - stay on error screen
     }
   };
 
@@ -167,6 +171,24 @@ const MintingProgress = () => {
           </div>
 
           <Progress value={overallProgress} className="w-full h-3 mb-8" />
+
+          {mintingError && (
+            <Card className="border-destructive mb-6">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-3 text-destructive">
+                  <AlertCircle className="h-5 w-5" />
+                  <p className="font-medium">Minting failed: {mintingError}</p>
+                </div>
+                <Button 
+                  onClick={() => navigate('/voice-certification-flow')}
+                  variant="outline"
+                  className="mt-4"
+                >
+                  Retry Certification
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="space-y-6 max-w-2xl mx-auto">
             {steps.map((step, index) => (

@@ -120,3 +120,12 @@ verify_jwt = true
 
 [functions.mint-content-credential]
 verify_jwt = true
+
+[functions.mint-voice-nft]
+verify_jwt = true
+
+[functions.generate-master-blog-posts]
+verify_jwt = false
+
+[functions.generate-blog-image]
+verify_jwt = true

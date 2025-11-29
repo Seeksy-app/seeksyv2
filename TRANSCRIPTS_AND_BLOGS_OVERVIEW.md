@@ -36,17 +36,23 @@ Studio Recording → Transcription → Transcript Library → Blog Creation → 
 
 **1. Auto-Transcription Trigger**
 
-When a creator completes a recording in Podcast Studio:
+When a creator completes a recording in any Studio:
 
 1. System checks user's `auto_transcribe_enabled` preference (default: `true`)
 2. If enabled, calls `transcribe-audio` edge function with:
-   - `asset_id`: Episode or recording ID
-   - `audio_url`: URL of the audio file
+   - `asset_id`: Episode, recording, or clip ID
+   - `audio_url`: URL of the audio/video file
    - `language`: Language code (default: `en`)
-   - `source_type`: `podcast_episode` or `studio_recording`
+   - `source_type`: `podcast_episode`, `studio_recording`, `video_recording`, or `clip`
 3. Edge function attempts **ElevenLabs Speech-to-Text API** first
 4. Falls back to alternative provider if ElevenLabs fails
 5. Stores result in `transcripts` table
+
+**Supported Studio Types:**
+- **Podcast Studio**: Audio episodes → auto-transcribe after export
+- **Video Studio** (BroadcastStudio): Video recordings → auto-transcribe after save
+- **Media Studio**: Studio recordings → auto-transcribe after upload
+- **Clip Studio**: Manual "Generate Transcript" button for clips without transcripts
 
 **2. Edge Function: `transcribe-audio`**
 
