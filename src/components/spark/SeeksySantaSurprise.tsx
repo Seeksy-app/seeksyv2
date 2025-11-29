@@ -58,15 +58,15 @@ export const SeeksySantaSurprise = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-w-[90vw]">
         <DialogHeader>
           <div className="flex items-center justify-center mb-4">
-            <SparkAvatar pose="happy" size={120} animated />
+            <SparkAvatar pose="happy" size={100} animated />
           </div>
-          <DialogTitle className="text-center text-2xl">
+          <DialogTitle className="text-center text-xl sm:text-2xl px-2">
             🎄 Seeksy Santa Surprise! 🎅
           </DialogTitle>
-          <DialogDescription className="text-center">
+          <DialogDescription className="text-center text-sm sm:text-base px-4">
             Create magical holiday content with AI assistance
           </DialogDescription>
         </DialogHeader>

@@ -119,6 +119,16 @@ export default {
           "50%": {
             transform: "translateY(-15px)"
           }
+        },
+        "holiday-glow": {
+          "0%, 100%": {
+            opacity: "0.15",
+            transform: "scale(1)"
+          },
+          "50%": {
+            opacity: "0.25",
+            transform: "scale(1.1)"
+          }
         }
       },
       animation: {
@@ -126,6 +136,7 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         "bounce-gentle": "bounce-gentle 3s ease-in-out infinite",
         "float": "float 3s ease-in-out infinite",
+        "holiday-glow": "holiday-glow 2.5s ease-in-out infinite",
       },
     },
   },

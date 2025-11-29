@@ -277,4 +277,19 @@ body {
       transform: translateY(-15px);
     }
   }
+
+  @keyframes holiday-glow {
+    0%, 100% {
+      opacity: 0.15;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.25;
+      transform: scale(1.1);
+    }
+  }
+
+  .animate-holiday-glow {
+    animation: holiday-glow 2.5s ease-in-out infinite;
+  }
 }

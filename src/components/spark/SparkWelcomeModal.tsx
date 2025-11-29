@@ -36,23 +36,23 @@ export const SparkWelcomeModal = ({ role, onComplete }: SparkWelcomeModalProps) 
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-w-[90vw]">
         <DialogHeader>
           <div className="flex justify-center mb-4">
-            <div className="w-32 h-32">
+            <div className="w-24 h-24 sm:w-32 sm:h-32">
               <SparkAvatar pose="waving" size="full" animated />
             </div>
           </div>
-          <DialogTitle className="text-center text-2xl">
+          <DialogTitle className="text-center text-xl sm:text-2xl px-2">
             Welcome to Seeksy! {message.emoji}
           </DialogTitle>
-          <DialogDescription className="text-center text-base pt-2">
+          <DialogDescription className="text-center text-sm sm:text-base pt-2 px-4">
             {message.text}
           </DialogDescription>
         </DialogHeader>
         
-        <div className="flex justify-center pt-4">
-          <Button onClick={handleBegin} size="lg" className="gap-2">
+        <div className="flex justify-center pt-4 px-4">
+          <Button onClick={handleBegin} size="lg" className="gap-2 w-full sm:w-auto">
             Let's Begin
             <ArrowRight className="h-4 w-4" />
           </Button>

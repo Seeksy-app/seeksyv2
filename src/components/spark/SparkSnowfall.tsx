@@ -43,9 +43,6 @@ export const SparkSnowfall = () => {
       <div className="spark-snowflake">❄</div>
       <div className="spark-snowflake">❅</div>
       <div className="spark-snowflake">❆</div>
-      <div className="spark-snowflake">❄</div>
-      <div className="spark-snowflake">❅</div>
-      <div className="spark-snowflake">❆</div>
     </div>
   );
 };

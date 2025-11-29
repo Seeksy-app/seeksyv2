@@ -5,13 +5,14 @@
 
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { getSparkAsset, preloadSparkAssets, type SparkPose, type SparkSize } from "@/lib/spark/sparkAssets";
+import { getSparkAsset, preloadSparkAssets, type SparkPose, type SparkSize, isHolidaySeason } from "@/lib/spark/sparkAssets";
 
 interface SparkAvatarProps {
   pose?: SparkPose;
-  size?: SparkSize | number; // number = custom pixel size
+  size?: SparkSize | number;
   className?: string;
   animated?: boolean;
+  triggerAnimation?: boolean; // External trigger for single animation
   onClick?: () => void;
   alt?: string;
 }
@@ -21,21 +22,20 @@ export const SparkAvatar = ({
   size = "full",
   className,
   animated = false,
+  triggerAnimation,
   onClick,
   alt = "Seeksy Spark"
 }: SparkAvatarProps) => {
   const [assetPath, setAssetPath] = useState<string>("");
   const [isHovering, setIsHovering] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const [shouldAnimate, setShouldAnimate] = useState(false);
+  const isHoliday = isHolidaySeason();
 
   useEffect(() => {
-    // Preload assets on mount
     preloadSparkAssets();
-    
-    // Get initial asset
     updateAsset();
     
-    // Listen for theme changes
     const observer = new MutationObserver(updateAsset);
     observer.observe(document.documentElement, {
       attributes: true,
@@ -44,6 +44,22 @@ export const SparkAvatar = ({
 
     return () => observer.disconnect();
   }, [pose, size]);
+
+  // Single entrance animation on load
+  useEffect(() => {
+    if (hasLoaded && animated && !shouldAnimate) {
+      setShouldAnimate(true);
+      setTimeout(() => setShouldAnimate(false), 1500);
+    }
+  }, [hasLoaded, animated]);
+
+  // External animation trigger
+  useEffect(() => {
+    if (triggerAnimation) {
+      setShouldAnimate(true);
+      setTimeout(() => setShouldAnimate(false), 1500);
+    }
+  }, [triggerAnimation]);
 
   const updateAsset = () => {
     const actualSize = typeof size === "number" ? "full" : size;
@@ -61,25 +77,34 @@ export const SparkAvatar = ({
     : { width: "16px", height: "16px" };
 
   return (
-    <img
-      src={assetPath}
-      alt={alt}
-      className={cn(
-        "object-contain select-none",
-        // Initial load animation (1.5s bounce)
-        !hasLoaded && animated && "animate-bounce-gentle",
-        // Hover animation
-        animated && "transition-all duration-300 ease-in-out",
-        animated && isHovering && "scale-110 brightness-110",
-        onClick && "cursor-pointer",
-        className
+    <div className="relative inline-block">
+      <img
+        src={assetPath}
+        alt={alt}
+        className={cn(
+          "object-contain select-none",
+          shouldAnimate && "animate-bounce-gentle",
+          animated && "transition-all duration-300 ease-in-out",
+          animated && isHovering && "scale-110 brightness-110",
+          onClick && "cursor-pointer",
+          className
+        )}
+        style={sizeStyles}
+        onClick={onClick}
+        onLoad={() => setHasLoaded(true)}
+        onMouseEnter={() => animated && setIsHovering(true)}
+        onMouseLeave={() => animated && setIsHovering(false)}
+        draggable={false}
+      />
+      {/* Holiday glow pulse on Santa hat */}
+      {isHoliday && hasLoaded && (
+        <div 
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-1/3 rounded-full animate-holiday-glow pointer-events-none"
+          style={{
+            background: "radial-gradient(circle, rgba(239, 68, 68, 0.25) 0%, transparent 70%)",
+          }}
+        />
       )}
-      style={sizeStyles}
-      onClick={onClick}
-      onLoad={() => setHasLoaded(true)}
-      onMouseEnter={() => animated && setIsHovering(true)}
-      onMouseLeave={() => animated && setIsHovering(false)}
-      draggable={false}
-    />
+    </div>
   );
 };

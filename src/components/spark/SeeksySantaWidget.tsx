@@ -23,8 +23,7 @@ export const SeeksySantaWidget = () => {
         className={cn(
           "fixed bottom-6 right-6 z-40",
           "hover:scale-110 transition-transform duration-300",
-          "animate-bounce-gentle cursor-pointer",
-          "drop-shadow-2xl"
+          "cursor-pointer drop-shadow-2xl"
         )}
         aria-label="Open Seeksy Santa Surprise"
       >
@@ -32,6 +31,7 @@ export const SeeksySantaWidget = () => {
           pose="waving" 
           size={80} 
           animated
+          triggerAnimation={showModal}
           className="animate-float"
         />
       </button>

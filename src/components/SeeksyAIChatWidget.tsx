@@ -62,9 +62,20 @@ export const SeeksyAIChatWidget = () => {
   
   const greeting = getSparkGreeting(userRole);
   const [showQuickActions, setShowQuickActions] = useState(false);
+  const [triggerSparkAnimation, setTriggerSparkAnimation] = useState(false);
+  
+  // Add seasonal greeting for December
+  const isHoliday = isHolidaySeason();
+  const holidayGreeting = "🎄 Hi! I'm Seeksy Spark. Want help making a holiday-themed intro video or podcast opener?";
+  const hasShownHolidayGreeting = useRef(false);
+  
+  const initialMessage = isHoliday && !hasShownHolidayGreeting.current 
+    ? holidayGreeting 
+    : greeting.text;
+  
   const [messages, setMessages] = useState<Message[]>([{
     role: "assistant",
-    content: greeting.text
+    content: initialMessage
   }]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -72,6 +83,14 @@ export const SeeksyAIChatWidget = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
+  
+  // Mark holiday greeting as shown when chat opens
+  useEffect(() => {
+    if (isOpen && isHoliday && !hasShownHolidayGreeting.current) {
+      hasShownHolidayGreeting.current = true;
+      setTriggerSparkAnimation(true);
+    }
+  }, [isOpen, isHoliday]);
 
   // Check if user has reached dashboard before showing chat
   useEffect(() => {
@@ -149,6 +168,7 @@ export const SeeksyAIChatWidget = () => {
   }, [messages]);
 
   const streamChat = async (userMessage: string) => {
+    setTriggerSparkAnimation(true); // Trigger animation when starting to type
     let conversationId = currentConversationId;
     
     if (!conversationId) {
@@ -293,19 +313,21 @@ export const SeeksyAIChatWidget = () => {
   ];
 
   if (!isOpen) {
-    const isHoliday = isHolidaySeason();
-    
     return (
       <div className="fixed bottom-6 right-6 z-50 group animate-in fade-in slide-in-from-bottom-4 duration-500">
         <Button
-          onClick={() => setIsOpen(true)}
-          className="h-20 w-20 rounded-full bg-transparent hover:bg-transparent transition-all duration-300 relative p-0 border-0 shadow-none hover:scale-110 animate-bounce-gentle"
+          onClick={() => {
+            setIsOpen(true);
+            setTriggerSparkAnimation(true);
+          }}
+          className="h-20 w-20 rounded-full bg-transparent hover:bg-transparent transition-all duration-300 relative p-0 border-0 shadow-none hover:scale-110"
           size="icon"
         >
           <SparkAvatar 
             pose="waving" 
             size={72} 
             animated 
+            triggerAnimation={triggerSparkAnimation}
             className="drop-shadow-2xl filter brightness-105 transition-transform duration-300 group-hover:scale-105" 
           />
         </Button>
@@ -318,8 +340,6 @@ export const SeeksyAIChatWidget = () => {
       </div>
     );
   }
-
-  const isHoliday = isHolidaySeason();
   
   return (
     <Card className={cn(
@@ -391,7 +411,11 @@ export const SeeksyAIChatWidget = () => {
                 >
                   {message.role === "assistant" && (
                     <div className="flex-shrink-0 w-8 h-8">
-                      <SparkAvatar pose="idle" size={32} />
+                      <SparkAvatar 
+                        pose="idle" 
+                        size={32} 
+                        triggerAnimation={index === messages.length - 1 && isLoading}
+                      />
                     </div>
                   )}
                   <div

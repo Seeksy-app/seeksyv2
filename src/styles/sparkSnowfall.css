@@ -1,6 +1,6 @@
 /**
  * Spark Holiday Snowfall Animation
- * Lightweight CSS-only snowflakes for December seasonal mode
+ * Refined lightweight CSS-only snowflakes
  */
 
 .spark-snowfall {
@@ -17,79 +17,89 @@
 .spark-snowflake {
   position: absolute;
   top: -10px;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 1em;
+  color: rgba(255, 255, 255, 0.6); /* Reduced from 0.8 for elegance */
+  font-size: 0.85em; /* Slightly smaller base size */
   user-select: none;
   animation: snowfall linear infinite;
 }
 
+/* Reduced density - only 6 snowflakes */
 .spark-snowflake:nth-child(1) {
-  left: 10%;
-  animation-duration: 8s;
+  left: 15%;
+  animation-duration: 10s; /* 20% slower */
   animation-delay: 0s;
+  font-size: 0.7em;
 }
 
 .spark-snowflake:nth-child(2) {
-  left: 20%;
-  animation-duration: 10s;
-  animation-delay: 1s;
-  font-size: 0.8em;
+  left: 30%;
+  animation-duration: 12s;
+  animation-delay: 1.5s;
+  font-size: 0.65em;
 }
 
 .spark-snowflake:nth-child(3) {
-  left: 30%;
-  animation-duration: 9s;
-  animation-delay: 2s;
+  left: 45%;
+  animation-duration: 11s;
+  animation-delay: 2.5s;
+  font-size: 0.75em;
 }
 
 .spark-snowflake:nth-child(4) {
-  left: 40%;
-  animation-duration: 11s;
-  animation-delay: 0.5s;
-  font-size: 0.9em;
+  left: 60%;
+  animation-duration: 13s;
+  animation-delay: 0.8s;
+  font-size: 0.68em;
 }
 
 .spark-snowflake:nth-child(5) {
-  left: 50%;
-  animation-duration: 12s;
-  animation-delay: 1.5s;
+  left: 75%;
+  animation-duration: 11.5s;
+  animation-delay: 3.2s;
+  font-size: 0.72em;
 }
 
 .spark-snowflake:nth-child(6) {
-  left: 60%;
-  animation-duration: 10s;
-  animation-delay: 2.5s;
-  font-size: 0.85em;
+  left: 88%;
+  animation-duration: 12.5s;
+  animation-delay: 1.8s;
+  font-size: 0.7em;
 }
 
-.spark-snowflake:nth-child(7) {
-  left: 70%;
-  animation-duration: 9s;
-  animation-delay: 3s;
-}
-
-.spark-snowflake:nth-child(8) {
-  left: 80%;
-  animation-duration: 8.5s;
-  animation-delay: 1.2s;
-  font-size: 0.95em;
-}
-
-.spark-snowflake:nth-child(9) {
-  left: 90%;
-  animation-duration: 11s;
-  animation-delay: 0.8s;
+/* Hide remaining snowflakes (7-9) on all screens */
+.spark-snowflake:nth-child(n+7) {
+  display: none;
 }
 
 @keyframes snowfall {
   0% {
     transform: translateY(0) rotate(0deg);
-    opacity: 1;
+    opacity: 0; /* Fade in */
+  }
+  
+  10% {
+    opacity: 0.6; /* Reach full opacity */
+  }
+  
+  90% {
+    opacity: 0.6; /* Maintain opacity */
   }
   
   100% {
     transform: translateY(100vh) rotate(360deg);
-    opacity: 0.6;
+    opacity: 0; /* Fade out */
+  }
+}
+
+/* Mobile: reduce density and size further */
+@media (max-width: 768px) {
+  .spark-snowflake {
+    font-size: 0.6em;
+  }
+  
+  /* Hide even more on mobile - only show 3 */
+  .spark-snowflake:nth-child(n+4) {
+    display: none;
   }
 }
 
