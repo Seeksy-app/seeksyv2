@@ -47,7 +47,11 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     if (userError || !user) throw new Error("Not authenticated");
 
-    console.log("Creating demo clip for user:", user.id);
+    // Parse request body for certification preference
+    const body = await req.json().catch(() => ({}));
+    const enableCertification = body.enableCertification === true;
+
+    console.log("Creating demo clip for user:", user.id, "| Certification:", enableCertification);
 
     // Get a source video from the user's library
     const { data: sourceVideos, error: videosError } = await supabase
@@ -81,6 +85,8 @@ serve(async (req) => {
         title: "Demo: AI Clip Test",
         suggested_caption: "🎯 This is a demonstration clip showing the complete pipeline architecture",
         status: 'processing',
+        enable_certification: enableCertification,
+        cert_status: enableCertification ? 'pending' : 'not_requested',
       })
       .select()
       .single();
@@ -110,6 +116,7 @@ serve(async (req) => {
         length: duration,
         orientation: "vertical",
         templateName: "vertical_template_1",
+        enableCertification,
       }
     });
 
