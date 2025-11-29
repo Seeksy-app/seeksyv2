@@ -148,12 +148,18 @@ serve(async (req) => {
   } catch (error) {
     console.error("[Phase 3] Error:", error);
 
+    // Extract detailed error message (first 300 chars for UI display)
+    let errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.length > 300) {
+      errorMessage = errorMessage.substring(0, 300) + "...";
+    }
+
     if (clipRecord?.id && supabase) {
       await supabase
         .from("clips")
         .update({
           status: 'failed',
-          error_message: error instanceof Error ? error.message : String(error)
+          error_message: errorMessage
         })
         .eq("id", clipRecord.id);
     }
