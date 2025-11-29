@@ -23,13 +23,17 @@ export const SantaAssistantPopup = ({ open, onOpenChange }: SantaAssistantPopupP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-background border-border">
         <DialogHeader>
-          <div className="flex justify-center mb-2">
+          <div className="flex justify-center mb-4">
             <img 
               src="/spark/holiday/spark-santa-waving.png" 
               alt="Santa Spark"
-              className="w-20 h-20 object-contain drop-shadow-md"
+              className="w-20 h-20 object-contain"
+              style={{ 
+                filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08))',
+                background: 'transparent'
+              }}
             />
           </div>
           <DialogTitle className="text-center text-xl">

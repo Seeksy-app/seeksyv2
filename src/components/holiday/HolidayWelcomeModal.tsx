@@ -30,25 +30,25 @@ export const HolidayWelcomeModal = () => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-md max-w-[90vw] bg-background border-border">
+      <DialogContent className="sm:max-w-md max-w-[90vw] bg-white dark:bg-white border-gray-200">
         <DialogHeader>
-          <div className="flex justify-center mb-4">
-            <div className="relative w-24 h-24 sm:w-32 sm:h-32">
-              <img 
-                src="/spark/holiday/spark-santa-waving.png" 
-                alt="Santa Spark"
-                className={`w-full h-full object-contain drop-shadow-md ${isAnimating ? 'animate-[wave_1.2s_ease-in-out]' : ''}`}
-                onAnimationEnd={() => setIsAnimating(false)}
-              />
-            </div>
+          <div className="flex justify-center mb-6">
+            <img 
+              src="/spark/holiday/spark-santa-waving.png" 
+              alt="Santa Spark"
+              className={`w-24 h-24 sm:w-32 sm:h-32 object-contain ${isAnimating ? 'animate-[wave_1.2s_ease-in-out]' : ''}`}
+              onAnimationEnd={() => setIsAnimating(false)}
+              style={{ 
+                filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08))',
+                background: 'transparent'
+              }}
+            />
           </div>
-          <DialogTitle className="text-center text-xl sm:text-2xl px-2">
+          <DialogTitle className="text-center text-xl sm:text-2xl text-gray-900 px-2">
             Welcome to Seeksy! 🎄✨
           </DialogTitle>
-          <DialogDescription className="text-center text-sm sm:text-base pt-2 px-4 leading-relaxed">
-            I'm Santa Spark — your holiday guide.<br />
-            Let's set up your creator page, launch your podcast,<br />
-            or grow your community for the season.
+          <DialogDescription className="text-center text-sm sm:text-base pt-2 px-4 leading-relaxed text-gray-600">
+            I'm Santa Spark — your holiday guide. Let's set up your creator page, launch your podcast, or grow your community for the season.
           </DialogDescription>
         </DialogHeader>
         

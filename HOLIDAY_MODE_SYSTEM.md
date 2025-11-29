@@ -133,22 +133,41 @@ When Holiday Mode is enabled, the following experiences are affected:
 - **Optional Snowfall**: Dashboard pages if `holiday_snow=true`
 - **Homepage** (`/`): No holiday features (marketing page remains consistent year-round)
 
-## Recent Fixes (v2.1.0)
+## Recent Fixes (v2.2.0)
 
-### Fixed: White Background on Modal
-**Issue**: Holiday welcome modal had hardcoded white background  
-**Fix**: Added `bg-background border-border` classes for theme-aware styling  
-**Result**: Modal now properly adapts to light/dark mode
+### Fixed: White Box / Double Layer Issue
+**Issue**: Santa Spark had nested div containers creating double-layer visual artifact with white background box  
+**Fix**: 
+- Removed nested `<div>` wrapper, now using single `<img>` tag directly
+- Changed to pure white background (`bg-white dark:bg-white`) for welcome modal
+- Replaced Tailwind `drop-shadow` classes with inline CSS `filter: drop-shadow()` for more control
+- Added `background: transparent` inline style to ensure PNG transparency is preserved  
+**Result**: Clean, single-layer Santa Spark with soft shadow, no visual artifacts
 
-### Fixed: Double Santa
-**Issue**: Both welcome modal and floating button appeared simultaneously  
-**Fix**: `SantaAssistantButton` now checks `localStorage` and hides until welcome modal is dismissed  
-**Result**: Clean single-Santa experience with proper sequencing
+### Fixed: One-Time Wave Animation on Launcher
+**Issue**: Bottom-right Santa launcher had no animation on first appearance  
+**Fix**: 
+- Added `hasWaved` state to `SantaAssistantButton`
+- Wave animation plays once on mount (1.2s), then stops
+- Animation uses existing `animate-[wave_1.2s_ease-in-out]` Tailwind class  
+**Result**: Friendly greeting wave when Santa first appears, then idle
 
-### Confirmed: Homepage Behavior
-**Status**: Homepage (`/`) intentionally has no holiday features  
-**Reason**: Marketing page maintains consistent branding year-round  
-**Holiday Features**: Only appear in logged-in dashboard experience
+### Improved: Consistent Shadow Treatment
+**Issue**: Inconsistent drop-shadow application across components  
+**Fix**: Standardized soft CSS shadow across all Santa Spark instances
+- Welcome modal: `filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08))`
+- Launcher button: `filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.12))`
+- Popup modal: `filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08))`  
+**Result**: Professional, subtle depth without overwhelming the character
+
+### Confirmed: Toggle Independence
+**Status**: Holiday Mode and Snowfall toggles work independently as designed  
+**Test Results**:
+- ✅ Both OFF → No Santa, no snow
+- ✅ Holiday ON, Snow OFF → Santa visuals show, no snow
+- ✅ Holiday ON, Snow ON → Santa visuals + snowfall
+- ✅ Snowfall toggle disabled when Holiday Mode is OFF (correct dependency)  
+**Location**: Admin → Management → App Settings
 
 ## Usage
 
@@ -191,6 +210,6 @@ When Holiday Mode is disabled (`holiday_mode=false`):
 
 ---
 
-**Version**: 2.1.0 (Fixed White Background + Double Santa)  
+**Version**: 2.2.0 (Clean Santa Spark + One-Time Wave Animation)  
 **Last Updated**: November 29, 2024  
 **Maintained By**: Seeksy Engineering Team
