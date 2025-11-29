@@ -20,10 +20,17 @@ import creatorPortrait from "@/assets/creator-portrait.jpg";
 import videoBeforeAI from "@/assets/video-before-ai.jpg";
 import videoAfterAI from "@/assets/video-after-ai.jpg";
 import { PersonaGrid } from "@/components/personas/PersonaGrid";
+import { HolidayPromoStrip } from "@/components/homepage/HolidayPromoStrip";
+import { HolidayHeroSection } from "@/components/homepage/HolidayHeroSection";
+import { useHolidaySettings } from "@/hooks/useHolidaySettings";
 
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
+  const { data: holidaySettings } = useHolidaySettings();
+  
+  // Check if we should show holiday UI (either holidayMode enabled OR naturally in December)
+  const showHolidayUI = holidaySettings?.holidayMode || (new Date().getMonth() === 11);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -67,8 +74,14 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <main>
-        {/* Hero Section with Image */}
-        <section className="relative overflow-hidden">
+        {/* Holiday Promo Strip - only show during holiday season */}
+        {showHolidayUI && <HolidayPromoStrip />}
+        
+        {/* Hero Section - holiday variant or regular */}
+        {showHolidayUI ? (
+          <HolidayHeroSection />
+        ) : (
+          <section className="relative overflow-hidden">
           <div className="absolute inset-0 z-0">
             <img 
               src={heroVirtualStudio} 
@@ -125,6 +138,7 @@ const Index = () => {
             </div>
           </div>
         </section>
+        )}
 
         {/* Who is Seeksy For - AI Personas */}
         <section className="py-24 bg-gradient-to-b from-background via-secondary/20 to-background">

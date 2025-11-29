@@ -48,6 +48,8 @@ import { SocialMediaAnalytics } from "@/components/dashboard/widgets/SocialMedia
 import alexMorganAvatar from "@/assets/demo-influencer-alex-morgan.jpg";
 import { SparkWelcomeModal } from "@/components/spark/SparkWelcomeModal";
 import { useRole } from "@/contexts/RoleContext";
+import { HolidayCreatorBanner } from "@/components/dashboard/HolidayCreatorBanner";
+import { useHolidaySettings } from "@/hooks/useHolidaySettings";
 
 interface DashboardStats {
   totalEvents: number;
@@ -152,6 +154,11 @@ const Dashboard = () => {
   const [showWelcomeSpin, setShowWelcomeSpin] = useState(false);
   const { currentRole } = useRole();
   const [showSparkWelcome, setShowSparkWelcome] = useState(false);
+  const { data: holidaySettings } = useHolidaySettings();
+  
+  // Check if we should show holiday banner (either holidayMode enabled OR naturally in December)
+  const showHolidayBanner = (currentRole === 'creator' || currentRole === 'influencer' || currentRole === 'agency') && 
+                             (holidaySettings?.holidayMode || (new Date().getMonth() === 11));
 
   const handleWidgetsSave = (newWidgets: WidgetConfig[]) => {
     setWidgets(newWidgets);
@@ -616,6 +623,11 @@ const Dashboard = () => {
 
         {/* Social Accounts Banner */}
         <SocialAccountsBanner />
+
+        {/* Holiday Banner - Show for creators/influencers/agencies during December */}
+        {showHolidayBanner && (
+          <HolidayCreatorBanner firstName={firstName} />
+        )}
 
         {/* Customizable Widgets */}
         {stats && (
