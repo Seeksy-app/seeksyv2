@@ -153,17 +153,25 @@ serve(async (req) => {
     const shotstackJobId = shotstackData.response.id;
     console.log(`✓ Shotstack job created: ${shotstackJobId}`);
 
-    // Update clips record
+    // Update clips record based on which type of render this is
+    const updateFields: any = {
+      shotstack_status: "queued",
+      status: "processing",
+      source_cloudflare_url: cloudflareDownloadUrl,
+      template_name: selectedTemplate,
+      collection_id: collectionId || null,
+    };
+
+    // Store job ID in the appropriate field based on orientation
+    if (orientation === 'vertical') {
+      updateFields.shotstack_job_id = shotstackJobId;
+    } else {
+      updateFields.shotstack_job_id_thumbnail = shotstackJobId;
+    }
+
     const { error: updateError } = await supabase
       .from("clips")
-      .update({
-        shotstack_job_id: shotstackJobId,
-        shotstack_status: "queued",
-        status: "processing",
-        source_cloudflare_url: cloudflareDownloadUrl,
-        template_name: selectedTemplate,
-        collection_id: collectionId || null,
-      })
+      .update(updateFields)
       .eq("id", clipId);
 
     if (updateError) {

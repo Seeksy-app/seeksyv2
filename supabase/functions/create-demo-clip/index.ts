@@ -90,56 +90,78 @@ serve(async (req) => {
 
     console.log("Created clip record:", clipRecord.id);
 
-    // STEP 2: Submit to Shotstack for rendering
-    console.log("Submitting to Shotstack for OpusClip-quality rendering...");
+    // STEP 2: Submit BOTH vertical and thumbnail renders to Shotstack
+    console.log("Submitting vertical and thumbnail clips to Shotstack...");
     
     // Use the direct file URL from media_files table (Supabase Storage URL)
     const sourceVideoUrl = sourceVideo.file_url;
     console.log("Source video URL:", sourceVideoUrl);
 
-    const shotstackResponse = await supabase.functions.invoke('submit-shotstack-render', {
+    // Submit vertical clip (9:16)
+    console.log("→ Submitting vertical clip (9:16)...");
+    const verticalResponse = await supabase.functions.invoke('submit-shotstack-render', {
       headers: {
-        Authorization: authHeader, // Pass the user's JWT token
+        Authorization: authHeader,
       },
       body: {
         clipId: clipRecord.id,
         cloudflareDownloadUrl: sourceVideoUrl,
-        start: 0, // Clip from the beginning (Shotstack doesn't support trimming before render)
+        start: 0,
         length: duration,
         orientation: "vertical",
+        templateName: "vertical_template_1",
       }
     });
 
-    if (shotstackResponse.error) {
-      const shotstackError = shotstackResponse.error;
-      console.error("Shotstack submission failed:", JSON.stringify(shotstackError, null, 2));
-      
-      throw new Error(JSON.stringify({
-        error: "Shotstack submission failed",
-        message: shotstackError.message || 'Failed to submit render job',
-      }));
+    if (verticalResponse.error) {
+      console.error("Vertical clip submission failed:", verticalResponse.error);
+      throw new Error(`Vertical clip failed: ${verticalResponse.error.message}`);
     }
 
-    const shotstackData = shotstackResponse.data;
-    console.log("Shotstack job submitted:", shotstackData);
+    console.log("✓ Vertical clip submitted:", verticalResponse.data.shotstackJobId);
 
-    console.log("SHOTSTACK SUCCESS", JSON.stringify({
+    // Submit thumbnail clip (square/16:9)
+    console.log("→ Submitting thumbnail clip (square)...");
+    const thumbnailResponse = await supabase.functions.invoke('submit-shotstack-render', {
+      headers: {
+        Authorization: authHeader,
+      },
+      body: {
+        clipId: clipRecord.id,
+        cloudflareDownloadUrl: sourceVideoUrl,
+        start: 0,
+        length: duration,
+        orientation: "horizontal",
+        templateName: "horizontal_template_1",
+      }
+    });
+
+    if (thumbnailResponse.error) {
+      console.warn("Thumbnail clip submission failed (non-fatal):", thumbnailResponse.error);
+      // Don't fail the entire process if thumbnail fails
+    } else {
+      console.log("✓ Thumbnail clip submitted:", thumbnailResponse.data.shotstackJobId);
+    }
+
+    console.log("SHOTSTACK SUCCESS - Both clips submitted", JSON.stringify({
       clipId: clipRecord.id,
-      shotstackJobId: shotstackData.shotstackJobId,
+      verticalJobId: verticalResponse.data.shotstackJobId,
+      thumbnailJobId: thumbnailResponse.data?.shotstackJobId,
       engine: 'shotstack',
-      status: shotstackData.status,
+      status: 'processing',
     }, null, 2));
 
     return new Response(
       JSON.stringify({
         success: true,
         clipId: clipRecord.id,
-        shotstackJobId: shotstackData.shotstackJobId,
+        verticalJobId: verticalResponse.data.shotstackJobId,
+        thumbnailJobId: thumbnailResponse.data?.shotstackJobId,
         title: "Demo: AI Clip Test",
         duration: duration,
         status: "processing",
-        message: "Clip submitted to Shotstack. Use the clipId to poll for completion.",
-        instructions: "Poll GET /clips?id={clipId} to check status. When status='ready', vertical_url will contain the final video.",
+        message: "Vertical and thumbnail clips submitted to Shotstack. Use the clipId to poll for completion.",
+        instructions: "Poll GET /clips?id={clipId} to check status. When status='ready', vertical_url and thumbnail_url will contain the final videos.",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

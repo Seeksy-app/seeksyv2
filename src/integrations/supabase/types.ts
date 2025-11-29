@@ -3199,6 +3199,7 @@ export type Database = {
           error_message: string | null
           id: string
           shotstack_job_id: string | null
+          shotstack_job_id_thumbnail: string | null
           shotstack_status: string | null
           source_cloudflare_url: string | null
           source_media_id: string
@@ -3228,6 +3229,7 @@ export type Database = {
           error_message?: string | null
           id?: string
           shotstack_job_id?: string | null
+          shotstack_job_id_thumbnail?: string | null
           shotstack_status?: string | null
           source_cloudflare_url?: string | null
           source_media_id: string
@@ -3257,6 +3259,7 @@ export type Database = {
           error_message?: string | null
           id?: string
           shotstack_job_id?: string | null
+          shotstack_job_id_thumbnail?: string | null
           shotstack_status?: string | null
           source_cloudflare_url?: string | null
           source_media_id?: string

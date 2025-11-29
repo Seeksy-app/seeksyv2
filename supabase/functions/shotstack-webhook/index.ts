@@ -156,19 +156,32 @@ serve(async (req) => {
       }
     );
 
-    // Look up clip by Shotstack job ID
+    // Look up clip by shotstack_job_id (check both vertical and thumbnail fields)
     const { data: clip, error: clipError } = await supabase
       .from("clips")
       .select("*")
-      .eq("shotstack_job_id", shotstackJobId)
-      .single();
+      .or(`shotstack_job_id.eq.${shotstackJobId},shotstack_job_id_thumbnail.eq.${shotstackJobId}`)
+      .maybeSingle();
 
-    if (clipError || !clip) {
-      console.error(`✗ Clip not found for Shotstack job: ${shotstackJobId}`);
-      throw new Error(`Clip not found for job ${shotstackJobId}`);
+    if (clipError) {
+      console.error("Database error looking up clip:", clipError);
+      throw clipError;
+    }
+
+    if (!clip) {
+      console.warn(`No clip found for Shotstack job ${shotstackJobId}`);
+      // Return 200 anyway to prevent Shotstack from retrying
+      return new Response(JSON.stringify({ received: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     console.log(`✓ Found clip: ${clip.id}`);
+    
+    // Determine which render type this is (vertical or thumbnail)
+    const isVertical = clip.shotstack_job_id === shotstackJobId;
+    const renderType = isVertical ? "vertical" : "thumbnail";
+    console.log(`→ Render type: ${renderType}`);
 
     // Update clip based on status
     let updateData: any = {
@@ -185,15 +198,30 @@ serve(async (req) => {
 
       updateData = {
         ...updateData,
-        status: "ready",
-        vertical_url: url, // Store final rendered video URL
-        storage_path: url, // Also update storage_path for backwards compatibility
         error_message: null, // Clear any previous errors
       };
 
-      // Blockchain certification trigger
-      // Phase 1: Auto-enable for all clips (later: check workspace.settings.enable_blockchain_certification)
-      if (clip.cert_status === 'not_requested') {
+      // Update the appropriate URL field based on render type
+      if (isVertical) {
+        updateData.vertical_url = url;
+        updateData.storage_path = url; // Backwards compatibility
+      } else {
+        updateData.thumbnail_url = url;
+      }
+
+      // Only mark as "ready" when BOTH renders are complete
+      const hasVertical = isVertical ? true : !!clip.vertical_url;
+      const hasThumbnail = isVertical ? !!clip.thumbnail_url : true;
+      
+      if (hasVertical && hasThumbnail) {
+        updateData.status = "ready";
+        console.log("✓ Both vertical and thumbnail renders complete");
+      } else {
+        console.log(`→ Waiting for ${isVertical ? 'thumbnail' : 'vertical'} render to complete`);
+      }
+
+      // Blockchain certification trigger (only when both renders complete)
+      if (updateData.status === "ready" && clip.cert_status === 'not_requested') {
         console.log("→ Certification triggered");
         updateData.cert_status = 'pending';
       }
@@ -203,7 +231,7 @@ serve(async (req) => {
         await supabase.from("ai_edited_assets").insert({
           source_media_id: clip.source_media_id,
           ai_job_id: clip.ai_job_id,
-          output_type: "vertical",
+          output_type: renderType,
           storage_path: url,
           duration_seconds: clip.duration_seconds,
           metadata: {
@@ -212,7 +240,7 @@ serve(async (req) => {
             completed_at: new Date().toISOString(),
           },
         });
-        console.log("✓ Created ai_edited_assets record");
+        console.log(`✓ Created ai_edited_assets record for ${renderType}`);
       } catch (assetError) {
         console.error("Warning: Failed to create ai_edited_assets record:", assetError);
         // Don't throw - clip update is more important
