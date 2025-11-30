@@ -373,7 +373,7 @@ const AppContent = () => {
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-background">
           {/* Hide Sidebar on Studio workspace (but show on Studio Hub) */}
-          {user && location.pathname !== '/studio/session/:id' && !location.pathname.includes('/studio/session/') && <AppSidebar user={user} isAdmin={isAdmin} />}
+          {user && location.pathname !== '/broadcast/session/:id' && !location.pathname.includes('/broadcast/session/') && <AppSidebar user={user} isAdmin={isAdmin} />}
         
         <div className="flex-1 flex flex-col">
           {/* Hide Header on all Studio pages */}
@@ -618,9 +618,9 @@ const AppContent = () => {
               <Route path="/subscription" element={<SubscriptionSettings />} />
               <Route path="/credit-info" element={<CreditInfo />} />
               <Route path="/qr-codes" element={<QRCodes />} />
-          <Route path="/studio" element={<StudioTemplates />} />
-          <Route path="/studio/session/:id" element={<BroadcastStudio />} />
-          <Route path="/studio/broadcast/:id" element={<BroadcastStudio />} />
+          <Route path="/studio-templates" element={<StudioTemplates />} />
+          <Route path="/broadcast/session/:id" element={<BroadcastStudio />} />
+          <Route path="/broadcast/:id" element={<BroadcastStudio />} />
           <Route path="/media-library" element={<MediaVault />} />
           <Route path="/media-library-legacy" element={<MediaLibrary />} />
           <Route path="/update-media-durations" element={<UpdateMediaDurations />} />

@@ -135,7 +135,7 @@ export default function BroadcastStudio() {
         }
 
         // Navigate to the new session
-        navigate(`/studio/broadcast/${newSession.id}`, { replace: true });
+        navigate(`/broadcast/${newSession.id}`, { replace: true });
         return;
       }
 

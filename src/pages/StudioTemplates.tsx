@@ -251,7 +251,7 @@ export default function StudioTemplates() {
   };
 
   const handleEnterSession = (session: StudioSession | typeof demoTemplates[0]) => {
-    navigate(`/studio/session/${session.id}`, {
+    navigate(`/broadcast/session/${session.id}`, {
       state: {
         sessionName: session.session_name,
         hostName: session.host_name,
