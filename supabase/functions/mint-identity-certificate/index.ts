@@ -160,7 +160,7 @@ serve(async (req) => {
 
     // Blockchain integration
     const rpcUrl = Deno.env.get("POLYGON_RPC_URL");
-    const minterPrivateKey = Deno.env.get("SEEKSY_MINTER_PRIVATE_KEY");
+    const minterPrivateKey = Deno.env.get("POLYGON_PRIVATE_KEY");
     const contractAddress = "0xB5627bDbA3ab392782E7E542a972013E3e7F37C3";
 
     console.log('[Mint] RPC URL:', rpcUrl);
