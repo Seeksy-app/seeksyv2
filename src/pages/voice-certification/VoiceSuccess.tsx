@@ -4,13 +4,20 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, ExternalLink, ArrowRight } from "lucide-react";
 import confetti from "canvas-confetti";
+import { useQueryClient } from "@tanstack/react-query";
 
 const VoiceSuccess = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
   const { voiceHash, tokenId, explorerUrl, transactionHash } = location.state || {};
 
   useEffect(() => {
+    // Invalidate all identity queries to refresh UI
+    queryClient.invalidateQueries({ queryKey: ['identity-status'] });
+    queryClient.invalidateQueries({ queryKey: ['voice-identity-status'] });
+    queryClient.invalidateQueries({ queryKey: ['identity-assets'] });
+    
     // Trigger confetti
     const duration = 3000;
     const animationEnd = Date.now() + duration;
