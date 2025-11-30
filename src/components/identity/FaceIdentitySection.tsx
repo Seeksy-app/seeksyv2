@@ -84,29 +84,62 @@ export function FaceIdentitySection({ asset }: FaceIdentitySectionProps) {
       return;
     }
 
+    console.log("[FaceIdentity] Starting verification with", selectedImages.length, "images");
+    
     setUploadStep('processing');
     setIsVerifying(true);
 
     try {
+      console.log("[FaceIdentity] Calling verify-face edge function...");
+      
       const { data, error } = await supabase.functions.invoke("verify-face", {
         body: { images: selectedImages },
       });
 
-      if (error) throw error;
+      console.log("[FaceIdentity] Response:", { data, error });
+
+      if (error) {
+        console.error("[FaceIdentity] Supabase function error:", error);
+        throw error;
+      }
+
+      if (!data) {
+        console.error("[FaceIdentity] No data returned from function");
+        throw new Error("No response from verification service");
+      }
 
       if (data.status === "verified") {
+        console.log("[FaceIdentity] ✓ Verification successful:", data);
         toast.success("Face identity verified successfully!");
         queryClient.invalidateQueries({ queryKey: ["identity-assets"] });
         setIsDialogOpen(false);
         setSelectedImages([]);
         setUploadStep('upload');
       } else if (data.status === "failed") {
+        console.error("[FaceIdentity] Verification failed:", data);
         toast.error(data.message || "Face verification failed");
         setUploadStep('confirm');
       }
     } catch (error) {
-      console.error("Face verification error:", error);
-      toast.error(error instanceof Error ? error.message : "Verification failed");
+      console.error("[FaceIdentity] Network/Edge error:", error);
+      
+      // User-friendly error message
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      if (errorMessage.includes("Failed to send") || errorMessage.includes("fetch")) {
+        toast.error("Connection Error", {
+          description: "We couldn't reach the verification service. Please check your internet connection and try again.",
+        });
+      } else if (errorMessage.includes("Not authenticated")) {
+        toast.error("Authentication Error", {
+          description: "Please log out and log back in, then try again.",
+        });
+      } else {
+        toast.error("Verification Failed", {
+          description: "We couldn't complete the verification. Please try again in a few minutes or contact support if this continues.",
+        });
+      }
+      
       setUploadStep('confirm');
     } finally {
       setIsVerifying(false);
