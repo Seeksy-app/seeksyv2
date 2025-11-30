@@ -18,16 +18,6 @@ const IdentityRights = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Check identity_assets for voice_identity with minted status
-      const { data: assetData } = await (supabase as any)
-        .from("identity_assets")
-        .select("id, cert_status, cert_explorer_url, cert_tx_hash")
-        .eq("user_id", user.id)
-        .eq("type", "voice_identity")
-        .eq("cert_status", "minted")
-        .is("revoked_at", null)
-        .maybeSingle();
-
       // Check voice profile is_verified status
       const { data: profileData } = await (supabase as any)
         .from("creator_voice_profiles")
@@ -39,15 +29,15 @@ const IdentityRights = () => {
       // Check blockchain certificate
       const { data: certData } = await (supabase as any)
         .from("voice_blockchain_certificates")
-        .select("certification_status, cert_explorer_url")
+        .select("id, certification_status, cert_explorer_url, voice_profile_id")
         .eq("creator_id", user.id)
         .eq("certification_status", "verified")
         .maybeSingle();
 
       return {
-        isVerified: !!assetData && !!profileData && !!certData,
-        certExplorerUrl: assetData?.cert_explorer_url || certData?.cert_explorer_url || null,
-        assetId: assetData?.id || null,
+        isVerified: !!profileData && !!certData,
+        certExplorerUrl: certData?.cert_explorer_url || null,
+        voiceProfileId: profileData?.id || null,
       };
     },
   });
@@ -249,7 +239,7 @@ const IdentityRights = () => {
                 {voiceVerified ? (
                   <>
                     <Button 
-                      onClick={() => navigate(`/certificate/identity/${voiceStatus?.assetId}`)}
+                      onClick={() => navigate(`/certificate/identity/${voiceStatus?.voiceProfileId}`)}
                       variant="default"
                       className="w-full"
                     >

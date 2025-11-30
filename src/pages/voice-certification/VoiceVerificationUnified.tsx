@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Mic, Square, Play, Pause, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 const VOICE_PROMPTS = [
   "Hi, my name is {name}. I'm recording this sample to verify my voice on Seeksy and protect my identity.",
@@ -56,6 +57,7 @@ function mapVoiceError(e: VerifyVoiceAndMintError): string {
 
 const VoiceVerificationUnified = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
   // User & Script
   const [userName, setUserName] = useState<string>("there");
@@ -293,6 +295,12 @@ const VoiceVerificationUnified = () => {
         // Success - navigate to success page
         if (data && 'success' in data && data.success) {
           const successResponse = data as VerifyVoiceAndMintSuccess;
+          
+          // Invalidate all identity-related queries to update UI instantly
+          queryClient.invalidateQueries({ queryKey: ['voice-identity-status'] });
+          queryClient.invalidateQueries({ queryKey: ['identity-status-widget'] });
+          queryClient.invalidateQueries({ queryKey: ['identity-assets'] });
+          queryClient.invalidateQueries({ queryKey: ['identity-activity-logs'] });
           
           toast.success("Voice verified!", {
             description: "Your voice identity is now on-chain."
