@@ -408,6 +408,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         { title: "Dashboard", url: dashboardUrl, icon: LayoutDashboard },
         ...(isAdmin ? [{ title: "Admin", url: "/admin", icon: Shield }] : []),
         ...(pinnedModules.includes("my_page") ? [{ title: "My Page", url: "/profile/edit", icon: UserIcon }] : []),
+        { title: "Identity & Rights", url: "/identity", icon: Shield },
         { title: "Profile Settings", url: "/settings", icon: Settings },
       ];
 
@@ -446,7 +447,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       { title: "Master Studio", url: "/studio", icon: Clapperboard },
       { title: "Media Library", url: "/media-library", icon: FileAudio },
       { title: "Create Clips", url: "/create-clips", icon: TrendingUp },
-      { title: "My Voice Identity", url: "/my-voice-identity", icon: Shield },
+      { title: "Voice Credentials", url: "/my-voice-identity", icon: Mic },
       { title: "Transcripts", url: "/transcripts", icon: FileText },
     ] : []),
     ...(pinnedModules.includes("podcasts") ? [{ title: "Podcasts", url: "/podcasts", icon: Mic }] : []),

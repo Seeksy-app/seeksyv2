@@ -5702,6 +5702,8 @@ export type Database = {
           cert_updated_at: string | null
           consent_version: string
           created_at: string
+          face_hash: string | null
+          face_metadata_uri: string | null
           file_url: string
           id: string
           permissions: Json
@@ -5722,6 +5724,8 @@ export type Database = {
           cert_updated_at?: string | null
           consent_version?: string
           created_at?: string
+          face_hash?: string | null
+          face_metadata_uri?: string | null
           file_url: string
           id?: string
           permissions?: Json
@@ -5742,6 +5746,8 @@ export type Database = {
           cert_updated_at?: string | null
           consent_version?: string
           created_at?: string
+          face_hash?: string | null
+          face_metadata_uri?: string | null
           file_url?: string
           id?: string
           permissions?: Json

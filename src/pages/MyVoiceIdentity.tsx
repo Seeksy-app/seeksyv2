@@ -184,6 +184,26 @@ export default function MyVoiceIdentity() {
         </p>
       </div>
 
+      {/* Identity & Rights Hub Banner */}
+      <Card className="mb-8 border-primary/20 bg-primary/5">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold mb-1">
+                Manage your full identity (voice + face + rights)
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Control how your voice and likeness can be used across Seeksy
+              </p>
+            </div>
+            <Button onClick={() => navigate("/identity")} variant="default">
+              Open Identity & Rights Hub
+              <ExternalLink className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <Card>
