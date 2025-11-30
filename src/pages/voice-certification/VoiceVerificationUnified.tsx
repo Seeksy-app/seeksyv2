@@ -298,8 +298,8 @@ const VoiceVerificationUnified = () => {
       }
 
       setTimeout(() => {
-        if (recordingTime < 12) {
-          setError("Recording too short\nWe couldn't hear enough speech to verify your voice. Try again with at least 12 seconds of audio.");
+        if (recordingTime < 10) {
+          setError("Recording too short\nWe couldn't hear enough speech to verify your voice. Try again with at least 10 seconds of audio.");
           setState('idle');
           chunksRef.current = [];
           setRecordingTime(0);
@@ -497,18 +497,18 @@ const VoiceVerificationUnified = () => {
 
                 {/* Script Selector - Show only in idle state */}
                 {state === 'idle' && prompts.length > 0 && (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <p className="text-sm font-medium text-muted-foreground">Choose a verification phrase:</p>
-                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                       {prompts.map((prompt, index) => (
                         <button
                           key={index}
                           onClick={() => setSelectedPromptIndex(index)}
                           className={`
-                            flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all
+                            flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-medium transition-all border
                             ${selectedPromptIndex === index
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                              ? 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 shadow-sm'
+                              : 'bg-background border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                             }
                           `}
                         >
@@ -521,8 +521,8 @@ const VoiceVerificationUnified = () => {
 
                 {/* Script Block - Always visible except in review and verifying */}
                 {state !== 'review' && state !== 'verifying' && prompts.length > 0 && (
-                  <Card className="bg-primary/5 border-primary/20 p-8">
-                    <p className="text-lg leading-relaxed">
+                  <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 p-8 shadow-sm">
+                    <p className="text-lg leading-relaxed text-blue-900 dark:text-blue-100">
                       "{prompts[selectedPromptIndex]}"
                     </p>
                   </Card>
@@ -584,15 +584,15 @@ const VoiceVerificationUnified = () => {
                         size="lg" 
                         variant="destructive" 
                         onClick={stopRecording}
-                        className={`w-full transition-opacity duration-300 ${recordingTime < 12 ? 'opacity-50' : 'opacity-100'}`}
-                        disabled={recordingTime < 12}
+                        className={`w-full transition-opacity duration-300 ${recordingTime < 10 ? 'opacity-50' : 'opacity-100'}`}
+                        disabled={recordingTime < 10}
                       >
                         <Square className="h-5 w-5 mr-2" />
                         Stop Recording
                       </Button>
 
                       <p className="text-xs text-muted-foreground transition-opacity duration-300" style={{ minHeight: '20px' }}>
-                        {recordingTime < 12 ? 'Minimum 12 seconds required' : 'Ready to stop'}
+                        {recordingTime < 10 ? 'Minimum 10 seconds required' : 'Ready to stop'}
                       </p>
                     </div>
                   </div>
@@ -601,8 +601,8 @@ const VoiceVerificationUnified = () => {
                 {/* State: Verifying */}
                 {state === 'verifying' && (
                   <div className="space-y-6 animate-in fade-in duration-500">
-                    <Card className="bg-primary/5 border-primary/20 p-8">
-                      <p className="text-lg leading-relaxed text-muted-foreground">
+                    <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 p-8 shadow-sm">
+                      <p className="text-lg leading-relaxed text-blue-900 dark:text-blue-100">
                         "{prompts[selectedPromptIndex]}"
                       </p>
                     </Card>
@@ -624,7 +624,7 @@ const VoiceVerificationUnified = () => {
                     
                     <div className="space-y-3">
                       <p className="text-sm font-medium text-muted-foreground">
-                        Minting your voice certificate on-chain… this may take a few seconds.
+                        Verifying your voice and minting your certificate…
                       </p>
                       <Progress value={mintProgress} className="w-full" />
                     </div>
@@ -717,23 +717,44 @@ const VoiceVerificationUnified = () => {
 
       {/* Reset Confirmation Modal */}
       <AlertDialog open={showResetModal} onOpenChange={setShowResetModal}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle>Reset Voice Identity?</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
+            <AlertDialogTitle>Reset your voice identity?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-4 text-left">
               <p>
-                Resetting will invalidate your existing voice certificate and mint a new one. 
-                This action is permanent.
+                This will revoke your current verified voice certificate and require a new recording.
               </p>
-              <p className="font-medium">
-                Are you sure you want to continue?
+              
+              <div className="space-y-2">
+                <p className="font-medium text-foreground">What will happen:</p>
+                <ul className="space-y-1 text-sm">
+                  <li className="flex gap-2">
+                    <span>•</span>
+                    <span>Your existing certificate on Polygon will be marked as revoked, not deleted.</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span>•</span>
+                    <span>Seeksy will stop treating your old certificate as active.</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span>•</span>
+                    <span>You'll need to verify again with a new sample.</span>
+                  </li>
+                </ul>
+              </div>
+
+              <p className="text-sm font-medium text-destructive">
+                This action can't be undone.
               </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleResetVerification}>
-              Reset and Continue
+            <AlertDialogAction 
+              onClick={handleResetVerification}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Reset & Re-record
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
