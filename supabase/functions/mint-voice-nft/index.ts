@@ -66,6 +66,28 @@ serve(async (req) => {
       throw new Error("Missing blockchain configuration: POLYGON_RPC_URL or POLYGON_PRIVATE_KEY");
     }
 
+    // Create or get voice profile FIRST (required for foreign key)
+    const { data: voiceProfile, error: profileError } = await supabaseClient
+      .from('creator_voice_profiles')
+      .upsert({
+        id: voiceProfileId,
+        creator_id: user.id,
+        voice_name: metadata?.voiceName || 'My Voice',
+        is_primary: true,
+        status: 'active'
+      }, {
+        onConflict: 'id'
+      })
+      .select()
+      .single();
+
+    if (profileError && profileError.code !== '23505') { // 23505 = unique violation (already exists)
+      console.error('[mint-voice-nft] Profile creation error:', profileError);
+      throw new Error(`Failed to create voice profile: ${profileError.message}`);
+    }
+
+    console.log('[mint-voice-nft] Voice profile ready:', voiceProfile?.id || voiceProfileId);
+
     // Check if certificate already exists
     const { data: existing } = await supabaseClient
       .from('voice_blockchain_certificates')
