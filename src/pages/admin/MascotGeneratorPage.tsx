@@ -5,29 +5,44 @@ import { Loader2, Download, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const MASCOT_PROMPT = `A cute, friendly cartoon star character mascot for Seeksy. 
-The star has a warm, welcoming personality with:
-- Five points forming a classic star shape
-- Wearing a small, classic Santa hat (bright red with white fluffy trim and white pom-pom)
-- Standing upright on two small feet at the bottom
-- Waving with one hand/arm extended in a friendly gesture
-- Big, expressive friendly eyes and a warm smile
-- Soft cartoon shading with gentle highlights
-- Warm yellow-to-gold gradient coloring on the star body
+const MASCOT_PROMPT = `A cute, friendly 5-point cartoon star character mascot for Seeksy.
+
+STYLE REQUIREMENTS:
+- Cute, friendly 5-point cartoon star
+- Soft shading and slight 3D depth (like a premium mascot illustration)
+- Warm, cheerful expression
+- Two small arms and legs (rounded, friendly proportions)
+- Clean vector-like aesthetic, but with soft highlights
+- No harsh outlines
+- No pixelation
+- Warm yellow-to-gold coloring on the star body
 - Professional mascot illustration quality
-- Clean, simple design suitable for brand identity
 
-POSE: Standing upright, one arm waving hello, smiling warmly, feet visible at bottom of star.
+POSE:
+- Standing upright
+- Big friendly smile
+- Waving with one hand
+- Feet visible at the bottom
 
-STYLE: Cute cartoon character illustration, soft shading, friendly and approachable, high quality vector-style rendering.
+TRANSPARENCY REQUIREMENTS (CRITICAL):
+- Final output MUST have a fully transparent background
+- No white box, no gray box, no gradients, no shadows
+- No glow effects around edges
+- Export as PNG with alpha transparency
+- Only the star mascot should appear in the final image
 
-ABSOLUTELY NO:
-- Background elements of any kind
-- Seeksy logo or text
-- Decorative elements (snowflakes, sparkles, circles, borders)
-- Shadows, glows, or halos around the character
-- White box or colored backdrop
-- Additional characters or objects
+NEGATIVE PROMPT (DO NOT INCLUDE ANY OF THIS):
+- No logos (especially no Seeksy text or icons)
+- No holiday background, no sparkles, no snowflakes
+- No room, no props, no additional shapes
+- No watermark, no text
+- No background color of any kind
+- No decorative elements behind or around the character
+
+SIZE:
+- Square 1:1 aspect ratio
+- Minimum 1024×1024 resolution
+- Clean edges with proper anti-aliasing
 
 OUTPUT: Only the star mascot character itself on a fully transparent background (PNG with alpha channel).`;
 
@@ -55,7 +70,7 @@ const MascotGeneratorPage = () => {
 
       const results = await Promise.all(promises);
       setMascots(results.filter(Boolean));
-      toast.success('Successfully generated 3 mascot variations!');
+      toast.success('Successfully generated 3 base mascot variations!');
     } catch (error) {
       console.error('Error generating mascots:', error);
       toast.error('Failed to generate mascots');
@@ -72,7 +87,7 @@ const MascotGeneratorPage = () => {
       const a = document.createElement('a');
       const timestamp = new Date().toISOString().slice(0, 16).replace(/[:-]/g, '');
       a.href = url;
-      a.download = `seeksy-holiday-mascot-v${index + 1}-${timestamp}.png`;
+      a.download = `seeksy-base-mascot-v${index + 1}-${timestamp}.png`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -91,28 +106,28 @@ const MascotGeneratorPage = () => {
         <div>
           <h1 className="text-4xl font-bold mb-2 flex items-center gap-2">
             <Sparkles className="h-8 w-8 text-primary" />
-            Holiday Mascot Generator
+            Seeksy Star Mascot Generator
           </h1>
           <p className="text-muted-foreground text-lg">
-            Generate transparent PNG variations of the Seeksy holiday star mascot
+            Generate transparent PNG variations of the base Seeksy star mascot
           </p>
         </div>
 
         {/* Requirements Card */}
         <Card className="border-primary/20">
           <CardHeader>
-            <CardTitle>Generation Requirements</CardTitle>
-            <CardDescription>All variations will follow these strict guidelines</CardDescription>
+            <CardTitle>Base Mascot Specifications</CardTitle>
+            <CardDescription>All variations follow these exact requirements</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <h4 className="font-medium text-sm mb-2">✓ Style</h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Cute, friendly cartoon star</li>
-                  <li>• Small Santa hat (red + white)</li>
-                  <li>• Soft shading, warm expression</li>
-                  <li>• High quality, no pixelation</li>
+                  <li>• 5-point cartoon star</li>
+                  <li>• Soft shading + 3D depth</li>
+                  <li>• Warm, cheerful expression</li>
+                  <li>• Premium mascot quality</li>
                 </ul>
               </div>
               
@@ -120,8 +135,8 @@ const MascotGeneratorPage = () => {
                 <h4 className="font-medium text-sm mb-2">✓ Pose</h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
                   <li>• Standing upright</li>
+                  <li>• Big friendly smile</li>
                   <li>• Waving with one hand</li>
-                  <li>• Smiling warmly</li>
                   <li>• Feet visible</li>
                 </ul>
               </div>
@@ -139,10 +154,10 @@ const MascotGeneratorPage = () => {
               <div>
                 <h4 className="font-medium text-sm mb-2">✗ Excluded</h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• No logos or text</li>
-                  <li>• No background elements</li>
-                  <li>• No decorations/sparkles</li>
-                  <li>• No shadows or glows</li>
+                  <li>• No logos/text/watermarks</li>
+                  <li>• No backgrounds</li>
+                  <li>• No sparkles/snowflakes</li>
+                  <li>• No shadows/glows</li>
                 </ul>
               </div>
             </div>
@@ -166,12 +181,12 @@ const MascotGeneratorPage = () => {
               ) : (
                 <>
                   <Sparkles className="h-5 w-5 mr-2" />
-                  Generate 3 Mascot Variations
+                  Generate Base Mascot (3 Variations)
                 </>
               )}
             </Button>
             <p className="text-xs text-muted-foreground text-center mt-2">
-              This will generate 3 different variations with transparent backgrounds
+              This will generate 3 variations of the base mascot with transparent backgrounds
             </p>
           </CardContent>
         </Card>
