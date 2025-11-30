@@ -27,24 +27,25 @@ interface VerifyFaceRequest {
 }
 
 serve(async (req) => {
-  // ===== BOOT DIAGNOSTICS =====
+  // -------------------------------------------------------
+  // Boot diagnostics – helps us see why the function crashes
+  // BEFORE any of the normal logic runs.
+  // -------------------------------------------------------
   try {
-    console.log("[VerifyFace][BOOT] Function invoked");
-    
-    // Log environment variables (only lengths/existence, NOT actual secrets)
-    console.log("[VerifyFace][ENV] OPENAI_API_KEY length:", Deno.env.get("OPENAI_API_KEY")?.length || "missing");
-    console.log("[VerifyFace][ENV] SEEKSY_MINTER_PRIVATE_KEY length:", Deno.env.get("SEEKSY_MINTER_PRIVATE_KEY")?.length || "missing");
-    console.log("[VerifyFace][ENV] POLYGON_RPC_URL exists:", !!Deno.env.get("POLYGON_RPC_URL"));
-    console.log("[VerifyFace][ENV] SUPABASE_URL exists:", !!Deno.env.get("SUPABASE_URL"));
-    console.log("[VerifyFace][ENV] SUPABASE_SERVICE_ROLE_KEY exists:", !!Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
-    
-    // Log request details
-    console.log("[VerifyFace][REQ] Method:", req.method);
-    console.log("[VerifyFace][REQ] Has Authorization header:", !!req.headers.get("Authorization"));
-    console.log("[VerifyFace][REQ] Content-Type:", req.headers.get("Content-Type"));
+    console.log("[VerifyFace][BOOT] function invoked");
+
+    const openaiKey = Deno.env.get("OPENAI_API_KEY") ?? "";
+    const pk       = Deno.env.get("POLYGON_PRIVATE_KEY") ?? "";
+    const rpcUrl   = Deno.env.get("POLYGON_RPC_URL") ?? "";
+
+    console.log("[VerifyFace][ENV] OPENAI length:", openaiKey.length || "missing");
+    console.log("[VerifyFace][ENV] PRIVATE length:", pk.length || "missing");
+    console.log("[VerifyFace][ENV] RPC URL exists:", rpcUrl ? "yes" : "missing");
+
+    console.log("[VerifyFace][REQ] method:", req.method);
+    console.log("[VerifyFace][REQ] content-type:", req.headers.get("content-type"));
   } catch (bootErr) {
     console.error("[VerifyFace][BOOT ERROR]", bootErr);
-    console.error("[VerifyFace][BOOT ERROR STACK]", bootErr instanceof Error ? bootErr.stack : "No stack");
   }
   
   // Handle CORS preflight request
