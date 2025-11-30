@@ -23,6 +23,10 @@ import { PersonaGrid } from "@/components/personas/PersonaGrid";
 import { HolidayPromoStrip } from "@/components/homepage/HolidayPromoStrip";
 import { HolidayHeroSection } from "@/components/homepage/HolidayHeroSection";
 import { useHolidaySettings } from "@/hooks/useHolidaySettings";
+import { IdentityRightsSection } from "@/components/homepage/IdentityRightsSection";
+import { ClipsSection } from "@/components/homepage/ClipsSection";
+import { AdvertiserAccessSection } from "@/components/homepage/AdvertiserAccessSection";
+import { HolidayCampaignBanner } from "@/components/homepage/HolidayCampaignBanner";
 
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -94,11 +98,12 @@ const Index = () => {
           <div className="container relative z-10 mx-auto px-4 py-32 md:py-40">
             <div className="max-w-4xl mx-auto text-center">
               <h1 className="text-6xl md:text-8xl font-black mb-6 leading-tight">
-                <span className="text-white">Seeksy — </span>
-                <span className="bg-gradient-to-r from-brand-gold to-brand-orange bg-clip-text text-transparent">Discover, Create & Connect</span>
+                <span className="text-white">Your Identity. Your Creativity.</span>
+                <br />
+                <span className="bg-gradient-to-r from-brand-gold to-brand-orange bg-clip-text text-transparent">Fully Protected.</span>
               </h1>
               <p className="text-xl md:text-2xl mb-12 text-white/80 max-w-3xl mx-auto font-medium">
-                Stream Bold Content • Host Events • Sell Products
+                Face & voice identity verification, AI-powered clip creation, and on-chain certification — all in one platform.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
@@ -106,15 +111,16 @@ const Index = () => {
                 onClick={() => navigate("/auth?mode=signup")} 
                 className="bg-gradient-to-r from-brand-gold to-brand-orange hover:opacity-90 text-black text-lg px-10 py-7 h-auto font-black shadow-glow hover:scale-105 transition-all"
               >
-                Get Started
+                <Sparkles className="h-5 w-5 mr-2" />
+                Create Your Free Account
               </Button>
               <Button 
                 size="lg" 
-                onClick={() => navigate("/comparison")}
+                onClick={() => window.open("https://calendly.com/seeksy-demo", "_blank")}
                 variant="outline"
                 className="bg-black/40 backdrop-blur-sm border-2 border-white/50 text-white hover:bg-white hover:text-black text-lg px-10 py-7 h-auto font-black transition-all"
               >
-                Compare Tools
+                Book a Demo
               </Button>
               </div>
               
@@ -139,6 +145,18 @@ const Index = () => {
           </div>
         </section>
         )}
+
+        {/* Identity & Rights Section */}
+        <IdentityRightsSection />
+
+        {/* Seeksy Clips Section */}
+        <ClipsSection />
+
+        {/* Advertiser Access Section */}
+        <AdvertiserAccessSection />
+
+        {/* Holiday Campaign Banner */}
+        {showHolidayUI && <HolidayCampaignBanner />}
 
         {/* Who is Seeksy For - AI Personas */}
         <section className="py-24 bg-gradient-to-b from-background via-secondary/20 to-background">

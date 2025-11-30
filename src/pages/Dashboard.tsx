@@ -50,6 +50,11 @@ import { SparkWelcomeModal } from "@/components/spark/SparkWelcomeModal";
 import { useRole } from "@/contexts/RoleContext";
 import { HolidayCreatorBanner } from "@/components/dashboard/HolidayCreatorBanner";
 import { useHolidaySettings } from "@/hooks/useHolidaySettings";
+import { IdentityStatusCard } from "@/components/dashboard/IdentityStatusCard";
+import { CertifiedClipsCard } from "@/components/dashboard/CertifiedClipsCard";
+import { MediaVaultCard } from "@/components/dashboard/MediaVaultCard";
+import { AdvertiserAccessCard } from "@/components/dashboard/AdvertiserAccessCard";
+import { QuickCreateCard } from "@/components/dashboard/QuickCreateCard";
 
 interface DashboardStats {
   totalEvents: number;
@@ -628,6 +633,15 @@ const Dashboard = () => {
         {showHolidayBanner && (
           <HolidayCreatorBanner firstName={firstName} />
         )}
+
+        {/* New Identity & Content Dashboard Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-8">
+          <IdentityStatusCard />
+          <CertifiedClipsCard />
+          <MediaVaultCard />
+          <AdvertiserAccessCard />
+          <QuickCreateCard />
+        </div>
 
         {/* Customizable Widgets */}
         {stats && (

@@ -47,32 +47,25 @@ export const NAVIGATION_CONFIG: {
           "roles": ["creator", "influencer", "agency", "advertiser", "admin"]
         },
         {
-          "id": "my_page",
-          "label": "My Page",
-          "icon": "user",
-          "path": "/my-page",
-          "roles": ["creator", "influencer", "agency", "subscriber", "admin"]
+          "id": "identity",
+          "label": "Identity",
+          "icon": "shield",
+          "path": "/identity",
+          "roles": ["creator", "influencer", "agency", "admin"]
         },
         {
-          "id": "profile_settings",
-          "label": "Profile Settings",
-          "icon": "settings",
-          "path": "/settings",
-          "roles": ["creator", "subscriber", "influencer", "agency", "advertiser", "admin"]
-        }
-      ]
-    },
-
-    {
-      "group": "Seekies",
-      "description": "App Marketplace",
-      "items": [
+          "id": "clips",
+          "label": "Clips",
+          "icon": "scissors",
+          "path": "/clips",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        },
         {
-          "id": "seekies_marketplace",
-          "label": "Seekies",
-          "icon": "apps",
-          "path": "/seekies",
-          "roles": ["creator", "influencer", "agency", "advertiser", "admin"]
+          "id": "media_vault",
+          "label": "Media Vault",
+          "icon": "folder",
+          "path": "/media/library",
+          "roles": ["creator", "influencer", "agency", "admin"]
         }
       ]
     },
@@ -81,189 +74,99 @@ export const NAVIGATION_CONFIG: {
       "group": "Engagement",
       "items": [
         {
+          "id": "meetings",
+          "label": "Meetings (Mia)",
+          "icon": "calendar",
+          "path": "/meetings",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        },
+        {
           "id": "contacts",
           "label": "Contacts",
           "icon": "contacts",
           "path": "/engagement/contacts",
           "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "communication_history",
-          "label": "Communication History",
-          "icon": "history",
-          "path": "/engagement/communication-history",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "forms",
-          "label": "Forms",
-          "icon": "form",
-          "path": "/engagement/forms",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "marketing",
-          "label": "Marketing",
-          "icon": "megaphone",
-          "path": "/engagement/marketing",
-          "roles": ["creator", "advertiser", "agency", "admin"]
-        },
-        {
-          "id": "sms",
-          "label": "SMS",
-          "icon": "sms",
-          "path": "/engagement/sms",
-          "roles": ["creator", "agency", "admin"]
-        },
-        {
-          "id": "lead_pixel",
-          "label": "Lead Pixel",
-          "icon": "target",
-          "path": "/engagement/lead-pixel",
-          "roles": ["creator", "advertiser", "agency", "admin"]
         }
       ]
     },
 
     {
-      "group": "Media",
+      "group": "Monetize",
       "items": [
         {
-          "id": "master_studio",
-          "label": "Master Studio",
-          "icon": "studio",
-          "path": "/media/studio",
+          "id": "advertiser_access",
+          "label": "Advertiser Access",
+          "icon": "briefcase",
+          "path": "/identity",
           "roles": ["creator", "influencer", "agency", "admin"]
         },
         {
-          "id": "media_library",
-          "label": "Media Library",
-          "icon": "library",
-          "path": "/media/library",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "create_clips",
-          "label": "Create Clips",
-          "icon": "scissors",
-          "path": "/media/create-clips",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "voice_identity",
-          "label": "My Voice Identity",
-          "icon": "mic",
-          "path": "/media/voice-identity",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "transcripts",
-          "label": "Transcripts",
-          "icon": "document",
-          "path": "/media/transcripts",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "podcasts",
-          "label": "Podcasts",
-          "icon": "podcast",
-          "path": "/media/podcasts",
+          "id": "licenses",
+          "label": "Licenses",
+          "icon": "file",
+          "path": "/identity",
           "roles": ["creator", "influencer", "agency", "admin"]
         }
       ]
     },
 
     {
-      "group": "Monetization",
+      "group": "Settings",
       "items": [
         {
-          "id": "ad_library",
-          "label": "Ad Library",
-          "icon": "folder",
-          "path": "/monetization/ad-library",
-          "roles": ["advertiser", "creator", "agency", "admin"]
-        },
-        {
-          "id": "create_ad",
-          "label": "Create Ad",
-          "icon": "plus",
-          "path": "/monetization/create-ad",
-          "roles": ["advertiser", "creator", "agency", "admin"]
-        },
-        {
-          "id": "revenue",
-          "label": "Revenue",
-          "icon": "dollar",
-          "path": "/monetization/revenue",
-          "roles": ["creator", "influencer", "agency", "advertiser", "admin"]
-        }
-      ]
-    },
-
-    {
-      "group": "Blog",
-      "items": [
-        {
-          "id": "blog_library",
-          "label": "Blog Library",
-          "icon": "book",
-          "path": "/blog",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "add_post",
-          "label": "Add Post",
-          "icon": "add",
-          "path": "/blog/new",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        }
-      ]
-    },
-
-    {
-      "group": "Account Settings",
-      "items": [
-        {
-          "id": "team",
-          "label": "Team",
-          "icon": "group",
-          "path": "/settings/team",
-          "roles": ["creator", "agency", "admin"]
-        },
-        {
-          "id": "seekies_settings",
-          "label": "Seekies",
-          "icon": "puzzle",
-          "path": "/settings/seekies",
-          "roles": ["creator", "agency", "admin"]
-        },
-        {
-          "id": "system_status",
-          "label": "System Status",
-          "icon": "status",
-          "path": "/settings/system-status",
-          "roles": ["admin"]
-        },
-        {
-          "id": "help_center",
-          "label": "Help Center",
-          "icon": "help",
-          "path": "/settings/help",
+          "id": "account",
+          "label": "Account",
+          "icon": "settings",
+          "path": "/settings",
           "roles": ["creator", "subscriber", "influencer", "agency", "advertiser", "admin"]
         },
         {
-          "id": "architecture",
-          "label": "Architecture",
-          "icon": "layers",
-          "path": "/settings/architecture",
-          "roles": ["admin"]
+          "id": "billing",
+          "label": "Billing",
+          "icon": "dollar",
+          "path": "/settings/billing",
+          "roles": ["creator", "influencer", "agency", "advertiser", "admin"]
         },
         {
-          "id": "tech_stack",
-          "label": "Tech Stack",
-          "icon": "code",
-          "path": "/settings/tech-stack",
-          "roles": ["admin"]
+          "id": "connected_apps",
+          "label": "Connected Apps",
+          "icon": "link",
+          "path": "/settings/integrations",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        }
+      ]
+    },
+
+    {
+      "group": "Admin",
+      "items": [
+        {
+          "id": "admin_dashboard",
+          "label": "Admin Dashboard",
+          "icon": "dashboard",
+          "path": "/admin",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "identity_console",
+          "label": "Identity Console",
+          "icon": "shield",
+          "path": "/admin/identity",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "certification_console",
+          "label": "Certification Console",
+          "icon": "certificate",
+          "path": "/admin/certifications",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "checklists",
+          "label": "Checklists",
+          "icon": "checklist",
+          "path": "/admin/checklists",
+          "roles": ["admin", "super_admin"]
         }
       ]
     },
