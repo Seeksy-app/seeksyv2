@@ -225,9 +225,7 @@ import AdminAdAnalytics from "./pages/admin/AdminAdAnalytics";
 import VoiceCertificationDashboard from "./pages/voice-certification/VoiceCertificationDashboard";
 import PublicCreatorIdentity from "./pages/PublicCreatorIdentity";
 import RecordVoiceVerification from "./pages/voice-certification/RecordVoiceVerification";
-import AIVoiceFingerprinting from "./pages/voice-certification/AIVoiceFingerprinting";
-import MatchConfidence from "./pages/voice-certification/MatchConfidence";
-import ApproveAndMint from "./pages/voice-certification/ApproveAndMint";
+import VoiceFingerprintGeneration from "./pages/voice-certification/VoiceFingerprintGeneration";
 import MintingProgress from "./pages/voice-certification/MintingProgress";
 import AdClickRedirect from "./pages/ad/AdClickRedirect";
 import VoiceCredentialPublic from "./pages/public/VoiceCredentialPublic";
@@ -271,7 +269,10 @@ import CertificationConsole from "./pages/admin/CertificationConsole";
 import Verified from "./pages/Verified";
 import { IdentityDashboard } from "./components/identity/IdentityDashboard";
 import IdentityRights from "./pages/IdentityRights";
-import IdentityCertificate from "./pages/IdentityCertificate";
+import IdentityCertificatePage from "./pages/IdentityCertificatePage";
+import FaceUpload from "./pages/face-verification/FaceUpload";
+import FaceProcessing from "./pages/face-verification/FaceProcessing";
+import FaceSuccess from "./pages/face-verification/FaceSuccess";
 import IdentityCertificateDetail from "./pages/IdentityCertificateDetail";
 import AdminChecklists from "./pages/admin/Checklists";
 import ChecklistTemplate from "./pages/admin/ChecklistTemplate";
@@ -386,12 +387,15 @@ const AppContent = () => {
               <Route path="/my-voice-identity" element={<MyVoiceIdentity />} />
               <Route path="/voice-cloning" element={<ProtectedRoute requiredRole="creator"><VoiceCloningWizard /></ProtectedRoute>} />
               <Route path="/voice-certification-flow" element={<VoiceCertificationDashboard />} />
-              <Route path="/voice-certification/upload" element={<RecordVoiceVerification />} />
-              <Route path="/voice-certification/fingerprint" element={<AIVoiceFingerprinting />} />
-              <Route path="/voice-certification/confidence" element={<MatchConfidence />} />
-              <Route path="/voice-certification/approve-mint" element={<ApproveAndMint />} />
-              <Route path="/voice-certification/minting-progress" element={<MintingProgress />} />
+              <Route path="/voice-certification/record" element={<RecordVoiceVerification />} />
+              <Route path="/voice-certification/fingerprint" element={<VoiceFingerprintGeneration />} />
+              <Route path="/voice-certification/minting" element={<MintingProgress />} />
               <Route path="/voice-certification/success" element={<VerifiedVoiceSuccess />} />
+              
+              {/* Face Verification Flow */}
+              <Route path="/face-verification" element={<FaceUpload />} />
+              <Route path="/face-verification/processing" element={<FaceProcessing />} />
+              <Route path="/face-verification/success" element={<FaceSuccess />} />
               
               {/* Content Certification Flow */}
               <Route path="/content-certification" element={<UploadContent />} />
@@ -581,8 +585,7 @@ const AppContent = () => {
           <Route path="/voice-protection" element={<VoiceProtection />} />
           <Route path="/voice-credentials" element={<MyVoiceIdentity />} />
           <Route path="/identity" element={<IdentityRights />} />
-          <Route path="/certificate/:id" element={<IdentityCertificate />} />
-          <Route path="/certificate/identity/:id" element={<IdentityCertificateDetail />} />
+          <Route path="/certificate/identity/:id" element={<IdentityCertificatePage />} />
           <Route path="/creator/:username/identity" element={<PublicCreatorIdentity />} />
           <Route path="/identity-dashboard" element={<IdentityDashboard />} />
           <Route path="/admin/voice-credentials" element={<VoiceCredentialsAdmin />} />
