@@ -406,15 +406,16 @@ const VoiceVerificationUnified = () => {
           
           // Invalidate all identity-related queries to update UI instantly
           await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['creator_voice_profiles'] }),
+            queryClient.invalidateQueries({ queryKey: ['voice_blockchain_certificates'] }),
             queryClient.invalidateQueries({ queryKey: ['voice-identity-status'] }),
             queryClient.invalidateQueries({ queryKey: ['identity-status'] }),
             queryClient.invalidateQueries({ queryKey: ['identity-status-widget'] }),
             queryClient.invalidateQueries({ queryKey: ['identity-assets'] }),
             queryClient.invalidateQueries({ queryKey: ['face-identity-status'] }),
-            queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] })
+            queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] }),
+            queryClient.invalidateQueries({ queryKey: ['identity-activity-logs'] })
           ]);
-          queryClient.invalidateQueries({ queryKey: ['identity-activity-logs'] });
-          queryClient.invalidateQueries({ queryKey: ['dashboard-widgets'] });
           
           toast.success("Voice verified!", {
             description: "Your voice identity is now on-chain."
@@ -537,7 +538,7 @@ const VoiceVerificationUnified = () => {
                 {/* Script Block - Always visible except in review and verifying */}
                 {state !== 'review' && state !== 'verifying' && prompts.length > 0 && (
                   <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 p-8 shadow-sm">
-                    <p className="text-xl leading-relaxed text-blue-900 dark:text-blue-100">
+                    <p className="text-2xl leading-relaxed text-blue-900 dark:text-blue-100">
                       "{prompts[selectedPromptIndex]}"
                     </p>
                   </Card>
