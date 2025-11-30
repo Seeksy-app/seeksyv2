@@ -28,8 +28,38 @@ const corsHeaders = {
 // SeeksyClipCertificate Contract ABI (Deployed on Polygon Amoy)
 // Contract Address: 0xB5627bDbA3ab392782E7E542a972013E3e7F37C3
 const CERTIFICATE_CONTRACT_ABI = [
-  "function certifyClip(address creator, string calldata clipId) external",
-  "event ClipCertified(address indexed creator, string clipId, uint256 timestamp)"
+  {
+    "inputs": [{"internalType": "address", "name": "_owner", "type": "address"}],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {"indexed": true, "internalType": "address", "name": "creator", "type": "address"},
+      {"indexed": false, "internalType": "string", "name": "clipId", "type": "string"},
+      {"indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256"}
+    ],
+    "name": "ClipCertified",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {"internalType": "address", "name": "creator", "type": "address"},
+      {"internalType": "string", "name": "clipId", "type": "string"}
+    ],
+    "name": "certifyClip",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+    "stateMutability": "view",
+    "type": "function"
+  }
 ];
 
 interface MintCertificateRequest {
