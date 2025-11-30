@@ -30,7 +30,7 @@ export const IdentityStatusCard = () => {
   const getStatusBadge = (asset: any) => {
     if (!asset) return <Badge variant="outline" className="gap-1"><AlertCircle className="h-3 w-3" />Not Setup</Badge>;
     
-    switch (asset.cert_status) {
+    switch (asset?.cert_status) {
       case 'minted':
         return <Badge className="gap-1 bg-green-500"><CheckCircle className="h-3 w-3" />Verified</Badge>;
       case 'pending':

@@ -12,6 +12,7 @@ import { FaceIdentitySection } from "@/components/identity/FaceIdentitySection";
 import { VoiceIdentitySection } from "@/components/identity/VoiceIdentitySection";
 import { AdvertiserAccessTab } from "@/components/identity/AdvertiserAccessTab";
 import { Badge } from "@/components/ui/badge";
+import { IdentityErrorBoundary } from "@/components/identity/IdentityErrorBoundary";
 
 interface IdentityAsset {
   id: string;
@@ -69,32 +70,38 @@ const IdentityRights = () => {
     },
   });
 
-  // Type cast the data properly
-  const identityAssets: IdentityAsset[] = ((rawData || []) as any[]).map((asset: any) => ({
-    id: asset.id,
-    type: asset.type,
-    cert_status: asset.cert_status,
-    cert_tx_hash: asset.cert_tx_hash,
-    cert_explorer_url: asset.cert_explorer_url,
-    revoked_at: asset.revoked_at,
-    face_hash: asset.face_hash,
-    face_metadata_uri: asset.face_metadata_uri,
-    permissions: asset.permissions as {
-      clip_use: boolean;
-      ai_generation: boolean;
-      advertiser_access: boolean;
-      anonymous_training: boolean;
-    }
-  }));
+  // Type cast the data properly with null safety
+  const identityAssets: IdentityAsset[] = Array.isArray(rawData)
+    ? rawData.map((asset: any) => ({
+        id: asset?.id || '',
+        type: asset?.type || '',
+        cert_status: asset?.cert_status || 'not_set',
+        cert_tx_hash: asset?.cert_tx_hash || null,
+        cert_explorer_url: asset?.cert_explorer_url || null,
+        revoked_at: asset?.revoked_at || null,
+        face_hash: asset?.face_hash || null,
+        face_metadata_uri: asset?.face_metadata_uri || null,
+        permissions: {
+          clip_use: asset?.permissions?.clip_use || false,
+          ai_generation: asset?.permissions?.ai_generation || false,
+          advertiser_access: asset?.permissions?.advertiser_access || false,
+          anonymous_training: asset?.permissions?.anonymous_training || false,
+        }
+      }))
+    : [];
 
   // Debug logging for identity data
   console.log("[Identity] Raw data:", rawData);
   console.log("[Identity] Identity assets:", identityAssets);
   console.log("[Identity] Query error:", error);
 
-  // Get individual identity statuses
-  const voiceAsset = identityAssets.find(a => a.type === "voice_identity");
-  const faceAsset = identityAssets.find(a => a.type === "face_identity");
+  // Safely get individual identity statuses with null guards
+  const voiceAsset = Array.isArray(identityAssets) 
+    ? identityAssets.find(a => a?.type === "voice_identity") 
+    : undefined;
+  const faceAsset = Array.isArray(identityAssets) 
+    ? identityAssets.find(a => a?.type === "face_identity") 
+    : undefined;
   
   console.log("[Identity] Voice asset:", voiceAsset);
   console.log("[Identity] Face asset:", faceAsset);
@@ -161,9 +168,17 @@ const IdentityRights = () => {
       bgColor: "bg-red-50 dark:bg-red-950/20",
       borderColor: "border-red-200 dark:border-red-900",
     },
+    failed: {
+      icon: XCircle,
+      label: "Failed",
+      description: "Identity verification failed. Please retry.",
+      color: "text-red-600",
+      bgColor: "bg-red-50 dark:bg-red-950/20",
+      borderColor: "border-red-200 dark:border-red-900",
+    },
   };
 
-  const currentStatus = statusConfig[status];
+  const currentStatus = statusConfig[status as keyof typeof statusConfig] || statusConfig.not_set;
   const StatusIcon = currentStatus.icon;
 
   if (error) {
@@ -205,7 +220,8 @@ const IdentityRights = () => {
 
 
   return (
-    <div className="container max-w-6xl py-8 space-y-8">
+    <IdentityErrorBoundary>
+      <div className="container max-w-6xl py-8 space-y-8">
       {/* Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold">Identity & Rights</h1>
@@ -269,10 +285,10 @@ const IdentityRights = () => {
               </p>
               
               {/* Certificate Links */}
-              {status === "verified" && identityAssets.length > 0 && (
+              {status === "verified" && Array.isArray(identityAssets) && identityAssets.length > 0 && (
                 <div className="flex flex-wrap gap-3 pt-2">
                   {identityAssets
-                    .filter(asset => asset.cert_explorer_url)
+                    .filter(asset => asset?.cert_explorer_url && asset?.id)
                     .map((asset) => (
                       <Button
                         key={asset.id}
@@ -284,16 +300,19 @@ const IdentityRights = () => {
                         View {asset.type === "voice_identity" ? "Voice" : "Face"} on Chain
                       </Button>
                     ))}
-                  {identityAssets.length > 0 && identityAssets[0]?.id && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate(`/certificate/identity/${identityAssets[0].id}`)}
-                    >
-                      <Shield className="h-4 w-4 mr-2" />
-                      View Certificate
-                    </Button>
-                  )}
+                  {(() => {
+                    const firstAsset = identityAssets.find(a => a?.id);
+                    return firstAsset?.id ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(`/certificate/identity/${firstAsset.id}`)}
+                      >
+                        <Shield className="h-4 w-4 mr-2" />
+                        View Certificate
+                      </Button>
+                    ) : null;
+                  })()}
                 </div>
               )}
             </div>
@@ -353,7 +372,7 @@ const IdentityRights = () => {
 
         {/* Permissions & Rights Tab */}
         <TabsContent value="permissions" className="space-y-6">
-          {identityAssets.length > 0 ? (
+          {Array.isArray(identityAssets) && identityAssets.length > 0 ? (
             <Card>
               <CardHeader>
                 <CardTitle>How Seeksy Can Use Your Identity</CardTitle>
@@ -380,7 +399,7 @@ const IdentityRights = () => {
 
         {/* Certificates Tab */}
         <TabsContent value="certificates" className="space-y-6">
-          {identityAssets.filter(a => a.cert_status === "minted").length === 0 ? (
+          {!Array.isArray(identityAssets) || identityAssets.filter(a => a?.cert_status === "minted").length === 0 ? (
             <Card>
               <CardContent className="pt-6 text-center py-12">
                 <Shield className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
@@ -388,7 +407,7 @@ const IdentityRights = () => {
                 <p className="text-xs text-muted-foreground mt-1">
                   Complete face or voice verification to generate certificates
                 </p>
-                {identityAssets.some(a => a.cert_status === "failed") && (
+                {Array.isArray(identityAssets) && identityAssets.some(a => a?.cert_status === "failed") && (
                   <p className="text-xs text-red-600 mt-2">
                     Some verifications failed. Please retry from the Overview tab.
                   </p>
@@ -398,7 +417,7 @@ const IdentityRights = () => {
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {identityAssets
-                .filter(a => a.cert_status === "minted" && a.id)
+                .filter(a => a?.cert_status === "minted" && a?.id)
                 .map((asset) => (
                 <Card key={asset.id} className="border-2 border-primary/20">
                   <CardHeader className="bg-primary/5">
@@ -454,7 +473,7 @@ const IdentityRights = () => {
       </Tabs>
 
       {/* Access Log - Always visible below tabs */}
-      {identityAssets.length > 0 && (
+      {Array.isArray(identityAssets) && identityAssets.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Advertiser Access Log</CardTitle>
@@ -463,11 +482,12 @@ const IdentityRights = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <IdentityAccessLog assetIds={identityAssets.map(a => a.id)} />
+            <IdentityAccessLog assetIds={identityAssets.filter(a => a?.id).map(a => a.id)} />
           </CardContent>
         </Card>
       )}
     </div>
+    </IdentityErrorBoundary>
   );
 };
 

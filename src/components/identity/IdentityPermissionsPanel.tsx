@@ -24,10 +24,10 @@ export function IdentityPermissionsPanel({ assets }: IdentityPermissionsPanelPro
 
   // Get aggregated permissions (if ANY asset has permission enabled, show as enabled)
   const permissions = {
-    clip_use: assets.some(a => a.permissions.clip_use),
-    ai_generation: assets.some(a => a.permissions.ai_generation),
-    advertiser_access: assets.some(a => a.permissions.advertiser_access),
-    anonymous_training: assets.some(a => a.permissions.anonymous_training),
+    clip_use: Array.isArray(assets) && assets.some(a => a?.permissions?.clip_use),
+    ai_generation: Array.isArray(assets) && assets.some(a => a?.permissions?.ai_generation),
+    advertiser_access: Array.isArray(assets) && assets.some(a => a?.permissions?.advertiser_access),
+    anonymous_training: Array.isArray(assets) && assets.some(a => a?.permissions?.anonymous_training),
   };
 
   const updatePermissionsMutation = useMutation({
@@ -36,28 +36,32 @@ export function IdentityPermissionsPanel({ assets }: IdentityPermissionsPanelPro
       if (!user) throw new Error("Not authenticated");
 
       // Update all user's identity assets
-      const updates = assets.map(asset => {
-        const newPermissions = {
-          ...asset.permissions,
-          [permission]: enabled,
-        };
-        return supabase
-          .from("identity_assets")
-          .update({ permissions: newPermissions })
-          .eq("id", asset.id);
-      });
+      const updates = assets
+        .filter(asset => asset?.id && asset?.permissions)
+        .map(asset => {
+          const newPermissions = {
+            ...asset.permissions,
+            [permission]: enabled,
+          };
+          return supabase
+            .from("identity_assets")
+            .update({ permissions: newPermissions })
+            .eq("id", asset.id);
+        });
 
       await Promise.all(updates);
 
       // Log permission change
       await Promise.all(
-        assets.map(asset =>
-          supabase.from("identity_access_logs").insert({
-            identity_asset_id: asset.id,
-            action: "permission_changed",
-            actor_id: user.id,
-            details: {
-              permission,
+        assets
+          .filter(asset => asset?.id)
+          .map(asset =>
+            supabase.from("identity_access_logs").insert({
+              identity_asset_id: asset.id,
+              action: "permission_changed",
+              actor_id: user.id,
+              details: {
+                permission,
               enabled,
               changed_at: new Date().toISOString(),
             },
