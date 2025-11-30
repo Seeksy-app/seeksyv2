@@ -257,7 +257,7 @@ const IdentityRights = () => {
                       </Button>
                     )}
                     <Button 
-                      onClick={() => navigate("/identity/voice/verify")}
+                      onClick={() => navigate("/identity/voice/consent")}
                       variant="outline"
                       size="sm"
                       className="w-full"
@@ -267,7 +267,7 @@ const IdentityRights = () => {
                   </>
                 ) : (
                   <Button 
-                    onClick={() => navigate("/identity/voice/verify")}
+                    onClick={() => navigate("/identity/voice/consent")}
                     className="w-full"
                   >
                     Verify

@@ -242,7 +242,12 @@ import AuthenticityScan from "./pages/content-certification/AuthenticityScan";
 import ApproveAndMintContent from "./pages/content-certification/ApproveAndMintContent";
 import MintingProgressContent from "./pages/content-certification/MintingProgressContent";
 import CertifiedContentSuccess from "./pages/content-certification/CertifiedContentSuccess";
-import PodcastStudioHome from "./pages/podcast-studio/PodcastStudioHome";
+import PodcastStudioHome from "./pages/podcast-studio/StudioHome";
+import VoiceConsentScreen from "./pages/voice-certification/VoiceConsentScreen";
+import VoiceScriptSelection from "./pages/voice-certification/VoiceScriptSelection";
+import VoiceRecording from "./pages/voice-certification/VoiceRecording";
+import VoiceProcessing from "./pages/voice-certification/VoiceProcessing";
+import VoiceSuccessScreen from "./pages/voice-certification/VoiceSuccess";
 import BlogLibrary from "./pages/blog/BlogLibrary";
 import BlogEditor from "./pages/blog/BlogEditor";
 import BlogCertify from "./pages/blog/BlogCertify";
@@ -391,9 +396,13 @@ const AppContent = () => {
               {/* Unified Voice Identity Hub */}
               <Route path="/my-voice-identity" element={<MyVoiceIdentity />} />
               <Route path="/voice-cloning" element={<ProtectedRoute requiredRole="creator"><VoiceCloningWizard /></ProtectedRoute>} />
-              <Route path="/identity/voice/verify" element={<VoiceVerificationUnified />} />
-              <Route path="/identity/voice/verifying" element={<VoiceVerifying />} />
-              <Route path="/identity/voice/success" element={<VoiceSuccess />} />
+              
+              {/* Voice Verification Flow - Multi-Step */}
+              <Route path="/identity/voice/consent" element={<VoiceConsentScreen />} />
+              <Route path="/identity/voice/script" element={<VoiceScriptSelection />} />
+              <Route path="/identity/voice/recording" element={<VoiceRecording />} />
+              <Route path="/identity/voice/processing" element={<VoiceProcessing />} />
+              <Route path="/identity/voice/success" element={<VoiceSuccessScreen />} />
               
               {/* Face Verification Flow */}
               <Route path="/face-verification" element={<FaceUpload />} />

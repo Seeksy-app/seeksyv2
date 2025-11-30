@@ -109,7 +109,7 @@ const VoiceVerifying = () => {
                 <div>
                   <h1 className="text-2xl font-bold mb-2 text-destructive">Verification Failed</h1>
                   <p className="text-sm text-muted-foreground mb-4">{error}</p>
-                  <Button onClick={() => navigate("/identity/voice/verify")}>
+                  <Button onClick={() => navigate("/identity/voice/consent")}>
                     Try Again
                   </Button>
                 </div>

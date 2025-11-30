@@ -349,7 +349,7 @@ export default function MyVoiceIdentity() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button onClick={() => navigate('/identity/voice/verify')} size="lg">
+                <Button onClick={() => navigate('/identity/voice/consent')} size="lg">
                   <Shield className="h-4 w-4 mr-2" />
                   Start Certification Process
                 </Button>
@@ -434,7 +434,7 @@ export default function MyVoiceIdentity() {
                         title: "Certification Required",
                         description: "Your voice must be certified before creating an AI clone. Begin certification?",
                         action: (
-                          <Button size="sm" onClick={() => navigate('/identity/voice/verify')}>
+                          <Button size="sm" onClick={() => navigate('/identity/voice/consent')}>
                             Start Certification
                           </Button>
                         ),

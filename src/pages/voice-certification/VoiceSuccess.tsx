@@ -2,25 +2,26 @@ import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, ExternalLink, ArrowLeft } from "lucide-react";
+import { CheckCircle2, ExternalLink, ArrowRight } from "lucide-react";
 import confetti from "canvas-confetti";
 
 const VoiceSuccess = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  
-  const assetId = location.state?.assetId;
-  const tokenId = location.state?.tokenId || "N/A";
-  const explorerUrl = location.state?.explorerUrl;
-  const transactionHash = location.state?.transactionHash;
+  const { voiceHash, tokenId, explorerUrl, transactionHash } = location.state || {};
 
   useEffect(() => {
     // Trigger confetti
     const duration = 3000;
     const animationEnd = Date.now() + duration;
 
+    const randomInRange = (min: number, max: number) => {
+      return Math.random() * (max - min) + min;
+    };
+
     const interval = setInterval(() => {
       const timeLeft = animationEnd - Date.now();
+
       if (timeLeft <= 0) {
         clearInterval(interval);
         return;
@@ -28,95 +29,85 @@ const VoiceSuccess = () => {
 
       confetti({
         particleCount: 3,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-        colors: ['hsl(var(--primary))', 'hsl(var(--accent))']
-      });
-      
-      confetti({
-        particleCount: 3,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        colors: ['hsl(var(--primary))', 'hsl(var(--accent))']
+        angle: randomInRange(55, 125),
+        spread: randomInRange(50, 70),
+        origin: { x: randomInRange(0.1, 0.9), y: Math.random() - 0.2 },
+        colors: ['#2C6BED', '#10B981', '#F59E0B', '#EC4899']
       });
     }, 100);
 
     return () => clearInterval(interval);
   }, []);
 
-  return (
-    <div className="min-h-screen bg-background p-6 flex items-center justify-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="w-full max-w-2xl space-y-6">
-        <Button variant="ghost" onClick={() => navigate("/identity")}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Identity
-        </Button>
+  const truncateHash = (hash: string) => {
+    if (!hash) return "";
+    return `${hash.slice(0, 8)}...${hash.slice(-6)}`;
+  };
 
-        <Card className="p-12 animate-in fade-in slide-in-from-bottom-2 duration-700">
-          <div className="text-center space-y-6">
-            <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-green-500/10 mb-4">
-              <CheckCircle className="h-14 w-14 text-green-500" />
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5 flex items-center justify-center p-4">
+      <div className="max-w-2xl w-full">
+        <Card className="p-8 md:p-12 bg-card/50 backdrop-blur-sm border-border/50">
+          <div className="space-y-8">
+            {/* Success Icon */}
+            <div className="flex justify-center">
+              <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
+                <CheckCircle2 className="w-12 h-12 text-primary" />
+              </div>
             </div>
 
-            <div>
-              <h1 className="text-4xl font-bold mb-3">Voice Verified</h1>
-              <p className="text-muted-foreground max-w-lg mx-auto">
+            {/* Title */}
+            <div className="text-center space-y-3">
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+                Voice Verified
+              </h1>
+              <p className="text-lg text-muted-foreground max-w-md mx-auto">
                 Your voice identity has been confirmed and stored on-chain.
               </p>
             </div>
 
             {/* Certificate Details */}
-            <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 p-6 text-left shadow-sm">
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between items-center gap-4">
-                  <span className="text-muted-foreground font-medium">VoiceHash:</span>
-                  <span className="font-mono text-xs">{transactionHash?.slice(0, 16)}...</span>
-                </div>
-                <div className="flex justify-between items-center gap-4">
-                  <span className="text-muted-foreground font-medium">Transaction:</span>
-                  <span className="font-mono text-xs">{transactionHash?.slice(0, 10)}...{transactionHash?.slice(-8)}</span>
-                </div>
-                <div className="flex justify-between items-center gap-4">
-                  <span className="text-muted-foreground font-medium">Token ID:</span>
-                  <span className="font-mono">{tokenId}</span>
-                </div>
-                <div className="flex justify-between items-center gap-4">
-                  <span className="text-muted-foreground font-medium">Network:</span>
-                  <span className="font-medium">Polygon</span>
-                </div>
+            <div className="space-y-4 bg-muted/30 p-6 rounded-xl">
+              <div className="flex justify-between items-start">
+                <span className="text-sm text-muted-foreground">Voice Hash</span>
+                <span className="text-sm font-mono text-foreground">
+                  {truncateHash(voiceHash)}
+                </span>
               </div>
-            </Card>
+              <div className="flex justify-between items-start">
+                <span className="text-sm text-muted-foreground">Token ID</span>
+                <span className="text-sm font-mono text-foreground">{tokenId}</span>
+              </div>
+              <div className="flex justify-between items-start">
+                <span className="text-sm text-muted-foreground">Transaction</span>
+                <span className="text-sm font-mono text-foreground">
+                  {truncateHash(transactionHash)}
+                </span>
+              </div>
+              <div className="flex justify-between items-start">
+                <span className="text-sm text-muted-foreground">Network</span>
+                <span className="text-sm text-foreground">Polygon Mainnet</span>
+              </div>
+            </div>
 
             {/* Actions */}
             <div className="space-y-3">
-              {assetId && (
-                <Button 
-                  onClick={() => navigate(`/certificate/identity/${assetId}`)}
-                  className="w-full"
-                >
-                  View Certificate
-                </Button>
-              )}
-              
-              {explorerUrl && (
-                <Button 
-                  onClick={() => window.open(explorerUrl, '_blank')}
-                  variant="outline"
-                  className="w-full"
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  View on Blockchain
-                </Button>
-              )}
-
-              <Button 
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => window.open(explorerUrl, '_blank')}
+                className="w-full h-14 text-lg font-semibold"
+              >
+                <ExternalLink className="mr-2 h-5 w-5" />
+                View on Blockchain
+              </Button>
+              <Button
+                size="lg"
                 onClick={() => navigate("/identity")}
-                variant="ghost"
-                className="w-full"
+                className="w-full h-14 text-lg font-semibold"
               >
                 Return to Identity Hub
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </div>
           </div>
