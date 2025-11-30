@@ -246,7 +246,11 @@ serve(async (req) => {
 
     if (!mintResult.success) {
       const errorMsg = mintResult.error || mintResult.message || "Unknown minting error";
-      console.error("❌ Blockchain minting failed:", errorMsg);
+      const stage = mintResult.stage || "mint";
+      const code = mintResult.code || "UNKNOWN_ERROR";
+      
+      console.error(`❌ Blockchain minting failed at ${stage}:`, errorMsg);
+      console.error(`❌ Error code: ${code}`);
       
       // Update to failed status
       await supabase
@@ -254,19 +258,25 @@ serve(async (req) => {
         .update({ cert_status: 'failed', cert_updated_at: new Date().toISOString() })
         .eq('id', assetId);
 
-      // Log failure
+      // Log failure with detailed error info
       await supabase.from('identity_access_logs').insert({
         identity_asset_id: assetId,
         action: 'face_failed',
         actor_id: user.id,
-        details: { error: errorMsg },
+        details: { 
+          error: errorMsg,
+          stage,
+          code,
+        },
       });
 
       return new Response(
         JSON.stringify({
           status: "failed",
-          message: "Face verification failed during blockchain minting",
-          error: errorMsg,
+          stage,
+          code,
+          message: errorMsg,
+          details: "Face verification completed but blockchain minting failed",
         }),
         {
           status: 500,
@@ -307,11 +317,37 @@ serve(async (req) => {
   } catch (error) {
     console.error("❌ Face verification error:", error);
     console.error("❌ Error stack:", error instanceof Error ? error.stack : "No stack trace");
+    
+    // Determine error stage
+    let stage: string = "unknown";
+    let code: string = "UNKNOWN_ERROR";
+    
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    
+    if (errorMsg.includes("OpenAI") || errorMsg.includes("API key")) {
+      stage = "openai";
+      code = "OPENAI_ERROR";
+    } else if (errorMsg.includes("authentication") || errorMsg.includes("Not authenticated")) {
+      stage = "auth";
+      code = "AUTH_ERROR";
+    } else if (errorMsg.includes("images")) {
+      stage = "input";
+      code = "INVALID_INPUT";
+    } else if (errorMsg.includes("blockchain") || errorMsg.includes("mint")) {
+      stage = "mint";
+      code = "MINT_ERROR";
+    } else if (errorMsg.includes("database") || errorMsg.includes("identity_assets")) {
+      stage = "db";
+      code = "DB_ERROR";
+    }
+    
     return new Response(
       JSON.stringify({
         status: "failed",
-        error: error instanceof Error ? error.message : String(error),
-        details: error instanceof Error ? error.stack : undefined,
+        stage,
+        code,
+        error: errorMsg,
+        message: `Face verification failed at ${stage}: ${errorMsg}`,
       }),
       {
         status: 500,

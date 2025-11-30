@@ -168,7 +168,13 @@ serve(async (req) => {
     }
 
     const provider = new ethers.JsonRpcProvider(rpcUrl);
-    const signer = new ethers.Wallet(minterPrivateKey, provider);
+    
+    // Ensure private key has 0x prefix for ethers.js
+    const formattedPrivateKey = minterPrivateKey.startsWith('0x') 
+      ? minterPrivateKey 
+      : `0x${minterPrivateKey}`;
+    
+    const signer = new ethers.Wallet(formattedPrivateKey, provider);
     
     console.log(`→ Platform wallet: ${signer.address}`);
 
@@ -282,10 +288,34 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("❌ Certificate minting error:", error);
+    
+    // Determine error stage and code
+    let stage: string = "unknown";
+    let code: string = "UNKNOWN_ERROR";
+    
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    
+    if (errorMsg.includes("private key") || errorMsg.includes("INVALID_ARGUMENT")) {
+      stage = "blockchain_config";
+      code = "INVALID_PRIVATE_KEY";
+    } else if (errorMsg.includes("Identity asset not found")) {
+      stage = "db";
+      code = "ASSET_NOT_FOUND";
+    } else if (errorMsg.includes("already in progress")) {
+      stage = "db";
+      code = "DUPLICATE_MINT";
+    } else if (errorMsg.includes("transaction") || errorMsg.includes("revert")) {
+      stage = "mint";
+      code = "BLOCKCHAIN_TX_FAILED";
+    }
+    
     return new Response(
       JSON.stringify({
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        stage,
+        code,
+        error: errorMsg,
+        message: `Minting failed at ${stage}: ${errorMsg}`,
       }),
       {
         status: 500,

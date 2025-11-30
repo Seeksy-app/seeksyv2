@@ -113,6 +113,13 @@ export function FaceIdentitySection({ asset }: FaceIdentitySectionProps) {
         throw new Error("No response from verification service");
       }
 
+      // Log structured error details if available
+      if (data.stage || data.code) {
+        console.error(`[FaceIdentity] Failure stage: ${data.stage}`);
+        console.error(`[FaceIdentity] Error code: ${data.code}`);
+        console.error(`[FaceIdentity] Error message: ${data.message}`);
+      }
+
       if (data.status === "verified") {
         console.log("[FaceIdentity] ✓ Verification successful:", data);
         toast.success("Face identity verified successfully!");
@@ -122,7 +129,23 @@ export function FaceIdentitySection({ asset }: FaceIdentitySectionProps) {
         setUploadStep('upload');
       } else if (data.status === "failed") {
         console.error("[FaceIdentity] Verification failed:", data);
-        toast.error(data.message || "Face verification failed");
+        
+        // Show detailed error based on stage
+        let errorTitle = "Face Verification Failed";
+        let errorDescription = data.message || "Please try again";
+        
+        if (data.stage === "openai") {
+          errorTitle = "AI Analysis Failed";
+          errorDescription = "We couldn't analyze your photos. Please try different images.";
+        } else if (data.stage === "mint") {
+          errorTitle = "Blockchain Minting Failed";
+          errorDescription = "Face analyzed successfully, but blockchain certificate failed. Please retry.";
+        } else if (data.stage === "db") {
+          errorTitle = "Database Error";
+          errorDescription = "Please try again in a moment.";
+        }
+        
+        toast.error(errorTitle, { description: errorDescription });
         setUploadStep('confirm');
       }
     } catch (error) {
