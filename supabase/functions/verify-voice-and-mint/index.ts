@@ -26,6 +26,10 @@ serve(async (req) => {
   }
 
   try {
+    console.log('[verify-voice-and-mint] Request received');
+    console.log('[verify-voice-and-mint] Method:', req.method);
+    console.log('[verify-voice-and-mint] Headers:', Object.fromEntries(req.headers.entries()));
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -38,13 +42,81 @@ serve(async (req) => {
 
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
     if (authError || !user) {
-      throw new Error('Not authenticated');
+      console.error('[verify-voice-and-mint] Auth error:', authError);
+      return new Response(
+        JSON.stringify({ 
+          ok: false,
+          error: 'NOT_AUTHENTICATED',
+          message: 'User authentication failed'
+        }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
 
-    const { audioData, recordingDuration, selectedPrompt } = await req.json();
+    console.log('[verify-voice-and-mint] User authenticated:', user.id);
 
+    // Parse and log the payload
+    let payload;
+    try {
+      payload = await req.json();
+      console.log('[verify-voice-and-mint] Payload received:', {
+        hasAudioData: !!payload.audioData,
+        audioDataLength: payload.audioData?.length || 0,
+        recordingDuration: payload.recordingDuration,
+        hasSelectedPrompt: !!payload.selectedPrompt,
+        allKeys: Object.keys(payload)
+      });
+    } catch (parseError) {
+      console.error('[verify-voice-and-mint] JSON parse error:', parseError);
+      return new Response(
+        JSON.stringify({ 
+          ok: false,
+          error: 'INVALID_JSON',
+          message: 'Request body is not valid JSON'
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    const { audioData, recordingDuration, selectedPrompt } = payload;
+
+    // Validate required fields
     if (!audioData) {
-      throw new Error('Audio data is required');
+      console.error('[verify-voice-and-mint] Missing audioData');
+      return new Response(
+        JSON.stringify({ 
+          ok: false,
+          error: 'MISSING_FIELD',
+          field: 'audioData',
+          message: 'Audio data is required'
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    if (!recordingDuration || recordingDuration < 1) {
+      console.error('[verify-voice-and-mint] Invalid recordingDuration:', recordingDuration);
+      return new Response(
+        JSON.stringify({ 
+          ok: false,
+          error: 'INVALID_FIELD',
+          field: 'recordingDuration',
+          message: 'Recording duration must be at least 1 second'
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
 
     console.log('[verify-voice-and-mint] Starting verification for user:', user.id);
@@ -95,23 +167,7 @@ serve(async (req) => {
 
     console.log('[verify-voice-and-mint] Voice profile ready:', voiceProfileId);
 
-    // Step 4: Create identity asset
-    const { data: asset, error: assetError } = await supabaseClient
-      .from('identity_assets')
-      .insert({
-        user_id: user.id,
-        type: 'voice_identity',
-        hash_value: voiceHash,
-        cert_status: 'pending'
-      })
-      .select()
-      .single();
-
-    if (assetError) throw new Error(`Failed to create identity asset: ${assetError.message}`);
-
-    console.log('[verify-voice-and-mint] Identity asset created:', asset.id);
-
-    // Step 5: Mint certificate on blockchain
+    // Step 4: Mint certificate on blockchain directly
     const mintResponse = await fetch(
       `${Deno.env.get("SUPABASE_URL")}/functions/v1/mint-identity-certificate`,
       {
@@ -121,7 +177,9 @@ serve(async (req) => {
           "Authorization": req.headers.get('Authorization')!,
         },
         body: JSON.stringify({
-          identityAssetId: asset.id,
+          type: "voice",
+          userId: user.id,
+          voiceHash: voiceHash,
           chain: "polygon",
         }),
       }
@@ -171,7 +229,6 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        assetId: asset.id,
         voiceProfileId,
         voiceHash,
         certificate: mintData.certificate
@@ -186,13 +243,33 @@ serve(async (req) => {
     console.error('[verify-voice-and-mint] Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
+    // Determine error type and code
+    let errorCode = 'UNKNOWN_ERROR';
+    let statusCode = 500;
+    
+    if (errorMessage.includes('authenticated')) {
+      errorCode = 'NOT_AUTHENTICATED';
+      statusCode = 401;
+    } else if (errorMessage.includes('Audio')) {
+      errorCode = 'INVALID_AUDIO';
+      statusCode = 400;
+    } else if (errorMessage.includes('blockchain') || errorMessage.includes('mint')) {
+      errorCode = 'BLOCKCHAIN_ERROR';
+      statusCode = 500;
+    } else if (errorMessage.includes('database') || errorMessage.includes('insert')) {
+      errorCode = 'DATABASE_ERROR';
+      statusCode = 500;
+    }
+    
     return new Response(
       JSON.stringify({ 
+        ok: false,
         success: false,
-        error: errorMessage
+        error: errorCode,
+        message: errorMessage
       }),
       {
-        status: 400,
+        status: statusCode,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );

@@ -46,7 +46,8 @@ const VoiceVerifying = () => {
       // Success - navigate to success page
       navigate("/identity/voice/success", {
         state: {
-          assetId: result.assetId,
+          voiceProfileId: result.voiceProfileId,
+          voiceHash: result.voiceHash,
           tokenId: result.certificate.token_id,
           explorerUrl: result.certificate.explorer_url,
           transactionHash: result.certificate.tx_hash
