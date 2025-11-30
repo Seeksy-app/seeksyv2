@@ -87,7 +87,7 @@ export function VoiceIdentitySection({ asset }: VoiceIdentitySectionProps) {
             <Button 
               className="w-full" 
               variant="outline"
-              onClick={() => navigate(`/certificate/${asset.id}`)}
+              onClick={() => navigate(`/certificate/identity/${asset.id}`)}
             >
               <Shield className="h-4 w-4 mr-2" />
               View Voice Certificate
