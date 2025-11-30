@@ -71,10 +71,8 @@ serve(async (req) => {
       .from('creator_voice_profiles')
       .upsert({
         id: voiceProfileId,
-        creator_id: user.id,
-        voice_name: metadata?.voiceName || 'My Voice',
-        is_primary: true,
-        status: 'active'
+        user_id: user.id,
+        voice_name: metadata?.voiceName || 'My Voice'
       }, {
         onConflict: 'id'
       })
