@@ -12,7 +12,7 @@ const VOICE_PROMPTS = [
   "I'm {name}, and I'm recording this voice sample so Seeksy can help keep my identity safe on the platform."
 ];
 
-type RecordingState = 'idle' | 'countdown' | 'recording' | 'review';
+type RecordingState = 'idle' | 'countdown' | 'recording' | 'review' | 'verifying';
 
 type VerifyVoiceAndMintPayload = {
   audioData: string;
@@ -254,7 +254,7 @@ const VoiceVerificationUnified = () => {
     if (!audioBlob) return;
     
     setError("");
-    setState('idle'); // Show loading state
+    setState('verifying'); // Show verifying state
     
     try {
       // Convert blob to base64
@@ -422,7 +422,30 @@ const VoiceVerificationUnified = () => {
               </div>
             )}
 
-            {/* State 4: Review */}
+            {/* State 4: Verifying */}
+            {state === 'verifying' && (
+              <div className="space-y-6">
+                <div className="animate-pulse">
+                  <div className="h-24 flex items-center justify-center gap-1">
+                    {new Array(40).fill(0).map((_, i) => (
+                      <div
+                        key={i}
+                        className="w-1 bg-primary/30 rounded-full animate-pulse"
+                        style={{
+                          height: `${Math.random() * 60 + 20}%`,
+                          animationDelay: `${i * 20}ms`
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <p className="text-muted-foreground">
+                  Verifying your voice and minting certificate...
+                </p>
+              </div>
+            )}
+
+            {/* State 5: Review */}
             {state === 'review' && (
               <div className="space-y-6">
                 <div>
