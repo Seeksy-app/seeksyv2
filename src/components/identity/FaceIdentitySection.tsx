@@ -79,12 +79,17 @@ export function FaceIdentitySection({ asset }: FaceIdentitySectionProps) {
   }, []);
 
   const handleStartVerification = async () => {
+    console.log("[FaceIdentity] ========== BUTTON CLICKED ==========");
+    console.log("[FaceIdentity] Selected images count:", selectedImages.length);
+    console.log("[FaceIdentity] First image preview:", selectedImages[0]?.substring(0, 50));
+    
     if (selectedImages.length < 3) {
+      console.log("[FaceIdentity] ERROR: Not enough images");
       toast.error("Please upload at least 3 photos");
       return;
     }
 
-    console.log("[FaceIdentity] Starting verification with", selectedImages.length, "images");
+    console.log("[FaceIdentity] ✓ Validation passed, starting verification with", selectedImages.length, "images");
     
     setUploadStep('processing');
     setIsVerifying(true);
@@ -308,11 +313,21 @@ export function FaceIdentitySection({ asset }: FaceIdentitySectionProps) {
                       Choose Different Photos
                     </Button>
                     <Button 
-                      onClick={handleStartVerification}
-                      disabled={selectedImages.length < 3}
+                      onClick={() => {
+                        console.log("[FaceIdentity] Submit button clicked!");
+                        handleStartVerification();
+                      }}
+                      disabled={selectedImages.length < 3 || isVerifying}
                       className="flex-1"
                     >
-                      Submit for Verification
+                      {isVerifying ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Submitting...
+                        </>
+                      ) : (
+                        "Submit for Verification"
+                      )}
                     </Button>
                   </div>
 
