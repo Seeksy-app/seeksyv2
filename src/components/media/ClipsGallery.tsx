@@ -323,17 +323,26 @@ export function ClipsGallery() {
                     </Badge>
                   )}
                   
+                  {/* Duration badge - bottom right */}
+                  {!isProcessing && !hasFailed && (
+                    <div className="absolute bottom-2 right-2">
+                      <Badge variant="secondary" className="text-xs font-semibold bg-black/70 text-white border-0">
+                        {formatDuration(clip.duration_seconds)}
+                      </Badge>
+                    </div>
+                  )}
+                  
                   {/* Format badges */}
                   {!isProcessing && !hasFailed && (
                     <div className="absolute bottom-2 left-2 flex gap-1">
                       {hasVertical && (
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary" className="text-xs bg-black/70 text-white border-0">
                           9:16
                         </Badge>
                       )}
                       {hasThumbnail && (
-                        <Badge variant="secondary" className="text-xs">
-                          Thumbnail
+                        <Badge variant="secondary" className="text-xs bg-black/70 text-white border-0">
+                          16:9
                         </Badge>
                       )}
                     </div>
