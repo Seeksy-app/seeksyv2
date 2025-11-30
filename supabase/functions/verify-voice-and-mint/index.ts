@@ -11,13 +11,15 @@ const corsHeaders = {
  * 
  * Steps:
  * 1. Receive and validate audio
- * 2. Generate voiceHash with OpenAI
- * 3. Create voice profile record
- * 4. Create identity_assets record
- * 5. Call mint-identity-certificate
- * 6. Create voice_blockchain_certificates record
- * 7. Update voice profile to verified
- * 8. Return success
+ * 2. Generate voiceHash
+ * 3. Create/update creator_voice_profiles record
+ * 4. Mint certificate directly on Polygon blockchain
+ * 5. Create voice_blockchain_certificates record
+ * 6. Update voice profile to verified
+ * 7. Return success
+ * 
+ * Note: Voice verification does NOT use identity_assets table.
+ * It uses creator_voice_profiles as the source of truth.
  */
 
 serve(async (req) => {
@@ -167,44 +169,90 @@ serve(async (req) => {
 
     console.log('[verify-voice-and-mint] Voice profile ready:', voiceProfileId);
 
-    // Step 4: Mint certificate on blockchain directly
-    const mintResponse = await fetch(
-      `${Deno.env.get("SUPABASE_URL")}/functions/v1/mint-identity-certificate`,
+    // Step 4: Mint certificate on blockchain directly (without identity_assets)
+    console.log('[verify-voice-and-mint] Starting blockchain minting...');
+    
+    const { ethers } = await import("https://esm.sh/ethers@6.13.0");
+    
+    const CERTIFICATE_CONTRACT_ABI = [
       {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": req.headers.get('Authorization')!,
-        },
-        body: JSON.stringify({
-          type: "voice",
-          userId: user.id,
-          voiceHash: voiceHash,
-          chain: "polygon",
-        }),
+        "inputs": [{"internalType": "address", "name": "_owner", "type": "address"}],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+      },
+      {
+        "inputs": [
+          {"internalType": "address", "name": "creator", "type": "address"},
+          {"internalType": "string", "name": "clipId", "type": "string"}
+        ],
+        "name": "certifyClip",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
       }
-    );
+    ];
 
-    const mintData = await mintResponse.json();
+    const rpcUrl = Deno.env.get("POLYGON_RPC_URL");
+    const minterPrivateKey = Deno.env.get("POLYGON_PRIVATE_KEY");
+    const contractAddress = "0xB5627bDbA3ab392782E7E542a972013E3e7F37C3";
 
-    if (!mintResponse.ok || !mintData.success) {
-      throw new Error(mintData.message || 'Blockchain minting failed');
+    if (!rpcUrl || !minterPrivateKey) {
+      console.error('[verify-voice-and-mint] Missing blockchain config');
+      throw new Error("Missing blockchain configuration");
     }
 
-    console.log('[verify-voice-and-mint] Certificate minted:', mintData.certificate.tx_hash);
+    console.log('[verify-voice-and-mint] RPC URL present:', !!rpcUrl);
+    console.log('[verify-voice-and-mint] Private key length:', minterPrivateKey?.length);
 
-    // Step 6: Create blockchain certificate record
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    
+    // Ensure private key has 0x prefix for ethers.js
+    const formattedPrivateKey = minterPrivateKey.startsWith('0x') 
+      ? minterPrivateKey 
+      : `0x${minterPrivateKey}`;
+    
+    const signer = new ethers.Wallet(formattedPrivateKey, provider);
+    console.log('[verify-voice-and-mint] Platform wallet:', signer.address);
+
+    const contract = new ethers.Contract(
+      contractAddress,
+      CERTIFICATE_CONTRACT_ABI,
+      signer
+    );
+
+    let tx;
+    try {
+      const creatorAddress = signer.address;
+      console.log('[verify-voice-and-mint] Certifying voice for:', creatorAddress);
+      
+      tx = await contract.certifyClip(creatorAddress, voiceProfileId);
+      console.log('[verify-voice-and-mint] TX sent:', tx.hash);
+    } catch (txError) {
+      console.error('[verify-voice-and-mint] Transaction error:', txError);
+      throw new Error(`Blockchain transaction failed: ${txError}`);
+    }
+    
+    console.log('[verify-voice-and-mint] Waiting for confirmation...');
+    const receipt = await tx.wait();
+    console.log('[verify-voice-and-mint] TX confirmed in block:', receipt.blockNumber);
+
+    const tokenId = Date.now().toString();
+    const explorerUrl = `https://polygonscan.com/tx/${tx.hash}`;
+    
+    console.log('[verify-voice-and-mint] Certificate minted - Token ID:', tokenId);
+
+    // Step 5: Create blockchain certificate record
     const { error: certError } = await supabaseClient
       .from('voice_blockchain_certificates')
       .insert({
         voice_profile_id: voiceProfileId,
         creator_id: user.id,
         voice_fingerprint_hash: voiceHash,
-        token_id: mintData.certificate.token_id,
-        transaction_hash: mintData.certificate.tx_hash,
+        token_id: tokenId,
+        transaction_hash: tx.hash,
         certification_status: 'verified',
-        contract_address: mintData.certificate.contract_address,
-        cert_explorer_url: mintData.certificate.explorer_url,
+        contract_address: contractAddress,
+        cert_explorer_url: explorerUrl,
         metadata_uri: `ipfs://voice-${voiceHash.slice(0, 16)}`,
         nft_metadata: {
           name: user.user_metadata?.full_name || 'Voice Profile',
@@ -214,14 +262,42 @@ serve(async (req) => {
 
     if (certError) {
       console.error('[verify-voice-and-mint] Certificate insert error:', certError);
-      // Continue anyway - we have the blockchain record
+      console.error('[verify-voice-and-mint] Error details:', JSON.stringify(certError));
+      
+      // If RLS blocks insert, return specific error
+      if (certError.message?.includes('policy') || certError.code === '42501') {
+        return new Response(
+          JSON.stringify({ 
+            ok: false,
+            error: 'DB_RLS_ERROR',
+            message: 'Voice certificate insert blocked by RLS',
+            details: {
+              user_id: user.id,
+              voice_profile_id: voiceProfileId,
+              table: 'voice_blockchain_certificates'
+            }
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+      
+      throw new Error(`Database error: ${certError.message}`);
     }
+    
+    console.log('[verify-voice-and-mint] Certificate record created');
 
-    // Step 7: Update voice profile to verified
-    await supabaseClient
+    // Step 6: Update voice profile to verified
+    const { error: updateError } = await supabaseClient
       .from('creator_voice_profiles')
       .update({ is_verified: true })
       .eq('id', voiceProfileId);
+      
+    if (updateError) {
+      console.error('[verify-voice-and-mint] Update error:', updateError);
+    }
 
     console.log('[verify-voice-and-mint] Voice profile marked as verified');
 
@@ -231,7 +307,12 @@ serve(async (req) => {
         success: true,
         voiceProfileId,
         voiceHash,
-        certificate: mintData.certificate
+        certificate: {
+          token_id: tokenId,
+          tx_hash: tx.hash,
+          explorer_url: explorerUrl,
+          contract_address: contractAddress
+        }
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
