@@ -148,6 +148,7 @@ import Onboarding from "./pages/Onboarding";
 import SalesDashboard from "./pages/SalesDashboard";
 import SalesAdLibrary from "./pages/SalesAdLibrary";
 import AdminMasterBlog from "./pages/AdminMasterBlog";
+import HeroImageGeneratorPage from "./pages/admin/HeroImageGeneratorPage";
 import CreatorCampaignBrowser from "./pages/CreatorCampaignBrowser";
 import CreateMultiChannelCampaign from "./pages/CreateMultiChannelCampaign";
 import MetaOAuthCallback from "./pages/MetaOAuthCallback";
@@ -567,6 +568,7 @@ const AppContent = () => {
               <Route path="/admin/keys-vault" element={<KeysVault />} />
               <Route path="/admin/personas" element={<PersonaManagement />} />
               <Route path="/admin/screenshot-generator" element={<ScreenshotGenerator />} />
+              <Route path="/admin/hero-generator" element={<HeroImageGeneratorPage />} />
               <Route path="/admin/revenue-reports" element={<RevenueReports />} />
               <Route path="/admin/billing" element={<Billing />} />
               <Route path="/admin/payments" element={<Payments />} />
