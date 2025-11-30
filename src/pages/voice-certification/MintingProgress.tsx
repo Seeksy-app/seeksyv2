@@ -160,29 +160,34 @@ const MintingProgress = () => {
         />
 
         <Card className="p-8 md:p-12">
-          <div className="text-center space-y-6 mb-12">
+          <div className="text-center space-y-4 mb-12">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-4">
               <Shield className="h-10 w-10 text-primary animate-pulse" />
             </div>
-            <h2 className="text-3xl font-bold">Securing Your Voice on the Blockchain</h2>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-              Your voice credential is being minted. This creates a permanent, verifiable record of your identity and protects your content against misuse.
+            <h2 className="text-3xl font-bold">Securing your voice on the blockchain</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              We're creating a permanent, verifiable record of your voice identity. This helps prevent impersonation and protects how your voice is used on Seeksy.
             </p>
           </div>
 
           <Progress value={overallProgress} className="w-full h-3 mb-8" />
 
           {mintingError && (
-            <Card className="border-destructive mb-6">
+            <Card className="border-destructive bg-destructive/5 mb-6">
               <CardContent className="pt-6">
-                <div className="flex items-center gap-3 text-destructive">
-                  <AlertCircle className="h-5 w-5" />
-                  <p className="font-medium">Minting failed: {mintingError}</p>
+                <div className="flex items-start gap-3 text-destructive">
+                  <AlertCircle className="h-5 w-5 mt-0.5" />
+                  <div className="flex-1 space-y-2">
+                    <p className="font-medium">Minting failed</p>
+                    <p className="text-sm text-destructive/80">
+                      Something went wrong saving your credential. Please retry the certification process, or contact support if this continues.
+                    </p>
+                  </div>
                 </div>
                 <Button 
                   onClick={() => navigate('/voice-certification-flow')}
                   variant="outline"
-                  className="mt-4"
+                  className="mt-4 w-full"
                 >
                   Retry Certification
                 </Button>

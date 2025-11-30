@@ -281,7 +281,7 @@ const VerifiedVoiceSuccess = () => {
           <div className="flex justify-center mb-6">
             <Button
               size="lg"
-              onClick={() => navigate("/voice-credentials")}
+              onClick={() => navigate("/my-voice-identity")}
               className="h-auto py-6 px-12"
             >
               <Shield className="mr-2 h-5 w-5" />

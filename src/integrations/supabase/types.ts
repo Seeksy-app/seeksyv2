@@ -12197,6 +12197,39 @@ export type Database = {
           },
         ]
       }
+      voice_verification_attempts: {
+        Row: {
+          created_at: string | null
+          error_code: string | null
+          id: string
+          match_score: number | null
+          recording_duration: number | null
+          selected_prompt: string | null
+          success: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_code?: string | null
+          id?: string
+          match_score?: number | null
+          recording_duration?: number | null
+          selected_prompt?: string | null
+          success?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          error_code?: string | null
+          id?: string
+          match_score?: number | null
+          recording_duration?: number | null
+          selected_prompt?: string | null
+          success?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       wallets: {
         Row: {
           balance: number | null
