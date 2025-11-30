@@ -224,12 +224,13 @@ import AdminCampaigns from "./pages/admin/AdminCampaigns";
 import AdminAdAnalytics from "./pages/admin/AdminAdAnalytics";
 import VoiceCertificationDashboard from "./pages/voice-certification/VoiceCertificationDashboard";
 import PublicCreatorIdentity from "./pages/PublicCreatorIdentity";
-import RecordVoiceVerification from "./pages/voice-certification/RecordVoiceVerification";
-import VoiceFingerprintGeneration from "./pages/voice-certification/VoiceFingerprintGeneration";
-import MintingProgress from "./pages/voice-certification/MintingProgress";
+import VoiceVerifyScript from "./pages/voice-certification/VoiceVerifyScript";
+import VoiceRecording from "./pages/voice-certification/VoiceRecording";
+import VoicePlayback from "./pages/voice-certification/VoicePlayback";
+import VoiceVerifying from "./pages/voice-certification/VoiceVerifying";
+import VoiceSuccess from "./pages/voice-certification/VoiceSuccess";
 import AdClickRedirect from "./pages/ad/AdClickRedirect";
 import VoiceCredentialPublic from "./pages/public/VoiceCredentialPublic";
-import VerifiedVoiceSuccess from "./pages/voice-certification/VerifiedVoiceSuccess";
 import MyVoiceIdentity from "./pages/MyVoiceIdentity";
 import UploadContent from "./pages/content-certification/UploadContent";
 import AIFingerprintMatch from "./pages/content-certification/AIFingerprintMatch";
@@ -386,11 +387,11 @@ const AppContent = () => {
               {/* Unified Voice Identity Hub */}
               <Route path="/my-voice-identity" element={<MyVoiceIdentity />} />
               <Route path="/voice-cloning" element={<ProtectedRoute requiredRole="creator"><VoiceCloningWizard /></ProtectedRoute>} />
-              <Route path="/voice-certification-flow" element={<VoiceCertificationDashboard />} />
-              <Route path="/voice-certification/record" element={<RecordVoiceVerification />} />
-              <Route path="/voice-certification/fingerprint" element={<VoiceFingerprintGeneration />} />
-              <Route path="/voice-certification/minting" element={<MintingProgress />} />
-              <Route path="/voice-certification/success" element={<VerifiedVoiceSuccess />} />
+              <Route path="/identity/voice/verify" element={<VoiceVerifyScript />} />
+              <Route path="/identity/voice/record" element={<VoiceRecording />} />
+              <Route path="/identity/voice/playback" element={<VoicePlayback />} />
+              <Route path="/identity/voice/verifying" element={<VoiceVerifying />} />
+              <Route path="/identity/voice/success" element={<VoiceSuccess />} />
               
               {/* Face Verification Flow */}
               <Route path="/face-verification" element={<FaceUpload />} />

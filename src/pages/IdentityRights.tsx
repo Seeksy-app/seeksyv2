@@ -2,21 +2,33 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Shield, ShieldCheck, XCircle, Camera, Mic, Clock } from "lucide-react";
+import { Shield, ShieldCheck, XCircle, Camera, Mic, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { IdentityPromiseBanner } from "@/components/identity/IdentityPromiseBanner";
+import { IdentityActivityLog } from "@/components/identity/IdentityActivityLog";
 
 const IdentityRights = () => {
   const navigate = useNavigate();
 
-  // Fetch voice and face identity status
   const { data: voiceStatus } = useQuery({
     queryKey: ["voice-identity-status"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Check identity_assets for voice_identity with minted status
+      const { data: assetData } = await (supabase as any)
+        .from("identity_assets")
+        .select("id, cert_status, cert_explorer_url, cert_tx_hash")
+        .eq("user_id", user.id)
+        .eq("type", "voice_identity")
+        .eq("cert_status", "minted")
+        .is("revoked_at", null)
+        .maybeSingle();
+
+      // Check voice profile is_verified status
       const { data: profileData } = await (supabase as any)
         .from("creator_voice_profiles")
         .select("id, is_verified")
@@ -24,16 +36,18 @@ const IdentityRights = () => {
         .eq("is_verified", true)
         .maybeSingle();
 
+      // Check blockchain certificate
       const { data: certData } = await (supabase as any)
         .from("voice_blockchain_certificates")
-        .select("certification_status, cert_explorer_url, created_at")
+        .select("certification_status, cert_explorer_url")
         .eq("creator_id", user.id)
         .eq("certification_status", "verified")
         .maybeSingle();
 
       return {
-        isVerified: !!profileData && !!certData,
-        certExplorerUrl: certData?.cert_explorer_url || null,
+        isVerified: !!assetData && !!profileData && !!certData,
+        certExplorerUrl: assetData?.cert_explorer_url || certData?.cert_explorer_url || null,
+        assetId: assetData?.id || null,
       };
     },
   });
@@ -68,7 +82,8 @@ const IdentityRights = () => {
 
       const { data } = await (supabase as any)
         .from("identity_access_logs")
-        .select("id, action, created_at")
+        .select("id, action, created_at, details")
+        .eq("actor_id", user.id)
         .order("created_at", { ascending: false })
         .limit(4);
 
@@ -185,6 +200,7 @@ const IdentityRights = () => {
                         variant="outline"
                         className="w-full"
                       >
+                        <ExternalLink className="h-4 w-4 mr-2" />
                         View on Polygon
                       </Button>
                     )}
@@ -233,7 +249,7 @@ const IdentityRights = () => {
                 {voiceVerified ? (
                   <>
                     <Button 
-                      onClick={() => navigate("/my-voice-identity")}
+                      onClick={() => navigate(`/certificate/identity/${voiceStatus?.assetId}`)}
                       variant="default"
                       className="w-full"
                     >
@@ -245,11 +261,12 @@ const IdentityRights = () => {
                         variant="outline"
                         className="w-full"
                       >
+                        <ExternalLink className="h-4 w-4 mr-2" />
                         View on Polygon
                       </Button>
                     )}
                     <Button 
-                      onClick={() => navigate("/voice-certification-flow")}
+                      onClick={() => navigate("/identity/voice/verify")}
                       variant="ghost"
                       size="sm"
                       className="w-full"
@@ -259,7 +276,7 @@ const IdentityRights = () => {
                   </>
                 ) : (
                   <Button 
-                    onClick={() => navigate("/voice-certification-flow")}
+                    onClick={() => navigate("/identity/voice/verify")}
                     className="w-full"
                   >
                     Verify
@@ -270,44 +287,11 @@ const IdentityRights = () => {
           </Card>
         </div>
 
-        {/* Permissions - Placeholder for future */}
-        <Card>
-          <CardContent className="pt-6 space-y-4">
-            <h3 className="text-center font-semibold">Permissions</h3>
-            <div className="space-y-3 text-sm text-muted-foreground text-center">
-              <p>[Clip Use] toggle</p>
-              <p className="text-xs">Your verified face may appear in Seeksy-certified clips.</p>
-              <p>[AI Generation] toggle</p>
-              <p className="text-xs">AI may use your face or voice when generating content.</p>
-              <p>[Advertiser Access] toggle</p>
-              <p className="text-xs">Brands may request to use your verified identity in campaigns.</p>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Seeksy Identity Promise */}
+        <IdentityPromiseBanner />
 
         {/* Activity Log */}
-        <Card>
-          <CardContent className="pt-6 space-y-4">
-            <h3 className="text-center font-semibold">Recent Activity</h3>
-            {activityLogs.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No recent activity.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {activityLogs.map((log: any) => (
-                  <div key={log.id} className="flex items-center gap-3 text-sm">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="capitalize">{log.action.replace(/_/g, ' ')}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {format(new Date(log.created_at), 'MMM d')}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <IdentityActivityLog logs={activityLogs} />
       </div>
     </div>
   );

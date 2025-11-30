@@ -14,7 +14,7 @@ const IdentityCertificatePage = () => {
     queryKey: ["identity-certificate", id],
     queryFn: async () => {
       if (!id) throw new Error("No certificate ID");
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("identity_assets")
         .select("*")
         .eq("id", id)
@@ -94,8 +94,8 @@ const IdentityCertificatePage = () => {
               </CardContent>
             </Card>
 
-            {/* Buttons */}
-            <div className="flex flex-col gap-3">
+            {/* Actions */}
+            <div className="space-y-3">
               {asset.cert_explorer_url && (
                 <Button 
                   onClick={() => window.open(asset.cert_explorer_url!, '_blank')}
