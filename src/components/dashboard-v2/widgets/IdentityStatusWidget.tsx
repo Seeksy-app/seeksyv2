@@ -29,7 +29,7 @@ export const IdentityStatusWidget = () => {
         .eq("cert_status", "minted")
         .maybeSingle();
 
-      // Check voice identity - profile + blockchain certificate
+      // Check voice identity - profile + blockchain certificate (active and verified)
       const { data: voiceProfile } = await (supabase as any)
         .from("creator_voice_profiles")
         .select("id, is_verified")
@@ -39,9 +39,10 @@ export const IdentityStatusWidget = () => {
 
       const { data: voiceCert } = await (supabase as any)
         .from("voice_blockchain_certificates")
-        .select("id, certification_status")
+        .select("id, certification_status, is_active")
         .eq("creator_id", user.id)
         .eq("certification_status", "verified")
+        .eq("is_active", true)
         .maybeSingle();
 
       const faceVerified = !!faceAssets;

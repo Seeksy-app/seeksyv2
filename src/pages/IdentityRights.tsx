@@ -26,12 +26,13 @@ const IdentityRights = () => {
         .eq("is_verified", true)
         .maybeSingle();
 
-      // Check blockchain certificate
+      // Check blockchain certificate (must be active and verified)
       const { data: certData } = await (supabase as any)
         .from("voice_blockchain_certificates")
-        .select("id, certification_status, cert_explorer_url, voice_profile_id")
+        .select("id, certification_status, cert_explorer_url, voice_profile_id, is_active")
         .eq("creator_id", user.id)
         .eq("certification_status", "verified")
+        .eq("is_active", true)
         .maybeSingle();
 
       return {

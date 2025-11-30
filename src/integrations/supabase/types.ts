@@ -11715,15 +11715,20 @@ export type Database = {
       voice_blockchain_certificates: {
         Row: {
           blockchain_network: string
+          burn_tx_hash: string | null
+          burned_at: string | null
           cert_explorer_url: string | null
           certification_status: string
           contract_address: string
           created_at: string | null
           creator_id: string
+          failed_at: string | null
           gas_sponsored: boolean | null
           id: string
+          is_active: boolean
           metadata_uri: string
           nft_metadata: Json | null
+          revoked_at: string | null
           token_id: string
           transaction_hash: string
           updated_at: string | null
@@ -11732,15 +11737,20 @@ export type Database = {
         }
         Insert: {
           blockchain_network?: string
+          burn_tx_hash?: string | null
+          burned_at?: string | null
           cert_explorer_url?: string | null
           certification_status?: string
           contract_address: string
           created_at?: string | null
           creator_id: string
+          failed_at?: string | null
           gas_sponsored?: boolean | null
           id?: string
+          is_active?: boolean
           metadata_uri: string
           nft_metadata?: Json | null
+          revoked_at?: string | null
           token_id: string
           transaction_hash: string
           updated_at?: string | null
@@ -11749,15 +11759,20 @@ export type Database = {
         }
         Update: {
           blockchain_network?: string
+          burn_tx_hash?: string | null
+          burned_at?: string | null
           cert_explorer_url?: string | null
           certification_status?: string
           contract_address?: string
           created_at?: string | null
           creator_id?: string
+          failed_at?: string | null
           gas_sponsored?: boolean | null
           id?: string
+          is_active?: boolean
           metadata_uri?: string
           nft_metadata?: Json | null
+          revoked_at?: string | null
           token_id?: string
           transaction_hash?: string
           updated_at?: string | null
@@ -12480,6 +12495,7 @@ export type Database = {
         | "seeksy_studio"
       meeting_status: "scheduled" | "completed" | "cancelled"
       nominee_status: "pending" | "approved" | "rejected"
+      voice_cert_status: "pending" | "verified" | "revoked" | "failed"
       voting_method: "public" | "jury" | "hybrid" | "ranked_choice"
     }
     CompositeTypes: {
@@ -12655,6 +12671,7 @@ export const Constants = {
       ],
       meeting_status: ["scheduled", "completed", "cancelled"],
       nominee_status: ["pending", "approved", "rejected"],
+      voice_cert_status: ["pending", "verified", "revoked", "failed"],
       voting_method: ["public", "jury", "hybrid", "ranked_choice"],
     },
   },

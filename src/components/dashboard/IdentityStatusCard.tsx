@@ -22,7 +22,7 @@ export const IdentityStatusCard = () => {
         .eq('user_id', user.id)
         .eq('type', 'face_identity');
 
-      // Voice identity from creator_voice_profiles + blockchain certificates
+      // Voice identity from creator_voice_profiles + blockchain certificates (active and verified)
       const { data: voiceProfile } = await (supabase as any)
         .from('creator_voice_profiles')
         .select('id, is_verified')
@@ -32,9 +32,10 @@ export const IdentityStatusCard = () => {
 
       const { data: voiceCert } = await (supabase as any)
         .from('voice_blockchain_certificates')
-        .select('certification_status')
+        .select('certification_status, is_active')
         .eq('creator_id', user.id)
         .eq('certification_status', 'verified')
+        .eq('is_active', true)
         .maybeSingle();
 
       return {

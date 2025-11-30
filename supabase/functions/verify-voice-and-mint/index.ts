@@ -241,8 +241,8 @@ serve(async (req) => {
     
     console.log('[verify-voice-and-mint] Certificate minted - Token ID:', tokenId);
 
-    // Step 5: Create blockchain certificate record
-    const { error: certError } = await supabaseClient
+    // Step 5: Create blockchain certificate record (pending state initially)
+    const { data: certData, error: certError } = await supabaseClient
       .from('voice_blockchain_certificates')
       .insert({
         voice_profile_id: voiceProfileId,
@@ -250,7 +250,8 @@ serve(async (req) => {
         voice_fingerprint_hash: voiceHash,
         token_id: tokenId,
         transaction_hash: tx.hash,
-        certification_status: 'verified',
+        certification_status: 'pending',
+        is_active: false,
         contract_address: contractAddress,
         cert_explorer_url: explorerUrl,
         metadata_uri: `ipfs://voice-${voiceHash.slice(0, 16)}`,
@@ -258,7 +259,9 @@ serve(async (req) => {
           name: user.user_metadata?.full_name || 'Voice Profile',
           voice_hash: voiceHash
         }
-      });
+      })
+      .select()
+      .single();
 
     if (certError) {
       console.error('[verify-voice-and-mint] Certificate insert error:', certError);
@@ -301,7 +304,44 @@ serve(async (req) => {
 
     console.log('[verify-voice-and-mint] Voice profile marked as verified');
 
-    // Step 7: Log certification event to identity_access_logs
+    // Step 7: Deactivate all other voice certificates for this creator
+    console.log('[verify-voice-and-mint] Deactivating previous certificates...');
+    
+    const { error: deactivateError } = await supabaseClient
+      .from('voice_blockchain_certificates')
+      .update({ 
+        is_active: false,
+        certification_status: 'revoked',
+        revoked_at: new Date().toISOString()
+      })
+      .eq('creator_id', user.id)
+      .neq('voice_profile_id', voiceProfileId);
+    
+    if (deactivateError) {
+      console.error('[verify-voice-and-mint] Deactivate error:', deactivateError);
+      // Don't fail - this is a cleanup operation
+    }
+
+    console.log('[verify-voice-and-mint] Previous certificates deactivated');
+
+    // Step 8: Activate the new certificate
+    const { error: activateError } = await supabaseClient
+      .from('voice_blockchain_certificates')
+      .update({ 
+        is_active: true,
+        certification_status: 'verified'
+      })
+      .eq('voice_profile_id', voiceProfileId);
+    
+    if (activateError) {
+      console.error('[verify-voice-and-mint] Activate error:', activateError);
+      // This is critical - if we can't activate, something went wrong
+      throw new Error(`Failed to activate certificate: ${activateError.message}`);
+    }
+
+    console.log('[verify-voice-and-mint] New certificate activated');
+
+    // Step 9: Log certification event to identity_access_logs
     const { error: logError } = await supabaseClient
       .from('identity_access_logs')
       .insert({

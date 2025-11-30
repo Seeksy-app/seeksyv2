@@ -116,12 +116,13 @@ const VoiceVerificationUnified = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Check for existing verified certificate
+      // Check for existing active verified certificate
       const { data: certData } = await (supabase as any)
         .from("voice_blockchain_certificates")
-        .select("id, certification_status")
+        .select("id, certification_status, is_active")
         .eq("creator_id", user.id)
         .eq("certification_status", "verified")
+        .eq("is_active", true)
         .maybeSingle();
 
       if (certData) {
@@ -148,10 +149,14 @@ const VoiceVerificationUnified = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !existingCertId) return;
 
-      // Mark old certificate as revoked
+      // Mark old certificate as revoked and inactive
       const { error: updateError } = await (supabase as any)
         .from("voice_blockchain_certificates")
-        .update({ certification_status: "revoked" })
+        .update({ 
+          certification_status: "revoked",
+          is_active: false,
+          revoked_at: new Date().toISOString()
+        })
         .eq("id", existingCertId)
         .eq("creator_id", user.id);
 
