@@ -83,7 +83,7 @@ export function IdentityPermissionsPanel({ assets }: IdentityPermissionsPanelPro
 
   return (
     <div className="space-y-6">
-      {/* Clip Use */}
+      {/* Use my clips for Seeksy features */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3 flex-1">
           <div className="mt-1">
@@ -91,10 +91,11 @@ export function IdentityPermissionsPanel({ assets }: IdentityPermissionsPanelPro
           </div>
           <div className="space-y-1">
             <Label htmlFor="clip-use" className="text-base font-medium">
-              Clip Use
+              Use my clips for Seeksy features
             </Label>
             <p className="text-sm text-muted-foreground">
-              Allow your identity to be used in creating and distributing clips from your content
+              Allows Seeksy to use certified clips inside the product (thumbnails, discovery, demo pages). 
+              OFF = only you + collaborators see clips. ON = we can surface them inside Seeksy, but NOT sell/license to third parties without additional approval.
             </p>
           </div>
         </div>
@@ -106,7 +107,7 @@ export function IdentityPermissionsPanel({ assets }: IdentityPermissionsPanelPro
         />
       </div>
 
-      {/* AI Generation */}
+      {/* Allow AI versions of me (with approval) */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3 flex-1">
           <div className="mt-1">
@@ -114,10 +115,11 @@ export function IdentityPermissionsPanel({ assets }: IdentityPermissionsPanelPro
           </div>
           <div className="space-y-1">
             <Label htmlFor="ai-generation" className="text-base font-medium">
-              AI Generation
+              Allow AI versions of me (with approval)
             </Label>
             <p className="text-sm text-muted-foreground">
-              Allow AI systems to generate content using your identity features (voice, likeness)
+              Allows AI-generated content using your face/voice under an explicit approval flow. 
+              OFF = no AI content using your face or voice. ON = Seeksy can generate AI content with your likeness only when you approve a specific use.
             </p>
           </div>
         </div>
@@ -129,7 +131,7 @@ export function IdentityPermissionsPanel({ assets }: IdentityPermissionsPanelPro
         />
       </div>
 
-      {/* Advertiser Access */}
+      {/* Let advertisers request my identity */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3 flex-1">
           <div className="mt-1">
@@ -137,10 +139,11 @@ export function IdentityPermissionsPanel({ assets }: IdentityPermissionsPanelPro
           </div>
           <div className="space-y-1">
             <Label htmlFor="advertiser-access" className="text-base font-medium">
-              Advertiser Access
+              Let advertisers request my identity
             </Label>
             <p className="text-sm text-muted-foreground">
-              Allow advertisers to request access to use your identity in ad campaigns
+              Controls whether approved brands can send "use your likeness in a campaign" requests. 
+              OFF = brands cannot request or use your identity. ON = brands can send requests; you have to explicitly approve each campaign.
             </p>
           </div>
         </div>
@@ -152,7 +155,7 @@ export function IdentityPermissionsPanel({ assets }: IdentityPermissionsPanelPro
         />
       </div>
 
-      {/* Anonymous Model Training */}
+      {/* Allow anonymous training & insights */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3 flex-1">
           <div className="mt-1">
@@ -160,10 +163,11 @@ export function IdentityPermissionsPanel({ assets }: IdentityPermissionsPanelPro
           </div>
           <div className="space-y-1">
             <Label htmlFor="anonymous-training" className="text-base font-medium">
-              Anonymous Model Training
+              Allow anonymous training & insights
             </Label>
             <p className="text-sm text-muted-foreground">
-              Allow your identity data to be used anonymously in training AI models (helps improve accuracy)
+              Allows us to use de-identified clip data to improve models and analytics. 
+              OFF = no data used beyond your own account. ON = data can be used anonymously to improve Seeksy.
             </p>
           </div>
         </div>
