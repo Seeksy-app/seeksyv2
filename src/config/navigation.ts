@@ -172,6 +172,26 @@ export const NAVIGATION_CONFIG: {
     },
 
     {
+      "group": "Content Management",
+      "items": [
+        {
+          "id": "hero_generator",
+          "label": "Hero Generator",
+          "icon": "image",
+          "path": "/admin/hero-generator",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "mascot_generator",
+          "label": "Mascot Generator",
+          "icon": "star",
+          "path": "/admin/mascot-generator",
+          "roles": ["admin", "super_admin"]
+        }
+      ]
+    },
+
+    {
       "group": "Footer",
       "items": [
         {
