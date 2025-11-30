@@ -163,6 +163,9 @@ serve(async (req) => {
     const minterPrivateKey = Deno.env.get("SEEKSY_MINTER_PRIVATE_KEY");
     const contractAddress = "0xB5627bDbA3ab392782E7E542a972013E3e7F37C3";
 
+    console.log('[Mint] RPC URL:', rpcUrl);
+    console.log('[Mint] CONTRACT ADDRESS:', contractAddress);
+
     if (!rpcUrl || !minterPrivateKey) {
       throw new Error("Missing blockchain configuration");
     }
@@ -174,9 +177,21 @@ serve(async (req) => {
       ? minterPrivateKey 
       : `0x${minterPrivateKey}`;
     
+    console.log('[Mint] PRIVATE KEY LENGTH:', formattedPrivateKey?.length);
+    console.log('[Mint] PRIVATE KEY PREFIX:', formattedPrivateKey?.substring(0, 2));
+    
     const signer = new ethers.Wallet(formattedPrivateKey, provider);
     
     console.log(`→ Platform wallet: ${signer.address}`);
+
+    // Validate contract address
+    try {
+      const checksummed = ethers.getAddress(contractAddress);
+      console.log('[Mint] Checksummed contract address:', checksummed);
+    } catch (e) {
+      console.error('[Mint] INVALID CONTRACT ADDRESS', e);
+      throw new Error(`Invalid contract address: ${contractAddress}`);
+    }
 
     const contract = new ethers.Contract(
       contractAddress,
@@ -189,7 +204,15 @@ serve(async (req) => {
       
       console.log(`→ Certifying ${asset.type} for creator: ${creatorAddress}`);
 
-      const tx = await contract.certifyClip(creatorAddress, asset.id);
+      let tx;
+      try {
+        tx = await contract.certifyClip(creatorAddress, asset.id);
+        console.log('[Mint] TX sent:', tx.hash);
+      } catch (err) {
+        console.error('[Mint] Transaction error:', err);
+        throw new Error(`Blockchain transaction failed: ${err}`);
+      }
+      
       console.log(`→ Transaction submitted: ${tx.hash}`);
       
       const receipt = await tx.wait();
