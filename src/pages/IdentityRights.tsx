@@ -257,11 +257,11 @@ const IdentityRights = () => {
                     )}
                     <Button 
                       onClick={() => navigate("/identity/voice/verify")}
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
                       className="w-full"
                     >
-                      Reverify
+                      Reset Voice Identity
                     </Button>
                   </>
                 ) : (

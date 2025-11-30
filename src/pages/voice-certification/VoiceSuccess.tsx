@@ -47,14 +47,14 @@ const VoiceSuccess = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background p-6 flex items-center justify-center">
+    <div className="min-h-screen bg-background p-6 flex items-center justify-center animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="w-full max-w-2xl space-y-6">
         <Button variant="ghost" onClick={() => navigate("/identity")}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Identity
         </Button>
 
-        <Card className="p-12">
+        <Card className="p-12 animate-in fade-in slide-in-from-bottom-2 duration-700">
           <div className="text-center space-y-6">
             <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-green-500/10 mb-4">
               <CheckCircle className="h-14 w-14 text-green-500" />
