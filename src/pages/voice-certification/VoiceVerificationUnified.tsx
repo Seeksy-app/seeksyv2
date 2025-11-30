@@ -14,6 +14,46 @@ const VOICE_PROMPTS = [
 
 type RecordingState = 'idle' | 'countdown' | 'recording' | 'review';
 
+type VerifyVoiceAndMintPayload = {
+  audioData: string;
+  recordingDuration: number;
+  selectedPrompt: string;
+};
+
+type VerifyVoiceAndMintError = {
+  ok: false;
+  error: 'MISSING_FIELD' | 'INVALID_AUDIO' | 'BLOCKCHAIN_ERROR' | 'DATABASE_ERROR' | 'UNKNOWN_ERROR';
+  message: string;
+  field?: string;
+};
+
+type VerifyVoiceAndMintSuccess = {
+  success: true;
+  voiceProfileId: string;
+  voiceHash: string;
+  certificate: {
+    token_id: string;
+    tx_hash: string;
+    explorer_url: string;
+    contract_address: string;
+  };
+};
+
+function mapVoiceError(e: VerifyVoiceAndMintError): string {
+  switch (e.error) {
+    case "MISSING_FIELD":
+      return "Something went wrong with your recording. Please try again.";
+    case "INVALID_AUDIO":
+      return "We couldn't verify your voice from this recording. Try again from a quiet place and read the full sentence on screen.";
+    case "BLOCKCHAIN_ERROR":
+      return "Your voice was verified, but the blockchain network had an issue. Please try again in a moment.";
+    case "DATABASE_ERROR":
+      return "We hit a server issue saving your verification. Please try again, or contact support if this continues.";
+    default:
+      return "Verification failed. Please try again, or contact support if the issue continues.";
+  }
+}
+
 const VoiceVerificationUnified = () => {
   const navigate = useNavigate();
   
@@ -214,6 +254,7 @@ const VoiceVerificationUnified = () => {
     if (!audioBlob) return;
     
     setError("");
+    setState('idle'); // Show loading state
     
     try {
       // Convert blob to base64
@@ -221,40 +262,65 @@ const VoiceVerificationUnified = () => {
       reader.onloadend = async () => {
         const base64Audio = (reader.result as string).split(',')[1];
         
-        // Validate with backend
-        const { data, error: validationError } = await supabase.functions.invoke('verify-voice-quality', {
-          body: {
-            audioData: base64Audio,
-            recordingDuration: recordingTime,
-            selectedPrompt
-          }
-        });
+        // Prepare payload
+        const payload: VerifyVoiceAndMintPayload = {
+          audioData: base64Audio,
+          recordingDuration: recordingTime,
+          selectedPrompt
+        };
 
-        if (validationError) {
-          throw validationError;
+        // Call verify-voice-and-mint edge function
+        const { data, error: invokeError } = await supabase.functions.invoke<VerifyVoiceAndMintSuccess | VerifyVoiceAndMintError>(
+          'verify-voice-and-mint',
+          { body: payload }
+        );
+
+        if (invokeError) {
+          throw new Error(invokeError.message || "Failed to verify voice");
         }
 
-        if (!data.valid) {
-          setError(data.errorMessage || "Voice verification failed");
+        // Check if response is an error
+        if (data && 'ok' in data && data.ok === false) {
+          const errorResponse = data as VerifyVoiceAndMintError;
+          setError(mapVoiceError(errorResponse));
+          setState('review');
+          toast.error("Verification failed", {
+            description: mapVoiceError(errorResponse)
+          });
           return;
         }
 
-        // Navigate to minting screen
-        navigate("/identity/voice/verifying", {
-          state: { 
-            audioData: base64Audio, 
-            recordingTime, 
-            selectedPrompt,
-            voicedSeconds: data.voicedSeconds
-          }
-        });
+        // Success - navigate to success page
+        if (data && 'success' in data && data.success) {
+          const successResponse = data as VerifyVoiceAndMintSuccess;
+          
+          toast.success("Voice verified!", {
+            description: "Your voice identity is now on-chain."
+          });
+
+          navigate("/identity/voice/success", {
+            state: {
+              voiceProfileId: successResponse.voiceProfileId,
+              voiceHash: successResponse.voiceHash,
+              tokenId: successResponse.certificate.token_id,
+              explorerUrl: successResponse.certificate.explorer_url,
+              transactionHash: successResponse.certificate.tx_hash
+            }
+          });
+        } else {
+          throw new Error("Unexpected response format");
+        }
       };
       reader.readAsDataURL(audioBlob);
 
     } catch (err) {
-      console.error('Validation error:', err);
+      console.error('Verification error:', err);
+      const errorMsg = err instanceof Error ? err.message : "Unknown error occurred";
       setError("Something went wrong\nWe hit a problem verifying this recording. Please try again. If it keeps happening, contact support.");
-      toast.error("Validation failed");
+      setState('review');
+      toast.error("Verification failed", {
+        description: errorMsg
+      });
     }
   };
 
