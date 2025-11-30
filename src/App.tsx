@@ -18,6 +18,8 @@ import { RouteTransition } from "@/components/RouteTransition";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import DashboardV2 from "./pages/DashboardV2";
+import DashboardOnboarding from "./pages/DashboardOnboarding";
 import CommunicationHistory from "./pages/CommunicationHistory";
 import Newsletter from "./pages/Newsletter";
 import Unsubscribe from "./pages/Unsubscribe";
@@ -449,7 +451,9 @@ const AppContent = () => {
               <Route path="/terms" element={<Terms />} />
               <Route path="/cookies" element={<Cookies />} />
               <Route path="/security" element={<Security />} />
-              <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard-v2" element={<DashboardV2 />} />
+          <Route path="/dashboard/onboarding" element={<DashboardOnboarding />} />
               <Route path="/email-history" element={<CommunicationHistory />} />
           <Route path="/communication-history" element={<CommunicationHistory />} />
           <Route path="/newsletter" element={<Newsletter />} />
