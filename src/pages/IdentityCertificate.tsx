@@ -114,7 +114,7 @@ const IdentityCertificate = () => {
 
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">Blockchain</p>
-              <p className="text-lg">Polygon Amoy</p>
+              <p className="text-lg">Polygon (MATIC)</p>
             </div>
 
             {asset.cert_tx_hash && (

@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ interface FaceIdentitySectionProps {
 }
 
 export function FaceIdentitySection({ asset }: FaceIdentitySectionProps) {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
@@ -223,7 +225,7 @@ export function FaceIdentitySection({ asset }: FaceIdentitySectionProps) {
               <Button 
                 className="w-full" 
                 variant="outline"
-                onClick={() => window.open(`/certificate/${asset.id}`, "_blank")}
+                onClick={() => navigate(`/certificate/identity/${asset.id}`)}
               >
                 <Shield className="h-4 w-4 mr-2" />
                 View Certificate
