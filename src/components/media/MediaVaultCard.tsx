@@ -187,6 +187,19 @@ export function MediaVaultCard({
               alt={item.title}
               className="w-full h-full object-cover"
             />
+          ) : (item.type === "video" || item.type === "clip") && item.url ? (
+            <video
+              src={item.url}
+              className="w-full h-full object-cover"
+              preload="metadata"
+              muted
+            />
+          ) : item.type === "image" && item.url ? (
+            <img
+              src={item.url}
+              alt={item.title}
+              className="w-full h-full object-cover"
+            />
           ) : (
             <div className="flex items-center justify-center h-full">
               {getMediaIcon()}
