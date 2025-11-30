@@ -5,65 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Shield, ShieldCheck, XCircle, Camera, Mic, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
 import { IdentityPromiseBanner } from "@/components/identity/IdentityPromiseBanner";
 import { IdentityActivityLog } from "@/components/identity/IdentityActivityLog";
+import { useIdentityStatus } from "@/hooks/useIdentityStatus";
 
 const IdentityRights = () => {
   const navigate = useNavigate();
-
-  const { data: voiceStatus } = useQuery({
-    queryKey: ["voice-identity-status"],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      // Check voice profile is_verified status
-      const { data: profileData } = await (supabase as any)
-        .from("creator_voice_profiles")
-        .select("id, is_verified")
-        .eq("user_id", user.id)
-        .eq("is_verified", true)
-        .maybeSingle();
-
-      // Check blockchain certificate (must be active and verified)
-      const { data: certData } = await (supabase as any)
-        .from("voice_blockchain_certificates")
-        .select("id, certification_status, cert_explorer_url, voice_profile_id, is_active")
-        .eq("creator_id", user.id)
-        .eq("certification_status", "verified")
-        .eq("is_active", true)
-        .maybeSingle();
-
-      return {
-        isVerified: !!profileData && !!certData,
-        certExplorerUrl: certData?.cert_explorer_url || null,
-        voiceProfileId: profileData?.id || null,
-      };
-    },
-  });
-
-  const { data: faceStatus } = useQuery({
-    queryKey: ["face-identity-status"],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      const { data: assetData } = await (supabase as any)
-        .from("identity_assets")
-        .select("id, cert_status, cert_explorer_url")
-        .eq("user_id", user.id)
-        .eq("type", "face_identity")
-        .is("revoked_at", null)
-        .maybeSingle();
-
-      return {
-        isVerified: assetData?.cert_status === "minted",
-        certExplorerUrl: assetData?.cert_explorer_url || null,
-        assetId: assetData?.id || null,
-      };
-    },
-  });
+  const { data: identityStatus } = useIdentityStatus();
 
   const { data: activityLogs = [] } = useQuery({
     queryKey: ["identity-activity-logs"],
@@ -82,8 +30,8 @@ const IdentityRights = () => {
     },
   });
 
-  const voiceVerified = voiceStatus?.isVerified || false;
-  const faceVerified = faceStatus?.isVerified || false;
+  const voiceVerified = identityStatus?.voiceVerified || false;
+  const faceVerified = identityStatus?.faceVerified || false;
 
   const getOverallStatus = () => {
     if (voiceVerified && faceVerified) return { label: "Verified", icon: ShieldCheck, color: "text-green-600" };
@@ -179,15 +127,15 @@ const IdentityRights = () => {
                 {faceVerified ? (
                   <>
                     <Button 
-                      onClick={() => navigate(`/certificate/identity/${faceStatus?.assetId}`)}
+                      onClick={() => navigate(`/certificate/identity/${identityStatus?.faceAssetId}`)}
                       variant="default"
                       className="w-full"
                     >
                       View Certificate
                     </Button>
-                    {faceStatus?.certExplorerUrl && (
+                    {identityStatus?.faceExplorerUrl && (
                       <Button 
-                        onClick={() => window.open(faceStatus.certExplorerUrl!, '_blank')}
+                        onClick={() => window.open(identityStatus.faceExplorerUrl!, '_blank')}
                         variant="outline"
                         className="w-full"
                       >
@@ -240,15 +188,15 @@ const IdentityRights = () => {
                 {voiceVerified ? (
                   <>
                     <Button 
-                      onClick={() => navigate(`/certificate/identity/${voiceStatus?.voiceProfileId}`)}
+                      onClick={() => navigate(`/certificate/identity/${identityStatus?.voiceProfileId}`)}
                       variant="default"
                       className="w-full"
                     >
                       View Certificate
                     </Button>
-                    {voiceStatus?.certExplorerUrl && (
+                    {identityStatus?.voiceExplorerUrl && (
                       <Button 
-                        onClick={() => window.open(voiceStatus.certExplorerUrl!, '_blank')}
+                        onClick={() => window.open(identityStatus.voiceExplorerUrl!, '_blank')}
                         variant="outline"
                         className="w-full"
                       >

@@ -3,72 +3,22 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Shield, CheckCircle, Clock, AlertCircle, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useIdentityStatus } from "@/hooks/useIdentityStatus";
 
 export const IdentityStatusCard = () => {
   const navigate = useNavigate();
+  const { data: identityStatus } = useIdentityStatus();
 
-  const { data: identityStatus } = useQuery({
-    queryKey: ['identity-assets'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
+  const faceVerified = identityStatus?.faceVerified || false;
+  const voiceVerified = identityStatus?.voiceVerified || false;
+  const isComplete = faceVerified && voiceVerified;
 
-      // Face identity from identity_assets - include cert_explorer_url
-      const { data: faceAssets } = await supabase
-        .from('identity_assets')
-        .select('id, cert_status, face_hash, cert_explorer_url, cert_tx_hash')
-        .eq('user_id', user.id)
-        .eq('type', 'face_identity')
-        .is('revoked_at', null);
-
-      // Voice identity from creator_voice_profiles + blockchain certificates (active and verified)
-      const { data: voiceProfile } = await (supabase as any)
-        .from('creator_voice_profiles')
-        .select('id, is_verified')
-        .eq('user_id', user.id)
-        .eq('is_verified', true)
-        .maybeSingle();
-
-      const { data: voiceCert } = await (supabase as any)
-        .from('voice_blockchain_certificates')
-        .select('id, certification_status, is_active, cert_explorer_url')
-        .eq('creator_id', user.id)
-        .eq('certification_status', 'verified')
-        .eq('is_active', true)
-        .maybeSingle();
-
-      return {
-        faceAsset: faceAssets?.[0] || null,
-        voiceVerified: !!(voiceProfile && voiceCert),
-        voiceCertExplorerUrl: voiceCert?.cert_explorer_url || null,
-      };
-    },
-  });
-
-  const faceAsset = identityStatus?.faceAsset;
-  const voiceVerified = identityStatus?.voiceVerified;
-
-  const voiceAsset = voiceVerified ? { cert_status: 'minted' } : null;
-
-  const getStatusBadge = (asset: any) => {
-    if (!asset) return <Badge variant="outline" className="gap-1"><AlertCircle className="h-3 w-3" />Not Setup</Badge>;
-    
-    switch (asset?.cert_status) {
-      case 'minted':
-        return <Badge className="gap-1 bg-green-500"><CheckCircle className="h-3 w-3" />Verified</Badge>;
-      case 'pending':
-      case 'minting':
-        return <Badge variant="secondary" className="gap-1"><Clock className="h-3 w-3" />Pending</Badge>;
-      case 'failed':
-        return <Badge variant="destructive" className="gap-1"><AlertCircle className="h-3 w-3" />Failed</Badge>;
-      default:
-        return <Badge variant="outline" className="gap-1"><AlertCircle className="h-3 w-3" />Not Setup</Badge>;
+  const getStatusBadge = (verified: boolean) => {
+    if (verified) {
+      return <Badge className="gap-1 bg-green-500"><CheckCircle className="h-3 w-3" />Verified</Badge>;
     }
+    return <Badge variant="outline" className="gap-1"><AlertCircle className="h-3 w-3" />Not Setup</Badge>;
   };
-
-  const isComplete = faceAsset?.cert_status === 'minted' && voiceAsset?.cert_status === 'minted';
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
@@ -86,34 +36,34 @@ export const IdentityStatusCard = () => {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Face Identity</span>
-            {getStatusBadge(faceAsset)}
+            {getStatusBadge(faceVerified)}
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Voice Identity</span>
-            {getStatusBadge(voiceAsset)}
+            {getStatusBadge(voiceVerified)}
           </div>
         </div>
 
         {/* View on Polygon buttons */}
-        {isComplete && (faceAsset?.cert_explorer_url || identityStatus?.voiceCertExplorerUrl) && (
+        {isComplete && (identityStatus?.faceExplorerUrl || identityStatus?.voiceExplorerUrl) && (
           <div className="space-y-2 pt-2">
-            {faceAsset?.cert_explorer_url && (
+            {identityStatus?.faceExplorerUrl && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="w-full justify-start text-xs"
-                onClick={() => window.open(faceAsset.cert_explorer_url!, "_blank")}
+                onClick={() => window.open(identityStatus.faceExplorerUrl!, "_blank")}
               >
                 <ExternalLink className="h-3 w-3 mr-2" />
                 View Face on Polygon
               </Button>
             )}
-            {identityStatus?.voiceCertExplorerUrl && (
+            {identityStatus?.voiceExplorerUrl && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="w-full justify-start text-xs"
-                onClick={() => window.open(identityStatus.voiceCertExplorerUrl!, "_blank")}
+                onClick={() => window.open(identityStatus.voiceExplorerUrl!, "_blank")}
               >
                 <ExternalLink className="h-3 w-3 mr-2" />
                 View Voice on Polygon

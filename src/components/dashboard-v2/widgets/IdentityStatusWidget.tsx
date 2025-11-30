@@ -2,66 +2,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Shield, MoreVertical, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useIdentityStatus } from "@/hooks/useIdentityStatus";
 
 export const IdentityStatusWidget = () => {
   const navigate = useNavigate();
-
-  const { data: identityStatus } = useQuery({
-    queryKey: ["identity-status-widget"],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return { face: false, voice: false, overall: "Not set", faceExplorerUrl: null, voiceExplorerUrl: null };
-
-      // Check face identity - include cert_explorer_url
-      const { data: faceAssets } = await (supabase as any)
-        .from("identity_assets")
-        .select("id, cert_status, cert_explorer_url")
-        .eq("user_id", user.id)
-        .eq("identity_type", "face")
-        .eq("cert_status", "minted")
-        .is("revoked_at", null)
-        .maybeSingle();
-
-      // Check voice identity - profile + blockchain certificate (active and verified)
-      const { data: voiceProfile } = await (supabase as any)
-        .from("creator_voice_profiles")
-        .select("id, is_verified")
-        .eq("user_id", user.id)
-        .eq("is_verified", true)
-        .maybeSingle();
-
-      const { data: voiceCert } = await (supabase as any)
-        .from("voice_blockchain_certificates")
-        .select("id, certification_status, is_active, cert_explorer_url")
-        .eq("creator_id", user.id)
-        .eq("certification_status", "verified")
-        .eq("is_active", true)
-        .maybeSingle();
-
-      const faceVerified = !!faceAssets;
-      const voiceVerified = !!(voiceProfile && voiceCert);
-
-      let overall = "Not set";
-      if (faceVerified && voiceVerified) overall = "Verified";
-      else if (faceVerified || voiceVerified) overall = "Partially verified";
-
-      return { 
-        face: faceVerified, 
-        voice: voiceVerified, 
-        overall,
-        faceExplorerUrl: faceAssets?.cert_explorer_url || null,
-        voiceExplorerUrl: voiceCert?.cert_explorer_url || null,
-      };
-    },
-  });
+  const { data: identityStatus } = useIdentityStatus();
 
   return (
     <Card className="h-full">
@@ -91,7 +42,7 @@ export const IdentityStatusWidget = () => {
           <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
             <span className="text-sm font-medium">Face</span>
             <div className="flex items-center gap-2">
-              {identityStatus?.face ? (
+              {identityStatus?.faceVerified ? (
                 <>
                   <CheckCircle2 className="h-4 w-4 text-green-500" />
                   <span className="text-xs text-muted-foreground">Verified</span>
@@ -108,7 +59,7 @@ export const IdentityStatusWidget = () => {
           <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
             <span className="text-sm font-medium">Voice</span>
             <div className="flex items-center gap-2">
-              {identityStatus?.voice ? (
+              {identityStatus?.voiceVerified ? (
                 <>
                   <CheckCircle2 className="h-4 w-4 text-green-500" />
                   <span className="text-xs text-muted-foreground">Verified</span>
@@ -124,7 +75,7 @@ export const IdentityStatusWidget = () => {
 
           <div className="pt-2">
             <p className="text-xs text-muted-foreground mb-3">
-              Overall: <span className="font-medium">{identityStatus?.overall}</span>
+              Overall: <span className="font-medium capitalize">{identityStatus?.overallStatus}</span>
             </p>
 
             {/* View on Polygon links */}
@@ -156,7 +107,7 @@ export const IdentityStatusWidget = () => {
             )}
 
             <Button size="sm" className="w-full" onClick={() => navigate("/identity")}>
-              Complete Identity
+              {identityStatus?.overallStatus === 'verified' ? 'Manage Identity' : 'Complete Identity'}
             </Button>
           </div>
         </div>
