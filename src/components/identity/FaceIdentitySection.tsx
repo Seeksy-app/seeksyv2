@@ -195,7 +195,7 @@ export function FaceIdentitySection({ asset }: FaceIdentitySectionProps) {
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               Verification in progress…
             </Button>
-          ) : status === "minted" ? (
+          ) : status === "minted" && asset ? (
             <div className="space-y-2">
               <Button 
                 className="w-full" 

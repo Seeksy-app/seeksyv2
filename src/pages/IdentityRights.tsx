@@ -34,7 +34,7 @@ const IdentityRights = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
 
-  const { data: rawData, isLoading } = useQuery({
+  const { data: rawData, isLoading, error } = useQuery({
     queryKey: ["identity-assets"],
     queryFn: async (): Promise<any[]> => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -87,9 +87,17 @@ const IdentityRights = () => {
     }
   }));
 
+  // Debug logging for identity data
+  console.log("[Identity] Raw data:", rawData);
+  console.log("[Identity] Identity assets:", identityAssets);
+  console.log("[Identity] Query error:", error);
+
   // Get individual identity statuses
   const voiceAsset = identityAssets.find(a => a.type === "voice_identity");
   const faceAsset = identityAssets.find(a => a.type === "face_identity");
+  
+  console.log("[Identity] Voice asset:", voiceAsset);
+  console.log("[Identity] Face asset:", faceAsset);
 
   const getAssetStatus = (asset: typeof voiceAsset) => {
     if (!asset) return "not_set";
@@ -157,6 +165,43 @@ const IdentityRights = () => {
 
   const currentStatus = statusConfig[status];
   const StatusIcon = currentStatus.icon;
+
+  if (error) {
+    console.error("[Identity] Failed to load identity assets:", error);
+    return (
+      <div className="container max-w-6xl py-8">
+        <Card className="border-destructive">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <Shield className="h-12 w-12 text-destructive mx-auto" />
+              <div>
+                <h3 className="text-lg font-semibold text-destructive">Failed to Load Identity Data</h3>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {error instanceof Error ? error.message : "An unexpected error occurred"}
+                </p>
+              </div>
+              <Button onClick={() => window.location.reload()}>
+                Reload Page
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="container max-w-6xl py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="text-sm text-muted-foreground">Loading identity data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
 
   return (
@@ -226,27 +271,29 @@ const IdentityRights = () => {
               {/* Certificate Links */}
               {status === "verified" && identityAssets.length > 0 && (
                 <div className="flex flex-wrap gap-3 pt-2">
-                  {identityAssets.map((asset) => (
-                    asset.cert_explorer_url && (
+                  {identityAssets
+                    .filter(asset => asset.cert_explorer_url)
+                    .map((asset) => (
                       <Button
                         key={asset.id}
                         variant="outline"
                         size="sm"
-                        onClick={() => window.open(asset.cert_explorer_url, "_blank")}
+                        onClick={() => window.open(asset.cert_explorer_url!, "_blank")}
                       >
                         <ExternalLink className="h-4 w-4 mr-2" />
                         View {asset.type === "voice_identity" ? "Voice" : "Face"} on Chain
                       </Button>
-                    )
-                  ))}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate(`/certificate/identity/${identityAssets[0].id}`)}
-                  >
-                    <Shield className="h-4 w-4 mr-2" />
-                    View Certificate
-                  </Button>
+                    ))}
+                  {identityAssets.length > 0 && identityAssets[0]?.id && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/certificate/identity/${identityAssets[0].id}`)}
+                    >
+                      <Shield className="h-4 w-4 mr-2" />
+                      View Certificate
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
@@ -306,7 +353,7 @@ const IdentityRights = () => {
 
         {/* Permissions & Rights Tab */}
         <TabsContent value="permissions" className="space-y-6">
-          {identityAssets.length > 0 && (
+          {identityAssets.length > 0 ? (
             <Card>
               <CardHeader>
                 <CardTitle>How Seeksy Can Use Your Identity</CardTitle>
@@ -318,12 +365,22 @@ const IdentityRights = () => {
                 <IdentityPermissionsPanel assets={identityAssets} />
               </CardContent>
             </Card>
+          ) : (
+            <Card>
+              <CardContent className="pt-6 text-center py-12">
+                <Shield className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">No identity assets to manage</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Complete face or voice verification first
+                </p>
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
 
         {/* Certificates Tab */}
         <TabsContent value="certificates" className="space-y-6">
-          {identityAssets.length === 0 ? (
+          {identityAssets.filter(a => a.cert_status === "minted").length === 0 ? (
             <Card>
               <CardContent className="pt-6 text-center py-12">
                 <Shield className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
@@ -331,11 +388,18 @@ const IdentityRights = () => {
                 <p className="text-xs text-muted-foreground mt-1">
                   Complete face or voice verification to generate certificates
                 </p>
+                {identityAssets.some(a => a.cert_status === "failed") && (
+                  <p className="text-xs text-red-600 mt-2">
+                    Some verifications failed. Please retry from the Overview tab.
+                  </p>
+                )}
               </CardContent>
             </Card>
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
-              {identityAssets.filter(a => a.cert_status === "minted").map((asset) => (
+              {identityAssets
+                .filter(a => a.cert_status === "minted" && a.id)
+                .map((asset) => (
                 <Card key={asset.id} className="border-2 border-primary/20">
                   <CardHeader className="bg-primary/5">
                     <div className="flex items-center gap-3">
