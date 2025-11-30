@@ -83,43 +83,49 @@ export function IdentityPermissionsPanel({ assets }: IdentityPermissionsPanelPro
 
   return (
     <div className="space-y-6">
-      {/* Use my clips for Seeksy features */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="space-y-1 mb-6">
+        <h3 className="text-lg font-semibold">Clip Usage Permissions</h3>
+        <p className="text-sm text-muted-foreground">Control how your certified clips appear on Seeksy</p>
+      </div>
+
+      <div className="flex items-start justify-between gap-4 pb-6 border-b">
         <div className="flex items-start gap-3 flex-1">
           <div className="mt-1">
             <Video className="h-5 w-5 text-primary" />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="clip-use" className="text-base font-medium">
-              Use my clips for Seeksy features
+            <Label htmlFor="clip-use-face" className="text-base font-medium">
+              Allow my verified face to appear in Seeksy-certified clips
             </Label>
             <p className="text-sm text-muted-foreground">
-              Allows Seeksy to use certified clips inside the product (thumbnails, discovery, demo pages). 
-              OFF = only you + collaborators see clips. ON = we can surface them inside Seeksy, but NOT sell/license to third parties without additional approval.
+              Allows certified clips with your face to appear in Seeksy features (discovery, thumbnails). Does NOT allow third-party licensing without approval.
             </p>
           </div>
         </div>
         <Switch
-          id="clip-use"
+          id="clip-use-face"
           checked={permissions.clip_use}
           onCheckedChange={() => handleToggle('clip_use', permissions.clip_use)}
           disabled={updatePermissionsMutation.isPending}
         />
       </div>
 
-      {/* Allow AI versions of me (with approval) */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="space-y-1 mb-6 mt-6">
+        <h3 className="text-lg font-semibold">AI Generation Permissions</h3>
+        <p className="text-sm text-muted-foreground">Control AI-generated content using your likeness</p>
+      </div>
+
+      <div className="flex items-start justify-between gap-4 pb-6 border-b">
         <div className="flex items-start gap-3 flex-1">
           <div className="mt-1">
             <Sparkles className="h-5 w-5 text-primary" />
           </div>
           <div className="space-y-1">
             <Label htmlFor="ai-generation" className="text-base font-medium">
-              Allow AI versions of me (with approval)
+              Allow AI to generate my likeness (face/voice)
             </Label>
             <p className="text-sm text-muted-foreground">
-              Allows AI-generated content using your face/voice under an explicit approval flow. 
-              OFF = no AI content using your face or voice. ON = Seeksy can generate AI content with your likeness only when you approve a specific use.
+              Allows AI-generated content using your face or voice. Each use requires explicit approval. Default: OFF.
             </p>
           </div>
         </div>
@@ -131,19 +137,22 @@ export function IdentityPermissionsPanel({ assets }: IdentityPermissionsPanelPro
         />
       </div>
 
-      {/* Let advertisers request my identity */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="space-y-1 mb-6 mt-6">
+        <h3 className="text-lg font-semibold">Advertiser Access Permissions</h3>
+        <p className="text-sm text-muted-foreground">Control brand requests and licensing</p>
+      </div>
+
+      <div className="flex items-start justify-between gap-4 pb-6 border-b">
         <div className="flex items-start gap-3 flex-1">
           <div className="mt-1">
             <Users className="h-5 w-5 text-primary" />
           </div>
           <div className="space-y-1">
             <Label htmlFor="advertiser-access" className="text-base font-medium">
-              Let advertisers request my identity
+              Allow advertisers to request use of my verified identity
             </Label>
             <p className="text-sm text-muted-foreground">
-              Controls whether approved brands can send "use your likeness in a campaign" requests. 
-              OFF = brands cannot request or use your identity. ON = brands can send requests; you have to explicitly approve each campaign.
+              Enables brands to send usage requests. You must approve each campaign individually. OFF = no advertiser requests.
             </p>
           </div>
         </div>
@@ -155,19 +164,21 @@ export function IdentityPermissionsPanel({ assets }: IdentityPermissionsPanelPro
         />
       </div>
 
-      {/* Allow anonymous training & insights */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="space-y-1 mb-6 mt-6">
+        <h3 className="text-lg font-semibold">Safety & Privacy</h3>
+      </div>
+
+      <div className="flex items-start justify-between gap-4 pb-6 border-b">
         <div className="flex items-start gap-3 flex-1">
           <div className="mt-1">
             <Database className="h-5 w-5 text-primary" />
           </div>
           <div className="space-y-1">
             <Label htmlFor="anonymous-training" className="text-base font-medium">
-              Allow anonymous training & insights
+              Allow anonymous training (face embeddings only, no identity reveal)
             </Label>
             <p className="text-sm text-muted-foreground">
-              Allows us to use de-identified clip data to improve models and analytics. 
-              OFF = no data used beyond your own account. ON = data can be used anonymously to improve Seeksy.
+              De-identified data helps improve Seeksy features. No personal identity is shared or stored.
             </p>
           </div>
         </div>
@@ -177,6 +188,14 @@ export function IdentityPermissionsPanel({ assets }: IdentityPermissionsPanelPro
           onCheckedChange={() => handleToggle('anonymous_training', permissions.anonymous_training)}
           disabled={updatePermissionsMutation.isPending}
         />
+      </div>
+
+      <div className="mt-6 bg-primary/5 border border-primary/20 rounded-lg p-4">
+        <p className="text-sm font-medium mb-2">Safety & Privacy Notice</p>
+        <p className="text-sm text-muted-foreground">
+          Seeksy does not sell, license, or share your likeness without your explicit permission. 
+          Your identity belongs to you. All AI usage requires your consent.
+        </p>
       </div>
     </div>
   );

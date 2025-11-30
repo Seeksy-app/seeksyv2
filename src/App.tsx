@@ -153,6 +153,7 @@ import ImpersonateUser from "./pages/admin/ImpersonateUser";
 import CreditManagement from "./pages/admin/CreditManagement";
 import AdminProfileSettings from "./pages/admin/AdminProfileSettings";
 import AdminCreators from "./pages/admin/AdminCreators";
+import AdminIdentity from "./pages/admin/Identity";
 import AppAudioAdmin from "./pages/admin/AppAudioAdmin";
 import PersonaManagement from "./pages/admin/PersonaManagement";
 import KeysVault from "./pages/KeysVault";
@@ -530,6 +531,7 @@ const AppContent = () => {
               <Route path="/admin/credits" element={<CreditManagement />} />
               <Route path="/admin/profile-settings" element={<AdminProfileSettings />} />
               <Route path="/admin/creators" element={<AdminCreators />} />
+              <Route path="/admin/identity" element={<AdminIdentity />} />
               <Route path="/admin/certification" element={<CertificationConsole />} />
               <Route path="/admin/investor-spreadsheets" element={<ManageInvestorSpreadsheets />} />
               <Route path="/marketing/app-audio" element={<AppAudioAdmin />} />

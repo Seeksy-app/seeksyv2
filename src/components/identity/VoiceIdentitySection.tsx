@@ -62,7 +62,11 @@ export function VoiceIdentitySection({ asset }: VoiceIdentitySectionProps) {
         </div>
 
         <p className="text-sm text-muted-foreground">
-          Protect your voice and how it's used. Record a short script and we'll generate your VoiceHash—your unique audio identity signature.
+          {status === "not_set" && "Upload a voice sample to protect your identity"}
+          {status === "pending" && "Voice verification in progress"}
+          {status === "minting" && "Minting certificate on blockchain"}
+          {status === "minted" && "Voice identity certified on-chain"}
+          {status === "failed" && "Verification failed - please retry"}
         </p>
 
         {status === "not_set" || status === "failed" ? (
@@ -71,7 +75,7 @@ export function VoiceIdentitySection({ asset }: VoiceIdentitySectionProps) {
             onClick={() => navigate("/voice-certification-flow")}
           >
             <Mic className="h-4 w-4 mr-2" />
-            {status === "failed" ? "Retry Voice Verification" : "Start Recording"}
+            {status === "failed" ? "Retry Voice Verification" : "Upload Voice Sample"}
           </Button>
         ) : status === "pending" || status === "minting" ? (
           <Button className="w-full" disabled>
