@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { IdentityPermissionsPanel } from "@/components/identity/IdentityPermissionsPanel";
 import { IdentityAccessLog } from "@/components/identity/IdentityAccessLog";
 import { FaceIdentitySection } from "@/components/identity/FaceIdentitySection";
+import { VoiceIdentitySection } from "@/components/identity/VoiceIdentitySection";
 import { Badge } from "@/components/ui/badge";
 
 interface IdentityAsset {
@@ -243,35 +244,7 @@ const IdentityRights = () => {
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             {/* Voice Verification */}
-            <Card className="border-2">
-              <CardContent className="pt-6 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Mic className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Voice Identity</h4>
-                    {voiceAsset && voiceAsset.cert_status === "minted" ? (
-                      <Badge variant="outline" className="text-green-600">
-                        <ShieldCheck className="h-3 w-3 mr-1" />
-                        Verified
-                      </Badge>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">Not verified</p>
-                    )}
-                  </div>
-                </div>
-                <Button 
-                  className="w-full" 
-                  variant={voiceAsset ? "outline" : "default"}
-                  onClick={() => navigate("/voice-certification-flow")}
-                >
-                  {voiceAsset && voiceAsset.cert_status === "minted" 
-                    ? "View Voice Certificate" 
-                    : "Record Voice Sample"}
-                </Button>
-              </CardContent>
-            </Card>
+            <VoiceIdentitySection asset={voiceAsset} />
 
             {/* Face Verification */}
             <FaceIdentitySection asset={faceAsset} />

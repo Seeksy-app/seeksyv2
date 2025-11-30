@@ -269,6 +269,7 @@ import CertificationConsole from "./pages/admin/CertificationConsole";
 import Verified from "./pages/Verified";
 import { IdentityDashboard } from "./components/identity/IdentityDashboard";
 import IdentityRights from "./pages/IdentityRights";
+import IdentityCertificate from "./pages/IdentityCertificate";
 
 const queryClient = new QueryClient();
 
@@ -573,7 +574,8 @@ const AppContent = () => {
           <Route path="/podcast-revenue" element={<PodcastRevenue />} />
           <Route path="/voice-protection" element={<VoiceProtection />} />
           <Route path="/voice-credentials" element={<MyVoiceIdentity />} />
-          <Route path="/identity" element={<IdentityRights />} />
+              <Route path="/identity" element={<IdentityRights />} />
+              <Route path="/certificate/:id" element={<IdentityCertificate />} />
           <Route path="/identity-dashboard" element={<IdentityDashboard />} />
           <Route path="/admin/voice-credentials" element={<VoiceCredentialsAdmin />} />
               <Route path="/settings" element={<Settings />} />

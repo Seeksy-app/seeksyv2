@@ -174,13 +174,26 @@ export function FaceIdentitySection({ asset }: FaceIdentitySectionProps) {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm font-semibold">Confirm your real identity and protect how your face is used.</p>
+              <p className="text-sm text-muted-foreground">
+                Upload a few clear photos and we'll generate a secure FaceHash—your cryptographic identity signature stored on the blockchain.
+              </p>
+            </div>
+
             <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
               <Camera className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground mb-4">
-                Upload 3–5 photos or record a short selfie video
-              </p>
-              <div className="flex gap-2 justify-center">
+              <div className="space-y-3">
+                <p className="text-sm font-medium">Upload Instructions</p>
+                <ul className="text-xs text-muted-foreground space-y-1">
+                  <li>• Upload 3–5 photos</li>
+                  <li>• Face forward and well lit</li>
+                  <li>• No filters or heavy editing</li>
+                  <li>• Include at least one neutral expression</li>
+                </ul>
+              </div>
+              <div className="flex gap-2 justify-center mt-4">
                 <Button variant="outline" asChild>
                   <label>
                     <Upload className="h-4 w-4 mr-2" />
@@ -231,9 +244,12 @@ export function FaceIdentitySection({ asset }: FaceIdentitySectionProps) {
             </Button>
 
             {isVerifying && (
-              <p className="text-sm text-center text-muted-foreground">
-                Analyzing your face and creating an on-chain certificate…
-              </p>
+              <div className="text-center space-y-1">
+                <p className="text-sm font-medium">Verifying your photos…</p>
+                <p className="text-xs text-muted-foreground">
+                  We're creating your encrypted FaceHash and preparing your certificate.
+                </p>
+              </div>
             )}
 
             <div className="bg-muted/50 rounded-lg p-4">
