@@ -35,6 +35,21 @@ const AdminIdentity = () => {
     },
   });
 
+  const { data: identityRequests = [] } = useQuery({
+    queryKey: ["admin-identity-requests"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("identity_requests")
+        .select("*")
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "minted":
@@ -266,7 +281,73 @@ const AdminIdentity = () => {
         </CardContent>
       </Card>
 
-      {/* Recent Access Logs */}
+          {/* Recent Identity Requests */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <Shield className="h-5 w-5 text-primary" />
+                <div>
+                  <CardTitle>Recent Identity Requests</CardTitle>
+                  <CardDescription>Latest advertiser access requests across all creators</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {accessLogs.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">No identity requests yet</div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Creator</TableHead>
+                      <TableHead>Advertiser</TableHead>
+                      <TableHead>Rights</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {accessLogs.slice(0, 10).map((req: any) => (
+                      <TableRow key={req.id}>
+                        <TableCell className="font-mono text-xs">
+                          {req.creator_id?.slice(0, 8)}...
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium text-sm">{req.advertiser_company}</p>
+                            <p className="text-xs text-muted-foreground">{req.advertiser_email}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
+                            {((req.rights_requested || []) as string[]).slice(0, 2).map((right, idx) => (
+                              <Badge key={idx} variant="outline" className="text-xs">
+                                {right}
+                              </Badge>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={
+                            req.status === 'approved' ? 'bg-green-500/10 text-green-600' :
+                            req.status === 'rejected' ? 'bg-red-500/10 text-red-600' :
+                            'bg-yellow-500/10 text-yellow-600'
+                          }>
+                            {req.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {format(new Date(req.created_at), "MMM d, h:mm a")}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Recent Access Logs */}
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">

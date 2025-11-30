@@ -1,13 +1,16 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Shield, ShieldCheck, Clock, XCircle, Camera, Mic, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { IdentityPermissionsPanel } from "@/components/identity/IdentityPermissionsPanel";
 import { IdentityAccessLog } from "@/components/identity/IdentityAccessLog";
 import { FaceIdentitySection } from "@/components/identity/FaceIdentitySection";
 import { VoiceIdentitySection } from "@/components/identity/VoiceIdentitySection";
+import { AdvertiserAccessTab } from "@/components/identity/AdvertiserAccessTab";
 import { Badge } from "@/components/ui/badge";
 
 interface IdentityAsset {
@@ -29,6 +32,7 @@ interface IdentityAsset {
 
 const IdentityRights = () => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("overview");
 
   const { data: rawData, isLoading } = useQuery({
     queryKey: ["identity-assets"],
@@ -39,12 +43,29 @@ const IdentityRights = () => {
       const result = await (supabase as any)
         .from("identity_assets")
         .select("*")
-        .eq("creator_id", user.id)
+        .eq("user_id", user.id)
         .is("revoked_at", null)
         .order("created_at", { ascending: false });
 
       if (result.error) throw result.error;
       return result.data || [];
+    },
+  });
+
+  const { data: profile } = useQuery({
+    queryKey: ["user-profile"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
     },
   });
 
@@ -139,7 +160,7 @@ const IdentityRights = () => {
 
 
   return (
-    <div className="container max-w-5xl py-8 space-y-8">
+    <div className="container max-w-6xl py-8 space-y-8">
       {/* Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold">Identity & Rights</h1>
@@ -233,8 +254,19 @@ const IdentityRights = () => {
         </CardContent>
       </Card>
 
-      {/* Verification CTAs */}
-      <Card>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="permissions">Permissions & Rights</TabsTrigger>
+          <TabsTrigger value="certificates">Certificates</TabsTrigger>
+          <TabsTrigger value="advertiser-access">Advertiser Access</TabsTrigger>
+        </TabsList>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6">
+          {/* Verification CTAs */}
+          <Card>
         <CardHeader>
           <CardTitle>Verify Your Identity</CardTitle>
           <CardDescription>
@@ -250,60 +282,131 @@ const IdentityRights = () => {
             <FaceIdentitySection asset={faceAsset} />
           </div>
         </CardContent>
-      </Card>
+          </Card>
 
-      {/* Permissions */}
-      {identityAssets.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>How Seeksy Can Use Your Identity</CardTitle>
-            <CardDescription>
-              Control how your verified identity is used across the platform. All settings are opt-in and can be changed anytime.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <IdentityPermissionsPanel assets={identityAssets} />
-          </CardContent>
-        </Card>
-      )}
+          {/* Identity Promise */}
+          <Card className="border-primary/20 bg-primary/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-primary" />
+                Our Identity Promise
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="mt-1 h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />
+                <p className="text-sm">
+                  We never sell a creator's identity or likeness data.
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="mt-1 h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />
+                <p className="text-sm">
+                  Brands can't use a creator's face or voice without explicit approval.
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="mt-1 h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />
+                <p className="text-sm">
+                  Creators can revoke permissions at any time, and the identity record reflects it.
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="mt-1 h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />
+                <p className="text-sm">
+                  Everything here is opt-in, not buried in fine print.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* Identity Promise */}
-      <Card className="border-primary/20 bg-primary/5">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-primary" />
-            Our Identity Promise
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-start gap-3">
-            <div className="mt-1 h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />
-            <p className="text-sm">
-              We never sell a creator's identity or likeness data.
-            </p>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="mt-1 h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />
-            <p className="text-sm">
-              Brands can't use a creator's face or voice without explicit approval.
-            </p>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="mt-1 h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />
-            <p className="text-sm">
-              Creators can revoke permissions at any time, and the identity record reflects it.
-            </p>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="mt-1 h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />
-            <p className="text-sm">
-              Everything here is opt-in, not buried in fine print.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+        {/* Permissions & Rights Tab */}
+        <TabsContent value="permissions" className="space-y-6">
+          {identityAssets.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>How Seeksy Can Use Your Identity</CardTitle>
+                <CardDescription>
+                  Control how your verified identity is used across the platform. All settings are opt-in and can be changed anytime.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <IdentityPermissionsPanel assets={identityAssets} />
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
 
-      {/* Access Log */}
+        {/* Certificates Tab */}
+        <TabsContent value="certificates" className="space-y-6">
+          {identityAssets.length === 0 ? (
+            <Card>
+              <CardContent className="pt-6 text-center py-12">
+                <Shield className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">No certificates yet</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Complete face or voice verification to generate certificates
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {identityAssets.filter(a => a.cert_status === "minted").map((asset) => (
+                <Card key={asset.id} className="border-2 border-primary/20">
+                  <CardHeader className="bg-primary/5">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        {asset.type === "face_identity" ? (
+                          <Camera className="h-5 w-5 text-primary" />
+                        ) : (
+                          <Mic className="h-5 w-5 text-primary" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <CardTitle className="text-lg">
+                          {asset.type === "face_identity" ? "Face Identity" : "Voice Identity"}
+                        </CardTitle>
+                        <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-200 mt-1">
+                          <Shield className="h-3 w-3 mr-1" />
+                          Certified
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-4 space-y-3">
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => navigate(`/certificate/${asset.id}`)}
+                    >
+                      <Shield className="h-4 w-4 mr-2" />
+                      View Certificate
+                    </Button>
+                    {asset.cert_explorer_url && (
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => window.open(asset.cert_explorer_url, "_blank")}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        View on Polygon
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Advertiser Access Tab */}
+        <TabsContent value="advertiser-access" className="space-y-6">
+          <AdvertiserAccessTab assets={identityAssets} username={profile?.username || ""} />
+        </TabsContent>
+      </Tabs>
+
+      {/* Access Log - Always visible below tabs */}
       {identityAssets.length > 0 && (
         <Card>
           <CardHeader>

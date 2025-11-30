@@ -5760,6 +5760,66 @@ export type Database = {
         }
         Relationships: []
       }
+      identity_requests: {
+        Row: {
+          advertiser_company: string
+          advertiser_email: string
+          advertiser_id: string | null
+          advertiser_website: string | null
+          budget_range: string | null
+          campaign_description: string | null
+          campaign_name: string | null
+          created_at: string
+          creator_id: string
+          deleted_at: string | null
+          duration_days: number | null
+          id: string
+          responded_at: string | null
+          response_message: string | null
+          rights_requested: Json
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          advertiser_company: string
+          advertiser_email: string
+          advertiser_id?: string | null
+          advertiser_website?: string | null
+          budget_range?: string | null
+          campaign_description?: string | null
+          campaign_name?: string | null
+          created_at?: string
+          creator_id: string
+          deleted_at?: string | null
+          duration_days?: number | null
+          id?: string
+          responded_at?: string | null
+          response_message?: string | null
+          rights_requested?: Json
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          advertiser_company?: string
+          advertiser_email?: string
+          advertiser_id?: string | null
+          advertiser_website?: string | null
+          budget_range?: string | null
+          campaign_description?: string | null
+          campaign_name?: string | null
+          created_at?: string
+          creator_id?: string
+          deleted_at?: string | null
+          duration_days?: number | null
+          id?: string
+          responded_at?: string | null
+          response_message?: string | null
+          rights_requested?: Json
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       influencehub_creators: {
         Row: {
           agency_user_id: string

@@ -223,6 +223,7 @@ import TranscriptDetailPage from "./pages/transcripts/TranscriptDetailPage";
 import AdminCampaigns from "./pages/admin/AdminCampaigns";
 import AdminAdAnalytics from "./pages/admin/AdminAdAnalytics";
 import VoiceCertificationDashboard from "./pages/voice-certification/VoiceCertificationDashboard";
+import PublicCreatorIdentity from "./pages/PublicCreatorIdentity";
 import UploadOrRecordVoice from "./pages/voice-certification/UploadOrRecordVoice";
 import AIVoiceFingerprinting from "./pages/voice-certification/AIVoiceFingerprinting";
 import MatchConfidence from "./pages/voice-certification/MatchConfidence";
@@ -576,8 +577,9 @@ const AppContent = () => {
           <Route path="/podcast-revenue" element={<PodcastRevenue />} />
           <Route path="/voice-protection" element={<VoiceProtection />} />
           <Route path="/voice-credentials" element={<MyVoiceIdentity />} />
-              <Route path="/identity" element={<IdentityRights />} />
-              <Route path="/certificate/:id" element={<IdentityCertificate />} />
+          <Route path="/identity" element={<IdentityRights />} />
+          <Route path="/certificate/:id" element={<IdentityCertificate />} />
+          <Route path="/creator/:username/identity" element={<PublicCreatorIdentity />} />
           <Route path="/identity-dashboard" element={<IdentityDashboard />} />
           <Route path="/admin/voice-credentials" element={<VoiceCredentialsAdmin />} />
               <Route path="/settings" element={<Settings />} />
