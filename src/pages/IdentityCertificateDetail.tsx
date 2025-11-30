@@ -183,7 +183,7 @@ const IdentityCertificateDetail = () => {
           {/* Network */}
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Network</p>
-            <p className="text-lg">Polygon Amoy Testnet</p>
+            <p className="text-lg">Polygon (MATIC)</p>
           </div>
 
           {/* Transaction Hash */}

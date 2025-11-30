@@ -236,7 +236,7 @@ serve(async (req) => {
 
       const tokenId = certTimestamp;
       const explorerUrls: Record<string, string> = {
-        polygon: `https://amoy.polygonscan.com/tx/${tx.hash}`,
+        polygon: `https://polygonscan.com/tx/${tx.hash}`,
         base: `https://basescan.org/tx/${tx.hash}`,
         ethereum: `https://etherscan.io/tx/${tx.hash}`,
       };
