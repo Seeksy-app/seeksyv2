@@ -27,6 +27,26 @@ interface VerifyFaceRequest {
 }
 
 serve(async (req) => {
+  // ===== BOOT DIAGNOSTICS =====
+  try {
+    console.log("[VerifyFace][BOOT] Function invoked");
+    
+    // Log environment variables (only lengths/existence, NOT actual secrets)
+    console.log("[VerifyFace][ENV] OPENAI_API_KEY length:", Deno.env.get("OPENAI_API_KEY")?.length || "missing");
+    console.log("[VerifyFace][ENV] SEEKSY_MINTER_PRIVATE_KEY length:", Deno.env.get("SEEKSY_MINTER_PRIVATE_KEY")?.length || "missing");
+    console.log("[VerifyFace][ENV] POLYGON_RPC_URL exists:", !!Deno.env.get("POLYGON_RPC_URL"));
+    console.log("[VerifyFace][ENV] SUPABASE_URL exists:", !!Deno.env.get("SUPABASE_URL"));
+    console.log("[VerifyFace][ENV] SUPABASE_SERVICE_ROLE_KEY exists:", !!Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
+    
+    // Log request details
+    console.log("[VerifyFace][REQ] Method:", req.method);
+    console.log("[VerifyFace][REQ] Has Authorization header:", !!req.headers.get("Authorization"));
+    console.log("[VerifyFace][REQ] Content-Type:", req.headers.get("Content-Type"));
+  } catch (bootErr) {
+    console.error("[VerifyFace][BOOT ERROR]", bootErr);
+    console.error("[VerifyFace][BOOT ERROR STACK]", bootErr instanceof Error ? bootErr.stack : "No stack");
+  }
+  
   // Handle CORS preflight request
   if (req.method === "OPTIONS") {
     return new Response(null, { 
