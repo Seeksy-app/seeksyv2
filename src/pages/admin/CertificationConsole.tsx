@@ -48,6 +48,7 @@ interface CertifiedClip {
 }
 
 export default function CertificationConsole() {
+  const [selectedTab, setSelectedTab] = useState<"overview" | "clips" | "identity">("overview");
   const [selectedClip, setSelectedClip] = useState<CertifiedClip | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");

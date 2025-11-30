@@ -267,6 +267,7 @@ import PodcastDashboard from "./pages/podcasts/PodcastDashboard";
 import VoiceCloningWizard from "./pages/voice-cloning/VoiceCloningWizard";
 import CertificationConsole from "./pages/admin/CertificationConsole";
 import Verified from "./pages/Verified";
+import { IdentityDashboard } from "./components/identity/IdentityDashboard";
 
 const queryClient = new QueryClient();
 
@@ -571,6 +572,7 @@ const AppContent = () => {
           <Route path="/podcast-revenue" element={<PodcastRevenue />} />
           <Route path="/voice-protection" element={<VoiceProtection />} />
           <Route path="/voice-credentials" element={<MyVoiceIdentity />} />
+          <Route path="/identity" element={<IdentityDashboard />} />
           <Route path="/admin/voice-credentials" element={<VoiceCredentialsAdmin />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/notification-preferences" element={<NotificationPreferences />} />

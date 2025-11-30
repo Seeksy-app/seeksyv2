@@ -2,7 +2,7 @@ import { Shield, Clock, Loader2, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-type CertStatus = "minted" | "pending" | "minting" | "failed" | "not_requested";
+export type CertStatus = "minted" | "pending" | "minting" | "failed" | "not_requested";
 
 interface CertificationBadgeProps {
   status: CertStatus;

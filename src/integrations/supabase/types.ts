@@ -5612,6 +5612,148 @@ export type Database = {
         }
         Relationships: []
       }
+      identity_access_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          details: Json | null
+          id: string
+          identity_asset_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          identity_asset_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          identity_asset_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "identity_access_logs_identity_asset_id_fkey"
+            columns: ["identity_asset_id"]
+            isOneToOne: false
+            referencedRelation: "identity_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      identity_access_requests: {
+        Row: {
+          advertiser_id: string
+          approved_at: string | null
+          created_at: string
+          denied_at: string | null
+          id: string
+          identity_asset_id: string
+          request_reason: string | null
+          requested_at: string
+          status: string
+        }
+        Insert: {
+          advertiser_id: string
+          approved_at?: string | null
+          created_at?: string
+          denied_at?: string | null
+          id?: string
+          identity_asset_id: string
+          request_reason?: string | null
+          requested_at?: string
+          status?: string
+        }
+        Update: {
+          advertiser_id?: string
+          approved_at?: string | null
+          created_at?: string
+          denied_at?: string | null
+          id?: string
+          identity_asset_id?: string
+          request_reason?: string | null
+          requested_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "identity_access_requests_identity_asset_id_fkey"
+            columns: ["identity_asset_id"]
+            isOneToOne: false
+            referencedRelation: "identity_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      identity_assets: {
+        Row: {
+          cert_chain: string | null
+          cert_created_at: string | null
+          cert_explorer_url: string | null
+          cert_status: string
+          cert_token_id: string | null
+          cert_tx_hash: string | null
+          cert_updated_at: string | null
+          consent_version: string
+          created_at: string
+          file_url: string
+          id: string
+          permissions: Json
+          revoked_at: string | null
+          thumbnail_url: string | null
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cert_chain?: string | null
+          cert_created_at?: string | null
+          cert_explorer_url?: string | null
+          cert_status?: string
+          cert_token_id?: string | null
+          cert_tx_hash?: string | null
+          cert_updated_at?: string | null
+          consent_version?: string
+          created_at?: string
+          file_url: string
+          id?: string
+          permissions?: Json
+          revoked_at?: string | null
+          thumbnail_url?: string | null
+          title: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cert_chain?: string | null
+          cert_created_at?: string | null
+          cert_explorer_url?: string | null
+          cert_status?: string
+          cert_token_id?: string | null
+          cert_tx_hash?: string | null
+          cert_updated_at?: string | null
+          consent_version?: string
+          created_at?: string
+          file_url?: string
+          id?: string
+          permissions?: Json
+          revoked_at?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       influencehub_creators: {
         Row: {
           agency_user_id: string
