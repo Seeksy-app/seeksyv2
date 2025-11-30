@@ -739,6 +739,54 @@ export type Database = {
         }
         Relationships: []
       }
+      ad_markers: {
+        Row: {
+          ad_script_id: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          notes: string | null
+          session_id: string
+          slot_type: string
+          timestamp_seconds: number
+        }
+        Insert: {
+          ad_script_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          session_id: string
+          slot_type: string
+          timestamp_seconds: number
+        }
+        Update: {
+          ad_script_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          session_id?: string
+          slot_type?: string
+          timestamp_seconds?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_markers_ad_script_id_fkey"
+            columns: ["ad_script_id"]
+            isOneToOne: false
+            referencedRelation: "audio_ads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_markers_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "studio_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ad_rate_cards: {
         Row: {
           bulk_discount_cpm: number | null
@@ -3351,6 +3399,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      clip_markers: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          session_id: string
+          timestamp_seconds: number
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          session_id: string
+          timestamp_seconds: number
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          session_id?: string
+          timestamp_seconds?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clip_markers_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "studio_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clips: {
         Row: {
@@ -9918,6 +10001,41 @@ export type Database = {
           },
         ]
       }
+      studio_analytics: {
+        Row: {
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "studio_analytics_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "studio_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       studio_broadcasts: {
         Row: {
           audio_only_mode: boolean | null
@@ -10372,42 +10490,65 @@ export type Database = {
       }
       studio_sessions: {
         Row: {
+          ai_summary: string | null
           created_at: string | null
           daily_room_url: string
+          duration_seconds: number | null
           ended_at: string | null
           id: string
+          identity_verified: boolean | null
           participants_count: number | null
           recording_status: string | null
           room_name: string
+          session_type: string | null
+          show_id: string | null
           status: string
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          ai_summary?: string | null
           created_at?: string | null
           daily_room_url: string
+          duration_seconds?: number | null
           ended_at?: string | null
           id?: string
+          identity_verified?: boolean | null
           participants_count?: number | null
           recording_status?: string | null
           room_name: string
+          session_type?: string | null
+          show_id?: string | null
           status?: string
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          ai_summary?: string | null
           created_at?: string | null
           daily_room_url?: string
+          duration_seconds?: number | null
           ended_at?: string | null
           id?: string
+          identity_verified?: boolean | null
           participants_count?: number | null
           recording_status?: string | null
           room_name?: string
+          session_type?: string | null
+          show_id?: string | null
           status?: string
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "studio_sessions_show_id_fkey"
+            columns: ["show_id"]
+            isOneToOne: false
+            referencedRelation: "podcasts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       studio_templates: {
         Row: {

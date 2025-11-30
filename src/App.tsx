@@ -44,6 +44,10 @@ import Availability from "./pages/Availability";
 import MasterStudio from "./pages/MasterStudio";
 import VideoStudio from "./pages/VideoStudio";
 import LiveStudio from "./pages/LiveStudio";
+import StudioLayout from "./pages/studio/StudioLayout";
+import StudioHome from "./pages/studio/StudioHome";
+import StudioRecording from "./pages/studio/StudioRecording";
+import StudioPostSession from "./pages/studio/StudioPostSession";
 import BookMeetings from "./pages/BookMeetings";
 import BookMeetingSlot from "./pages/BookMeetingSlot";
 import ProfileEdit from "./pages/ProfileEdit";
@@ -238,7 +242,7 @@ import AuthenticityScan from "./pages/content-certification/AuthenticityScan";
 import ApproveAndMintContent from "./pages/content-certification/ApproveAndMintContent";
 import MintingProgressContent from "./pages/content-certification/MintingProgressContent";
 import CertifiedContentSuccess from "./pages/content-certification/CertifiedContentSuccess";
-import StudioHome from "./pages/podcast-studio/StudioHome";
+import PodcastStudioHome from "./pages/podcast-studio/PodcastStudioHome";
 import BlogLibrary from "./pages/blog/BlogLibrary";
 import BlogEditor from "./pages/blog/BlogEditor";
 import BlogCertify from "./pages/blog/BlogCertify";
@@ -409,7 +413,7 @@ const AppContent = () => {
               <Route path="/verified" element={<Verified />} />
               
               {/* Podcast Studio Flow */}
-              <Route path="/podcast-studio" element={<StudioHome />} />
+              <Route path="/podcast-studio" element={<PodcastStudioHome />} />
               <Route path="/podcast-studio/mic-setup" element={<MicrophoneSetup />} />
               <Route path="/podcast-studio/record" element={<RecordingConsole />} />
               <Route path="/podcast-studio/cleanup" element={<AICleanup />} />
@@ -481,10 +485,17 @@ const AppContent = () => {
               <Route path="/meeting-rsvp" element={<MeetingRSVP />} />
               
               {/* Master Studio Routes */}
-              <Route path="/studio" element={<MasterStudio />} />
+              <Route path="/studio-old" element={<MasterStudio />} />
               <Route path="/studio/video" element={<VideoStudio />} />
               <Route path="/studio/solo" element={<VideoStudio />} />
               <Route path="/studio/live" element={<LiveStudio />} />
+              
+              {/* New Flagship Studio */}
+              <Route path="/studio" element={<StudioLayout />}>
+                <Route index element={<StudioHome />} />
+                <Route path="recording/new" element={<StudioRecording />} />
+                <Route path="post-session/:sessionId" element={<StudioPostSession />} />
+              </Route>
               
             <Route path="/events" element={<Events />} />
             <Route path="/signup-sheets" element={<SignupSheets />} />
