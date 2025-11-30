@@ -226,9 +226,7 @@ import AdminCampaigns from "./pages/admin/AdminCampaigns";
 import AdminAdAnalytics from "./pages/admin/AdminAdAnalytics";
 import VoiceCertificationDashboard from "./pages/voice-certification/VoiceCertificationDashboard";
 import PublicCreatorIdentity from "./pages/PublicCreatorIdentity";
-import VoiceVerifyScript from "./pages/voice-certification/VoiceVerifyScript";
-import VoiceRecording from "./pages/voice-certification/VoiceRecording";
-import VoicePlayback from "./pages/voice-certification/VoicePlayback";
+import VoiceVerificationUnified from "./pages/voice-certification/VoiceVerificationUnified";
 import VoiceVerifying from "./pages/voice-certification/VoiceVerifying";
 import VoiceSuccess from "./pages/voice-certification/VoiceSuccess";
 import AdClickRedirect from "./pages/ad/AdClickRedirect";
@@ -389,9 +387,7 @@ const AppContent = () => {
               {/* Unified Voice Identity Hub */}
               <Route path="/my-voice-identity" element={<MyVoiceIdentity />} />
               <Route path="/voice-cloning" element={<ProtectedRoute requiredRole="creator"><VoiceCloningWizard /></ProtectedRoute>} />
-              <Route path="/identity/voice/verify" element={<VoiceVerifyScript />} />
-              <Route path="/identity/voice/record" element={<VoiceRecording />} />
-              <Route path="/identity/voice/playback" element={<VoicePlayback />} />
+              <Route path="/identity/voice/verify" element={<VoiceVerificationUnified />} />
               <Route path="/identity/voice/verifying" element={<VoiceVerifying />} />
               <Route path="/identity/voice/success" element={<VoiceSuccess />} />
               

@@ -166,6 +166,9 @@ verify_jwt = true
 [functions.verify-voice-and-mint]
 verify_jwt = true
 
+[functions.verify-voice-quality]
+verify_jwt = true
+
 [functions.mint-identity-certificate]
 verify_jwt = true
 
