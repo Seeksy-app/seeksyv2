@@ -2844,6 +2844,175 @@ export type Database = {
           },
         ]
       }
+      checklist_instances: {
+        Row: {
+          assigned_to: string | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          started_at: string | null
+          started_by: string | null
+          status: string | null
+          template_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          started_at?: string | null
+          started_by?: string | null
+          status?: string | null
+          template_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          started_at?: string | null
+          started_by?: string | null
+          status?: string | null
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_instances_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklist_step_completions: {
+        Row: {
+          attachments: Json | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string | null
+          id: string
+          instance_id: string
+          notes: string | null
+          pass_fail: string | null
+          status: string | null
+          step_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          attachments?: Json | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          id?: string
+          instance_id: string
+          notes?: string | null
+          pass_fail?: string | null
+          status?: string | null
+          step_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          attachments?: Json | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          id?: string
+          instance_id?: string
+          notes?: string | null
+          pass_fail?: string | null
+          status?: string | null
+          step_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_step_completions_instance_id_fkey"
+            columns: ["instance_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_instances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_step_completions_step_id_fkey"
+            columns: ["step_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_steps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklist_steps: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          expected_result: string | null
+          id: string
+          link: string | null
+          step_order: number
+          template_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          expected_result?: string | null
+          id?: string
+          link?: string | null
+          step_order: number
+          template_id: string
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          expected_result?: string | null
+          id?: string
+          link?: string | null
+          step_order?: number
+          template_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_steps_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklist_templates: {
+        Row: {
+          category: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       civic_articles: {
         Row: {
           ai_drafted: boolean | null

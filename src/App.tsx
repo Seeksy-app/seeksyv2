@@ -272,6 +272,9 @@ import Verified from "./pages/Verified";
 import { IdentityDashboard } from "./components/identity/IdentityDashboard";
 import IdentityRights from "./pages/IdentityRights";
 import IdentityCertificate from "./pages/IdentityCertificate";
+import IdentityCertificateDetail from "./pages/IdentityCertificateDetail";
+import AdminChecklists from "./pages/admin/Checklists";
+import ChecklistTemplate from "./pages/admin/ChecklistTemplate";
 
 const queryClient = new QueryClient();
 
@@ -579,9 +582,13 @@ const AppContent = () => {
           <Route path="/voice-credentials" element={<MyVoiceIdentity />} />
           <Route path="/identity" element={<IdentityRights />} />
           <Route path="/certificate/:id" element={<IdentityCertificate />} />
+          <Route path="/certificate/identity/:id" element={<IdentityCertificateDetail />} />
           <Route path="/creator/:username/identity" element={<PublicCreatorIdentity />} />
           <Route path="/identity-dashboard" element={<IdentityDashboard />} />
           <Route path="/admin/voice-credentials" element={<VoiceCredentialsAdmin />} />
+          <Route path="/admin/checklists" element={<AdminChecklists />} />
+          <Route path="/admin/checklists/new-template" element={<ChecklistTemplate />} />
+          <Route path="/admin/checklists/template/:templateId" element={<ChecklistTemplate />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/notification-preferences" element={<NotificationPreferences />} />
               <Route path="/subscription" element={<SubscriptionSettings />} />

@@ -242,7 +242,7 @@ const IdentityRights = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => navigate(`/certificate/${identityAssets[0].id}`)}
+                    onClick={() => navigate(`/certificate/identity/${identityAssets[0].id}`)}
                   >
                     <Shield className="h-4 w-4 mr-2" />
                     View Certificate
@@ -358,14 +358,14 @@ const IdentityRights = () => {
                     </div>
                   </CardHeader>
                   <CardContent className="pt-4 space-y-3">
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => navigate(`/certificate/${asset.id}`)}
-                    >
-                      <Shield className="h-4 w-4 mr-2" />
-                      View Certificate
-                    </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => navigate(`/certificate/identity/${asset.id}`)}
+                  >
+                    <Shield className="h-4 w-4 mr-2" />
+                    View Certificate
+                  </Button>
                     {asset.cert_explorer_url && (
                       <Button
                         variant="outline"
