@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { FolderSidebar } from "@/components/media/FolderSidebar";
 import { MediaVaultCard, MediaType } from "@/components/media/MediaVaultCard";
+import { UploadMediaDialog } from "@/components/media/UploadMediaDialog";
 import { Upload, Search } from "lucide-react";
 import { toast } from "sonner";
 import { ClipsGallery } from "@/components/media/ClipsGallery";
@@ -56,6 +57,7 @@ export default function MediaVault() {
     title: string;
   } | null>(null);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -391,7 +393,7 @@ export default function MediaVault() {
           <div className="p-4 space-y-4">
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-bold">Media Library</h1>
-              <Button size="sm">
+              <Button size="sm" onClick={() => setUploadDialogOpen(true)}>
                 <Upload className="h-4 w-4 mr-2" />
                 Upload
               </Button>
@@ -479,6 +481,16 @@ export default function MediaVault() {
           )}
         </div>
       </div>
+
+      {/* Upload Dialog */}
+      <UploadMediaDialog
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        onUploadComplete={() => {
+          queryClient.invalidateQueries({ queryKey: ["media-files"] });
+        }}
+        folderId={selectedFolderId === "unsorted" ? null : selectedFolderId}
+      />
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
