@@ -301,6 +301,29 @@ serve(async (req) => {
 
     console.log('[verify-voice-and-mint] Voice profile marked as verified');
 
+    // Step 7: Log certification event to identity_access_logs
+    const { error: logError } = await supabaseClient
+      .from('identity_access_logs')
+      .insert({
+        identity_asset_id: voiceProfileId, // Using voice_profile_id as identifier
+        action: 'certified',
+        actor_id: user.id,
+        details: {
+          type: 'voice_identity',
+          chain: 'polygon',
+          tx_hash: tx.hash,
+          token_id: tokenId,
+          explorer_url: explorerUrl,
+        },
+      });
+
+    if (logError) {
+      console.error('[verify-voice-and-mint] Activity log error:', logError);
+      // Don't fail - log is optional
+    }
+
+    console.log('[verify-voice-and-mint] Activity logged');
+
     // Return success
     return new Response(
       JSON.stringify({

@@ -9,23 +9,45 @@ import { supabase } from "@/integrations/supabase/client";
 export const IdentityStatusCard = () => {
   const navigate = useNavigate();
 
-  const { data: identityAssets } = useQuery({
+  const { data: identityStatus } = useQuery({
     queryKey: ['identity-assets'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
-      const { data } = await supabase
+      // Face identity from identity_assets
+      const { data: faceAssets } = await supabase
         .from('identity_assets')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .eq('type', 'face_identity');
 
-      return data;
+      // Voice identity from creator_voice_profiles + blockchain certificates
+      const { data: voiceProfile } = await (supabase as any)
+        .from('creator_voice_profiles')
+        .select('id, is_verified')
+        .eq('user_id', user.id)
+        .eq('is_verified', true)
+        .maybeSingle();
+
+      const { data: voiceCert } = await (supabase as any)
+        .from('voice_blockchain_certificates')
+        .select('certification_status')
+        .eq('creator_id', user.id)
+        .eq('certification_status', 'verified')
+        .maybeSingle();
+
+      return {
+        faceAsset: faceAssets?.[0] || null,
+        voiceVerified: !!(voiceProfile && voiceCert),
+      };
     },
   });
 
-  const faceAsset = identityAssets?.find(a => a.type === 'face_identity');
-  const voiceAsset = identityAssets?.find(a => a.type === 'voice_identity');
+  const faceAsset = identityStatus?.faceAsset;
+  const voiceVerified = identityStatus?.voiceVerified;
+
+  const voiceAsset = voiceVerified ? { cert_status: 'minted' } : null;
 
   const getStatusBadge = (asset: any) => {
     if (!asset) return <Badge variant="outline" className="gap-1"><AlertCircle className="h-3 w-3" />Not Setup</Badge>;
