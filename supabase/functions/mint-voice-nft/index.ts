@@ -1,10 +1,26 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { ethers } from "https://esm.sh/ethers@6.7.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Voice Certificate Contract ABI (Deployed on Polygon mainnet)
+const VOICE_CERTIFICATE_ABI = [
+  {
+    "inputs": [
+      { "internalType": "address", "name": "creator", "type": "address" },
+      { "internalType": "string", "name": "voiceHash", "type": "string" },
+      { "internalType": "string", "name": "metadataURI", "type": "string" }
+    ],
+    "name": "mintVoiceCertificate",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+];
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -33,7 +49,22 @@ serve(async (req) => {
       throw new Error('Missing required fields: voiceProfileId, voiceFingerprint');
     }
 
-    console.log('Minting voice NFT for profile:', voiceProfileId);
+    console.log('[mint-voice-nft] Starting certification for profile:', voiceProfileId);
+    console.log('[mint-voice-nft] Voice fingerprint length:', voiceFingerprint?.length);
+
+    // Check environment variables
+    const rpcUrl = Deno.env.get("POLYGON_RPC_URL");
+    const privateKey = Deno.env.get("POLYGON_PRIVATE_KEY");
+    
+    console.log('[mint-voice-nft] Environment check:', {
+      hasRpcUrl: !!rpcUrl,
+      hasPrivateKey: !!privateKey,
+      privateKeyLength: privateKey?.length
+    });
+
+    if (!rpcUrl || !privateKey) {
+      throw new Error("Missing blockchain configuration: POLYGON_RPC_URL or POLYGON_PRIVATE_KEY");
+    }
 
     // Check if certificate already exists
     const { data: existing } = await supabaseClient
@@ -41,14 +72,30 @@ serve(async (req) => {
       .select('id, certification_status')
       .eq('voice_profile_id', voiceProfileId)
       .eq('creator_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (existing && existing.certification_status === 'verified') {
       throw new Error('Voice already certified on-chain');
     }
 
-    // Generate unique token ID from voice fingerprint
-    const tokenId = `voice-${Date.now()}-${voiceFingerprint.substring(0, 8)}`;
+    // Set minting status
+    if (existing) {
+      await supabaseClient
+        .from('voice_blockchain_certificates')
+        .update({ certification_status: 'minting' })
+        .eq('id', existing.id);
+    }
+
+    console.log('[mint-voice-nft] Minting on-chain certificate on Polygon mainnet...');
+
+    // Blockchain integration
+    const contractAddress = "0xB5627bDbA3ab392782E7E542a972013E3e7F37C3";
+    
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const wallet = new ethers.Wallet(privateKey, provider);
+    const contract = new ethers.Contract(contractAddress, VOICE_CERTIFICATE_ABI, wallet);
+
+    console.log('[mint-voice-nft] Wallet address:', wallet.address);
 
     // Prepare NFT metadata
     const nftMetadata = {
@@ -86,76 +133,119 @@ serve(async (req) => {
     const metadataHashHex = metadataHashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     const metadataUri = `ipfs://Qm${metadataHashHex.substring(0, 44)}`;
 
-    console.log('Metadata URI generated:', metadataUri);
+    console.log('[mint-voice-nft] Metadata URI generated:', metadataUri);
 
-    // Simulate blockchain transaction (gasless via Biconomy)
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const txHash = '0x' + Array.from(
-      { length: 64 },
-      () => Math.floor(Math.random() * 16).toString(16)
-    ).join('');
+    // Mint on blockchain
+    try {
+      const tx = await contract.mintVoiceCertificate(
+        wallet.address,
+        voiceFingerprint,
+        metadataUri
+      );
 
-    console.log('NFT minted with transaction hash:', txHash);
+      console.log('[mint-voice-nft] Transaction submitted:', tx.hash);
 
-    // Create or update blockchain certificate
-    const certificateData = {
-      voice_profile_id: voiceProfileId,
-      creator_id: user.id,
-      voice_fingerprint_hash: voiceFingerprint,
-      token_id: tokenId,
-      transaction_hash: txHash,
-      metadata_uri: metadataUri,
-      nft_metadata: nftMetadata,
-      certification_status: 'verified',
-      gas_sponsored: true
-    };
+      const receipt = await tx.wait();
+      console.log('[mint-voice-nft] Transaction confirmed in block:', receipt.blockNumber);
 
-    let certificate;
+      // Generate token ID from timestamp
+      const tokenId = Date.now().toString();
 
-    if (existing) {
-      // Update existing
-      const { data: updated, error: updateError } = await supabaseClient
-        .from('voice_blockchain_certificates')
-        .update(certificateData)
-        .eq('id', existing.id)
-        .select()
-        .single();
+      // Build explorer URL (Polygon mainnet)
+      const explorerUrl = `https://polygonscan.com/tx/${tx.hash}`;
 
-      if (updateError) throw updateError;
-      certificate = updated;
-    } else {
-      // Create new
-      const { data: created, error: createError } = await supabaseClient
-        .from('voice_blockchain_certificates')
-        .insert(certificateData)
-        .select()
-        .single();
+      // Create or update blockchain certificate
+      const certificateData = {
+        voice_profile_id: voiceProfileId,
+        creator_id: user.id,
+        voice_fingerprint_hash: voiceFingerprint,
+        token_id: tokenId,
+        transaction_hash: tx.hash,
+        metadata_uri: metadataUri,
+        nft_metadata: nftMetadata,
+        certification_status: 'verified',
+        gas_sponsored: false,
+        contract_address: contractAddress,
+        cert_explorer_url: explorerUrl
+      };
 
-      if (createError) throw createError;
-      certificate = created;
+      let certificate;
+
+      if (existing) {
+        // Update existing
+        const { data: updated, error: updateError } = await supabaseClient
+          .from('voice_blockchain_certificates')
+          .update(certificateData)
+          .eq('id', existing.id)
+          .select()
+          .single();
+
+        if (updateError) {
+          console.error('[mint-voice-nft] Update error:', updateError);
+          throw updateError;
+        }
+        certificate = updated;
+      } else {
+        // Create new
+        const { data: created, error: createError } = await supabaseClient
+          .from('voice_blockchain_certificates')
+          .insert(certificateData)
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('[mint-voice-nft] Insert error:', createError);
+          throw createError;
+        }
+        certificate = created;
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          certificate,
+          transactionHash: tx.hash,
+          tokenId,
+          metadataUri,
+          explorerUrl
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        }
+      );
+
+    } catch (blockchainError) {
+      console.error('[mint-voice-nft] Blockchain error:', blockchainError);
+      
+      // Update status to failed
+      if (existing) {
+        await supabaseClient
+          .from('voice_blockchain_certificates')
+          .update({ certification_status: 'failed' })
+          .eq('id', existing.id);
+      }
+
+      const errorMsg = blockchainError instanceof Error ? blockchainError.message : 'Unknown blockchain error';
+      throw new Error(`Blockchain minting failed: ${errorMsg}`);
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        certificate,
-        transactionHash: txHash,
-        tokenId,
-        metadataUri,
-        explorerUrl: `https://polygonscan.com/tx/${txHash}`
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200
-      }
-    );
-
   } catch (error) {
-    console.error('Error minting voice NFT:', error);
+    console.error('[mint-voice-nft] Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const errorDetails = error instanceof Error ? {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    } : { error };
+    
+    console.error('[mint-voice-nft] Full error details:', errorDetails);
+    
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ 
+        error: errorMessage,
+        details: errorDetails
+      }),
       {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
