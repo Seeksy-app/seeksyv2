@@ -68,22 +68,22 @@ const VoiceSuccess = () => {
             </div>
 
             {/* Certificate Details */}
-            <Card className="bg-primary/5 border-primary/20 p-6 text-left">
+            <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 p-6 text-left shadow-sm">
               <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">VoiceHash:</span>
+                <div className="flex justify-between items-center gap-4">
+                  <span className="text-muted-foreground font-medium">VoiceHash:</span>
                   <span className="font-mono text-xs">{transactionHash?.slice(0, 16)}...</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Transaction:</span>
+                <div className="flex justify-between items-center gap-4">
+                  <span className="text-muted-foreground font-medium">Transaction:</span>
                   <span className="font-mono text-xs">{transactionHash?.slice(0, 10)}...{transactionHash?.slice(-8)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Token ID:</span>
+                <div className="flex justify-between items-center gap-4">
+                  <span className="text-muted-foreground font-medium">Token ID:</span>
                   <span className="font-mono">{tokenId}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Network:</span>
+                <div className="flex justify-between items-center gap-4">
+                  <span className="text-muted-foreground font-medium">Network:</span>
                   <span className="font-medium">Polygon</span>
                 </div>
               </div>
