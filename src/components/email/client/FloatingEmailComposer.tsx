@@ -349,35 +349,37 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
         </div>
 
         {/* To */}
-        <div className="flex items-center gap-2">
-          <Label className="w-16 text-sm text-muted-foreground">To</Label>
-          <ContactAutocomplete
-            value={to}
-            onChange={setTo}
-            placeholder="Recipients (comma-separated)"
-            className="flex-1"
-          />
-          <div className="flex gap-1">
-            {!showCc && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowCc(true)}
-                className="text-xs"
-              >
-                Cc
-              </Button>
-            )}
-            {!showBcc && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowBcc(true)}
-                className="text-xs"
-              >
-                Bcc
-              </Button>
-            )}
+        <div className="flex items-start gap-2">
+          <Label className="w-16 text-sm text-muted-foreground pt-2">To</Label>
+          <div className="flex-1 flex flex-col gap-2">
+            <ContactAutocomplete
+              value={to}
+              onChange={setTo}
+              placeholder="Add recipients (separate with commas for multiple)"
+              className="w-full min-h-[40px]"
+            />
+            <div className="flex gap-1">
+              {!showCc && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowCc(true)}
+                  className="text-xs h-6"
+                >
+                  Cc
+                </Button>
+              )}
+              {!showBcc && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowBcc(true)}
+                  className="text-xs h-6"
+                >
+                  Bcc
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -430,41 +432,41 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
       </div>
 
       {/* Footer */}
-      <div className="border-t p-4 flex items-center justify-between bg-muted/30">
-        <div className="flex items-center gap-3">
-          <div className="flex gap-2">
-            <Button
-              onClick={() => sendEmailMutation.mutate()}
-              disabled={!to || !subject || !body || sendEmailMutation.isPending}
-              size="sm"
-            >
-              <Send className="h-3.5 w-3.5 mr-1.5" />
-              Send
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => saveDraftMutation.mutate()}
-              disabled={saveDraftMutation.isPending}
-              size="sm"
-            >
-              <Save className="h-3.5 w-3.5 mr-1.5" />
-              Save Draft
-            </Button>
-          </div>
+      <div className="border-t p-4 bg-muted/30">
+        <div className="flex items-center gap-3 mb-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-primary font-semibold"
+          >
+            <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+            Use Scribe ✨
+          </Button>
           {saveStatus !== "idle" && (
             <span className="text-xs text-muted-foreground">
               {saveStatus === "saving" ? "Saving..." : "✓ Saved"}
             </span>
           )}
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-primary"
-        >
-          <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-          Use Scribe ✨
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => sendEmailMutation.mutate()}
+            disabled={!to || !subject || !body || sendEmailMutation.isPending}
+            size="sm"
+          >
+            <Send className="h-3.5 w-3.5 mr-1.5" />
+            Send
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => saveDraftMutation.mutate()}
+            disabled={saveDraftMutation.isPending}
+            size="sm"
+          >
+            <Save className="h-3.5 w-3.5 mr-1.5" />
+            Save Draft
+          </Button>
+        </div>
       </div>
     </div>
   );
