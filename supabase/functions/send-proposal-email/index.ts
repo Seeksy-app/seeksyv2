@@ -169,6 +169,43 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Email sent successfully:", emailResponse);
 
+    // Log to email_events table for unified tracking
+    const authHeader = req.headers.get("Authorization");
+    if (authHeader) {
+      const supabaseClient = createClient(
+        supabaseUrl,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader } } }
+      );
+
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      
+      if (user) {
+        // Find contact by email
+        const { data: contact } = await supabase
+          .from("contacts")
+          .select("id")
+          .eq("email", recipientEmail)
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        // Insert email.sent event
+        await supabase.from("email_events").insert({
+          event_type: "email.sent",
+          to_email: recipientEmail,
+          from_email: Deno.env.get("SENDER_EMAIL_HELLO") || "hello@seeksy.io",
+          email_subject: `Proposal: ${proposal.title} - ${proposal.proposal_number}`,
+          contact_id: contact?.id || null,
+          campaign_id: null,
+          user_id: user.id,
+          resend_email_id: emailResponse.data?.id || null,
+          occurred_at: new Date().toISOString(),
+        });
+
+        console.log("✅ Proposal email logged to email_events");
+      }
+    }
+
     return new Response(
       JSON.stringify({ success: true, data: emailResponse }),
       {
