@@ -15,7 +15,6 @@ export const HolidayCreatorBanner = ({ firstName = "Creator" }: HolidayCreatorBa
     <Card className="p-6 mb-6 bg-gradient-to-r from-red-600/20 via-green-600/20 to-red-600/20 border-2 border-red-500/30 relative overflow-hidden">
       {/* Decorative snowflakes */}
       <div className="absolute top-2 right-2 text-white/20 text-4xl">❄️</div>
-      <div className="absolute bottom-2 left-2 text-white/20 text-3xl">🎄</div>
       
       <div className="relative z-10">
         <div className="flex items-center gap-2 mb-3">
@@ -49,7 +48,7 @@ export const HolidayCreatorBanner = ({ firstName = "Creator" }: HolidayCreatorBa
           </Button>
         </div>
         
-        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-black/20 backdrop-blur-sm p-3 rounded-lg">
+        <div className="flex items-center gap-2 text-sm text-foreground bg-gradient-to-r from-white/60 to-white/40 p-3 rounded-lg">
           <Sparkles className="h-4 w-4 text-yellow-500" />
           <span>
             <strong>Not sure where to start?</strong> Ask Spark to build a holiday content plan for your next 3 weeks.
