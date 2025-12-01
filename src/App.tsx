@@ -116,6 +116,7 @@ import AdvertiserPricing from "./pages/AdvertiserPricing";
 import VoiceProtection from "./pages/VoiceProtection";
 import VoiceCredentials from "./pages/VoiceCredentialsSimple";
 import VoiceCredentialsAdmin from "./pages/admin/VoiceCredentialsAdmin";
+import StudioRecordingNew from "./pages/studio/StudioRecordingNew";
 import VoiceCertificationPage from "./pages/admin/VoiceCertificationPage";
 import VoiceNFTCertificatesPage from "./pages/admin/VoiceNFTCertificatesPage";
 import PublicLandingPage from "./pages/PublicLandingPage";
@@ -509,7 +510,7 @@ const AppContent = () => {
               {/* New Flagship Studio */}
               <Route path="/studio" element={<StudioLayout />}>
                 <Route index element={<StudioHome />} />
-                <Route path="recording/new" element={<StudioRecording />} />
+                <Route path="recording/new" element={<StudioRecordingNew />} />
                 <Route path="post-session/:sessionId" element={<StudioPostSession />} />
               </Route>
               
