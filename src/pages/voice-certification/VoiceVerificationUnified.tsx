@@ -434,20 +434,26 @@ const VoiceVerificationUnified = () => {
     
     console.log('[VoiceVerification] Starting verification flow');
     
-    // Simulate progress during minting with smooth increments
+    // More realistic progress that aligns with actual minting time
+    // Progress moves very slowly and stays below 95% during blockchain minting
     const progressInterval = setInterval(() => {
       setMintProgress(prev => {
-        if (prev >= 95) {
-          // Slow down near completion
-          return Math.min(prev + 1, 98);
-        }
         if (prev >= 90) {
-          // Gradual progress while waiting for backend
-          return prev + 2;
+          // Stay between 90-94% during actual blockchain minting (very slow)
+          return Math.min(prev + 0.3, 94);
         }
-        return prev + 10;
+        if (prev >= 70) {
+          // Slow down significantly as we approach minting phase
+          return prev + 1.5;
+        }
+        if (prev >= 40) {
+          // Moderate speed in middle phase
+          return prev + 3;
+        }
+        // Start fast then slow down
+        return prev + 6;
       });
-    }, 500);
+    }, 600); // Slower interval (600ms instead of 500ms)
     
     try {
       // Convert blob to base64
@@ -476,9 +482,8 @@ const VoiceVerificationUnified = () => {
           console.log('[VoiceVerification] Edge function response received');
           clearInterval(progressInterval);
           
-          // Smooth transition to 100%
-          setMintProgress(98);
-          setTimeout(() => setMintProgress(100), 200);
+          // Keep progress at current level - don't jump up yet
+          // Let it naturally reach 94% while blockchain mints
 
           if (invokeError) {
             console.error('[VoiceVerification] Invoke error:', invokeError);
@@ -505,6 +510,11 @@ const VoiceVerificationUnified = () => {
               tokenId: successResponse.certificate.token_id,
               txHash: successResponse.certificate.tx_hash
             });
+            
+            // Animate to 100% now that minting is actually complete
+            setMintProgress(95);
+            setTimeout(() => setMintProgress(98), 200);
+            setTimeout(() => setMintProgress(100), 500);
             
             // Show success toast immediately
             toast.success("Voice verified!", {
@@ -559,7 +569,7 @@ const VoiceVerificationUnified = () => {
             
             console.log('[VoiceVerification] Waiting 2 seconds for DB commit...');
             
-            // Wait for DB to fully commit, then force refetch
+            // Wait for DB to fully commit, then force refetch ALL identity-related queries
             setTimeout(async () => {
               try {
                 console.log('[VoiceVerification] Force refetching identity queries...');
@@ -567,6 +577,11 @@ const VoiceVerificationUnified = () => {
                   queryClient.refetchQueries({ queryKey: ['identity-status'], type: 'all' }),
                   queryClient.refetchQueries({ queryKey: ['voice-identity-status'], type: 'all' }),
                   queryClient.refetchQueries({ queryKey: ['identity-assets'], type: 'all' }),
+                  queryClient.refetchQueries({ queryKey: ['identity-verification-status'], type: 'all' }),
+                  queryClient.invalidateQueries({ queryKey: ['identity-status'] }),
+                  queryClient.invalidateQueries({ queryKey: ['voice-identity-status'] }),
+                  queryClient.invalidateQueries({ queryKey: ['identity-assets'] }),
+                  queryClient.invalidateQueries({ queryKey: ['identity-verification-status'] }),
                 ]);
                 console.log('[VoiceVerification] ✓ Identity queries refetched');
               } catch (refetchError) {
