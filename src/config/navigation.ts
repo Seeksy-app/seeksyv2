@@ -103,17 +103,304 @@ export const NAVIGATION_CONFIG: {
           "roles": ["admin", "super_admin"]
         },
         {
-          "id": "admin_users",
-          "label": "Users & Roles",
-          "icon": "users",
-          "path": "/admin/users",
+          "id": "admin_settings",
+          "label": "Global Settings",
+          "icon": "settings",
+          "path": "/admin/settings",
           "roles": ["admin", "super_admin"]
         },
         {
-          "id": "admin_analytics",
-          "label": "Analytics",
-          "icon": "bar-chart",
-          "path": "/admin/analytics",
+          "id": "admin_system_status",
+          "label": "System Status",
+          "icon": "activity",
+          "path": "/admin/system-status",
+          "roles": ["admin", "super_admin"]
+        }
+      ]
+    },
+
+    {
+      "group": "Content Management",
+      "description": "Website and content administration",
+      "items": [
+        {
+          "id": "admin_logo_manager",
+          "label": "Logo Manager",
+          "icon": "image",
+          "path": "/admin/logo-manager",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_hero_manager",
+          "label": "Hero Manager",
+          "icon": "layout",
+          "path": "/admin/hero-manager",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_hero_generator",
+          "label": "Hero Generator",
+          "icon": "wand-2",
+          "path": "/admin/hero-generator",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_mascot_generator",
+          "label": "Mascot Generator",
+          "icon": "sparkles",
+          "path": "/admin/mascot-generator",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_brand_settings",
+          "label": "Brand Settings",
+          "icon": "palette",
+          "path": "/admin/brand-settings",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_master_blog",
+          "label": "Master Blog",
+          "icon": "book-open",
+          "path": "/admin/master-blog",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_landing_pages",
+          "label": "Landing Pages",
+          "icon": "file-text",
+          "path": "/admin/landing-pages",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_email_templates",
+          "label": "Email Templates",
+          "icon": "mail",
+          "path": "/admin/email-templates",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_legal",
+          "label": "Legal Pages",
+          "icon": "scale",
+          "path": "/admin/legal",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_screenshot_generator",
+          "label": "Screenshot Generator",
+          "icon": "camera",
+          "path": "/admin/screenshot-generator",
+          "roles": ["admin", "super_admin"]
+        }
+      ]
+    },
+
+    {
+      "group": "User Management",
+      "description": "Manage users and creators",
+      "items": [
+        {
+          "id": "admin_creators",
+          "label": "Creators",
+          "icon": "users",
+          "path": "/admin/creators",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_advertisers",
+          "label": "Advertisers",
+          "icon": "megaphone",
+          "path": "/admin/advertisers",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_impersonate",
+          "label": "Impersonate User",
+          "icon": "user-cog",
+          "path": "/admin/impersonate",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_credits",
+          "label": "Credit Management",
+          "icon": "coins",
+          "path": "/admin/credits",
+          "roles": ["admin", "super_admin"]
+        }
+      ]
+    },
+
+    {
+      "group": "Identity & Certification",
+      "description": "Voice and identity verification",
+      "items": [
+        {
+          "id": "admin_identity",
+          "label": "Identity Dashboard",
+          "icon": "fingerprint",
+          "path": "/admin/identity",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_certification",
+          "label": "Certification Console",
+          "icon": "shield-check",
+          "path": "/admin/certification",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_voice_credentials",
+          "label": "Voice Credentials",
+          "icon": "mic",
+          "path": "/admin/voice-credentials",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_voice_tag",
+          "label": "Voice Tag",
+          "icon": "tag",
+          "path": "/admin/voice-tag",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_voice_certification",
+          "label": "Voice Certification",
+          "icon": "award",
+          "path": "/admin/voice-certification",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_voice_nft",
+          "label": "Voice NFT Certificates",
+          "icon": "hexagon",
+          "path": "/admin/voice-nft-certificates",
+          "roles": ["admin", "super_admin"]
+        }
+      ]
+    },
+
+    {
+      "group": "Advertising & Revenue",
+      "description": "Manage advertising and monetization",
+      "items": [
+        {
+          "id": "admin_advertising",
+          "label": "Advertising Management",
+          "icon": "megaphone",
+          "path": "/admin/advertising",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_rate_desk",
+          "label": "Rate Desk",
+          "icon": "dollar-sign",
+          "path": "/admin/advertising/rate-desk",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_ad_campaigns",
+          "label": "Ad Campaigns",
+          "icon": "radio",
+          "path": "/admin/ad-campaigns",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_ad_analytics",
+          "label": "Ad Analytics",
+          "icon": "trending-up",
+          "path": "/admin/ad-analytics",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_revenue_reports",
+          "label": "Revenue Reports",
+          "icon": "file-bar-chart",
+          "path": "/admin/revenue-reports",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_financial_models",
+          "label": "Financial Models",
+          "icon": "calculator",
+          "path": "/admin/financial-models/combined",
+          "roles": ["admin", "super_admin"]
+        }
+      ]
+    },
+
+    {
+      "group": "Business Operations",
+      "description": "Sales, support, and business tools",
+      "items": [
+        {
+          "id": "admin_support",
+          "label": "Support Desk",
+          "icon": "headphones",
+          "path": "/admin/support",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_sales",
+          "label": "Sales Leads",
+          "icon": "target",
+          "path": "/admin/sales",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_billing",
+          "label": "Billing",
+          "icon": "credit-card",
+          "path": "/admin/billing",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_payments",
+          "label": "Payments",
+          "icon": "banknote",
+          "path": "/admin/payments",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_investor_spreadsheets",
+          "label": "Investor Spreadsheets",
+          "icon": "file-spreadsheet",
+          "path": "/admin/investor-spreadsheets",
+          "roles": ["admin", "super_admin"]
+        }
+      ]
+    },
+
+    {
+      "group": "Developer Tools",
+      "description": "Technical administration and AI tools",
+      "items": [
+        {
+          "id": "admin_architecture",
+          "label": "Architecture",
+          "icon": "network",
+          "path": "/admin/architecture",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_keys_vault",
+          "label": "Keys Vault",
+          "icon": "key",
+          "path": "/admin/keys-vault",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_personas",
+          "label": "AI Personas",
+          "icon": "bot",
+          "path": "/admin/personas",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_conversational_demo",
+          "label": "Conversational Demo",
+          "icon": "message-circle",
+          "path": "/admin/conversational-demo",
           "roles": ["admin", "super_admin"]
         }
       ]
