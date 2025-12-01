@@ -72,7 +72,7 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
 
     const timer = setTimeout(() => {
       if (to || subject || body) {
-        saveDraftMutation.mutate();
+        autoSaveDraftMutation.mutate();
       }
     }, 3000);
 
@@ -139,6 +139,53 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
     },
   });
 
+  // Auto-save mutation (silent, doesn't close composer)
+  const autoSaveDraftMutation = useMutation({
+    mutationFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const draftData = { fromAccountId, to, cc, bcc };
+
+      if (draftId) {
+        const { error } = await supabase
+          .from("email_campaigns")
+          .update({
+            subject,
+            html_content: body,
+            draft_data: draftData,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", draftId);
+        
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("email_campaigns")
+          .insert({
+            campaign_name: subject || "Untitled Draft",
+            subject,
+            html_content: body,
+            draft_data: draftData,
+            is_draft: true,
+            draft_status: "draft",
+            user_id: user.id,
+            from_email_account_id: fromAccountId || null,
+          });
+        
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      // Silent save - no toast, no close
+      queryClient.invalidateQueries({ queryKey: ["email-events"] });
+    },
+    onError: () => {
+      // Silent failure for auto-save
+    },
+  });
+
+  // Manual save mutation (shows toast, closes composer)
   const saveDraftMutation = useMutation({
     mutationFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
