@@ -1,6 +1,39 @@
+import { useState, useEffect } from "react";
 import sparkGarland from "@/assets/spark-garland.png";
+import { removeBackground, loadImage } from "@/utils/removeBackground";
 
 export const FloatingSparkButton = () => {
+  const [transparentSpark, setTransparentSpark] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(true);
+
+  useEffect(() => {
+    const processImage = async () => {
+      try {
+        // Load the original image
+        const response = await fetch(sparkGarland);
+        const blob = await response.blob();
+        const img = await loadImage(blob);
+        
+        // Remove background
+        const transparentBlob = await removeBackground(img);
+        const url = URL.createObjectURL(transparentBlob);
+        setTransparentSpark(url);
+        setIsProcessing(false);
+      } catch (error) {
+        console.error('Failed to remove background:', error);
+        // Fallback to original image
+        setTransparentSpark(sparkGarland);
+        setIsProcessing(false);
+      }
+    };
+
+    processImage();
+  }, []);
+
+  if (isProcessing || !transparentSpark) {
+    return null; // Hide while processing
+  }
+
   return (
     <div
       id="seeksy-chat-trigger"
@@ -17,7 +50,7 @@ export const FloatingSparkButton = () => {
       }}
     >
       <img 
-        src={sparkGarland} 
+        src={transparentSpark} 
         alt="Spark assistant" 
         className="block"
         style={{ 

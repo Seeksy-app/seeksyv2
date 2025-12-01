@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -17,6 +17,13 @@ export function AskSparkDock() {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
 
+  // Listen for Spark button clicks
+  useEffect(() => {
+    const handleOpenChat = () => setOpen(true);
+    window.addEventListener('openSparkChat', handleOpenChat);
+    return () => window.removeEventListener('openSparkChat', handleOpenChat);
+  }, []);
+
   const handleSend = () => {
     if (!message.trim()) return;
     
@@ -30,17 +37,6 @@ export function AskSparkDock() {
 
   return (
     <>
-      {/* Dock Button */}
-      <div className="fixed bottom-6 right-6 z-40">
-        <Button
-          onClick={() => setOpen(true)}
-          size="lg"
-          className="rounded-full h-14 w-14 shadow-2xl hover:scale-105 transition-transform"
-        >
-          <Sparkles className="h-6 w-6" />
-        </Button>
-      </div>
-
       {/* Slide-over Panel */}
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="right" className="w-[400px] sm:w-[540px] p-0 flex flex-col">
