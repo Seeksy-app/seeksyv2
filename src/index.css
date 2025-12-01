@@ -63,6 +63,13 @@ body {
     --brand-dark-red: 358 70% 44%;
     --brand-red: 358 85% 52%;
 
+    /* Midnight Blue Sidebar Theme */
+    --sidebar-bg: 214 67% 13%;
+    --sidebar-hover: 0 0% 100% / 0.08;
+    --sidebar-active: 0 0% 100% / 0.12;
+    --sidebar-accent: 214 100% 65%;
+    --sidebar-text: 0 0% 100%;
+
     --radius: 0.75rem;
     
     --shadow-soft: 0 8px 30px -4px hsl(0 0% 0% / 0.6);
@@ -119,6 +126,13 @@ body {
     --brand-navy: 208 93% 24%;
     --brand-dark-red: 358 70% 44%;
     --brand-red: 358 85% 52%;
+
+    /* Midnight Blue Sidebar Theme (dark mode) */
+    --sidebar-bg: 214 67% 13%;
+    --sidebar-hover: 0 0% 100% / 0.08;
+    --sidebar-active: 0 0% 100% / 0.12;
+    --sidebar-accent: 214 100% 65%;
+    --sidebar-text: 0 0% 100%;
 
     --shadow-soft: 0 4px 20px -2px hsl(207 100% 35% / 0.25);
     --shadow-glow: 0 0 40px hsl(207 100% 55% / 0.4);

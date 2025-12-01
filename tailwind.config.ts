@@ -69,6 +69,13 @@ export default {
           darkRed: "hsl(var(--brand-dark-red))",
           red: "hsl(var(--brand-red))",
         },
+        sidebar: {
+          bg: "hsl(var(--sidebar-bg))",
+          hover: "hsl(var(--sidebar-hover))",
+          active: "hsl(var(--sidebar-active))",
+          accent: "hsl(var(--sidebar-accent))",
+          text: "hsl(var(--sidebar-text))",
+        },
       },
       backgroundImage: {
         "gradient-warm": "var(--gradient-warm)",
