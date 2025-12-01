@@ -63,6 +63,9 @@ import {
   Inbox,
   Video,
   Coins,
+  Calendar,
+  Send,
+  Zap,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -95,6 +98,7 @@ const ICON_MAP: Record<string, any> = {
   user: UserIcon,
   settings: Settings,
   apps: Grid3x3,
+  'grid-3x3': Grid3x3,
   contacts: Users,
   history: History,
   form: FileText,
@@ -152,6 +156,10 @@ const ICON_MAP: Record<string, any> = {
   users: Users,
   coins: Coins,
   mail: FileText,
+  'file-text': FileText,
+  calendar: Calendar,
+  send: Send,
+  zap: Zap,
 };
 
 export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
@@ -159,8 +167,10 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   
-  // Track which groups are open (default: all sections open including My Day OS)
+  // Track which collapsible groups are open
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    "Email": true,
+    "Marketing": true,
     "Admin": true,
     "Content Management": true,
     "User Management": true,
@@ -168,8 +178,6 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
     "Advertising & Revenue": true,
     "Business Operations": true,
     "Developer Tools": true,
-    "My Day OS": true,
-    "Media": true,
   });
 
   const toggleGroup = (groupName: string) => {
@@ -207,6 +215,36 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
 
       <SidebarContent>
         {filteredNavigation.map((group) => {
+          // Main navigation items are not collapsible
+          if (!group.collapsible) {
+            return (
+              <SidebarGroup key={group.group}>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {group.items.map((item) => {
+                      const Icon = ICON_MAP[item.icon] || Grid3x3;
+                      return (
+                        <SidebarMenuItem key={item.id}>
+                          <SidebarMenuButton asChild>
+                            <NavLink
+                              to={item.path}
+                              className="hover:bg-muted/50"
+                              activeClassName="bg-muted text-primary font-medium"
+                            >
+                              <Icon className="h-4 w-4" />
+                              {!collapsed && <span>{item.label}</span>}
+                            </NavLink>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            );
+          }
+
+          // Collapsible sections (Email, Marketing, Admin groups)
           const isOpen = openGroups[group.group] ?? true;
           
           return (
@@ -256,6 +294,26 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
             </Collapsible>
           );
         })}
+
+        {/* Ask Spark at bottom */}
+        <SidebarGroup className="mt-auto">
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink
+                    to="/ask-spark"
+                    className="hover:bg-muted/50"
+                    activeClassName="bg-muted text-primary font-medium"
+                  >
+                    <SparkIcon variant="holiday" size={16} />
+                    {!collapsed && <span>Ask Spark</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
     </Sidebar>
   );

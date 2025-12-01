@@ -19,6 +19,7 @@ export interface NavigationItem {
 export interface NavigationGroup {
   group: string;
   description?: string;
+  collapsible?: boolean;
   items: NavigationItem[];
 }
 
@@ -37,103 +38,136 @@ export const NAVIGATION_CONFIG: {
   ],
   "navigation": [
     {
-      "group": "My Day OS",
-      "description": "Your personalized daily workflow",
+      "group": "Main",
+      "description": "Primary navigation",
       "items": [
-        {
-          "id": "dashboard",
-          "label": "Dashboard",
-          "icon": "layout-dashboard",
-          "path": "/dashboard",
-          "roles": ["creator", "influencer", "agency", "advertiser", "admin"],
-          "description": "Your main dashboard"
-        },
         {
           "id": "my_day",
           "label": "My Day",
           "icon": "sparkles",
           "path": "/my-day",
-          "roles": ["creator", "influencer", "agency", "advertiser", "admin"],
-          "description": "Your personalized daily view"
+          "roles": ["creator", "influencer", "agency", "advertiser", "admin"]
         },
         {
-          "id": "inbox",
-          "label": "Inbox",
-          "icon": "inbox",
-          "path": "/inbox",
-          "roles": ["creator", "influencer", "agency", "advertiser", "admin"],
-          "description": "Unified communications"
+          "id": "dashboard",
+          "label": "Dashboard",
+          "icon": "layout-dashboard",
+          "path": "/dashboard",
+          "roles": ["creator", "influencer", "agency", "advertiser", "admin"]
+        },
+        {
+          "id": "seekies",
+          "label": "Seekies & Tools",
+          "icon": "grid-3x3",
+          "path": "/seekies",
+          "roles": ["creator", "influencer", "agency", "admin"]
         },
         {
           "id": "audience",
           "label": "Contacts & Audience",
           "icon": "users",
-          "path": "/audience",
-          "roles": ["creator", "influencer", "agency", "admin"],
-          "description": "Manage your audience"
+          "path": "/contacts",
+          "roles": ["creator", "influencer", "agency", "admin"]
         },
         {
           "id": "content",
           "label": "Content & Media",
           "icon": "video",
           "path": "/content",
-          "roles": ["creator", "influencer", "agency", "admin"],
-          "description": "All creation tools"
+          "roles": ["creator", "influencer", "agency", "admin"]
         },
         {
           "id": "monetization",
           "label": "Monetization Hub",
           "icon": "dollar-sign",
           "path": "/monetization",
-          "roles": ["creator", "influencer", "agency", "advertiser", "admin"],
-          "description": "Revenue & deals"
+          "roles": ["creator", "influencer", "agency", "advertiser", "admin"]
         },
         {
           "id": "settings",
           "label": "Settings",
           "icon": "settings",
           "path": "/settings",
-          "roles": ["creator", "subscriber", "influencer", "agency", "advertiser", "admin"],
-          "description": "Account settings"
+          "roles": ["creator", "subscriber", "influencer", "agency", "advertiser", "admin"]
         }
       ]
     },
 
     {
-      "group": "Media",
-      "description": "Podcasts and studio tools",
+      "group": "Email",
+      "description": "Email management",
+      "collapsible": true,
       "items": [
         {
-          "id": "podcasts",
-          "label": "Podcasts",
-          "icon": "mic",
-          "path": "/podcasts",
-          "roles": ["creator", "influencer", "agency", "admin"],
-          "description": "Manage your podcasts"
+          "id": "email_inbox",
+          "label": "Inbox",
+          "icon": "inbox",
+          "path": "/email/inbox",
+          "roles": ["creator", "influencer", "agency", "admin"]
         },
         {
-          "id": "studio",
-          "label": "Studio",
-          "icon": "radio",
-          "path": "/studio",
-          "roles": ["creator", "influencer", "agency", "admin"],
-          "description": "Recording studio"
+          "id": "email_scheduled",
+          "label": "Scheduled",
+          "icon": "calendar",
+          "path": "/email/scheduled",
+          "roles": ["creator", "influencer", "agency", "admin"]
         },
         {
-          "id": "media_library",
-          "label": "Media Library",
-          "icon": "folder-open",
-          "path": "/media-library",
-          "roles": ["creator", "influencer", "agency", "admin"],
-          "description": "Your media files"
+          "id": "email_drafts",
+          "label": "Drafts",
+          "icon": "file-text",
+          "path": "/email/drafts",
+          "roles": ["creator", "influencer", "agency", "admin"]
         },
         {
-          "id": "clips",
-          "label": "Clips",
-          "icon": "scissors",
-          "path": "/clips",
-          "roles": ["creator", "influencer", "agency", "admin"],
-          "description": "Video clips"
+          "id": "email_sent",
+          "label": "Sent",
+          "icon": "send",
+          "path": "/email/sent",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        }
+      ]
+    },
+
+    {
+      "group": "Marketing",
+      "description": "Marketing tools",
+      "collapsible": true,
+      "items": [
+        {
+          "id": "marketing_campaigns",
+          "label": "Campaigns",
+          "icon": "megaphone",
+          "path": "/marketing/campaigns",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        },
+        {
+          "id": "marketing_templates",
+          "label": "Templates",
+          "icon": "file-text",
+          "path": "/marketing/templates",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        },
+        {
+          "id": "marketing_segments",
+          "label": "Segments",
+          "icon": "users",
+          "path": "/marketing/segments",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        },
+        {
+          "id": "marketing_automations",
+          "label": "Automations",
+          "icon": "zap",
+          "path": "/marketing/automations",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        },
+        {
+          "id": "marketing_settings",
+          "label": "Settings",
+          "icon": "settings",
+          "path": "/marketing/settings",
+          "roles": ["creator", "influencer", "agency", "admin"]
         }
       ]
     },
