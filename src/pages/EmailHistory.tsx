@@ -84,16 +84,15 @@ const EmailHistory = () => {
       // Get opened emails from email_events
       const { data: openedEvents, error: eventsError } = await supabase
         .from("email_events")
-        .select("recipient_email, event_type, created_at")
-        .eq("event_type", "email.opened")
-        .eq("user_id", user?.id);
+        .select("to_email, event_type, occurred_at")
+        .eq("event_type", "opened");
 
       // Map opened status to emails
       const emailsWithOpenStatus = (data || []).map(email => ({
         ...email,
         is_opened: openedEvents?.some(event => 
-          event.recipient_email === email.recipient_email &&
-          new Date(event.created_at) >= new Date(email.sent_at)
+          event.to_email === email.recipient_email &&
+          new Date(event.occurred_at) >= new Date(email.sent_at)
         ) || false
       }));
 

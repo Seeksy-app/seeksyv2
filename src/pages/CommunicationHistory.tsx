@@ -77,27 +77,25 @@ const CommunicationHistory = () => {
       // Get email opened events
       const { data: openedEvents } = await supabase
         .from("email_events")
-        .select("recipient_email, event_type, created_at")
-        .eq("event_type", "email.opened")
-        .eq("user_id", user?.id);
+        .select("to_email, event_type, occurred_at")
+        .eq("event_type", "opened");
 
       // Get email link click events
       const { data: clickEvents } = await supabase
         .from("email_events")
-        .select("recipient_email, event_type, created_at")
-        .in("event_type", ["email.link_clicked", "link_clicked"])
-        .eq("user_id", user?.id);
+        .select("to_email, event_type, occurred_at")
+        .eq("event_type", "clicked");
 
       const emailsWithStatus = (emailData || []).map(email => ({
         ...email,
         type: 'email' as const,
         is_opened: openedEvents?.some(event => 
-          event.recipient_email === email.recipient_email &&
-          new Date(event.created_at) >= new Date(email.sent_at)
+          event.to_email === email.recipient_email &&
+          new Date(event.occurred_at) >= new Date(email.sent_at)
         ) || false,
         link_clicked: clickEvents?.some(event => 
-          event.recipient_email === email.recipient_email &&
-          new Date(event.created_at) >= new Date(email.sent_at)
+          event.to_email === email.recipient_email &&
+          new Date(event.occurred_at) >= new Date(email.sent_at)
         ) || false,
       }));
 
