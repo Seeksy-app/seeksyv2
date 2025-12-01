@@ -5537,6 +5537,53 @@ export type Database = {
         }
         Relationships: []
       }
+      email_replies: {
+        Row: {
+          created_at: string | null
+          email_event_id: string
+          from_address: string
+          from_name: string | null
+          gmail_message_id: string
+          id: string
+          received_at: string
+          snippet: string | null
+          subject: string | null
+          thread_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_event_id: string
+          from_address: string
+          from_name?: string | null
+          gmail_message_id: string
+          id?: string
+          received_at: string
+          snippet?: string | null
+          subject?: string | null
+          thread_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email_event_id?: string
+          from_address?: string
+          from_name?: string | null
+          gmail_message_id?: string
+          id?: string
+          received_at?: string
+          snippet?: string | null
+          subject?: string | null
+          thread_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_replies_email_event_id_fkey"
+            columns: ["email_event_id"]
+            isOneToOne: false
+            referencedRelation: "email_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_segments: {
         Row: {
           created_at: string | null

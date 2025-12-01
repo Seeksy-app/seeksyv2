@@ -3,7 +3,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Circle } from "lucide-react";
+import { Circle, Mail } from "lucide-react";
 import { EmailTrackingPills } from "./EmailTrackingPills";
 
 interface Email {
@@ -14,6 +14,7 @@ interface Email {
   created_at: string;
   campaign_name?: string;
   from_email?: string;
+  reply_count?: number;
 }
 
 interface EmailListProps {
@@ -160,6 +161,12 @@ export function EmailList({
                         <span className="text-xs text-muted-foreground truncate">
                           {email.campaign_name}
                         </span>
+                      )}
+                      {email.reply_count !== undefined && email.reply_count > 0 && (
+                        <Badge variant="outline" className="text-xs">
+                          <Mail className="h-3 w-3 mr-1" />
+                          {email.reply_count} {email.reply_count === 1 ? 'reply' : 'replies'}
+                        </Badge>
                       )}
                     </div>
                     

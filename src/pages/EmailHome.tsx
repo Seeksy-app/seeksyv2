@@ -87,6 +87,7 @@ export default function EmailHome() {
           created_at: draft.created_at,
           from_email: "",
           campaign_name: draft.campaign_name,
+          reply_count: 0,
         }));
       }
       
@@ -110,8 +111,30 @@ export default function EmailHome() {
         query = query.eq("event_type", filter);
       }
 
-      const { data } = await query;
-      return data || [];
+      const { data: emailEvents } = await query;
+      
+      // Fetch reply counts for all emails
+      if (emailEvents && emailEvents.length > 0) {
+        const emailIds = emailEvents.map(e => e.id);
+        const { data: replyCounts } = await supabase
+          .from("email_replies")
+          .select("email_event_id")
+          .in("email_event_id", emailIds);
+        
+        // Count replies per email
+        const replyCountMap = (replyCounts || []).reduce((acc: Record<string, number>, reply) => {
+          acc[reply.email_event_id] = (acc[reply.email_event_id] || 0) + 1;
+          return acc;
+        }, {});
+        
+        // Add reply counts to emails
+        return emailEvents.map(email => ({
+          ...email,
+          reply_count: replyCountMap[email.id] || 0,
+        }));
+      }
+      
+      return emailEvents || [];
     },
     enabled: !!user,
   });
