@@ -61,6 +61,9 @@ serve(async (req) => {
       bcc: bccRecipients,
       subject: subject,
       html: htmlContent,
+      headers: {
+        'X-Entity-Ref-ID': user.id, // For tracking
+      },
     });
 
     if (sendError) {
@@ -90,6 +93,11 @@ serve(async (req) => {
         user_id: user.id,
         resend_email_id: emailData?.id,
         occurred_at: new Date().toISOString(),
+        metadata: {
+          message_id: emailData?.id, // Store for reply matching
+          from: fromEmail,
+          subject: subject,
+        },
       });
     }
 

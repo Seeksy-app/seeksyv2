@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { EmailTrackingPills } from "./EmailTrackingPills";
 import { useState } from "react";
 import { EngagementTimelinePanel } from "./EngagementTimelinePanel";
+import { EmailRepliesPanel } from "./EmailRepliesPanel";
 
 interface EmailEvent {
   event_type: string;
@@ -209,6 +210,14 @@ export function EmailViewer({
               )}
             </div>
           </Card>
+        )}
+
+        {/* Replies Panel */}
+        {email.event_type !== "draft" && (
+          <EmailRepliesPanel
+            emailEventId={email.id}
+            userEmail={email.from_email}
+          />
         )}
 
         {/* Email Preview */}
