@@ -5778,6 +5778,7 @@ export type Database = {
           episode_number: number | null
           episode_type: string | null
           file_size_bytes: number | null
+          guid: string | null
           id: string
           is_explicit: boolean | null
           is_published: boolean | null
@@ -5785,6 +5786,7 @@ export type Database = {
           podcast_id: string
           publish_date: string
           season_number: number | null
+          source: string | null
           title: string
           transcript: string | null
           updated_at: string
@@ -5798,6 +5800,7 @@ export type Database = {
           episode_number?: number | null
           episode_type?: string | null
           file_size_bytes?: number | null
+          guid?: string | null
           id?: string
           is_explicit?: boolean | null
           is_published?: boolean | null
@@ -5805,6 +5808,7 @@ export type Database = {
           podcast_id: string
           publish_date?: string
           season_number?: number | null
+          source?: string | null
           title: string
           transcript?: string | null
           updated_at?: string
@@ -5818,6 +5822,7 @@ export type Database = {
           episode_number?: number | null
           episode_type?: string | null
           file_size_bytes?: number | null
+          guid?: string | null
           id?: string
           is_explicit?: boolean | null
           is_published?: boolean | null
@@ -5825,6 +5830,7 @@ export type Database = {
           podcast_id?: string
           publish_date?: string
           season_number?: number | null
+          source?: string | null
           title?: string
           transcript?: string | null
           updated_at?: string

@@ -98,37 +98,53 @@ export default function PodcastDistribution() {
               <TabsTrigger value="directories">Directories</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="overview">
-              <OverviewTab podcastId={selectedPodcast} userId={user.id} />
-            </TabsContent>
+            {activeTab === "overview" && (
+              <TabsContent value="overview">
+                <OverviewTab podcastId={selectedPodcast} userId={user.id} />
+              </TabsContent>
+            )}
 
-            <TabsContent value="episodes">
-              <EpisodesTab podcastId={selectedPodcast} userId={user.id} />
-            </TabsContent>
+            {activeTab === "episodes" && (
+              <TabsContent value="episodes">
+                <EpisodesTab podcastId={selectedPodcast} userId={user.id} />
+              </TabsContent>
+            )}
 
-            <TabsContent value="studio">
-              <PodcastStudioTab podcastId={selectedPodcast} userId={user.id} />
-            </TabsContent>
+            {activeTab === "studio" && (
+              <TabsContent value="studio">
+                <PodcastStudioTab podcastId={selectedPodcast} userId={user.id} />
+              </TabsContent>
+            )}
 
-            <TabsContent value="players">
-              <PlayersTab podcastId={selectedPodcast} />
-            </TabsContent>
+            {activeTab === "players" && (
+              <TabsContent value="players">
+                <PlayersTab podcastId={selectedPodcast} />
+              </TabsContent>
+            )}
 
-            <TabsContent value="website">
-              <WebsiteTab podcastId={selectedPodcast} />
-            </TabsContent>
+            {activeTab === "website" && (
+              <TabsContent value="website">
+                <WebsiteTab podcastId={selectedPodcast} />
+              </TabsContent>
+            )}
 
-            <TabsContent value="monetization">
-              <MonetizationTab podcastId={selectedPodcast} />
-            </TabsContent>
+            {activeTab === "monetization" && (
+              <TabsContent value="monetization">
+                <MonetizationTab podcastId={selectedPodcast} />
+              </TabsContent>
+            )}
 
-            <TabsContent value="stats">
-              <StatsTab podcastId={selectedPodcast} />
-            </TabsContent>
+            {activeTab === "stats" && (
+              <TabsContent value="stats">
+                <StatsTab podcastId={selectedPodcast} />
+              </TabsContent>
+            )}
 
-            <TabsContent value="directories">
-              <DirectoriesTab userId={user.id} />
-            </TabsContent>
+            {activeTab === "directories" && (
+              <TabsContent value="directories">
+                <DirectoriesTab userId={user.id} />
+              </TabsContent>
+            )}
           </Tabs>
         ) : (
           <div className="text-center py-12">
