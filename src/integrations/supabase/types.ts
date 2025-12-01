@@ -3958,6 +3958,8 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          last_clicked_at: string | null
+          last_opened_at: string | null
           lead_source: string | null
           lead_status: string | null
           name: string
@@ -3980,6 +3982,8 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          last_clicked_at?: string | null
+          last_opened_at?: string | null
           lead_source?: string | null
           lead_status?: string | null
           name: string
@@ -4002,6 +4006,8 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          last_clicked_at?: string | null
+          last_opened_at?: string | null
           lead_source?: string | null
           lead_status?: string | null
           name?: string
@@ -5528,6 +5534,42 @@ export type Database = {
           related_id?: string
           reminder_type?: string
           sent_at?: string
+        }
+        Relationships: []
+      }
+      email_segments: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          last_calculated_at: string | null
+          last_calculated_count: number | null
+          name: string
+          rules: Json
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          last_calculated_at?: string | null
+          last_calculated_count?: number | null
+          name: string
+          rules?: Json
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          last_calculated_at?: string | null
+          last_calculated_count?: number | null
+          name?: string
+          rules?: Json
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }

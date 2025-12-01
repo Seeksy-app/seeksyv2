@@ -91,11 +91,39 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Parse the verified body
     const webhookEvent: ResendWebhookEvent = JSON.parse(body);
-    console.log("Received Resend webhook:", webhookEvent.type);
+    console.log("📨 Received Resend webhook:", webhookEvent.type);
+
+    const { type, data, created_at } = webhookEvent;
+    
+    // Extract email data
+    const emailId = data.email_id;
+    const to = data.to?.[0];
+    const from = data.from;
+    const subject = data.subject;
 
     // Extract user_id from tags if present
-    const userId = webhookEvent.data.tags?.find(t => t.name === 'user_id')?.value;
-    const emailType = webhookEvent.data.tags?.find(t => t.name === 'category')?.value;
+    const userId = data.tags?.find((t: any) => t.name === 'user_id')?.value;
+    const campaignId = data.tags?.find((t: any) => t.name === 'campaign_id')?.value;
+
+    // Find the contact by email
+    let contactId = null;
+    if (to) {
+      const { data: contact } = await supabase
+        .from("contacts")
+        .select("id")
+        .eq("email", to)
+        .single();
+      
+      if (contact) {
+        contactId = contact.id;
+      }
+    }
+
+    // Extract device type and other metadata
+    const userAgent = (data as any).user_agent || "";
+    const deviceType = userAgent.match(/Mobile|Android|iPhone/i) ? "mobile" : "desktop";
+    const ipAddress = (data as any).ip || null;
+    const clickedUrl = (data as any).clicked_link?.url || null;
 
     // Map Resend event types to our event types
     const eventTypeMap: Record<string, string> = {
@@ -109,77 +137,101 @@ const handler = async (req: Request): Promise<Response> => {
       'email.unsubscribed': 'unsubscribed',
     };
 
-    const eventType = eventTypeMap[webhookEvent.type];
+    const eventType = eventTypeMap[type];
     
     if (!eventType) {
-      console.log(`Unknown event type: ${webhookEvent.type}`);
+      console.log(`⚠️ Unknown event type: ${type}`);
       return new Response(JSON.stringify({ received: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Find campaign ID from email_id via campaign lookup
-    const campaignIdTag = webhookEvent.data.tags?.find(t => t.name === 'campaign_id')?.value;
-
     // Store event in email_events table
     const eventData: any = {
       event_type: eventType,
-      to_email: webhookEvent.data.to?.[0] || null,
-      from_email: webhookEvent.data.from || null,
-      subject: webhookEvent.data.subject || null,
-      resend_email_id: webhookEvent.data.email_id || null,
+      to_email: to || null,
+      from_email: from || null,
+      email_subject: subject || null,
+      resend_email_id: emailId || null,
+      campaign_id: campaignId || null,
+      contact_id: contactId || null,
+      user_id: userId || null,
+      ip_address: ipAddress,
+      user_agent: userAgent || null,
+      device_type: deviceType,
+      clicked_url: clickedUrl,
+      link_url: clickedUrl,
+      bounce_reason: (data as any).bounce?.type || (data as any).bounce?.message || null,
+      unsubscribe_reason: (data as any).unsubscribe?.reason || null,
+      occurred_at: created_at || new Date().toISOString(),
       raw_payload: webhookEvent,
-      occurred_at: webhookEvent.created_at,
     };
-
-    // Add user_id if available
-    if (userId) {
-      eventData.user_id = userId;
-    }
-
-    // Add campaign_id if available
-    if (campaignIdTag) {
-      eventData.campaign_id = campaignIdTag;
-    }
-
-    // Add click data if it's a click event
-    if (eventType === 'clicked' && webhookEvent.data.clicked_link) {
-      eventData.raw_payload = {
-        ...webhookEvent,
-        click_url: webhookEvent.data.clicked_link.url,
-      };
-    }
 
     const { error: insertError } = await supabase
       .from("email_events")
       .insert(eventData);
 
     if (insertError) {
-      console.error("Error inserting email event:", insertError);
+      console.error("❌ Error inserting email event:", insertError);
       throw insertError;
     }
 
     // Update campaign statistics if campaign_id is present
-    if (campaignIdTag) {
-      const updateField: Record<string, string> = {
-        'sent': 'sent_count',
-        'delivered': 'delivered_count',
-        'opened': 'opened_count',
-        'clicked': 'clicked_count',
-        'bounced': 'bounced_count',
-        'complained': 'complained_count',
-      };
+    if (campaignId) {
+      const statField = {
+        'sent': 'total_sent',
+        'delivered': 'total_delivered',
+        'bounced': 'total_bounced',
+        'opened': 'total_opened',
+        'clicked': 'total_clicked',
+        'complained': 'total_complained',
+      }[eventType];
 
-      const field = updateField[eventType];
-      if (field) {
-        await supabase.rpc('increment_campaign_stat', {
-          p_campaign_id: campaignIdTag,
-          p_field: field,
-        });
+      if (statField) {
+        // Fetch current value and increment
+        const { data: campaign } = await supabase
+          .from("email_campaigns")
+          .select(statField)
+          .eq("id", campaignId)
+          .single();
+
+        if (campaign) {
+          await supabase
+            .from("email_campaigns")
+            .update({ [statField]: ((campaign as any)[statField] || 0) + 1 })
+            .eq("id", campaignId);
+        }
       }
     }
 
-    console.log(`Successfully recorded ${eventType} event for ${webhookEvent.data.to?.[0]}`);
+    // Update contact last_opened_at / last_clicked_at
+    if (contactId) {
+      if (eventType === 'opened') {
+        await supabase
+          .from("contacts")
+          .update({ last_opened_at: new Date().toISOString() })
+          .eq("id", contactId);
+      } else if (eventType === 'clicked') {
+        await supabase
+          .from("contacts")
+          .update({ last_clicked_at: new Date().toISOString() })
+          .eq("id", contactId);
+      }
+    }
+
+    // Handle unsubscribe
+    if (eventType === 'unsubscribed' && contactId) {
+      await supabase
+        .from("contact_preferences")
+        .upsert({
+          contact_id: contactId,
+          global_unsubscribe: true,
+          unsubscribed_at: new Date().toISOString(),
+          unsubscribe_reason: (data as any).unsubscribe?.reason || "User unsubscribed via email",
+        }, { onConflict: 'contact_id' });
+    }
+
+    console.log(`✅ Successfully recorded ${eventType} event for ${to}`);
 
     return new Response(
       JSON.stringify({ received: true }),

@@ -174,3 +174,15 @@ verify_jwt = true
 
 [functions.verify-face]
 verify_jwt = true
+
+[functions.resend-webhook]
+verify_jwt = false
+
+[functions.send-campaign]
+verify_jwt = true
+
+[functions.calculate-segment-count]
+verify_jwt = true
+
+[functions.automation-engine]
+verify_jwt = false
