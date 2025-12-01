@@ -125,11 +125,11 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
         {/* Email Section */}
         {!collapsed && (
-          <SidebarGroup className="mt-1">
+          <SidebarGroup className="mt-2">
             <Collapsible open={emailOpen} onOpenChange={setEmailOpen}>
               <SidebarGroupLabel asChild>
-                <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-hover/50 rounded-lg px-3 py-2 transition-colors text-white">
-                  <span>Email</span>
+                <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-hover/50 rounded-lg px-3 py-1.5 transition-colors" style={{ color: '#FFFFFF' }}>
+                  <span className="font-medium text-xs uppercase tracking-wider">Email</span>
                   {emailOpen ? (
                     <ChevronDown className="h-4 w-4" />
                   ) : (
@@ -169,11 +169,11 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
         {/* Marketing Section */}
         {!collapsed && (
-          <SidebarGroup className="mt-1">
+          <SidebarGroup className="mt-2">
             <Collapsible open={marketingOpen} onOpenChange={setMarketingOpen}>
               <SidebarGroupLabel asChild>
-                <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-hover/50 rounded-lg px-3 py-2 transition-colors text-white">
-                  <span>Marketing</span>
+                <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-hover/50 rounded-lg px-3 py-1.5 transition-colors" style={{ color: '#FFFFFF' }}>
+                  <span className="font-medium text-xs uppercase tracking-wider">Marketing</span>
                   {marketingOpen ? (
                     <ChevronDown className="h-4 w-4" />
                   ) : (
@@ -214,8 +214,8 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         {/* Admin Section */}
         {isAdmin && (
           <>
-            <SidebarGroup className="mt-1">
-              <SidebarGroupLabel className="text-white px-3 py-2">Admin</SidebarGroupLabel>
+            <SidebarGroup className="mt-2">
+              <SidebarGroupLabel className="px-3 py-1.5 font-medium text-xs uppercase tracking-wider" style={{ color: '#FFFFFF' }}>Admin</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {adminNavItems.map((item) => (

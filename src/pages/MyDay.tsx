@@ -20,6 +20,10 @@ import { FloatingEmailComposer } from "@/components/email/client/FloatingEmailCo
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useFaviconManager } from "@/hooks/useFaviconManager";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { TodaysKeyTasks } from "@/components/my-day/TodaysKeyTasks";
+import { EngagementOpportunities } from "@/components/my-day/EngagementOpportunities";
+import { DraftReview } from "@/components/my-day/DraftReview";
+import { UpcomingMeetings } from "@/components/my-day/UpcomingMeetings";
 
 export default function MyDay() {
   const [user, setUser] = useState<any>(null);
@@ -156,7 +160,7 @@ export default function MyDay() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Plus className="h-5 w-5" />
-              Quick Actions
+              Quick Create
             </CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -192,17 +196,13 @@ export default function MyDay() {
           </CardContent>
         </Card>
 
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground text-center py-8">
-              No recent activity to display
-            </p>
-          </CardContent>
-        </Card>
+        {/* Smart Blocks - Spark-Powered */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <TodaysKeyTasks />
+          <EngagementOpportunities />
+          <DraftReview />
+          <UpcomingMeetings />
+        </div>
       </div>
 
       <FloatingEmailComposer 

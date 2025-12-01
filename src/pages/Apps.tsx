@@ -224,18 +224,18 @@ export default function Apps() {
       <div className="max-w-[1600px] mx-auto px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Seekies & Tools</h1>
+          <h1 className="text-3xl font-bold mb-2">Seeksy App Directory</h1>
           <p className="text-muted-foreground">
-            All apps, integrations, and tools available inside Seeksy
+            All internal tools, integrations, and modules—plus future third-party extensions
           </p>
         </div>
 
-        {/* Section A: Your Active Seekies */}
+        {/* Section A: Your Active Modules */}
         <div className="mb-12">
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold mb-2">Your Active Seekies</h2>
+            <h2 className="text-2xl font-semibold mb-2">Your Active Modules</h2>
             <p className="text-muted-foreground">
-              Manage your active Seeksy tools from one central hub
+              Currently enabled apps and tools in your workspace
             </p>
           </div>
 
@@ -282,12 +282,12 @@ export default function Apps() {
           </div>
         </div>
 
-        {/* Section B: All Seekies & Integrations */}
+        {/* Section B: Available Apps & Integrations */}
         <div>
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold mb-2">Explore More Seekies & Tools</h2>
+            <h2 className="text-2xl font-semibold mb-2">Available Apps & Integrations</h2>
             <p className="text-muted-foreground">
-              Enable new apps, integrations, and automations to expand what Seeksy can do
+              Activate new modules and integrations to extend Seeksy's capabilities
             </p>
           </div>
 
