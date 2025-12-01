@@ -36,21 +36,32 @@ export const EmailAccountManager = () => {
   });
 
   const connectGmail = async () => {
-    if (!user) return;
+    console.log("Connect Gmail button clicked");
+    console.log("User:", user);
+    
+    if (!user) {
+      console.error("No user found");
+      toast.error("Please log in to connect Gmail");
+      return;
+    }
     
     setConnecting(true);
     try {
+      console.log("Calling gmail-auth edge function...");
       // Call edge function to get OAuth URL
       const { data, error } = await supabase.functions.invoke('gmail-auth');
+      
+      console.log("Edge function response:", { data, error });
       
       if (error) throw error;
       if (!data?.authUrl) throw new Error('No auth URL returned');
 
+      console.log("Redirecting to:", data.authUrl);
       // Redirect to Google OAuth
       window.location.href = data.authUrl;
     } catch (error) {
       console.error("Failed to initiate Gmail connection:", error);
-      toast.error("Failed to connect Gmail");
+      toast.error("Failed to connect Gmail: " + (error instanceof Error ? error.message : String(error)));
       setConnecting(false);
     }
   };
