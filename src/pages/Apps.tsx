@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mail, FileText, Send, BarChart3, Calendar, Users, Zap, Settings, ArrowRight } from "lucide-react";
+import { Mail, FileText, Send, BarChart3, Calendar, Users, Zap, Settings, ArrowRight, Video, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface AppModule {
@@ -48,37 +48,11 @@ export default function Apps() {
       },
     },
     {
-      id: "campaigns",
-      name: "Campaigns",
-      description: "Create and manage email marketing campaigns",
-      icon: Send,
-      route: "/email-campaigns",
-      iconColor: "text-green-600",
-      bgColor: "bg-green-50 dark:bg-green-950/20",
-      stats: {
-        label: "Active",
-        value: "View all",
-      },
-    },
-    {
-      id: "analytics",
-      name: "Analytics",
-      description: "Track email performance and engagement metrics",
-      icon: BarChart3,
-      route: "/email/analytics",
-      iconColor: "text-orange-600",
-      bgColor: "bg-orange-50 dark:bg-orange-950/20",
-      stats: {
-        label: "Reports",
-        value: "View all",
-      },
-    },
-    {
-      id: "contacts",
-      name: "Contacts",
-      description: "Manage your audience and subscriber lists",
+      id: "audience",
+      name: "Contacts & Audience",
+      description: "Manage your contacts, leads, and subscriber lists",
       icon: Users,
-      route: "/contacts",
+      route: "/audience",
       iconColor: "text-pink-600",
       bgColor: "bg-pink-50 dark:bg-pink-950/20",
       stats: {
@@ -87,41 +61,28 @@ export default function Apps() {
       },
     },
     {
-      id: "automations",
-      name: "Automations",
-      description: "Set up automated email sequences and workflows",
-      icon: Zap,
-      route: "/email-automations",
-      iconColor: "text-yellow-600",
-      bgColor: "bg-yellow-50 dark:bg-yellow-950/20",
+      id: "content",
+      name: "Content & Media",
+      description: "Create, manage, and publish all your content",
+      icon: Video,
+      route: "/content",
+      iconColor: "text-green-600",
+      bgColor: "bg-green-50 dark:bg-green-950/20",
       stats: {
-        label: "Workflows",
+        label: "Library",
         value: "View all",
       },
     },
     {
-      id: "meetings",
-      name: "Meetings",
-      description: "Schedule and manage video meetings with clients",
-      icon: Calendar,
-      route: "/meetings",
-      iconColor: "text-indigo-600",
-      bgColor: "bg-indigo-50 dark:bg-indigo-950/20",
+      id: "monetization",
+      name: "Monetization Hub",
+      description: "Manage revenue streams, campaigns, and earnings",
+      icon: DollarSign,
+      route: "/monetization",
+      iconColor: "text-orange-600",
+      bgColor: "bg-orange-50 dark:bg-orange-950/20",
       stats: {
-        label: "Calendar",
-        value: "View all",
-      },
-    },
-    {
-      id: "settings",
-      name: "Email Settings",
-      description: "Configure email accounts, templates, and preferences",
-      icon: Settings,
-      route: "/email-settings",
-      iconColor: "text-slate-600",
-      bgColor: "bg-slate-50 dark:bg-slate-950/20",
-      stats: {
-        label: "Configure",
+        label: "Revenue",
         value: "View all",
       },
     },
