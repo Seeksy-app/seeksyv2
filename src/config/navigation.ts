@@ -192,6 +192,13 @@ export const NAVIGATION_CONFIG: {
           "icon": "camera",
           "path": "/admin/screenshot-generator",
           "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_background_remover",
+          "label": "Background Remover",
+          "icon": "scissors",
+          "path": "/background-remover",
+          "roles": ["admin", "super_admin"]
         }
       ]
     },
