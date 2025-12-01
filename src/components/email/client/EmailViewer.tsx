@@ -1,13 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Copy, ExternalLink, FileText, Mail, ArrowRight } from "lucide-react";
+import { Copy, ExternalLink, FileText, Mail, ArrowRight, Trash2 } from "lucide-react";
 import { Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EmailTrackingPills } from "./EmailTrackingPills";
 import { useState } from "react";
 import { EngagementTimelinePanel } from "./EngagementTimelinePanel";
 import { EmailRepliesPanel } from "./EmailRepliesPanel";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface EmailEvent {
   event_type: string;
@@ -39,6 +42,7 @@ interface EmailViewerProps {
   onDuplicate?: () => void;
   onViewTemplate?: () => void;
   onViewCampaign?: () => void;
+  onDelete?: () => void;
 }
 
 const getStatusColor = (eventType: string) => {
@@ -72,8 +76,46 @@ export function EmailViewer({
   onDuplicate,
   onViewTemplate,
   onViewCampaign,
+  onDelete,
 }: EmailViewerProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [timelinePanelOpen, setTimelinePanelOpen] = useState(false);
+
+  const isTrashed = email?.event_type === "email.trashed";
+
+  const deleteForeverMutation = useMutation({
+    mutationFn: async () => {
+      if (!email) return;
+      
+      // Permanently delete from database
+      const { error } = await supabase
+        .from("email_events")
+        .delete()
+        .eq("id", email.id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: "Email permanently deleted" });
+      queryClient.invalidateQueries({ queryKey: ["email-events"] });
+      queryClient.invalidateQueries({ queryKey: ["email-counts"] });
+      if (onDelete) onDelete();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to delete email",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteForever = () => {
+    if (confirm("Permanently delete this email? This action cannot be undone.")) {
+      deleteForeverMutation.mutate();
+    }
+  };
 
   if (!email) {
     return (
@@ -91,7 +133,14 @@ export function EmailViewer({
       <div className="p-6 space-y-6">
         {/* Header */}
         <div>
-          <h2 className="text-2xl font-semibold mb-2">{email.email_subject || "(No subject)"}</h2>
+          <div className="flex items-center gap-2 mb-2">
+            <h2 className="text-2xl font-semibold">{email.email_subject || "(No subject)"}</h2>
+            {isTrashed && (
+              <Badge variant="destructive" className="text-xs">
+                Trashed
+              </Badge>
+            )}
+          </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
             <span>To: {email.to_email}</span>
             <span>•</span>
@@ -110,25 +159,39 @@ export function EmailViewer({
 
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={onResend}>
-            <Copy className="h-4 w-4 mr-2" />
-            Resend
-          </Button>
-          <Button variant="outline" size="sm" onClick={onDuplicate}>
-            <Copy className="h-4 w-4 mr-2" />
-            Duplicate
-          </Button>
-          {email.template_name && (
-            <Button variant="outline" size="sm" onClick={onViewTemplate}>
-              <FileText className="h-4 w-4 mr-2" />
-              View Template
+          {isTrashed ? (
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              onClick={handleDeleteForever}
+              disabled={deleteForeverMutation.isPending}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Forever
             </Button>
-          )}
-          {email.campaign_name && (
-            <Button variant="outline" size="sm" onClick={onViewCampaign}>
-              <ExternalLink className="h-4 w-4 mr-2" />
-              View Campaign
-            </Button>
+          ) : (
+            <>
+              <Button variant="outline" size="sm" onClick={onResend}>
+                <Copy className="h-4 w-4 mr-2" />
+                Resend
+              </Button>
+              <Button variant="outline" size="sm" onClick={onDuplicate}>
+                <Copy className="h-4 w-4 mr-2" />
+                Duplicate
+              </Button>
+              {email.template_name && (
+                <Button variant="outline" size="sm" onClick={onViewTemplate}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  View Template
+                </Button>
+              )}
+              {email.campaign_name && (
+                <Button variant="outline" size="sm" onClick={onViewCampaign}>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  View Campaign
+                </Button>
+              )}
+            </>
           )}
         </div>
 

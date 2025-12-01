@@ -55,6 +55,7 @@ const getStatusColor = (eventType: string) => {
 
 const getStatusLabel = (eventType: string) => {
   const normalized = eventType.replace("email.", "");
+  if (normalized === "trashed") return "Trashed";
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 };
 
@@ -205,7 +206,10 @@ export function EmailList({
                     </div>
                     
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge 
+                        variant={email.event_type === "email.trashed" ? "destructive" : "secondary"} 
+                        className="text-xs"
+                      >
                         {getStatusLabel(email.event_type)}
                       </Badge>
                       {email.campaign_name && (

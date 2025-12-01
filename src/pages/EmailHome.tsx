@@ -318,6 +318,10 @@ export default function EmailHome() {
                 window.location.href = `/email-campaigns/${selectedEmail.campaign_id}`;
               }
             }}
+            onDelete={() => {
+              // Clear selection after permanent delete
+              setSelectedEmailId(null);
+            }}
           />
         </ResizablePanel>
       </ResizablePanelGroup>
