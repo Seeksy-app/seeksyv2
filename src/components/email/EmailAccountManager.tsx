@@ -49,9 +49,13 @@ export const EmailAccountManager = () => {
     try {
       console.log("Calling gmail-auth edge function...");
       // Call edge function to get OAuth URL
-      const { data, error } = await supabase.functions.invoke('gmail-auth');
+      const response = await supabase.functions.invoke('gmail-auth');
       
-      console.log("Edge function response:", { data, error });
+      console.log("Full edge function response:", response);
+      console.log("Response data type:", typeof response.data);
+      console.log("Response data:", JSON.stringify(response.data));
+      
+      const { data, error } = response;
       
       if (error) throw error;
       if (!data?.authUrl) throw new Error('No auth URL returned');
