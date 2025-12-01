@@ -82,8 +82,8 @@ export const NAVIGATION_CONFIG: {
       "items": [
         {
           "id": "email_home",
-          "label": "Dashboard",
-          "icon": "home",
+          "label": "Email Home",
+          "icon": "mail",
           "path": "/email",
           "roles": ["creator", "influencer", "agency", "admin"]
         },

@@ -31,6 +31,15 @@ import {
   Layers,
   Code,
   Sparkles,
+  Mail,
+  Layout,
+  Filter,
+  Zap,
+  Shield,
+  Lock,
+  Briefcase,
+  Calendar,
+  Link2,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -74,6 +83,15 @@ const ICON_MAP: Record<string, any> = {
   layers: Layers,
   code: Code,
   sparkles: Sparkles,
+  mail: Mail,
+  layout: Layout,
+  filter: Filter,
+  zap: Zap,
+  shield: Shield,
+  lock: Lock,
+  briefcase: Briefcase,
+  calendar: Calendar,
+  link: Link2,
 };
 
 export function ConfigBasedNavigation() {
