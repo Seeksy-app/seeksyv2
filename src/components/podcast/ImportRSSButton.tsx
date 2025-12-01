@@ -86,7 +86,13 @@ export function ImportRSSButton({ onImportComplete }: ImportRSSButtonProps) {
           description: data.podcast.description || "",
           cover_image_url: data.podcast.imageUrl || null,
           author: data.podcast.author || "",
+          author_email: data.podcast.authorEmail || null,
+          website_url: data.podcast.websiteUrl || null,
+          category: data.podcast.category || null,
+          is_explicit: data.podcast.isExplicit || false,
+          language: data.podcast.language || "en",
           source: "rss",
+          source_url: rssUrl.trim(),
           rss_feed_url: rssUrl.trim(),
         })
         .select()
@@ -94,26 +100,33 @@ export function ImportRSSButton({ onImportComplete }: ImportRSSButtonProps) {
 
       if (podcastError) throw podcastError;
 
-      // Create episodes
+      // Create episodes with upsert to prevent duplicates on re-import
       if (data.episodes && data.episodes.length > 0) {
         const episodeInserts = data.episodes.map((ep: any) => ({
           podcast_id: podcastData.id,
           title: ep.title,
           description: ep.description || "",
           audio_url: ep.audioUrl,
-          published_at: ep.pubDate || new Date().toISOString(),
-          duration_seconds: ep.duration || null,
+          publish_date: ep.pubDate || new Date().toISOString(),
+          duration_seconds: ep.durationSeconds || null,
+          file_size_bytes: ep.fileSizeBytes || null,
+          episode_number: ep.episodeNumber || null,
+          season_number: ep.seasonNumber || null,
           source: "rss",
-          guid: ep.guid,
-          status: "published",
+          guid: ep.guid || null,
+          is_published: true, // RSS episodes are already published
         }));
 
         const { error: episodesError } = await supabase
           .from("episodes")
-          .insert(episodeInserts);
+          .upsert(episodeInserts, { 
+            onConflict: 'guid',
+            ignoreDuplicates: false 
+          });
 
         if (episodesError) {
           console.error("Error inserting episodes:", episodesError);
+          throw episodesError;
         }
       }
 

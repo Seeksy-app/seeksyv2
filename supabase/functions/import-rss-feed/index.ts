@@ -63,17 +63,17 @@ serve(async (req) => {
     }
     const channelContent = channelMatch[1];
 
-    // Parse podcast metadata
+    // Parse podcast metadata (camelCase for frontend)
     const podcast = {
       title: getTagContent(channelContent, "title"),
       description: getTagContent(channelContent, "description"),
       language: getTagContent(channelContent, "language") || "en",
-      author_name: getTagContent(channelContent, "itunes:author"),
-      author_email: getTagContent(channelContent, "itunes:email"),
-      website_url: getTagContent(channelContent, "link"),
+      author: getTagContent(channelContent, "itunes:author"),
+      authorEmail: getTagContent(channelContent, "itunes:email"),
+      websiteUrl: getTagContent(channelContent, "link"),
       category: getTagAttribute(channelContent, "itunes:category", "text"),
-      is_explicit: getTagContent(channelContent, "itunes:explicit").toLowerCase() === "yes",
-      cover_image_url: 
+      isExplicit: getTagContent(channelContent, "itunes:explicit").toLowerCase() === "yes",
+      imageUrl: 
         getTagAttribute(channelContent, "itunes:image", "href") ||
         getTagContent(channelContent, "url"),
     };
@@ -106,14 +106,15 @@ serve(async (req) => {
       return {
         title: getTagContent(itemContent, "title"),
         description: getTagContent(itemContent, "description"),
-        audio_url: audioUrl,
-        file_size_bytes: fileSize,
-        duration_seconds: durationSeconds,
-        publish_date: getTagContent(itemContent, "pubDate"),
-        episode_number: parseInt(getTagContent(itemContent, "itunes:episode")) || null,
-        season_number: parseInt(getTagContent(itemContent, "itunes:season")) || null,
+        audioUrl: audioUrl, // camelCase for frontend
+        fileSizeBytes: fileSize, // camelCase for frontend
+        durationSeconds: durationSeconds, // camelCase for frontend
+        pubDate: getTagContent(itemContent, "pubDate"),
+        episodeNumber: parseInt(getTagContent(itemContent, "itunes:episode")) || null,
+        seasonNumber: parseInt(getTagContent(itemContent, "itunes:season")) || null,
+        guid: getTagContent(itemContent, "guid"), // Extract GUID for duplicate prevention
       };
-    }).filter(ep => ep.audio_url); // Only include episodes with audio
+    }).filter(ep => ep.audioUrl); // Only include episodes with audio
 
     console.log(`Parsed ${episodes.length} episodes`);
 
