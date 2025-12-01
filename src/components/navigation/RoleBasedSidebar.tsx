@@ -77,9 +77,12 @@ import {
   SidebarHeader,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { NAVIGATION_CONFIG, filterNavigationByRoles } from "@/config/navigation";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { SparkIcon } from "@/components/spark/SparkIcon";
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 
 interface RoleBasedSidebarProps {
   user?: User | null;
@@ -153,6 +156,25 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
   const { roles, isLoading } = useUserRoles();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  
+  // Track which groups are open (default: all admin sections open, My Day OS closed)
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    "Admin": true,
+    "Content Management": true,
+    "User Management": true,
+    "Identity & Certification": true,
+    "Advertising & Revenue": true,
+    "Business Operations": true,
+    "Developer Tools": true,
+    "My Day OS": false,
+  });
+
+  const toggleGroup = (groupName: string) => {
+    setOpenGroups(prev => ({
+      ...prev,
+      [groupName]: !prev[groupName]
+    }));
+  };
 
   if (!user || isLoading) {
     return null;
@@ -185,39 +207,63 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
       </SidebarHeader>
 
       <SidebarContent>
-        {filteredNavigation.map((group) => (
-          <SidebarGroup key={group.group}>
-            <SidebarGroupLabel>
-              {group.group}
-              {group.description && !collapsed && (
-                <span className="text-xs text-muted-foreground ml-2">
-                  {group.description}
-                </span>
-              )}
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {group.items.map((item) => {
-                  const Icon = ICON_MAP[item.icon] || Grid3x3;
-                  return (
-                    <SidebarMenuItem key={item.id}>
-                      <SidebarMenuButton asChild>
-                        <NavLink
-                          to={item.path}
-                          className="hover:bg-muted/50"
-                          activeClassName="bg-muted text-primary font-medium"
-                        >
-                          <Icon className="h-4 w-4" />
-                          {!collapsed && <span>{item.label}</span>}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
+        {filteredNavigation.map((group) => {
+          const isOpen = openGroups[group.group] ?? true;
+          
+          return (
+            <Collapsible
+              key={group.group}
+              open={isOpen}
+              onOpenChange={() => toggleGroup(group.group)}
+            >
+              <SidebarGroup>
+                <CollapsibleTrigger asChild>
+                  <SidebarGroupLabel className="cursor-pointer hover:bg-muted/50 rounded-md transition-colors flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span>{group.group}</span>
+                      {group.description && !collapsed && (
+                        <span className="text-xs text-muted-foreground opacity-70">
+                          {group.description}
+                        </span>
+                      )}
+                    </div>
+                    {!collapsed && (
+                      <ChevronDown 
+                        className={`h-4 w-4 transition-transform duration-200 ${
+                          isOpen ? 'rotate-0' : '-rotate-90'
+                        }`} 
+                      />
+                    )}
+                  </SidebarGroupLabel>
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {group.items.map((item) => {
+                        const Icon = ICON_MAP[item.icon] || Grid3x3;
+                        return (
+                          <SidebarMenuItem key={item.id}>
+                            <SidebarMenuButton asChild>
+                              <NavLink
+                                to={item.path}
+                                className="hover:bg-muted/50"
+                                activeClassName="bg-muted text-primary font-medium"
+                              >
+                                <Icon className="h-4 w-4" />
+                                {!collapsed && <span>{item.label}</span>}
+                              </NavLink>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        );
+                      })}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </CollapsibleContent>
+              </SidebarGroup>
+            </Collapsible>
+          );
+        })}
       </SidebarContent>
     </Sidebar>
   );
