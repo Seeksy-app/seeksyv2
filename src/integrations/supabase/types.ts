@@ -9122,6 +9122,8 @@ export type Database = {
           rss_feed_url: string | null
           show_on_profile: boolean | null
           slug: string | null
+          source: string | null
+          source_url: string | null
           title: string
           updated_at: string
           user_id: string
@@ -9147,6 +9149,8 @@ export type Database = {
           rss_feed_url?: string | null
           show_on_profile?: boolean | null
           slug?: string | null
+          source?: string | null
+          source_url?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -9172,6 +9176,8 @@ export type Database = {
           rss_feed_url?: string | null
           show_on_profile?: boolean | null
           slug?: string | null
+          source?: string | null
+          source_url?: string | null
           title?: string
           updated_at?: string
           user_id?: string
