@@ -3,8 +3,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Circle, Mail } from "lucide-react";
+import { Circle, Mail, Trash2 } from "lucide-react";
 import { EmailTrackingPills } from "./EmailTrackingPills";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface Email {
   id: string;
@@ -73,14 +76,52 @@ export function EmailList({
   onOpenTimeline,
   emailEvents = [],
 }: EmailListProps & EmailListActions) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const deleteEmailMutation = useMutation({
+    mutationFn: async (emailId: string) => {
+      const email = emails.find((e: any) => e.id === emailId);
+      
+      if (email?.event_type === "draft") {
+        // Delete from email_campaigns
+        const { error } = await supabase
+          .from("email_campaigns")
+          .delete()
+          .eq("id", emailId);
+        if (error) throw error;
+      } else {
+        // Move to trash by updating status
+        const { error } = await supabase
+          .from("email_events")
+          .update({ event_type: "email.trashed" })
+          .eq("id", emailId);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast({ title: "Email moved to trash" });
+      queryClient.invalidateQueries({ queryKey: ["email-events"] });
+      queryClient.invalidateQueries({ queryKey: ["email-counts"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to delete email",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDelete = (e: React.MouseEvent, emailId: string) => {
+    e.stopPropagation();
+    if (confirm("Move this email to trash?")) {
+      deleteEmailMutation.mutate(emailId);
+    }
+  };
+
   return (
     <div className="h-full border-r flex flex-col">
-      {/* New Email Button */}
-      <div className="p-4 border-b bg-background">
-        <Button onClick={onCompose} className="w-full">
-          ➕ New Email
-        </Button>
-      </div>
       
       {/* Filters and Sorting */}
       <div className="p-4 border-b bg-background">
@@ -128,7 +169,7 @@ export function EmailList({
                 key={email.id}
                 onClick={() => onEmailSelect(email.id)}
                 className={cn(
-                  "w-full p-4 text-left hover:bg-muted/50 transition-colors",
+                  "w-full p-4 text-left hover:bg-muted/50 transition-colors group",
                   selectedEmailId === email.id && "bg-muted"
                 )}
               >
@@ -144,9 +185,19 @@ export function EmailList({
                       <span className="font-medium truncate">
                         {email.to_email}
                       </span>
-                      <Circle
-                        className={cn("h-2 w-2 fill-current flex-shrink-0", getStatusColor(email.event_type))}
-                      />
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => handleDelete(e, email.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
+                        </Button>
+                        <Circle
+                          className={cn("h-2 w-2 fill-current flex-shrink-0", getStatusColor(email.event_type))}
+                        />
+                      </div>
                     </div>
                     
                     <div className="text-sm font-medium text-foreground mb-1 truncate">

@@ -1,9 +1,11 @@
-import { Inbox, Send, Clock, FileText, Archive, AlertCircle, Ban, Bot, UserX, Plus } from "lucide-react";
+import { Inbox, Send, Clock, FileText, Archive, AlertCircle, Ban, Bot, UserX, Plus, Edit3, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface EmailFolderListProps {
   selectedFolder: string;
   onFolderSelect: (folder: string) => void;
+  onCompose: () => void;
   counts: {
     inbox: number;
     sent: number;
@@ -14,6 +16,7 @@ interface EmailFolderListProps {
     suppressed: number;
     automated: number;
     unsubscribed: number;
+    trash: number;
   };
 }
 
@@ -23,18 +26,24 @@ const folders = [
   { id: "scheduled", label: "Scheduled", icon: Clock },
   { id: "drafts", label: "Drafts", icon: FileText },
   { id: "archived", label: "Archived", icon: Archive },
+  { id: "trash", label: "Trash", icon: Trash2 },
   { id: "bounced", label: "Bounced", icon: AlertCircle },
   { id: "suppressed", label: "Suppressed", icon: Ban },
   { id: "automated", label: "Automated Emails", icon: Bot },
   { id: "unsubscribed", label: "Unsubscribed", icon: UserX },
 ];
 
-export function EmailFolderList({ selectedFolder, onFolderSelect, counts }: EmailFolderListProps) {
+export function EmailFolderList({ selectedFolder, onFolderSelect, onCompose, counts }: EmailFolderListProps) {
   return (
     <div className="h-full border-r bg-muted/30 p-4">
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold mb-3">Folders</h2>
-      </div>
+      <Button 
+        onClick={onCompose}
+        className="w-full mb-4"
+        size="sm"
+      >
+        <Edit3 className="h-4 w-4 mr-2" />
+        New Email
+      </Button>
       
       <nav className="space-y-1">
         {folders.map((folder) => {
@@ -73,10 +82,6 @@ export function EmailFolderList({ selectedFolder, onFolderSelect, counts }: Emai
         })}
       </nav>
       
-      <button className="w-full flex items-center gap-2 px-3 py-2 mt-4 rounded-md text-sm border border-dashed border-border hover:bg-muted transition-colors">
-        <Plus className="h-4 w-4" />
-        <span>Create Folder</span>
-      </button>
     </div>
   );
 }

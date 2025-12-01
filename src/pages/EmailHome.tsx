@@ -104,6 +104,11 @@ export default function EmailHome() {
         query = query.eq("event_type", "email.bounced");
       } else if (selectedFolder === "unsubscribed") {
         query = query.eq("event_type", "email.unsubscribed");
+      } else if (selectedFolder === "trash") {
+        query = query.eq("event_type", "email.trashed");
+      } else if (selectedFolder === "inbox") {
+        // Inbox: exclude trash and drafts
+        query = query.not("event_type", "eq", "email.trashed");
       }
 
       // Apply status filter
@@ -163,11 +168,12 @@ export default function EmailHome() {
       if (!user) return null;
 
       const queries = await Promise.all([
-        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).not("event_type", "eq", "email.trashed"),
         supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "email.sent"),
         supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "email.bounced"),
         supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "email.unsubscribed"),
         supabase.from("email_campaigns").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("is_draft", true),
+        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "email.trashed"),
       ]);
 
       return {
@@ -176,6 +182,7 @@ export default function EmailHome() {
         scheduled: 0, // TODO: Implement
         drafts: queries[4].count || 0,
         archived: 0, // TODO: Implement
+        trash: queries[5].count || 0,
         bounced: queries[2].count || 0,
         suppressed: 0, // TODO: Implement
         automated: 0, // TODO: Implement
@@ -227,12 +234,14 @@ export default function EmailHome() {
           <EmailFolderList
             selectedFolder={selectedFolder}
             onFolderSelect={setSelectedFolder}
+            onCompose={() => setComposerOpen(true)}
             counts={counts || {
               inbox: 0,
               sent: 0,
               scheduled: 0,
               drafts: 0,
               archived: 0,
+              trash: 0,
               bounced: 0,
               suppressed: 0,
               automated: 0,
