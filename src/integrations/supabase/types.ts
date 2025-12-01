@@ -5864,6 +5864,65 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_appearances: {
+        Row: {
+          created_at: string | null
+          duration_seconds: number | null
+          embed_url: string | null
+          episode_url: string
+          id: string
+          is_featured: boolean | null
+          landing_page_id: string
+          notes: string | null
+          platform: string
+          published_at: string | null
+          show_name: string
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          duration_seconds?: number | null
+          embed_url?: string | null
+          episode_url: string
+          id?: string
+          is_featured?: boolean | null
+          landing_page_id: string
+          notes?: string | null
+          platform: string
+          published_at?: string | null
+          show_name: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          duration_seconds?: number | null
+          embed_url?: string | null
+          episode_url?: string
+          id?: string
+          is_featured?: boolean | null
+          landing_page_id?: string
+          notes?: string | null
+          platform?: string
+          published_at?: string | null
+          show_name?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_appearances_landing_page_id_fkey"
+            columns: ["landing_page_id"]
+            isOneToOne: false
+            referencedRelation: "landing_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       identity_access_logs: {
         Row: {
           action: string
@@ -6630,6 +6689,148 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      landing_ctas: {
+        Row: {
+          created_at: string | null
+          cta_type: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          label: string
+          landing_page_id: string
+          sort_order: number | null
+          url: string
+        }
+        Insert: {
+          created_at?: string | null
+          cta_type?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          label: string
+          landing_page_id: string
+          sort_order?: number | null
+          url: string
+        }
+        Update: {
+          created_at?: string | null
+          cta_type?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          label?: string
+          landing_page_id?: string
+          sort_order?: number | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "landing_ctas_landing_page_id_fkey"
+            columns: ["landing_page_id"]
+            isOneToOne: false
+            referencedRelation: "landing_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      landing_pages: {
+        Row: {
+          accent_color: string | null
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          hero_variant_id: string | null
+          id: string
+          is_published: boolean | null
+          main_player_url: string | null
+          owner_user_id: string
+          page_type: string
+          primary_color: string | null
+          published_at: string | null
+          slug: string
+          subtitle: string | null
+          theme: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          hero_variant_id?: string | null
+          id?: string
+          is_published?: boolean | null
+          main_player_url?: string | null
+          owner_user_id: string
+          page_type: string
+          primary_color?: string | null
+          published_at?: string | null
+          slug: string
+          subtitle?: string | null
+          theme?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          hero_variant_id?: string | null
+          id?: string
+          is_published?: boolean | null
+          main_player_url?: string | null
+          owner_user_id?: string
+          page_type?: string
+          primary_color?: string | null
+          published_at?: string | null
+          slug?: string
+          subtitle?: string | null
+          theme?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      landing_social_links: {
+        Row: {
+          created_at: string | null
+          id: string
+          label: string | null
+          landing_page_id: string
+          platform: string
+          sort_order: number | null
+          url: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          label?: string | null
+          landing_page_id: string
+          platform: string
+          sort_order?: number | null
+          url: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          label?: string | null
+          landing_page_id?: string
+          platform?: string
+          sort_order?: number | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "landing_social_links_landing_page_id_fkey"
+            columns: ["landing_page_id"]
+            isOneToOne: false
+            referencedRelation: "landing_pages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lead_photos: {
         Row: {
