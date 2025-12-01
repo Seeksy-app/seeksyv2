@@ -21,8 +21,8 @@ serve(async (req) => {
       throw new Error('Missing code or state');
     }
 
-    const clientId = Deno.env.get('GOOGLE_CALENDAR_CLIENT_ID');
-    const clientSecret = Deno.env.get('GOOGLE_CALENDAR_CLIENT_SECRET');
+    const clientId = Deno.env.get('GMAIL_CLIENT_ID');
+    const clientSecret = Deno.env.get('GMAIL_CLIENT_SECRET');
     const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/gmail-callback`;
 
     // Exchange code for tokens
