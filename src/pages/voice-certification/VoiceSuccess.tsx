@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, ExternalLink, ArrowRight } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useQueryClient } from "@tanstack/react-query";
+import { refetchUserIdentity } from "@/lib/identity/refetchIdentity";
 
 const VoiceSuccess = () => {
   const navigate = useNavigate();
@@ -13,11 +14,10 @@ const VoiceSuccess = () => {
   const { voiceHash, tokenId, explorerUrl, transactionHash } = location.state || {};
 
   useEffect(() => {
-    // Force immediate refetch with no cache
+    // Force immediate refetch using centralized utility
     const refetchIdentity = async () => {
       console.log('[VoiceSuccess] Force refetching all identity queries...');
-      await Promise.all([
-        queryClient.refetchQueries({ 
+      await refetchUserIdentity(queryClient);
           queryKey: ['identity-status'], 
           type: 'all',
           exact: true 

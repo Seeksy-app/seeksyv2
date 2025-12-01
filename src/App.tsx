@@ -295,6 +295,7 @@ import VoiceCloningWizard from "./pages/voice-cloning/VoiceCloningWizard";
 import CertificationConsole from "./pages/admin/CertificationConsole";
 import Verified from "./pages/Verified";
 import { IdentityDashboard } from "./components/identity/IdentityDashboard";
+import IdentityHub from "./pages/IdentityHub";
 import IdentityRights from "./pages/IdentityRights";
 import IdentityRightsManagement from "./pages/IdentityRightsManagement";
 import IdentityCertificatePage from "./pages/IdentityCertificatePage";
@@ -633,8 +634,8 @@ const AppContent = () => {
           <Route path="/podcast-revenue" element={<PodcastRevenue />} />
           <Route path="/voice-protection" element={<VoiceProtection />} />
           <Route path="/voice-credentials" element={<MyVoiceIdentity />} />
-          <Route path="/identity" element={<IdentityRights />} />
-          <Route path="/identity/rights" element={<IdentityRightsManagement />} />
+          <Route path="/identity" element={<IdentityHub />} />
+          <Route path="/identity/voice" element={<MyVoiceIdentity />} />
           <Route path="/identity/rights" element={<IdentityRightsManagement />} />
           <Route path="/certificate/identity/:id" element={<IdentityCertificatePage />} />
           <Route path="/creator/:username/identity" element={<PublicCreatorIdentity />} />

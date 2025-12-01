@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { Progress } from "@/components/ui/progress";
+import { refetchUserIdentity } from "@/lib/identity/refetchIdentity";
 import {
   AlertDialog,
   AlertDialogAction,

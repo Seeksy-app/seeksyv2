@@ -34,6 +34,8 @@ import { getVoiceDetectionsForUser } from "@/lib/api/voiceDetectionsAPI";
 import type { VoiceDetection } from "@/lib/api/voiceDetectionsAPI";
 import { hasVoiceFingerprint, hasActiveMonitoring } from "@/lib/voice/voiceMonitoringSetup";
 
+import { IdentityLayout } from "@/components/identity/IdentityLayout";
+
 export default function MyVoiceIdentity() {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -173,9 +175,8 @@ export default function MyVoiceIdentity() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
-      {/* Header */}
-      <div className="mb-8">
+    <IdentityLayout>
+      {/* Overview Cards */}
         <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
           <Shield className="h-8 w-8 text-primary" />
           My Voice Identity
@@ -651,6 +652,6 @@ export default function MyVoiceIdentity() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </IdentityLayout>
   );
 }

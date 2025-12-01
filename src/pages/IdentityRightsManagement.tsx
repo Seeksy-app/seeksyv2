@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useIdentityStatus } from "@/hooks/useIdentityStatus";
 
+import { IdentityLayout } from "@/components/identity/IdentityLayout";
+
 export default function IdentityRightsManagement() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -95,26 +97,7 @@ export default function IdentityRightsManagement() {
   const voicePermissions = (rightsSettings?.voiceAsset?.permissions as any) || {};
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
-              <Lock className="h-8 w-8 text-primary" />
-              Identity Rights Management
-            </h1>
-            <p className="text-muted-foreground">
-              Control how your identity can be used, licensed, and accessed
-            </p>
-          </div>
-          <Button onClick={() => navigate("/identity")} variant="outline">
-            <Shield className="h-4 w-4 mr-2" />
-            Back to Identity Hub
-          </Button>
-        </div>
-      </div>
-
+    <IdentityLayout>
       {/* Seeksy Identity Promise */}
       <Card className="mb-8 border-primary/20 bg-primary/5">
         <CardContent className="pt-6">
@@ -372,6 +355,6 @@ export default function IdentityRightsManagement() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </IdentityLayout>
   );
 }
