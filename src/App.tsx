@@ -72,6 +72,7 @@ import Cookies from "./pages/Cookies";
 import Security from "./pages/Security";
 import AdminLegal from "./pages/AdminLegal";
 import Settings from "./pages/Settings";
+import SettingsBilling from "./pages/SettingsBilling";
 import QRCodes from "./pages/QRCodes";
 import Podcasts from "./pages/Podcasts";
 import CreatePodcast from "./pages/CreatePodcast";
@@ -711,6 +712,7 @@ const AppContent = () => {
           <Route path="/admin/checklists/new-template" element={<ChecklistTemplate />} />
           <Route path="/admin/checklists/template/:templateId" element={<ChecklistTemplate />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/settings/billing" element={<SettingsBilling />} />
               <Route path="/notification-preferences" element={<NotificationPreferences />} />
               <Route path="/subscription" element={<SubscriptionSettings />} />
               <Route path="/credit-info" element={<CreditInfo />} />

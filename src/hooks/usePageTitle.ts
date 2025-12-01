@@ -30,8 +30,8 @@ export const usePageTitle = (pageTitle?: string) => {
   });
 
   useEffect(() => {
-    const title = pageTitle || "Dashboard";
-    const unreadSuffix = unreadCount > 0 ? ` (${unreadCount})` : "";
-    document.title = `${title}${unreadSuffix} — Seeksy`;
+    const title = pageTitle || "My Day";
+    const unreadPrefix = unreadCount > 0 ? `(${unreadCount}) ` : "";
+    document.title = `${unreadPrefix}${title} — Seeksy`;
   }, [pageTitle, unreadCount]);
 };

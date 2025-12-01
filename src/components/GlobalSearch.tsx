@@ -1,26 +1,27 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Mail, Users, Calendar, Video, FileText, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Search, X, Loader2, Hash, Calendar, Users, FileText, Mail, Video, Mic, DollarSign, Settings, Zap } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 interface SearchResult {
   id: string;
-  type: "contact" | "email" | "meeting" | "event" | "clip" | "post" | "page";
+  type: "contact" | "meeting" | "podcast" | "clip" | "module" | "command" | "email";
   title: string;
   subtitle?: string;
   route: string;
+  enabled?: boolean;
 }
 
 const iconMap = {
   contact: Users,
-  email: Mail,
   meeting: Calendar,
-  event: Calendar,
-  clip: Video,
-  post: FileText,
-  page: FileText,
+  podcast: Hash,
+  clip: FileText,
+  email: Mail,
+  module: Zap,
+  command: Zap,
 };
 
 export function GlobalSearch() {
@@ -43,56 +44,144 @@ export function GlobalSearch() {
   }, []);
 
   useEffect(() => {
-    if (query.length < 2) {
-      setResults([]);
-      return;
-    }
+    const searchData = async () => {
+      if (query.trim().length === 0) {
+        setResults([]);
+        return;
+      }
 
-    const searchTimeout = setTimeout(async () => {
       setIsLoading(true);
-      
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+      const lowerQuery = query.toLowerCase();
+      const allResults: SearchResult[] = [];
 
-        const searchPattern = `%${query}%`;
-        const allResults: SearchResult[] = [];
+      try {
+        // Search modules
+        const modules = [
+          { title: "Inbox", route: "/email", keywords: ["email", "inbox", "mail"] },
+          { title: "Contacts & Audience", route: "/audience", keywords: ["contacts", "audience", "people"] },
+          { title: "Content & Media", route: "/content", keywords: ["content", "media", "video", "podcast"] },
+          { title: "Meetings", route: "/meetings", keywords: ["meetings", "calendar", "schedule"] },
+          { title: "Monetization Hub", route: "/monetization", keywords: ["monetization", "ads", "revenue"] },
+          { title: "Settings", route: "/settings", keywords: ["settings", "preferences", "account"] },
+          { title: "Podcast Studio", route: "/studio/podcast", keywords: ["podcast", "studio", "recording"] },
+          { title: "Video Studio", route: "/studio/video", keywords: ["video", "studio", "recording"] },
+          { title: "AI Clips", route: "/clips", keywords: ["clips", "ai", "editing"] },
+          { title: "Media Library", route: "/media/library", keywords: ["media", "library", "files"] },
+          { title: "Email Campaigns", route: "/email-campaigns", keywords: ["campaigns", "email", "marketing"] },
+          { title: "Templates", route: "/email-templates", keywords: ["templates", "email"] },
+          { title: "Segments", route: "/email-segments", keywords: ["segments", "audience"] },
+        ];
+
+        modules.forEach((module) => {
+          if (module.keywords.some(k => k.includes(lowerQuery)) || module.title.toLowerCase().includes(lowerQuery)) {
+            allResults.push({
+              id: module.route,
+              type: "module",
+              title: module.title,
+              subtitle: "Go to module",
+              route: module.route,
+              enabled: true,
+            });
+          }
+        });
+
+        // Search commands
+        const commands = [
+          { title: "Create Email", route: "/email?compose=true", keywords: ["create", "email", "compose", "new"] },
+          { title: "Create Meeting", route: "/meetings?create=true", keywords: ["create", "meeting", "schedule"] },
+          { title: "Upload Media", route: "/content?upload=true", keywords: ["upload", "media", "video"] },
+          { title: "Create Clip", route: "/clips?create=true", keywords: ["create", "clip", "ai"] },
+        ];
+
+        commands.forEach((command) => {
+          if (command.keywords.some(k => k.includes(lowerQuery)) || command.title.toLowerCase().includes(lowerQuery)) {
+            allResults.push({
+              id: command.route,
+              type: "command",
+              title: command.title,
+              subtitle: "Quick action",
+              route: command.route,
+              enabled: true,
+            });
+          }
+        });
 
         // Search contacts
         const { data: contacts } = await supabase
           .from("contacts")
           .select("id, name, email")
-          .eq("user_id", user.id)
-          .ilike("name", searchPattern)
+          .or(`name.ilike.%${query}%,email.ilike.%${query}%`)
           .limit(5);
 
         if (contacts) {
           allResults.push(
-            ...contacts.map((c: any) => ({
+            ...contacts.map((c) => ({
               id: c.id,
               type: "contact" as const,
-              title: c.name || c.email,
+              title: c.name || "Unnamed",
               subtitle: c.email,
-              route: `/audience?id=${c.id}`,
+              route: `/contacts/${c.id}`,
+              enabled: true,
             }))
           );
         }
 
-        // Search meetings  
+        // Search meetings
         const { data: meetings } = await supabase
           .from("meetings")
           .select("id, title")
-          .eq("user_id", user.id)
-          .ilike("title", searchPattern)
+          .ilike("title", `%${query}%`)
           .limit(5);
 
         if (meetings) {
           allResults.push(
-            ...meetings.map((m: any) => ({
+            ...meetings.map((m) => ({
               id: m.id,
               type: "meeting" as const,
               title: m.title,
+              subtitle: "Meeting",
               route: `/meetings/${m.id}`,
+              enabled: true,
+            }))
+          );
+        }
+
+        // Search podcasts
+        const { data: podcasts } = await supabase
+          .from("podcasts")
+          .select("id, title")
+          .ilike("title", `%${query}%`)
+          .limit(5);
+
+        if (podcasts) {
+          allResults.push(
+            ...podcasts.map((p) => ({
+              id: p.id,
+              type: "podcast" as const,
+              title: p.title,
+              subtitle: "Podcast",
+              route: `/podcasts/${p.id}`,
+              enabled: true,
+            }))
+          );
+        }
+
+        // Search clips
+        const { data: clips } = await supabase
+          .from("clips")
+          .select("id, title")
+          .ilike("title", `%${query}%`)
+          .limit(5);
+
+        if (clips) {
+          allResults.push(
+            ...clips.map((c) => ({
+              id: c.id,
+              type: "clip" as const,
+              title: c.title || "Untitled Clip",
+              subtitle: "AI Clip",
+              route: `/clips/${c.id}`,
+              enabled: true,
             }))
           );
         }
@@ -103,12 +192,14 @@ export function GlobalSearch() {
       } finally {
         setIsLoading(false);
       }
-    }, 300);
+    };
 
-    return () => clearTimeout(searchTimeout);
+    const debounceTimer = setTimeout(searchData, 300);
+    return () => clearTimeout(debounceTimer);
   }, [query]);
 
-  const handleResultClick = (route: string) => {
+  const handleResultClick = (route: string, enabled: boolean = true) => {
+    if (!enabled) return;
     navigate(route);
     setIsOpen(false);
     setQuery("");
@@ -126,10 +217,10 @@ export function GlobalSearch() {
     contact: "Contacts",
     email: "Emails",
     meeting: "Meetings",
-    event: "Events",
+    podcast: "Podcasts",
     clip: "Media",
-    post: "Pages",
-    page: "Pages"
+    module: "Modules",
+    command: "Quick Actions",
   };
 
   return (
@@ -163,22 +254,37 @@ export function GlobalSearch() {
                 <div className="space-y-1">
                   {items.slice(0, 3).map((result) => {
                     const Icon = iconMap[result.type];
+                    const enabled = result.enabled !== false;
                     return (
                       <button
                         key={`${result.type}-${result.id}`}
-                        onClick={() => handleResultClick(result.route)}
-                        className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-primary/8 transition-colors text-left group"
+                        onClick={() => handleResultClick(result.route, enabled)}
+                        disabled={!enabled}
+                        className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left group ${
+                          enabled 
+                            ? 'hover:bg-primary/8 cursor-pointer' 
+                            : 'opacity-50 cursor-not-allowed'
+                        }`}
                       >
                         <div className="flex-shrink-0">
                           <Icon className="h-4 w-4 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-semibold truncate text-foreground group-hover:text-primary transition-colors">
+                          <div className={`text-sm font-semibold truncate ${
+                            enabled 
+                              ? 'text-foreground group-hover:text-primary transition-colors' 
+                              : 'text-muted-foreground'
+                          }`}>
                             {result.title}
                           </div>
                           {result.subtitle && (
                             <div className="text-xs text-muted-foreground truncate">
                               {result.subtitle}
+                            </div>
+                          )}
+                          {!enabled && (
+                            <div className="text-xs text-destructive mt-1">
+                              This module is not active yet
                             </div>
                           )}
                         </div>

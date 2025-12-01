@@ -37,6 +37,7 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
 
@@ -100,7 +101,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       <SidebarContent>
         {/* My Day OS */}
         <SidebarGroup>
-          <SidebarGroupLabel>My Day OS</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-foreground/60 font-medium">My Day OS</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNavItems.map((item) => (
@@ -121,12 +122,14 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        <Separator className="my-3 bg-sidebar-hover/30" />
+
         {/* Engagement → Email */}
         {!collapsed && (
           <SidebarGroup>
             <Collapsible open={engagementOpen} onOpenChange={setEngagementOpen}>
               <SidebarGroupLabel asChild>
-                <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-hover/50 rounded-lg px-2 py-1 transition-colors">
+                <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-hover/50 rounded-lg px-2 py-1 transition-colors text-sidebar-foreground/60 font-medium">
                   <span>Engagement</span>
                   {engagementOpen ? (
                     <ChevronDown className="h-4 w-4" />
@@ -144,7 +147,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                           <SidebarMenuButton className="hover:bg-sidebar-hover/80">
                             <Mail className="h-4 w-4" />
                             <span>Email</span>
-                            <ChevronDown className="ml-auto h-4 w-4" />
+                            <ChevronDown className="ml-auto h-4 w-4 transition-transform" />
                           </SidebarMenuButton>
                         </CollapsibleTrigger>
                         <CollapsibleContent>
@@ -182,27 +185,30 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
         {/* Admin Section */}
         {isAdmin && (
-          <SidebarGroup className="border-t border-sidebar-hover/30 pt-4">
-            <SidebarGroupLabel>Admin</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {adminNavItems.map((item) => (
-                  <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton asChild>
-                      <NavLink
-                        to={item.url}
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-sidebar-hover/80 transition-all duration-200 hover:translate-x-0.5"
-                        activeClassName="bg-sidebar-active font-semibold border-l-3 border-sidebar-accent"
-                      >
-                        <item.icon className="h-5 w-5" />
-                        {!collapsed && <span>{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <>
+            <Separator className="my-3 bg-sidebar-hover/30" />
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-sidebar-foreground/60 font-medium">Admin</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {adminNavItems.map((item) => (
+                    <SidebarMenuItem key={item.url}>
+                      <SidebarMenuButton asChild>
+                        <NavLink
+                          to={item.url}
+                          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-sidebar-hover/80 transition-all duration-200 hover:translate-x-0.5"
+                          activeClassName="bg-sidebar-active font-semibold border-l-3 border-sidebar-accent"
+                        >
+                          <item.icon className="h-5 w-5" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
         )}
       </SidebarContent>
 
