@@ -9,12 +9,11 @@ serve(async (req) => {
     const error = url.searchParams.get('error');
 
     if (error) {
-      console.error('OAuth error:', error);
-      const baseUrl = Deno.env.get('SUPABASE_URL') || '';
-      return new Response(null, {
-        status: 302,
-        headers: { Location: `${baseUrl.replace('.supabase.co', '.lovableproject.com')}/email-settings?error=oauth_failed` }
-      });
+    console.error('OAuth error:', error);
+    return new Response(null, {
+      status: 302,
+      headers: { Location: `https://seeksy.io/email-settings?error=oauth_failed` }
+    });
     }
 
     if (!code || !state) {
@@ -63,56 +62,68 @@ serve(async (req) => {
 
     const expiryDate = new Date(Date.now() + (tokens.expires_in * 1000));
 
-    // Check if connection already exists
+    // Check if this email account already exists for this user
     const { data: existing } = await supabaseAdmin
-      .from('gmail_connections')
+      .from('email_accounts')
       .select('id')
       .eq('user_id', state)
-      .single();
+      .eq('email_address', email)
+      .maybeSingle();
 
     if (existing) {
-      // Update existing
+      // Update existing account tokens
       const { error: updateError } = await supabaseAdmin
-        .from('gmail_connections')
+        .from('email_accounts')
         .update({
           access_token: tokens.access_token,
           refresh_token: tokens.refresh_token,
-          token_expiry: expiryDate.toISOString(),
-          email: email,
-          updated_at: new Date().toISOString(),
+          token_expires_at: expiryDate.toISOString(),
+          is_active: true,
+          connected_at: new Date().toISOString(),
         })
         .eq('id', existing.id);
 
       if (updateError) throw updateError;
     } else {
-      // Insert new
+      // Check if user has any accounts to determine if this should be default
+      const { data: userAccounts } = await supabaseAdmin
+        .from('email_accounts')
+        .select('id')
+        .eq('user_id', state);
+      
+      const isFirstAccount = !userAccounts || userAccounts.length === 0;
+      
+      // Insert new account
       const { error: insertError } = await supabaseAdmin
-        .from('gmail_connections')
+        .from('email_accounts')
         .insert({
           user_id: state,
+          email_address: email,
+          provider: 'gmail',
+          display_name: userInfo.name || email,
           access_token: tokens.access_token,
           refresh_token: tokens.refresh_token,
-          token_expiry: expiryDate.toISOString(),
-          email: email,
+          token_expires_at: expiryDate.toISOString(),
+          is_active: true,
+          is_default: isFirstAccount, // First account becomes default
+          connected_at: new Date().toISOString(),
         });
 
       if (insertError) throw insertError;
     }
 
-    console.log('Successfully stored Gmail connection for user:', state);
+    console.log('Successfully stored Gmail account for user:', state);
 
-    // Redirect back to app
-    const baseUrl = Deno.env.get('SUPABASE_URL') || '';
+    // Redirect to seeksy.io/email-settings
     return new Response(null, {
       status: 302,
-      headers: { Location: `${baseUrl.replace('.supabase.co', '.lovableproject.com')}/email-settings?success=gmail_connected` }
+      headers: { Location: `https://seeksy.io/email-settings?success=gmail_connected` }
     });
   } catch (error) {
     console.error('Error in gmail-callback:', error);
-    const baseUrl = Deno.env.get('SUPABASE_URL') || '';
     return new Response(null, {
       status: 302,
-      headers: { Location: `${baseUrl.replace('.supabase.co', '.lovableproject.com')}/email-settings?error=connection_failed` }
+      headers: { Location: `https://seeksy.io/email-settings?error=connection_failed` }
     });
   }
 });

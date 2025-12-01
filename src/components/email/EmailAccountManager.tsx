@@ -20,13 +20,15 @@ export const EmailAccountManager = () => {
   });
 
   const { data: accounts, isLoading } = useQuery({
-    queryKey: ["gmail-connections", user?.id],
+    queryKey: ["email-accounts", user?.id],
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase
-        .from("gmail_connections")
+        .from("email_accounts")
         .select("*")
         .eq("user_id", user.id)
+        .eq("is_active", true)
+        .order("is_default", { ascending: false })
         .order("created_at", { ascending: false });
       
       if (error) throw error;
@@ -76,20 +78,20 @@ export const EmailAccountManager = () => {
       
       // Unset all defaults first
       await supabase
-        .from("gmail_connections")
+        .from("email_accounts")
         .update({ is_default: false })
         .eq("user_id", user.id);
       
       // Set new default
       const { error } = await supabase
-        .from("gmail_connections")
+        .from("email_accounts")
         .update({ is_default: true })
         .eq("id", accountId);
       
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["gmail-connections"] });
+      queryClient.invalidateQueries({ queryKey: ["email-accounts"] });
       toast.success("Default email account updated");
     },
     onError: () => {
@@ -100,14 +102,14 @@ export const EmailAccountManager = () => {
   const disconnectAccount = useMutation({
     mutationFn: async (accountId: string) => {
       const { error } = await supabase
-        .from("gmail_connections")
+        .from("email_accounts")
         .delete()
         .eq("id", accountId);
       
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["gmail-connections"] });
+      queryClient.invalidateQueries({ queryKey: ["email-accounts"] });
       toast.success("Email account disconnected");
     },
     onError: () => {
@@ -139,7 +141,10 @@ export const EmailAccountManager = () => {
                 <div className="flex items-center gap-3">
                   <Mail className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="font-medium">{account.email}</p>
+                    <p className="font-medium">{account.email_address}</p>
+                    {account.display_name && (
+                      <p className="text-sm text-muted-foreground">{account.display_name}</p>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

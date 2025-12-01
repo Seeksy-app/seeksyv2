@@ -32,18 +32,20 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
   const [isMinimized, setIsMinimized] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // Fetch connected Gmail accounts
+  // Fetch connected email accounts
   const { data: accounts = [] } = useQuery({
-    queryKey: ["gmail-connections"],
+    queryKey: ["email-accounts"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
       
       const { data } = await supabase
-        .from("gmail_connections")
+        .from("email_accounts")
         .select("*")
         .eq("user_id", user.id)
-        .order("is_default", { ascending: false });
+        .eq("is_active", true)
+        .order("is_default", { ascending: false })
+        .order("created_at", { ascending: false });
       
       return data || [];
     },
@@ -108,20 +110,13 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const selectedAccount = accounts.find(acc => acc.id === fromAccountId);
-      const signature = selectedAccount?.signature || "";
-      
-      const finalBody = signature 
-        ? `${body}<br/><br/>---<br/>${signature}`
-        : body;
-
       const { data, error } = await supabase.functions.invoke("send-email", {
         body: {
           to: to.split(",").map(e => e.trim()),
           cc: cc ? cc.split(",").map(e => e.trim()) : undefined,
           bcc: bcc ? bcc.split(",").map(e => e.trim()) : undefined,
           subject,
-          htmlContent: finalBody,
+          htmlContent: body,
           fromAccountId,
         },
       });
@@ -290,7 +285,7 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
               {accounts.map((account) => (
                 <SelectItem key={account.id} value={account.id}>
                   <div className="flex items-center justify-between w-full">
-                    <span>{account.email}</span>
+                    <span>{account.email_address}</span>
                     {account.is_default && (
                       <span className="text-xs text-muted-foreground ml-2">(default)</span>
                     )}
