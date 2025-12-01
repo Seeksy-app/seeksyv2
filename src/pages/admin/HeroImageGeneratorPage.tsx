@@ -30,12 +30,13 @@ const VARIANT_INFO = {
 
 const HeroImageGeneratorPage = () => {
   const [generating, setGenerating] = useState<HeroVariant | null>(null);
-  const [assets, setAssets] = useState<Record<HeroVariant, HeroAsset | undefined>>({
-    studio: undefined,
-    holiday: undefined,
-    technology: undefined
+  const [assets, setAssets] = useState<Record<HeroVariant, HeroAsset[]>>({
+    studio: [],
+    holiday: [],
+    technology: []
   });
   const [selectedVariant, setSelectedVariant] = useState<HeroVariant>('studio');
+  const [selectedAssetIndex, setSelectedAssetIndex] = useState<number>(0);
   const [overlaySettings, setOverlaySettings] = useState<HeroOverlaySettings>({
     overlayPosition: 'left',
     overlayOpacity: 0.7,
@@ -52,22 +53,24 @@ const HeroImageGeneratorPage = () => {
       const { data, error } = await supabase.functions.invoke('generate-hero-image', {
         body: {
           prompt: HERO_PROMPTS[variant],
-          variant
+          variant,
+          count: 6 // Generate 6 variations
         }
       });
 
       if (error) throw error;
 
-      if (data.imageUrl) {
-        const newAsset: HeroAsset = {
+      if (data.imageUrls && Array.isArray(data.imageUrls)) {
+        const newAssets: HeroAsset[] = data.imageUrls.map((url: string) => ({
           id: crypto.randomUUID(),
           variant,
-          staticUrl: data.imageUrl,
+          staticUrl: url,
           createdAt: new Date().toISOString()
-        };
+        }));
         
-        setAssets(prev => ({ ...prev, [variant]: newAsset }));
+        setAssets(prev => ({ ...prev, [variant]: newAssets }));
         setSelectedVariant(variant);
+        setSelectedAssetIndex(0);
         
         // Update text to match variant
         setOverlaySettings(prev => ({
@@ -76,7 +79,7 @@ const HeroImageGeneratorPage = () => {
           subheadline: DEFAULT_OVERLAY_SETTINGS[variant].subheadline
         }));
         
-        toast.success(`${VARIANT_INFO[variant].title} generated successfully!`);
+        toast.success(`${VARIANT_INFO[variant].title} - ${data.count} variations generated!`);
       }
     } catch (error) {
       console.error('Error generating image:', error);
@@ -86,8 +89,8 @@ const HeroImageGeneratorPage = () => {
     }
   };
 
-  const downloadImage = async (variant: HeroVariant) => {
-    const asset = assets[variant];
+  const downloadImage = async (variant: HeroVariant, index: number) => {
+    const asset = assets[variant]?.[index];
     if (!asset?.staticUrl) {
       toast.error('No image to download');
       return;
@@ -100,7 +103,7 @@ const HeroImageGeneratorPage = () => {
       const a = document.createElement('a');
       const timestamp = new Date().toISOString().slice(0, 16).replace(/[:-]/g, '');
       a.href = url;
-      a.download = `seeksy-hero-${variant}-static-${timestamp}.png`;
+      a.download = `seeksy-hero-${variant}-${index + 1}-${timestamp}.png`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -126,6 +129,9 @@ const HeroImageGeneratorPage = () => {
     }));
   };
 
+  const currentAssets = assets[selectedVariant];
+  const currentAsset = currentAssets?.[selectedAssetIndex];
+
   return (
     <div className="min-h-screen bg-background p-6 space-y-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -133,7 +139,7 @@ const HeroImageGeneratorPage = () => {
         <div>
           <h1 className="text-4xl font-bold mb-2">Hero Image Generator</h1>
           <p className="text-muted-foreground text-lg">
-            Generate premium hero images with live preview, text overlay, and motion effects
+            Generate 6 premium hero variations per click with live preview
           </p>
         </div>
 
@@ -145,18 +151,59 @@ const HeroImageGeneratorPage = () => {
               variant={variant}
               title={VARIANT_INFO[variant].title}
               description={VARIANT_INFO[variant].description}
-              previewImageUrl={assets[variant]?.staticUrl}
+              previewImageUrl={assets[variant]?.[0]?.staticUrl}
               isGenerating={generating === variant}
               onGenerate={() => generateImage(variant)}
-              onDownload={() => downloadImage(variant)}
-              lastGeneratedAt={assets[variant]?.createdAt}
+              onDownload={() => downloadImage(variant, 0)}
+              lastGeneratedAt={assets[variant]?.[0]?.createdAt}
             />
           ))}
         </div>
 
+        {/* Generated Variations Grid */}
+        {currentAssets && currentAssets.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold">
+              {VARIANT_INFO[selectedVariant].title} - {currentAssets.length} Variations
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {currentAssets.map((asset, index) => (
+                <div
+                  key={asset.id}
+                  className="group relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all"
+                  style={{
+                    borderColor: index === selectedAssetIndex ? 'hsl(var(--primary))' : 'transparent'
+                  }}
+                  onClick={() => setSelectedAssetIndex(index)}
+                >
+                  <img
+                    src={asset.staticUrl}
+                    alt={`Variation ${index + 1}`}
+                    className="w-full aspect-video object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        downloadImage(selectedVariant, index);
+                      }}
+                      className="px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm font-medium"
+                    >
+                      Download
+                    </button>
+                  </div>
+                  <div className="absolute top-2 right-2 bg-black/80 text-white px-2 py-1 rounded text-xs font-medium">
+                    #{index + 1}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Live Preview & Controls */}
         <HeroPreviewPanel
-          asset={assets[selectedVariant]}
+          asset={currentAsset}
           overlaySettings={overlaySettings}
           selectedVariant={selectedVariant}
           onOverlayChange={handleOverlayChange}

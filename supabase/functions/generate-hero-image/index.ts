@@ -11,50 +11,57 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, variant } = await req.json();
+    const { prompt, variant, count = 6 } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    console.log(`Generating ${variant} hero image...`);
+    console.log(`Generating ${count} ${variant} hero images...`);
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-3-pro-image-preview',
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        modalities: ['image', 'text']
-      }),
+    // Generate multiple images in parallel
+    const promises = Array.from({ length: count }, async () => {
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-3-pro-image-preview',
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          modalities: ['image', 'text']
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('AI Gateway error:', response.status, errorText);
+        throw new Error(`AI Gateway error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+
+      if (!imageUrl) {
+        throw new Error('No image generated');
+      }
+
+      return imageUrl;
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
-      throw new Error(`AI Gateway error: ${response.status}`);
-    }
+    const imageUrls = await Promise.all(promises);
 
-    const data = await response.json();
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
-    if (!imageUrl) {
-      throw new Error('No image generated');
-    }
-
-    console.log(`Successfully generated ${variant} image`);
+    console.log(`Successfully generated ${imageUrls.length} ${variant} images`);
 
     return new Response(
-      JSON.stringify({ imageUrl, variant }),
+      JSON.stringify({ imageUrls, variant, count: imageUrls.length }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 

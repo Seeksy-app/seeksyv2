@@ -91,7 +91,7 @@ import { SeeksyAIChatWidget } from "./components/SeeksyAIChatWidget";
 import { useHolidaySettings } from "./hooks/useHolidaySettings";
 import { HolidayWelcomeModal, SantaAssistantButton, Snowfall } from "./components/holiday";
 import AdminSettings from "./pages/admin/Settings";
-import LogoManager from "./pages/admin/LogoManager";
+import LogoManagerV2 from "./pages/admin/LogoManagerV2";
 import HeroManager from "./pages/admin/HeroManager";
 import BrandSettings from "./pages/admin/BrandSettings";
 import GlobalSettings from "./pages/admin/GlobalSettings";
@@ -572,7 +572,7 @@ const AppContent = () => {
               <Route path="/role-settings" element={<RoleSettings />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/settings" element={<GlobalSettings />} />
-            <Route path="/admin/logo-manager" element={<LogoManager />} />
+            <Route path="/admin/logo-manager" element={<LogoManagerV2 />} />
             <Route path="/admin/hero-manager" element={<HeroManager />} />
             <Route path="/admin/brand-settings" element={<BrandSettings />} />
             <Route path="/admin/legal" element={<AdminLegal />} />

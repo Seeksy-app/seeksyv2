@@ -52,6 +52,7 @@ import {
 } from "@/components/ui/sidebar";
 import { NAVIGATION_CONFIG, filterNavigationByRoles } from "@/config/navigation";
 import { useUserRoles } from "@/hooks/useUserRoles";
+import { SparkIcon } from "@/components/spark/SparkIcon";
 
 interface RoleBasedSidebarProps {
   user?: User | null;
@@ -108,6 +109,7 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
       <SidebarHeader className="border-b border-border/50 px-4 py-3">
         {!collapsed && (
           <div className="flex items-center gap-2">
+            <SparkIcon variant="holiday" size={48} animated pose="waving" />
             <img 
               src="/seeksy-logo.png" 
               alt="Seeksy" 
@@ -117,7 +119,7 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
         )}
         {collapsed && (
           <div className="flex items-center justify-center">
-            <Sparkles className="h-6 w-6 text-primary" />
+            <SparkIcon variant="holiday" size={32} animated pose="idle" />
           </div>
         )}
       </SidebarHeader>

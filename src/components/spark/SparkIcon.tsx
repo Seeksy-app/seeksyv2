@@ -75,13 +75,15 @@ export const SparkIcon = ({
         className={cn(
           "object-contain select-none",
           shouldAnimate && "animate-bounce-once",
-          animated && "transition-all duration-300 ease-in-out",
+          animated && "transition-all duration-500 ease-in-out",
           animated && isHovering && "scale-110 brightness-110",
+          animated && !isHovering && "animate-[wave_2s_ease-in-out_infinite]",
           onClick && "cursor-pointer"
         )}
         style={{ 
           width: `${pixelSize}px`, 
           height: `${pixelSize}px`,
+          animation: animated && !isHovering ? 'wave 2s ease-in-out infinite' : undefined,
         }}
         draggable={false}
       />
@@ -95,6 +97,14 @@ export const SparkIcon = ({
           )}
         />
       )}
+      
+      <style>{`
+        @keyframes wave {
+          0%, 100% { transform: rotate(0deg); }
+          10%, 30% { transform: rotate(-3deg); }
+          20%, 40% { transform: rotate(3deg); }
+        }
+      `}</style>
     </div>
   );
 };
