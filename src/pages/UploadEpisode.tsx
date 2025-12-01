@@ -15,7 +15,7 @@ import { Progress } from "@/components/ui/progress";
 import ImageUpload from "@/components/ImageUpload";
 
 const UploadEpisode = () => {
-  const { id } = useParams();
+  const { podcastId } = useParams();
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -41,12 +41,12 @@ const UploadEpisode = () => {
   });
 
   const { data: podcast } = useQuery({
-    queryKey: ["podcast", id],
+    queryKey: ["podcast", podcastId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("podcasts")
         .select("*")
-        .eq("id", id)
+        .eq("id", podcastId)
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -118,7 +118,7 @@ const UploadEpisode = () => {
         : new Date().toISOString();
       
       const episodeData = {
-        podcast_id: id,
+        podcast_id: podcastId,
         title,
         description,
         audio_url: publicUrl,
@@ -166,7 +166,7 @@ const UploadEpisode = () => {
     },
     onSuccess: () => {
       toast.success("Episode saved successfully!");
-      navigate(`/podcasts/${id}`);
+      navigate(`/podcasts/${podcastId}`);
     },
     onError: (error) => {
       console.error("Episode save error:", error);
@@ -257,7 +257,7 @@ const UploadEpisode = () => {
       <div className="max-w-4xl mx-auto">
         <Button
           variant="ghost"
-          onClick={() => navigate(`/podcasts/${id}`)}
+          onClick={() => navigate(`/podcasts/${podcastId}`)}
           className="mb-6"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -318,7 +318,7 @@ const UploadEpisode = () => {
                         Upload an audio file or{" "}
                         <button
                           type="button"
-                          onClick={() => navigate(`/podcasts/${id}`)}
+                          onClick={() => navigate(`/podcasts/${podcastId}`)}
                           className="text-primary underline"
                         >
                           skip and upload later
@@ -596,7 +596,7 @@ const UploadEpisode = () => {
             <Button
               type="button"
               variant="ghost"
-              onClick={() => navigate(`/podcasts/${id}`)}
+              onClick={() => navigate(`/podcasts/${podcastId}`)}
             >
               Cancel
             </Button>
