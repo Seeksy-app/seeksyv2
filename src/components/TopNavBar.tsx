@@ -3,8 +3,30 @@ import { GlobalSearch } from "@/components/GlobalSearch";
 import { CreditsBadge } from "@/components/CreditsBadge";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationsBell } from "@/components/NotificationsBell";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 export function TopNavBar() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({ title: "Logged out successfully" });
+      navigate("/auth");
+    } catch (error) {
+      toast({
+        title: "Logout failed",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 items-center gap-4 px-4">
@@ -17,6 +39,14 @@ export function TopNavBar() {
             <CreditsBadge />
             <ThemeToggle />
             <NotificationsBell />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleLogout}
+              title="Logout"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>

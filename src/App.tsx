@@ -227,6 +227,7 @@ import EmailScheduled from "./pages/email/EmailScheduled";
 import EmailDrafts from "./pages/email/EmailDrafts";
 import EmailSent from "./pages/email/EmailSent";
 import EmailAnalytics from "./pages/email/EmailAnalytics";
+import EmailHistory from "./pages/EmailHistory";
 import ContactProfile from "./pages/ContactProfile";
 import ClientTickets from "./pages/ClientTickets";
 import Proposals from "./pages/Proposals";
@@ -531,6 +532,7 @@ const AppContent = () => {
               <Route path="/email/scheduled" element={<EmailScheduled />} />
               <Route path="/email/drafts" element={<EmailDrafts />} />
               <Route path="/email/sent" element={<EmailSent />} />
+              <Route path="/email/history" element={<EmailHistory />} />
               <Route path="/email/analytics" element={<EmailAnalytics />} />
               <Route path="/email-settings" element={<EmailSettings />} />
             <Route path="/email-campaigns" element={<EmailCampaigns />} />

@@ -17,7 +17,8 @@ import {
   Zap,
   ChevronDown,
   ChevronRight,
-  LayoutDashboard
+  LayoutDashboard,
+  History as HistoryIcon
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { SparkIcon } from "@/components/spark/SparkIcon";
@@ -70,6 +71,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     { title: "Scheduled", url: "/email/scheduled", icon: Calendar },
     { title: "Drafts", url: "/email/drafts", icon: FileText },
     { title: "Sent", url: "/email/sent", icon: Send },
+    { title: "History", url: "/email/history", icon: HistoryIcon },
   ];
 
   const marketingItems = [
