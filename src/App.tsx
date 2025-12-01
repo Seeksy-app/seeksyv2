@@ -339,19 +339,8 @@ import ChecklistTemplate from "./pages/admin/ChecklistTemplate";
 const queryClient = new QueryClient();
 
 const HolidayFeatures = () => {
-  const { data: settings } = useHolidaySettings();
-  const holidayMode = settings?.holidayMode ?? false;
-  const holidaySnow = settings?.holidaySnow ?? false;
-
-  if (!holidayMode) return null;
-
-  return (
-    <>
-      <HolidayWelcomeModal />
-      <SantaAssistantButton />
-      {holidaySnow && <Snowfall />}
-    </>
-  );
+  // Holiday features disabled per user request
+  return null;
 };
 
 const AppContent = () => {
