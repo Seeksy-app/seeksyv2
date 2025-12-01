@@ -7,11 +7,27 @@ import { Zap } from "lucide-react";
 
 export function CreditsBadge() {
   const [credits, setCredits] = useState<number | null>(null);
+  const [shouldAnimate, setShouldAnimate] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     loadCredits();
   }, []);
+
+  useEffect(() => {
+    if (credits === null) return;
+
+    // Check if we should animate based on localStorage tracking
+    const lowestSeenCredits = localStorage.getItem("creditsLowestSeen");
+    const lowestSeen = lowestSeenCredits ? parseInt(lowestSeenCredits, 10) : Infinity;
+
+    // Animate if this is a new low threshold (credits dropped below what user has seen)
+    if (credits <= 4 && credits < lowestSeen) {
+      setShouldAnimate(true);
+    } else {
+      setShouldAnimate(false);
+    }
+  }, [credits]);
 
   const loadCredits = async () => {
     try {
@@ -28,6 +44,20 @@ export function CreditsBadge() {
   };
 
   const handleClick = () => {
+    // Mark current credits level as viewed
+    if (credits !== null) {
+      const lowestSeenCredits = localStorage.getItem("creditsLowestSeen");
+      const lowestSeen = lowestSeenCredits ? parseInt(lowestSeenCredits, 10) : Infinity;
+      
+      // Update localStorage with the lowest credits level user has seen
+      if (credits < lowestSeen) {
+        localStorage.setItem("creditsLowestSeen", credits.toString());
+      }
+      
+      // Stop animation after click
+      setShouldAnimate(false);
+    }
+    
     navigate("/settings/billing");
   };
 
@@ -49,7 +79,7 @@ export function CreditsBadge() {
           <Badge
             variant={getVariant()}
             className={`cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-1.5 px-3 py-1.5 ${
-              isLow ? 'animate-pulse' : ''
+              shouldAnimate ? 'animate-pulse' : ''
             }`}
             onClick={handleClick}
           >
