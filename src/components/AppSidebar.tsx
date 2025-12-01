@@ -16,7 +16,8 @@ import {
   Grid,
   Zap,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  LayoutDashboard
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { SparkIcon } from "@/components/spark/SparkIcon";
@@ -55,7 +56,8 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   if (!user) return null;
 
   const mainNavItems = [
-    { title: "Dashboard", url: "/", icon: Sparkles },
+    { title: "My Day", url: "/my-day", icon: Sparkles },
+    { title: "Dashboard", url: "/", icon: LayoutDashboard },
     { title: "Seekies & Tools", url: "/apps", icon: Grid },
     { title: "Contacts & Audience", url: "/audience", icon: Users },
     { title: "Content & Media", url: "/content", icon: Video },
@@ -101,15 +103,14 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       <SidebarContent>
         {/* Main Navigation */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground font-medium opacity-80">Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainNavItems.map((item) => (
+              {mainNavItems.map((item, index) => (
                 <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-sidebar-hover/80 transition-all duration-200 hover:translate-x-0.5"
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-sidebar-hover/80 transition-all duration-200 hover:translate-x-0.5 ${index === 1 ? 'mt-4' : ''}`}
                       activeClassName="bg-sidebar-active font-semibold border-l-3 border-sidebar-accent"
                     >
                       <item.icon className="h-5 w-5" />
@@ -122,14 +123,12 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <Separator className="my-3 bg-sidebar-hover/30" />
-
         {/* Email Section */}
         {!collapsed && (
-          <SidebarGroup>
+          <SidebarGroup className="mt-4">
             <Collapsible open={emailOpen} onOpenChange={setEmailOpen}>
               <SidebarGroupLabel asChild>
-                <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-hover/50 rounded-lg px-2 py-1 transition-colors text-sidebar-foreground font-medium opacity-80">
+                <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-hover/50 rounded-lg px-2 py-1 transition-colors text-white font-medium">
                   <span>Email</span>
                   {emailOpen ? (
                     <ChevronDown className="h-4 w-4" />
@@ -170,10 +169,10 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
         {/* Marketing Section */}
         {!collapsed && (
-          <SidebarGroup>
+          <SidebarGroup className="mt-2">
             <Collapsible open={marketingOpen} onOpenChange={setMarketingOpen}>
               <SidebarGroupLabel asChild>
-                <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-hover/50 rounded-lg px-2 py-1 transition-colors text-sidebar-foreground font-medium opacity-80">
+                <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-hover/50 rounded-lg px-2 py-1 transition-colors text-white font-medium">
                   <span>Marketing</span>
                   {marketingOpen ? (
                     <ChevronDown className="h-4 w-4" />
@@ -215,9 +214,8 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         {/* Admin Section */}
         {isAdmin && (
           <>
-            <Separator className="my-3 bg-sidebar-hover/30" />
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-sidebar-foreground font-medium opacity-80">Admin</SidebarGroupLabel>
+            <SidebarGroup className="mt-4">
+              <SidebarGroupLabel className="text-white font-medium">Admin</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {adminNavItems.map((item) => (
@@ -244,10 +242,13 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       <SidebarFooter className="border-t border-sidebar-hover/30 p-4">
         <button
           onClick={() => window.dispatchEvent(new Event('openSparkChat'))}
-          className="flex items-center gap-2 text-sm hover:text-sidebar-accent transition-colors w-full text-left"
+          className="flex items-center gap-2 text-sm text-white hover:text-sidebar-accent transition-colors w-full text-left bg-transparent"
+          style={{ background: 'transparent' }}
         >
-          <SparkIcon size={20} />
-          {!collapsed && <span>Ask Spark</span>}
+          <div className="bg-transparent" style={{ background: 'transparent' }}>
+            <SparkIcon size={20} />
+          </div>
+          {!collapsed && <span className="text-white">Ask Spark</span>}
         </button>
       </SidebarFooter>
     </Sidebar>
