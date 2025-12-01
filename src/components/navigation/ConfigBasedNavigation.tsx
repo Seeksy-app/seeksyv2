@@ -53,8 +53,6 @@ import {
 } from "@/components/ui/sidebar";
 import { NAVIGATION_CONFIG, filterNavigationByRoles, type UserRole } from "@/config/navigation";
 import { useUserRoles } from "@/hooks/useUserRoles";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 
 // Icon mapping from string names to Lucide components
 const ICON_MAP: Record<string, any> = {
@@ -101,39 +99,15 @@ export function ConfigBasedNavigation() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
 
-  // Fetch user preferences to check module activation
-  const { data: preferences } = useQuery({
-    queryKey: ['user-preferences-modules'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
-
-      const { data } = await supabase
-        .from("user_preferences")
-        .select("module_marketing_enabled, module_newsletter_enabled")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      return data;
-    },
-  });
-
   if (isLoading) {
     return null;
   }
 
   // Filter navigation based on user's roles
-  let filteredNavigation = filterNavigationByRoles(
+  const filteredNavigation = filterNavigationByRoles(
     NAVIGATION_CONFIG.navigation,
     roles
   );
-
-  // Filter out Email group if neither Marketing nor Newsletter modules are enabled
-  const isEmailModuleActive = preferences?.module_marketing_enabled || preferences?.module_newsletter_enabled;
-  
-  if (!isEmailModuleActive) {
-    filteredNavigation = filteredNavigation.filter(group => group.group !== "Email");
-  }
 
   return (
     <>

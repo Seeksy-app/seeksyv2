@@ -139,7 +139,7 @@ export const NAVIGATION_CONFIG: {
           "id": "contacts",
           "label": "Contacts",
           "icon": "contacts",
-          "path": "/engagement/contacts",
+          "path": "/contacts",
           "roles": ["creator", "influencer", "agency", "admin"]
         },
         {
