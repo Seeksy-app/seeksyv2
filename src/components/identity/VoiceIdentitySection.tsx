@@ -96,7 +96,11 @@ export function VoiceIdentitySection({ asset }: VoiceIdentitySectionProps) {
               <Button 
                 className="w-full" 
                 variant="outline"
-                onClick={() => window.open(asset.cert_explorer_url, "_blank")}
+                onClick={() => {
+                  const url = asset.cert_explorer_url || 
+                    (asset.cert_tx_hash ? `https://polygonscan.com/tx/${asset.cert_tx_hash}` : null);
+                  if (url) window.open(url, "_blank");
+                }}
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
                 View on Polygon

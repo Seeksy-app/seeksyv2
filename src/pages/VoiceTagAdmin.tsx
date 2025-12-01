@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { VoiceCertifiedBadge } from "@/components/VoiceCertifiedBadge";
 import { VoiceNFTBadge } from "@/components/VoiceNFTBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { VoiceSystemHealthPanel } from "@/components/admin/voice/VoiceSystemHealthPanel";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -185,13 +186,16 @@ export default function VoiceTagAdmin() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      {/* System Health Panel */}
+      <VoiceSystemHealthPanel />
+
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Shield className="h-8 w-8 text-primary" />
           <div>
-            <h1 className="text-3xl font-bold">Voice Tag & Certification</h1>
+            <h1 className="text-3xl font-bold">Voice Tag & Fingerprints</h1>
             <p className="text-muted-foreground">
-              Blockchain-backed voice authenticity and content verification
+              Cryptographically secured voice identity records
             </p>
           </div>
         </div>
@@ -404,7 +408,7 @@ export default function VoiceTagAdmin() {
                             <span className="font-medium">Network:</span> Polygon
                           </div>
                           <a
-                            href={`https://polygonscan.com/tx/${cert.transaction_hash}`}
+                            href={cert.cert_explorer_url || `https://polygonscan.com/tx/${cert.transaction_hash}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 text-xs text-primary hover:underline"

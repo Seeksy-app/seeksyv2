@@ -192,6 +192,33 @@ export const NAVIGATION_CONFIG: {
     },
 
     {
+      "group": "Voice Certification",
+      "items": [
+        {
+          "id": "voice_tag",
+          "label": "Voice Tag & Fingerprints",
+          "icon": "fingerprint",
+          "path": "/admin/voice-tag",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "voice_certification",
+          "label": "Certification Records",
+          "icon": "shield",
+          "path": "/admin/voice-certification",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "voice_nft_certificates",
+          "label": "NFT Certificates",
+          "icon": "award",
+          "path": "/admin/voice-nft-certificates",
+          "roles": ["admin", "super_admin"]
+        }
+      ]
+    },
+
+    {
       "group": "Footer",
       "items": [
         {

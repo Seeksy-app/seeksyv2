@@ -116,6 +116,8 @@ import AdvertiserPricing from "./pages/AdvertiserPricing";
 import VoiceProtection from "./pages/VoiceProtection";
 import VoiceCredentials from "./pages/VoiceCredentialsSimple";
 import VoiceCredentialsAdmin from "./pages/admin/VoiceCredentialsAdmin";
+import VoiceCertificationPage from "./pages/admin/VoiceCertificationPage";
+import VoiceNFTCertificatesPage from "./pages/admin/VoiceNFTCertificatesPage";
 import CreateAudioAdCampaign from "./pages/CreateAudioAdCampaign";
 import AdvertiserCampaignDashboard from "./pages/AdvertiserCampaignDashboard";
 import AdvertiserCampaignDetail from "./pages/AdvertiserCampaignDetail";
@@ -614,6 +616,9 @@ const AppContent = () => {
           <Route path="/creator/:username/identity" element={<PublicCreatorIdentity />} />
           <Route path="/identity-dashboard" element={<IdentityDashboard />} />
           <Route path="/admin/voice-credentials" element={<VoiceCredentialsAdmin />} />
+          <Route path="/admin/voice-tag" element={<VoiceTagAdmin />} />
+          <Route path="/admin/voice-certification" element={<VoiceCertificationPage />} />
+          <Route path="/admin/voice-nft-certificates" element={<VoiceNFTCertificatesPage />} />
           <Route path="/admin/checklists" element={<AdminChecklists />} />
           <Route path="/admin/checklists/new-template" element={<ChecklistTemplate />} />
           <Route path="/admin/checklists/template/:templateId" element={<ChecklistTemplate />} />
