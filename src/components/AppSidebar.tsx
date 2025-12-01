@@ -110,7 +110,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-sidebar-hover/80 transition-all duration-200 hover:translate-x-0.5 ${index === 1 ? 'mt-4' : ''}`}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-sidebar-hover/80 transition-all duration-200 hover:translate-x-0.5 ${index === 1 ? 'mt-2' : ''}`}
                       activeClassName="bg-sidebar-active font-semibold border-l-3 border-sidebar-accent"
                     >
                       <item.icon className="h-5 w-5" />
@@ -125,10 +125,10 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
         {/* Email Section */}
         {!collapsed && (
-          <SidebarGroup className="mt-2">
+          <SidebarGroup className="mt-1">
             <Collapsible open={emailOpen} onOpenChange={setEmailOpen}>
               <SidebarGroupLabel asChild>
-                <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-hover/50 rounded-lg px-2 py-1 transition-colors text-white font-medium text-base">
+                <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-hover/50 rounded-lg px-3 py-2 transition-colors text-white">
                   <span>Email</span>
                   {emailOpen ? (
                     <ChevronDown className="h-4 w-4" />
@@ -172,7 +172,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
           <SidebarGroup className="mt-1">
             <Collapsible open={marketingOpen} onOpenChange={setMarketingOpen}>
               <SidebarGroupLabel asChild>
-                <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-hover/50 rounded-lg px-2 py-1 transition-colors text-white font-medium text-base">
+                <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-hover/50 rounded-lg px-3 py-2 transition-colors text-white">
                   <span>Marketing</span>
                   {marketingOpen ? (
                     <ChevronDown className="h-4 w-4" />
@@ -214,8 +214,8 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         {/* Admin Section */}
         {isAdmin && (
           <>
-            <SidebarGroup className="mt-2">
-              <SidebarGroupLabel className="text-white font-medium text-base">Admin</SidebarGroupLabel>
+            <SidebarGroup className="mt-1">
+              <SidebarGroupLabel className="text-white px-3 py-2">Admin</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {adminNavItems.map((item) => (
@@ -239,7 +239,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         )}
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-hover/30 p-4">
+      <SidebarFooter className="border-t border-sidebar-hover/30 p-3">
         <button
           onClick={() => window.dispatchEvent(new Event('openSparkChat'))}
           className="flex items-center gap-2 text-sm text-white hover:text-sidebar-accent transition-colors w-full text-left bg-transparent"
