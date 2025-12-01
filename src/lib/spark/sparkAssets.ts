@@ -69,7 +69,17 @@ export const getSparkAsset = (
   
   // Holiday mode - use Santa Spark variants
   if (useHoliday) {
-    return `/spark/holiday/spark-${pose}-santa.png`;
+    // Map pose names to match actual file names
+    const poseMap: Record<SparkPose, string> = {
+      idle: "idle",
+      happy: "happy",
+      thinking: "idle", // fallback
+      waving: "wave",
+      idea: "idle", // fallback
+      typing: "typing"
+    };
+    const mappedPose = poseMap[pose] || "idle";
+    return `/spark/holiday/spark_${mappedPose}_santa.png`;
   }
   
   // Regular assets
