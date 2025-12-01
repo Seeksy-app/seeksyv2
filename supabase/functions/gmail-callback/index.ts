@@ -13,7 +13,7 @@ serve(async (req) => {
       const baseUrl = Deno.env.get('SUPABASE_URL') || '';
       return new Response(null, {
         status: 302,
-        headers: { Location: `${baseUrl.replace('.supabase.co', '.lovableproject.com')}/integrations?error=oauth_failed` }
+        headers: { Location: `${baseUrl.replace('.supabase.co', '.lovableproject.com')}/email-settings?error=oauth_failed` }
       });
     }
 
@@ -105,14 +105,14 @@ serve(async (req) => {
     const baseUrl = Deno.env.get('SUPABASE_URL') || '';
     return new Response(null, {
       status: 302,
-      headers: { Location: `${baseUrl.replace('.supabase.co', '.lovableproject.com')}/integrations?success=gmail_connected` }
+      headers: { Location: `${baseUrl.replace('.supabase.co', '.lovableproject.com')}/email-settings?success=gmail_connected` }
     });
   } catch (error) {
     console.error('Error in gmail-callback:', error);
     const baseUrl = Deno.env.get('SUPABASE_URL') || '';
     return new Response(null, {
       status: 302,
-      headers: { Location: `${baseUrl.replace('.supabase.co', '.lovableproject.com')}/integrations?error=connection_failed` }
+      headers: { Location: `${baseUrl.replace('.supabase.co', '.lovableproject.com')}/email-settings?error=connection_failed` }
     });
   }
 });
