@@ -10,8 +10,9 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ExternalLink, Plus, Trash2, GripVertical } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { ExternalLink } from "lucide-react";
+import { SmartSuggestionsPanel } from "@/components/landing/SmartSuggestionsPanel";
+import { EnhancedCTAManager } from "@/components/landing/EnhancedCTAManager";
 
 export default function LandingPageEditor() {
   const queryClient = useQueryClient();
@@ -109,8 +110,13 @@ export default function LandingPageEditor() {
     );
   }
 
+  const handleSmartSuggestion = (type: string, data: any) => {
+    setActiveTab("ctas");
+    toast.success("Scroll down to add this suggestion to your CTAs");
+  };
+
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-5xl mx-auto p-6">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Landing Page Editor</h1>
@@ -148,6 +154,13 @@ export default function LandingPageEditor() {
           </Button>
         </div>
       </div>
+
+      {session?.user?.id && landingPage && (
+        <SmartSuggestionsPanel
+          userId={session.user.id}
+          onAddSuggestion={handleSmartSuggestion}
+        />
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-5">
@@ -261,7 +274,12 @@ export default function LandingPageEditor() {
         </TabsContent>
 
         <TabsContent value="ctas">
-          <CTAsTab landingPageId={landingPage?.id} />
+          {session?.user?.id && landingPage && (
+            <EnhancedCTAManager 
+              landingPageId={landingPage.id} 
+              userId={session.user.id}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="social">
@@ -314,19 +332,6 @@ function GuestAppearancesTab({ landingPageId }: { landingPageId?: string }) {
   );
 }
 
-function CTAsTab({ landingPageId }: { landingPageId?: string }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Call-to-Actions</CardTitle>
-        <CardDescription>Add buttons for key actions</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground">CTA management coming soon...</p>
-      </CardContent>
-    </Card>
-  );
-}
 
 function SocialLinksTab({ landingPageId }: { landingPageId?: string }) {
   return (
