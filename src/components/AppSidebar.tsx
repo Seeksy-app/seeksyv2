@@ -433,7 +433,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
   const engagementItems = [
     ...(pinnedModules.includes("contacts") ? [
-      { title: "Contacts", url: "/engagement/contacts", icon: Users }
+      { title: "Contacts", url: "/contacts", icon: Users }
     ] : []),
     ...(pinnedModules.includes("forms") ? [{ title: "Forms", url: "/forms", icon: FileText }] : []),
     ...(modulePrefs.sms ? [{ title: "SMS", url: "/sms", icon: Smartphone }] : []),
