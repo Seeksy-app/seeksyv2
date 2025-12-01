@@ -1,17 +1,17 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Layout, Upload } from "lucide-react";
+import { Camera, Upload } from "lucide-react";
 
 export default function HeroManager() {
   return (
     <div className="container mx-auto p-6 max-w-6xl">
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
-          <Layout className="h-8 w-8 text-primary" />
-          Hero Manager
+          <Camera className="h-8 w-8 text-primary" />
+          Hero Images
         </h1>
         <p className="text-muted-foreground">
-          Manage hero sections and banner images across the platform
+          Generate homepage hero images with Studio, Holiday, and Technology presets
         </p>
       </div>
 

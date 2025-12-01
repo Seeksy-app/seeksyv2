@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useLocation } from "react-router-dom";
-import { SparkAvatar } from "@/components/spark/SparkAvatar";
+import { SparkIcon } from "@/components/spark/SparkIcon";
 import { getSparkGreeting, type UserRole } from "@/lib/spark/sparkPersonality";
 import { useRole } from "@/contexts/RoleContext";
 
@@ -305,35 +305,17 @@ export const SeeksyAIChatWidget = () => {
             setIsOpen(true);
             setTriggerSparkAnimation(true);
           }}
-          style={{
-            width: '5rem',
-            height: '5rem',
-            background: 'transparent',
-            border: 'none',
-            padding: 0,
-            margin: 0,
-            cursor: 'pointer',
-            outline: 'none',
-            boxShadow: 'none',
-            position: 'relative',
-          }}
           className="transition-all duration-300 hover:scale-110"
           aria-label="Open Seeksy AI Chat"
         >
-          <SparkAvatar 
-            pose="waving" 
-            size={72} 
-            animated 
-            triggerAnimation={triggerSparkAnimation}
-            className="drop-shadow-2xl filter brightness-105 transition-transform duration-300 group-hover:scale-105" 
+          <SparkIcon 
+            variant="holiday"
+            size={80}
+            pose="waving"
+            animated
+            className="drop-shadow-2xl filter brightness-105" 
           />
         </button>
-        
-        {/* Subtle glow pulse animation */}
-        <div className={cn(
-          "absolute inset-0 rounded-full blur-xl opacity-40 animate-pulse pointer-events-none",
-          "bg-yellow-400/30"
-        )} />
       </div>
     );
   }
@@ -346,9 +328,7 @@ export const SeeksyAIChatWidget = () => {
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b rounded-t-lg">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8">
-            <SparkAvatar pose="waving" size={32} />
-          </div>
+          <SparkIcon variant="holiday" size="sm" pose="waving" />
           <div>
             <h3 className="font-semibold text-sm">Seeksy Spark</h3>
             <p className="text-xs text-muted-foreground">Your AI Guide ✨</p>
@@ -407,13 +387,12 @@ export const SeeksyAIChatWidget = () => {
                   )}
                 >
                   {message.role === "assistant" && (
-                    <div className="flex-shrink-0 w-8 h-8">
-                      <SparkAvatar 
-                        pose="idle" 
-                        size={32} 
-                        triggerAnimation={index === messages.length - 1 && isLoading}
-                      />
-                    </div>
+                    <SparkIcon 
+                      variant="holiday"
+                      size="sm"
+                      pose="idle"
+                      animated={index === messages.length - 1 && isLoading}
+                    />
                   )}
                   <div
                     className={cn(
@@ -431,9 +410,12 @@ export const SeeksyAIChatWidget = () => {
               ))}
               {isLoading && (
                 <div className="flex gap-3 text-sm items-start">
-                  <div className="flex-shrink-0 w-8 h-8">
-                    <SparkAvatar pose="typing" size={32} animated />
-                  </div>
+                  <SparkIcon 
+                    variant="holiday"
+                    size="sm"
+                    pose="typing"
+                    animated
+                  />
                   <div className="rounded-2xl px-4 py-2 bg-muted">
                     <Loader2 className="h-4 w-4 animate-spin text-yellow-500" />
                   </div>

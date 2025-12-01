@@ -93,6 +93,7 @@ import { HolidayWelcomeModal, SantaAssistantButton, Snowfall } from "./component
 import AdminSettings from "./pages/admin/Settings";
 import LogoManager from "./pages/admin/LogoManager";
 import HeroManager from "./pages/admin/HeroManager";
+import BrandSettings from "./pages/admin/BrandSettings";
 import GlobalSettings from "./pages/admin/GlobalSettings";
 import AdminAds from "./pages/AdminAds";
 import AdminAudioAds from "./pages/AdminAudioAds";
@@ -573,6 +574,7 @@ const AppContent = () => {
             <Route path="/admin/settings" element={<GlobalSettings />} />
             <Route path="/admin/logo-manager" element={<LogoManager />} />
             <Route path="/admin/hero-manager" element={<HeroManager />} />
+            <Route path="/admin/brand-settings" element={<BrandSettings />} />
             <Route path="/admin/legal" element={<AdminLegal />} />
             <Route path="/admin/conversational-demo" element={<AdminConversationalDemo />} />
             <Route path="/admin/architecture" element={<SeeksyArchitecture />} />

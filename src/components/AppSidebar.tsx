@@ -52,11 +52,12 @@ import {
   Receipt,
   Volume2,
   Camera,
-  Award
+  Award,
+  Palette
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import seeksyLogo from "@/assets/seeksy-logo.png";
-const santaLogo = "/spark/holiday/spark-santa-waving.png";
+import { SparkIcon } from "@/components/spark/SparkIcon";
 import { ModuleLauncher } from "@/components/ModuleLauncher";
 import { useRole } from "@/contexts/RoleContext";
 import { AdvertiserSidebarNav } from "@/components/advertiser/AdvertiserSidebarNav";
@@ -575,6 +576,9 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
   const adminContentManagement = [
     { title: "Persona Management", url: "/admin/personas", icon: Sparkles },
+    { title: "Hero Images", url: "/admin/hero-manager", icon: Camera },
+    { title: "Logos & Mascots", url: "/admin/logo-manager", icon: Sparkles },
+    { title: "Brand Settings", url: "/admin/brand-settings", icon: Palette },
     { title: "Voice Tag & Certification", url: "/admin/voice-tag-certification", icon: Shield },
     { title: "Voice Certification", url: "/voice-certification-flow", icon: Award },
     { title: "Voice Credentials", url: "/admin/voice-credentials", icon: Shield },
@@ -1496,7 +1500,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     
     return (
       <>
-        {/* Admin Dashboard Link */}
+        {/* Admin Dashboard Link with Animated Spark */}
         <SidebarGroup className="py-0 pb-2">
           <SidebarMenu className="space-y-0">
             <SidebarMenuItem>
@@ -1507,10 +1511,10 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                       <NavLink 
                         to="/admin" 
                         end 
-                        className="hover:bg-accent hover:text-accent-foreground text-base font-bold py-2 h-10"
+                        className="hover:bg-accent hover:text-accent-foreground text-base font-bold py-2 h-10 flex items-center gap-3"
                         activeClassName="bg-accent text-accent-foreground"
                       >
-                        <Shield className="h-5 w-5" />
+                        <SparkIcon variant="holiday" size="lg" animated pose="waving" />
                         {!collapsed && <span>Admin Dashboard</span>}
                       </NavLink>
                     </SidebarMenuButton>
@@ -1563,7 +1567,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         <SidebarHeader>
           <div className="flex items-center justify-between px-4 py-3">
             <Link to="/tasks" className="relative">
-              <img src={santaLogo} alt="Seeksy" className="h-10 object-contain" />
+              <SparkIcon variant="holiday" size="lg" pose="idle" />
             </Link>
             {!collapsed && (
               <div className="flex items-center gap-4">

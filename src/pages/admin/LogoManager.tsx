@@ -1,17 +1,17 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Image, Upload } from "lucide-react";
+import { Sparkles, Upload, Image } from "lucide-react";
 
 export default function LogoManager() {
   return (
     <div className="container mx-auto p-6 max-w-6xl">
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
-          <Image className="h-8 w-8 text-primary" />
-          Logo Manager
+          <Sparkles className="h-8 w-8 text-primary" />
+          Logos & Mascots
         </h1>
         <p className="text-muted-foreground">
-          Manage platform logos and branding assets
+          Manage logos and Spark mascot variants (holiday, default, seasonal)
         </p>
       </div>
 
