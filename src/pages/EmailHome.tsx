@@ -1,12 +1,18 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, TrendingUp, MousePointerClick, Users, AlertCircle, Clock, Award } from "lucide-react";
-import { EmailActivityFeed } from "@/components/email/dashboard/EmailActivityFeed";
-import { EmailChartsSection } from "@/components/email/dashboard/EmailChartsSection";
-import { EmailSmartInsights } from "@/components/email/dashboard/EmailSmartInsights";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import { EmailFolderList } from "@/components/email/client/EmailFolderList";
+import { EmailList } from "@/components/email/client/EmailList";
+import { EmailViewer } from "@/components/email/client/EmailViewer";
+import { useToast } from "@/hooks/use-toast";
 
 export default function EmailHome() {
+  const { toast } = useToast();
+  const [selectedFolder, setSelectedFolder] = useState("inbox");
+  const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
+  const [filter, setFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("date");
   const { data: user } = useQuery({
     queryKey: ["user"],
     queryFn: async () => {
@@ -15,132 +21,181 @@ export default function EmailHome() {
     },
   });
 
-  // Fetch email stats for last 30 days
-  const { data: stats } = useQuery({
-    queryKey: ["email-stats", user?.id],
+  // Fetch all emails for the selected folder
+  const { data: emails = [] } = useQuery({
+    queryKey: ["email-events", user?.id, selectedFolder, filter],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      let query = supabase
+        .from("email_events")
+        .select("*, email_campaigns(campaign_name)")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      // Apply folder filter
+      if (selectedFolder === "sent") {
+        query = query.eq("event_type", "sent");
+      } else if (selectedFolder === "bounced") {
+        query = query.eq("event_type", "bounced");
+      } else if (selectedFolder === "unsubscribed") {
+        query = query.eq("event_type", "unsubscribed");
+      }
+
+      // Apply status filter
+      if (filter !== "all") {
+        query = query.eq("event_type", filter);
+      }
+
+      const { data } = await query;
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  // Fetch folder counts
+  const { data: counts } = useQuery({
+    queryKey: ["email-counts", user?.id],
     queryFn: async () => {
       if (!user) return null;
-      
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      // Get campaign totals
-      const { data: campaigns } = await supabase
-        .from("email_campaigns")
-        .select("total_sent, total_opened, total_clicked, total_bounced")
-        .eq("user_id", user.id)
-        .gte("created_at", thirtyDaysAgo.toISOString());
-
-      if (!campaigns) return null;
-
-      const totalSent = campaigns.reduce((sum, c) => sum + (c.total_sent || 0), 0);
-      const totalOpened = campaigns.reduce((sum, c) => sum + (c.total_opened || 0), 0);
-      const totalClicked = campaigns.reduce((sum, c) => sum + (c.total_clicked || 0), 0);
-      const totalBounced = campaigns.reduce((sum, c) => sum + (c.total_bounced || 0), 0);
-
-      // Get unsubscribe count from events
-      const { count: totalUnsubscribed } = await supabase
-        .from("email_events")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .eq("event_type", "unsubscribed")
-        .gte("created_at", thirtyDaysAgo.toISOString());
-
-      const openRate = totalSent > 0 ? ((totalOpened / totalSent) * 100).toFixed(1) : "0.0";
-      const clickRate = totalSent > 0 ? ((totalClicked / totalSent) * 100).toFixed(1) : "0.0";
-      const bounceRate = totalSent > 0 ? ((totalBounced / totalSent) * 100).toFixed(1) : "0.0";
-      const unsubscribeRate = totalSent > 0 ? ((totalUnsubscribed / totalSent) * 100).toFixed(1) : "0.0";
+      const queries = await Promise.all([
+        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "sent"),
+        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "bounced"),
+        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "unsubscribed"),
+      ]);
 
       return {
-        totalSent,
-        totalOpened,
-        totalClicked,
-        totalBounced,
-        totalUnsubscribed: totalUnsubscribed || 0,
-        openRate,
-        clickRate,
-        bounceRate,
-        unsubscribeRate,
+        inbox: queries[0].count || 0,
+        sent: queries[1].count || 0,
+        scheduled: 0, // TODO: Implement
+        drafts: 0, // TODO: Implement
+        archived: 0, // TODO: Implement
+        bounced: queries[2].count || 0,
+        suppressed: 0, // TODO: Implement
+        automated: 0, // TODO: Implement
+        unsubscribed: queries[3].count || 0,
       };
     },
     enabled: !!user,
   });
 
-  const kpis = [
-    {
-      title: "Emails Sent",
-      value: stats?.totalSent?.toLocaleString() || "0",
-      icon: Mail,
-      description: "Last 30 days",
+  // Fetch selected email details
+  const { data: selectedEmail } = useQuery({
+    queryKey: ["email-detail", selectedEmailId],
+    queryFn: async () => {
+      if (!selectedEmailId) return null;
+      
+      const { data } = await supabase
+        .from("email_events")
+        .select("*, email_campaigns(campaign_name, html_content)")
+        .eq("id", selectedEmailId)
+        .single();
+      
+      return data;
     },
-    {
-      title: "Open Rate",
-      value: `${stats?.openRate || "0.0"}%`,
-      icon: TrendingUp,
-      description: "Average opens",
+    enabled: !!selectedEmailId,
+  });
+
+  // Fetch all events for selected email
+  const { data: emailEvents = [] } = useQuery({
+    queryKey: ["email-timeline", selectedEmail?.resend_email_id],
+    queryFn: async () => {
+      if (!selectedEmail?.resend_email_id) return [];
+      
+      const { data } = await supabase
+        .from("email_events")
+        .select("*")
+        .eq("resend_email_id", selectedEmail.resend_email_id)
+        .order("occurred_at", { ascending: true });
+      
+      return data || [];
     },
-    {
-      title: "Click Rate",
-      value: `${stats?.clickRate || "0.0"}%`,
-      icon: MousePointerClick,
-      description: "Average clicks",
-    },
-    {
-      title: "Bounce Rate",
-      value: `${stats?.bounceRate || "0.0"}%`,
-      icon: AlertCircle,
-      description: "Hard + soft bounces",
-    },
-  ];
+    enabled: !!selectedEmail?.resend_email_id,
+  });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
-      {/* Header */}
-      <div className="border-b bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/20 dark:via-indigo-950/20 dark:to-purple-950/20">
-        <div className="container mx-auto px-8 py-6">
-          <div className="flex items-center gap-3">
-            <Mail className="h-8 w-8 text-primary" />
-            <div>
-              <h1 className="text-2xl font-semibold">Email Marketing</h1>
-              <p className="text-sm text-muted-foreground">Command center for your campaigns</p>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="h-screen flex flex-col">
+      <ResizablePanelGroup direction="horizontal" className="flex-1">
+        {/* Left Panel - Folders */}
+        <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+          <EmailFolderList
+            selectedFolder={selectedFolder}
+            onFolderSelect={setSelectedFolder}
+            counts={counts || {
+              inbox: 0,
+              sent: 0,
+              scheduled: 0,
+              drafts: 0,
+              archived: 0,
+              bounced: 0,
+              suppressed: 0,
+              automated: 0,
+              unsubscribed: 0,
+            }}
+          />
+        </ResizablePanel>
 
-      {/* Content */}
-      <div className="container mx-auto px-8 py-8">
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {kpis.map((kpi) => {
-            const Icon = kpi.icon;
-            return (
-              <Card key={kpi.title}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
-                  <Icon className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{kpi.value}</div>
-                  <p className="text-xs text-muted-foreground">{kpi.description}</p>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+        <ResizableHandle withHandle />
 
-        {/* Charts */}
-        <EmailChartsSection userId={user?.id} />
+        {/* Center Panel - Email List */}
+        <ResizablePanel defaultSize={35} minSize={30}>
+          <EmailList
+            emails={emails.map((e: any) => ({
+              ...e,
+              campaign_name: e.email_campaigns?.campaign_name,
+            }))}
+            selectedEmailId={selectedEmailId}
+            onEmailSelect={setSelectedEmailId}
+            filter={filter}
+            onFilterChange={setFilter}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+          />
+        </ResizablePanel>
 
-        {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-          {/* Activity Feed */}
-          <EmailActivityFeed userId={user?.id} />
+        <ResizableHandle withHandle />
 
-          {/* Smart Insights */}
-          <EmailSmartInsights userId={user?.id} />
-        </div>
-      </div>
+        {/* Right Panel - Email Viewer */}
+        <ResizablePanel defaultSize={45} minSize={35}>
+          <EmailViewer
+            email={
+              selectedEmail
+                ? {
+                    ...selectedEmail,
+                    campaign_name: selectedEmail.email_campaigns?.campaign_name,
+                    html_content: selectedEmail.email_campaigns?.html_content,
+                  }
+                : null
+            }
+            events={emailEvents}
+            onResend={() => {
+              toast({
+                title: "Resend email",
+                description: "This feature will be implemented soon.",
+              });
+            }}
+            onDuplicate={() => {
+              toast({
+                title: "Duplicate email",
+                description: "This feature will be implemented soon.",
+              });
+            }}
+            onViewTemplate={() => {
+              toast({
+                title: "View template",
+                description: "This feature will be implemented soon.",
+              });
+            }}
+            onViewCampaign={() => {
+              if (selectedEmail?.campaign_id) {
+                window.location.href = `/email-campaigns/${selectedEmail.campaign_id}`;
+              }
+            }}
+          />
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
   );
 }
