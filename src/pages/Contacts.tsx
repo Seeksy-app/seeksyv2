@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ActivityLogger } from "@/lib/activityLogger";
 import { SendSMSDialog } from "@/components/contacts/SendSMSDialog";
 import { ContactViewDialog } from "@/components/contacts/ContactViewDialog";
+import { FloatingEmailComposer } from "@/components/email/client/FloatingEmailComposer";
 
 const contactSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -33,12 +34,11 @@ const Contacts = () => {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<any>(null);
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
-  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
+  const [isComposerOpen, setIsComposerOpen] = useState(false);
+  const [composerRecipients, setComposerRecipients] = useState<string>("");
   const [isSMSDialogOpen, setIsSMSDialogOpen] = useState(false);
   const [selectedSMSContact, setSelectedSMSContact] = useState<any>(null);
   const [viewingContact, setViewingContact] = useState<any>(null);
-  const [emailSubject, setEmailSubject] = useState("");
-  const [emailMessage, setEmailMessage] = useState("");
   const queryClient = useQueryClient();
 
   const form = useForm<ContactFormData>({
@@ -141,48 +141,6 @@ const Contacts = () => {
     },
   });
 
-  const sendEmail = useMutation({
-    mutationFn: async ({ recipientEmails, subject, message }: { recipientEmails: string[]; subject: string; message: string }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      console.log("Invoking send-contact-email function with:", { recipientEmails, subject, message });
-
-      const { data, error } = await supabase.functions.invoke("send-contact-email", {
-        body: { recipientEmails, subject, message, userId: user.id },
-      });
-
-      console.log("Edge function response:", { data, error });
-
-      if (error) {
-        console.error("Edge function error:", error);
-        throw error;
-      }
-      
-      return { recipientEmails, subject };
-    },
-    onSuccess: async (data) => {
-      // Log the email activity for each recipient
-      await Promise.all(
-        data.recipientEmails.map(email => 
-          ActivityLogger.emailSent(email, data.subject)
-        )
-      );
-      
-      toast.success(`Email sent successfully to ${data.recipientEmails.length} recipient(s)`);
-      setIsEmailDialogOpen(false);
-      setEmailSubject("");
-      setEmailMessage("");
-      setSelectedContacts([]);
-    },
-    onError: (error: any) => {
-      console.error("Full error object:", error);
-      console.error("Error message:", error?.message);
-      console.error("Error stack:", error?.stack);
-      toast.error(`Failed to send email: ${error?.message || 'Unknown error'}`);
-    },
-  });
-
   const onSubmit = (data: ContactFormData) => {
     if (editingContact) {
       updateContact.mutate({ id: editingContact.id, data });
@@ -221,32 +179,25 @@ const Contacts = () => {
 
   const handleSendEmail = (contactId?: string) => {
     if (contactId) {
-      setSelectedContacts([contactId]);
+      // Single contact - get their email
+      const contact = contacts?.find(c => c.id === contactId);
+      if (contact) {
+        setComposerRecipients(contact.email);
+      }
+    } else {
+      // Multiple selected contacts
+      const recipientEmails = contacts
+        ?.filter(c => selectedContacts.includes(c.id))
+        .map(c => c.email)
+        .join(", ") || "";
+      setComposerRecipients(recipientEmails);
     }
-    setIsEmailDialogOpen(true);
+    setIsComposerOpen(true);
   };
 
   const handleSendSMS = (contact: any) => {
     setSelectedSMSContact(contact);
     setIsSMSDialogOpen(true);
-  };
-
-  const handleSendEmailSubmit = () => {
-    const recipientEmails = contacts
-      ?.filter(c => selectedContacts.includes(c.id))
-      .map(c => c.email) || [];
-
-    if (recipientEmails.length === 0) {
-      toast.error("Please select at least one contact");
-      return;
-    }
-
-    if (!emailSubject || !emailMessage) {
-      toast.error("Please fill in subject and message");
-      return;
-    }
-
-    sendEmail.mutate({ recipientEmails, subject: emailSubject, message: emailMessage });
   };
 
   return (
@@ -468,46 +419,6 @@ const Contacts = () => {
         )}
       </div>
 
-      <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Send Email</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">To:</label>
-              <p className="text-sm text-muted-foreground">
-                {contacts?.filter(c => selectedContacts.includes(c.id)).map(c => c.email).join(", ")}
-              </p>
-            </div>
-            <div>
-              <label className="text-sm font-medium">Subject *</label>
-              <Input
-                value={emailSubject}
-                onChange={(e) => setEmailSubject(e.target.value)}
-                placeholder="Email subject"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Message *</label>
-              <Textarea
-                value={emailMessage}
-                onChange={(e) => setEmailMessage(e.target.value)}
-                placeholder="Email message..."
-                rows={6}
-              />
-            </div>
-            <Button 
-              onClick={handleSendEmailSubmit} 
-              className="w-full"
-              disabled={sendEmail.isPending}
-            >
-              {sendEmail.isPending ? "Sending..." : "Send Email"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       <SendSMSDialog
         isOpen={isSMSDialogOpen}
         onOpenChange={setIsSMSDialogOpen}
@@ -518,6 +429,17 @@ const Contacts = () => {
         open={!!viewingContact}
         onOpenChange={(open) => !open && setViewingContact(null)}
         contact={viewingContact}
+      />
+
+      <FloatingEmailComposer
+        open={isComposerOpen}
+        onClose={() => {
+          setIsComposerOpen(false);
+          setComposerRecipients("");
+          setSelectedContacts([]);
+        }}
+        draftId={null}
+        initialRecipients={composerRecipients}
       />
     </div>
   );

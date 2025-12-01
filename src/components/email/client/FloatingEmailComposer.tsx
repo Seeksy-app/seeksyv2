@@ -9,14 +9,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { X, Send, Save, Maximize2, Minimize2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ContactAutocomplete } from "../ContactAutocomplete";
 
 interface FloatingEmailComposerProps {
   open: boolean;
   onClose: () => void;
   draftId?: string | null;
+  initialRecipients?: string;
 }
 
-export function FloatingEmailComposer({ open, onClose, draftId }: FloatingEmailComposerProps) {
+export function FloatingEmailComposer({ open, onClose, draftId, initialRecipients }: FloatingEmailComposerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [fromAccountId, setFromAccountId] = useState<string>("");
@@ -54,6 +56,13 @@ export function FloatingEmailComposer({ open, onClose, draftId }: FloatingEmailC
       setFromAccountId(defaultAccount.id);
     }
   }, [accounts, fromAccountId]);
+
+  // Set initial recipients when composer opens
+  useEffect(() => {
+    if (open && initialRecipients && !to) {
+      setTo(initialRecipients);
+    }
+  }, [open, initialRecipients, to]);
 
   // Load draft if editing
   useEffect(() => {
@@ -282,11 +291,10 @@ export function FloatingEmailComposer({ open, onClose, draftId }: FloatingEmailC
         {/* To */}
         <div className="flex items-center gap-2">
           <Label className="w-16 text-sm text-muted-foreground">To</Label>
-          <Input
-            type="email"
-            placeholder="recipient@example.com"
+          <ContactAutocomplete
             value={to}
-            onChange={(e) => setTo(e.target.value)}
+            onChange={setTo}
+            placeholder="Recipients (comma-separated)"
             className="flex-1"
           />
           <div className="flex gap-1">

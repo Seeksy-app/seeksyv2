@@ -16,9 +16,11 @@ import {
 } from "lucide-react";
 import { SparkIcon } from "@/components/spark/SparkIcon";
 import { Link } from "react-router-dom";
+import { FloatingEmailComposer } from "@/components/email/client/FloatingEmailComposer";
 
 export default function MyDay() {
   const [user, setUser] = useState<any>(null);
+  const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [stats, setStats] = useState({
     unreadEmails: 0,
     newContacts: 0,
@@ -146,11 +148,13 @@ export default function MyDay() {
             </CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Button variant="outline" className="h-auto py-6 flex-col gap-2" asChild>
-              <Link to="/inbox">
-                <Mail className="h-6 w-6" />
-                <span>Create Email</span>
-              </Link>
+            <Button 
+              variant="outline" 
+              className="h-auto py-6 flex-col gap-2"
+              onClick={() => setIsComposerOpen(true)}
+            >
+              <Mail className="h-6 w-6" />
+              <span>Create Email</span>
             </Button>
             
             <Button variant="outline" className="h-auto py-6 flex-col gap-2" asChild>
@@ -188,6 +192,11 @@ export default function MyDay() {
           </CardContent>
         </Card>
       </div>
+
+      <FloatingEmailComposer 
+        open={isComposerOpen}
+        onClose={() => setIsComposerOpen(false)}
+      />
     </div>
   );
 }
