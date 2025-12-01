@@ -5,7 +5,7 @@ import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/componen
 import { EmailFolderList } from "@/components/email/client/EmailFolderList";
 import { EmailList } from "@/components/email/client/EmailList";
 import { EmailViewer } from "@/components/email/client/EmailViewer";
-import { EmailComposer } from "@/components/email/client/EmailComposer";
+import { FloatingEmailComposer } from "@/components/email/client/FloatingEmailComposer";
 import { EngagementTimelinePanel } from "@/components/email/client/EngagementTimelinePanel";
 import { useToast } from "@/hooks/use-toast";
 import { useEmailNotifications } from "@/hooks/useEmailNotifications";
@@ -285,8 +285,8 @@ export default function EmailHome() {
         </ResizablePanel>
       </ResizablePanelGroup>
 
-      {/* Email Composer */}
-      <EmailComposer
+      {/* Floating Email Composer */}
+      <FloatingEmailComposer
         open={composerOpen}
         onClose={() => {
           setComposerOpen(false);

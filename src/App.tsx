@@ -8,6 +8,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { TopNavBar } from "@/components/TopNavBar";
+import { AskSparkDock } from "@/components/AskSparkDock";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -785,6 +786,7 @@ const AppContent = () => {
           </main>
         </div>
         {user && !location.pathname.includes('/meeting-studio/') && !location.pathname.includes('/studio/') && <SeeksyAIChatWidget />}
+        {user && !location.pathname.includes('/meeting-studio/') && !location.pathname.includes('/studio/') && <AskSparkDock />}
         
         <HolidayFeatures />
         <CommandPalette />
