@@ -90,6 +90,10 @@ import SubscriptionSettings from "./pages/SubscriptionSettings";
 import { SeeksyAIChatWidget } from "./components/SeeksyAIChatWidget";
 import { useHolidaySettings } from "./hooks/useHolidaySettings";
 import { HolidayWelcomeModal, SantaAssistantButton, Snowfall } from "./components/holiday";
+import { CommandPaletteProvider } from "./components/command/CommandPaletteProvider";
+import { AIAssistantProvider } from "./components/ai/AIAssistantProvider";
+import { CommandPalette } from "./components/command/CommandPalette";
+import { AIAssistantPanel } from "./components/ai/AIAssistantPanel";
 import AdminSettings from "./pages/admin/Settings";
 import LogoManagerV2 from "./pages/admin/LogoManagerV2";
 import HeroManager from "./pages/admin/HeroManager";
@@ -760,6 +764,8 @@ const AppContent = () => {
         {user && !location.pathname.includes('/meeting-studio/') && !location.pathname.includes('/studio/') && <SeeksyAIChatWidget />}
         
         <HolidayFeatures />
+        <CommandPalette />
+        <AIAssistantPanel />
         </div>
       </SidebarProvider>
     </RoleProvider>
@@ -773,7 +779,11 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <AppContent />
+          <CommandPaletteProvider>
+            <AIAssistantProvider>
+              <AppContent />
+            </AIAssistantProvider>
+          </CommandPaletteProvider>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
