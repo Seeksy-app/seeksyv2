@@ -94,6 +94,7 @@ import AdminSettings from "./pages/admin/Settings";
 import LogoManagerV2 from "./pages/admin/LogoManagerV2";
 import HeroManager from "./pages/admin/HeroManager";
 import BrandSettings from "./pages/admin/BrandSettings";
+import EmailTemplates from "./pages/admin/EmailTemplates";
 import GlobalSettings from "./pages/admin/GlobalSettings";
 import AdminAds from "./pages/AdminAds";
 import AdminAudioAds from "./pages/AdminAudioAds";
@@ -603,6 +604,7 @@ const AppContent = () => {
               <Route path="/admin/screenshot-generator" element={<ScreenshotGenerator />} />
             <Route path="/admin/hero-generator" element={<HeroImageGeneratorPage />} />
             <Route path="/admin/mascot-generator" element={<MascotGeneratorPage />} />
+            <Route path="/admin/email-templates" element={<EmailTemplates />} />
               <Route path="/admin/revenue-reports" element={<RevenueReports />} />
               <Route path="/admin/billing" element={<Billing />} />
               <Route path="/admin/payments" element={<Payments />} />

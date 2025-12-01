@@ -5288,6 +5288,42 @@ export type Database = {
         }
         Relationships: []
       }
+      email_templates: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          template_key: string
+          template_name: string
+          updated_at: string | null
+          variables: Json | null
+          version: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          template_key: string
+          template_name: string
+          updated_at?: string | null
+          variables?: Json | null
+          version?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          template_key?: string
+          template_name?: string
+          updated_at?: string | null
+          variables?: Json | null
+          version?: string | null
+        }
+        Relationships: []
+      }
       episode_blockchain_certificates: {
         Row: {
           blockchain_network: string | null
