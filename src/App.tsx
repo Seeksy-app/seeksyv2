@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { ThemeProvider } from "next-themes";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { RoleBasedSidebar } from "@/components/navigation/RoleBasedSidebar";
+import { CreatorSidebar } from "@/components/navigation/CreatorSidebar";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { TopNavBar } from "@/components/TopNavBar";
 import { AskSparkDock } from "@/components/AskSparkDock";
@@ -408,12 +409,26 @@ const AppContent = () => {
     }
   };
 
+  // Determine which sidebar to show based on route
+  const isCreatorRoute = location.pathname.startsWith('/podcasts') || 
+                         location.pathname.startsWith('/podcast-studio');
+  
+  const shouldShowSidebar = user && 
+                             location.pathname !== '/broadcast/session/:id' && 
+                             !location.pathname.includes('/broadcast/session/');
+
   return (
     <RoleProvider>
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-background">
-          {/* Hide Sidebar on Studio workspace (but show on Studio Hub) */}
-          {user && location.pathname !== '/broadcast/session/:id' && !location.pathname.includes('/broadcast/session/') && <RoleBasedSidebar user={user} />}
+          {/* Conditionally render Creator Sidebar or My Day OS Sidebar */}
+          {shouldShowSidebar && (
+            isCreatorRoute ? (
+              <CreatorSidebar user={user} />
+            ) : (
+              <RoleBasedSidebar user={user} />
+            )
+          )}
         
         <div className="flex-1 flex flex-col">
           {/* TopNavBar on all My Day OS pages */}
