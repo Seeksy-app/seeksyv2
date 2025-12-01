@@ -206,7 +206,8 @@ import InfluencerPortfolio from "./pages/InfluencerPortfolio";
 import Marketing from "./pages/Marketing";
 import EmailSettings from "./pages/EmailSettings";
 import EmailCampaigns from "./pages/EmailCampaigns";
-import EmailCampaignDetail from "./pages/CampaignDetail";
+import EmailCampaignAnalytics from "./pages/EmailCampaignAnalytics";
+import EmailCampaignBuilder from "./pages/EmailCampaignBuilder";
 import EmailView from "./pages/EmailView";
 import EmailWebView from "./pages/EmailWebView";
 import ClientTickets from "./pages/ClientTickets";
@@ -505,7 +506,8 @@ const AppContent = () => {
               <Route path="/marketing" element={<Marketing />} />
               <Route path="/email-settings" element={<EmailSettings />} />
               <Route path="/email-campaigns" element={<EmailCampaigns />} />
-              <Route path="/email-campaigns/:id" element={<EmailCampaignDetail />} />
+              <Route path="/email-campaigns/new" element={<EmailCampaignBuilder />} />
+              <Route path="/email-campaigns/:id" element={<EmailCampaignAnalytics />} />
               <Route path="/email/:id/view" element={<EmailView />} />
               <Route path="/email/:emailId/view" element={<EmailWebView />} />
               <Route path="/create-event" element={<CreateEvent />} />
