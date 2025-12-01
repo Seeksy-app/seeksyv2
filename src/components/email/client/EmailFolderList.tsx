@@ -58,9 +58,11 @@ export function EmailFolderList({ selectedFolder, onFolderSelect, counts }: Emai
               </div>
               {count > 0 && (
                 <span className={cn(
-                  "text-xs px-2 py-0.5 rounded-full",
+                  "text-xs px-2 py-0.5 rounded-full font-semibold",
                   selectedFolder === folder.id
                     ? "bg-primary-foreground/20 text-primary-foreground"
+                    : folder.id === "inbox"
+                    ? "bg-primary/10 text-primary"
                     : "bg-muted text-muted-foreground"
                 )}>
                   {count}

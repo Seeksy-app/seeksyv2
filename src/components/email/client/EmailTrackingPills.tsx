@@ -1,7 +1,8 @@
 import { Badge } from "@/components/ui/badge";
-import { Eye, MousePointer, AlertTriangle, Zap } from "lucide-react";
+import { Eye, MousePointer, AlertTriangle, Zap, Circle, CheckCircle2, Sparkles } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { calculateEngagementStats, getEngagementTag, getEngagementColor, EngagementTag } from "@/utils/emailEngagement";
+import { cn } from "@/lib/utils";
 
 interface EmailEvent {
   event_type: string;
@@ -22,19 +23,37 @@ export function EmailTrackingPills({ events, sentAt, onClick }: EmailTrackingPil
   const stats = calculateEngagementStats(events, sentAt);
   const engagementTag = getEngagementTag(stats, daysSinceSent);
 
+  // Determine email status
+  const hasClicked = stats.clicks > 0;
+  const hasOpened = stats.opens > 0;
+  const hasDelivered = events.some(e => e.event_type === "email.delivered");
+  const hasBounced = stats.bounces > 0;
+  const sentOnly = !hasDelivered && !hasBounced;
+
   const tooltipContent = (
     <div className="space-y-2 text-xs">
-      <div>
-        <strong>Opens:</strong> {stats.opens}
-        {stats.opens > 0 && stats.firstOpenMinutes !== null && (
-          <div className="text-muted-foreground">
-            First opened {stats.firstOpenMinutes} minutes after sending
-          </div>
-        )}
-      </div>
-      <div>
-        <strong>Clicks:</strong> {stats.clicks}
-      </div>
+      {sentOnly && <div className="text-muted-foreground">Sent {Math.floor((Date.now() - new Date(sentAt).getTime()) / 60000)} minutes ago</div>}
+      {hasDelivered && !hasOpened && <div className="text-muted-foreground">Delivered · Not opened yet</div>}
+      {hasOpened && (
+        <div>
+          <strong>Opens:</strong> {stats.opens}
+          {stats.firstOpenMinutes !== null && (
+            <div className="text-muted-foreground">
+              Opened {stats.firstOpenMinutes} min after sending
+            </div>
+          )}
+        </div>
+      )}
+      {hasClicked && (
+        <div>
+          <strong>Clicks:</strong> {stats.clicks}
+        </div>
+      )}
+      {hasBounced && (
+        <div className="text-red-500">
+          <strong>Bounced</strong> · Delivery failed
+        </div>
+      )}
       {stats.devices.size > 0 && (
         <div>
           <strong>Devices:</strong> {Array.from(stats.devices).join(", ")}
@@ -52,40 +71,46 @@ export function EmailTrackingPills({ events, sentAt, onClick }: EmailTrackingPil
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="flex items-center gap-1 cursor-pointer" onClick={onClick}>
-            {/* Open count */}
-            {stats.opens > 0 && (
-              <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 border-0">
-                <Eye className="h-3 w-3 mr-1" />
-                {stats.opens}
-              </Badge>
-            )}
-
-            {/* Click count */}
-            {stats.clicks > 0 && (
-              <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-purple-500/10 text-purple-600 dark:text-purple-400 border-0">
-                <MousePointer className="h-3 w-3 mr-1" />
-                {stats.clicks}
-              </Badge>
-            )}
-
-            {/* Bounce indicator */}
-            {stats.bounces > 0 && (
-              <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-red-500/10 text-red-600 dark:text-red-400 border-0">
+          <div className="flex items-center gap-1.5 cursor-pointer" onClick={onClick}>
+            {/* Status Indicator */}
+            {hasBounced ? (
+              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-500/10 text-red-600 dark:text-red-400">
                 <AlertTriangle className="h-3 w-3" />
-              </Badge>
+                <span className="text-xs font-medium">Bounced</span>
+              </div>
+            ) : hasClicked ? (
+              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
+                <Circle className="h-2.5 w-2.5 fill-current" />
+                <Sparkles className="h-3 w-3" />
+                <span className="text-xs font-medium">Clicked</span>
+              </div>
+            ) : hasOpened ? (
+              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
+                <CheckCircle2 className="h-3 w-3" />
+                <span className="text-xs font-medium">Opened</span>
+              </div>
+            ) : hasDelivered ? (
+              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                <Circle className="h-2.5 w-2.5 fill-current" />
+                <span className="text-xs font-medium">Delivered</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-muted text-muted-foreground">
+                <Circle className="h-2.5 w-2.5 fill-current" />
+                <span className="text-xs font-medium">Sent</span>
+              </div>
             )}
 
             {/* AI Engagement Tag */}
             {engagementTag && (
-              <Badge variant="secondary" className={`text-xs px-1.5 py-0.5 border-0 ${getEngagementColor(engagementTag)}`}>
+              <Badge variant="secondary" className={cn("text-xs px-1.5 py-0.5 border-0", getEngagementColor(engagementTag))}>
                 <Zap className="h-3 w-3 mr-1" />
                 {engagementTag}
               </Badge>
             )}
           </div>
         </TooltipTrigger>
-        <TooltipContent side="top" className="max-w-xs">
+        <TooltipContent side="top" className="max-w-xs bg-popover">
           {tooltipContent}
         </TooltipContent>
       </Tooltip>
