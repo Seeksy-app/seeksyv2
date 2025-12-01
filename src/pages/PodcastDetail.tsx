@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Home, FileText, Radio, Monitor, Globe, DollarSign, BarChart3, List } from "lucide-react";
+import { ArrowLeft, Home, FileText, Radio, Monitor, Globe, DollarSign, BarChart3, List, RefreshCw } from "lucide-react";
 import { useState, useEffect } from "react";
 import { OverviewTab } from "@/components/podcast/OverviewTab";
 import { EpisodesTab } from "@/components/podcast/EpisodesTab";
@@ -13,6 +13,7 @@ import { WebsiteTab } from "@/components/podcast/WebsiteTab";
 import { MonetizationTab } from "@/components/podcast/MonetizationTab";
 import { StatsTab } from "@/components/podcast/StatsTab";
 import { DirectoriesTab } from "@/components/podcast/DirectoriesTab";
+import { RSSMigrationTab } from "@/components/podcast/RSSMigrationTab";
 
 const PodcastDetail = () => {
   const { id } = useParams();
@@ -167,6 +168,13 @@ const PodcastDetail = () => {
               <List className="w-4 h-4" />
               Directories
             </TabsTrigger>
+            <TabsTrigger
+              value="rss-migration"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-3 text-base flex items-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              RSS Migration
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-0 p-6">
@@ -199,6 +207,10 @@ const PodcastDetail = () => {
 
           <TabsContent value="directories" className="mt-0 p-6">
             <DirectoriesTab userId={user.id} />
+          </TabsContent>
+
+          <TabsContent value="rss-migration" className="mt-0 p-6">
+            <RSSMigrationTab userId={user.id} />
           </TabsContent>
         </Tabs>
       </div>

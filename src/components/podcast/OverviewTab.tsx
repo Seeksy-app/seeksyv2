@@ -60,6 +60,18 @@ export const OverviewTab = ({ podcastId, userId }: OverviewTabProps) => {
     },
   });
 
+  const { data: episodeCount } = useQuery({
+    queryKey: ["podcast-episodes-count", podcastId],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("episodes")
+        .select("*", { count: 'exact', head: true })
+        .eq("podcast_id", podcastId);
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
   const { data: directories } = useQuery({
     queryKey: ["podcast-directories", podcastId],
     queryFn: async () => {
@@ -157,7 +169,7 @@ export const OverviewTab = ({ podcastId, userId }: OverviewTabProps) => {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{episodes?.length || 0}</div>
+            <div className="text-2xl font-bold">{episodeCount || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">Published episodes</p>
           </CardContent>
         </Card>
