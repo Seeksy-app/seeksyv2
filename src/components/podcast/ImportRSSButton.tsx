@@ -17,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ImportRSSButtonProps {
-  onImportComplete?: () => void;
+  onImportComplete?: (podcastId: string) => void;
 }
 
 interface ImportResult {
@@ -146,7 +146,7 @@ export function ImportRSSButton({ onImportComplete }: ImportRSSButtonProps) {
       });
 
       setTimeout(() => {
-        onImportComplete?.();
+        onImportComplete?.(podcastData.id);
         setOpen(false);
         setRssUrl("");
         setImportStatus("idle");
