@@ -41,12 +41,20 @@ export const NAVIGATION_CONFIG: {
       "description": "Your personalized daily workflow",
       "items": [
         {
+          "id": "dashboard",
+          "label": "Dashboard",
+          "icon": "layout-dashboard",
+          "path": "/dashboard",
+          "roles": ["creator", "influencer", "agency", "advertiser", "admin"],
+          "description": "Your main dashboard"
+        },
+        {
           "id": "my_day",
           "label": "My Day",
           "icon": "sparkles",
           "path": "/my-day",
           "roles": ["creator", "influencer", "agency", "advertiser", "admin"],
-          "description": "Your personalized dashboard"
+          "description": "Your personalized daily view"
         },
         {
           "id": "inbox",

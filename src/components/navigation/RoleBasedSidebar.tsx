@@ -91,6 +91,7 @@ interface RoleBasedSidebarProps {
 // Icon mapping
 const ICON_MAP: Record<string, any> = {
   home: LayoutDashboard,
+  'layout-dashboard': LayoutDashboard,
   user: UserIcon,
   settings: Settings,
   apps: Grid3x3,
@@ -157,7 +158,7 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   
-  // Track which groups are open (default: all admin sections open, My Day OS closed)
+  // Track which groups are open (default: all sections open including My Day OS)
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     "Admin": true,
     "Content Management": true,
@@ -166,7 +167,7 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
     "Advertising & Revenue": true,
     "Business Operations": true,
     "Developer Tools": true,
-    "My Day OS": false,
+    "My Day OS": true,
   });
 
   const toggleGroup = (groupName: string) => {
@@ -190,13 +191,9 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-border/50 px-4 py-3">
         {!collapsed && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <SparkIcon variant="holiday" size={48} animated pose="waving" />
-            <img 
-              src="/seeksy-logo.png" 
-              alt="Seeksy" 
-              className="h-8 w-auto"
-            />
+            <span className="text-white text-2xl font-bold">Seeksy</span>
           </div>
         )}
         {collapsed && (
