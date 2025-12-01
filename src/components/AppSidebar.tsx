@@ -94,16 +94,17 @@ const DEFAULT_SECTIONS: NavigationSection[] = [
   { id: "main", label: "Main", order: 0 },
   { id: "seekies", label: "Seekies", order: 1 },
   { id: "engagement", label: "Engagement", order: 2 },
-  { id: "settings", label: "Settings", order: 3 },
-  { id: "admin", label: "Admin", order: 4 },
-  { id: "media", label: "Media", order: 5 },
-  { id: "monetization", label: "Monetization", order: 6 },
-  { id: "project_management", label: "Project Management", order: 7 },
-  { id: "advertising", label: "Advertising & Sales", order: 8 },
-  { id: "civic", label: "Civic", order: 9 },
-  { id: "influencer", label: "Influencer", order: 10 },
-  { id: "agency", label: "Agency", order: 11 },
-  { id: "blog", label: "Blog", order: 12 },
+  { id: "email", label: "Email", order: 3 },
+  { id: "settings", label: "Settings", order: 4 },
+  { id: "admin", label: "Admin", order: 5 },
+  { id: "media", label: "Media", order: 6 },
+  { id: "monetization", label: "Monetization", order: 7 },
+  { id: "project_management", label: "Project Management", order: 8 },
+  { id: "advertising", label: "Advertising & Sales", order: 9 },
+  { id: "civic", label: "Civic", order: 10 },
+  { id: "influencer", label: "Influencer", order: 11 },
+  { id: "agency", label: "Agency", order: 12 },
+  { id: "blog", label: "Blog", order: 13 },
 ];
 
 export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
@@ -144,6 +145,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     polls: false,
     qr_codes: false,
     marketing: false,
+    newsletter: false,
     sms: false,
   });
   const [pinnedModules, setPinnedModules] = useState<string[]>([]);
@@ -199,6 +201,11 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       sections.push({ id: "blog", label: "Blog", order: 12 });
     }
     
+    // Ensure Email exists (migration for users with old nav data)
+    if (!sections.some((s: NavigationSection) => s.id === "email")) {
+      sections.push({ id: "email", label: "Email", order: 3 });
+    }
+    
     return sections;
   });
   
@@ -208,6 +215,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     if (pathname.startsWith('/creator/campaign-browser') || pathname.startsWith('/podcast-ads') || pathname.startsWith('/podcast-revenue')) return 'monetization';
     if (pathname.startsWith('/pm-') || pathname.startsWith('/client-tickets')) return 'project_management';
     if (pathname.startsWith('/events') || pathname.startsWith('/meetings') || pathname.startsWith('/polls') || pathname.startsWith('/signup-sheets') || pathname.startsWith('/qr-codes') || pathname.startsWith('/forms')) return 'engagement';
+    if (pathname.startsWith('/email')) return 'email';
     if (pathname.startsWith('/marketing') || pathname.startsWith('/newsletter') || pathname.startsWith('/sms') || pathname.startsWith('/leads-dashboard')) return 'advertising';
     if (pathname.startsWith('/podcast') || pathname.startsWith('/blog-library') || pathname.startsWith('/blog')) return 'blog';
     if (pathname.startsWith('/civic')) return 'civic';
@@ -244,6 +252,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     monetization: activeSection === 'monetization',
     project_management: activeSection === 'project_management',
     engagement: activeSection === 'engagement',
+    email: activeSection === 'email',
     admin: false,
     adminCustomerSupport: activeSection === 'adminCustomerSupport',
     adminCRM: activeSection === 'adminCRM',
@@ -322,7 +331,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     
     const { data } = await supabase
       .from("user_preferences")
-      .select("module_awards_enabled, module_media_enabled, module_civic_enabled, module_influencer_enabled, module_agency_enabled, module_team_chat_enabled, module_monetization_enabled, module_project_management_enabled, module_lead_pixel_enabled, podcasts_enabled, module_blog_enabled, module_events_enabled, module_signup_sheets_enabled, module_polls_enabled, module_qr_codes_enabled, module_marketing_enabled, module_sms_enabled, meetings_enabled, pinned_modules")
+      .select("module_awards_enabled, module_media_enabled, module_civic_enabled, module_influencer_enabled, module_agency_enabled, module_team_chat_enabled, module_monetization_enabled, module_project_management_enabled, module_lead_pixel_enabled, podcasts_enabled, module_blog_enabled, module_events_enabled, module_signup_sheets_enabled, module_polls_enabled, module_qr_codes_enabled, module_marketing_enabled, module_newsletter_enabled, module_sms_enabled, meetings_enabled, pinned_modules")
       .eq("user_id", user.id)
       .maybeSingle();
     
@@ -346,6 +355,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         polls: (data as any).module_polls_enabled || false,
         qr_codes: (data as any).module_qr_codes_enabled || false,
         marketing: (data as any).module_marketing_enabled || false,
+        newsletter: (data as any).module_newsletter_enabled || false,
         sms: (data as any).module_sms_enabled || false,
       });
       
@@ -438,6 +448,15 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     ...(pinnedModules.includes("forms") ? [{ title: "Forms", url: "/forms", icon: FileText }] : []),
     ...(modulePrefs.sms ? [{ title: "SMS", url: "/sms", icon: Smartphone }] : []),
     ...(pinnedModules.includes("lead_pixel") && modulePrefs.lead_pixel ? [{ title: "Lead Pixel", url: "/lead-pixel", icon: Target }] : []),
+  ];
+
+  const emailItems = [
+    { title: "Dashboard", url: "/email", icon: Mail },
+    { title: "Campaigns", url: "/email-campaigns", icon: Send },
+    { title: "Templates", url: "/email-templates", icon: FileText },
+    { title: "Segments", url: "/email-segments", icon: Users },
+    { title: "Automations", url: "/email-automations", icon: Target },
+    { title: "Settings", url: "/email-settings", icon: Settings },
   ];
 
   const mediaItems = [
@@ -661,6 +680,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       if (alwaysVisible.includes(section.id)) return true;
       
       // Show optional modules only if enabled
+      if (section.id === "email") return modulePrefs.marketing || modulePrefs.newsletter;
       if (section.id === "media") return modulePrefs.media;
       if (section.id === "monetization") return modulePrefs.monetization;
       if (section.id === "project_management") return modulePrefs.project_management;
@@ -972,6 +992,60 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                     </SidebarMenuItem>
                   );
                 })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </CollapsibleContent>
+        </SidebarGroup>
+      </Collapsible>
+    );
+  };
+
+  const renderEmailSection = () => {
+    // Show if marketing OR newsletter module is enabled
+    if (isAdvertiser || (!modulePrefs.marketing && !modulePrefs.newsletter) || emailItems.length === 0) return null;
+    
+    return (
+      <Collapsible
+        key="email"
+        open={openSections.email}
+        onOpenChange={(open) => setOpenSections({ ...openSections, email: open })}
+      >
+        <SidebarGroup className="py-0">
+          <CollapsibleTrigger asChild>
+            <SidebarGroupLabel className="text-base font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5">
+              <span>Email</span>
+              {!collapsed && <ChevronDown className={`h-3 w-3 transition-transform ${openSections.email ? '' : '-rotate-90'}`} />}
+            </SidebarGroupLabel>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <SidebarGroupContent>
+              <SidebarMenu className="space-y-0">
+                {emailItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <SidebarMenuButton asChild>
+                            <NavLink
+                              to={item.url}
+                              end
+                              className="hover:bg-accent hover:text-accent-foreground text-sm py-0.5 h-8 pl-4"
+                              activeClassName="bg-accent text-accent-foreground font-medium"
+                            >
+                              <item.icon className="h-4 w-4" />
+                              {!collapsed && <span>{item.title}</span>}
+                            </NavLink>
+                          </SidebarMenuButton>
+                        </TooltipTrigger>
+                        {collapsed && (
+                          <TooltipContent side="right">
+                            <p>{item.title}</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
+                  </SidebarMenuItem>
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </CollapsibleContent>
@@ -1551,6 +1625,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     monetization: renderMonetizationSection,
     project_management: renderProjectManagementSection,
     engagement: renderEngagementSection,
+    email: renderEmailSection,
     civic: renderCivicSection,
     influencer: renderInfluencerSection,
     agency: renderAgencySection,
