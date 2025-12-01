@@ -171,8 +171,8 @@ serve(async (req) => {
       // Generate token ID from timestamp
       const tokenId = Date.now().toString();
 
-      // Build explorer URL (Polygon Amoy testnet)
-      const explorerUrl = `https://amoy.polygonscan.com/tx/${tx.hash}`;
+      // Build explorer URL (Polygon mainnet)
+      const explorerUrl = `https://polygonscan.com/tx/${tx.hash}`;
 
       // Create or update blockchain certificate
       const certificateData = {

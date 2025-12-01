@@ -252,7 +252,7 @@ serve(async (req) => {
     }
 
     const tokenId = Date.now().toString();
-    const explorerUrl = `https://amoy.polygonscan.com/tx/${tx.hash}`;
+    const explorerUrl = `https://polygonscan.com/tx/${tx.hash}`;
     
     console.log('[verify-voice-and-mint] Certificate minted - Token ID:', tokenId);
     console.log('[verify-voice-and-mint] Explorer URL:', explorerUrl);
