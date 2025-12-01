@@ -433,14 +433,11 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
   const engagementItems = [
     ...(pinnedModules.includes("contacts") ? [
-      { title: "Contacts", url: "/crm", icon: Users },
-      { title: "Communication History", url: "/communication-history", icon: Mail }
+      { title: "Contacts", url: "/engagement/contacts", icon: Users }
     ] : []),
     ...(pinnedModules.includes("forms") ? [{ title: "Forms", url: "/forms", icon: FileText }] : []),
-    ...(modulePrefs.marketing ? [{ title: "Marketing", url: "/marketing", icon: Target }] : []),
     ...(modulePrefs.sms ? [{ title: "SMS", url: "/sms", icon: Smartphone }] : []),
-    ...(modulePrefs.team_chat ? [{ title: "Team Chat", url: "/team-chat", icon: MessageSquare }] : []),
-    ...(pinnedModules.includes("lead_pixel") && modulePrefs.lead_pixel ? [{ title: "Lead Pixel", url: "/leads-dashboard", icon: Target }] : []),
+    ...(pinnedModules.includes("lead_pixel") && modulePrefs.lead_pixel ? [{ title: "Lead Pixel", url: "/lead-pixel", icon: Target }] : []),
   ];
 
   const mediaItems = [
