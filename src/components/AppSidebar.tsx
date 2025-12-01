@@ -714,11 +714,11 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         open={openSections.main}
         onOpenChange={(open) => setOpenSections({ ...openSections, main: open })}
       >
-        <SidebarGroup className="py-0">
+        <SidebarGroup className="py-0 border-b border-sidebar-hover/30 pb-2">
           <CollapsibleTrigger asChild>
             <SidebarGroupLabel className="text-base font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5">
-              <span>Main</span>
-              {!collapsed && <ChevronDown className={`h-3 w-3 transition-transform ${openSections.main ? '' : '-rotate-90'}`} />}
+              <span className="text-sidebar-text">Main</span>
+              {!collapsed && <ChevronDown className={`h-3 w-3 text-sidebar-text/70 transition-transform ${openSections.main ? '' : '-rotate-90'}`} />}
             </SidebarGroupLabel>
           </CollapsibleTrigger>
           <CollapsibleContent>
@@ -843,11 +843,11 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         open={openSections.seekies}
         onOpenChange={(open) => setOpenSections({ ...openSections, seekies: open })}
       >
-        <SidebarGroup className="py-0">
+        <SidebarGroup className="py-0 border-b border-sidebar-hover/30 pb-2">
           <CollapsibleTrigger asChild>
             <SidebarGroupLabel className="text-base font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5">
-              <span>Seekies</span>
-              {!collapsed && <ChevronDown className={`h-3 w-3 transition-transform ${openSections.seekies ? '' : '-rotate-90'}`} />}
+              <span className="text-sidebar-text">Seekies</span>
+              {!collapsed && <ChevronDown className={`h-3 w-3 text-sidebar-text/70 transition-transform ${openSections.seekies ? '' : '-rotate-90'}`} />}
             </SidebarGroupLabel>
           </CollapsibleTrigger>
           <CollapsibleContent>
@@ -937,10 +937,10 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         open={openSections.engagement}
         onOpenChange={(open) => setOpenSections({ ...openSections, engagement: open })}
       >
-        <SidebarGroup className="py-0">
+        <SidebarGroup className="py-0 border-b border-sidebar-hover/30 pb-2">
           <CollapsibleTrigger asChild>
             <SidebarGroupLabel className="text-base font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5 relative group">
-              <span>Engagement</span>
+              <span className="text-sidebar-text">Engagement</span>
               <div className="flex items-center gap-1">
                 {!collapsed && (
                   <button
@@ -949,17 +949,17 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                       e.stopPropagation();
                       togglePin("engagement");
                     }}
-                    className="p-1 opacity-100 hover:bg-accent rounded transition-colors"
+                    className="p-1 opacity-100 hover:bg-sidebar-hover rounded transition-colors"
                     aria-label={isPinned ? "Unpin Engagement" : "Pin Engagement"}
                   >
                     <Pin
                       className={`h-3.5 w-3.5 ${
-                        isPinned ? "fill-primary text-primary" : "text-muted-foreground"
+                        isPinned ? "fill-sidebar-accent text-sidebar-accent" : "text-sidebar-text/60"
                       }`}
                     />
                   </button>
                 )}
-                {!collapsed && <ChevronDown className={`h-3 w-3 transition-transform ${openSections.engagement ? '' : '-rotate-90'}`} />}
+                {!collapsed && <ChevronDown className={`h-3 w-3 text-sidebar-text/70 transition-transform ${openSections.engagement ? '' : '-rotate-90'}`} />}
               </div>
             </SidebarGroupLabel>
           </CollapsibleTrigger>
@@ -1068,10 +1068,10 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         open={openSections.media}
         onOpenChange={(open) => setOpenSections({ ...openSections, media: open })}
       >
-        <SidebarGroup className="py-0">
+        <SidebarGroup className="py-0 border-b border-sidebar-hover/30 pb-2">
           <CollapsibleTrigger asChild>
             <SidebarGroupLabel className="text-base font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5 relative group">
-              <span>Media</span>
+              <span className="text-sidebar-text">Media</span>
               <div className="flex items-center gap-1">
                 {!collapsed && (
                   <button
@@ -1080,17 +1080,17 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                       e.stopPropagation();
                       togglePin("media");
                     }}
-                    className="p-1 opacity-100 hover:bg-accent rounded transition-colors"
+                    className="p-1 opacity-100 hover:bg-sidebar-hover rounded transition-colors"
                     aria-label={isPinned ? "Unpin Media" : "Pin Media"}
                   >
                     <Pin
                       className={`h-3.5 w-3.5 ${
-                        isPinned ? "fill-primary text-primary" : "text-muted-foreground"
+                        isPinned ? "fill-sidebar-accent text-sidebar-accent" : "text-sidebar-text/60"
                       }`}
                     />
                   </button>
                 )}
-                {!collapsed && <ChevronDown className={`h-3 w-3 transition-transform ${openSections.media ? '' : '-rotate-90'}`} />}
+                {!collapsed && <ChevronDown className={`h-3 w-3 text-sidebar-text/70 transition-transform ${openSections.media ? '' : '-rotate-90'}`} />}
               </div>
             </SidebarGroupLabel>
           </CollapsibleTrigger>
@@ -1139,11 +1139,11 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         open={openSections.monetization}
         onOpenChange={(open) => setOpenSections({ ...openSections, monetization: open })}
       >
-        <SidebarGroup className="py-0">
+        <SidebarGroup className="py-0 border-b border-sidebar-hover/30 pb-2">
           <CollapsibleTrigger asChild>
             <SidebarGroupLabel className="text-base font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5">
-              <span>Monetization</span>
-              {!collapsed && <ChevronDown className={`h-3 w-3 transition-transform ${openSections.monetization ? '' : '-rotate-90'}`} />}
+              <span className="text-sidebar-text">Monetization</span>
+              {!collapsed && <ChevronDown className={`h-3 w-3 text-sidebar-text/70 transition-transform ${openSections.monetization ? '' : '-rotate-90'}`} />}
             </SidebarGroupLabel>
           </CollapsibleTrigger>
           <CollapsibleContent>
@@ -1193,10 +1193,10 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         open={openSections.project_management}
         onOpenChange={(open) => setOpenSections({ ...openSections, project_management: open })}
       >
-        <SidebarGroup className="py-0">
+        <SidebarGroup className="py-0 border-b border-sidebar-hover/30 pb-2">
           <CollapsibleTrigger asChild>
             <SidebarGroupLabel className="text-base font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5 relative group">
-              <span>Project Management</span>
+              <span className="text-sidebar-text">Project Management</span>
               <div className="flex items-center gap-1">
                 {!collapsed && (
                   <button
@@ -1205,17 +1205,17 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                       e.stopPropagation();
                       togglePin("project_management");
                     }}
-                    className="p-1 opacity-100 hover:bg-accent rounded transition-colors"
+                    className="p-1 opacity-100 hover:bg-sidebar-hover rounded transition-colors"
                     aria-label={isPinned ? "Unpin Project Management" : "Pin Project Management"}
                   >
                     <Pin
                       className={`h-3.5 w-3.5 ${
-                        isPinned ? "fill-primary text-primary" : "text-muted-foreground"
+                        isPinned ? "fill-sidebar-accent text-sidebar-accent" : "text-sidebar-text/60"
                       }`}
                     />
                   </button>
                 )}
-                {!collapsed && <ChevronDown className={`h-3 w-3 transition-transform ${openSections.project_management ? '' : '-rotate-90'}`} />}
+                {!collapsed && <ChevronDown className={`h-3 w-3 text-sidebar-text/70 transition-transform ${openSections.project_management ? '' : '-rotate-90'}`} />}
               </div>
             </SidebarGroupLabel>
           </CollapsibleTrigger>
@@ -1265,11 +1265,11 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         open={openSections.civic}
         onOpenChange={(open) => setOpenSections({ ...openSections, civic: open })}
       >
-        <SidebarGroup className="py-0">
+        <SidebarGroup className="py-0 border-b border-sidebar-hover/30 pb-2">
           <CollapsibleTrigger asChild>
             <SidebarGroupLabel className="text-base font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5">
-              <span>Civic</span>
-              {!collapsed && <ChevronDown className={`h-3 w-3 transition-transform ${openSections.civic ? '' : '-rotate-90'}`} />}
+              <span className="text-sidebar-text">Civic</span>
+              {!collapsed && <ChevronDown className={`h-3 w-3 text-sidebar-text/70 transition-transform ${openSections.civic ? '' : '-rotate-90'}`} />}
             </SidebarGroupLabel>
           </CollapsibleTrigger>
           <CollapsibleContent>
@@ -1318,11 +1318,11 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         open={openSections.influencer}
         onOpenChange={(open) => setOpenSections({ ...openSections, influencer: open })}
       >
-        <SidebarGroup className="py-0">
+        <SidebarGroup className="py-0 border-b border-sidebar-hover/30 pb-2">
           <CollapsibleTrigger asChild>
             <SidebarGroupLabel className="text-base font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5">
-              <span>Influencer</span>
-              {!collapsed && <ChevronDown className={`h-3 w-3 transition-transform ${openSections.influencer ? '' : '-rotate-90'}`} />}
+              <span className="text-sidebar-text">Influencer</span>
+              {!collapsed && <ChevronDown className={`h-3 w-3 text-sidebar-text/70 transition-transform ${openSections.influencer ? '' : '-rotate-90'}`} />}
             </SidebarGroupLabel>
           </CollapsibleTrigger>
           <CollapsibleContent>
@@ -1371,11 +1371,11 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         open={openSections.agency}
         onOpenChange={(open) => setOpenSections({ ...openSections, agency: open })}
       >
-        <SidebarGroup className="py-0">
+        <SidebarGroup className="py-0 border-b border-sidebar-hover/30 pb-2">
           <CollapsibleTrigger asChild>
             <SidebarGroupLabel className="text-base font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5">
-              <span>Agency</span>
-              {!collapsed && <ChevronDown className={`h-3 w-3 transition-transform ${openSections.agency ? '' : '-rotate-90'}`} />}
+              <span className="text-sidebar-text">Agency</span>
+              {!collapsed && <ChevronDown className={`h-3 w-3 text-sidebar-text/70 transition-transform ${openSections.agency ? '' : '-rotate-90'}`} />}
             </SidebarGroupLabel>
           </CollapsibleTrigger>
           <CollapsibleContent>
@@ -1424,11 +1424,11 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         open={openSections.blog}
         onOpenChange={(open) => setOpenSections({ ...openSections, blog: open })}
       >
-        <SidebarGroup className="py-0">
+        <SidebarGroup className="py-0 border-b border-sidebar-hover/30 pb-2">
           <CollapsibleTrigger asChild>
             <SidebarGroupLabel className="text-base font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5">
-              <span>Blog</span>
-              {!collapsed && <ChevronDown className={`h-3 w-3 transition-transform ${openSections.blog ? '' : '-rotate-90'}`} />}
+              <span className="text-sidebar-text">Blog</span>
+              {!collapsed && <ChevronDown className={`h-3 w-3 text-sidebar-text/70 transition-transform ${openSections.blog ? '' : '-rotate-90'}`} />}
             </SidebarGroupLabel>
           </CollapsibleTrigger>
           <CollapsibleContent>
@@ -1474,11 +1474,11 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
       open={openSections.settings}
       onOpenChange={(open) => setOpenSections({ ...openSections, settings: open })}
     >
-      <SidebarGroup className="py-0 mt-3 pt-3 border-t-2 border-primary/30">
+      <SidebarGroup className="py-0 mt-3 pt-3 border-t-2 border-sidebar-accent/30">
         <CollapsibleTrigger asChild>
           <SidebarGroupLabel className="text-base font-bold cursor-pointer flex items-center justify-between mb-0 py-1.5">
-            <span>Account Settings</span>
-            {!collapsed && <ChevronDown className={`h-3 w-3 transition-transform ${openSections.settings ? '' : '-rotate-90'}`} />}
+            <span className="text-sidebar-text">Account Settings</span>
+            {!collapsed && <ChevronDown className={`h-3 w-3 text-sidebar-text/70 transition-transform ${openSections.settings ? '' : '-rotate-90'}`} />}
           </SidebarGroupLabel>
         </CollapsibleTrigger>
         <CollapsibleContent>
@@ -1531,9 +1531,9 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         >
           <SidebarGroup className="py-0">
             <CollapsibleTrigger asChild>
-              <SidebarGroupLabel className="text-sm font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5 text-muted-foreground">
+              <SidebarGroupLabel className="text-sm font-semibold cursor-pointer flex items-center justify-between mb-0 py-1.5 text-sidebar-text/80">
                 <span>{title}</span>
-                {!collapsed && <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? '' : '-rotate-90'}`} />}
+                {!collapsed && <ChevronDown className={`h-3 w-3 text-sidebar-text/70 transition-transform ${isOpen ? '' : '-rotate-90'}`} />}
               </SidebarGroupLabel>
             </CollapsibleTrigger>
             <CollapsibleContent>
@@ -1576,7 +1576,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     return (
       <>
         {/* Admin Dashboard Link with Animated Spark */}
-        <SidebarGroup className="py-0 pb-2">
+        <SidebarGroup className="py-0 pb-2 border-b border-sidebar-hover/30">
           <SidebarMenu className="space-y-0">
             <SidebarMenuItem>
               <TooltipProvider>
@@ -1586,8 +1586,8 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                       <NavLink 
                         to="/admin" 
                         end 
-                        className="hover:bg-accent hover:text-accent-foreground text-base font-bold py-2 h-10 flex items-center gap-3"
-                        activeClassName="bg-accent text-accent-foreground"
+                        className="hover:bg-sidebar-hover text-base font-bold py-2 h-10 flex items-center gap-3 text-sidebar-text"
+                        activeClassName="bg-sidebar-active border-l-3 border-l-sidebar-accent font-bold"
                       >
                         <SparkIcon variant="holiday" size="lg" animated pose="waving" />
                         {!collapsed && <span>Admin Dashboard</span>}
@@ -1639,10 +1639,10 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
   return (
     <>
-      <Sidebar collapsible="icon" className="border-r">
-        <SidebarHeader>
+      <Sidebar collapsible="icon" className="bg-sidebar-bg border-r border-sidebar-hover">
+        <SidebarHeader className="border-b border-sidebar-hover">
           <div className="flex items-center justify-between px-4 py-3">
-            <Link to="/tasks" className="relative">
+            <Link to="/tasks" className="relative hover:scale-105 transition-transform">
               <SparkIcon variant="holiday" size="lg" pose="idle" />
             </Link>
             {!collapsed && (
@@ -1670,7 +1670,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                         className="relative group cursor-pointer hover:scale-110 transition-transform"
                         aria-label="Open Active Apps"
                       >
-                        <Sparkles className="h-8 w-8 text-brand-gold" />
+                        <Sparkles className="h-8 w-8 text-sidebar-accent" />
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -1713,7 +1713,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         )}
       </SidebarContent>
 
-      <SidebarFooter className="border-t p-3">
+      <SidebarFooter className="border-t border-sidebar-hover p-3">
         {/* Ask Spark Button */}
         <button
           onClick={() => {
@@ -1721,19 +1721,19 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
             const event = new CustomEvent('openSparkChat');
             window.dispatchEvent(event);
           }}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors group"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-sidebar-hover transition-all group"
         >
           <div className="w-8 h-8 flex-shrink-0">
             <img 
               src="/spark/icons/spark-icon-32.png" 
               alt="Seeksy Spark" 
-              className="w-full h-full object-contain group-hover:scale-110 transition-transform"
+              className="w-full h-full object-contain group-hover:scale-110 transition-transform drop-shadow-lg"
             />
           </div>
           {!collapsed && (
             <div className="flex-1 text-left">
-              <p className="text-sm font-medium">Ask Spark</p>
-              <p className="text-xs text-muted-foreground">Your AI Guide ✨</p>
+              <p className="text-sm font-medium text-sidebar-text">Ask Spark</p>
+              <p className="text-xs text-sidebar-text/70">Your AI Guide ✨</p>
             </div>
           )}
         </button>
