@@ -16,6 +16,7 @@ import { useTaskReminders } from "@/hooks/useTaskReminders";
 import { useAutoTheme } from "@/hooks/useAutoTheme";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { RouteTransition } from "@/components/RouteTransition";
+import { FloatingSparkButton } from "@/components/FloatingSparkButton";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -89,7 +90,6 @@ import UploadEpisode from "./pages/UploadEpisode";
 import RSSMigrationPage from "./pages/RSSMigrationPage";
 import PaidAdsTerms from "./pages/legal/PaidAdsTerms";
 import SubscriptionSettings from "./pages/SubscriptionSettings";
-import { SeeksyAIChatWidget } from "./components/SeeksyAIChatWidget";
 import { useHolidaySettings } from "./hooks/useHolidaySettings";
 import { HolidayWelcomeModal, SantaAssistantButton, Snowfall } from "./components/holiday";
 import { CommandPaletteProvider } from "./components/command/CommandPaletteProvider";
@@ -782,7 +782,7 @@ const AppContent = () => {
             </RouteTransition>
           </main>
         </div>
-        {user && !location.pathname.includes('/meeting-studio/') && !location.pathname.includes('/studio/') && <SeeksyAIChatWidget />}
+        {user && !location.pathname.includes('/meeting-studio/') && !location.pathname.includes('/studio/') && <FloatingSparkButton />}
         {user && !location.pathname.includes('/meeting-studio/') && !location.pathname.includes('/studio/') && <AskSparkDock />}
         
         <HolidayFeatures />

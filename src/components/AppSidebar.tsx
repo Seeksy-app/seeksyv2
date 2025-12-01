@@ -125,10 +125,10 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
         {/* Email Section */}
         {!collapsed && (
-          <SidebarGroup className="mt-4">
+          <SidebarGroup className="mt-2">
             <Collapsible open={emailOpen} onOpenChange={setEmailOpen}>
               <SidebarGroupLabel asChild>
-                <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-hover/50 rounded-lg px-2 py-1 transition-colors text-white font-medium">
+                <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-hover/50 rounded-lg px-2 py-1 transition-colors text-white font-medium text-base">
                   <span>Email</span>
                   {emailOpen ? (
                     <ChevronDown className="h-4 w-4" />
@@ -169,10 +169,10 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
         {/* Marketing Section */}
         {!collapsed && (
-          <SidebarGroup className="mt-2">
+          <SidebarGroup className="mt-1">
             <Collapsible open={marketingOpen} onOpenChange={setMarketingOpen}>
               <SidebarGroupLabel asChild>
-                <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-hover/50 rounded-lg px-2 py-1 transition-colors text-white font-medium">
+                <CollapsibleTrigger className="flex w-full items-center justify-between hover:bg-sidebar-hover/50 rounded-lg px-2 py-1 transition-colors text-white font-medium text-base">
                   <span>Marketing</span>
                   {marketingOpen ? (
                     <ChevronDown className="h-4 w-4" />
@@ -214,8 +214,8 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
         {/* Admin Section */}
         {isAdmin && (
           <>
-            <SidebarGroup className="mt-4">
-              <SidebarGroupLabel className="text-white font-medium">Admin</SidebarGroupLabel>
+            <SidebarGroup className="mt-2">
+              <SidebarGroupLabel className="text-white font-medium text-base">Admin</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {adminNavItems.map((item) => (
