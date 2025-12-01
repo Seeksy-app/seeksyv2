@@ -31,6 +31,7 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
   const [showBcc, setShowBcc] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
 
   // Fetch connected email accounts
   const { data: accounts = [] } = useQuery({
@@ -70,6 +71,7 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
   useEffect(() => {
     if (!open || (!to && !subject && !body)) return;
 
+    setSaveStatus("saving");
     const timer = setTimeout(() => {
       if (to || subject || body) {
         autoSaveDraftMutation.mutate();
@@ -179,9 +181,12 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
     onSuccess: () => {
       // Silent save - no toast, no close
       queryClient.invalidateQueries({ queryKey: ["email-events"] });
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 2000);
     },
     onError: () => {
       // Silent failure for auto-save
+      setSaveStatus("idle");
     },
   });
 
@@ -426,24 +431,31 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
 
       {/* Footer */}
       <div className="border-t p-4 flex items-center justify-between bg-muted/30">
-        <div className="flex gap-2">
-          <Button
-            onClick={() => sendEmailMutation.mutate()}
-            disabled={!to || !subject || !body || sendEmailMutation.isPending}
-            size="sm"
-          >
-            <Send className="h-3.5 w-3.5 mr-1.5" />
-            Send
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => saveDraftMutation.mutate()}
-            disabled={saveDraftMutation.isPending}
-            size="sm"
-          >
-            <Save className="h-3.5 w-3.5 mr-1.5" />
-            Save Draft
-          </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex gap-2">
+            <Button
+              onClick={() => sendEmailMutation.mutate()}
+              disabled={!to || !subject || !body || sendEmailMutation.isPending}
+              size="sm"
+            >
+              <Send className="h-3.5 w-3.5 mr-1.5" />
+              Send
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => saveDraftMutation.mutate()}
+              disabled={saveDraftMutation.isPending}
+              size="sm"
+            >
+              <Save className="h-3.5 w-3.5 mr-1.5" />
+              Save Draft
+            </Button>
+          </div>
+          {saveStatus !== "idle" && (
+            <span className="text-xs text-muted-foreground">
+              {saveStatus === "saving" ? "Saving..." : "✓ Saved"}
+            </span>
+          )}
         </div>
         <Button
           variant="ghost"

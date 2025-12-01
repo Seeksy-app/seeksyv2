@@ -145,6 +145,8 @@ export function EmailViewer({
             <span>To: {email.to_email}</span>
             <span>•</span>
             <span>From: {email.from_email}</span>
+            <span>•</span>
+            <span>Sent at {new Date(email.created_at).toLocaleString()}</span>
           </div>
           
           {/* Tracking Pills in Header */}

@@ -18,6 +18,7 @@ interface Email {
   campaign_name?: string;
   from_email?: string;
   reply_count?: number;
+  opened?: boolean;
 }
 
 interface EmailListProps {
@@ -183,9 +184,14 @@ export function EmailList({
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="font-medium truncate">
-                        {email.to_email}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {email.opened === false && (
+                          <Circle className="h-2 w-2 fill-blue-500 text-blue-500 flex-shrink-0" />
+                        )}
+                        <span className="font-medium truncate">
+                          {email.to_email}
+                        </span>
+                      </div>
                       <div className="flex items-center gap-1">
                         <Button
                           variant="ghost"
