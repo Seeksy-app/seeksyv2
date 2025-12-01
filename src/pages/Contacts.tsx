@@ -497,8 +497,12 @@ const Contacts = () => {
                 rows={6}
               />
             </div>
-            <Button onClick={handleSendEmailSubmit} className="w-full">
-              Send Email
+            <Button 
+              onClick={handleSendEmailSubmit} 
+              className="w-full"
+              disabled={sendEmail.isPending}
+            >
+              {sendEmail.isPending ? "Sending..." : "Send Email"}
             </Button>
           </div>
         </DialogContent>
