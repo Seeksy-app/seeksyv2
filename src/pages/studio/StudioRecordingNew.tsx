@@ -54,6 +54,7 @@ export default function StudioRecordingNew() {
         onContinue={handleDeviceCheckContinue}
         onBack={() => navigate("/studio")}
         error={recorder.error}
+        onInit={async () => { await recorder.initializeDevices(); }}
       />
     );
   }
