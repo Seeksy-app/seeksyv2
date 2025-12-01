@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +18,7 @@ import {
   Globe,
   Mail
 } from "lucide-react";
+import { GuestRequestModal } from "@/components/landing/GuestRequestModal";
 
 const platformIcons = {
   youtube: Youtube,
@@ -61,8 +63,37 @@ export default function PublicLandingPage() {
     enabled: !!slug,
   });
 
-  // Check identity certifications (using simplified query to avoid TS recursion)
-  const identityStatus = { voiceVerified: false, faceVerified: false };
+  const { data: identityStatus } = useQuery<{ voiceVerified: boolean; faceVerified: boolean }>({
+    queryKey: ["identity-status", landingPage?.owner_user_id],
+    queryFn: async () => {
+      if (!landingPage?.owner_user_id) return { voiceVerified: false, faceVerified: false };
+
+      // Check face verification
+      const { data: faceAssets } = await supabase
+        .from("identity_assets")
+        .select("cert_status")
+        .eq("user_id", landingPage.owner_user_id)
+        .eq("asset_type", "FACE_IDENTITY")
+        .eq("cert_status", "minted")
+        .limit(1);
+
+      // Check voice verification
+      const { data: voiceProfiles } = await supabase
+        .from("creator_voice_profiles")
+        .select("is_verified")
+        .eq("user_id", landingPage.owner_user_id)
+        .eq("is_verified", true)
+        .limit(1);
+
+      return {
+        faceVerified: (faceAssets && faceAssets.length > 0),
+        voiceVerified: (voiceProfiles && voiceProfiles.length > 0),
+      } as { voiceVerified: boolean; faceVerified: boolean };
+    },
+    enabled: !!landingPage?.owner_user_id,
+  });
+
+  const [guestRequestOpen, setGuestRequestOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -142,19 +173,36 @@ export default function PublicLandingPage() {
             {/* Primary CTAs */}
             {ctas.length > 0 && (
               <div className="flex flex-wrap items-center justify-center gap-4">
-                {ctas.map((cta: any) => (
-                  <Button
-                    key={cta.id}
-                    variant={cta.cta_type as any}
-                    size="lg"
-                    asChild
-                  >
-                    <a href={cta.url} target="_blank" rel="noopener noreferrer">
-                      {cta.label}
-                      <ExternalLink className="ml-2 h-4 w-4" />
-                    </a>
-                  </Button>
-                ))}
+                {ctas.map((cta: any) => {
+                  const isGuestRequest = cta.url === '#guest-request';
+                  
+                  if (isGuestRequest) {
+                    return (
+                      <Button
+                        key={cta.id}
+                        variant={cta.cta_type as any}
+                        size="lg"
+                        onClick={() => setGuestRequestOpen(true)}
+                      >
+                        {cta.label}
+                      </Button>
+                    );
+                  }
+                  
+                  return (
+                    <Button
+                      key={cta.id}
+                      variant={cta.cta_type as any}
+                      size="lg"
+                      asChild
+                    >
+                      <a href={cta.url} target={cta.url.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer">
+                        {cta.label}
+                        {cta.url.startsWith('http') && <ExternalLink className="ml-2 h-4 w-4" />}
+                      </a>
+                    </Button>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -273,6 +321,14 @@ export default function PublicLandingPage() {
           <p>Powered by Seeksy</p>
         </div>
       </div>
+
+      {/* Guest Request Modal */}
+      <GuestRequestModal
+        open={guestRequestOpen}
+        onOpenChange={setGuestRequestOpen}
+        creatorId={landingPage?.owner_user_id || ''}
+        creatorName={landingPage?.title || 'this creator'}
+      />
     </>
   );
 }

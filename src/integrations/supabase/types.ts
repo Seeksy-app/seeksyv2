@@ -5923,6 +5923,45 @@ export type Database = {
           },
         ]
       }
+      guest_requests: {
+        Row: {
+          created_at: string | null
+          creator_id: string
+          email: string
+          id: string
+          link: string | null
+          name: string
+          source: string | null
+          status: string | null
+          topic_or_pitch: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          creator_id: string
+          email: string
+          id?: string
+          link?: string | null
+          name: string
+          source?: string | null
+          status?: string | null
+          topic_or_pitch?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          creator_id?: string
+          email?: string
+          id?: string
+          link?: string | null
+          name?: string
+          source?: string | null
+          status?: string | null
+          topic_or_pitch?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       identity_access_logs: {
         Row: {
           action: string
@@ -6692,35 +6731,44 @@ export type Database = {
       }
       landing_ctas: {
         Row: {
+          auto_generated: boolean | null
           created_at: string | null
+          cta_category: string | null
           cta_type: string | null
           description: string | null
           icon: string | null
           id: string
           label: string
           landing_page_id: string
+          linked_entity_id: string | null
           sort_order: number | null
           url: string
         }
         Insert: {
+          auto_generated?: boolean | null
           created_at?: string | null
+          cta_category?: string | null
           cta_type?: string | null
           description?: string | null
           icon?: string | null
           id?: string
           label: string
           landing_page_id: string
+          linked_entity_id?: string | null
           sort_order?: number | null
           url: string
         }
         Update: {
+          auto_generated?: boolean | null
           created_at?: string | null
+          cta_category?: string | null
           cta_type?: string | null
           description?: string | null
           icon?: string | null
           id?: string
           label?: string
           landing_page_id?: string
+          linked_entity_id?: string | null
           sort_order?: number | null
           url?: string
         }
