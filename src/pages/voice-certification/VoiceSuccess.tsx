@@ -13,10 +13,32 @@ const VoiceSuccess = () => {
   const { voiceHash, tokenId, explorerUrl, transactionHash } = location.state || {};
 
   useEffect(() => {
-    // Invalidate all identity queries to refresh UI
-    queryClient.invalidateQueries({ queryKey: ['identity-status'] });
-    queryClient.invalidateQueries({ queryKey: ['voice-identity-status'] });
-    queryClient.invalidateQueries({ queryKey: ['identity-assets'] });
+    // Force immediate refetch with no cache
+    const refetchIdentity = async () => {
+      console.log('[VoiceSuccess] Force refetching all identity queries...');
+      await Promise.all([
+        queryClient.refetchQueries({ 
+          queryKey: ['identity-status'], 
+          type: 'all',
+          exact: true 
+        }),
+        queryClient.refetchQueries({ 
+          queryKey: ['voice-identity-status'], 
+          type: 'all',
+          exact: true 
+        }),
+        queryClient.refetchQueries({ 
+          queryKey: ['identity-assets'], 
+          type: 'all',
+          exact: true 
+        }),
+      ]);
+      console.log('[VoiceSuccess] All identity queries refetched');
+    };
+    
+    refetchIdentity().catch(err => {
+      console.error('[VoiceSuccess] Refetch error (non-critical):', err);
+    });
     
     // Trigger confetti
     const duration = 3000;
