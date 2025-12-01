@@ -218,15 +218,8 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
             >
               <SidebarGroup>
                 <CollapsibleTrigger asChild>
-                  <SidebarGroupLabel className="cursor-pointer hover:bg-muted/50 rounded-md transition-colors flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span>{group.group}</span>
-                      {group.description && !collapsed && (
-                        <span className="text-xs text-muted-foreground opacity-70">
-                          {group.description}
-                        </span>
-                      )}
-                    </div>
+                  <SidebarGroupLabel className="cursor-pointer hover:bg-muted/50 rounded-md transition-colors flex items-center justify-between text-white font-semibold text-sm px-3 py-2">
+                    <span>{group.group}</span>
                     {!collapsed && (
                       <ChevronDown 
                         className={`h-4 w-4 transition-transform duration-200 ${
