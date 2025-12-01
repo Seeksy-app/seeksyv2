@@ -9108,6 +9108,7 @@ export type Database = {
       }
       podcasts: {
         Row: {
+          author: string | null
           author_email: string | null
           author_name: string | null
           category: string | null
@@ -9132,6 +9133,7 @@ export type Database = {
           website_url: string | null
         }
         Insert: {
+          author?: string | null
           author_email?: string | null
           author_name?: string | null
           category?: string | null
@@ -9156,6 +9158,7 @@ export type Database = {
           website_url?: string | null
         }
         Update: {
+          author?: string | null
           author_email?: string | null
           author_name?: string | null
           category?: string | null
