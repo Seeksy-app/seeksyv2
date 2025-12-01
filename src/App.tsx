@@ -192,6 +192,7 @@ import KeysVault from "./pages/KeysVault";
 import ManageInvestorSpreadsheets from "./pages/ManageInvestorSpreadsheets";
 import ModuleSelector from "./pages/ModuleSelector";
 import Modules from "./pages/Modules";
+import Apps from "./pages/Apps";
 import RoleSettings from "./pages/RoleSettings";
 import InfluenceHub from "./pages/InfluenceHub";
 import InfluenceHubConnect from "./pages/InfluenceHubConnect";
@@ -593,6 +594,7 @@ const AppContent = () => {
           <Route path="/integrations" element={<Integrations />} />
           <Route path="/module-selector" element={<ModuleSelector />} />
           <Route path="/modules" element={<Modules />} />
+          <Route path="/apps" element={<Apps />} />
           <Route path="/influencehub" element={<InfluenceHub />} />
           <Route path="/influencehub/connect" element={<InfluenceHubConnect />} />
           <Route path="/influencehub/creators" element={<InfluenceHubCreators />} />
