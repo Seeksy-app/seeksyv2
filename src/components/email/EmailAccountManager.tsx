@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +11,7 @@ import { toast } from "sonner";
 export const EmailAccountManager = () => {
   const queryClient = useQueryClient();
   const [connecting, setConnecting] = useState(false);
+  const location = useLocation();
 
   const { data: user } = useQuery({
     queryKey: ["user"],
@@ -36,6 +38,28 @@ export const EmailAccountManager = () => {
     },
     enabled: !!user,
   });
+
+  // Handle OAuth success/error redirects
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const success = params.get("success");
+    const error = params.get("error");
+
+    if (success === "gmail_connected") {
+      toast.success("Gmail account connected successfully!");
+      queryClient.invalidateQueries({ queryKey: ["email-accounts"] });
+      // Clean up URL
+      window.history.replaceState({}, "", "/email-settings");
+    } else if (error) {
+      if (error === "oauth_failed") {
+        toast.error("Gmail connection was cancelled");
+      } else if (error === "connection_failed") {
+        toast.error("Failed to connect Gmail account");
+      }
+      // Clean up URL
+      window.history.replaceState({}, "", "/email-settings");
+    }
+  }, [location.search, queryClient]);
 
   const connectGmail = async () => {
     console.log("Connect Gmail button clicked");
