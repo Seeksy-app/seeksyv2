@@ -38,7 +38,10 @@ interface EmailViewerProps {
 }
 
 const getStatusColor = (eventType: string) => {
-  switch (eventType) {
+  // Normalize event type by removing "email." prefix if present
+  const normalizedType = eventType.replace("email.", "");
+  
+  switch (normalizedType) {
     case "delivered":
       return "text-green-500";
     case "opened":
@@ -49,12 +52,14 @@ const getStatusColor = (eventType: string) => {
       return "text-red-500";
     case "unsubscribed":
       return "text-orange-500";
+    case "sent":
+      return "text-blue-400";
     default:
       return "text-muted-foreground";
   }
 };
 
-const eventOrder = ["sent", "delivered", "opened", "clicked"];
+const eventOrder = ["email.sent", "email.delivered", "email.opened", "email.clicked"];
 
 export function EmailViewer({
   email,
@@ -119,6 +124,7 @@ export function EmailViewer({
             {eventOrder.map((eventType, index) => {
               const event = events.find((e) => e.event_type === eventType);
               const isCompleted = !!event;
+              const displayName = eventType.replace("email.", "");
               
               return (
                 <div key={eventType} className="flex items-center gap-3">
@@ -134,7 +140,7 @@ export function EmailViewer({
                         "font-medium",
                         isCompleted ? "text-foreground" : "text-muted-foreground"
                       )}>
-                        {eventType.charAt(0).toUpperCase() + eventType.slice(1)}
+                        {displayName.charAt(0).toUpperCase() + displayName.slice(1)}
                       </span>
                       {event && (
                         <span className="text-xs text-muted-foreground">

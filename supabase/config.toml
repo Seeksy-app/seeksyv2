@@ -181,6 +181,9 @@ verify_jwt = false
 [functions.send-campaign]
 verify_jwt = true
 
+[functions.send-email]
+verify_jwt = true
+
 [functions.calculate-segment-count]
 verify_jwt = true
 

@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { EmailFolderList } from "@/components/email/client/EmailFolderList";
 import { EmailList } from "@/components/email/client/EmailList";
 import { EmailViewer } from "@/components/email/client/EmailViewer";
+import { EmailComposer } from "@/components/email/client/EmailComposer";
 import { useToast } from "@/hooks/use-toast";
 
 export default function EmailHome() {
@@ -13,6 +14,24 @@ export default function EmailHome() {
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
   const [filter, setFilter] = useState("all");
   const [sortBy, setSortBy] = useState("date");
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [editDraftId, setEditDraftId] = useState<string | null>(null);
+
+  // Keyboard shortcut: C to compose
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === "c" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        const target = e.target as HTMLElement;
+        if (target.tagName !== "INPUT" && target.tagName !== "TEXTAREA") {
+          e.preventDefault();
+          setComposerOpen(true);
+        }
+      }
+    };
+    
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, []);
   const { data: user } = useQuery({
     queryKey: ["user"],
     queryFn: async () => {
@@ -27,6 +46,27 @@ export default function EmailHome() {
     queryFn: async () => {
       if (!user) return [];
       
+      // Drafts are stored in email_campaigns table
+      if (selectedFolder === "drafts") {
+        const { data } = await supabase
+          .from("email_campaigns")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("is_draft", true)
+          .order("updated_at", { ascending: false });
+        
+        // Transform drafts to match email event format
+        return (data || []).map(draft => ({
+          id: draft.id,
+          to_email: (draft.draft_data as any)?.to || "Draft",
+          email_subject: draft.subject || "Untitled Draft",
+          event_type: "draft",
+          created_at: draft.created_at,
+          from_email: "",
+          campaign_name: draft.campaign_name,
+        }));
+      }
+      
       let query = supabase
         .from("email_events")
         .select("*, email_campaigns(campaign_name)")
@@ -35,11 +75,11 @@ export default function EmailHome() {
 
       // Apply folder filter
       if (selectedFolder === "sent") {
-        query = query.eq("event_type", "sent");
+        query = query.eq("event_type", "email.sent");
       } else if (selectedFolder === "bounced") {
-        query = query.eq("event_type", "bounced");
+        query = query.eq("event_type", "email.bounced");
       } else if (selectedFolder === "unsubscribed") {
-        query = query.eq("event_type", "unsubscribed");
+        query = query.eq("event_type", "email.unsubscribed");
       }
 
       // Apply status filter
@@ -61,16 +101,17 @@ export default function EmailHome() {
 
       const queries = await Promise.all([
         supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id),
-        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "sent"),
-        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "bounced"),
-        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "unsubscribed"),
+        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "email.sent"),
+        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "email.bounced"),
+        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "email.unsubscribed"),
+        supabase.from("email_campaigns").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("is_draft", true),
       ]);
 
       return {
         inbox: queries[0].count || 0,
         sent: queries[1].count || 0,
         scheduled: 0, // TODO: Implement
-        drafts: 0, // TODO: Implement
+        drafts: queries[4].count || 0,
         archived: 0, // TODO: Implement
         bounced: queries[2].count || 0,
         suppressed: 0, // TODO: Implement
@@ -147,11 +188,21 @@ export default function EmailHome() {
               campaign_name: e.email_campaigns?.campaign_name,
             }))}
             selectedEmailId={selectedEmailId}
-            onEmailSelect={setSelectedEmailId}
+            onEmailSelect={(id) => {
+              // If it's a draft, open composer instead of viewer
+              const email = emails.find((e: any) => e.id === id);
+              if (email?.event_type === "draft") {
+                setEditDraftId(id);
+                setComposerOpen(true);
+              } else {
+                setSelectedEmailId(id);
+              }
+            }}
             filter={filter}
             onFilterChange={setFilter}
             sortBy={sortBy}
             onSortChange={setSortBy}
+            onCompose={() => setComposerOpen(true)}
           />
         </ResizablePanel>
 
@@ -196,6 +247,16 @@ export default function EmailHome() {
           />
         </ResizablePanel>
       </ResizablePanelGroup>
+
+      {/* Email Composer */}
+      <EmailComposer
+        open={composerOpen}
+        onClose={() => {
+          setComposerOpen(false);
+          setEditDraftId(null);
+        }}
+        draftId={editDraftId}
+      />
     </div>
   );
 }

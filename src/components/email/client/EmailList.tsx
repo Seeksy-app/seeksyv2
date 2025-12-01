@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Circle } from "lucide-react";
 
@@ -25,7 +26,9 @@ interface EmailListProps {
 }
 
 const getStatusColor = (eventType: string) => {
-  switch (eventType) {
+  const normalized = eventType.replace("email.", "");
+  
+  switch (normalized) {
     case "delivered":
       return "text-green-500";
     case "opened":
@@ -36,14 +39,23 @@ const getStatusColor = (eventType: string) => {
       return "text-red-500";
     case "unsubscribed":
       return "text-orange-500";
+    case "sent":
+      return "text-blue-400";
+    case "draft":
+      return "text-yellow-500";
     default:
       return "text-muted-foreground";
   }
 };
 
 const getStatusLabel = (eventType: string) => {
-  return eventType.charAt(0).toUpperCase() + eventType.slice(1);
+  const normalized = eventType.replace("email.", "");
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 };
+
+interface EmailListActions {
+  onCompose: () => void;
+}
 
 export function EmailList({
   emails,
@@ -53,9 +65,17 @@ export function EmailList({
   onFilterChange,
   sortBy,
   onSortChange,
-}: EmailListProps) {
+  onCompose,
+}: EmailListProps & EmailListActions) {
   return (
     <div className="h-full border-r flex flex-col">
+      {/* New Email Button */}
+      <div className="p-4 border-b bg-background">
+        <Button onClick={onCompose} className="w-full">
+          ➕ New Email
+        </Button>
+      </div>
+      
       {/* Filters and Sorting */}
       <div className="p-4 border-b bg-background">
         <div className="flex gap-2 mb-3">
