@@ -102,7 +102,16 @@ export function ImportRSSButton({ onImportComplete }: ImportRSSButtonProps) {
 
       // Create episodes with upsert to prevent duplicates on re-import
       if (data.episodes && data.episodes.length > 0) {
-        const episodeInserts = data.episodes.map((ep: any) => ({
+        // Filter out episodes without audio URLs
+        const validEpisodes = data.episodes.filter((ep: any) => 
+          ep.audioUrl && ep.audioUrl.trim() !== ''
+        );
+
+        if (validEpisodes.length === 0) {
+          throw new Error("No valid episodes with audio URLs found in RSS feed");
+        }
+
+        const episodeInserts = validEpisodes.map((ep: any) => ({
           podcast_id: podcastData.id,
           title: ep.title,
           description: ep.description || "",

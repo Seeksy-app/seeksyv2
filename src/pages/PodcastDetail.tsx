@@ -27,7 +27,7 @@ const PodcastDetail = () => {
     },
   });
 
-  const { data: podcast } = useQuery({
+  const { data: podcast, isLoading } = useQuery({
     queryKey: ["podcast", id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -51,7 +51,27 @@ const PodcastDetail = () => {
     localStorage.setItem("podcast-detail-tab", activeTab);
   }, [activeTab]);
 
-  if (!podcast || !user) return null;
+  if (isLoading || !user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4" />
+          <p className="text-muted-foreground">Loading podcast...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!podcast) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground mb-4">Podcast not found</p>
+          <Button onClick={() => navigate("/podcasts")}>Back to Podcasts</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
