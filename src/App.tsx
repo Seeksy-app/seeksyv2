@@ -117,6 +117,12 @@ import VoiceProtection from "./pages/VoiceProtection";
 import VoiceCredentials from "./pages/VoiceCredentialsSimple";
 import VoiceCredentialsAdmin from "./pages/admin/VoiceCredentialsAdmin";
 import StudioRecordingNew from "./pages/studio/StudioRecordingNew";
+import StudioRecordings from "./pages/studio/StudioRecordings";
+import StudioClips from "./pages/studio/StudioClips";
+import StudioAds from "./pages/studio/StudioAds";
+import StudioGuests from "./pages/studio/StudioGuests";
+import StudioSettings from "./pages/studio/StudioSettings";
+import StudioLiveNew from "./pages/studio/StudioLiveNew";
 import VoiceCertificationPage from "./pages/admin/VoiceCertificationPage";
 import VoiceNFTCertificatesPage from "./pages/admin/VoiceNFTCertificatesPage";
 import PublicLandingPage from "./pages/PublicLandingPage";
@@ -512,6 +518,12 @@ const AppContent = () => {
                 <Route index element={<StudioHome />} />
                 <Route path="recording/new" element={<StudioRecordingNew />} />
                 <Route path="post-session/:sessionId" element={<StudioPostSession />} />
+                <Route path="recordings" element={<StudioRecordings />} />
+                <Route path="clips" element={<StudioClips />} />
+                <Route path="ads" element={<StudioAds />} />
+                <Route path="guests" element={<StudioGuests />} />
+                <Route path="settings" element={<StudioSettings />} />
+                <Route path="live/new" element={<StudioLiveNew />} />
               </Route>
               
             <Route path="/events" element={<Events />} />
