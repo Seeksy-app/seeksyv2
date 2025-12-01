@@ -56,7 +56,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
 
   const mainNavItems = [
     { title: "Dashboard", url: "/", icon: Sparkles },
-    { title: "Apps & Modules", url: "/apps", icon: Grid },
+    { title: "Seekies & Tools", url: "/apps", icon: Grid },
     { title: "Contacts & Audience", url: "/audience", icon: Users },
     { title: "Content & Media", url: "/content", icon: Video },
     { title: "Monetization Hub", url: "/monetization", icon: DollarSign },
