@@ -90,7 +90,8 @@ body {
     max-width: 100%;
   }
 
-  .dark {
+  .dark,
+  .midnight {
     --background: 208 93% 12%;
     --foreground: 0 0% 95%;
 
