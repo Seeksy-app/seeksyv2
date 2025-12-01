@@ -50,9 +50,7 @@ export const SparkIcon = ({
     // Use holiday variant if variant is "holiday" OR if global holiday mode is enabled
     const useHoliday = variant === "holiday" || holidaySettings?.holidayMode;
     
-    // Holiday variant overrides pose to use Santa versions
-    const actualPose = useHoliday ? pose : pose;
-    setAssetPath(getSparkAsset(actualPose, "full"));
+    setAssetPath(getSparkAsset(pose, "full", undefined, useHoliday));
   }, [pose, variant, holidaySettings]);
 
   // Entrance animation on mount (only if animated prop is true)
@@ -76,7 +74,6 @@ export const SparkIcon = ({
         alt="Seeksy Spark"
         className={cn(
           "object-contain select-none",
-          "mix-blend-normal",
           shouldAnimate && "animate-bounce-once",
           animated && "transition-all duration-300 ease-in-out",
           animated && isHovering && "scale-110 brightness-110",
@@ -85,7 +82,6 @@ export const SparkIcon = ({
         style={{ 
           width: `${pixelSize}px`, 
           height: `${pixelSize}px`,
-          background: 'transparent',
         }}
         draggable={false}
       />

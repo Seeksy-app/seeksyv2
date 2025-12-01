@@ -305,15 +305,15 @@ export const SeeksyAIChatWidget = () => {
             setIsOpen(true);
             setTriggerSparkAnimation(true);
           }}
-          className="transition-all duration-300 hover:scale-110"
+          className="transition-all duration-300 hover:scale-110 bg-transparent border-0 p-0"
           aria-label="Open Seeksy AI Chat"
+          style={{ background: 'transparent', boxShadow: 'none' }}
         >
           <SparkIcon 
             variant="holiday"
             size={80}
             pose="waving"
             animated
-            className="drop-shadow-2xl filter brightness-105" 
           />
         </button>
       </div>

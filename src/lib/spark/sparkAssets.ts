@@ -56,9 +56,11 @@ export const getCurrentTheme = (): "light" | "dark" => {
 export const getSparkAsset = (
   pose: SparkPose = "idle",
   size: SparkSize = "full",
-  forceTheme?: "light" | "dark"
+  forceTheme?: "light" | "dark",
+  forceHoliday?: boolean
 ): string => {
   const theme = forceTheme || getCurrentTheme();
+  const useHoliday = forceHoliday !== undefined ? forceHoliday : holidayModeEnabled;
   
   // Icon sizes
   if (size !== "full") {
@@ -66,7 +68,7 @@ export const getSparkAsset = (
   }
   
   // Holiday mode - use Santa Spark variants
-  if (holidayModeEnabled) {
+  if (useHoliday) {
     return `/spark/holiday/spark-${pose}-santa.png`;
   }
   
