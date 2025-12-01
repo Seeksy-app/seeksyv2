@@ -593,38 +593,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Live Stream Indicator */}
-        {isLiveStreaming && (
-          <div className="mb-8 animate-fade-in">
-            <Card className="border border-red-500/30 bg-card shadow-sm hover:shadow-md transition-all">
-              <CardContent className="p-5">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                    </div>
-                    <div className="inline-flex items-center gap-2 bg-red-500 text-white px-3 py-1 rounded-md text-sm font-semibold">
-                      LIVE
-                    </div>
-                    <span className="text-base font-semibold">
-                      {liveStreamTitle || "Studio Session Active"}
-                    </span>
-                  </div>
-                  <div className="ml-auto">
-                    <Button 
-                      onClick={() => navigate("/studio")}
-                      size="sm"
-                      className="bg-red-500 hover:bg-red-600 text-white"
-                    >
-                      Go to Studio
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
 
         {/* Social Accounts Banner */}
         <SocialAccountsBanner />
