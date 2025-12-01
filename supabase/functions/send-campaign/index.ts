@@ -81,7 +81,7 @@ serve(async (req) => {
     // Initialize Resend
     const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
-    const fromEmail = campaign.email_accounts?.email_address || "onboarding@resend.dev";
+    const fromEmail = campaign.email_accounts?.email_address || Deno.env.get("SENDER_EMAIL_HELLO") || "hello@seeksy.io";
     
     let successCount = 0;
     let failCount = 0;

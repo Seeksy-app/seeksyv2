@@ -134,7 +134,7 @@ serve(async (req) => {
             htmlContent = htmlContent.replace(/{{email}}/gi, contact.email);
 
             // Get from email
-            let fromEmail = "onboarding@resend.dev";
+            let fromEmail = Deno.env.get("SENDER_EMAIL_HELLO") || "hello@seeksy.io";
             if (config.from_email_account_id) {
               const { data: emailAccount } = await supabase
                 .from("email_accounts")
