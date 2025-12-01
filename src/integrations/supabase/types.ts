@@ -11671,6 +11671,7 @@ export type Database = {
           sms_new_account_alerts: boolean | null
           sms_notifications_enabled: boolean | null
           sms_ticket_assignments: boolean | null
+          studio_theme: string | null
           task_reminder_enabled: boolean | null
           task_reminder_frequency: string | null
           task_view_mode: string | null
@@ -11720,6 +11721,7 @@ export type Database = {
           sms_new_account_alerts?: boolean | null
           sms_notifications_enabled?: boolean | null
           sms_ticket_assignments?: boolean | null
+          studio_theme?: string | null
           task_reminder_enabled?: boolean | null
           task_reminder_frequency?: string | null
           task_view_mode?: string | null
@@ -11769,6 +11771,7 @@ export type Database = {
           sms_new_account_alerts?: boolean | null
           sms_notifications_enabled?: boolean | null
           sms_ticket_assignments?: boolean | null
+          studio_theme?: string | null
           task_reminder_enabled?: boolean | null
           task_reminder_frequency?: string | null
           task_view_mode?: string | null
