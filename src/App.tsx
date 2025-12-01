@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
+import { RoleBasedSidebar } from "@/components/navigation/RoleBasedSidebar";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { TopNavBar } from "@/components/TopNavBar";
 import { AskSparkDock } from "@/components/AskSparkDock";
@@ -413,7 +413,7 @@ const AppContent = () => {
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-background">
           {/* Hide Sidebar on Studio workspace (but show on Studio Hub) */}
-          {user && location.pathname !== '/broadcast/session/:id' && !location.pathname.includes('/broadcast/session/') && <AppSidebar user={user} isAdmin={isAdmin} />}
+          {user && location.pathname !== '/broadcast/session/:id' && !location.pathname.includes('/broadcast/session/') && <RoleBasedSidebar user={user} />}
         
         <div className="flex-1 flex flex-col">
           {/* TopNavBar on all My Day OS pages */}
