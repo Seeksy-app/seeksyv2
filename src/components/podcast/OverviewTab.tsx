@@ -117,7 +117,7 @@ export const OverviewTab = ({ podcastId, userId }: OverviewTabProps) => {
               </div>
               <h2 className="text-3xl font-bold mb-1">{podcast?.title}</h2>
               <p className="text-muted-foreground mb-4">
-                Host: {podcast?.author_name || "Not specified"}
+                Hosted by {podcast?.author || "Not specified"}
               </p>
               <div className="flex flex-wrap gap-2">
                 <Button onClick={() => setShowCreationModal(true)} size="lg" className="gap-2">
