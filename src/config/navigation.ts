@@ -214,6 +214,13 @@ export const NAVIGATION_CONFIG: {
           "icon": "award",
           "path": "/admin/voice-nft-certificates",
           "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "landing_pages",
+          "label": "Landing Pages",
+          "icon": "layout",
+          "path": "/admin/landing-pages",
+          "roles": ["admin", "super_admin"]
         }
       ]
     },

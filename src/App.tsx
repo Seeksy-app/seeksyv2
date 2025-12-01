@@ -118,6 +118,9 @@ import VoiceCredentials from "./pages/VoiceCredentialsSimple";
 import VoiceCredentialsAdmin from "./pages/admin/VoiceCredentialsAdmin";
 import VoiceCertificationPage from "./pages/admin/VoiceCertificationPage";
 import VoiceNFTCertificatesPage from "./pages/admin/VoiceNFTCertificatesPage";
+import PublicLandingPage from "./pages/PublicLandingPage";
+import LandingPageEditor from "./pages/creator/LandingPageEditor";
+import LandingPagesAdmin from "./pages/admin/LandingPagesAdmin";
 import CreateAudioAdCampaign from "./pages/CreateAudioAdCampaign";
 import AdvertiserCampaignDashboard from "./pages/AdvertiserCampaignDashboard";
 import AdvertiserCampaignDetail from "./pages/AdvertiserCampaignDetail";
@@ -619,6 +622,13 @@ const AppContent = () => {
           <Route path="/admin/voice-tag" element={<VoiceTagAdmin />} />
           <Route path="/admin/voice-certification" element={<VoiceCertificationPage />} />
           <Route path="/admin/voice-nft-certificates" element={<VoiceNFTCertificatesPage />} />
+          <Route path="/admin/landing-pages" element={<LandingPagesAdmin />} />
+          
+          {/* Public Landing Pages */}
+          <Route path="/p/:slug" element={<PublicLandingPage />} />
+          
+          {/* Creator Landing Page Editor */}
+          <Route path="/creator/landing" element={<LandingPageEditor />} />
           <Route path="/admin/checklists" element={<AdminChecklists />} />
           <Route path="/admin/checklists/new-template" element={<ChecklistTemplate />} />
           <Route path="/admin/checklists/template/:templateId" element={<ChecklistTemplate />} />
