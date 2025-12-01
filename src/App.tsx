@@ -7,7 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { RoleProvider } from "@/contexts/RoleContext";
-import Header from "@/components/Header";
+import { TopNavBar } from "@/components/TopNavBar";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -311,6 +311,7 @@ import MyDay from "./pages/MyDay";
 import Audience from "./pages/Audience";
 import ContentHub from "./pages/ContentHub";
 import MonetizationHub from "./pages/MonetizationHub";
+import Alerts from "./pages/Alerts";
 import EpisodeDetails from "./pages/episodes/EpisodeDetails";
 import NewEpisodeFromStudio from "./pages/podcasts/NewEpisodeFromStudio";
 import NewEpisode from "./pages/podcasts/NewEpisode";
@@ -420,8 +421,8 @@ const AppContent = () => {
           {user && location.pathname !== '/broadcast/session/:id' && !location.pathname.includes('/broadcast/session/') && <AppSidebar user={user} isAdmin={isAdmin} />}
         
         <div className="flex-1 flex flex-col">
-          {/* Hide Header on all Studio pages */}
-          {!location.pathname.startsWith('/studio') && <Header user={user} />}
+          {/* TopNavBar on all My Day OS pages */}
+          {user && !location.pathname.startsWith('/studio') && <TopNavBar />}
           
           <main className="flex-1 bg-background overflow-hidden">
             <RouteTransition>
@@ -436,6 +437,8 @@ const AppContent = () => {
               <Route path="/audience" element={<Audience />} />
               <Route path="/content" element={<ContentHub />} />
               <Route path="/monetization" element={<MonetizationHub />} />
+              <Route path="/tasks" element={<Tasks />} />
+              <Route path="/alerts" element={<Alerts />} />
               
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/comparison" element={<Comparison />} />

@@ -81,7 +81,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-sidebar-hover transition-colors"
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-sidebar-hover/80 transition-all duration-200 hover:translate-x-0.5"
                       activeClassName="bg-sidebar-active font-semibold border-l-3 border-sidebar-accent"
                     >
                       <item.icon className="h-5 w-5" />
@@ -105,7 +105,7 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                     <SidebarMenuButton asChild>
                       <NavLink
                         to={item.url}
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-sidebar-hover transition-colors"
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-sidebar-hover/80 transition-all duration-200 hover:translate-x-0.5"
                         activeClassName="bg-sidebar-active font-semibold border-l-3 border-sidebar-accent"
                       >
                         <item.icon className="h-5 w-5" />

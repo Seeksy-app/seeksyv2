@@ -76,70 +76,80 @@ export default function MyDay() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                Inbox
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.unreadEmails}</div>
-              <p className="text-xs text-muted-foreground">unread messages</p>
-            </CardContent>
-          </Card>
+          <Link to="/inbox">
+            <Card className="cursor-pointer transition-all hover:scale-[1.01] hover:bg-accent/5 active:scale-[0.99]">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Inbox
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.unreadEmails}</div>
+                <p className="text-xs text-muted-foreground">unread messages</p>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Audience
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.newContacts}</div>
-              <p className="text-xs text-muted-foreground">new contacts</p>
-            </CardContent>
-          </Card>
+          <Link to="/audience">
+            <Card className="cursor-pointer transition-all hover:scale-[1.01] hover:bg-accent/5 active:scale-[0.99]">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Audience
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.newContacts}</div>
+                <p className="text-xs text-muted-foreground">new contacts</p>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Meetings
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.meetingsToday}</div>
-              <p className="text-xs text-muted-foreground">meetings today</p>
-            </CardContent>
-          </Card>
+          <Link to="/meetings">
+            <Card className="cursor-pointer transition-all hover:scale-[1.01] hover:bg-accent/5 active:scale-[0.99]">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Meetings
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.meetingsToday}</div>
+                <p className="text-xs text-muted-foreground">meetings today</p>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <CheckSquare className="h-4 w-4" />
-                Tasks
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.pendingTasks}</div>
-              <p className="text-xs text-muted-foreground">pending tasks</p>
-            </CardContent>
-          </Card>
+          <Link to="/tasks">
+            <Card className="cursor-pointer transition-all hover:scale-[1.01] hover:bg-accent/5 active:scale-[0.99]">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <CheckSquare className="h-4 w-4" />
+                  Tasks
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.pendingTasks}</div>
+                <p className="text-xs text-muted-foreground">pending tasks</p>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Bell className="h-4 w-4" />
-                Alerts
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.alerts}</div>
-              <p className="text-xs text-muted-foreground">needs review</p>
-            </CardContent>
-          </Card>
+          <Link to="/alerts">
+            <Card className="cursor-pointer transition-all hover:scale-[1.01] hover:bg-accent/5 active:scale-[0.99]">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Bell className="h-4 w-4" />
+                  Alerts
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.alerts}</div>
+                <p className="text-xs text-muted-foreground">needs review</p>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
 
         {/* Quick Actions */}

@@ -55,14 +55,14 @@ export function ThemeToggle() {
 
   const getThemeIcon = () => {
     if (theme === "light") return <Sun className="h-[1.2rem] w-[1.2rem]" />;
-    if (theme === "dark") return <Moon className="h-[1.2rem] w-[1.2rem]" />;
+    if (theme === "dark" || theme === "midnight") return <Moon className="h-[1.2rem] w-[1.2rem]" />;
     return <Monitor className="h-[1.2rem] w-[1.2rem]" />;
   };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon" className="bg-background">
+        <Button variant="ghost" size="icon">
           {getThemeIcon()}
           <span className="sr-only">Toggle theme</span>
         </Button>
@@ -75,6 +75,10 @@ export function ThemeToggle() {
         <DropdownMenuItem onClick={() => handleThemeChange("dark")}>
           <Moon className="mr-2 h-4 w-4" />
           <span>Dark</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleThemeChange("midnight")}>
+          <Moon className="mr-2 h-4 w-4" />
+          <span>Midnight</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleThemeChange("system")}>
           <Monitor className="mr-2 h-4 w-4" />
