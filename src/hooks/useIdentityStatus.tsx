@@ -14,6 +14,8 @@ export interface IdentityStatus {
 export const useIdentityStatus = () => {
   return useQuery({
     queryKey: ['identity-status'],
+    staleTime: 0, // Always refetch
+    gcTime: 0, // Don't cache
     queryFn: async (): Promise<IdentityStatus> => {
       const { data: { user } } = await supabase.auth.getUser();
       

@@ -524,20 +524,35 @@ const VoiceVerificationUnified = () => {
               }
             };
             
-            // Run invalidation in background - don't wait for it
-            invalidateWithRetry().catch(err => {
-              console.warn('[VoiceVerification] Background query invalidation error (non-critical):', err);
-            });
-            
             // Show success toast immediately
             toast.success("Voice verified!", {
               description: "Your voice identity is now on-chain."
             });
+            
+            console.log('[VoiceVerification] Waiting 2 seconds for DB commit...');
+            
+            // Wait for DB to fully commit, then force refetch
+            setTimeout(async () => {
+              try {
+                console.log('[VoiceVerification] Force refetching identity queries...');
+                await Promise.all([
+                  queryClient.refetchQueries({ queryKey: ['identity-status'], type: 'all' }),
+                  queryClient.refetchQueries({ queryKey: ['voice-identity-status'], type: 'all' }),
+                  queryClient.refetchQueries({ queryKey: ['identity-assets'], type: 'all' }),
+                ]);
+                console.log('[VoiceVerification] Identity queries refetched');
+              } catch (refetchError) {
+                console.warn('[VoiceVerification] Refetch error (non-critical):', refetchError);
+              }
+              
+              // Run background invalidation for other queries
+              invalidateWithRetry().catch(err => {
+                console.warn('[VoiceVerification] Background query invalidation error (non-critical):', err);
+              });
 
             console.log('[VoiceVerification] Navigating to success page...');
             
-            // Navigate immediately - don't wait for queries
-            setTimeout(() => {
+            // Navigate to success
               navigate("/identity/voice/success", {
                 state: {
                   voiceProfileId: successResponse.voiceProfileId,
@@ -547,7 +562,7 @@ const VoiceVerificationUnified = () => {
                   transactionHash: successResponse.certificate.tx_hash
                 }
               });
-            }, 500);
+            }, 2000);
           } else {
             // Unexpected response format
             console.error('[VoiceVerification] Unexpected response format:', data);
