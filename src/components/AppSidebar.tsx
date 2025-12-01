@@ -19,7 +19,6 @@ import {
   ChevronRight
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import seeksyLogo from "@/assets/seeksy-logo.png";
 import { SparkIcon } from "@/components/spark/SparkIcon";
 import {
   Sidebar,
@@ -55,7 +54,8 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   if (!user) return null;
 
   const mainNavItems = [
-    { title: "My Day", url: "/my-day", icon: Sparkles },
+    { title: "Dashboard", url: "/", icon: Sparkles },
+    { title: "Apps & Modules", url: "/apps", icon: Grid },
     { title: "Contacts & Audience", url: "/audience", icon: Users },
     { title: "Content & Media", url: "/content", icon: Video },
     { title: "Monetization Hub", url: "/monetization", icon: DollarSign },
@@ -81,7 +81,6 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   ] : [];
 
   const isActive = (path: string) => {
-    if (path === "/my-day" && location.pathname === "/") return true;
     return location.pathname === path || location.pathname.startsWith(path + "/");
   };
 
@@ -92,15 +91,14 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
     >
       <SidebarHeader className="border-b border-sidebar-hover/30 p-4">
         <Link to="/" className="flex items-center gap-2">
-          <img src={seeksyLogo} alt="Seeksy" className="h-8 w-8" />
-          {!collapsed && <span className="font-semibold text-lg">Seeksy</span>}
+          {!collapsed && <span className="font-semibold text-xl">Seeksy</span>}
         </Link>
       </SidebarHeader>
 
       <SidebarContent>
-        {/* My Day OS */}
+        {/* Main Navigation */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground font-medium opacity-80">My Day OS</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-foreground font-medium opacity-80">Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNavItems.map((item) => (
