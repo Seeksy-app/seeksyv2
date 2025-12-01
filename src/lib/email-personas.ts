@@ -1,4 +1,4 @@
-import { Bot, Calendar, Mic, Video, Users, Mail, Shield } from "lucide-react";
+import { Bot, Calendar, Mic, Video, Users, Mail, Shield, BarChart3, Scissors } from "lucide-react";
 
 export const EMAIL_PERSONAS = {
   Lex: {
@@ -8,6 +8,7 @@ export const EMAIL_PERSONAS = {
     color: "text-purple-600",
     bgColor: "bg-purple-100",
     signature: "Sent with ❤️ by Lex — Your Seeksy Identity Guardian",
+    description: "Helps with face/voice verification, rights management, and certificate interpretation",
   },
   Mia: {
     name: "Mia",
@@ -16,6 +17,7 @@ export const EMAIL_PERSONAS = {
     color: "text-blue-600",
     bgColor: "bg-blue-100",
     signature: "Sent with ❤️ by Mia — Your Seeksy Meeting Assistant",
+    description: "Handles meeting scheduling, event creation, and calendar automation",
   },
   Echo: {
     name: "Echo",
@@ -24,14 +26,16 @@ export const EMAIL_PERSONAS = {
     color: "text-green-600",
     bgColor: "bg-green-100",
     signature: "Sent with ❤️ by Echo — Your Seeksy Studio Assistant",
+    description: "Guides recording sessions, guest coordination, and production workflows",
   },
   Reel: {
     name: "Reel",
     role: "Clips & Social Manager",
-    icon: Video,
+    icon: Scissors,
     color: "text-pink-600",
     bgColor: "bg-pink-100",
     signature: "Sent with ❤️ by Reel — Your Seeksy Clips Assistant",
+    description: "Creates clip names, descriptions, and social media scripts",
   },
   Castor: {
     name: "Castor",
@@ -40,14 +44,16 @@ export const EMAIL_PERSONAS = {
     color: "text-orange-600",
     bgColor: "bg-orange-100",
     signature: "Sent with ❤️ by Castor — Your Seeksy Podcast Assistant",
+    description: "Manages podcast publishing, episode notes, and RSS feeds",
   },
   Atlas: {
     name: "Atlas",
-    role: "Audience & Contacts Manager",
-    icon: Users,
+    role: "Audience & Analytics Guide",
+    icon: BarChart3,
     color: "text-indigo-600",
     bgColor: "bg-indigo-100",
-    signature: "Sent with ❤️ by Atlas — Your Seeksy Audience Assistant",
+    signature: "Sent with ❤️ by Atlas — Your Seeksy Analytics Assistant",
+    description: "Analyzes engagement, email performance, and provides data insights",
   },
   Scribe: {
     name: "Scribe",
@@ -56,6 +62,7 @@ export const EMAIL_PERSONAS = {
     color: "text-cyan-600",
     bgColor: "bg-cyan-100",
     signature: "Sent with ❤️ by Scribe — Your Seeksy Marketing Assistant",
+    description: "Drafts emails, improves copy, and generates subject lines",
   },
 } as const;
 

@@ -19,7 +19,7 @@ interface Message {
   content: string;
 }
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cfo-ai-assistant`;
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/global-agent`;
 
 export const SeeksyAIChatWidget = () => {
   const location = useLocation();
@@ -153,30 +153,32 @@ export const SeeksyAIChatWidget = () => {
   }, [messages]);
 
   const streamChat = async (userMessage: string) => {
-    setTriggerSparkAnimation(true); // Trigger animation when starting to type
+    const newMessages: Message[] = [
+      ...messages,
+      { role: "user", content: userMessage }
+    ];
+    
+    setMessages(newMessages);
+    setIsLoading(true);
+
     let conversationId = currentConversationId;
     
-    if (!conversationId) {
+    if (!conversationId && user) {
       try {
         const newConv = await createNewConversation.mutateAsync(userMessage);
         conversationId = newConv.id;
         setCurrentConversationId(conversationId);
       } catch (error) {
-        toast.error("Failed to create conversation");
-        return;
+        console.error("Failed to create conversation:", error);
       }
     }
-
-    const newMessages = [...messages, { role: "user" as const, content: userMessage }];
-    setMessages(newMessages);
-    setIsLoading(true);
-
-    if (conversationId) {
+    
+    if (conversationId && user) {
       await saveMessage(conversationId, "user", userMessage);
     }
 
     let assistantMessage = "";
-    
+
     try {
       const response = await fetch(CHAT_URL, {
         method: "POST",
@@ -184,60 +186,27 @@ export const SeeksyAIChatWidget = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ 
-          message: newMessages[newMessages.length - 1].content,
-          financialData: {} 
+        body: JSON.stringify({
+          message: userMessage,
+          context: {
+            route: location.pathname,
+            role: userRole,
+          },
         }),
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to get response");
+        throw new Error("Failed to get response from AI");
       }
 
-      if (!response.body) {
-        throw new Error("No response body");
-      }
+      const data = await response.json();
+      assistantMessage = data.response || data.text || "I'm here to help!";
+      
+      setMessages([
+        ...newMessages,
+        { role: "assistant", content: assistantMessage }
+      ]);
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        
-        let newlineIndex: number;
-        while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
-          let line = buffer.slice(0, newlineIndex);
-          buffer = buffer.slice(newlineIndex + 1);
-
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (line.startsWith(":") || line.trim() === "") continue;
-          if (!line.startsWith("data: ")) continue;
-
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") break;
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content;
-            
-            if (content) {
-              assistantMessage += content;
-              setMessages([
-                ...newMessages,
-                { role: "assistant", content: assistantMessage }
-              ]);
-            }
-          } catch (e) {
-            buffer = line + "\n" + buffer;
-            break;
-          }
-        }
-      }
     } catch (error) {
       console.error("Chat error:", error);
       toast.error(error instanceof Error ? error.message : "Failed to send message");

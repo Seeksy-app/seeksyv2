@@ -189,3 +189,6 @@ verify_jwt = false
 
 [functions.scribe-agent]
 verify_jwt = true
+
+[functions.global-agent]
+verify_jwt = true
