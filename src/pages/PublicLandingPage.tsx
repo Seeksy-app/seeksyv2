@@ -69,13 +69,16 @@ export default function PublicLandingPage() {
       if (!landingPage?.owner_user_id) return { voiceVerified: false, faceVerified: false };
 
       // Check face verification
-      const { data: faceAssets } = await supabase
+      // @ts-ignore - Bypass deep Supabase type inference
+      const faceResult = await supabase
         .from("identity_assets")
         .select("cert_status")
         .eq("user_id", landingPage.owner_user_id)
         .eq("asset_type", "FACE_IDENTITY")
         .eq("cert_status", "minted")
         .limit(1);
+      
+      const faceAssets = (faceResult.data || []) as Array<{ cert_status: string }>;
 
       // Check voice verification
       const { data: voiceProfiles } = await supabase
