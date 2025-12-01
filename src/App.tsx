@@ -316,6 +316,7 @@ import Audience from "./pages/Audience";
 import ContentHub from "./pages/ContentHub";
 import MonetizationHub from "./pages/MonetizationHub";
 import Alerts from "./pages/Alerts";
+import BackgroundRemover from "./pages/BackgroundRemover";
 import EpisodeDetails from "./pages/episodes/EpisodeDetails";
 import NewEpisodeFromStudio from "./pages/podcasts/NewEpisodeFromStudio";
 import NewEpisode from "./pages/podcasts/NewEpisode";
@@ -704,6 +705,7 @@ const AppContent = () => {
           <Route path="/admin/checklists/template/:templateId" element={<ChecklistTemplate />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/settings/billing" element={<SettingsBilling />} />
+              <Route path="/background-remover" element={<BackgroundRemover />} />
               <Route path="/ask-spark" element={<Navigate to="/my-day" replace />} />
               <Route path="/notification-preferences" element={<NotificationPreferences />} />
               <Route path="/subscription" element={<SubscriptionSettings />} />
