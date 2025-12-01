@@ -13,17 +13,17 @@ import { useState, useEffect } from "react";
 import ImageUpload from "@/components/ImageUpload";
 
 const EditPodcast = () => {
-  const { id } = useParams();
+  const { podcastId } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const { data: podcast, isLoading } = useQuery({
-    queryKey: ["podcast", id],
+    queryKey: ["podcast", podcastId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("podcasts")
         .select("*")
-        .eq("id", id)
+        .eq("id", podcastId)
         .maybeSingle();
       
       if (error) throw error;
@@ -97,15 +97,15 @@ const EditPodcast = () => {
           verification_email_permanent: verificationEmailPermanent,
           verification_email_expires_at: expiresAt,
         })
-        .eq("id", id);
+        .eq("id", podcastId);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["podcast", id] });
+      queryClient.invalidateQueries({ queryKey: ["podcast", podcastId] });
       queryClient.invalidateQueries({ queryKey: ["podcasts"] });
       toast.success("Podcast updated!");
-      navigate(`/podcasts/${id}`);
+      navigate(`/podcasts/${podcastId}`);
     },
     onError: () => {
       toast.error("Failed to update podcast");
@@ -147,7 +147,7 @@ const EditPodcast = () => {
       <div className="max-w-3xl mx-auto">
         <Button
           variant="ghost"
-          onClick={() => navigate(`/podcasts/${id}`)}
+          onClick={() => navigate(`/podcasts/${podcastId}`)}
           className="mb-4"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -331,7 +331,7 @@ const EditPodcast = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate(`/podcasts/${id}`)}
+                onClick={() => navigate(`/podcasts/${podcastId}`)}
               >
                 Cancel
               </Button>
