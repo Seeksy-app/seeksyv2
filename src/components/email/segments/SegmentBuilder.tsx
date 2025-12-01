@@ -7,6 +7,7 @@ import { Plus, Trash2, Save } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { SegmentCountDisplay } from "./SegmentCountDisplay";
 
 interface SegmentBuilderProps {
   segment: any;
@@ -93,6 +94,9 @@ export function SegmentBuilder({ segment, onUpdate }: SegmentBuilderProps) {
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-xl border shadow-sm p-6 space-y-6">
+      {/* Segment Count Display */}
+      <SegmentCountDisplay segmentId={segment.id} />
+
       <div>
         <h3 className="text-lg font-semibold mb-4">Segment Details</h3>
         <div className="space-y-4">

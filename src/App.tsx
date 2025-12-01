@@ -205,6 +205,7 @@ import InfluencerProfileSettings from "./pages/InfluencerProfileSettings";
 import InfluencerPortfolio from "./pages/InfluencerPortfolio";
 import Marketing from "./pages/Marketing";
 import EmailSettings from "./pages/EmailSettings";
+import EmailHome from "./pages/EmailHome";
 import EmailCampaigns from "./pages/EmailCampaigns";
 import EmailCampaignAnalytics from "./pages/EmailCampaignAnalytics";
 import EmailCampaignBuilder from "./pages/EmailCampaignBuilder";
@@ -509,6 +510,7 @@ const AppContent = () => {
               <Route path="/transcripts" element={<TranscriptLibrary />} />
               <Route path="/transcripts/:id" element={<TranscriptDetailPage />} />
               <Route path="/marketing" element={<Marketing />} />
+              <Route path="/email" element={<EmailHome />} />
               <Route path="/email-settings" element={<EmailSettings />} />
             <Route path="/email-campaigns" element={<EmailCampaigns />} />
             <Route path="/email-campaigns/new" element={<EmailCampaignBuilder />} />

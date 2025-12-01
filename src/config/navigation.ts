@@ -81,6 +81,13 @@ export const NAVIGATION_CONFIG: {
       "group": "Email",
       "items": [
         {
+          "id": "email_home",
+          "label": "Dashboard",
+          "icon": "home",
+          "path": "/email",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        },
+        {
           "id": "email_campaigns",
           "label": "Campaigns",
           "icon": "mail",

@@ -1,11 +1,13 @@
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Search, Zap } from "lucide-react";
+import { Search, Zap, Clock } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { AutomationStatusBadge } from "./AutomationStatusBadge";
+import { formatDistanceToNow } from "date-fns";
 
 interface Automation {
   id: string;
@@ -14,6 +16,7 @@ interface Automation {
   is_active: boolean;
   trigger_type: string;
   created_at: string;
+  updated_at: string;
   automation_actions: any[];
 }
 
@@ -76,17 +79,30 @@ export function AutomationList({ automations, selectedId, onSelect, onRefresh }:
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="font-medium">{automation.name}</div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="font-medium">{automation.name}</div>
+                    <AutomationStatusBadge isActive={automation.is_active} />
+                  </div>
                   {automation.description && (
                     <div className="text-sm text-muted-foreground mt-1">
                       {automation.description}
                     </div>
                   )}
-                  <div className="flex items-center gap-2 mt-2">
-                    <Zap className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">
-                      {automation.trigger_type.replace(/_/g, " ")}
-                    </span>
+                  <div className="flex items-center gap-3 mt-2">
+                    <div className="flex items-center gap-1">
+                      <Zap className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">
+                        {automation.trigger_type.replace(/_/g, " ")}
+                      </span>
+                    </div>
+                    {automation.updated_at && (
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">
+                          Updated {formatDistanceToNow(new Date(automation.updated_at), { addSuffix: true })}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <Switch

@@ -109,27 +109,33 @@ export const CampaignBuilder = ({ onCampaignCreated }: CampaignBuilderProps) => 
         ? new Date(`${scheduledDate}T${scheduledTime}`).toISOString()
         : null;
 
-    const { data, error } = await supabase.functions.invoke("send-campaign-email", {
-      body: {
-        listId: selectedList,
-        accountId: selectedAccount,
-        subject,
-        preheader: preheader || null,
-        htmlContent,
-        userId: user.id,
-        scheduledSendAt: scheduledSendAt,
-      },
-    });
+      const { data, error } = await supabase.functions.invoke("send-campaign", {
+        body: {
+          listId: selectedList,
+          segmentId: null,
+          fromName: "Seeksy",
+          fromEmail: selectedAccount,
+          subject,
+          preheader: preheader || null,
+          htmlContent,
+          scheduledFor: scheduledSendAt,
+        },
+      });
 
       if (error) throw error;
       return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["email-campaigns"] });
+      const sent = data.successCount || 0;
+      const suppressed = data.suppressedCount || 0;
+      
       if (scheduledDate && scheduledTime) {
         toast.success(`Campaign scheduled for ${format(new Date(`${scheduledDate}T${scheduledTime}`), "MMM d, yyyy 'at' h:mm a")}`);
       } else {
-        toast.success(`Campaign sent to ${data.recipientCount} contacts`);
+        toast.success(
+          `Campaign sent to ${sent} contacts${suppressed > 0 ? ` (${suppressed} suppressed by preferences/unsubscribes)` : ""}`
+        );
       }
       setSubject("");
       setPreheader("");
