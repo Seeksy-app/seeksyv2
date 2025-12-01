@@ -28,27 +28,28 @@ export function EmailComposer({ open, onClose, draftId }: EmailComposerProps) {
   const [showCc, setShowCc] = useState(false);
   const [showBcc, setShowBcc] = useState(false);
 
-  // Fetch connected email accounts
+  // Fetch connected Gmail accounts
   const { data: accounts = [] } = useQuery({
-    queryKey: ["email-accounts"],
+    queryKey: ["gmail-connections"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
       
       const { data } = await supabase
-        .from("email_accounts")
+        .from("gmail_connections")
         .select("*")
         .eq("user_id", user.id)
-        .eq("is_active", true);
+        .order("is_default", { ascending: false });
       
       return data || [];
     },
   });
 
-  // Set default account
+  // Set default account (prefer is_default=true)
   useEffect(() => {
     if (accounts.length > 0 && !fromAccountId) {
-      setFromAccountId(accounts[0].id);
+      const defaultAccount = accounts.find(acc => acc.is_default) || accounts[0];
+      setFromAccountId(defaultAccount.id);
     }
   }, [accounts, fromAccountId]);
 
@@ -83,13 +84,22 @@ export function EmailComposer({ open, onClose, draftId }: EmailComposerProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Get signature from selected account
+      const selectedAccount = accounts.find(acc => acc.id === fromAccountId);
+      const signature = selectedAccount?.signature || "";
+      
+      // Append signature to body if it exists
+      const finalBody = signature 
+        ? `${body}<br/><br/>---<br/>${signature}`
+        : body;
+
       const { data, error } = await supabase.functions.invoke("send-email", {
         body: {
           to: to.split(",").map(e => e.trim()),
           cc: cc ? cc.split(",").map(e => e.trim()) : undefined,
           bcc: bcc ? bcc.split(",").map(e => e.trim()) : undefined,
           subject,
-          htmlContent: body,
+          htmlContent: finalBody,
           fromAccountId,
         },
       });
@@ -211,7 +221,12 @@ export function EmailComposer({ open, onClose, draftId }: EmailComposerProps) {
               <SelectContent>
                 {accounts.map((account) => (
                   <SelectItem key={account.id} value={account.id}>
-                    {account.email_address}
+                    <div className="flex items-center justify-between w-full">
+                      <span>{account.email}</span>
+                      {account.is_default && (
+                        <span className="text-xs text-muted-foreground ml-2">(default)</span>
+                      )}
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -6400,6 +6400,7 @@ export type Database = {
           id: string
           is_default: boolean | null
           refresh_token: string
+          signature: string | null
           token_expiry: string
           updated_at: string
           user_id: string
@@ -6411,6 +6412,7 @@ export type Database = {
           id?: string
           is_default?: boolean | null
           refresh_token: string
+          signature?: string | null
           token_expiry: string
           updated_at?: string
           user_id: string
@@ -6422,6 +6424,7 @@ export type Database = {
           id?: string
           is_default?: boolean | null
           refresh_token?: string
+          signature?: string | null
           token_expiry?: string
           updated_at?: string
           user_id?: string
