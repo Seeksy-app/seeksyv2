@@ -211,6 +211,9 @@ import EmailCampaignBuilder from "./pages/EmailCampaignBuilder";
 import EmailView from "./pages/EmailView";
 import EmailWebView from "./pages/EmailWebView";
 import EmailTemplates from "./pages/EmailTemplates";
+import EmailSegments from "./pages/EmailSegments";
+import EmailAutomations from "./pages/EmailAutomations";
+import EmailAccountHealth from "./pages/EmailAccountHealth";
 import ContactProfile from "./pages/ContactProfile";
 import ClientTickets from "./pages/ClientTickets";
 import Proposals from "./pages/Proposals";
@@ -510,6 +513,9 @@ const AppContent = () => {
             <Route path="/email-campaigns" element={<EmailCampaigns />} />
             <Route path="/email-campaigns/new" element={<EmailCampaignBuilder />} />
             <Route path="/email-campaigns/:id" element={<EmailCampaignAnalytics />} />
+            <Route path="/email-segments" element={<EmailSegments />} />
+            <Route path="/email-automations" element={<EmailAutomations />} />
+            <Route path="/email-settings/accounts/:id/health" element={<EmailAccountHealth />} />
             <Route path="/email/:id/view" element={<EmailView />} />
             <Route path="/email/:emailId/view" element={<EmailWebView />} />
             <Route path="/email-templates" element={<EmailTemplates />} />

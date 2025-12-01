@@ -1763,6 +1763,121 @@ export type Database = {
           },
         ]
       }
+      automation_actions: {
+        Row: {
+          action_config: Json | null
+          action_order: number | null
+          action_type: string
+          automation_id: string
+          created_at: string | null
+          delay_minutes: number | null
+          id: string
+        }
+        Insert: {
+          action_config?: Json | null
+          action_order?: number | null
+          action_type: string
+          automation_id: string
+          created_at?: string | null
+          delay_minutes?: number | null
+          id?: string
+        }
+        Update: {
+          action_config?: Json | null
+          action_order?: number | null
+          action_type?: string
+          automation_id?: string
+          created_at?: string | null
+          delay_minutes?: number | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_actions_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "automations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_runs: {
+        Row: {
+          automation_id: string
+          completed_at: string | null
+          contact_id: string
+          created_at: string | null
+          error_message: string | null
+          id: string
+          started_at: string | null
+          status: string | null
+          trigger_data: Json | null
+        }
+        Insert: {
+          automation_id: string
+          completed_at?: string | null
+          contact_id: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string | null
+          trigger_data?: Json | null
+        }
+        Update: {
+          automation_id?: string
+          completed_at?: string | null
+          contact_id?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string | null
+          trigger_data?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_runs_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "automations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automations: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          trigger_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          trigger_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          trigger_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       availability_schedules: {
         Row: {
           created_at: string | null
@@ -3607,6 +3722,51 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_engagement_metrics: {
+        Row: {
+          avg_open_hour: number | null
+          best_day_of_week: number | null
+          contact_id: string
+          created_at: string | null
+          engagement_score: number | null
+          id: string
+          last_click_at: string | null
+          last_open_at: string | null
+          timezone: string | null
+          total_clicks: number | null
+          total_opens: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          avg_open_hour?: number | null
+          best_day_of_week?: number | null
+          contact_id: string
+          created_at?: string | null
+          engagement_score?: number | null
+          id?: string
+          last_click_at?: string | null
+          last_open_at?: string | null
+          timezone?: string | null
+          total_clicks?: number | null
+          total_opens?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          avg_open_hour?: number | null
+          best_day_of_week?: number | null
+          contact_id?: string
+          created_at?: string | null
+          engagement_score?: number | null
+          id?: string
+          last_click_at?: string | null
+          last_open_at?: string | null
+          timezone?: string | null
+          total_clicks?: number | null
+          total_opens?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       contact_list_members: {
         Row: {
           added_at: string | null
@@ -4979,6 +5139,65 @@ export type Database = {
         }
         Relationships: []
       }
+      email_account_health: {
+        Row: {
+          account_id: string
+          bounce_rate: number | null
+          bounces: number | null
+          created_at: string | null
+          date: string
+          dkim_status: boolean | null
+          dmarc_status: boolean | null
+          emails_delivered: number | null
+          emails_sent: number | null
+          id: string
+          reputation_score: number | null
+          spam_complaints: number | null
+          spam_rate: number | null
+          spf_status: boolean | null
+        }
+        Insert: {
+          account_id: string
+          bounce_rate?: number | null
+          bounces?: number | null
+          created_at?: string | null
+          date?: string
+          dkim_status?: boolean | null
+          dmarc_status?: boolean | null
+          emails_delivered?: number | null
+          emails_sent?: number | null
+          id?: string
+          reputation_score?: number | null
+          spam_complaints?: number | null
+          spam_rate?: number | null
+          spf_status?: boolean | null
+        }
+        Update: {
+          account_id?: string
+          bounce_rate?: number | null
+          bounces?: number | null
+          created_at?: string | null
+          date?: string
+          dkim_status?: boolean | null
+          dmarc_status?: boolean | null
+          emails_delivered?: number | null
+          emails_sent?: number | null
+          id?: string
+          reputation_score?: number | null
+          spam_complaints?: number | null
+          spam_rate?: number | null
+          spf_status?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_account_health_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "email_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_accounts: {
         Row: {
           access_token: string | null
@@ -5034,10 +5253,12 @@ export type Database = {
         Row: {
           campaign_name: string
           created_at: string | null
+          draft_data: Json | null
           draft_status: string | null
           from_email_account_id: string | null
           html_content: string | null
           id: string
+          is_draft: boolean | null
           name: string | null
           plain_content: string | null
           preheader: string | null
@@ -5063,10 +5284,12 @@ export type Database = {
         Insert: {
           campaign_name: string
           created_at?: string | null
+          draft_data?: Json | null
           draft_status?: string | null
           from_email_account_id?: string | null
           html_content?: string | null
           id?: string
+          is_draft?: boolean | null
           name?: string | null
           plain_content?: string | null
           preheader?: string | null
@@ -5092,10 +5315,12 @@ export type Database = {
         Update: {
           campaign_name?: string
           created_at?: string | null
+          draft_data?: Json | null
           draft_status?: string | null
           from_email_account_id?: string | null
           html_content?: string | null
           id?: string
+          is_draft?: boolean | null
           name?: string | null
           plain_content?: string | null
           preheader?: string | null
@@ -5137,9 +5362,12 @@ export type Database = {
       }
       email_events: {
         Row: {
+          bounce_reason: string | null
           campaign_id: string | null
+          clicked_url: string | null
           contact_id: string | null
           created_at: string | null
+          device_type: string | null
           email_subject: string | null
           event_type: string
           from_email: string | null
@@ -5150,13 +5378,17 @@ export type Database = {
           raw_payload: Json | null
           resend_email_id: string | null
           to_email: string
+          unsubscribe_reason: string | null
           user_agent: string | null
           user_id: string
         }
         Insert: {
+          bounce_reason?: string | null
           campaign_id?: string | null
+          clicked_url?: string | null
           contact_id?: string | null
           created_at?: string | null
+          device_type?: string | null
           email_subject?: string | null
           event_type: string
           from_email?: string | null
@@ -5167,13 +5399,17 @@ export type Database = {
           raw_payload?: Json | null
           resend_email_id?: string | null
           to_email: string
+          unsubscribe_reason?: string | null
           user_agent?: string | null
           user_id: string
         }
         Update: {
+          bounce_reason?: string | null
           campaign_id?: string | null
+          clicked_url?: string | null
           contact_id?: string | null
           created_at?: string | null
+          device_type?: string | null
           email_subject?: string | null
           event_type?: string
           from_email?: string | null
@@ -5184,6 +5420,7 @@ export type Database = {
           raw_payload?: Json | null
           resend_email_id?: string | null
           to_email?: string
+          unsubscribe_reason?: string | null
           user_agent?: string | null
           user_id?: string
         }
@@ -9789,6 +10026,77 @@ export type Database = {
           proforma_data?: Json
           proforma_name?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      segment_filters: {
+        Row: {
+          created_at: string | null
+          field_name: string | null
+          field_value: string | null
+          filter_type: string
+          id: string
+          operator: string
+          segment_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          field_name?: string | null
+          field_value?: string | null
+          filter_type: string
+          id?: string
+          operator: string
+          segment_id: string
+        }
+        Update: {
+          created_at?: string | null
+          field_name?: string | null
+          field_value?: string | null
+          filter_type?: string
+          id?: string
+          operator?: string
+          segment_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "segment_filters_segment_id_fkey"
+            columns: ["segment_id"]
+            isOneToOne: false
+            referencedRelation: "segments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      segments: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          filter_logic: string | null
+          id: string
+          is_dynamic: boolean | null
+          name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          filter_logic?: string | null
+          id?: string
+          is_dynamic?: boolean | null
+          name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          filter_logic?: string | null
+          id?: string
+          is_dynamic?: boolean | null
+          name?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []

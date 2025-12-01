@@ -95,6 +95,20 @@ export const NAVIGATION_CONFIG: {
           "roles": ["creator", "influencer", "agency", "admin"]
         },
         {
+          "id": "email_segments",
+          "label": "Segments",
+          "icon": "filter",
+          "path": "/email-segments",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        },
+        {
+          "id": "email_automations",
+          "label": "Automations",
+          "icon": "zap",
+          "path": "/email-automations",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        },
+        {
           "id": "email_settings",
           "label": "Settings",
           "icon": "settings",

@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Loader2, Send, Calendar, Smartphone, Monitor, Sun, Moon } from "lucide-react";
 import { format } from "date-fns";
 import { EMAIL_PERSONAS } from "@/lib/email-personas";
+import { CampaignBuilderEnhancements } from "@/components/email/CampaignBuilderEnhancements";
 import { cn } from "@/lib/utils";
 
 type SendMode = "now" | "scheduled";
@@ -170,6 +171,14 @@ export default function EmailCampaignBuilder() {
                     {preheader.length}/100 characters
                   </p>
                 </div>
+
+                <CampaignBuilderEnhancements
+                  subject={subject}
+                  preheader={preheader}
+                  selectedTemplate={selectedTemplate}
+                  selectedList={selectedList}
+                  selectedAccount={selectedAccount}
+                />
 
                 <div>
                   <Label>From Email</Label>
