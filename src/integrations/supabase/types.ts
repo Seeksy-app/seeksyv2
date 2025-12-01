@@ -6398,6 +6398,7 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          is_default: boolean | null
           refresh_token: string
           token_expiry: string
           updated_at: string
@@ -6408,6 +6409,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          is_default?: boolean | null
           refresh_token: string
           token_expiry: string
           updated_at?: string
@@ -6418,6 +6420,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          is_default?: boolean | null
           refresh_token?: string
           token_expiry?: string
           updated_at?: string

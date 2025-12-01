@@ -20,11 +20,11 @@ export const EmailAccountManager = () => {
   });
 
   const { data: accounts, isLoading } = useQuery({
-    queryKey: ["email-accounts", user?.id],
+    queryKey: ["gmail-connections", user?.id],
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase
-        .from("email_accounts")
+        .from("gmail_connections")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
@@ -40,19 +40,14 @@ export const EmailAccountManager = () => {
     
     setConnecting(true);
     try {
-      const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-      const redirectUri = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gmail-oauth-callback`;
+      // Call edge function to get OAuth URL
+      const { data, error } = await supabase.functions.invoke('gmail-auth');
       
-      const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
-      authUrl.searchParams.set("client_id", GOOGLE_CLIENT_ID);
-      authUrl.searchParams.set("redirect_uri", redirectUri);
-      authUrl.searchParams.set("response_type", "code");
-      authUrl.searchParams.set("scope", "https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/userinfo.email");
-      authUrl.searchParams.set("access_type", "offline");
-      authUrl.searchParams.set("prompt", "consent");
-      authUrl.searchParams.set("state", user.id);
+      if (error) throw error;
+      if (!data?.authUrl) throw new Error('No auth URL returned');
 
-      window.location.href = authUrl.toString();
+      // Redirect to Google OAuth
+      window.location.href = data.authUrl;
     } catch (error) {
       console.error("Failed to initiate Gmail connection:", error);
       toast.error("Failed to connect Gmail");
@@ -66,20 +61,20 @@ export const EmailAccountManager = () => {
       
       // Unset all defaults first
       await supabase
-        .from("email_accounts")
+        .from("gmail_connections")
         .update({ is_default: false })
         .eq("user_id", user.id);
       
       // Set new default
       const { error } = await supabase
-        .from("email_accounts")
+        .from("gmail_connections")
         .update({ is_default: true })
         .eq("id", accountId);
       
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["email-accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["gmail-connections"] });
       toast.success("Default email account updated");
     },
     onError: () => {
@@ -90,14 +85,14 @@ export const EmailAccountManager = () => {
   const disconnectAccount = useMutation({
     mutationFn: async (accountId: string) => {
       const { error } = await supabase
-        .from("email_accounts")
+        .from("gmail_connections")
         .delete()
         .eq("id", accountId);
       
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["email-accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["gmail-connections"] });
       toast.success("Email account disconnected");
     },
     onError: () => {
@@ -129,10 +124,7 @@ export const EmailAccountManager = () => {
                 <div className="flex items-center gap-3">
                   <Mail className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="font-medium">{account.email_address}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {account.display_name}
-                    </p>
+                    <p className="font-medium">{account.email}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
