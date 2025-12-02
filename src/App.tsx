@@ -355,6 +355,10 @@ import BoardMemberManagement from "./pages/admin/BoardMemberManagement";
 import { BoardGuard } from "./components/board/BoardGuard";
 import { BoardViewBanner } from "./components/board/BoardViewBanner";
 import RDIntelligenceFeeds from "./pages/admin/RDIntelligenceFeeds";
+import BusinessToolsLanding from "./pages/business-tools/BusinessToolsLanding";
+import GTMBuilderList from "./pages/business-tools/GTMBuilderList";
+import GTMOnboardingWizard from "./pages/business-tools/GTMOnboardingWizard";
+import GTMWorkspace from "./pages/business-tools/GTMWorkspace";
 
 const queryClient = new QueryClient();
 
@@ -762,6 +766,12 @@ const AppContent = () => {
           
           {/* R&D Intelligence */}
           <Route path="/admin/rd-feeds" element={<RDIntelligenceFeeds />} />
+          
+          {/* Business Tools */}
+          <Route path="/business-tools" element={<BusinessToolsLanding />} />
+          <Route path="/business-tools/gtm" element={<GTMBuilderList />} />
+          <Route path="/business-tools/gtm/new" element={<GTMOnboardingWizard />} />
+          <Route path="/business-tools/gtm/:id" element={<GTMWorkspace />} />
           
               <Route path="/settings" element={<Settings />} />
               <Route path="/settings/billing" element={<SettingsBilling />} />

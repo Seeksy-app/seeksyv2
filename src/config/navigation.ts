@@ -524,6 +524,28 @@ export const NAVIGATION_CONFIG: {
     },
 
     {
+      "group": "Business Tools",
+      "description": "Strategic planning and business intelligence",
+      "collapsible": true,
+      "items": [
+        {
+          "id": "business_tools_landing",
+          "label": "Business Tools",
+          "icon": "briefcase",
+          "path": "/business-tools",
+          "roles": ["admin", "super_admin", "creator", "agency"]
+        },
+        {
+          "id": "gtm_engine",
+          "label": "GTM Engine",
+          "icon": "target",
+          "path": "/business-tools/gtm",
+          "roles": ["admin", "super_admin"]
+        }
+      ]
+    },
+
+    {
       "group": "R&D & Intelligence",
       "description": "Research and market intelligence",
       "collapsible": true,
