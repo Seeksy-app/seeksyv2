@@ -6,25 +6,29 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { OnboardingQuestion } from "@/components/onboarding/OnboardingQuestion";
-import { generateStarterStack, RecommendedModule } from "@/components/onboarding/moduleRegistry";
+import { DashboardPreview } from "@/components/onboarding/DashboardPreview";
+import { 
+  ONBOARDING_QUESTIONS, 
+  OnboardingAnswers,
+  creatorTypeOptions,
+  primaryGoalOptions,
+  toolsOptions,
+  experienceLevelOptions,
+  monetizationStatusOptions
+} from "@/config/onboardingQuestions";
+import { generateRecommendations, getDashboardPreview, RecommendedModuleBundle } from "@/lib/onboardingRecommendations";
 import {
   Sparkles, ArrowRight, ArrowLeft, Check, Mic, Building2, Calendar,
   Users, Star, Instagram, Youtube, Music, Facebook, Globe, Rocket,
-  Headphones, Video, DollarSign, ShoppingBag, Trophy, Ticket
+  Headphones, Video, DollarSign, ShoppingBag, Trophy, Ticket, Eye
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8; // Welcome + 5 questions + Recommendations + Dashboard Preview
 
-// Step 2: User Type Options
-const userTypeOptions = [
-  { id: "creator", label: "Creator / Influencer", icon: <Star className="h-5 w-5" /> },
-  { id: "podcaster", label: "Podcaster", icon: <Mic className="h-5 w-5" /> },
-  { id: "business", label: "Brand / Business", icon: <Building2 className="h-5 w-5" /> },
-  { id: "agency", label: "Agency / Manager", icon: <Users className="h-5 w-5" /> },
-  { id: "event_host", label: "Event Host", icon: <Calendar className="h-5 w-5" /> },
-];
+// Step 2: User Type Options (kept for backward compat, use new config)
+const userTypeOptions = creatorTypeOptions;
 
 // Step 3: Goals Options
 const goalOptions = [
@@ -79,7 +83,7 @@ export default function Onboarding() {
   const [monetization, setMonetization] = useState<string>("");
 
   // Generated recommendations
-  const [starterStack, setStarterStack] = useState<RecommendedModule[]>([]);
+  const [recommendations, setRecommendations] = useState<RecommendedModuleBundle | null>(null);
 
   const progress = (step / TOTAL_STEPS) * 100;
 
@@ -97,9 +101,16 @@ export default function Onboarding() {
 
   const handleNext = () => {
     if (step === 6) {
-      // Generate starter stack
-      const stack = generateStarterStack(userType, goals, platforms, [contentType], monetization);
-      setStarterStack(stack);
+      // Generate recommendations using new engine
+      const answers: OnboardingAnswers = {
+        creatorType: userType,
+        primaryGoal: goals[0] || "",
+        tools: [], // Will be auto-determined
+        experience: "intermediate",
+        monetization: monetization,
+      };
+      const recs = generateRecommendations(answers);
+      setRecommendations(recs);
     }
     setStep((s) => Math.min(s + 1, TOTAL_STEPS));
   };
@@ -114,27 +125,33 @@ export default function Onboarding() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      const moduleIds = recommendations?.modules.map(m => m.id) || [];
+
       // Save onboarding data
       await supabase.from("user_preferences").upsert({
         user_id: user.id,
         onboarding_completed: true,
         user_type: userType,
         my_page_enabled: true,
-        pinned_modules: starterStack.filter(m => m.priority === "core").map(m => m.id),
+        pinned_modules: recommendations?.modules.filter(m => m.priority === "core").map(m => m.id) || [],
       }, { onConflict: "user_id" });
 
       localStorage.setItem("show_welcome_spin", "true");
-      localStorage.setItem("activated_modules", JSON.stringify(starterStack.map(m => m.id)));
+      localStorage.setItem("activated_modules", JSON.stringify(moduleIds));
 
       toast.success("Your workspace is ready!");
 
       // Route based on user type
       const routes: Record<string, string> = {
         creator: "/dashboard",
+        influencer: "/dashboard",
         business: "/dashboard",
+        entrepreneur: "/dashboard",
         event_host: "/events",
         agency: "/agency",
         podcaster: "/podcasts",
+        speaker: "/dashboard",
+        brand: "/dashboard",
       };
       navigate(routes[userType] || "/dashboard");
     } catch (error) {
@@ -260,7 +277,7 @@ export default function Onboarding() {
         <div className="space-y-3">
           <p className="text-sm font-medium text-muted-foreground mb-3">Recommended Tools:</p>
           <div className="space-y-2">
-            {starterStack.map((module, i) => (
+            {(recommendations?.modules || []).map((module, i) => (
               <motion.div
                 key={module.id}
                 initial={{ opacity: 0, x: -10 }}

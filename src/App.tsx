@@ -170,6 +170,7 @@ import CFOCalculators from "./pages/CFOCalculators";
 import ProForma from "./pages/ProForma";
 import TechStack from "./pages/TechStack";
 import Onboarding from "./pages/Onboarding";
+import OnboardingTest from "./pages/OnboardingTest";
 import SalesDashboard from "./pages/SalesDashboard";
 import SalesAdLibrary from "./pages/SalesAdLibrary";
 import AdminMasterBlog from "./pages/AdminMasterBlog";
@@ -276,6 +277,7 @@ import TranscriptLibrary from "./pages/transcripts/TranscriptLibrary";
 import TranscriptDetailPage from "./pages/transcripts/TranscriptDetailPage";
 import AdminCampaigns from "./pages/admin/AdminCampaigns";
 import AdminAdAnalytics from "./pages/admin/AdminAdAnalytics";
+import OnboardingAdmin from "./pages/admin/OnboardingAdmin";
 import VoiceCertificationDashboard from "./pages/voice-certification/VoiceCertificationDashboard";
 import PublicCreatorIdentity from "./pages/PublicCreatorIdentity";
 import VoiceVerificationUnified from "./pages/voice-certification/VoiceVerificationUnified";
@@ -460,6 +462,7 @@ const AppContent = () => {
               <Route path="/auth" element={<Auth />} />
               <Route path="/signup-select" element={<SignupSelect />} />
               <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/onboarding-test" element={<OnboardingTest />} />
               <Route path="/seekies" element={<Apps />} />
               
               {/* Integrations */}
@@ -711,7 +714,8 @@ const AppContent = () => {
               <Route path="/admin/advertising/ads/create" element={<CreateAd />} />
               <Route path="/admin/advertisers" element={<AdminAdvertisers />} />
               <Route path="/admin/ad-campaigns" element={<AdminCampaigns />} />
-              <Route path="/admin/ad-analytics" element={<AdminAdAnalytics />} />
+            <Route path="/admin/ad-analytics" element={<AdminAdAnalytics />} />
+            <Route path="/admin/onboarding" element={<OnboardingAdmin />} />
           <Route path="/advertiser" element={<AdvertiserServices />} />
           <Route path="/advertiser/signup" element={<AdvertiserSignup />} />
           <Route path="/advertiser/dashboard" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserDashboard /></ProtectedRoute>} />
