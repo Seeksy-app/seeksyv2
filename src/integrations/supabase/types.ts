@@ -1366,6 +1366,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_agent_modes: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          mode_name: string
+          system_prompt: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          mode_name: string
+          system_prompt: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          mode_name?: string
+          system_prompt?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_conversations: {
         Row: {
           created_at: string
@@ -10295,6 +10325,201 @@ export type Database = {
           ip_address?: string
         }
         Relationships: []
+      }
+      rd_benchmarks: {
+        Row: {
+          confidence: string | null
+          id: string
+          last_updated_at: string
+          metric_key: string
+          source_notes: string | null
+          time_window: string | null
+          unit: string | null
+          value: number
+        }
+        Insert: {
+          confidence?: string | null
+          id?: string
+          last_updated_at?: string
+          metric_key: string
+          source_notes?: string | null
+          time_window?: string | null
+          unit?: string | null
+          value: number
+        }
+        Update: {
+          confidence?: string | null
+          id?: string
+          last_updated_at?: string
+          metric_key?: string
+          source_notes?: string | null
+          time_window?: string | null
+          unit?: string | null
+          value?: number
+        }
+        Relationships: []
+      }
+      rd_feed_items: {
+        Row: {
+          content_type: string
+          created_at: string
+          feed_id: string
+          id: string
+          item_guid: string
+          processed: boolean
+          published_at: string | null
+          raw_content: string | null
+          title: string
+          url: string | null
+        }
+        Insert: {
+          content_type: string
+          created_at?: string
+          feed_id: string
+          id?: string
+          item_guid: string
+          processed?: boolean
+          published_at?: string | null
+          raw_content?: string | null
+          title: string
+          url?: string | null
+        }
+        Update: {
+          content_type?: string
+          created_at?: string
+          feed_id?: string
+          id?: string
+          item_guid?: string
+          processed?: boolean
+          published_at?: string | null
+          raw_content?: string | null
+          title?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rd_feed_items_feed_id_fkey"
+            columns: ["feed_id"]
+            isOneToOne: false
+            referencedRelation: "rd_feeds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rd_feeds: {
+        Row: {
+          active: boolean
+          category: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          rss_url: string
+          title: string
+          trust_level: string
+          type: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          rss_url: string
+          title: string
+          trust_level?: string
+          type: string
+        }
+        Update: {
+          active?: boolean
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          rss_url?: string
+          title?: string
+          trust_level?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      rd_insights: {
+        Row: {
+          created_at: string
+          embedding_json: string | null
+          feed_item_id: string
+          id: string
+          metrics: Json | null
+          stance: string | null
+          summary: string | null
+          topics: Json | null
+          visibility: string
+        }
+        Insert: {
+          created_at?: string
+          embedding_json?: string | null
+          feed_item_id: string
+          id?: string
+          metrics?: Json | null
+          stance?: string | null
+          summary?: string | null
+          topics?: Json | null
+          visibility?: string
+        }
+        Update: {
+          created_at?: string
+          embedding_json?: string | null
+          feed_item_id?: string
+          id?: string
+          metrics?: Json | null
+          stance?: string | null
+          summary?: string | null
+          topics?: Json | null
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rd_insights_feed_item_id_fkey"
+            columns: ["feed_item_id"]
+            isOneToOne: false
+            referencedRelation: "rd_feed_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rd_transcripts: {
+        Row: {
+          confidence_score: number | null
+          created_at: string
+          duration_seconds: number | null
+          feed_item_id: string
+          id: string
+          transcript_text: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string
+          duration_seconds?: number | null
+          feed_item_id: string
+          id?: string
+          transcript_text: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string
+          duration_seconds?: number | null
+          feed_item_id?: string
+          id?: string
+          transcript_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rd_transcripts_feed_item_id_fkey"
+            columns: ["feed_item_id"]
+            isOneToOne: false
+            referencedRelation: "rd_feed_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       revenue_events: {
         Row: {
