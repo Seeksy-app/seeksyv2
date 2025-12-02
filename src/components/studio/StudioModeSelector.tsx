@@ -1,6 +1,5 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Mic, Video, User, Radio } from "lucide-react";
+import { Mic, Video } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface StudioModeSelectorProps {
@@ -14,45 +13,23 @@ export const StudioModeSelector = ({ open, onOpenChange }: StudioModeSelectorPro
   const modes = [
     {
       id: "audio",
-      title: "Audio Podcast Recording",
-      description: "Record audio-only podcast episodes with professional tools",
+      title: "Audio Podcast",
+      description: "Record audio-only podcast episodes with professional AI-enhanced tools",
       icon: Mic,
-      color: "from-purple-500 to-purple-600",
+      color: "from-violet-500 to-violet-600",
       action: () => {
-        navigate("/podcasts");
+        navigate("/studio/audio");
         onOpenChange(false);
       },
     },
     {
-      id: "video-interview",
-      title: "Video Podcast (with Guests)",
-      description: "Record video podcasts with remote guests and multi-camera layouts",
+      id: "video",
+      title: "Video Podcast",
+      description: "Record video podcasts with guest support and AI auto-focus layouts",
       icon: Video,
       color: "from-blue-500 to-blue-600",
       action: () => {
-        navigate("/studio/video?mode=interview");
-        onOpenChange(false);
-      },
-    },
-    {
-      id: "solo-video",
-      title: "Solo Video Recording",
-      description: "Record yourself with professional video tools",
-      icon: User,
-      color: "from-green-500 to-green-600",
-      action: () => {
-        navigate("/studio/video?mode=solo");
-        onOpenChange(false);
-      },
-    },
-    {
-      id: "live",
-      title: "Go Live",
-      description: "Broadcast live to multiple platforms simultaneously",
-      icon: Radio,
-      color: "from-red-500 to-red-600",
-      action: () => {
-        navigate("/studio/live");
+        navigate("/studio/video");
         onOpenChange(false);
       },
     },

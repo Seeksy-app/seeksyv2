@@ -10,8 +10,8 @@ interface RecordingTypeSelectorProps {
 const recordingTypes = [
   {
     id: "audio",
-    title: "Audio Studio",
-    description: "Professional audio recording with AI enhancement and waveform visualization.",
+    title: "Audio Podcast",
+    description: "Record audio-only podcast episodes with professional tools and AI enhancement.",
     icon: Mic,
     color: "bg-violet-500",
     features: ["No camera required", "AI audio cleanup", "Host-read scripts", "Auto markers"],
@@ -19,8 +19,8 @@ const recordingTypes = [
   },
   {
     id: "video",
-    title: "Video Studio",
-    description: "Multi-guest video recording with scene layouts and PiP support.",
+    title: "Video Podcast",
+    description: "Record video podcasts with multi-guest layouts and AI auto-focus.",
     icon: Video,
     color: "bg-blue-500",
     features: ["3 scene presets", "Guest support", "Auto vertical clips", "Live transcript"],
@@ -41,7 +41,7 @@ export function RecordingTypeSelector({ open, onOpenChange }: RecordingTypeSelec
       <DialogContent className="max-w-xl p-0 gap-0 overflow-hidden">
         <DialogHeader className="p-6 pb-4 border-b border-border">
           <DialogTitle className="text-xl">Choose Recording Type</DialogTitle>
-          <DialogDescription>Select the studio mode for your recording</DialogDescription>
+          <DialogDescription>Select the studio mode for your podcast</DialogDescription>
         </DialogHeader>
         
         <div className="p-6">
