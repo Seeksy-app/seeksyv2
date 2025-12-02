@@ -1,11 +1,13 @@
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { 
   Mail, FileText, Users, Video, DollarSign, ArrowRight, Calendar, Mic, Shield, Zap, 
   Camera, Globe, MessageSquare, BarChart3, Podcast, FolderOpen, Book, Newspaper, 
   MessageCircle, FormInput, CheckSquare, Vote, QrCode, Layout, Trophy, UserPlus,
-  ListChecks, Megaphone, Scissors, Star, Briefcase, Instagram
+  ListChecks, Megaphone, Scissors, Star, Briefcase, Instagram, Search
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -28,6 +30,7 @@ interface AppModule {
 
 export default function Apps() {
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
 
   const modules: AppModule[] = [
     // Active Modules
@@ -415,8 +418,23 @@ export default function Apps() {
     },
   ];
 
-  const activeModules = modules.filter(m => m.isActive);
-  const availableModules = modules.filter(m => !m.isActive);
+  // Filter modules based on search
+  const filteredModules = modules.filter(m => {
+    if (!searchTerm) return true;
+    const search = searchTerm.toLowerCase();
+    return (
+      m.name.toLowerCase().includes(search) ||
+      m.description.toLowerCase().includes(search)
+    );
+  });
+
+  const activeModules = filteredModules.filter(m => m.isActive);
+  const availableModules = filteredModules.filter(m => !m.isActive);
+
+  // Categorize active modules
+  const coreModules = activeModules.filter(m => m.category === "core");
+  const integrationModules = activeModules.filter(m => m.category === "integration");
+  const automationModules = activeModules.filter(m => m.category === "automation");
 
   const handleModuleClick = (module: AppModule) => {
     if (module.status === "coming_soon") return;
@@ -427,6 +445,46 @@ export default function Apps() {
     if (status === "beta") return <Badge variant="secondary" className="ml-2">Beta</Badge>;
     if (status === "coming_soon") return <Badge variant="outline" className="ml-2">Coming Soon</Badge>;
     return null;
+  };
+
+  const renderModuleCard = (module: AppModule) => {
+    const Icon = module.icon;
+    return (
+      <Card
+        key={module.id}
+        className="group hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02] border-2 hover:border-primary/50"
+        onClick={() => handleModuleClick(module)}
+      >
+        <CardHeader>
+          <div className="flex items-start justify-between mb-3">
+            <div className={`p-3 rounded-xl ${module.bgColor}`}>
+              <Icon className={`h-6 w-6 ${module.iconColor}`} />
+            </div>
+            <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors group-hover:translate-x-1 duration-200" />
+          </div>
+          <CardTitle className="text-xl">{module.name}</CardTitle>
+          <CardDescription className="text-sm leading-relaxed">
+            {module.description}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {module.stats && (
+            <div className="flex items-center justify-between pt-2 border-t">
+              <span className="text-xs text-muted-foreground font-medium">
+                {module.stats.label}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs h-auto py-1 px-2 hover:bg-primary/10"
+              >
+                {module.stats.value}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
   };
 
   return (
@@ -440,57 +498,64 @@ export default function Apps() {
           </p>
         </div>
 
-        {/* Section A: Your Active Modules */}
-        <div className="mb-12">
-          <div className="mb-6">
-            <h2 className="text-2xl font-semibold mb-2">Your Active Modules</h2>
-            <p className="text-muted-foreground">
-              Currently enabled apps and tools in your workspace
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {activeModules.map((module) => {
-              const Icon = module.icon;
-              return (
-                <Card
-                  key={module.id}
-                  className="group hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02] border-2 hover:border-primary/50"
-                  onClick={() => handleModuleClick(module)}
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between mb-3">
-                      <div className={`p-3 rounded-xl ${module.bgColor}`}>
-                        <Icon className={`h-6 w-6 ${module.iconColor}`} />
-                      </div>
-                      <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors group-hover:translate-x-1 duration-200" />
-                    </div>
-                    <CardTitle className="text-xl">{module.name}</CardTitle>
-                    <CardDescription className="text-sm leading-relaxed">
-                      {module.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {module.stats && (
-                      <div className="flex items-center justify-between pt-2 border-t">
-                        <span className="text-xs text-muted-foreground font-medium">
-                          {module.stats.label}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-xs h-auto py-1 px-2 hover:bg-primary/10"
-                        >
-                          {module.stats.value}
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
+        {/* Search Bar */}
+        <div className="mb-8 max-w-2xl">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search everything..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 h-12 text-base"
+            />
           </div>
         </div>
+
+        {/* Core Modules */}
+        {coreModules.length > 0 && (
+          <div className="mb-12">
+            <div className="mb-6">
+              <h2 className="text-2xl font-semibold mb-2">Core Modules</h2>
+              <p className="text-muted-foreground">
+                Essential apps and tools for your workspace
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {coreModules.map(renderModuleCard)}
+            </div>
+          </div>
+        )}
+
+        {/* Integrations */}
+        {integrationModules.length > 0 && (
+          <div className="mb-12">
+            <div className="mb-6">
+              <h2 className="text-2xl font-semibold mb-2">Integrations</h2>
+              <p className="text-muted-foreground">
+                Connect external platforms and services
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {integrationModules.map(renderModuleCard)}
+            </div>
+          </div>
+        )}
+
+        {/* Automation */}
+        {automationModules.length > 0 && (
+          <div className="mb-12">
+            <div className="mb-6">
+              <h2 className="text-2xl font-semibold mb-2">Automation</h2>
+              <p className="text-muted-foreground">
+                Workflow automation and productivity tools
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {automationModules.map(renderModuleCard)}
+            </div>
+          </div>
+        )}
 
         {/* Section B: Available Apps & Integrations */}
         <div>
