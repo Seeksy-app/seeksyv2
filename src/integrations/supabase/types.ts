@@ -9112,6 +9112,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           last_synced_at: string | null
+          metadata: Json | null
           platform: string
           platform_user_id: string
           posts_count: number | null
@@ -9130,6 +9131,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           last_synced_at?: string | null
+          metadata?: Json | null
           platform: string
           platform_user_id: string
           posts_count?: number | null
@@ -9148,6 +9150,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           last_synced_at?: string | null
+          metadata?: Json | null
           platform?: string
           platform_user_id?: string
           posts_count?: number | null
