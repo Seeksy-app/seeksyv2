@@ -140,6 +140,7 @@ import MediaLibraryHub from "./pages/studio/MediaLibraryHub";
 import StudioTemplatesPage from "./pages/studio/StudioTemplates";
 import AudioStudioPremium from "./pages/studio/AudioStudioPremiumNew";
 import VideoStudioPremium from "./pages/studio/VideoStudioPremiumNew";
+import StudioComplete from "./pages/studio/StudioComplete";
 import VoiceCertificationPage from "./pages/admin/VoiceCertificationPage";
 import VoiceNFTCertificatesPage from "./pages/admin/VoiceNFTCertificatesPage";
 import PublicLandingPage from "./pages/PublicLandingPage";
@@ -632,6 +633,7 @@ const AppContent = () => {
               <Route path="/studio/settings" element={<StudioSettings />} />
               <Route path="/studio/recordings" element={<StudioRecordings />} />
               <Route path="/studio/session/:sessionId" element={<StudioPostSession />} />
+              <Route path="/studio/complete" element={<StudioComplete />} />
               <Route path="/studio/live" element={<LiveStudio />} />
               
             <Route path="/events" element={<Events />} />

@@ -67,7 +67,14 @@ export default function AudioStudio() {
   const handleStop = () => {
     setIsRecording(false);
     setIsPaused(false);
-    navigate("/studio/session/new");
+    // Navigate to studio post-recording page
+    navigate("/studio/complete", { 
+      state: { 
+        duration: recordingTime, 
+        markers: markers.length,
+        type: "audio"
+      } 
+    });
   };
 
   if (inGreenRoom) {
@@ -227,7 +234,7 @@ export default function AudioStudio() {
                   </Button>
                   <Button
                     onClick={handleStop}
-                    className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-red-600 shadow-lg shadow-red-500/30 animate-pulse"
+                    className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-red-600 shadow-lg shadow-red-500/30"
                   >
                     <Square className="w-6 h-6 text-white fill-white" />
                   </Button>

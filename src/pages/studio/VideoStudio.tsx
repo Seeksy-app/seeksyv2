@@ -107,7 +107,15 @@ export default function VideoStudio() {
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
     }
-    navigate("/studio/session/new");
+    // Navigate to studio post-recording page
+    navigate("/studio/complete", { 
+      state: { 
+        duration: recordingTime, 
+        markers: markers.length,
+        autoClips: autoClips.length,
+        type: "video"
+      } 
+    });
   };
 
   if (inGreenRoom) {
@@ -289,7 +297,7 @@ export default function VideoStudio() {
                   </Button>
                   <Button
                     onClick={handleStop}
-                    className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-red-600 shadow-lg shadow-red-500/30 animate-pulse"
+                    className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-red-600 shadow-lg shadow-red-500/30"
                   >
                     <Square className="w-6 h-6 text-white fill-white" />
                   </Button>
