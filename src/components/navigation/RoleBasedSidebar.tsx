@@ -98,6 +98,7 @@ const ICON_MAP: Record<string, any> = {
   'layout-dashboard': LayoutDashboard,
   user: UserIcon,
   settings: Settings,
+  link: Network,
   apps: Grid3x3,
   'grid-3x3': Grid3x3,
   users: Users,

@@ -320,6 +320,7 @@ import Audience from "./pages/Audience";
 import ContentHub from "./pages/ContentHub";
 import MonetizationHub from "./pages/MonetizationHub";
 import MetaIntegration from "./pages/integrations/MetaIntegration";
+import SocialMediaHub from "./pages/integrations/SocialMediaHub";
 import CreatorHub from "./pages/CreatorHub";
 import AgencyHub from "./pages/AgencyHub";
 import MyPageStreaming from "./pages/MyPageStreaming";
@@ -442,6 +443,7 @@ const AppContent = () => {
               <Route path="/seekies" element={<Apps />} />
               
               {/* Integrations */}
+              <Route path="/integrations" element={<SocialMediaHub />} />
               <Route path="/integrations/meta" element={<MetaIntegration />} />
               
               {/* Creator & Agency Hubs */}
