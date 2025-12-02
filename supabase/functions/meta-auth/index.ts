@@ -57,7 +57,14 @@ Deno.serve(async (req) => {
     authUrl.searchParams.set('state', user.id); // Pass user ID as state for callback
     authUrl.searchParams.set('response_type', 'code');
 
-    console.log('[meta-auth] Redirecting to Meta OAuth:', authUrl.toString());
+    // Debug logging for OAuth URL parameters
+    console.log('[meta-auth] ===== OAuth URL Debug =====');
+    console.log('[meta-auth] META_APP_ID (client_id):', metaAppId);
+    console.log('[meta-auth] Redirect URI:', redirectUri);
+    console.log('[meta-auth] Scopes:', scopes);
+    console.log('[meta-auth] State (user_id):', user.id);
+    console.log('[meta-auth] Full OAuth URL:', authUrl.toString());
+    console.log('[meta-auth] =============================');
 
     return new Response(JSON.stringify({ authUrl: authUrl.toString() }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
