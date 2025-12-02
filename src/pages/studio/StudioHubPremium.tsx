@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Play, Mic, Video, Upload, Wand2, 
   Clock, Scissors, ArrowRight, 
-  FolderOpen, FileText, Settings
+  FolderOpen, FileText, Settings,
+  History, Calendar, HardDrive, Radio
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { RecordingTypeSelector } from "@/components/studio/hub/RecordingTypeSelector";
@@ -189,6 +190,9 @@ export default function StudioHubPremium() {
             <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">Studio Hub</h2>
             <div className="border border-border rounded-xl divide-y divide-border bg-card">
               {[
+                { icon: History, label: "Past Streams", path: "/studio/past-streams", desc: "View recordings" },
+                { icon: Calendar, label: "Scheduled", path: "/studio/scheduled", desc: "Upcoming streams" },
+                { icon: HardDrive, label: "Storage", path: "/studio/storage", desc: "All assets & files" },
                 { icon: Scissors, label: "Clips & Highlights", path: "/studio/clips", desc: "AI-generated clips" },
                 { icon: FolderOpen, label: "Media Library", path: "/studio/media", desc: "All your recordings" },
                 { icon: FileText, label: "Templates", path: "/studio/templates", desc: "Scripts & ad reads" },
