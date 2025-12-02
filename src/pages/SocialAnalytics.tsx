@@ -219,8 +219,8 @@ export default function SocialAnalytics() {
 
   const currentProfile = activeTab === 'youtube' ? youtubeProfile : instagramProfile;
   const currentTopPosts = activeTab === 'youtube' ? topYoutubeVideos : topPosts;
-  const isTokenExpired = activeTab === 'youtube' ? isYouTubeTokenExpired : isInstagramTokenExpired;
-  const hasAnyProfile = instagramProfile || youtubeProfile;
+  const isTokenExpired = activeTab === 'youtube' ? isYouTubeTokenExpired : activeTab === 'facebook' ? isFacebookTokenExpired : isInstagramTokenExpired;
+  const hasAnyProfile = instagramProfile || youtubeProfile || facebookProfile;
 
   if (profilesLoading) {
     return (
@@ -246,7 +246,7 @@ export default function SocialAnalytics() {
             <p className="text-muted-foreground">Connect your social accounts to view analytics and performance metrics.</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -287,6 +287,26 @@ export default function SocialAnalytics() {
                 </Button>
               </CardContent>
             </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Facebook className="h-5 w-5 text-blue-600" />
+                  Facebook
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground text-sm">
+                  Connect your Facebook Page to view fans, reach, and post analytics.
+                </p>
+                <Button 
+                  onClick={connectFacebook}
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-500"
+                >
+                  Connect Facebook
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
@@ -315,6 +335,12 @@ export default function SocialAnalytics() {
               YouTube
             </TabsTrigger>
           )}
+          {facebookProfile && (
+            <TabsTrigger value="facebook" className="gap-2">
+              <Facebook className="h-4 w-4 text-blue-600" />
+              Facebook
+            </TabsTrigger>
+          )}
           {!youtubeProfile && (
             <Button 
               variant="ghost" 
@@ -338,6 +364,18 @@ export default function SocialAnalytics() {
               <Plus className="h-4 w-4" />
               <Instagram className="h-4 w-4 text-pink-500" />
               Add Instagram
+            </Button>
+          )}
+          {!facebookProfile && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-2 ml-2"
+              onClick={connectFacebook}
+            >
+              <Plus className="h-4 w-4" />
+              <Facebook className="h-4 w-4 text-blue-600" />
+              Add Facebook
             </Button>
           )}
         </TabsList>
@@ -588,6 +626,165 @@ export default function SocialAnalytics() {
                               </div>
                             </div>
                             <Badge variant="secondary">{video.engagement_rate.toFixed(2)}%</Badge>
+                          </a>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+        )}
+
+        {/* Facebook Content */}
+        {facebookProfile && (
+          <TabsContent value="facebook" className="space-y-6">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex items-center gap-4">
+                {facebookProfile.profile_picture ? (
+                  <img 
+                    src={facebookProfile.profile_picture} 
+                    alt={facebookProfile.username || 'Page'} 
+                    className="h-16 w-16 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="h-16 w-16 rounded-full bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center">
+                    <Facebook className="h-8 w-8 text-white" />
+                  </div>
+                )}
+                <div>
+                  <h1 className="text-2xl font-bold">{facebookProfile.username}</h1>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                      {facebookProfile.account_type || 'Page'}
+                    </Badge>
+                    {facebookProfile.last_sync_at && (
+                      <span className="text-xs text-muted-foreground">
+                        Last synced {formatDistanceToNow(new Date(facebookProfile.last_sync_at), { addSuffix: true })}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <Button 
+                onClick={() => syncData(facebookProfile.id)}
+                disabled={isSyncing || isFacebookTokenExpired}
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+                Sync Data
+              </Button>
+            </div>
+
+            {isFacebookTokenExpired && (
+              <Card className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20">
+                <CardContent className="flex items-center gap-4 py-4">
+                  <AlertCircle className="h-5 w-5 text-yellow-600" />
+                  <div className="flex-1">
+                    <p className="font-medium text-yellow-800 dark:text-yellow-200">Facebook token expired</p>
+                    <p className="text-sm text-yellow-700 dark:text-yellow-300">Reconnect to continue syncing data.</p>
+                  </div>
+                  <Button onClick={connectFacebook} variant="outline" size="sm">
+                    Reconnect
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Facebook Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                    <Users className="h-4 w-4" />
+                    <span className="text-sm">Fans / Followers</span>
+                  </div>
+                  <p className="text-3xl font-bold">{formatNumber(facebookProfile.followers_count)}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                    <Image className="h-4 w-4" />
+                    <span className="text-sm">Posts</span>
+                  </div>
+                  <p className="text-3xl font-bold">{formatNumber(facebookProfile.media_count)}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                    <Eye className="h-4 w-4" />
+                    <span className="text-sm">Page Reach</span>
+                  </div>
+                  <p className="text-3xl font-bold">
+                    {facebookInsights?.[0]?.reach 
+                      ? formatNumber(facebookInsights[0].reach)
+                      : '—'}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                    <BarChart3 className="h-4 w-4" />
+                    <span className="text-sm">Avg Engagement</span>
+                  </div>
+                  <p className="text-3xl font-bold">
+                    {facebookPosts?.length 
+                      ? (facebookPosts.reduce((sum, p) => sum + p.engagement_rate, 0) / facebookPosts.length).toFixed(2)
+                      : '0.00'}%
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Facebook Setup Checklist */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <SocialOnboardingChecklist platform="facebook" />
+              <div className="md:col-span-2">
+                {/* Top Posts */}
+                {topFacebookPosts && topFacebookPosts.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Top Performing Posts</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {topFacebookPosts.slice(0, 5).map(post => (
+                          <a 
+                            key={post.id}
+                            href={post.permalink || '#'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors"
+                          >
+                            {post.media_url ? (
+                              <img 
+                                src={post.media_url} 
+                                alt={post.caption?.slice(0, 30) || 'Post'}
+                                className="w-16 h-16 object-cover rounded"
+                              />
+                            ) : (
+                              <div className="w-16 h-16 bg-muted rounded flex items-center justify-center">
+                                <Image className="h-6 w-6 text-muted-foreground" />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate">{post.caption || 'No caption'}</p>
+                              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <Heart className="h-3 w-3" />
+                                  {formatNumber(post.like_count)}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <MessageCircle className="h-3 w-3" />
+                                  {formatNumber(post.comment_count)}
+                                </span>
+                              </div>
+                            </div>
+                            <Badge variant="secondary">{post.engagement_rate.toFixed(2)}%</Badge>
                           </a>
                         ))}
                       </div>
