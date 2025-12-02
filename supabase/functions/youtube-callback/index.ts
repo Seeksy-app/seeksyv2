@@ -80,8 +80,8 @@ serve(async (req) => {
     const tokens = await tokenResponse.json();
     console.log('Tokens received - access_token:', !!tokens.access_token, 'refresh_token:', !!tokens.refresh_token);
 
-    // Fetch YouTube channel info
-    console.log('Fetching YouTube channel info...');
+    // Fetch ALL YouTube channels for this Google account
+    console.log('Fetching YouTube channels...');
     const channelResponse = await fetch(
       'https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true',
       {
@@ -104,109 +104,59 @@ serve(async (req) => {
       throw new Error('No YouTube channel found for this account');
     }
 
-    const channel = channelData.items[0];
-    const channelId = channel.id;
-    const channelTitle = channel.snippet?.title || 'Unknown Channel';
-    const profilePicture = channel.snippet?.thumbnails?.high?.url || channel.snippet?.thumbnails?.default?.url || '';
-    const subscriberCount = parseInt(channel.statistics?.subscriberCount || '0', 10);
-    const videoCount = parseInt(channel.statistics?.videoCount || '0', 10);
-
-    console.log('Channel info:', {
-      channelId,
-      channelTitle,
-      subscriberCount,
-      videoCount,
-    });
-
-    // Save to social_media_profiles using service role
     const supabase = createClient(
       supabaseUrl,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     );
 
-    // Check if profile already exists
-    const { data: existingProfile } = await supabase
-      .from('social_media_profiles')
+    // Check how many channels this account has
+    const channels = channelData.items.map((channel: any) => ({
+      id: channel.id,
+      title: channel.snippet?.title || 'Unknown Channel',
+      thumbnail: channel.snippet?.thumbnails?.high?.url || channel.snippet?.thumbnails?.default?.url || '',
+      subscriberCount: parseInt(channel.statistics?.subscriberCount || '0', 10),
+      videoCount: parseInt(channel.statistics?.videoCount || '0', 10),
+    }));
+
+    console.log(`Found ${channels.length} channel(s) for this account`);
+
+    // If only 1 channel, auto-connect (existing behavior)
+    if (channels.length === 1) {
+      const channel = channels[0];
+      return await connectSingleChannel(supabase, supabaseUrl, userId, channel, tokens, productionRedirectBase);
+    }
+
+    // Multiple channels: store session and redirect to selection UI
+    console.log('Multiple channels detected, creating selection session...');
+    
+    const { data: session, error: sessionError } = await supabase
+      .from('youtube_oauth_sessions')
+      .insert({
+        user_id: userId,
+        channels: channels,
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token || null,
+        expires_at: tokens.expires_in 
+          ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
+          : null,
+      })
       .select('id')
-      .eq('user_id', userId)
-      .eq('platform', 'youtube')
-      .eq('platform_user_id', channelId)
       .single();
 
-    const profileData = {
-      user_id: userId,
-      platform: 'youtube',
-      platform_user_id: channelId,
-      username: channelTitle,
-      profile_picture: profilePicture,
-      followers_count: subscriberCount,
-      media_count: videoCount,
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token || null,
-      token_expires_at: tokens.expires_in 
-        ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
-        : null,
-      connected_at: new Date().toISOString(),
-      last_sync_at: new Date().toISOString(),
-      sync_status: 'pending',
-    };
-
-    let savedProfile;
-    if (existingProfile) {
-      console.log('Updating existing YouTube profile:', existingProfile.id);
-      const { data, error: updateError } = await supabase
-        .from('social_media_profiles')
-        .update(profileData)
-        .eq('id', existingProfile.id)
-        .select()
-        .single();
-
-      if (updateError) {
-        console.error('Failed to update profile:', updateError);
-        throw new Error('Failed to update YouTube profile');
-      }
-      savedProfile = data;
-    } else {
-      console.log('Creating new YouTube profile for user:', userId);
-      const { data, error: insertError } = await supabase
-        .from('social_media_profiles')
-        .insert(profileData)
-        .select()
-        .single();
-
-      if (insertError) {
-        console.error('Failed to insert profile:', insertError);
-        throw new Error('Failed to save YouTube profile');
-      }
-      savedProfile = data;
+    if (sessionError) {
+      console.error('Failed to create session:', sessionError);
+      throw new Error('Failed to create channel selection session');
     }
 
-    console.log('Profile saved successfully:', savedProfile?.id);
+    console.log('Session created:', session.id);
 
-    // Trigger sync (fire and forget)
-    try {
-      const syncResponse = await fetch(`${supabaseUrl}/functions/v1/sync-youtube-channel-data`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-        },
-        body: JSON.stringify({
-          user_id: userId,
-          profile_id: savedProfile?.id,
-        }),
-      });
-      console.log('Sync triggered, status:', syncResponse.status);
-    } catch (syncError) {
-      console.error('Failed to trigger sync (non-blocking):', syncError);
-    }
-
-    // Redirect to production URL with tab param
+    // Redirect to selection UI
     const redirectUrl = new URL('/social-analytics', productionRedirectBase);
     redirectUrl.searchParams.set('connected', 'youtube');
     redirectUrl.searchParams.set('tab', 'youtube');
+    redirectUrl.searchParams.set('yt_select_session', session.id);
     
-    console.log('Redirecting to:', redirectUrl.toString());
+    console.log('Redirecting to channel selection:', redirectUrl.toString());
     return new Response(null, {
       status: 302,
       headers: {
@@ -228,3 +178,104 @@ serve(async (req) => {
     });
   }
 });
+
+async function connectSingleChannel(
+  supabase: any,
+  supabaseUrl: string,
+  userId: string,
+  channel: { id: string; title: string; thumbnail: string; subscriberCount: number; videoCount: number },
+  tokens: { access_token: string; refresh_token?: string; expires_in?: number },
+  productionRedirectBase: string
+) {
+  console.log('Auto-connecting single channel:', channel.title);
+
+  // Check if profile already exists
+  const { data: existingProfile } = await supabase
+    .from('social_media_profiles')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('platform', 'youtube')
+    .eq('platform_user_id', channel.id)
+    .single();
+
+  const profileData = {
+    user_id: userId,
+    platform: 'youtube',
+    platform_user_id: channel.id,
+    username: channel.title,
+    profile_picture: channel.thumbnail,
+    followers_count: channel.subscriberCount,
+    media_count: channel.videoCount,
+    access_token: tokens.access_token,
+    refresh_token: tokens.refresh_token || null,
+    token_expires_at: tokens.expires_in 
+      ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
+      : null,
+    connected_at: new Date().toISOString(),
+    last_sync_at: new Date().toISOString(),
+    sync_status: 'pending',
+  };
+
+  let savedProfile;
+  if (existingProfile) {
+    console.log('Updating existing YouTube profile:', existingProfile.id);
+    const { data, error: updateError } = await supabase
+      .from('social_media_profiles')
+      .update(profileData)
+      .eq('id', existingProfile.id)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error('Failed to update profile:', updateError);
+      throw new Error('Failed to update YouTube profile');
+    }
+    savedProfile = data;
+  } else {
+    console.log('Creating new YouTube profile for user:', userId);
+    const { data, error: insertError } = await supabase
+      .from('social_media_profiles')
+      .insert(profileData)
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('Failed to insert profile:', insertError);
+      throw new Error('Failed to save YouTube profile');
+    }
+    savedProfile = data;
+  }
+
+  console.log('Profile saved successfully:', savedProfile?.id);
+
+  // Trigger sync (fire and forget)
+  try {
+    const syncResponse = await fetch(`${supabaseUrl}/functions/v1/sync-youtube-channel-data`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        profile_id: savedProfile?.id,
+      }),
+    });
+    console.log('Sync triggered, status:', syncResponse.status);
+  } catch (syncError) {
+    console.error('Failed to trigger sync (non-blocking):', syncError);
+  }
+
+  // Redirect to production URL with tab param
+  const redirectUrl = new URL('/social-analytics', productionRedirectBase);
+  redirectUrl.searchParams.set('connected', 'youtube');
+  redirectUrl.searchParams.set('tab', 'youtube');
+  
+  console.log('Redirecting to:', redirectUrl.toString());
+  return new Response(null, {
+    status: 302,
+    headers: {
+      'Location': redirectUrl.toString(),
+    },
+  });
+}

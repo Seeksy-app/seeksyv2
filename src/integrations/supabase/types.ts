@@ -14881,6 +14881,39 @@ export type Database = {
         }
         Relationships: []
       }
+      youtube_oauth_sessions: {
+        Row: {
+          access_token: string
+          channels: Json
+          created_at: string
+          expires_at: string | null
+          id: string
+          refresh_token: string | null
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          channels: Json
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          refresh_token?: string | null
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          channels?: Json
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          refresh_token?: string | null
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       zoom_connections: {
         Row: {
           access_token: string

@@ -20,6 +20,7 @@ import {
 import { SocialOnboardingChecklist } from "@/components/social/SocialOnboardingChecklist";
 import { CreatorValuationCard } from "@/components/social/CreatorValuationCard";
 import { InstagramReconnectBanner } from "@/components/social/InstagramReconnectBanner";
+import { YouTubeChannelSelectModal } from "@/components/social/YouTubeChannelSelectModal";
 import { useYouTubeConnect } from "@/hooks/useYouTubeConnect";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { formatDistanceToNow, format } from "date-fns";
@@ -51,6 +52,28 @@ export default function SocialAnalytics() {
   const { syncData, isSyncing } = useSyncSocialData();
   const { connectYouTube, syncYouTube, isConnecting } = useYouTubeConnect();
 
+  // YouTube channel selection session
+  const ytSelectSession = searchParams.get('yt_select_session');
+
+  // Handle channel selection modal close
+  const handleChannelSelectClose = () => {
+    // Remove the session param but keep tab
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete('yt_select_session');
+    setSearchParams(newParams);
+  };
+
+  // Handle successful channel connection
+  const handleChannelConnected = (channelName: string) => {
+    toast({
+      title: `YouTube channel "${channelName}" connected!`,
+      description: "Syncing your channel data now.",
+    });
+    refetchProfiles();
+    // Clear all params after successful connection
+    setSearchParams({});
+  };
+
   // Handle success redirect from OAuth callback
   useEffect(() => {
     const connected = searchParams.get('connected');
@@ -72,7 +95,8 @@ export default function SocialAnalytics() {
       setSearchParams({});
     }
     
-    if (connected === 'youtube') {
+    // Only show auto-connected toast if there's no select session (single channel case)
+    if (connected === 'youtube' && !ytSelectSession) {
       toast({
         title: "YouTube Connected!",
         description: "Syncing your channel data now.",
@@ -102,7 +126,7 @@ export default function SocialAnalytics() {
       });
       setSearchParams({});
     }
-  }, [searchParams, toast, setSearchParams, refetchProfiles]);
+  }, [searchParams, toast, setSearchParams, refetchProfiles, ytSelectSession]);
 
   const isInstagramTokenExpired = instagramProfile?.sync_status === 'token_expired';
   const isYouTubeTokenExpired = youtubeProfile?.sync_status === 'token_expired';
@@ -524,6 +548,13 @@ export default function SocialAnalytics() {
           </TabsContent>
         )}
       </Tabs>
+
+      {/* YouTube Channel Selection Modal */}
+      <YouTubeChannelSelectModal
+        sessionId={ytSelectSession}
+        onClose={handleChannelSelectClose}
+        onConnected={handleChannelConnected}
+      />
     </div>
   );
 }
