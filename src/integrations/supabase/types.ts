@@ -6688,6 +6688,110 @@ export type Database = {
         }
         Relationships: []
       }
+      gtm_actions: {
+        Row: {
+          channel_id: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          effort_estimate: string | null
+          gtm_project_id: string
+          id: string
+          impact_estimate: string | null
+          owner_role: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          channel_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          effort_estimate?: string | null
+          gtm_project_id: string
+          id?: string
+          impact_estimate?: string | null
+          owner_role?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          channel_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          effort_estimate?: string | null
+          gtm_project_id?: string
+          id?: string
+          impact_estimate?: string | null
+          owner_role?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gtm_actions_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "gtm_project_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gtm_actions_gtm_project_id_fkey"
+            columns: ["gtm_project_id"]
+            isOneToOne: false
+            referencedRelation: "gtm_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gtm_assumptions: {
+        Row: {
+          category: string
+          created_at: string
+          gtm_project_id: string
+          id: string
+          is_key_assumption: boolean | null
+          label: string
+          updated_at: string
+          value_numeric: number | null
+          value_text: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          gtm_project_id: string
+          id?: string
+          is_key_assumption?: boolean | null
+          label: string
+          updated_at?: string
+          value_numeric?: number | null
+          value_text?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          gtm_project_id?: string
+          id?: string
+          is_key_assumption?: boolean | null
+          label?: string
+          updated_at?: string
+          value_numeric?: number | null
+          value_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gtm_assumptions_gtm_project_id_fkey"
+            columns: ["gtm_project_id"]
+            isOneToOne: false
+            referencedRelation: "gtm_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gtm_channels: {
         Row: {
           channel_name: string
@@ -6820,6 +6924,44 @@ export type Database = {
         }
         Relationships: []
       }
+      gtm_metrics_snapshots: {
+        Row: {
+          created_at: string
+          gtm_project_id: string
+          id: string
+          kpi_name: string
+          kpi_value_numeric: number | null
+          notes: string | null
+          snapshot_date: string
+        }
+        Insert: {
+          created_at?: string
+          gtm_project_id: string
+          id?: string
+          kpi_name: string
+          kpi_value_numeric?: number | null
+          notes?: string | null
+          snapshot_date?: string
+        }
+        Update: {
+          created_at?: string
+          gtm_project_id?: string
+          id?: string
+          kpi_name?: string
+          kpi_value_numeric?: number | null
+          notes?: string | null
+          snapshot_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gtm_metrics_snapshots_gtm_project_id_fkey"
+            columns: ["gtm_project_id"]
+            isOneToOne: false
+            referencedRelation: "gtm_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gtm_phases: {
         Row: {
           color_code: string
@@ -6850,6 +6992,92 @@ export type Database = {
           phase_number?: number
           strategies?: Json
           timeline?: string
+        }
+        Relationships: []
+      }
+      gtm_project_channels: {
+        Row: {
+          channel_type: string
+          created_at: string
+          gtm_project_id: string
+          id: string
+          notes: string | null
+          priority: number | null
+          updated_at: string
+        }
+        Insert: {
+          channel_type: string
+          created_at?: string
+          gtm_project_id: string
+          id?: string
+          notes?: string | null
+          priority?: number | null
+          updated_at?: string
+        }
+        Update: {
+          channel_type?: string
+          created_at?: string
+          gtm_project_id?: string
+          id?: string
+          notes?: string | null
+          priority?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gtm_project_channels_gtm_project_id_fkey"
+            columns: ["gtm_project_id"]
+            isOneToOne: false
+            referencedRelation: "gtm_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gtm_projects: {
+        Row: {
+          budget_range: string | null
+          created_at: string
+          description: string | null
+          id: string
+          mode: string
+          name: string
+          onboarding_data: Json | null
+          owner_user_id: string
+          primary_goal: string | null
+          status: string
+          target_market: Json | null
+          timeframe: string | null
+          updated_at: string
+        }
+        Insert: {
+          budget_range?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          mode?: string
+          name: string
+          onboarding_data?: Json | null
+          owner_user_id: string
+          primary_goal?: string | null
+          status?: string
+          target_market?: Json | null
+          timeframe?: string | null
+          updated_at?: string
+        }
+        Update: {
+          budget_range?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          mode?: string
+          name?: string
+          onboarding_data?: Json | null
+          owner_user_id?: string
+          primary_goal?: string | null
+          status?: string
+          target_market?: Json | null
+          timeframe?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -14356,6 +14584,7 @@ export type Database = {
         Args: { _roles: string[]; _user_id: string }
         Returns: boolean
       }
+      user_is_gtm_admin: { Args: never; Returns: boolean }
       validate_ad_impression: {
         Args: {
           p_ad_slot_id: string
