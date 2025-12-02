@@ -5,7 +5,7 @@
  * instead of technical modules.
  */
 
-export type UserRole = 'creator' | 'subscriber' | 'advertiser' | 'influencer' | 'agency' | 'admin' | 'super_admin';
+export type UserRole = 'creator' | 'subscriber' | 'advertiser' | 'influencer' | 'agency' | 'admin' | 'super_admin' | 'board_member';
 
 export interface NavigationItem {
   id: string;
@@ -34,7 +34,8 @@ export const NAVIGATION_CONFIG: {
     "influencer",
     "agency",
     "admin",
-    "super_admin"
+    "super_admin",
+    "board_member"
   ],
   "navigation": [
     {
@@ -346,6 +347,13 @@ export const NAVIGATION_CONFIG: {
           "label": "Advertisers",
           "icon": "megaphone",
           "path": "/admin/advertisers",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_board_members",
+          "label": "Board Members",
+          "icon": "briefcase",
+          "path": "/admin/board-members",
           "roles": ["admin", "super_admin"]
         },
         {

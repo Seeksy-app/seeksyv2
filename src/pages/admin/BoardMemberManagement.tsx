@@ -55,27 +55,34 @@ export default function BoardMemberManagement() {
   const { data: boardMembers, isLoading } = useQuery({
     queryKey: ['boardMembers'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get user_roles with board_member role
+      const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
-        .select(`
-          user_id,
-          created_at,
-          profiles:user_id (
-            id,
-            email,
-            full_name
-          )
-        `)
+        .select('user_id, created_at')
         .eq('role', 'board_member');
 
-      if (error) throw error;
-      
-      return data.map((item: any) => ({
-        id: item.user_id,
-        email: item.profiles?.email || 'Unknown',
-        full_name: item.profiles?.full_name,
-        created_at: item.created_at,
-      })) as BoardMember[];
+      if (roleError) throw roleError;
+      if (!roleData || roleData.length === 0) return [];
+
+      // Then get profiles for those users
+      const userIds = roleData.map(r => r.user_id);
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, full_name, username')
+        .in('id', userIds);
+
+      if (profileError) throw profileError;
+
+      // Merge the data
+      return roleData.map((role) => {
+        const profile = profiles?.find((p: any) => p.id === role.user_id);
+        return {
+          id: role.user_id,
+          email: profile?.username || role.user_id.slice(0, 8),
+          full_name: profile?.full_name || null,
+          created_at: role.created_at,
+        };
+      }) as BoardMember[];
     },
   });
 
@@ -95,17 +102,17 @@ export default function BoardMemberManagement() {
   // Add board member mutation
   const addMemberMutation = useMutation({
     mutationFn: async ({ email, name }: { email: string; name: string }) => {
-      // First, find or invite the user
+      // Find user by username (email field in form is used for username lookup)
       const { data: existingProfile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('email', email)
+        .eq('username', email)
         .maybeSingle();
 
       if (profileError) throw profileError;
 
       if (!existingProfile) {
-        toast.error('User not found. Please have them sign up first.');
+        toast.error('User not found by username. Please check the username.');
         throw new Error('User not found');
       }
 
@@ -114,7 +121,7 @@ export default function BoardMemberManagement() {
         .from('user_roles')
         .insert({
           user_id: existingProfile.id,
-          role: 'board_member',
+          role: 'board_member' as const,
         });
 
       if (roleError) {

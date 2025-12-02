@@ -4,8 +4,8 @@ import { useUserRoles } from './useUserRoles';
 
 export function useBoardViewMode() {
   const queryClient = useQueryClient();
-  const { isSuperAdmin, isAdmin } = useUserRoles();
-  const canToggleBoardView = isSuperAdmin || isAdmin;
+  const { isAdmin } = useUserRoles();
+  const canToggleBoardView = isAdmin; // isAdmin already includes super_admin
 
   const { data: viewMode, isLoading } = useQuery({
     queryKey: ['adminViewMode'],

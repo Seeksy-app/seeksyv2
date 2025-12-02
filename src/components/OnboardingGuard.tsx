@@ -13,8 +13,9 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
     
     const publicPaths = ['/auth', '/onboarding', '/signup-select', '/', '/pricing', '/comparison'];
     const isPublicPath = publicPaths.some(path => location.pathname === path || location.pathname.startsWith('/c/'));
+    const isBoardPath = location.pathname.startsWith('/board');
     
-    if (isPublicPath) return;
+    if (isPublicPath || isBoardPath) return;
 
     // Redirect to onboarding if not completed
     if (!onboardingCompleted || !accountType) {

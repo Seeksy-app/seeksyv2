@@ -345,6 +345,14 @@ import FaceSuccess from "./pages/face-verification/FaceSuccess";
 import IdentityCertificateDetail from "./pages/IdentityCertificateDetail";
 import AdminChecklists from "./pages/admin/Checklists";
 import ChecklistTemplate from "./pages/admin/ChecklistTemplate";
+import BoardDashboard from "./pages/board/BoardDashboard";
+import BoardBusinessModel from "./pages/board/BoardBusinessModel";
+import BoardGTM from "./pages/board/BoardGTM";
+import BoardForecasts from "./pages/board/BoardForecasts";
+import BoardVideos from "./pages/board/BoardVideos";
+import BoardDocs from "./pages/board/BoardDocs";
+import BoardMemberManagement from "./pages/admin/BoardMemberManagement";
+import { BoardGuard } from "./components/board/BoardGuard";
 
 const queryClient = new QueryClient();
 
@@ -423,6 +431,7 @@ const AppContent = () => {
 
   return (
     <RoleProvider>
+      <BoardGuard>
       <OnboardingGuard>
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-background">
@@ -736,6 +745,16 @@ const AppContent = () => {
           <Route path="/admin/checklists" element={<AdminChecklists />} />
           <Route path="/admin/checklists/new-template" element={<ChecklistTemplate />} />
           <Route path="/admin/checklists/template/:templateId" element={<ChecklistTemplate />} />
+          <Route path="/admin/board-members" element={<BoardMemberManagement />} />
+          
+          {/* Board Member Portal Routes */}
+          <Route path="/board" element={<BoardDashboard />} />
+          <Route path="/board/business-model" element={<BoardBusinessModel />} />
+          <Route path="/board/gtm" element={<BoardGTM />} />
+          <Route path="/board/forecasts" element={<BoardForecasts />} />
+          <Route path="/board/videos" element={<BoardVideos />} />
+          <Route path="/board/docs" element={<BoardDocs />} />
+          
               <Route path="/settings" element={<Settings />} />
               <Route path="/settings/billing" element={<SettingsBilling />} />
               <Route path="/background-remover" element={<BackgroundRemover />} />
@@ -826,6 +845,7 @@ const AppContent = () => {
         </div>
       </SidebarProvider>
       </OnboardingGuard>
+      </BoardGuard>
     </RoleProvider>
   );
 };
