@@ -41,9 +41,9 @@ Deno.serve(async (req) => {
     }
 
     // Required permissions for Instagram Business and Facebook Pages
+    // Note: instagram_manage_insights requires App Review - using instagram_basic for now
     const scopes = [
       'instagram_basic',
-      'instagram_manage_insights',
       'pages_show_list',
       'pages_read_engagement',
       'business_management',
