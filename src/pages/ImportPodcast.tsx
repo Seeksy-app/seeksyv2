@@ -114,7 +114,7 @@ const ImportPodcast = () => {
       toast.success("Podcast imported successfully!");
       // Small delay to ensure database transaction completes
       setTimeout(() => {
-        navigate(`/content-and-media#podcasts`);
+        navigate(`/podcasts`);
       }, 500);
     },
     onError: (error: any) => {
@@ -140,7 +140,7 @@ const ImportPodcast = () => {
       <div className="max-w-4xl mx-auto">
         <Button
           variant="ghost"
-          onClick={() => navigate("/content-and-media#podcasts")}
+          onClick={() => navigate("/podcasts")}
           className="mb-4"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
