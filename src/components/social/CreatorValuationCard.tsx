@@ -1,16 +1,54 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, RefreshCw, TrendingUp, Heart, MessageCircle, Users } from "lucide-react";
+import { DollarSign, RefreshCw, TrendingUp, Users, AlertCircle } from "lucide-react";
 import { useCreatorValuation, useCalculateValuation } from "@/hooks/useCreatorValuation";
 import { formatDistanceToNow } from "date-fns";
 
 interface CreatorValuationCardProps {
   profileId: string;
+  platform?: "instagram" | "youtube" | "facebook";
 }
 
-export function CreatorValuationCard({ profileId }: CreatorValuationCardProps) {
+// Content type labels per platform
+const CONTENT_TYPE_LABELS: Record<string, { slot1: string; slot2: string; slot3: string }> = {
+  instagram: {
+    slot1: "Reel",
+    slot2: "Feed Post",
+    slot3: "Story",
+  },
+  youtube: {
+    slot1: "Dedicated Video",
+    slot2: "Integration",
+    slot3: "Short",
+  },
+  facebook: {
+    slot1: "Video",
+    slot2: "Feed Post",
+    slot3: "Story",
+  },
+};
+
+// Gradient colors per platform
+const PLATFORM_GRADIENTS: Record<string, { slot1: string; slot2: string; slot3: string }> = {
+  instagram: {
+    slot1: "from-purple-500/10 to-pink-500/10",
+    slot2: "from-blue-500/10 to-cyan-500/10",
+    slot3: "from-orange-500/10 to-yellow-500/10",
+  },
+  youtube: {
+    slot1: "from-red-500/10 to-orange-500/10",
+    slot2: "from-red-400/10 to-pink-400/10",
+    slot3: "from-red-300/10 to-yellow-300/10",
+  },
+  facebook: {
+    slot1: "from-blue-600/10 to-indigo-500/10",
+    slot2: "from-blue-500/10 to-blue-400/10",
+    slot3: "from-blue-400/10 to-cyan-400/10",
+  },
+};
+
+export function CreatorValuationCard({ profileId, platform = "instagram" }: CreatorValuationCardProps) {
   const { data: valuation, isLoading } = useCreatorValuation(profileId);
   const { calculateValuation, isCalculating } = useCalculateValuation();
 
@@ -24,6 +62,9 @@ export function CreatorValuationCard({ profileId }: CreatorValuationCardProps) {
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
     return num.toString();
   };
+
+  const labels = CONTENT_TYPE_LABELS[platform] || CONTENT_TYPE_LABELS.instagram;
+  const gradients = PLATFORM_GRADIENTS[platform] || PLATFORM_GRADIENTS.instagram;
 
   if (isLoading) {
     return (
@@ -76,6 +117,10 @@ export function CreatorValuationCard({ profileId }: CreatorValuationCardProps) {
     );
   }
 
+  // Check if using default engagement (no real post data)
+  const usingDefault = valuation.assumptions_json?.using_default_engagement;
+  const postsAnalyzed = valuation.assumptions_json?.posts_analyzed || 0;
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -107,24 +152,34 @@ export function CreatorValuationCard({ profileId }: CreatorValuationCardProps) {
         )}
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Warning banner if using estimated engagement */}
+        {usingDefault && (
+          <div className="flex items-start gap-2 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+            <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-yellow-700 dark:text-yellow-400">
+              Estimated rates based on industry averages. Sync your posts for more accurate pricing.
+            </p>
+          </div>
+        )}
+
         {/* Price Cards */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-lg p-3 text-center">
-            <p className="text-xs text-muted-foreground mb-1">Reel</p>
+          <div className={`bg-gradient-to-br ${gradients.slot1} rounded-lg p-3 text-center`}>
+            <p className="text-xs text-muted-foreground mb-1">{labels.slot1}</p>
             <p className="text-lg font-bold">{formatPrice(valuation.reel_price_mid)}</p>
             <p className="text-[10px] text-muted-foreground">
               {formatPrice(valuation.reel_price_low)} - {formatPrice(valuation.reel_price_high)}
             </p>
           </div>
-          <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-lg p-3 text-center">
-            <p className="text-xs text-muted-foreground mb-1">Feed Post</p>
+          <div className={`bg-gradient-to-br ${gradients.slot2} rounded-lg p-3 text-center`}>
+            <p className="text-xs text-muted-foreground mb-1">{labels.slot2}</p>
             <p className="text-lg font-bold">{formatPrice(valuation.feed_post_price_mid)}</p>
             <p className="text-[10px] text-muted-foreground">
               {formatPrice(valuation.feed_post_price_low)} - {formatPrice(valuation.feed_post_price_high)}
             </p>
           </div>
-          <div className="bg-gradient-to-br from-orange-500/10 to-yellow-500/10 rounded-lg p-3 text-center">
-            <p className="text-xs text-muted-foreground mb-1">Story</p>
+          <div className={`bg-gradient-to-br ${gradients.slot3} rounded-lg p-3 text-center`}>
+            <p className="text-xs text-muted-foreground mb-1">{labels.slot3}</p>
             <p className="text-lg font-bold">{formatPrice(valuation.story_price_mid)}</p>
             <p className="text-[10px] text-muted-foreground">
               {formatPrice(valuation.story_price_low)} - {formatPrice(valuation.story_price_high)}
@@ -137,7 +192,9 @@ export function CreatorValuationCard({ profileId }: CreatorValuationCardProps) {
           <div className="text-center">
             <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
               <Users className="h-3 w-3" />
-              <span className="text-xs">Followers</span>
+              <span className="text-xs">
+                {platform === "youtube" ? "Subscribers" : platform === "facebook" ? "Fans" : "Followers"}
+              </span>
             </div>
             <p className="font-semibold">{formatNumber(valuation.followers)}</p>
           </div>
@@ -147,13 +204,13 @@ export function CreatorValuationCard({ profileId }: CreatorValuationCardProps) {
               <span className="text-xs">Engagement</span>
             </div>
             <p className="font-semibold">{valuation.engagement_rate.toFixed(2)}%</p>
+            {usingDefault && <p className="text-[10px] text-yellow-600">(estimated)</p>}
           </div>
           <div className="text-center">
             <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
-              <Heart className="h-3 w-3" />
-              <span className="text-xs">Avg Likes</span>
+              <span className="text-xs">Posts Analyzed</span>
             </div>
-            <p className="font-semibold">{formatNumber(valuation.avg_likes_per_post)}</p>
+            <p className="font-semibold">{postsAnalyzed}</p>
           </div>
         </div>
 

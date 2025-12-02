@@ -25,9 +25,12 @@ export interface CreatorValuation {
   currency: string;
   assumptions_json: {
     niche_multiplier?: number;
+    platform_multiplier?: number;
     niche_tags?: string[];
     base_cpm?: Record<string, number>;
     posts_analyzed?: number;
+    using_default_engagement?: boolean;
+    content_types?: Record<string, string>;
   };
 }
 

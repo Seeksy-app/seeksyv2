@@ -601,9 +601,12 @@ export default function SocialAnalytics() {
               </Card>
             </div>
 
-            {/* YouTube Setup Checklist */}
+            {/* YouTube Setup Checklist + Valuation */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <SocialOnboardingChecklist />
+              <div className="space-y-4">
+                <SocialOnboardingChecklist />
+                <CreatorValuationCard profileId={youtubeProfile.id} platform="youtube" />
+              </div>
               <div className="md:col-span-2">
                 {/* Top Videos */}
                 {topYoutubeVideos && topYoutubeVideos.length > 0 && (
@@ -716,6 +719,14 @@ export default function SocialAnalytics() {
               </Card>
             )}
 
+            {/* Sync Status Banner */}
+            <SyncStatusBanner 
+              syncStatus={facebookProfile.sync_status}
+              platform="facebook"
+              onSyncComplete={() => refetchProfiles()}
+              onManualSync={() => syncData(facebookProfile.id)}
+            />
+
             {/* Facebook Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card>
@@ -764,9 +775,12 @@ export default function SocialAnalytics() {
               </Card>
             </div>
 
-            {/* Facebook Setup Checklist */}
+            {/* Facebook Setup Checklist + Valuation */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <SocialOnboardingChecklist platform="facebook" />
+              <div className="space-y-4">
+                <SocialOnboardingChecklist platform="facebook" />
+                <CreatorValuationCard profileId={facebookProfile.id} platform="facebook" />
+              </div>
               <div className="md:col-span-2">
                 {/* Top Posts */}
                 {topFacebookPosts && topFacebookPosts.length > 0 && (
