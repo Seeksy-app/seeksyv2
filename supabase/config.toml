@@ -6,6 +6,12 @@ verify_jwt = true
 [functions.youtube-callback]
 verify_jwt = false
 
+[functions.youtube-connect-channel]
+verify_jwt = true
+
+[functions.youtube-get-session-channels]
+verify_jwt = true
+
 [functions.sync-youtube-channel-data]
 verify_jwt = true
 
@@ -173,9 +179,6 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.verify-voice-and-mint]
-verify_jwt = true
-
-[functions.verify-voice-quality]
 verify_jwt = true
 
 [functions.mint-identity-certificate]
