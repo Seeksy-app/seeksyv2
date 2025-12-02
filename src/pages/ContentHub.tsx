@@ -3,11 +3,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Video, Mic, FileText, Scissors, FolderOpen, Plus, Radio, Upload, RefreshCw, Podcast } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 
 export default function ContentHub() {
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState("podcasts"); // Default to podcasts
+
+  // Check URL hash to set active tab
+  useEffect(() => {
+    const hash = location.hash.replace('#', '');
+    if (hash && ['recent', 'podcasts', 'videos', 'clips', 'drafts'].includes(hash)) {
+      setActiveTab(hash);
+    } else {
+      // Default to podcasts if no valid hash
+      setActiveTab("podcasts");
+    }
+  }, [location.hash]);
+
   // Fetch user's podcasts
   const { data: user } = useQuery({
     queryKey: ["user"],
@@ -144,7 +159,7 @@ export default function ContentHub() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="recent" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList>
             <TabsTrigger value="recent">Recent</TabsTrigger>
             <TabsTrigger value="podcasts">Podcasts</TabsTrigger>

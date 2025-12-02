@@ -38,8 +38,8 @@ export const NAVIGATION_CONFIG: {
   ],
   "navigation": [
     {
-      "group": "Main",
-      "description": "Primary navigation",
+      "group": "Seeksy OS",
+      "description": "Core system navigation",
       "items": [
         {
           "id": "my_day",
@@ -61,27 +61,6 @@ export const NAVIGATION_CONFIG: {
           "icon": "grid-3x3",
           "path": "/seekies",
           "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "audience",
-          "label": "Contacts & Audience",
-          "icon": "users",
-          "path": "/contacts",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "content",
-          "label": "Content & Media",
-          "icon": "video",
-          "path": "/content",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "monetization",
-          "label": "Monetization Hub",
-          "icon": "dollar-sign",
-          "path": "/monetization",
-          "roles": ["creator", "influencer", "agency", "advertiser", "admin"]
         },
         {
           "id": "settings",
@@ -130,10 +109,60 @@ export const NAVIGATION_CONFIG: {
     },
 
     {
-      "group": "Marketing",
-      "description": "Marketing tools",
+      "group": "Media",
+      "description": "Content creation and media tools",
       "collapsible": true,
       "items": [
+        {
+          "id": "media_podcasts",
+          "label": "Podcasts",
+          "icon": "podcast",
+          "path": "/content#podcasts",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        },
+        {
+          "id": "media_studio",
+          "label": "Studio",
+          "icon": "mic",
+          "path": "/studio",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        },
+        {
+          "id": "media_library",
+          "label": "Media Library",
+          "icon": "folder-open",
+          "path": "/media/library",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        },
+        {
+          "id": "media_clips",
+          "label": "Clips",
+          "icon": "scissors",
+          "path": "/clips",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        }
+      ]
+    },
+
+    {
+      "group": "Marketing",
+      "description": "Marketing and monetization tools",
+      "collapsible": true,
+      "items": [
+        {
+          "id": "marketing_audience",
+          "label": "Contacts & Audience",
+          "icon": "users",
+          "path": "/contacts",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        },
+        {
+          "id": "marketing_segments",
+          "label": "Segments",
+          "icon": "users",
+          "path": "/marketing/segments",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        },
         {
           "id": "marketing_campaigns",
           "label": "Campaigns",
@@ -149,13 +178,6 @@ export const NAVIGATION_CONFIG: {
           "roles": ["creator", "influencer", "agency", "admin"]
         },
         {
-          "id": "marketing_segments",
-          "label": "Segments",
-          "icon": "users",
-          "path": "/marketing/segments",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
           "id": "marketing_automations",
           "label": "Automations",
           "icon": "zap",
@@ -163,11 +185,11 @@ export const NAVIGATION_CONFIG: {
           "roles": ["creator", "influencer", "agency", "admin"]
         },
         {
-          "id": "marketing_settings",
-          "label": "Settings",
-          "icon": "settings",
-          "path": "/marketing/settings",
-          "roles": ["creator", "influencer", "agency", "admin"]
+          "id": "marketing_monetization",
+          "label": "Monetization Hub",
+          "icon": "dollar-sign",
+          "path": "/monetization",
+          "roles": ["creator", "influencer", "agency", "advertiser", "admin"]
         }
       ]
     },

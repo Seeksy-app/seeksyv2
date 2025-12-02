@@ -99,31 +99,26 @@ const ICON_MAP: Record<string, any> = {
   settings: Settings,
   apps: Grid3x3,
   'grid-3x3': Grid3x3,
-  contacts: Users,
+  users: Users,
   history: History,
-  form: FileText,
+  'file-text': FileText,
   megaphone: Megaphone,
-  sms: MessageSquare,
+  'message-square': MessageSquare,
   target: Target,
-  studio: Clapperboard,
+  clapperboard: Clapperboard,
   library: Library,
   scissors: Scissors,
   mic: Mic,
-  document: FileAudio,
+  'file-audio': FileAudio,
   podcast: Podcast,
-  folder: FolderOpen,
   'folder-open': FolderOpen,
   plus: Plus,
-  dollar: DollarSign,
   'dollar-sign': DollarSign,
-  book: BookOpen,
   'book-open': BookOpen,
-  group: UserCog,
   'user-cog': UserCog,
   puzzle: Puzzle,
-  status: Activity,
   activity: Activity,
-  help: HelpCircle,
+  'help-circle': HelpCircle,
   layers: Layers,
   code: Code,
   sparkles: Sparkles,
@@ -153,10 +148,7 @@ const ICON_MAP: Record<string, any> = {
   'message-circle': MessageCircle,
   inbox: Inbox,
   video: Video,
-  users: Users,
   coins: Coins,
-  mail: FileText,
-  'file-text': FileText,
   calendar: Calendar,
   send: Send,
   zap: Zap,
@@ -300,15 +292,12 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink
-                    to="/ask-spark"
-                    className="hover:bg-muted/50"
-                    activeClassName="bg-muted text-primary font-medium"
-                  >
-                    <SparkIcon variant="holiday" size={16} />
-                    {!collapsed && <span>Ask Spark</span>}
-                  </NavLink>
+                <SidebarMenuButton 
+                  onClick={() => window.dispatchEvent(new Event('openSparkChat'))}
+                  className="hover:bg-muted/50 cursor-pointer"
+                >
+                  <SparkIcon variant="holiday" size={16} />
+                  {!collapsed && <span>Ask Spark</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
