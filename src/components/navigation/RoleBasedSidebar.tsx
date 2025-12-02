@@ -222,7 +222,7 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
         )}
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="pb-6">
         {filteredNavigation.map((group) => {
           // Main navigation items are not collapsible
           if (!group.collapsible) {
@@ -304,17 +304,24 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
           );
         })}
 
-        {/* Ask Spark at bottom */}
-        <SidebarGroup className="mt-auto">
+        {/* Ask Spark at bottom - Enhanced visibility */}
+        <SidebarGroup className="mt-auto mb-4">
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   onClick={() => window.dispatchEvent(new Event('openSparkChat'))}
-                  className="hover:bg-muted/50 cursor-pointer"
+                  className="hover:bg-accent/20 cursor-pointer transition-all duration-200 py-3 px-4 rounded-lg relative group"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(74, 144, 255, 0.08) 0%, rgba(74, 144, 255, 0.12) 100%)',
+                    boxShadow: '0 0 20px rgba(74, 144, 255, 0.15)',
+                  }}
                 >
-                  <SparkIcon variant="holiday" size={16} />
-                  {!collapsed && <span>Ask Spark</span>}
+                  <div className="flex items-center gap-3 w-full">
+                    <SparkIcon variant="holiday" size={24} animated />
+                    <span className="text-base font-semibold text-white flex-1">Ask Spark</span>
+                  </div>
+                  <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-yellow-400/10 to-blue-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
