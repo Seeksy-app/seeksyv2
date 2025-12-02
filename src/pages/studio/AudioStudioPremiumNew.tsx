@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Slider } from "@/components/ui/slider";
 import { 
   ArrowLeft, Mic, MicOff, FileText, Bookmark, 
   Sparkles, CircleDot, Square, Play, Pause, MessageSquare,
@@ -14,10 +15,20 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { AudioPreJoinScreen } from "@/components/studio/audio/AudioPreJoinScreen";
+
+const micPresets = [
+  { id: "custom", name: "Custom / Default", gain: 50 },
+  { id: "sm7b", name: "Shure SM7B", gain: 70 },
+  { id: "podmicusb", name: "Rode PodMic USB", gain: 55 },
+  { id: "re20", name: "Electro-Voice RE20", gain: 65 },
+  { id: "at2020", name: "Audio-Technica AT2020", gain: 60 },
+];
 
 export default function AudioStudioPremiumNew() {
   const navigate = useNavigate();
   
+  const [inPreJoin, setInPreJoin] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -75,8 +86,25 @@ export default function AudioStudioPremiumNew() {
   const handleStop = () => {
     setIsRecording(false);
     setIsPaused(false);
-    navigate("/studio/session/new");
+    navigate("/studio/complete", { 
+      state: { 
+        duration: recordingTime, 
+        markers: markers.length,
+        autoClips: 0,
+        type: "audio"
+      } 
+    });
   };
+
+  // Show pre-join screen first
+  if (inPreJoin) {
+    return (
+      <AudioPreJoinScreen 
+        onEnterStudio={() => setInPreJoin(false)} 
+        onBack={() => navigate("/studio")} 
+      />
+    );
+  }
 
   return (
     <div className="h-screen bg-gradient-to-br from-[#0B0F14] via-[#0D1117] to-[#11151C] flex flex-col overflow-hidden">
