@@ -539,6 +539,7 @@ const AppContent = () => {
               <Route path="/transcripts/:id" element={<TranscriptDetailPage />} />
               <Route path="/marketing" element={<Marketing />} />
               <Route path="/email" element={<EmailHome />} />
+              <Route path="/email/inbox" element={<EmailHome />} />
               <Route path="/email/scheduled" element={<EmailScheduled />} />
               <Route path="/email/drafts" element={<EmailDrafts />} />
               <Route path="/email/sent" element={<EmailSent />} />
@@ -546,14 +547,18 @@ const AppContent = () => {
               <Route path="/email/analytics" element={<EmailAnalytics />} />
               <Route path="/email-settings" element={<EmailSettings />} />
             <Route path="/email-campaigns" element={<EmailCampaigns />} />
+            <Route path="/marketing/campaigns" element={<EmailCampaigns />} />
             <Route path="/email-campaigns/new" element={<EmailCampaignBuilder />} />
             <Route path="/email-campaigns/:id" element={<EmailCampaignAnalytics />} />
             <Route path="/email-segments" element={<EmailSegments />} />
+            <Route path="/marketing/segments" element={<EmailSegments />} />
             <Route path="/email-automations" element={<EmailAutomations />} />
+            <Route path="/marketing/automations" element={<EmailAutomations />} />
             <Route path="/email-settings/accounts/:id/health" element={<EmailAccountHealth />} />
             <Route path="/email/:id/view" element={<EmailView />} />
             <Route path="/email/:emailId/view" element={<EmailWebView />} />
             <Route path="/email-templates" element={<EmailTemplates />} />
+            <Route path="/marketing/templates" element={<EmailTemplates />} />
             <Route path="/contacts/:id" element={<ContactProfile />} />
               <Route path="/create-event" element={<CreateEvent />} />
               <Route path="/event/:id" element={<EventDetail />} />
