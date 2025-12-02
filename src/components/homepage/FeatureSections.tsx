@@ -21,6 +21,7 @@ const features = [
     bgGradient: "from-rose-500/10 to-orange-500/10",
     cta: "Open Studio",
     url: "seeksy.io/studio",
+    type: "studio" as const,
     reverse: false,
   },
   {
@@ -39,6 +40,7 @@ const features = [
     bgGradient: "from-blue-500/10 to-cyan-500/10",
     cta: "Start Booking",
     url: "seeksy.io/booking",
+    type: "booking" as const,
     reverse: true,
   },
   {
@@ -57,6 +59,7 @@ const features = [
     bgGradient: "from-violet-500/10 to-purple-500/10",
     cta: "Connect Accounts",
     url: "seeksy.io/analytics",
+    type: "analytics" as const,
     reverse: false,
   },
   {
@@ -75,6 +78,7 @@ const features = [
     bgGradient: "from-amber-500/10 to-yellow-500/10",
     cta: "Generate My Media Kit",
     url: "seeksy.io/mediakit",
+    type: "mediakit" as const,
     reverse: true,
   },
   {
@@ -93,6 +97,7 @@ const features = [
     bgGradient: "from-emerald-500/10 to-teal-500/10",
     cta: "Get Verified",
     url: "seeksy.io/identity",
+    type: "identity" as const,
     reverse: false,
   },
 ];
@@ -164,6 +169,7 @@ export function FeatureSections() {
                     url={feature.url}
                     icon={Icon}
                     gradient={feature.gradient}
+                    type={feature.type}
                   />
                 </div>
               </motion.div>
