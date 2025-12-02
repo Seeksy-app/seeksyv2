@@ -1,636 +1,507 @@
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useMemo } from "react";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { ModuleCard, ModuleCardProps } from "@/components/apps/ModuleCard";
 import { 
-  Mail, FileText, Users, Video, DollarSign, ArrowRight, Calendar, Mic, Shield, Zap, 
-  Camera, Globe, MessageSquare, BarChart3, Podcast, FolderOpen, Book, Newspaper, 
-  MessageCircle, FormInput, CheckSquare, Vote, QrCode, Layout, Trophy, UserPlus,
-  ListChecks, Megaphone, Scissors, Star, Briefcase, Instagram, Search
+  Search, Instagram, BarChart3, Megaphone, DollarSign, TrendingUp, FolderOpen,
+  Mic, Podcast, Image, Scissors, Video, Users, PieChart, Target, Mail, 
+  Zap, MessageCircle, FormInput, FileText, CheckSquare, Calendar, Vote,
+  Trophy, UserPlus, Layout, Shield, Star, Globe, CalendarClock, Grid3X3
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
-interface AppModule {
+type ModuleStatus = "active" | "available" | "coming_soon";
+
+interface Module extends Omit<ModuleCardProps, 'onClick'> {
+  category: string;
+}
+
+interface Category {
   id: string;
   name: string;
-  description: string;
   icon: React.ElementType;
-  route: string;
-  iconColor: string;
-  bgColor: string;
-  isActive: boolean;
-  status?: "active" | "coming_soon" | "beta";
-  category?: "core" | "integration" | "automation";
-  stats?: {
-    label: string;
-    value: string;
-  };
 }
+
+const categories: Category[] = [
+  { id: "all", name: "All Modules", icon: Grid3X3 },
+  { id: "creator", name: "Creator Tools", icon: Star },
+  { id: "media", name: "Media & Content", icon: Video },
+  { id: "marketing", name: "Marketing & CRM", icon: Megaphone },
+  { id: "business", name: "Business Operations", icon: CheckSquare },
+  { id: "identity", name: "Identity & Profile", icon: Shield },
+  { id: "integrations", name: "Integrations", icon: Globe },
+];
+
+const modules: Module[] = [
+  // Creator Tools
+  {
+    id: "social-connect",
+    name: "Social Connect",
+    description: "Connect Instagram, YouTube, TikTok, Facebook",
+    icon: Instagram,
+    status: "active",
+    category: "creator",
+    route: "/integrations",
+    recommendedWith: ["Audience Insights", "Monetization Hub"],
+  },
+  {
+    id: "audience-insights",
+    name: "Audience Insights",
+    description: "Deep analytics on followers & engagement",
+    icon: BarChart3,
+    status: "active",
+    category: "creator",
+    route: "/social-analytics",
+    recommendedWith: ["Social Connect"],
+  },
+  {
+    id: "brand-campaigns",
+    name: "Brand Campaigns",
+    description: "Apply for sponsorships & brand deals",
+    icon: Megaphone,
+    status: "coming_soon",
+    category: "creator",
+    recommendedWith: ["Monetization Hub"],
+  },
+  {
+    id: "revenue-tracking",
+    name: "Revenue Tracking",
+    description: "Track earnings & sponsorship payments",
+    icon: DollarSign,
+    status: "coming_soon",
+    category: "creator",
+  },
+  {
+    id: "growth-tools",
+    name: "Growth Tools",
+    description: "AI tools to grow your audience",
+    icon: TrendingUp,
+    status: "coming_soon",
+    category: "creator",
+  },
+  {
+    id: "content-library",
+    name: "Content Library",
+    description: "Store & organize creator content",
+    icon: FolderOpen,
+    status: "coming_soon",
+    category: "creator",
+  },
+
+  // Media & Content
+  {
+    id: "studio",
+    name: "Studio & Recording",
+    description: "Record podcasts, videos, livestreams",
+    icon: Mic,
+    status: "active",
+    category: "media",
+    route: "/studio",
+    recommendedWith: ["Media Library"],
+  },
+  {
+    id: "podcasts",
+    name: "Podcasts",
+    description: "Podcast hosting + RSS",
+    icon: Podcast,
+    status: "active",
+    category: "media",
+    route: "/podcasts",
+    recommendedWith: ["Studio & Recording"],
+  },
+  {
+    id: "media-library",
+    name: "Media Library",
+    description: "Store audio, video, images",
+    icon: Image,
+    status: "active",
+    category: "media",
+    route: "/media/library",
+  },
+  {
+    id: "clips-editing",
+    name: "Clips & Editing",
+    description: "AI clipping and editing",
+    icon: Scissors,
+    status: "coming_soon",
+    category: "media",
+  },
+  {
+    id: "my-page-streaming",
+    name: "My Page Streaming",
+    description: "Stream directly on your page",
+    icon: Video,
+    status: "coming_soon",
+    category: "media",
+  },
+
+  // Marketing & CRM
+  {
+    id: "contacts",
+    name: "Contacts & Audience",
+    description: "Manage contacts, leads, and subscribers",
+    icon: Users,
+    status: "active",
+    category: "marketing",
+    route: "/audience",
+  },
+  {
+    id: "social-analytics",
+    name: "Social Analytics",
+    description: "Track social media performance",
+    icon: PieChart,
+    status: "active",
+    category: "marketing",
+    route: "/social-analytics",
+  },
+  {
+    id: "segments",
+    name: "Segments",
+    description: "Create targeted audience segments",
+    icon: Target,
+    status: "active",
+    category: "marketing",
+    route: "/marketing/segments",
+  },
+  {
+    id: "campaigns",
+    name: "Campaigns",
+    description: "Multi-channel marketing campaigns",
+    icon: Megaphone,
+    status: "active",
+    category: "marketing",
+    route: "/marketing/campaigns",
+  },
+  {
+    id: "email-templates",
+    name: "Email Templates",
+    description: "Design reusable email templates",
+    icon: Mail,
+    status: "active",
+    category: "marketing",
+    route: "/marketing/templates",
+  },
+  {
+    id: "automations",
+    name: "Automations",
+    description: "Automated workflows and sequences",
+    icon: Zap,
+    status: "active",
+    category: "marketing",
+    route: "/marketing/automations",
+  },
+  {
+    id: "sms",
+    name: "SMS",
+    description: "Text messaging and campaigns",
+    icon: MessageCircle,
+    status: "active",
+    category: "marketing",
+    route: "/sms",
+  },
+  {
+    id: "forms",
+    name: "Forms",
+    description: "Build forms and collect submissions",
+    icon: FormInput,
+    status: "active",
+    category: "marketing",
+    route: "/forms",
+  },
+  {
+    id: "qr-codes",
+    name: "QR Codes",
+    description: "Generate and track QR codes",
+    icon: Grid3X3,
+    status: "active",
+    category: "marketing",
+    route: "/qr-codes",
+  },
+
+  // Business Operations
+  {
+    id: "proposals",
+    name: "Proposals",
+    description: "Create professional proposals",
+    icon: FileText,
+    status: "active",
+    category: "business",
+    route: "/proposals",
+  },
+  {
+    id: "tasks",
+    name: "Tasks",
+    description: "Manage tasks and projects",
+    icon: CheckSquare,
+    status: "active",
+    category: "business",
+    route: "/tasks",
+  },
+  {
+    id: "events",
+    name: "Events",
+    description: "Create events and manage RSVPs",
+    icon: Calendar,
+    status: "active",
+    category: "business",
+    route: "/events",
+  },
+  {
+    id: "polls",
+    name: "Polls & Surveys",
+    description: "Collect audience feedback",
+    icon: Vote,
+    status: "active",
+    category: "business",
+    route: "/polls",
+  },
+  {
+    id: "awards",
+    name: "Awards",
+    description: "Award programs and nominations",
+    icon: Trophy,
+    status: "active",
+    category: "business",
+    route: "/awards",
+  },
+  {
+    id: "team",
+    name: "Team & Collaboration",
+    description: "Manage team members",
+    icon: UserPlus,
+    status: "active",
+    category: "business",
+    route: "/team",
+  },
+
+  // Identity & Creator Profile
+  {
+    id: "my-page",
+    name: "My Page Builder",
+    description: "Build your personal landing page",
+    icon: Layout,
+    status: "active",
+    category: "identity",
+    route: "/profile/edit",
+  },
+  {
+    id: "identity-verification",
+    name: "Identity & Verification",
+    description: "Verify voice and face, manage rights",
+    icon: Shield,
+    status: "active",
+    category: "identity",
+    route: "/identity",
+  },
+  {
+    id: "influencer-profile",
+    name: "Influencer Profile",
+    description: "Public influencer portfolio",
+    icon: Star,
+    status: "coming_soon",
+    category: "identity",
+  },
+
+  // Integrations
+  {
+    id: "social-integrations",
+    name: "Social Media Integrations",
+    description: "Connect social platforms",
+    icon: Instagram,
+    status: "active",
+    category: "integrations",
+    route: "/integrations",
+  },
+  {
+    id: "analytics-integrations",
+    name: "Analytics & Insights",
+    description: "Third-party analytics tools",
+    icon: BarChart3,
+    status: "coming_soon",
+    category: "integrations",
+  },
+  {
+    id: "calendar-integrations",
+    name: "Calendar Integrations",
+    description: "Sync with Google, Outlook, etc.",
+    icon: CalendarClock,
+    status: "coming_soon",
+    category: "integrations",
+  },
+];
 
 export default function Apps() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeCategory, setActiveCategory] = useState("all");
 
-  const modules: AppModule[] = [
-    // Active Modules
-    {
-      id: "email",
-      name: "Email",
-      description: "Send campaigns, track engagement, manage subscribers",
-      icon: Mail,
-      route: "/email",
-      iconColor: "text-blue-600",
-      bgColor: "bg-blue-50 dark:bg-blue-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-      stats: {
-        label: "Inbox",
-        value: "View all",
-      },
-    },
-    {
-      id: "proposals",
-      name: "Proposals",
-      description: "Create and send professional proposals to clients",
-      icon: FileText,
-      route: "/proposals",
-      iconColor: "text-purple-600",
-      bgColor: "bg-purple-50 dark:bg-purple-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-      stats: {
-        label: "Manage",
-        value: "View all",
-      },
-    },
-    {
-      id: "audience",
-      name: "Contacts & Audience",
-      description: "Manage your contacts, leads, and subscriber lists",
-      icon: Users,
-      route: "/audience",
-      iconColor: "text-pink-600",
-      bgColor: "bg-pink-50 dark:bg-pink-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-      stats: {
-        label: "Directory",
-        value: "View all",
-      },
-    },
-    {
-      id: "content",
-      name: "Content & Media",
-      description: "Create, manage, and publish all your content",
-      icon: Video,
-      route: "/content",
-      iconColor: "text-green-600",
-      bgColor: "bg-green-50 dark:bg-green-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-      stats: {
-        label: "Library",
-        value: "View all",
-      },
-    },
-    {
-      id: "monetization",
-      name: "Monetization Hub",
-      description: "Manage revenue streams, campaigns, and earnings",
-      icon: DollarSign,
-      route: "/monetization",
-      iconColor: "text-orange-600",
-      bgColor: "bg-orange-50 dark:bg-orange-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-      stats: {
-        label: "Revenue",
-        value: "View all",
-      },
-    },
-    // Available Seekies
-    {
-      id: "studio",
-      name: "Studio & Recording",
-      description: "Record podcasts, videos, and live streams with AI tools",
-      icon: Mic,
-      route: "/studio",
-      iconColor: "text-red-600",
-      bgColor: "bg-red-50 dark:bg-red-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "identity",
-      name: "Identity & Verification",
-      description: "Verify your voice and face, manage creator rights",
-      icon: Shield,
-      route: "/identity",
-      iconColor: "text-cyan-600",
-      bgColor: "bg-cyan-50 dark:bg-cyan-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "influencer",
-      name: "Influencer",
-      description: "Manage your influencer profile, campaigns, and brand deals",
-      icon: Star,
-      route: "/creator-hub",
-      iconColor: "text-yellow-600",
-      bgColor: "bg-yellow-50 dark:bg-yellow-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "influencer-agency",
-      name: "Influencer Agency",
-      description: "Manage your influencer roster and client campaigns",
-      icon: Briefcase,
-      route: "/agency",
-      iconColor: "text-indigo-600",
-      bgColor: "bg-indigo-50 dark:bg-indigo-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "clips",
-      name: "AI Clips Generator",
-      description: "Auto-generate short clips from long-form content",
-      icon: Camera,
-      route: "/clips",
-      iconColor: "text-rose-600",
-      bgColor: "bg-rose-50 dark:bg-rose-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "podcasts",
-      name: "Podcasts",
-      description: "Create, publish, and distribute your podcast shows",
-      icon: Podcast,
-      route: "/content#podcasts",
-      iconColor: "text-purple-600",
-      bgColor: "bg-purple-50 dark:bg-purple-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "media-vault",
-      name: "Media Vault",
-      description: "Store and organize all your media files securely",
-      icon: FolderOpen,
-      route: "/media/library",
-      iconColor: "text-amber-600",
-      bgColor: "bg-amber-50 dark:bg-amber-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "transcripts",
-      name: "Transcripts",
-      description: "Auto-transcribe audio and certify content authenticity",
-      icon: FileText,
-      route: "/transcripts",
-      iconColor: "text-slate-600",
-      bgColor: "bg-slate-50 dark:bg-slate-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "blog",
-      name: "Blog",
-      description: "Write, publish, and manage your blog content",
-      icon: Newspaper,
-      route: "/blog",
-      iconColor: "text-orange-600",
-      bgColor: "bg-orange-50 dark:bg-orange-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "marketing-campaigns",
-      name: "Marketing Campaigns",
-      description: "Create and manage multi-channel marketing campaigns",
-      icon: Megaphone,
-      route: "/marketing/campaigns",
-      iconColor: "text-red-600",
-      bgColor: "bg-red-50 dark:bg-red-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "marketing-segments",
-      name: "Audience Segments",
-      description: "Create targeted audience segments for campaigns",
-      icon: Users,
-      route: "/marketing/segments",
-      iconColor: "text-cyan-600",
-      bgColor: "bg-cyan-50 dark:bg-cyan-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "marketing-templates",
-      name: "Email Templates",
-      description: "Design and save reusable email templates",
-      icon: Book,
-      route: "/marketing/templates",
-      iconColor: "text-indigo-600",
-      bgColor: "bg-indigo-50 dark:bg-indigo-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "marketing-automations",
-      name: "Marketing Automations",
-      description: "Set up automated email sequences and workflows",
-      icon: Zap,
-      route: "/marketing/automations",
-      iconColor: "text-yellow-600",
-      bgColor: "bg-yellow-50 dark:bg-yellow-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "social-media",
-      name: "Social Media",
-      description: "Connect Instagram, Facebook, and other social accounts",
-      icon: Instagram,
-      route: "/integrations",
-      iconColor: "text-pink-600",
-      bgColor: "bg-pink-50 dark:bg-pink-950/20",
-      isActive: true,
-      status: "active",
-      category: "integration",
-    },
-    {
-      id: "sms",
-      name: "SMS",
-      description: "Send text messages and manage SMS campaigns",
-      icon: MessageCircle,
-      route: "/sms",
-      iconColor: "text-green-600",
-      bgColor: "bg-green-50 dark:bg-green-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "forms",
-      name: "Forms",
-      description: "Build custom forms and collect submissions",
-      icon: FormInput,
-      route: "/forms",
-      iconColor: "text-blue-600",
-      bgColor: "bg-blue-50 dark:bg-blue-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "tasks",
-      name: "Tasks",
-      description: "Manage tasks, to-dos, and project workflows",
-      icon: CheckSquare,
-      route: "/tasks",
-      iconColor: "text-violet-600",
-      bgColor: "bg-violet-50 dark:bg-violet-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "events",
-      name: "Events",
-      description: "Create and manage events, RSVPs, and calendars",
-      icon: Calendar,
-      route: "/events",
-      iconColor: "text-pink-600",
-      bgColor: "bg-pink-50 dark:bg-pink-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "polls",
-      name: "Polls & Surveys",
-      description: "Create polls and collect audience feedback",
-      icon: Vote,
-      route: "/polls",
-      iconColor: "text-teal-600",
-      bgColor: "bg-teal-50 dark:bg-teal-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "qr-codes",
-      name: "QR Codes",
-      description: "Generate and track QR codes for events and campaigns",
-      icon: QrCode,
-      route: "/qr-codes",
-      iconColor: "text-gray-600",
-      bgColor: "bg-gray-50 dark:bg-gray-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "my-page",
-      name: "My Page Builder",
-      description: "Build your personal landing page and portfolio",
-      icon: Layout,
-      route: "/profile/edit",
-      iconColor: "text-rose-600",
-      bgColor: "bg-rose-50 dark:bg-rose-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "awards",
-      name: "Awards",
-      description: "Create award programs and manage nominations",
-      icon: Trophy,
-      route: "/awards",
-      iconColor: "text-yellow-600",
-      bgColor: "bg-yellow-50 dark:bg-yellow-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "team",
-      name: "Team & Collaboration",
-      description: "Manage team members and collaborate on projects",
-      icon: UserPlus,
-      route: "/team",
-      iconColor: "text-blue-600",
-      bgColor: "bg-blue-50 dark:bg-blue-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    {
-      id: "meetings",
-      name: "Meetings & Scheduling",
-      description: "Book appointments, manage calendars, and host events",
-      icon: Calendar,
-      route: "/meetings",
-      iconColor: "text-indigo-600",
-      bgColor: "bg-indigo-50 dark:bg-indigo-950/20",
-      isActive: true,
-      status: "active",
-      category: "core",
-    },
-    // Available/Coming Soon
-    {
-      id: "analytics",
-      name: "Analytics & Insights",
-      description: "Track performance, engagement, and revenue metrics",
-      icon: BarChart3,
-      route: "/analytics",
-      iconColor: "text-emerald-600",
-      bgColor: "bg-emerald-50 dark:bg-emerald-950/20",
-      isActive: false,
-      status: "coming_soon",
-      category: "core",
-    },
-  ];
+  const filteredModules = useMemo(() => {
+    return modules.filter((module) => {
+      const matchesSearch =
+        !searchTerm ||
+        module.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        module.description.toLowerCase().includes(searchTerm.toLowerCase());
 
-  // Filter modules based on search
-  const filteredModules = modules.filter(m => {
-    if (!searchTerm) return true;
-    const search = searchTerm.toLowerCase();
-    return (
-      m.name.toLowerCase().includes(search) ||
-      m.description.toLowerCase().includes(search)
-    );
-  });
+      const matchesCategory =
+        activeCategory === "all" || module.category === activeCategory;
 
-  const activeModules = filteredModules.filter(m => m.isActive);
-  const availableModules = filteredModules.filter(m => !m.isActive);
+      return matchesSearch && matchesCategory;
+    });
+  }, [searchTerm, activeCategory]);
 
-  // Categorize active modules
-  const coreModules = activeModules.filter(m => m.category === "core");
-  const integrationModules = activeModules.filter(m => m.category === "integration");
-  const automationModules = activeModules.filter(m => m.category === "automation");
+  const groupedModules = useMemo(() => {
+    if (activeCategory !== "all") {
+      return { [activeCategory]: filteredModules };
+    }
 
-  const handleModuleClick = (module: AppModule) => {
-    if (module.status === "coming_soon") return;
-    navigate(module.route);
+    return filteredModules.reduce((acc, module) => {
+      if (!acc[module.category]) {
+        acc[module.category] = [];
+      }
+      acc[module.category].push(module);
+      return acc;
+    }, {} as Record<string, Module[]>);
+  }, [filteredModules, activeCategory]);
+
+  const getCategoryName = (categoryId: string) => {
+    return categories.find((c) => c.id === categoryId)?.name || categoryId;
   };
 
-  const getStatusBadge = (status?: string) => {
-    if (status === "beta") return <Badge variant="secondary" className="ml-2">Beta</Badge>;
-    if (status === "coming_soon") return <Badge variant="outline" className="ml-2">Coming Soon</Badge>;
-    return null;
+  const handleModuleClick = (module: Module) => {
+    if (module.route) {
+      navigate(module.route);
+    }
   };
 
-  const renderModuleCard = (module: AppModule) => {
-    const Icon = module.icon;
-    return (
-      <Card
-        key={module.id}
-        className="group hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02] border-2 hover:border-primary/50"
-        onClick={() => handleModuleClick(module)}
-      >
-        <CardHeader>
-          <div className="flex items-start justify-between mb-3">
-            <div className={`p-3 rounded-xl ${module.bgColor}`}>
-              <Icon className={`h-6 w-6 ${module.iconColor}`} />
-            </div>
-            <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors group-hover:translate-x-1 duration-200" />
-          </div>
-          <CardTitle className="text-xl">{module.name}</CardTitle>
-          <CardDescription className="text-sm leading-relaxed">
-            {module.description}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {module.stats && (
-            <div className="flex items-center justify-between pt-2 border-t">
-              <span className="text-xs text-muted-foreground font-medium">
-                {module.stats.label}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs h-auto py-1 px-2 hover:bg-primary/10"
-              >
-                {module.stats.value}
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    );
-  };
+  const categoryOrder = ["creator", "media", "marketing", "business", "identity", "integrations"];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F7F7FA] to-[#E0ECF9] dark:from-slate-950 dark:to-slate-900">
-      <div className="max-w-[1600px] mx-auto px-8 py-8">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-[1400px] mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Seeksy App Directory</h1>
-          <p className="text-muted-foreground">
-            All internal tools, integrations, and modules—plus future third-party extensions
+          <h1 className="text-3xl font-bold tracking-tight mb-2">
+            Seeksy App Directory
+          </h1>
+          <p className="text-muted-foreground text-lg max-w-2xl">
+            All modules, tools, and integrations available in your workspace. Search, activate, and customize your experience.
           </p>
         </div>
 
-        {/* Search Bar */}
-        <div className="mb-8 max-w-2xl">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        {/* Search & Filters */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          {/* Search */}
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search everything..."
+              placeholder="Search modules..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-12 text-base"
+              className="pl-10 h-11 bg-card border-border/50"
             />
           </div>
-        </div>
 
-        {/* Core Modules */}
-        {coreModules.length > 0 && (
-          <div className="mb-12">
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Core Modules</h2>
-              <p className="text-muted-foreground">
-                Essential apps and tools for your workspace
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {coreModules.map(renderModuleCard)}
-            </div>
-          </div>
-        )}
-
-        {/* Integrations */}
-        {integrationModules.length > 0 && (
-          <div className="mb-12">
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Integrations</h2>
-              <p className="text-muted-foreground">
-                Connect external platforms and services
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {integrationModules.map(renderModuleCard)}
-            </div>
-          </div>
-        )}
-
-        {/* Automation */}
-        {automationModules.length > 0 && (
-          <div className="mb-12">
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Automation</h2>
-              <p className="text-muted-foreground">
-                Workflow automation and productivity tools
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {automationModules.map(renderModuleCard)}
-            </div>
-          </div>
-        )}
-
-        {/* Section B: Available Apps & Integrations */}
-        <div>
-          <div className="mb-6">
-            <h2 className="text-2xl font-semibold mb-2">Available Apps & Integrations</h2>
-            <p className="text-muted-foreground">
-              Activate new modules and integrations to extend Seeksy's capabilities
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {availableModules.map((module) => {
-              const Icon = module.icon;
-              const isComingSoon = module.status === "coming_soon";
+          {/* Category Filters */}
+          <div className="flex flex-wrap gap-2">
+            {categories.map((category) => {
+              const Icon = category.icon;
+              const isActive = activeCategory === category.id;
               return (
-                <Card
-                  key={module.id}
-                  className={`group transition-all duration-200 border-2 ${
-                    isComingSoon 
-                      ? "opacity-75 cursor-default" 
-                      : "hover:shadow-lg cursor-pointer hover:scale-[1.02] hover:border-primary/50"
-                  }`}
-                  onClick={() => handleModuleClick(module)}
+                <Button
+                  key={category.id}
+                  variant={isActive ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setActiveCategory(category.id)}
+                  className={cn(
+                    "h-9 gap-1.5",
+                    !isActive && "bg-card hover:bg-accent"
+                  )}
                 >
-                  <CardHeader>
-                    <div className="flex items-start justify-between mb-3">
-                      <div className={`p-3 rounded-xl ${module.bgColor}`}>
-                        <Icon className={`h-6 w-6 ${module.iconColor}`} />
-                      </div>
-                      {!isComingSoon && (
-                        <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors group-hover:translate-x-1 duration-200" />
-                      )}
-                    </div>
-                    <CardTitle className="text-xl flex items-center">
-                      {module.name}
-                      {getStatusBadge(module.status)}
-                    </CardTitle>
-                    <CardDescription className="text-sm leading-relaxed">
-                      {module.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="pt-2 border-t">
-                      <Button
-                        variant={isComingSoon ? "outline" : "default"}
-                        size="sm"
-                        className="w-full"
-                        disabled={isComingSoon}
-                      >
-                        {isComingSoon ? "Coming Soon" : "Enable"}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                  <Icon className="h-3.5 w-3.5" />
+                  {category.name}
+                </Button>
               );
             })}
           </div>
         </div>
 
-        {/* Help Card */}
-        <Card className="mt-12 border-dashed">
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <div>
-                <h3 className="font-semibold mb-1">Need a Custom Integration?</h3>
-                <p className="text-sm text-muted-foreground">
-                  Contact our team to discuss custom integrations and enterprise features
-                </p>
-              </div>
-              <Button variant="outline">
-                Contact Support
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Stats Bar */}
+        <div className="flex items-center gap-4 mb-8 text-sm text-muted-foreground">
+          <span>
+            <strong className="text-foreground">{filteredModules.length}</strong> modules
+          </span>
+          <span className="w-px h-4 bg-border" />
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            {filteredModules.filter((m) => m.status === "active").length} active
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-blue-500" />
+            {filteredModules.filter((m) => m.status === "available").length} available
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-muted-foreground/50" />
+            {filteredModules.filter((m) => m.status === "coming_soon").length} coming soon
+          </span>
+        </div>
+
+        {/* Module Grid by Category */}
+        <div className="space-y-10">
+          {categoryOrder.map((categoryId) => {
+            const categoryModules = groupedModules[categoryId];
+            if (!categoryModules || categoryModules.length === 0) return null;
+
+            const category = categories.find((c) => c.id === categoryId);
+            const CategoryIcon = category?.icon || Grid3X3;
+
+            return (
+              <section key={categoryId}>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <CategoryIcon className="h-4 w-4 text-primary" />
+                  </div>
+                  <h2 className="text-xl font-semibold">{getCategoryName(categoryId)}</h2>
+                  <Badge variant="secondary" className="ml-2">
+                    {categoryModules.length}
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {categoryModules.map((module) => (
+                    <ModuleCard
+                      key={module.id}
+                      {...module}
+                      onClick={() => handleModuleClick(module)}
+                    />
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+        </div>
+
+        {/* Empty State */}
+        {filteredModules.length === 0 && (
+          <div className="text-center py-16">
+            <Search className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+            <h3 className="text-lg font-medium mb-2">No modules found</h3>
+            <p className="text-muted-foreground mb-4">
+              Try adjusting your search or filter criteria
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearchTerm("");
+                setActiveCategory("all");
+              }}
+            >
+              Clear filters
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
