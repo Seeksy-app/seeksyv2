@@ -5,6 +5,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Production redirect URL
+const FRONTEND_URL = 'https://seeksy.io';
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -21,12 +24,15 @@ Deno.serve(async (req) => {
 
     if (error) {
       console.error('[meta-callback] OAuth error:', error);
-      return Response.redirect(`${Deno.env.get('SUPABASE_URL')}/integrations/meta?error=${error}`);
+      return Response.redirect(`${FRONTEND_URL}/social-analytics?error=${error}`, 302);
     }
 
     if (!code || !state) {
-      throw new Error('Missing code or state parameter');
+      console.error('[meta-callback] Missing code or state parameter');
+      return Response.redirect(`${FRONTEND_URL}/social-analytics?error=missing_params`, 302);
     }
+
+    console.log('[meta-callback] User ID from state:', state);
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -38,7 +44,8 @@ Deno.serve(async (req) => {
     const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/meta-callback`;
 
     if (!metaAppId || !metaAppSecret) {
-      throw new Error('Meta credentials not configured');
+      console.error('[meta-callback] Meta credentials not configured');
+      return Response.redirect(`${FRONTEND_URL}/social-analytics?error=config_error`, 302);
     }
 
     // Exchange code for access token
@@ -54,11 +61,11 @@ Deno.serve(async (req) => {
 
     if (!tokenResponse.ok || !tokenData.access_token) {
       console.error('[meta-callback] Token exchange failed:', tokenData);
-      throw new Error('Failed to exchange code for token');
+      return Response.redirect(`${FRONTEND_URL}/social-analytics?error=token_failed`, 302);
     }
 
     const accessToken = tokenData.access_token;
-    console.log('[meta-callback] Access token obtained');
+    console.log('[meta-callback] Access token obtained successfully');
 
     // Get user's Facebook pages
     console.log('[meta-callback] Fetching user pages');
@@ -69,74 +76,92 @@ Deno.serve(async (req) => {
 
     if (!pagesResponse.ok) {
       console.error('[meta-callback] Failed to fetch pages:', pagesData);
-      throw new Error('Failed to fetch Facebook pages');
+      return Response.redirect(`${FRONTEND_URL}/social-analytics?error=pages_failed`, 302);
     }
+
+    console.log('[meta-callback] Found pages:', pagesData.data?.length || 0);
 
     // Get Instagram Business Account for each page
     console.log('[meta-callback] Fetching Instagram accounts');
-    let instagramAccounts = [];
+    let connectedCount = 0;
 
     for (const page of pagesData.data || []) {
       try {
+        console.log('[meta-callback] Checking page:', page.name, page.id);
+        
         const igResponse = await fetch(
-          `https://graph.facebook.com/v18.0/${page.id}?fields=instagram_business_account{id,username,profile_picture_url,followers_count}&access_token=${page.access_token}`
+          `https://graph.facebook.com/v18.0/${page.id}?fields=instagram_business_account{id,username,profile_picture_url,followers_count,follows_count,media_count,biography}&access_token=${page.access_token}`
         );
         const igData = await igResponse.json();
 
         if (igData.instagram_business_account) {
-          instagramAccounts.push({
-            ...igData.instagram_business_account,
-            pageId: page.id,
-            pageName: page.name,
-            pageAccessToken: page.access_token,
-          });
+          const igAccount = igData.instagram_business_account;
+          console.log('[meta-callback] Found Instagram account:', igAccount.username);
+
+          // Insert into social_media_profiles table
+          const { data: insertData, error: insertError } = await supabaseClient
+            .from('social_media_profiles')
+            .upsert({
+              user_id: state,
+              platform: 'instagram',
+              platform_user_id: igAccount.id,
+              username: igAccount.username,
+              profile_picture: igAccount.profile_picture_url,
+              account_type: 'business',
+              biography: igAccount.biography || null,
+              followers_count: igAccount.followers_count || 0,
+              follows_count: igAccount.follows_count || 0,
+              media_count: igAccount.media_count || 0,
+              access_token: page.access_token, // Use page access token for API calls
+              connected_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              sync_status: 'pending',
+            }, {
+              onConflict: 'user_id,platform,platform_user_id',
+            })
+            .select();
+
+          if (insertError) {
+            console.error('[meta-callback] Error inserting social_media_profiles:', insertError);
+          } else {
+            console.log('[meta-callback] Successfully stored Instagram profile:', igAccount.username);
+            connectedCount++;
+            
+            // Trigger initial data sync
+            try {
+              console.log('[meta-callback] Triggering initial data sync for user:', state);
+              const syncResponse = await fetch(
+                `${Deno.env.get('SUPABASE_URL')}/functions/v1/meta-sync-social-data`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+                  },
+                  body: JSON.stringify({ user_id: state }),
+                }
+              );
+              console.log('[meta-callback] Sync triggered, status:', syncResponse.status);
+            } catch (syncErr) {
+              console.error('[meta-callback] Error triggering sync:', syncErr);
+              // Don't fail the callback if sync fails
+            }
+          }
         }
       } catch (err) {
-        console.error('[meta-callback] Error fetching Instagram for page:', page.id, err);
+        console.error('[meta-callback] Error processing page:', page.id, err);
       }
     }
 
-    console.log('[meta-callback] Found Instagram accounts:', instagramAccounts.length);
+    console.log('[meta-callback] Total Instagram accounts connected:', connectedCount);
 
-    // Store each Instagram connection
-    for (const igAccount of instagramAccounts) {
-      const { error: insertError } = await supabaseClient
-        .from('meta_integrations')
-        .upsert({
-          user_id: state,
-          platform: 'instagram',
-          platform_user_id: igAccount.id,
-          platform_username: igAccount.username,
-          access_token: igAccount.pageAccessToken,
-          profile_image_url: igAccount.profile_picture_url,
-          followers_count: igAccount.followers_count || 0,
-          is_active: true,
-          metadata: {
-            page_id: igAccount.pageId,
-            page_name: igAccount.pageName,
-          },
-        }, {
-          onConflict: 'user_id,platform,platform_user_id',
-        });
-
-      if (insertError) {
-        console.error('[meta-callback] Error storing integration:', insertError);
-      } else {
-        console.log('[meta-callback] Successfully stored integration for:', igAccount.username);
-      }
-    }
-
-    // Redirect back to integrations page
-    const frontendUrl = Deno.env.get('SUPABASE_URL')?.replace('supabase.co', 'lovableproject.com') || '';
-    const redirectUrl = `${frontendUrl}/integrations/meta?success=true&count=${instagramAccounts.length}`;
-    
+    // Redirect to social analytics with success
+    const redirectUrl = `${FRONTEND_URL}/social-analytics?connected=instagram&count=${connectedCount}`;
     console.log('[meta-callback] Redirecting to:', redirectUrl);
     
     return Response.redirect(redirectUrl, 302);
   } catch (error) {
-    console.error('[meta-callback] Error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    const frontendUrl = Deno.env.get('SUPABASE_URL')?.replace('supabase.co', 'lovableproject.com') || '';
-    return Response.redirect(`${frontendUrl}/integrations/meta?error=${encodeURIComponent(errorMessage)}`, 302);
+    console.error('[meta-callback] Unhandled error:', error);
+    return Response.redirect(`${FRONTEND_URL}/social-analytics?error=unknown`, 302);
   }
 });

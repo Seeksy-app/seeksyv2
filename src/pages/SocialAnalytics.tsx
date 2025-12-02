@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -20,23 +20,56 @@ import {
 import { SocialOnboardingChecklist } from "@/components/social/SocialOnboardingChecklist";
 import { CreatorValuationCard } from "@/components/social/CreatorValuationCard";
 import { InstagramReconnectBanner } from "@/components/social/InstagramReconnectBanner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { formatDistanceToNow, format } from "date-fns";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { Helmet } from "react-helmet";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SocialAnalytics() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { toast } = useToast();
   const [sortBy, setSortBy] = useState<string>("engagement");
   const [searchTerm, setSearchTerm] = useState("");
   
-  const { data: profiles, isLoading: profilesLoading } = useSocialProfiles();
+  const { data: profiles, isLoading: profilesLoading, refetch: refetchProfiles } = useSocialProfiles();
   const instagramProfile = profiles?.find(p => p.platform === 'instagram');
   
   const { data: posts } = useSocialPosts(instagramProfile?.id || null);
   const { data: insights } = useSocialInsights(instagramProfile?.id || null);
   const { data: topPosts } = useTopPosts(instagramProfile?.id || null, 5);
   const { syncData, isSyncing } = useSyncSocialData();
+
+  // Handle success redirect from OAuth callback
+  useEffect(() => {
+    const connected = searchParams.get('connected');
+    const error = searchParams.get('error');
+    
+    if (connected === 'instagram') {
+      toast({
+        title: "Instagram Connected!",
+        description: "Syncing your data now. You can also connect your other channels.",
+      });
+      // Refetch profiles to get the new connection
+      refetchProfiles();
+      // Clear the URL params
+      setSearchParams({});
+    }
+    
+    if (error) {
+      toast({
+        title: "Connection Failed",
+        description: error === 'token_failed' 
+          ? "Failed to exchange token. Please try again."
+          : error === 'pages_failed'
+          ? "Couldn't access your Facebook pages. Make sure you have a Facebook Page linked to your Instagram Business account."
+          : "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+      setSearchParams({});
+    }
+  }, [searchParams, toast, setSearchParams, refetchProfiles]);
 
   const isTokenExpired = instagramProfile?.sync_status === 'token_expired';
 
