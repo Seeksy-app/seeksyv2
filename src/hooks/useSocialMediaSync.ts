@@ -39,6 +39,7 @@ export interface SocialPost {
   impressions: number;
   reach: number;
   saved: number;
+  views_count?: number;
 }
 
 export interface SocialInsight {

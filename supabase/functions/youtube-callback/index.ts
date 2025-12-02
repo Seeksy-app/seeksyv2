@@ -201,9 +201,10 @@ serve(async (req) => {
       console.error('Failed to trigger sync (non-blocking):', syncError);
     }
 
-    // Redirect to production URL
+    // Redirect to production URL with tab param
     const redirectUrl = new URL('/social-analytics', productionRedirectBase);
     redirectUrl.searchParams.set('connected', 'youtube');
+    redirectUrl.searchParams.set('tab', 'youtube');
     
     console.log('Redirecting to:', redirectUrl.toString());
     return new Response(null, {

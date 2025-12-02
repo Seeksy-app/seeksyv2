@@ -3,10 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Instagram, Facebook, Link as LinkIcon, CheckCircle2, Twitter, Youtube, Music, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { useYouTubeConnect } from "@/hooks/useYouTubeConnect";
-import { useSocialProfiles } from "@/hooks/useSocialMediaSync";
+import { useSocialProfiles, useSyncSocialData } from "@/hooks/useSocialMediaSync";
 import { toast } from "@/hooks/use-toast";
 import { useEffect } from "react";
 
@@ -34,31 +33,16 @@ export default function SocialMediaHub() {
   const queryClient = useQueryClient();
   const { connectYouTube, syncYouTube, isConnecting } = useYouTubeConnect();
   const { data: socialProfiles, refetch: refetchProfiles } = useSocialProfiles();
+  const { syncData, isSyncing } = useSyncSocialData();
 
-  // Check connected Meta accounts
-  const { data: metaIntegrations } = useQuery({
-    queryKey: ['meta-integrations-status'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
-
-      const { data, error } = await supabase
-        .from('meta_integrations')
-        .select('platform')
-        .eq('user_id', user.id)
-        .eq('is_active', true);
-
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const hasInstagram = metaIntegrations?.some(i => i.platform === 'instagram');
-  const hasFacebook = metaIntegrations?.some(i => i.platform === 'facebook');
-  
-  // Get YouTube profile from social_media_profiles
+  // Get profiles from social_media_profiles table
+  const instagramProfile = socialProfiles?.find(p => p.platform === 'instagram');
   const youtubeProfile = socialProfiles?.find(p => p.platform === 'youtube');
+  const facebookProfile = socialProfiles?.find(p => p.platform === 'facebook');
+
+  const hasInstagram = !!instagramProfile;
   const hasYouTube = !!youtubeProfile;
+  const hasFacebook = !!facebookProfile;
 
   // Handle YouTube connection callback
   useEffect(() => {
@@ -87,6 +71,13 @@ export default function SocialMediaHub() {
     }
   }, [refetchProfiles, queryClient]);
 
+  const handleInstagramSync = async () => {
+    if (instagramProfile?.id) {
+      await syncData(instagramProfile.id);
+      refetchProfiles();
+    }
+  };
+
   const handleYouTubeSync = async () => {
     if (youtubeProfile?.id) {
       await syncYouTube(youtubeProfile.id);
@@ -101,9 +92,15 @@ export default function SocialMediaHub() {
       description: 'Sync followers, engagement metrics, and post performance from your Instagram Business account',
       icon: <Instagram className="h-6 w-6 text-white" />,
       path: '/integrations/meta',
-      connected: hasInstagram || false,
+      connected: hasInstagram,
       gradient: 'from-purple-500 to-pink-500',
       available: true,
+      profileData: instagramProfile ? {
+        username: instagramProfile.username,
+        profile_picture: instagramProfile.profile_picture,
+        followers_count: instagramProfile.followers_count,
+      } : undefined,
+      onSync: handleInstagramSync,
     },
     {
       id: 'facebook',
@@ -111,9 +108,14 @@ export default function SocialMediaHub() {
       description: 'Connect your Facebook Page to sync insights, audience data, and post analytics',
       icon: <Facebook className="h-6 w-6 text-white" />,
       path: '/integrations/meta',
-      connected: hasFacebook || false,
+      connected: hasFacebook,
       gradient: 'from-blue-600 to-blue-500',
       available: true,
+      profileData: facebookProfile ? {
+        username: facebookProfile.username,
+        profile_picture: facebookProfile.profile_picture,
+        followers_count: facebookProfile.followers_count,
+      } : undefined,
     },
     {
       id: 'youtube',
@@ -153,6 +155,13 @@ export default function SocialMediaHub() {
       available: false,
     },
   ];
+
+  const formatFollowers = (count?: number) => {
+    if (!count) return '0';
+    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
+    if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
+    return count.toString();
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
@@ -194,52 +203,61 @@ export default function SocialMediaHub() {
                   )}
                 </div>
                 <CardTitle>{integration.name}</CardTitle>
-                <CardDescription className="min-h-[60px]">
+                <CardDescription className="min-h-[40px]">
                   {integration.description}
                 </CardDescription>
 
-                {/* Connected profile preview for YouTube */}
+                {/* Connected profile preview */}
                 {integration.connected && integration.profileData && (
                   <div className="flex items-center gap-3 mt-3 p-3 bg-muted/50 rounded-lg">
-                    {integration.profileData.profile_picture && (
+                    {integration.profileData.profile_picture ? (
                       <img 
                         src={integration.profileData.profile_picture} 
                         alt={integration.profileData.username}
-                        className="h-10 w-10 rounded-full"
+                        className="h-10 w-10 rounded-full object-cover"
                       />
+                    ) : (
+                      <div className={`h-10 w-10 rounded-full bg-gradient-to-br ${integration.gradient} flex items-center justify-center`}>
+                        {integration.icon}
+                      </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{integration.profileData.username}</p>
+                      <p className="text-sm font-medium truncate">
+                        {integration.id === 'instagram' ? '@' : ''}{integration.profileData.username}
+                      </p>
                       <p className="text-xs text-muted-foreground">
-                        {integration.profileData.followers_count?.toLocaleString()} subscribers
+                        {formatFollowers(integration.profileData.followers_count)} {integration.id === 'youtube' ? 'subscribers' : 'followers'}
                       </p>
                     </div>
                   </div>
                 )}
               </CardHeader>
               <CardContent className="space-y-2">
-                {integration.connected && integration.onSync ? (
+                {integration.connected ? (
                   <div className="flex gap-2">
                     <Button 
                       className="flex-1" 
                       variant="outline"
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate('/social-analytics');
+                        navigate(`/social-analytics?tab=${integration.id}`);
                       }}
                     >
                       View Analytics
                     </Button>
-                    <Button 
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        integration.onSync?.();
-                      }}
-                    >
-                      <RefreshCw className="h-4 w-4" />
-                    </Button>
+                    {integration.onSync && (
+                      <Button 
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          integration.onSync?.();
+                        }}
+                        disabled={isSyncing}
+                      >
+                        <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                      </Button>
+                    )}
                   </div>
                 ) : integration.onConnect ? (
                   <Button 
@@ -255,7 +273,7 @@ export default function SocialMediaHub() {
                 ) : (
                   <Button 
                     className="w-full" 
-                    variant={integration.connected ? "outline" : "default"}
+                    variant="default"
                     disabled={!integration.available}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -264,7 +282,7 @@ export default function SocialMediaHub() {
                       }
                     }}
                   >
-                    {!integration.available ? 'Coming Soon' : integration.connected ? 'Manage' : 'Connect'}
+                    {!integration.available ? 'Coming Soon' : 'Connect'}
                   </Button>
                 )}
               </CardContent>

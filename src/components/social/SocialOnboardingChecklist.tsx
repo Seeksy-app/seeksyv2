@@ -1,4 +1,4 @@
-import { CheckCircle2, Circle, AlertCircle, RefreshCw, Youtube } from "lucide-react";
+import { CheckCircle2, Circle, AlertCircle, RefreshCw, Youtube, Instagram, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -214,44 +214,88 @@ export function SocialOnboardingChecklist() {
     </>
   );
 
+  const renderConnectCard = (platform: 'instagram' | 'youtube') => (
+    <div className="flex flex-col items-center justify-center py-6 text-center">
+      {platform === 'youtube' ? (
+        <>
+          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-red-600 to-red-500 flex items-center justify-center mb-4">
+            <Youtube className="h-6 w-6 text-white" />
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">Connect YouTube to track your channel</p>
+          <Button onClick={connectYouTube} disabled={isConnecting} size="sm">
+            {isConnecting ? 'Connecting...' : 'Connect YouTube'}
+          </Button>
+        </>
+      ) : (
+        <>
+          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-4">
+            <Instagram className="h-6 w-6 text-white" />
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">Connect Instagram to track your account</p>
+          <Button onClick={() => navigate('/integrations')} size="sm">
+            Connect Instagram
+          </Button>
+        </>
+      )}
+    </div>
+  );
+
+  // Determine which tab to show by default
+  const defaultTab = instagramProfile ? 'instagram' : youtubeProfile ? 'youtube' : 'instagram';
+  const showInstagramTab = !!instagramProfile;
+  const showYouTubeTab = !!youtubeProfile;
+
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-medium">Social Media Setup</CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="instagram" className="w-full">
+        <Tabs defaultValue={defaultTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="instagram" className="gap-2">
+              <Instagram className="h-4 w-4 text-pink-500" />
               Instagram
-              <span className="text-xs text-muted-foreground">
-                {getCompletedCount(instagramChecklistItems)}/{instagramChecklistItems.length}
-              </span>
+              {showInstagramTab && (
+                <span className="text-xs text-muted-foreground">
+                  {getCompletedCount(instagramChecklistItems)}/{instagramChecklistItems.length}
+                </span>
+              )}
             </TabsTrigger>
             <TabsTrigger value="youtube" className="gap-2">
-              <Youtube className="h-4 w-4" />
+              <Youtube className="h-4 w-4 text-red-500" />
               YouTube
-              <span className="text-xs text-muted-foreground">
-                {getCompletedCount(youtubeChecklistItems)}/{youtubeChecklistItems.length}
-              </span>
+              {showYouTubeTab && (
+                <span className="text-xs text-muted-foreground">
+                  {getCompletedCount(youtubeChecklistItems)}/{youtubeChecklistItems.length}
+                </span>
+              )}
             </TabsTrigger>
           </TabsList>
           
           <TabsContent value="instagram">
-            {renderChecklist(
-              instagramChecklistItems, 
-              instagramProfile, 
-              instagramLastSyncAt,
-              () => instagramProfile && syncData(instagramProfile.id)
+            {showInstagramTab ? (
+              renderChecklist(
+                instagramChecklistItems, 
+                instagramProfile, 
+                instagramLastSyncAt,
+                () => instagramProfile && syncData(instagramProfile.id)
+              )
+            ) : (
+              renderConnectCard('instagram')
             )}
           </TabsContent>
           
           <TabsContent value="youtube">
-            {renderChecklist(
-              youtubeChecklistItems, 
-              youtubeProfile, 
-              youtubeLastSyncAt,
-              () => youtubeProfile && syncYouTube(youtubeProfile.id)
+            {showYouTubeTab ? (
+              renderChecklist(
+                youtubeChecklistItems, 
+                youtubeProfile, 
+                youtubeLastSyncAt,
+                () => youtubeProfile && syncYouTube(youtubeProfile.id)
+              )
+            ) : (
+              renderConnectCard('youtube')
             )}
           </TabsContent>
         </Tabs>
