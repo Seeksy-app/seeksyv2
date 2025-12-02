@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Instagram, Facebook, TrendingUp, Users, BarChart3, AlertCircle } from "lucide-react";
+import { Instagram, Facebook, TrendingUp, Users, BarChart3, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 // Meta API Scopes we'll need
 export const META_SCOPES = {
@@ -34,6 +36,23 @@ interface MetaIntegration {
 
 export default function MetaIntegration() {
   const [connecting, setConnecting] = useState(false);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  // Handle OAuth callback params
+  useEffect(() => {
+    const success = searchParams.get('success');
+    const error = searchParams.get('error');
+    const count = searchParams.get('count');
+
+    if (success === 'true') {
+      toast.success(`Successfully connected ${count} Instagram account(s)!`);
+      navigate('/integrations/meta', { replace: true });
+    } else if (error) {
+      toast.error(`Connection failed: ${error}`);
+      navigate('/integrations/meta', { replace: true });
+    }
+  }, [searchParams, navigate]);
 
   // Fetch connected Meta accounts
   const { data: integrations, isLoading } = useQuery({
@@ -56,13 +75,28 @@ export default function MetaIntegration() {
 
   const handleConnect = async (platform: 'facebook' | 'instagram') => {
     setConnecting(true);
-    // TODO: Implement OAuth flow when ready
-    // For now, just placeholder
-    console.log(`Connecting to ${platform}...`);
-    console.log('Scopes needed:', META_SCOPES[platform]);
-    setTimeout(() => {
+    try {
+      // Call meta-auth edge function to get OAuth URL
+      const { data, error } = await supabase.functions.invoke('meta-auth');
+      
+      if (error) {
+        console.error('[MetaIntegration] Error:', error);
+        alert('Failed to initiate connection');
+        return;
+      }
+
+      if (data?.authUrl) {
+        // Redirect to Meta OAuth
+        window.location.href = data.authUrl;
+      } else {
+        alert('Invalid response from server');
+      }
+    } catch (error) {
+      console.error('[MetaIntegration] Error:', error);
+      alert('Failed to connect to Meta');
+    } finally {
       setConnecting(false);
-    }, 1000);
+    }
   };
 
   const connectedInstagram = integrations?.find(i => i.platform === 'instagram');
@@ -86,10 +120,10 @@ export default function MetaIntegration() {
               <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
               <div>
                 <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
-                  Integration Ready - OAuth Flow Coming Soon
+                  Ready to Connect
                 </h3>
                 <p className="text-sm text-blue-700 dark:text-blue-200">
-                  All data structures and API scopes are prepared. Full OAuth connection will be enabled in the next release.
+                  Click "Connect Instagram" below to authorize Seeksy to access your Instagram Business account metrics. You'll be redirected to Facebook to complete the connection.
                 </p>
               </div>
             </div>
