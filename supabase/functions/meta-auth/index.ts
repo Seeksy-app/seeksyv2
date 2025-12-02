@@ -41,14 +41,15 @@ Deno.serve(async (req) => {
     }
 
     // Required permissions for Instagram Business AND Facebook Pages
+    // Note: read_insights and pages_read_user_content are deprecated/invalid
+    // Use pages_read_engagement for page metrics and instagram_manage_insights for IG
     const scopes = [
-      'instagram_basic',
+      'public_profile',
       'pages_show_list',
       'pages_read_engagement',
-      'pages_read_user_content',
-      'read_insights',
+      'instagram_basic',
+      'instagram_manage_insights',
       'business_management',
-      'public_profile',
     ].join(',');
 
     // Build Meta OAuth URL
