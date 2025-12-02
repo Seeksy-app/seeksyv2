@@ -25,7 +25,7 @@ import { WebsiteTab } from "@/components/podcast/WebsiteTab";
 import { MonetizationTab } from "@/components/podcast/MonetizationTab";
 import { StatsTab } from "@/components/podcast/StatsTab";
 import { DirectoriesTab } from "@/components/podcast/DirectoriesTab";
-import { RSSMigrationTab } from "@/components/podcast/RSSMigrationTab";
+import { RSSMigrationWizard } from "@/components/podcast/RSSMigrationWizard";
 
 const PodcastDetail = () => {
   const { podcastId: id } = useParams();
@@ -327,7 +327,7 @@ const PodcastDetail = () => {
           </TabsContent>
 
           <TabsContent value="rss-migration" className="mt-0 p-6">
-            <RSSMigrationTab userId={user.id} />
+            <RSSMigrationWizard userId={user.id} podcastId={id!} />
           </TabsContent>
         </Tabs>
       </div>
