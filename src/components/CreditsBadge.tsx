@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,25 +8,31 @@ import { Zap } from "lucide-react";
 export function CreditsBadge() {
   const [credits, setCredits] = useState<number | null>(null);
   const [shouldAnimate, setShouldAnimate] = useState(false);
+  const animationTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const hasAnimatedOnLoadRef = useRef(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     loadCredits();
+    
+    // Cleanup animation timer on unmount
+    return () => {
+      if (animationTimerRef.current) {
+        clearTimeout(animationTimerRef.current);
+      }
+    };
   }, []);
 
   useEffect(() => {
-    if (credits === null) return;
+    if (credits === null || hasAnimatedOnLoadRef.current) return;
 
-    // Check if we should animate based on localStorage tracking
-    const lowestSeenCredits = localStorage.getItem("creditsLowestSeen");
-    const lowestSeen = lowestSeenCredits ? parseInt(lowestSeenCredits, 10) : Infinity;
-
-    // Animate if this is a new low threshold (credits dropped below what user has seen)
-    if (credits <= 4 && credits < lowestSeen) {
-      setShouldAnimate(true);
-    } else {
+    // Pulse on initial load for 4 seconds (about 4 pulse cycles), then stop
+    setShouldAnimate(true);
+    hasAnimatedOnLoadRef.current = true;
+    
+    animationTimerRef.current = setTimeout(() => {
       setShouldAnimate(false);
-    }
+    }, 4000);
   }, [credits]);
 
   const loadCredits = async () => {
@@ -44,18 +50,10 @@ export function CreditsBadge() {
   };
 
   const handleClick = () => {
-    // Mark current credits level as viewed
-    if (credits !== null) {
-      const lowestSeenCredits = localStorage.getItem("creditsLowestSeen");
-      const lowestSeen = lowestSeenCredits ? parseInt(lowestSeenCredits, 10) : Infinity;
-      
-      // Update localStorage with the lowest credits level user has seen
-      if (credits < lowestSeen) {
-        localStorage.setItem("creditsLowestSeen", credits.toString());
-      }
-      
-      // Stop animation after click
-      setShouldAnimate(false);
+    // Stop animation on click
+    setShouldAnimate(false);
+    if (animationTimerRef.current) {
+      clearTimeout(animationTimerRef.current);
     }
     
     navigate("/settings/billing");
@@ -73,7 +71,7 @@ export function CreditsBadge() {
   const isLow = credits <= 4;
 
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={200}>
       <Tooltip>
         <TooltipTrigger asChild>
           <Badge
@@ -88,9 +86,21 @@ export function CreditsBadge() {
             {isLow && <span className="text-xs opacity-90">Low!</span>}
           </Badge>
         </TooltipTrigger>
-        <TooltipContent>
-          <p className="text-sm">Credits power your AI, email, and media tools.</p>
-          <p className="text-sm font-semibold mt-1">You have {credits} credits remaining.</p>
+        <TooltipContent side="bottom" className="max-w-[220px]">
+          <div className="space-y-1.5">
+            <p className="text-sm font-semibold">Credits remaining</p>
+            <p className="text-sm">
+              You have <span className="font-medium">{credits}</span> credits left this billing period.
+            </p>
+            {isLow && (
+              <p className="text-xs text-muted-foreground">
+                Consider upgrading or buying more credits.
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground pt-1 border-t border-border/50">
+              Click to manage credits
+            </p>
+          </div>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
