@@ -1,95 +1,40 @@
 import { motion } from "framer-motion";
-import { Users, Podcast, DollarSign, TrendingUp } from "lucide-react";
+import { Mic, Users, DollarSign, TrendingUp } from "lucide-react";
 
-const globalStats = [
-  { 
-    value: "200M+", 
-    label: "Active Creators Worldwide", 
-    icon: Users,
-    gradient: "from-brand-gold to-amber-500"
-  },
-  { 
-    value: "5M+", 
-    label: "Podcasts Published Globally", 
-    icon: Podcast,
-    gradient: "from-amber-500 to-brand-orange"
-  },
-  { 
-    value: "$250B+", 
-    label: "Creator Economy Value", 
-    icon: DollarSign,
-    gradient: "from-brand-orange to-rose-500"
-  },
-  { 
-    value: "89%", 
-    label: "Brands using creators in marketing", 
-    icon: TrendingUp,
-    gradient: "from-rose-500 to-purple-500"
-  },
+const industryStats = [
+  { value: "3M+", label: "Active Podcasts Worldwide", icon: Mic, gradient: "from-amber-400 to-orange-500" },
+  { value: "50M+", label: "Creators Earning Online", icon: Users, gradient: "from-blue-400 to-cyan-500" },
+  { value: "$250B+", label: "Creator Economy Market Size", icon: DollarSign, gradient: "from-emerald-400 to-teal-500" },
+  { value: "93%", label: "Consumers Trust Creators Over Ads", icon: TrendingUp, gradient: "from-purple-400 to-pink-500" },
 ];
 
 export function GlobalStatsSection() {
   return (
-    <section className="relative py-24 bg-[#0A0F1A] overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0">
-        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-gold/5 rounded-full blur-[150px]" />
-      </div>
+    <section className="relative py-24 overflow-hidden bg-[#0A0F1A]">
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-amber-500/[0.02] to-transparent" />
+      <div className="absolute top-1/2 left-1/4 w-[400px] h-[400px] bg-amber-500/5 rounded-full blur-[100px]" />
 
       <div className="container relative z-10 mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-12"
-        >
-          <p className="text-sm font-medium text-white/40 uppercase tracking-widest mb-3">
-            The Creator Economy is Booming
-          </p>
-          <h2 className="text-3xl md:text-4xl font-bold text-white">
-            Join the fastest-growing industry
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm font-medium mb-4">The Opportunity</span>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            The Creator Economy is <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">Booming</span>
           </h2>
         </motion.div>
-        
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-          {globalStats.map((stat, index) => {
-            const Icon = stat.icon;
-            return (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <div className="relative group">
-                  {/* Card */}
-                  <div className="relative p-6 rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/10 overflow-hidden transition-all duration-300 hover:bg-white/[0.06] hover:border-white/20 hover:shadow-lg hover:shadow-brand-gold/10">
-                    {/* Glossy effect */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    
-                    {/* Icon */}
-                    <div className={`inline-flex p-3 rounded-xl bg-gradient-to-r ${stat.gradient} mb-4 shadow-lg`}>
-                      <Icon className="h-6 w-6 text-white" />
-                    </div>
-                    
-                    {/* Value */}
-                    <div className="text-3xl md:text-4xl font-black text-white mb-1">
-                      {stat.value}
-                    </div>
-                    
-                    {/* Label */}
-                    <div className="text-sm text-white/50 leading-tight">
-                      {stat.label}
-                    </div>
-                  </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          {industryStats.map((stat, index) => (
+            <motion.div key={stat.label} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: index * 0.1 }}>
+              <div className="relative group h-full p-6 md:p-8 rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/10 overflow-hidden hover:bg-white/[0.06] hover:border-white/20 transition-all duration-500">
+                <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`} />
+                <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${stat.gradient} mb-4 shadow-lg`}>
+                  <stat.icon className="h-6 w-6 text-white" />
                 </div>
-              </motion.div>
-            );
-          })}
+                <div className={`text-3xl md:text-4xl font-black bg-gradient-to-r ${stat.gradient} bg-clip-text text-transparent mb-2`}>{stat.value}</div>
+                <p className="text-sm md:text-base text-white/50 leading-tight">{stat.label}</p>
+              </div>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>
