@@ -179,9 +179,9 @@ export function ImportRSSButton({ onImportComplete }: ImportRSSButtonProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Download className="w-4 h-4 mr-2" />
-          Import from RSS
+        <Button size="lg" variant="default" className="text-base font-semibold">
+          <Download className="w-5 h-5 mr-2" />
+          Import via RSS
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px]">

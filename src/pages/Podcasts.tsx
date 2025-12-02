@@ -118,7 +118,16 @@ const Podcasts = () => {
             </p>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex gap-3">
+            <Button 
+              size="lg"
+              variant="outline"
+              className="text-base font-semibold border-2"
+              onClick={() => navigate("/podcasts/create")}
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Add New Podcast
+            </Button>
             <ImportRSSButton 
               onImportComplete={(podcastId) => {
                 console.log("Import complete, podcast ID:", podcastId);
@@ -127,10 +136,6 @@ const Podcasts = () => {
                 navigate(`/podcasts/${podcastId}`);
               }} 
             />
-            <Button onClick={() => navigate("/podcasts/create")}>
-              <Plus className="w-4 h-4 mr-2" />
-              Create Podcast
-            </Button>
           </div>
         </div>
 
