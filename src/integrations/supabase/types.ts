@@ -3892,6 +3892,60 @@ export type Database = {
           },
         ]
       }
+      connected_channels: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          last_used_at: string | null
+          metadata_json: Json | null
+          oauth_access_token: string | null
+          oauth_refresh_token: string | null
+          provider: string
+          provider_account_id: string | null
+          provider_account_name: string | null
+          rtmp_url: string | null
+          status: string
+          stream_key: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          last_used_at?: string | null
+          metadata_json?: Json | null
+          oauth_access_token?: string | null
+          oauth_refresh_token?: string | null
+          provider: string
+          provider_account_id?: string | null
+          provider_account_name?: string | null
+          rtmp_url?: string | null
+          status?: string
+          stream_key?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          last_used_at?: string | null
+          metadata_json?: Json | null
+          oauth_access_token?: string | null
+          oauth_refresh_token?: string | null
+          provider?: string
+          provider_account_id?: string | null
+          provider_account_name?: string | null
+          rtmp_url?: string | null
+          status?: string
+          stream_key?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       constituent_requests: {
         Row: {
           address: string | null
@@ -12438,6 +12492,45 @@ export type Database = {
           },
         ]
       }
+      studio_assets: {
+        Row: {
+          asset_type: string
+          created_at: string
+          file_url: string
+          id: string
+          is_default: boolean | null
+          metadata_json: Json | null
+          name: string
+          thumbnail_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          asset_type: string
+          created_at?: string
+          file_url: string
+          id?: string
+          is_default?: boolean | null
+          metadata_json?: Json | null
+          name: string
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          asset_type?: string
+          created_at?: string
+          file_url?: string
+          id?: string
+          is_default?: boolean | null
+          metadata_json?: Json | null
+          name?: string
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       studio_broadcasts: {
         Row: {
           audio_only_mode: boolean | null
@@ -12883,6 +12976,59 @@ export type Database = {
           },
           {
             foreignKeyName: "studio_recordings_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "studio_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      studio_scenes: {
+        Row: {
+          background_json: Json | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          layout_type: string
+          lower_thirds_json: Json | null
+          name: string
+          overlays_json: Json | null
+          session_id: string | null
+          sort_order: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          background_json?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          layout_type?: string
+          lower_thirds_json?: Json | null
+          name: string
+          overlays_json?: Json | null
+          session_id?: string | null
+          sort_order?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          background_json?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          layout_type?: string
+          lower_thirds_json?: Json | null
+          name?: string
+          overlays_json?: Json | null
+          session_id?: string | null
+          sort_order?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "studio_scenes_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
             referencedRelation: "studio_sessions"
