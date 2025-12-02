@@ -8,6 +8,7 @@ import { useYouTubeConnect } from "@/hooks/useYouTubeConnect";
 import { useSocialProfiles, useSyncSocialData } from "@/hooks/useSocialMediaSync";
 import { toast } from "@/hooks/use-toast";
 import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SocialIntegration {
   id: string;
@@ -85,6 +86,30 @@ export default function SocialMediaHub() {
     }
   };
 
+  const handleFacebookSync = async () => {
+    if (facebookProfile?.id) {
+      await syncData(facebookProfile.id);
+      refetchProfiles();
+    }
+  };
+
+  const connectFacebook = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({ title: "Please sign in first", variant: "destructive" });
+        return;
+      }
+      const { data, error } = await supabase.functions.invoke('meta-auth');
+      if (error) throw error;
+      if (data?.authUrl) {
+        window.location.href = data.authUrl;
+      }
+    } catch (err) {
+      toast({ title: "Failed to connect Facebook", variant: "destructive" });
+    }
+  };
+
   const integrations: SocialIntegration[] = [
     {
       id: 'instagram',
@@ -107,7 +132,7 @@ export default function SocialMediaHub() {
       name: 'Facebook',
       description: 'Connect your Facebook Page to sync insights, audience data, and post analytics',
       icon: <Facebook className="h-6 w-6 text-white" />,
-      path: '/integrations/meta',
+      path: '#',
       connected: hasFacebook,
       gradient: 'from-blue-600 to-blue-500',
       available: true,
@@ -116,6 +141,8 @@ export default function SocialMediaHub() {
         profile_picture: facebookProfile.profile_picture,
         followers_count: facebookProfile.followers_count,
       } : undefined,
+      onConnect: connectFacebook,
+      onSync: handleFacebookSync,
     },
     {
       id: 'youtube',
@@ -226,7 +253,7 @@ export default function SocialMediaHub() {
                         {integration.id === 'instagram' ? '@' : ''}{integration.profileData.username}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {formatFollowers(integration.profileData.followers_count)} {integration.id === 'youtube' ? 'subscribers' : 'followers'}
+                        {formatFollowers(integration.profileData.followers_count)} {integration.id === 'youtube' ? 'subscribers' : integration.id === 'facebook' ? 'fans' : 'followers'}
                       </p>
                     </div>
                   </div>

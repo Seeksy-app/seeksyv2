@@ -1,11 +1,13 @@
-import { CheckCircle2, Circle, AlertCircle, RefreshCw, Youtube, Instagram, Plus } from "lucide-react";
+import { CheckCircle2, Circle, AlertCircle, RefreshCw, Youtube, Instagram, Facebook, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { useSocialProfiles, useSocialPosts, useSocialInsights, useSyncSocialData } from "@/hooks/useSocialMediaSync";
 import { useYouTubeConnect } from "@/hooks/useYouTubeConnect";
+import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
 
 interface ChecklistItem {
   id: string;
@@ -14,17 +16,42 @@ interface ChecklistItem {
   action?: { label: string; onClick: () => void };
 }
 
-export function SocialOnboardingChecklist() {
+interface SocialOnboardingChecklistProps {
+  platform?: 'instagram' | 'youtube' | 'facebook';
+}
+
+export function SocialOnboardingChecklist({ platform }: SocialOnboardingChecklistProps = {}) {
   const navigate = useNavigate();
   const { data: profiles } = useSocialProfiles();
   const instagramProfile = profiles?.find(p => p.platform === 'instagram');
   const youtubeProfile = profiles?.find(p => p.platform === 'youtube');
+  const facebookProfile = profiles?.find(p => p.platform === 'facebook');
   const { data: instagramPosts } = useSocialPosts(instagramProfile?.id || null);
   const { data: youtubePosts } = useSocialPosts(youtubeProfile?.id || null);
+  const { data: facebookPostsData } = useSocialPosts(facebookProfile?.id || null);
   const { data: instagramInsights } = useSocialInsights(instagramProfile?.id || null);
   const { data: youtubeInsights } = useSocialInsights(youtubeProfile?.id || null);
+  const { data: facebookInsightsData } = useSocialInsights(facebookProfile?.id || null);
   const { syncData, isSyncing } = useSyncSocialData();
   const { connectYouTube, syncYouTube, isConnecting } = useYouTubeConnect();
+
+  // Connect to Meta (for Facebook)
+  const connectFacebook = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Please sign in first");
+        return;
+      }
+      const { data, error } = await supabase.functions.invoke('meta-auth');
+      if (error) throw error;
+      if (data?.authUrl) {
+        window.location.href = data.authUrl;
+      }
+    } catch (err) {
+      toast.error("Failed to connect Facebook");
+    }
+  };
 
   // Instagram checks
   const isInstagramTokenValid = instagramProfile && instagramProfile.sync_status !== 'token_expired';
@@ -48,6 +75,19 @@ export function SocialOnboardingChecklist() {
     ? new Date(youtubeProfile.last_sync_at) 
     : null;
   const isYouTubeSyncRecent = youtubeLastSyncAt && (Date.now() - youtubeLastSyncAt.getTime()) < 48 * 60 * 60 * 1000;
+
+  // Facebook checks
+  const isFacebookTokenValid = facebookProfile && facebookProfile.sync_status !== 'token_expired';
+  const hasFacebookProfileData = facebookProfile && (facebookProfile.followers_count > 0 || facebookProfile.media_count > 0);
+  const hasFacebookPostsData = facebookPostsData && facebookPostsData.length >= 5;
+  const hasFacebookInsightsData = facebookInsightsData && facebookInsightsData.length > 0;
+  const hasFacebookAudienceData = facebookInsightsData?.some(i => 
+    i.reach > 0 || i.impressions > 0 || i.profile_views > 0
+  );
+  const facebookLastSyncAt = facebookProfile?.last_sync_at 
+    ? new Date(facebookProfile.last_sync_at) 
+    : null;
+  const isFacebookSyncRecent = facebookLastSyncAt && (Date.now() - facebookLastSyncAt.getTime()) < 48 * 60 * 60 * 1000;
 
   const instagramChecklistItems: ChecklistItem[] = [
     {
@@ -140,6 +180,54 @@ export function SocialOnboardingChecklist() {
     },
   ];
 
+  const facebookChecklistItems: ChecklistItem[] = [
+    {
+      id: "connected",
+      label: "Page Connected",
+      status: facebookProfile && isFacebookTokenValid ? "complete" : facebookProfile ? "warning" : "incomplete",
+      action: !facebookProfile || !isFacebookTokenValid 
+        ? { label: isFacebookTokenValid ? "Connect" : "Reconnect", onClick: connectFacebook }
+        : undefined,
+    },
+    {
+      id: "profile",
+      label: "Profile Synced",
+      status: hasFacebookProfileData ? "complete" : facebookProfile ? "warning" : "incomplete",
+      action: facebookProfile && !hasFacebookProfileData 
+        ? { label: "Sync Now", onClick: () => syncData(facebookProfile.id) }
+        : undefined,
+    },
+    {
+      id: "posts",
+      label: "Posts & Engagement Imported",
+      status: hasFacebookPostsData ? "complete" : facebookPostsData && facebookPostsData.length > 0 ? "warning" : "incomplete",
+      action: facebookProfile && !hasFacebookPostsData
+        ? { label: "Sync Posts", onClick: () => syncData(facebookProfile.id) }
+        : undefined,
+    },
+    {
+      id: "insights",
+      label: "Insights Available",
+      status: hasFacebookInsightsData ? "complete" : "incomplete",
+      action: facebookProfile && !hasFacebookInsightsData
+        ? { label: "Sync Insights", onClick: () => syncData(facebookProfile.id) }
+        : undefined,
+    },
+    {
+      id: "audience",
+      label: "Audience Data Available",
+      status: hasFacebookAudienceData ? "complete" : hasFacebookInsightsData ? "warning" : "incomplete",
+    },
+    {
+      id: "autosync",
+      label: "Daily Auto-Sync Enabled",
+      status: isFacebookSyncRecent ? "complete" : facebookProfile ? "warning" : "incomplete",
+      action: facebookProfile && !isFacebookSyncRecent
+        ? { label: "Run Sync", onClick: () => syncData(facebookProfile.id) }
+        : undefined,
+    },
+  ];
+
   const getCompletedCount = (items: ChecklistItem[]) => items.filter(i => i.status === "complete").length;
 
   const getStatusIcon = (status: ChecklistItem["status"]) => {
@@ -214,9 +302,9 @@ export function SocialOnboardingChecklist() {
     </>
   );
 
-  const renderConnectCard = (platform: 'instagram' | 'youtube') => (
+  const renderConnectCard = (platformType: 'instagram' | 'youtube' | 'facebook') => (
     <div className="flex flex-col items-center justify-center py-6 text-center">
-      {platform === 'youtube' ? (
+      {platformType === 'youtube' ? (
         <>
           <div className="h-12 w-12 rounded-full bg-gradient-to-br from-red-600 to-red-500 flex items-center justify-center mb-4">
             <Youtube className="h-6 w-6 text-white" />
@@ -224,6 +312,16 @@ export function SocialOnboardingChecklist() {
           <p className="text-sm text-muted-foreground mb-4">Connect YouTube to track your channel</p>
           <Button onClick={connectYouTube} disabled={isConnecting} size="sm">
             {isConnecting ? 'Connecting...' : 'Connect YouTube'}
+          </Button>
+        </>
+      ) : platformType === 'facebook' ? (
+        <>
+          <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center mb-4">
+            <Facebook className="h-6 w-6 text-white" />
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">Connect Facebook to track your page</p>
+          <Button onClick={connectFacebook} size="sm">
+            Connect Facebook
           </Button>
         </>
       ) : (
@@ -240,7 +338,33 @@ export function SocialOnboardingChecklist() {
     </div>
   );
 
-  // Determine which tab to show by default
+  // If platform prop is provided, render only that platform's checklist
+  if (platform === 'facebook') {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-medium flex items-center gap-2">
+            <Facebook className="h-4 w-4 text-blue-600" />
+            Facebook Setup
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {facebookProfile ? (
+            renderChecklist(
+              facebookChecklistItems, 
+              facebookProfile, 
+              facebookLastSyncAt,
+              () => facebookProfile && syncData(facebookProfile.id)
+            )
+          ) : (
+            renderConnectCard('facebook')
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Default: show tabbed view for Instagram and YouTube
   const defaultTab = instagramProfile ? 'instagram' : youtubeProfile ? 'youtube' : 'instagram';
   const showInstagramTab = !!instagramProfile;
   const showYouTubeTab = !!youtubeProfile;
