@@ -12,20 +12,24 @@ export interface ModuleCardProps {
   recommendedWith?: string[];
   route?: string;
   onClick?: () => void;
+  compact?: boolean;
 }
 
 const statusConfig = {
   active: {
     label: "Active",
     className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:bg-emerald-500/20 dark:text-emerald-400",
+    dotColor: "bg-emerald-500",
   },
   available: {
     label: "Available",
     className: "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:bg-blue-500/20 dark:text-blue-400",
+    dotColor: "bg-blue-500",
   },
   coming_soon: {
     label: "Coming Soon",
     className: "bg-muted text-muted-foreground border-border",
+    dotColor: "bg-muted-foreground/50",
   },
 };
 
@@ -36,14 +40,41 @@ export function ModuleCard({
   status,
   recommendedWith,
   onClick,
+  compact = false,
 }: ModuleCardProps) {
   const isDisabled = status === "coming_soon";
   const config = statusConfig[status];
 
+  if (compact) {
+    return (
+      <Card
+        className={cn(
+          "group relative p-4 transition-all duration-200 border-border/50",
+          !isDisabled && "cursor-pointer hover:shadow-md hover:border-primary/30",
+          isDisabled && "opacity-60 cursor-not-allowed"
+        )}
+        onClick={!isDisabled ? onClick : undefined}
+      >
+        <div className="flex items-start gap-3">
+          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/15 transition-colors">
+            <Icon className="h-4 w-4 text-primary" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 mb-0.5">
+              <h3 className="font-medium text-sm truncate">{name}</h3>
+              <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", config.dotColor)} />
+            </div>
+            <p className="text-xs text-muted-foreground line-clamp-1">{description}</p>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card
       className={cn(
-        "group relative p-5 transition-all duration-200 border-border/50",
+        "group relative p-5 transition-all duration-200 border-border/50 flex flex-col",
         !isDisabled && "cursor-pointer hover:shadow-lg hover:border-primary/30 hover:-translate-y-0.5",
         isDisabled && "opacity-60 cursor-not-allowed"
       )}
@@ -80,7 +111,7 @@ export function ModuleCard({
               key={rec}
               className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 font-medium"
             >
-              💡 Best with: {rec}
+              Best with: {rec}
             </span>
           ))}
         </div>
