@@ -87,6 +87,7 @@ import EditPodcast from "./pages/EditPodcast";
 import ImportPodcast from "./pages/ImportPodcast";
 import UploadEpisode from "./pages/UploadEpisode";
 import SocialAnalytics from "./pages/SocialAnalytics";
+import AgencyDiscovery from "./pages/AgencyDiscovery";
 import RSSMigrationPage from "./pages/RSSMigrationPage";
 import PaidAdsTerms from "./pages/legal/PaidAdsTerms";
 import SubscriptionSettings from "./pages/SubscriptionSettings";
@@ -468,6 +469,7 @@ const AppContent = () => {
               {/* Creator & Agency Hubs */}
               <Route path="/creator-hub" element={<CreatorHub />} />
               <Route path="/agency" element={<AgencyHub />} />
+              <Route path="/agency/discover" element={<AgencyDiscovery />} />
               <Route path="/mypage" element={<MyPageStreaming />} />
               
               {/* My Day OS Routes */}

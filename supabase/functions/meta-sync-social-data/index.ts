@@ -323,17 +323,40 @@ serve(async (req) => {
           })
           .eq('id', profile.id);
 
+        // Log successful sync
+        await supabase.from('social_sync_logs').insert({
+          user_id: profile.user_id,
+          profile_id: profile.id,
+          sync_type: isCronJob ? 'cron' : 'manual',
+          status: 'success',
+          posts_synced: totalPostsSynced,
+          comments_synced: totalCommentsSynced,
+          insights_synced: totalInsightsSynced,
+        });
+
         console.log(`Profile ${profile.username} synced successfully`);
 
       } catch (profileError) {
         console.error(`Error syncing profile ${profile.id}:`, profileError);
+        const errorMsg = profileError instanceof Error ? profileError.message : 'Unknown error';
+        
         await supabase
           .from('social_media_profiles')
           .update({ 
             sync_status: 'error', 
-            sync_error: profileError instanceof Error ? profileError.message : 'Unknown error'
+            sync_error: errorMsg
           })
           .eq('id', profile.id);
+
+        // Log failed sync
+        await supabase.from('social_sync_logs').insert({
+          user_id: profile.user_id,
+          profile_id: profile.id,
+          sync_type: isCronJob ? 'cron' : 'manual',
+          status: 'error',
+          error_code: profileError instanceof Error && 'code' in profileError ? String((profileError as any).code) : null,
+          error_message: errorMsg,
+        });
       }
     }
 

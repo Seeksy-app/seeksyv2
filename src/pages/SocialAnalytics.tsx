@@ -17,6 +17,9 @@ import {
   useSyncSocialData,
   useTopPosts 
 } from "@/hooks/useSocialMediaSync";
+import { SocialOnboardingChecklist } from "@/components/social/SocialOnboardingChecklist";
+import { CreatorValuationCard } from "@/components/social/CreatorValuationCard";
+import { InstagramReconnectBanner } from "@/components/social/InstagramReconnectBanner";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow, format } from "date-fns";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
@@ -154,18 +157,7 @@ export default function SocialAnalytics() {
 
       {/* Token Expired Warning */}
       {isTokenExpired && (
-        <Card className="border-destructive bg-destructive/5">
-          <CardContent className="flex items-center gap-4 py-4">
-            <AlertCircle className="h-6 w-6 text-destructive" />
-            <div className="flex-1">
-              <p className="font-medium text-destructive">Instagram connection expired</p>
-              <p className="text-sm text-muted-foreground">Reconnect to continue syncing data.</p>
-            </div>
-            <Button variant="destructive" onClick={() => navigate('/integrations')}>
-              Reconnect Instagram
-            </Button>
-          </CardContent>
-        </Card>
+        <InstagramReconnectBanner error={instagramProfile.sync_error || undefined} />
       )}
 
       <Tabs defaultValue="overview" className="space-y-6">
@@ -178,6 +170,14 @@ export default function SocialAnalytics() {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
+          {/* Onboarding & Valuation Row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <SocialOnboardingChecklist />
+            <div className="md:col-span-2">
+              <CreatorValuationCard profileId={instagramProfile.id} />
+            </div>
+          </div>
+
           {/* Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card>

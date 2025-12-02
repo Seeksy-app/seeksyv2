@@ -1366,6 +1366,68 @@ export type Database = {
         }
         Relationships: []
       }
+      agency_discovery_profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          engagement_rate: number
+          estimated_value_per_post: number
+          followers: number
+          id: string
+          last_refreshed_at: string | null
+          linked_profile_id: string | null
+          location: string | null
+          niche_tags: string[] | null
+          platform: string
+          profile_picture_url: string | null
+          source: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          engagement_rate?: number
+          estimated_value_per_post?: number
+          followers?: number
+          id?: string
+          last_refreshed_at?: string | null
+          linked_profile_id?: string | null
+          location?: string | null
+          niche_tags?: string[] | null
+          platform?: string
+          profile_picture_url?: string | null
+          source?: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          engagement_rate?: number
+          estimated_value_per_post?: number
+          followers?: number
+          id?: string
+          last_refreshed_at?: string | null
+          linked_profile_id?: string | null
+          location?: string | null
+          niche_tags?: string[] | null
+          platform?: string
+          profile_picture_url?: string | null
+          source?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_discovery_profiles_linked_profile_id_fkey"
+            columns: ["linked_profile_id"]
+            isOneToOne: false
+            referencedRelation: "social_media_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_agent_modes: {
         Row: {
           created_at: string
@@ -4769,6 +4831,92 @@ export type Database = {
           stripe_session_id?: string | null
         }
         Relationships: []
+      }
+      creator_valuations: {
+        Row: {
+          assumptions_json: Json | null
+          avg_comments_per_post: number
+          avg_likes_per_post: number
+          calculated_at: string
+          created_at: string
+          currency: string
+          engagement_rate: number
+          est_reach_per_post: number
+          feed_post_price_high: number
+          feed_post_price_low: number
+          feed_post_price_mid: number
+          followers: number
+          id: string
+          platform: string
+          profile_id: string | null
+          reel_price_high: number
+          reel_price_low: number
+          reel_price_mid: number
+          story_price_high: number
+          story_price_low: number
+          story_price_mid: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assumptions_json?: Json | null
+          avg_comments_per_post?: number
+          avg_likes_per_post?: number
+          calculated_at?: string
+          created_at?: string
+          currency?: string
+          engagement_rate?: number
+          est_reach_per_post?: number
+          feed_post_price_high?: number
+          feed_post_price_low?: number
+          feed_post_price_mid?: number
+          followers?: number
+          id?: string
+          platform?: string
+          profile_id?: string | null
+          reel_price_high?: number
+          reel_price_low?: number
+          reel_price_mid?: number
+          story_price_high?: number
+          story_price_low?: number
+          story_price_mid?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assumptions_json?: Json | null
+          avg_comments_per_post?: number
+          avg_likes_per_post?: number
+          calculated_at?: string
+          created_at?: string
+          currency?: string
+          engagement_rate?: number
+          est_reach_per_post?: number
+          feed_post_price_high?: number
+          feed_post_price_low?: number
+          feed_post_price_mid?: number
+          followers?: number
+          id?: string
+          platform?: string
+          profile_id?: string | null
+          reel_price_high?: number
+          reel_price_low?: number
+          reel_price_mid?: number
+          story_price_high?: number
+          story_price_low?: number
+          story_price_mid?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_valuations_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "social_media_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       creator_voice_fingerprints: {
         Row: {
@@ -11764,11 +11912,14 @@ export type Database = {
           account_type: string | null
           biography: string | null
           connected_at: string | null
+          email: string | null
           followers_count: number | null
           follows_count: number | null
           id: string
           last_sync_at: string | null
+          location: string | null
           media_count: number | null
+          niche_tags: string[] | null
           platform: string
           platform_user_id: string | null
           profile_picture: string | null
@@ -11784,11 +11935,14 @@ export type Database = {
           account_type?: string | null
           biography?: string | null
           connected_at?: string | null
+          email?: string | null
           followers_count?: number | null
           follows_count?: number | null
           id?: string
           last_sync_at?: string | null
+          location?: string | null
           media_count?: number | null
+          niche_tags?: string[] | null
           platform?: string
           platform_user_id?: string | null
           profile_picture?: string | null
@@ -11804,11 +11958,14 @@ export type Database = {
           account_type?: string | null
           biography?: string | null
           connected_at?: string | null
+          email?: string | null
           followers_count?: number | null
           follows_count?: number | null
           id?: string
           last_sync_at?: string | null
+          location?: string | null
           media_count?: number | null
+          niche_tags?: string[] | null
           platform?: string
           platform_user_id?: string | null
           profile_picture?: string | null
@@ -11865,6 +12022,56 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      social_sync_logs: {
+        Row: {
+          comments_synced: number | null
+          created_at: string
+          error_code: string | null
+          error_message: string | null
+          id: string
+          insights_synced: number | null
+          posts_synced: number | null
+          profile_id: string | null
+          status: string
+          sync_type: string
+          user_id: string
+        }
+        Insert: {
+          comments_synced?: number | null
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          insights_synced?: number | null
+          posts_synced?: number | null
+          profile_id?: string | null
+          status: string
+          sync_type: string
+          user_id: string
+        }
+        Update: {
+          comments_synced?: number | null
+          created_at?: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          insights_synced?: number | null
+          posts_synced?: number | null
+          profile_id?: string | null
+          status?: string
+          sync_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_sync_logs_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "social_media_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       spin_wheel_history: {
         Row: {
