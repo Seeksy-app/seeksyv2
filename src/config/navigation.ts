@@ -197,6 +197,7 @@ export const NAVIGATION_CONFIG: {
     {
       "group": "Admin",
       "description": "System administration",
+      "collapsible": true,
       "items": [
         {
           "id": "admin_dashboard",
@@ -225,6 +226,7 @@ export const NAVIGATION_CONFIG: {
     {
       "group": "Content Management",
       "description": "Website and content administration",
+      "collapsible": true,
       "items": [
         {
           "id": "admin_logo_manager",
@@ -309,6 +311,7 @@ export const NAVIGATION_CONFIG: {
     {
       "group": "User Management",
       "description": "Manage users and creators",
+      "collapsible": true,
       "items": [
         {
           "id": "admin_creators",
@@ -344,6 +347,7 @@ export const NAVIGATION_CONFIG: {
     {
       "group": "Identity & Certification",
       "description": "Voice and identity verification",
+      "collapsible": true,
       "items": [
         {
           "id": "admin_identity",
@@ -393,6 +397,7 @@ export const NAVIGATION_CONFIG: {
     {
       "group": "Advertising & Revenue",
       "description": "Manage advertising and monetization",
+      "collapsible": true,
       "items": [
         {
           "id": "admin_advertising",
@@ -442,6 +447,7 @@ export const NAVIGATION_CONFIG: {
     {
       "group": "Business Operations",
       "description": "Sales, support, and business tools",
+      "collapsible": true,
       "items": [
         {
           "id": "admin_support",
@@ -477,6 +483,13 @@ export const NAVIGATION_CONFIG: {
           "icon": "file-spreadsheet",
           "path": "/admin/investor-spreadsheets",
           "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_marketing_gtm",
+          "label": "Marketing & GTM Plan",
+          "icon": "target",
+          "path": "/marketing-gtm",
+          "roles": ["admin", "super_admin"]
         }
       ]
     },
@@ -484,6 +497,7 @@ export const NAVIGATION_CONFIG: {
     {
       "group": "Developer Tools",
       "description": "Technical administration and AI tools",
+      "collapsible": true,
       "items": [
         {
           "id": "admin_architecture",
