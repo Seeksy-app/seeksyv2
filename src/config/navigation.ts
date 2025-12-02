@@ -524,6 +524,29 @@ export const NAVIGATION_CONFIG: {
     },
 
     {
+      "group": "R&D & Intelligence",
+      "description": "Research and market intelligence",
+      "collapsible": true,
+      "items": [
+        {
+          "id": "admin_rd_feeds",
+          "label": "R&D Intelligence Feeds",
+          "icon": "rss",
+          "path": "/admin/rd-feeds",
+          "roles": ["admin", "super_admin"],
+          "description": "Internal research feeds for AI insights and CFO forecasts"
+        },
+        {
+          "id": "admin_cfo_assumptions",
+          "label": "CFO Assumptions",
+          "icon": "calculator",
+          "path": "/cfo-dashboard#assumptions",
+          "roles": ["admin", "super_admin"]
+        }
+      ]
+    },
+
+    {
       "group": "Developer Tools",
       "description": "Technical administration and AI tools",
       "collapsible": true,

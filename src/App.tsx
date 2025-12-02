@@ -353,6 +353,8 @@ import BoardVideos from "./pages/board/BoardVideos";
 import BoardDocs from "./pages/board/BoardDocs";
 import BoardMemberManagement from "./pages/admin/BoardMemberManagement";
 import { BoardGuard } from "./components/board/BoardGuard";
+import { BoardViewBanner } from "./components/board/BoardViewBanner";
+import RDIntelligenceFeeds from "./pages/admin/RDIntelligenceFeeds";
 
 const queryClient = new QueryClient();
 
@@ -441,6 +443,9 @@ const AppContent = () => {
         <div className="flex-1 flex flex-col">
           {/* TopNavBar on all authenticated pages */}
           {user && <TopNavBar />}
+          
+          {/* Board View Banner for super admins in preview mode */}
+          <BoardViewBanner />
           
           <main className="flex-1 bg-background overflow-hidden">
             <RouteTransition>
@@ -754,6 +759,9 @@ const AppContent = () => {
           <Route path="/board/forecasts" element={<BoardForecasts />} />
           <Route path="/board/videos" element={<BoardVideos />} />
           <Route path="/board/docs" element={<BoardDocs />} />
+          
+          {/* R&D Intelligence */}
+          <Route path="/admin/rd-feeds" element={<RDIntelligenceFeeds />} />
           
               <Route path="/settings" element={<Settings />} />
               <Route path="/settings/billing" element={<SettingsBilling />} />

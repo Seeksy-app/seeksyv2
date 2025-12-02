@@ -15,6 +15,7 @@ import {
   DollarSign,
   Activity,
   Percent,
+  Play,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -71,10 +72,36 @@ export default function BoardDashboard() {
   return (
     <BoardLayout>
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="mb-10">
-          <h1 className="text-4xl font-bold text-white mb-2">Board Dashboard</h1>
-          <p className="text-slate-400 text-lg">Welcome to the Seeksy Board Portal</p>
+        {/* Hero Section */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 border border-white/10 p-8 md:p-12">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-500/10 via-transparent to-transparent" />
+          <div className="relative z-10 max-w-3xl">
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+              A Clear Window Into the Creator & Podcast Business.
+            </h1>
+            <p className="text-lg md:text-xl text-slate-300 mb-8">
+              Real-time view into our model, go-to-market, and forecasts—powered by internal R&D insights.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <Button 
+                size="lg" 
+                onClick={() => navigate('/board/videos')}
+                className="bg-white text-slate-900 hover:bg-slate-100 gap-2"
+              >
+                <Play className="w-5 h-5" />
+                Start with Overview Video
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                onClick={() => navigate('/board/forecasts')}
+                className="border-white/20 text-white hover:bg-white/10 gap-2"
+              >
+                Jump to Forecasts
+                <ArrowRight className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* Metrics Grid */}
