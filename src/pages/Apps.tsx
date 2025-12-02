@@ -5,7 +5,7 @@ import {
   Mail, FileText, Users, Video, DollarSign, ArrowRight, Calendar, Mic, Shield, Zap, 
   Camera, Globe, MessageSquare, BarChart3, Podcast, FolderOpen, Book, Newspaper, 
   MessageCircle, FormInput, CheckSquare, Vote, QrCode, Layout, Trophy, UserPlus,
-  ListChecks, Megaphone, Scissors, Star, Briefcase
+  ListChecks, Megaphone, Scissors, Star, Briefcase, Instagram
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -266,7 +266,19 @@ export default function Apps() {
       bgColor: "bg-yellow-50 dark:bg-yellow-950/20",
       isActive: true,
       status: "active",
-      category: "automation",
+      category: "core",
+    },
+    {
+      id: "social-media",
+      name: "Social Media",
+      description: "Connect Instagram, Facebook, and other social accounts",
+      icon: Instagram,
+      route: "/integrations",
+      iconColor: "text-pink-600",
+      bgColor: "bg-pink-50 dark:bg-pink-950/20",
+      isActive: true,
+      status: "active",
+      category: "integration",
     },
     {
       id: "sms",

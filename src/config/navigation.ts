@@ -123,21 +123,6 @@ export const NAVIGATION_CONFIG: {
     },
 
     {
-      "group": "Integrations",
-      "description": "Connect external platforms",
-      "collapsible": true,
-      "items": [
-        {
-          "id": "integrations_social",
-          "label": "Social Media",
-          "icon": "link",
-          "path": "/integrations",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        }
-      ]
-    },
-
-    {
       "group": "Media",
       "description": "Content creation and media tools",
       "collapsible": true,
