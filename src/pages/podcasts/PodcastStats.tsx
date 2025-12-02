@@ -3,7 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, DollarSign, TrendingUp, Calendar, Radio } from "lucide-react";
+import { ArrowLeft, DollarSign, TrendingUp, Calendar, Radio, Copy, Check } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { calculateEpisodeImpressions, calculateRevenue, formatCurrency, formatNumber } from "@/lib/config/revenueModelConfig";
 import {
   Table,
@@ -17,6 +19,7 @@ import {
 const PodcastStats = () => {
   const { podcastId } = useParams();
   const navigate = useNavigate();
+  const [copiedRss, setCopiedRss] = useState(false);
 
   const { data: podcast } = useQuery({
     queryKey: ["podcast", podcastId],
@@ -81,6 +84,18 @@ const PodcastStats = () => {
     });
   };
 
+  const handleCopyRss = async () => {
+    const rssUrl = `https://seeksy.io/rss/${podcastId}`;
+    try {
+      await navigator.clipboard.writeText(rssUrl);
+      setCopiedRss(true);
+      toast.success("RSS Feed URL copied to clipboard!");
+      setTimeout(() => setCopiedRss(false), 2000);
+    } catch (err) {
+      toast.error("Failed to copy RSS URL");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background p-6">
@@ -104,14 +119,33 @@ const PodcastStats = () => {
         </Button>
 
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-            <Radio className="w-8 h-8 text-primary" />
-            {podcast?.title} - Analytics
-          </h1>
-          <p className="text-muted-foreground">
-            Episode-level performance metrics and revenue estimation
-          </p>
+        <div className="mb-6 flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
+              <Radio className="w-8 h-8 text-primary" />
+              {podcast?.title} - Analytics
+            </h1>
+            <p className="text-muted-foreground">
+              Episode-level performance metrics and revenue estimation
+            </p>
+          </div>
+          <Button
+            onClick={handleCopyRss}
+            className="bg-amber-100 hover:bg-amber-200 text-amber-900 border-2 border-amber-400 dark:bg-amber-950 dark:hover:bg-amber-900 dark:text-amber-100"
+            size="lg"
+          >
+            {copiedRss ? (
+              <>
+                <Check className="w-5 h-5 mr-2" />
+                Copied!
+              </>
+            ) : (
+              <>
+                <Copy className="w-5 h-5 mr-2" />
+                RSS Feed URL
+              </>
+            )}
+          </Button>
         </div>
 
         {/* Summary Cards */}
