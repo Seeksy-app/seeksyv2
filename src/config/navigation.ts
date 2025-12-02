@@ -129,31 +129,38 @@ export const NAVIGATION_CONFIG: {
       "collapsible": true,
       "items": [
         {
-          "id": "media_podcasts",
-          "label": "Podcasts",
-          "icon": "podcast",
-          "path": "/content#podcasts",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "media_studio",
+          "id": "studio_hub",
           "label": "Studio",
           "icon": "mic",
           "path": "/studio",
           "roles": ["creator", "influencer", "agency", "admin"]
         },
         {
-          "id": "media_library",
-          "label": "Media Library",
-          "icon": "folder-open",
-          "path": "/media/library",
+          "id": "studio_clips",
+          "label": "Clips & Highlights",
+          "icon": "scissors",
+          "path": "/studio/ai-clips",
           "roles": ["creator", "influencer", "agency", "admin"]
         },
         {
-          "id": "media_clips",
-          "label": "Clips",
-          "icon": "scissors",
-          "path": "/clips",
+          "id": "media_library",
+          "label": "Media Library",
+          "icon": "folder-open",
+          "path": "/studio/media",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        },
+        {
+          "id": "studio_templates",
+          "label": "Templates",
+          "icon": "file-text",
+          "path": "/studio/templates",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        },
+        {
+          "id": "media_podcasts",
+          "label": "Podcasts",
+          "icon": "podcast",
+          "path": "/podcasts",
           "roles": ["creator", "influencer", "agency", "admin"]
         },
         {

@@ -135,6 +135,12 @@ import StudioAds from "./pages/studio/StudioAds";
 import StudioGuests from "./pages/studio/StudioGuests";
 import StudioSettings from "./pages/studio/StudioSettings";
 import StudioLiveNew from "./pages/studio/StudioLiveNew";
+import StudioHubPremium from "./pages/studio/StudioHubPremium";
+import AIClipGeneratorPremium from "./pages/studio/AIClipGeneratorPremium";
+import MediaLibraryHub from "./pages/studio/MediaLibraryHub";
+import StudioTemplatesPage from "./pages/studio/StudioTemplates";
+import AudioStudioPremium from "./pages/studio/AudioStudioPremiumNew";
+import VideoStudioPremium from "./pages/studio/VideoStudioPremiumNew";
 import VoiceCertificationPage from "./pages/admin/VoiceCertificationPage";
 import VoiceNFTCertificatesPage from "./pages/admin/VoiceNFTCertificatesPage";
 import PublicLandingPage from "./pages/PublicLandingPage";
@@ -622,8 +628,15 @@ const AppContent = () => {
               <Route path="/studio/solo" element={<VideoStudio />} />
               <Route path="/studio/live" element={<LiveStudio />} />
               
-              {/* Studio Routes - No wrapper, renders with unified sidebar */}
-              <Route path="/studio" element={<StudioHome />} />
+              {/* New Premium Studio Hub */}
+              <Route path="/studio" element={<StudioHubPremium />} />
+              <Route path="/studio/hub" element={<StudioHubPremium />} />
+              <Route path="/studio/ai-clips" element={<AIClipGeneratorPremium />} />
+              <Route path="/studio/media" element={<MediaLibraryHub />} />
+              <Route path="/studio/templates" element={<StudioTemplatesPage />} />
+              
+              {/* Legacy Studio Routes */}
+              <Route path="/studio/home-legacy" element={<StudioHome />} />
               <Route path="/studio/recording/new" element={<StudioRecordingNew />} />
               <Route path="/studio/post-session/:sessionId" element={<StudioPostSession />} />
               <Route path="/studio/recordings" element={<StudioRecordings />} />
@@ -632,6 +645,12 @@ const AppContent = () => {
               <Route path="/studio/guests" element={<StudioGuests />} />
               <Route path="/studio/settings" element={<StudioSettings />} />
               <Route path="/studio/live/new" element={<StudioLiveNew />} />
+              
+              {/* Premium Studio Modes */}
+              <Route path="/studio/audio-premium" element={<AudioStudioPremium />} />
+              <Route path="/studio/video-premium" element={<VideoStudioPremium />} />
+              <Route path="/studio/creator-studio" element={<VideoStudioPremium />} />
+              <Route path="/studio/voice-studio" element={<AudioStudioPremium />} />
               
             <Route path="/events" element={<Events />} />
             <Route path="/signup-sheets" element={<SignupSheets />} />
