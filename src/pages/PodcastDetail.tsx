@@ -1,10 +1,22 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Home, FileText, Radio, Monitor, Globe, DollarSign, BarChart3, List, RefreshCw } from "lucide-react";
+import { ArrowLeft, Home, FileText, Radio, Monitor, Globe, DollarSign, BarChart3, List, RefreshCw, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { OverviewTab } from "@/components/podcast/OverviewTab";
 import { EpisodesTab } from "@/components/podcast/EpisodesTab";
 import { PodcastStudioTab } from "@/components/podcast/PodcastStudioTab";
@@ -18,7 +30,10 @@ import { RSSMigrationTab } from "@/components/podcast/RSSMigrationTab";
 const PodcastDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ["user"],
@@ -51,6 +66,37 @@ const PodcastDetail = () => {
   useEffect(() => {
     localStorage.setItem("podcast-detail-tab", activeTab);
   }, [activeTab]);
+
+  const handleDeletePodcast = async () => {
+    if (!id) return;
+    
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("podcasts")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Podcast deleted",
+        description: "Your podcast and all episodes have been removed.",
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["podcasts"] });
+      navigate("/podcasts");
+    } catch (error) {
+      console.error("Error deleting podcast:", error);
+      toast({
+        title: "Delete failed",
+        description: "Could not delete podcast. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (isLoading || !user) {
     return (
@@ -106,6 +152,48 @@ const PodcastDetail = () => {
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground cursor-pointer hover:text-foreground">My Podcasts</span>
             <span className="text-sm text-muted-foreground cursor-pointer hover:text-foreground">Resources</span>
+            
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete this podcast?</AlertDialogTitle>
+                  <AlertDialogDescription className="space-y-3">
+                    <p className="font-semibold text-destructive">
+                      Warning: All episodes will be permanently deleted.
+                    </p>
+                    <p>
+                      If you imported this podcast from another host, you may want to complete the RSS Migration process first to ensure a smooth transition.
+                    </p>
+                    <p>
+                      Would you like to migrate your RSS feed before deleting, or proceed with deletion?
+                    </p>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setActiveTab("rss-migration");
+                    }}
+                  >
+                    Migrate First
+                  </Button>
+                  <AlertDialogAction
+                    onClick={handleDeletePodcast}
+                    disabled={isDeleting}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {isDeleting ? "Deleting..." : "Delete Anyway"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
 
