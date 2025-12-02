@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
     // Get user's Facebook pages
     console.log('[meta-callback] Fetching user pages');
     const pagesResponse = await fetch(
-      `https://graph.facebook.com/v18.0/me/accounts?access_token=${accessToken}`
+      `https://graph.facebook.com/v18.0/me/accounts?fields=id,name,access_token,picture,fan_count,followers_count&access_token=${accessToken}`
     );
     const pagesData = await pagesResponse.json();
 
@@ -79,15 +79,14 @@ Deno.serve(async (req) => {
       return Response.redirect(`${FRONTEND_URL}/social-analytics?error=pages_failed`, 302);
     }
 
-    console.log('[meta-callback] Found pages:', pagesData.data?.length || 0);
+    const pages = pagesData.data || [];
+    console.log('[meta-callback] Found pages:', pages.length);
 
-    // Get Instagram Business Account for each page
-    console.log('[meta-callback] Fetching Instagram accounts');
-    let connectedCount = 0;
-
-    for (const page of pagesData.data || []) {
+    // Process Instagram Business Accounts
+    let instagramConnected = false;
+    for (const page of pages) {
       try {
-        console.log('[meta-callback] Checking page:', page.name, page.id);
+        console.log('[meta-callback] Checking page for Instagram:', page.name, page.id);
         
         const igResponse = await fetch(
           `https://graph.facebook.com/v18.0/${page.id}?fields=instagram_business_account{id,username,profile_picture_url,followers_count,follows_count,media_count,biography}&access_token=${page.access_token}`
@@ -99,7 +98,7 @@ Deno.serve(async (req) => {
           console.log('[meta-callback] Found Instagram account:', igAccount.username);
 
           // Insert into social_media_profiles table
-          const { data: insertData, error: insertError } = await supabaseClient
+          const { error: insertError } = await supabaseClient
             .from('social_media_profiles')
             .upsert({
               user_id: state,
@@ -112,53 +111,145 @@ Deno.serve(async (req) => {
               followers_count: igAccount.followers_count || 0,
               follows_count: igAccount.follows_count || 0,
               media_count: igAccount.media_count || 0,
-              access_token: page.access_token, // Use page access token for API calls
+              access_token: page.access_token,
               connected_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
               sync_status: 'pending',
             }, {
               onConflict: 'user_id,platform,platform_user_id',
-            })
-            .select();
+            });
 
           if (insertError) {
-            console.error('[meta-callback] Error inserting social_media_profiles:', insertError);
+            console.error('[meta-callback] Error inserting Instagram profile:', insertError);
           } else {
             console.log('[meta-callback] Successfully stored Instagram profile:', igAccount.username);
-            connectedCount++;
-            
-            // Trigger initial data sync
-            try {
-              console.log('[meta-callback] Triggering initial data sync for user:', state);
-              const syncResponse = await fetch(
-                `${Deno.env.get('SUPABASE_URL')}/functions/v1/meta-sync-social-data`,
-                {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-                  },
-                  body: JSON.stringify({ user_id: state }),
-                }
-              );
-              console.log('[meta-callback] Sync triggered, status:', syncResponse.status);
-            } catch (syncErr) {
-              console.error('[meta-callback] Error triggering sync:', syncErr);
-              // Don't fail the callback if sync fails
-            }
+            instagramConnected = true;
           }
         }
       } catch (err) {
-        console.error('[meta-callback] Error processing page:', page.id, err);
+        console.error('[meta-callback] Error processing page for Instagram:', page.id, err);
       }
     }
 
-    console.log('[meta-callback] Total Instagram accounts connected:', connectedCount);
+    // Process Facebook Pages for direct connection
+    // Build list of pages with their data
+    const fbPages = pages.map((page: any) => ({
+      id: page.id,
+      name: page.name,
+      picture: page.picture?.data?.url || '',
+      fans: page.fan_count || page.followers_count || 0,
+      access_token: page.access_token,
+    }));
 
-    // Redirect to social analytics with success
-    const redirectUrl = `${FRONTEND_URL}/social-analytics?connected=instagram&count=${connectedCount}`;
-    console.log('[meta-callback] Redirecting to:', redirectUrl);
+    console.log('[meta-callback] Facebook pages available:', fbPages.length);
+
+    // Determine redirect behavior for Facebook
+    let fbRedirectParam = '';
     
+    if (fbPages.length === 1) {
+      // Auto-connect single Facebook Page
+      const page = fbPages[0];
+      console.log('[meta-callback] Auto-connecting single Facebook Page:', page.name);
+
+      const { error: fbInsertError } = await supabaseClient
+        .from('social_media_profiles')
+        .upsert({
+          user_id: state,
+          platform: 'facebook',
+          platform_user_id: page.id,
+          username: page.name,
+          profile_picture: page.picture,
+          account_type: 'page',
+          followers_count: page.fans,
+          access_token: page.access_token,
+          connected_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          sync_status: 'pending',
+        }, {
+          onConflict: 'user_id,platform,platform_user_id',
+        });
+
+      if (fbInsertError) {
+        console.error('[meta-callback] Error inserting Facebook Page:', fbInsertError);
+      } else {
+        console.log('[meta-callback] Successfully stored Facebook Page:', page.name);
+        fbRedirectParam = '&fb_connected=true';
+      }
+    } else if (fbPages.length > 1) {
+      // Multiple pages - create selection session
+      console.log('[meta-callback] Multiple Facebook Pages, creating selection session');
+
+      const { data: session, error: sessionError } = await supabaseClient
+        .from('facebook_oauth_sessions')
+        .insert({
+          user_id: state,
+          pages: fbPages,
+          access_token: accessToken,
+        })
+        .select('id')
+        .single();
+
+      if (sessionError) {
+        console.error('[meta-callback] Failed to create FB session:', sessionError);
+      } else {
+        console.log('[meta-callback] FB session created:', session.id);
+        fbRedirectParam = `&fb_select_session=${session.id}`;
+      }
+    }
+
+    // Trigger Instagram sync if connected
+    if (instagramConnected) {
+      try {
+        console.log('[meta-callback] Triggering Instagram data sync for user:', state);
+        await fetch(
+          `${Deno.env.get('SUPABASE_URL')}/functions/v1/meta-sync-social-data`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+            },
+            body: JSON.stringify({ user_id: state, platform: 'instagram' }),
+          }
+        );
+        console.log('[meta-callback] Instagram sync triggered');
+      } catch (syncErr) {
+        console.error('[meta-callback] Error triggering Instagram sync:', syncErr);
+      }
+    }
+
+    // Trigger Facebook sync if single page was auto-connected
+    if (fbPages.length === 1) {
+      try {
+        console.log('[meta-callback] Triggering Facebook data sync for user:', state);
+        await fetch(
+          `${Deno.env.get('SUPABASE_URL')}/functions/v1/meta-sync-social-data`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+            },
+            body: JSON.stringify({ user_id: state, platform: 'facebook' }),
+          }
+        );
+        console.log('[meta-callback] Facebook sync triggered');
+      } catch (syncErr) {
+        console.error('[meta-callback] Error triggering Facebook sync:', syncErr);
+      }
+    }
+
+    // Determine primary redirect based on what was connected
+    let redirectUrl: string;
+    if (instagramConnected) {
+      redirectUrl = `${FRONTEND_URL}/social-analytics?connected=instagram&tab=instagram${fbRedirectParam}`;
+    } else if (fbPages.length > 0) {
+      redirectUrl = `${FRONTEND_URL}/social-analytics?connected=facebook&tab=facebook${fbRedirectParam}`;
+    } else {
+      redirectUrl = `${FRONTEND_URL}/social-analytics?error=no_accounts`;
+    }
+
+    console.log('[meta-callback] Redirecting to:', redirectUrl);
     return Response.redirect(redirectUrl, 302);
   } catch (error) {
     console.error('[meta-callback] Unhandled error:', error);

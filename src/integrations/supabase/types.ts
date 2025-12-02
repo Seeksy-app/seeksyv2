@@ -6580,6 +6580,33 @@ export type Database = {
           },
         ]
       }
+      facebook_oauth_sessions: {
+        Row: {
+          access_token: string
+          created_at: string
+          id: string
+          pages: Json
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          id?: string
+          pages: Json
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          id?: string
+          pages?: Json
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       financial_assumptions: {
         Row: {
           assumption_name: string

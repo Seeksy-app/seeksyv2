@@ -40,13 +40,15 @@ Deno.serve(async (req) => {
       throw new Error('META_APP_ID not configured');
     }
 
-    // Required permissions for Instagram Business and Facebook Pages
-    // Note: instagram_manage_insights requires App Review - using instagram_basic for now
+    // Required permissions for Instagram Business AND Facebook Pages
     const scopes = [
       'instagram_basic',
       'pages_show_list',
       'pages_read_engagement',
+      'pages_read_user_content',
+      'read_insights',
       'business_management',
+      'public_profile',
     ].join(',');
 
     // Build Meta OAuth URL

@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   Instagram, RefreshCw, Users, Eye, TrendingUp, Heart, 
   MessageCircle, Bookmark, Image, Video, Search, 
-  AlertCircle, ArrowUpRight, BarChart3, Youtube, Plus
+  AlertCircle, ArrowUpRight, BarChart3, Youtube, Plus, Facebook
 } from "lucide-react";
 import { 
   useSocialProfiles, 
@@ -21,7 +21,9 @@ import { SocialOnboardingChecklist } from "@/components/social/SocialOnboardingC
 import { CreatorValuationCard } from "@/components/social/CreatorValuationCard";
 import { InstagramReconnectBanner } from "@/components/social/InstagramReconnectBanner";
 import { YouTubeChannelSelectModal } from "@/components/social/YouTubeChannelSelectModal";
+import { FacebookPageSelectModal } from "@/components/social/FacebookPageSelectModal";
 import { useYouTubeConnect } from "@/hooks/useYouTubeConnect";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { formatDistanceToNow, format } from "date-fns";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
@@ -42,36 +44,74 @@ export default function SocialAnalytics() {
   const { data: profiles, isLoading: profilesLoading, refetch: refetchProfiles } = useSocialProfiles();
   const instagramProfile = profiles?.find(p => p.platform === 'instagram');
   const youtubeProfile = profiles?.find(p => p.platform === 'youtube');
+  const facebookProfile = profiles?.find(p => p.platform === 'facebook');
   
   const { data: instagramPosts } = useSocialPosts(instagramProfile?.id || null);
   const { data: youtubePosts } = useSocialPosts(youtubeProfile?.id || null);
+  const { data: facebookPosts } = useSocialPosts(facebookProfile?.id || null);
   const { data: instagramInsights } = useSocialInsights(instagramProfile?.id || null);
   const { data: youtubeInsights } = useSocialInsights(youtubeProfile?.id || null);
+  const { data: facebookInsights } = useSocialInsights(facebookProfile?.id || null);
   const { data: topPosts } = useTopPosts(instagramProfile?.id || null, 5);
   const { data: topYoutubeVideos } = useTopPosts(youtubeProfile?.id || null, 5);
+  const { data: topFacebookPosts } = useTopPosts(facebookProfile?.id || null, 5);
   const { syncData, isSyncing } = useSyncSocialData();
   const { connectYouTube, syncYouTube, isConnecting } = useYouTubeConnect();
 
-  // YouTube channel selection session
+  // Selection sessions
   const ytSelectSession = searchParams.get('yt_select_session');
+  const fbSelectSession = searchParams.get('fb_select_session');
 
-  // Handle channel selection modal close
+  // Handle YouTube channel selection modal close
   const handleChannelSelectClose = () => {
-    // Remove the session param but keep tab
     const newParams = new URLSearchParams(searchParams);
     newParams.delete('yt_select_session');
     setSearchParams(newParams);
   };
 
-  // Handle successful channel connection
+  // Handle successful YouTube channel connection
   const handleChannelConnected = (channelName: string) => {
     toast({
       title: `YouTube channel "${channelName}" connected!`,
       description: "Syncing your channel data now.",
     });
     refetchProfiles();
-    // Clear all params after successful connection
     setSearchParams({});
+  };
+
+  // Handle Facebook page selection modal close
+  const handlePageSelectClose = () => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete('fb_select_session');
+    setSearchParams(newParams);
+  };
+
+  // Handle successful Facebook page connection
+  const handlePageConnected = (pageName: string) => {
+    toast({
+      title: `Facebook Page "${pageName}" connected!`,
+      description: "Syncing your page data now.",
+    });
+    refetchProfiles();
+    setSearchParams({});
+  };
+
+  // Connect to Meta (for Facebook)
+  const connectFacebook = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({ title: "Please sign in first", variant: "destructive" });
+        return;
+      }
+      const { data, error } = await supabase.functions.invoke('meta-auth');
+      if (error) throw error;
+      if (data?.authUrl) {
+        window.location.href = data.authUrl;
+      }
+    } catch (err) {
+      toast({ title: "Failed to connect", variant: "destructive" });
+    }
   };
 
   // Handle success redirect from OAuth callback
@@ -105,6 +145,16 @@ export default function SocialAnalytics() {
       setSearchParams({});
     }
     
+    // Handle Facebook connection (only if no select session - single page auto-connected)
+    if (connected === 'facebook' && !fbSelectSession) {
+      toast({
+        title: "Facebook Connected!",
+        description: "Syncing your page data now.",
+      });
+      refetchProfiles();
+      setSearchParams({});
+    }
+    
     if (error) {
       toast({
         title: "Connection Failed",
@@ -126,10 +176,11 @@ export default function SocialAnalytics() {
       });
       setSearchParams({});
     }
-  }, [searchParams, toast, setSearchParams, refetchProfiles, ytSelectSession]);
+  }, [searchParams, toast, setSearchParams, refetchProfiles, ytSelectSession, fbSelectSession]);
 
   const isInstagramTokenExpired = instagramProfile?.sync_status === 'token_expired';
   const isYouTubeTokenExpired = youtubeProfile?.sync_status === 'token_expired';
+  const isFacebookTokenExpired = facebookProfile?.sync_status === 'token_expired';
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -554,6 +605,13 @@ export default function SocialAnalytics() {
         sessionId={ytSelectSession}
         onClose={handleChannelSelectClose}
         onConnected={handleChannelConnected}
+      />
+
+      {/* Facebook Page Selection Modal */}
+      <FacebookPageSelectModal
+        sessionId={fbSelectSession}
+        onClose={handlePageSelectClose}
+        onConnected={handlePageConnected}
       />
     </div>
   );
