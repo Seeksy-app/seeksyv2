@@ -4,12 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { CookieConsent } from "@/components/CookieConsent";
 import { TopNavigation } from "@/components/homepage/TopNavigation";
-import { HeroSection } from "@/components/homepage/HeroSection";
+import { HeroSectionPremium } from "@/components/homepage/HeroSectionPremium";
+import { GlobalStatsSection } from "@/components/homepage/GlobalStatsSection";
 import { AudienceCards } from "@/components/homepage/AudienceCards";
-import { FeatureSections } from "@/components/homepage/FeatureSections";
+import { FeatureShowcasePremium } from "@/components/homepage/FeatureShowcasePremium";
 import { TestimonialsSection } from "@/components/homepage/TestimonialsSection";
 import { CreatorShowcase } from "@/components/homepage/CreatorShowcase";
-import { TrustMetrics } from "@/components/homepage/TrustMetrics";
 import { FAQSection } from "@/components/homepage/FAQSection";
 import { CTASection } from "@/components/homepage/CTASection";
 import { FooterSection } from "@/components/homepage/FooterSection";
@@ -61,10 +61,10 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <TopNavigation />
       <main>
-        <HeroSection />
+        <HeroSectionPremium />
+        <GlobalStatsSection />
         <AudienceCards />
-        <FeatureSections />
-        <TrustMetrics />
+        <FeatureShowcasePremium />
         <TestimonialsSection />
         <CreatorShowcase />
         <FAQSection />

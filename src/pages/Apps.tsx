@@ -476,7 +476,7 @@ export default function Apps() {
         </div>
 
         {/* Divider */}
-        <div className="h-px bg-border mb-6" />
+        <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent mb-6" />
 
         {/* Search & Controls */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
