@@ -16,7 +16,7 @@ export function HeroSection() {
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden pt-20">
-      {/* Background Image with Overlay */}
+      {/* Background Image with Enhanced Overlay for Text Contrast */}
       <div className="absolute inset-0">
         <img
           src={heroImage}
@@ -24,8 +24,12 @@ export function HeroSection() {
           className="w-full h-full object-cover"
           loading="eager"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/80 to-slate-950/60" />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/50" />
+        {/* Primary gradient - stronger for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 to-slate-950/70" />
+        {/* Secondary gradient for depth */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-slate-950/60" />
+        {/* Subtle color overlay for brand tone */}
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-gold/5 to-transparent mix-blend-overlay" />
       </div>
 
       <div className="container relative z-10 mx-auto px-4 py-20">
@@ -75,7 +79,7 @@ export function HeroSection() {
             <Button
               size="lg"
               onClick={() => navigate("/auth?mode=signup")}
-              className="bg-gradient-to-r from-brand-gold to-brand-orange hover:opacity-90 text-slate-900 text-lg px-8 py-7 h-auto font-bold shadow-lg shadow-brand-gold/25 hover:shadow-xl transition-all hover:scale-[1.02]"
+              className="bg-gradient-to-r from-brand-gold to-brand-orange hover:from-brand-orange hover:to-brand-gold text-slate-900 text-lg px-8 py-7 h-auto font-bold shadow-lg shadow-brand-gold/30 hover:shadow-brand-gold/50 hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-100"
             >
               Get Started Free
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -84,7 +88,7 @@ export function HeroSection() {
               size="lg"
               variant="outline"
               onClick={() => window.open("https://calendly.com/seeksy-demo", "_blank")}
-              className="bg-white/5 backdrop-blur-sm border-2 border-white/20 text-white hover:bg-white hover:text-slate-900 text-lg px-8 py-7 h-auto font-bold transition-all"
+              className="bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white hover:text-slate-900 hover:border-white text-lg px-8 py-7 h-auto font-bold transition-all duration-300 hover:scale-105 active:scale-100"
             >
               <Play className="mr-2 h-5 w-5" />
               Watch Demo

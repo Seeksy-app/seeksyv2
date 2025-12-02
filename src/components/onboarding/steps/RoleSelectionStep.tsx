@@ -1,6 +1,8 @@
 import { Card } from '@/components/ui/card';
-import { Mic, Megaphone, Users, Calendar, Building, Sparkles, Code, Shield } from 'lucide-react';
+import { Mic, Megaphone, Users, Calendar, Building, Sparkles } from 'lucide-react';
 import { type AccountType } from '@/hooks/useAccountType';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface RoleOption {
   type: AccountType;
@@ -61,35 +63,51 @@ interface RoleSelectionStepProps {
 
 export function RoleSelectionStep({ onSelect }: RoleSelectionStepProps) {
   return (
-    <div className="space-y-6">
-      <div className="text-center space-y-2">
-        <h1 className="text-4xl font-bold">Welcome to Seeksy</h1>
-        <p className="text-xl text-muted-foreground">
+    <div className="space-y-8">
+      <div className="text-center space-y-3">
+        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">Welcome to Seeksy</h1>
+        <p className="text-lg text-muted-foreground">
           Let's personalize your experience
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {roleOptions.map((option) => {
+        {roleOptions.map((option, index) => {
           const Icon = option.icon;
           return (
-            <Card
+            <motion.div
               key={option.type}
-              className="p-6 cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-2 border-transparent hover:border-primary group"
-              onClick={() => onSelect(option.type)}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <div className="flex items-start gap-4">
-                <div className={`p-3 rounded-xl bg-gradient-to-br ${option.gradient} text-white`}>
-                  <Icon className="h-6 w-6" />
+              <Card
+                className={cn(
+                  "p-6 cursor-pointer transition-all duration-200",
+                  "border-2 border-transparent hover:border-primary",
+                  "bg-card hover:bg-accent/50",
+                  "shadow-sm hover:shadow-lg"
+                )}
+                onClick={() => onSelect(option.type)}
+              >
+                <div className="flex items-start gap-4">
+                  <div className={cn(
+                    "p-3 rounded-xl bg-gradient-to-br text-white shadow-lg",
+                    option.gradient
+                  )}>
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg mb-1">{option.label}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {option.description}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-lg mb-1">{option.label}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {option.description}
-                  </p>
-                </div>
-              </div>
-            </Card>
+              </Card>
+            </motion.div>
           );
         })}
       </div>

@@ -27,74 +27,88 @@ interface Module extends Omit<ModuleCardProps, 'onClick' | 'compact'> {
 interface Category {
   id: string;
   name: string;
+  shortName: string;
   icon: React.ElementType;
   description: string;
   bgClass: string;
+  accentColor: string;
 }
 
 const categories: Category[] = [
-  { id: "all", name: "All Modules", icon: Grid3X3, description: "", bgClass: "" },
+  { id: "all", name: "All Modules", shortName: "All", icon: Grid3X3, description: "", bgClass: "", accentColor: "" },
   { 
     id: "creator", 
     name: "Creator Tools", 
+    shortName: "Creator",
     icon: Star, 
     description: "Modules that help creators grow, analyze, or monetize their audience",
-    bgClass: "bg-amber-500/5 dark:bg-amber-500/10 border-amber-500/10"
+    bgClass: "bg-amber-50 dark:bg-amber-950/30 border-amber-200/50 dark:border-amber-800/30",
+    accentColor: "text-amber-600 dark:text-amber-400"
   },
   { 
     id: "media", 
     name: "Media & Content", 
+    shortName: "Media",
     icon: Video, 
     description: "Create, manage, and publish audio, video, and media",
-    bgClass: "bg-purple-500/5 dark:bg-purple-500/10 border-purple-500/10"
+    bgClass: "bg-violet-50 dark:bg-violet-950/30 border-violet-200/50 dark:border-violet-800/30",
+    accentColor: "text-violet-600 dark:text-violet-400"
   },
   { 
     id: "marketing", 
     name: "Marketing & CRM", 
+    shortName: "Marketing",
     icon: Megaphone, 
     description: "Communication, segmentation, automation, and multi-channel marketing",
-    bgClass: "bg-blue-500/5 dark:bg-blue-500/10 border-blue-500/10"
+    bgClass: "bg-sky-50 dark:bg-sky-950/30 border-sky-200/50 dark:border-sky-800/30",
+    accentColor: "text-sky-600 dark:text-sky-400"
   },
   { 
     id: "business", 
     name: "Business Operations", 
+    shortName: "Business",
     icon: CheckSquare, 
     description: "Professional tools for managing clients, projects, tasks, and events",
-    bgClass: "bg-emerald-500/5 dark:bg-emerald-500/10 border-emerald-500/10"
+    bgClass: "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200/50 dark:border-emerald-800/30",
+    accentColor: "text-emerald-600 dark:text-emerald-400"
   },
   { 
     id: "identity", 
     name: "Identity & Profile", 
+    shortName: "Identity",
     icon: Shield, 
     description: "Everything related to who you are and how you show up publicly",
-    bgClass: "bg-rose-500/5 dark:bg-rose-500/10 border-rose-500/10"
+    bgClass: "bg-rose-50 dark:bg-rose-950/30 border-rose-200/50 dark:border-rose-800/30",
+    accentColor: "text-rose-600 dark:text-rose-400"
   },
   { 
     id: "integrations", 
     name: "Integrations", 
+    shortName: "Integrations",
     icon: Globe, 
     description: "Platform and third-party data connections",
-    bgClass: "bg-cyan-500/5 dark:bg-cyan-500/10 border-cyan-500/10"
+    bgClass: "bg-cyan-50 dark:bg-cyan-950/30 border-cyan-200/50 dark:border-cyan-800/30",
+    accentColor: "text-cyan-600 dark:text-cyan-400"
   },
 ];
 
 const modules: Module[] = [
   // Creator Tools
   {
-    id: "social-connect",
-    name: "Social Connect",
-    description: "Connect Instagram, YouTube, TikTok, Facebook and import your data",
-    icon: Instagram,
-    status: "active",
-    category: "creator",
-    route: "/integrations",
-    recommendedWith: ["Audience Insights", "Monetization Hub"],
-  },
-  {
     id: "audience-insights",
     name: "Audience Insights",
     description: "Deep analytics on followers, engagement, and demographics",
     icon: BarChart3,
+    status: "active",
+    category: "creator",
+    route: "/social-analytics",
+    recommendedWith: ["Social Connect"],
+  },
+  {
+    id: "social-analytics",
+    name: "Social Analytics",
+    description: "Track social media performance and trends",
+    icon: PieChart,
     status: "active",
     category: "creator",
     route: "/social-analytics",
@@ -193,16 +207,6 @@ const modules: Module[] = [
     category: "marketing",
     route: "/audience",
     recommendedWith: ["Segments", "Campaigns"],
-  },
-  {
-    id: "social-analytics",
-    name: "Social Analytics",
-    description: "Track social media performance and trends",
-    icon: PieChart,
-    status: "active",
-    category: "marketing",
-    route: "/social-analytics",
-    recommendedWith: ["Social Connect"],
   },
   {
     id: "segments",
@@ -358,7 +362,17 @@ const modules: Module[] = [
     category: "identity",
   },
 
-  // Integrations
+  // Integrations - Social Connect moved here
+  {
+    id: "social-connect",
+    name: "Social Connect",
+    description: "Connect Instagram, YouTube, TikTok, Facebook and import your data",
+    icon: Instagram,
+    status: "active",
+    category: "integrations",
+    route: "/integrations",
+    recommendedWith: ["Audience Insights", "Social Analytics"],
+  },
   {
     id: "social-integrations",
     name: "Social Media Integrations",
@@ -446,118 +460,117 @@ export default function Apps() {
   const categoryOrder = ["creator", "media", "marketing", "business", "identity", "integrations"];
 
   const totalActive = filteredModules.filter((m) => m.status === "active").length;
-  const totalAvailable = filteredModules.filter((m) => m.status === "available").length;
   const totalComingSoon = filteredModules.filter((m) => m.status === "coming_soon").length;
 
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
+        <div className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1.5">
             Seeksy App Directory
           </h1>
-          <p className="text-muted-foreground text-sm sm:text-base max-w-2xl">
-            All modules, tools, and integrations available in your workspace. Search, activate, and customize your experience.
+          <p className="text-muted-foreground text-sm max-w-xl">
+            All modules, tools, and integrations available in your workspace.
           </p>
         </div>
 
-        {/* Search & Filters */}
-        <div className="flex flex-col gap-4 mb-6">
-          {/* Search + View Toggle Row */}
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search modules..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 h-10 sm:h-11 bg-card border-border/50"
-              />
-            </div>
+        {/* Divider */}
+        <div className="h-px bg-border mb-6" />
 
-            {/* View Toggle */}
-            <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-lg">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsCompact(false)}
-                className={cn(
-                  "h-8 px-3 gap-1.5",
-                  !isCompact && "bg-background shadow-sm"
-                )}
-              >
-                <LayoutGrid className="h-4 w-4" />
-                <span className="hidden sm:inline">Expanded</span>
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsCompact(true)}
-                className={cn(
-                  "h-8 px-3 gap-1.5",
-                  isCompact && "bg-background shadow-sm"
-                )}
-              >
-                <List className="h-4 w-4" />
-                <span className="hidden sm:inline">Compact</span>
-              </Button>
-            </div>
+        {/* Search & Controls */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          {/* Search - 20% smaller */}
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search modules..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-8 h-9 text-sm bg-card border-border/50"
+            />
           </div>
 
-          {/* Category Filters */}
-          <div className="flex flex-wrap gap-2">
+          {/* View Toggle */}
+          <div className="flex items-center gap-1 p-0.5 bg-muted/50 rounded-lg">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsCompact(false)}
+              className={cn(
+                "h-8 px-3 gap-1.5 text-xs",
+                !isCompact && "bg-background shadow-sm"
+              )}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Expanded</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsCompact(true)}
+              className={cn(
+                "h-8 px-3 gap-1.5 text-xs",
+                isCompact && "bg-background shadow-sm"
+              )}
+            >
+              <List className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Compact</span>
+            </Button>
+          </div>
+        </div>
+
+        {/* Segmented Control Filter */}
+        <div className="mb-6">
+          <div className="inline-flex items-center p-1 bg-muted/50 rounded-xl border border-border/50">
             {categories.map((category) => {
-              const Icon = category.icon;
               const isActive = activeCategory === category.id;
               const moduleCount = category.id === "all" 
                 ? modules.length 
                 : modules.filter(m => m.category === category.id).length;
               return (
-                <Button
+                <button
                   key={category.id}
-                  variant={isActive ? "default" : "outline"}
-                  size="sm"
                   onClick={() => setActiveCategory(category.id)}
                   className={cn(
-                    "h-8 sm:h-9 gap-1.5 text-xs sm:text-sm",
-                    !isActive && "bg-card hover:bg-accent"
+                    "px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all",
+                    isActive 
+                      ? "bg-background text-foreground shadow-sm" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-background/50"
                   )}
                 >
-                  <Icon className="h-3.5 w-3.5" />
-                  <span className="hidden xs:inline">{category.name}</span>
-                  <span className="xs:hidden">{category.name.split(' ')[0]}</span>
-                  <span className="text-[10px] opacity-70">({moduleCount})</span>
-                </Button>
+                  <span>{category.shortName}</span>
+                  <span className={cn(
+                    "ml-1.5 text-[10px]",
+                    isActive ? "text-muted-foreground" : "opacity-60"
+                  )}>
+                    {moduleCount}
+                  </span>
+                </button>
               );
             })}
           </div>
         </div>
 
         {/* Stats Bar */}
-        <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-6 sm:mb-8 text-xs sm:text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-4 mb-8 text-xs text-muted-foreground">
           <span>
             <strong className="text-foreground">{filteredModules.length}</strong> modules
           </span>
-          <span className="w-px h-4 bg-border hidden sm:block" />
+          <span className="w-px h-3 bg-border" />
           <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             {totalActive} active
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-blue-500" />
-            {totalAvailable} available
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-muted-foreground/50" />
+            <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
             {totalComingSoon} coming soon
           </span>
         </div>
 
         {/* Module Grid by Category */}
-        <div className="space-y-6">
+        <div className="space-y-8">
           {categoryOrder.map((categoryId) => {
             const categoryModules = groupedModules[categoryId];
             if (!categoryModules || categoryModules.length === 0) return null;
@@ -576,25 +589,27 @@ export default function Apps() {
               >
                 <section 
                   className={cn(
-                    "rounded-xl border p-4 sm:p-6 transition-colors",
+                    "rounded-2xl border p-5 sm:p-6 transition-all shadow-sm",
                     category.bgClass
                   )}
                 >
-                  {/* Category Header */}
+                  {/* Category Header - Sticky */}
                   <CollapsibleTrigger asChild>
-                    <button className="w-full flex items-center justify-between gap-3 mb-0 group cursor-pointer">
+                    <button className="w-full flex items-center justify-between gap-3 group cursor-pointer sticky top-0 bg-inherit z-10 -mt-1 pt-1">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-background/80 flex items-center justify-center shadow-sm">
-                          <CategoryIcon className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                        <div className={cn(
+                          "w-10 h-10 rounded-xl bg-background flex items-center justify-center shadow-sm border border-border/30"
+                        )}>
+                          <CategoryIcon className={cn("h-5 w-5", category.accentColor)} />
                         </div>
                         <div className="text-left min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h2 className="text-lg sm:text-xl font-semibold">{category.name}</h2>
-                            <Badge variant="secondary" className="text-xs">
+                          <div className="flex items-center gap-2.5 flex-wrap">
+                            <h2 className="text-lg font-semibold">{category.name}</h2>
+                            <Badge variant="secondary" className="text-[10px] font-medium px-2 py-0.5">
                               {categoryModules.length} modules
                             </Badge>
                           </div>
-                          <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
+                          <p className="text-xs text-muted-foreground hidden sm:block mt-0.5">
                             {category.description}
                           </p>
                         </div>
@@ -612,7 +627,7 @@ export default function Apps() {
                   <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
                     <div 
                       className={cn(
-                        "mt-4 sm:mt-5 grid gap-3 sm:gap-4",
+                        "mt-5 grid gap-3",
                         isCompact 
                           ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
                           : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
@@ -637,13 +652,14 @@ export default function Apps() {
         {/* Empty State */}
         {filteredModules.length === 0 && (
           <div className="text-center py-16">
-            <Search className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-medium mb-2">No modules found</h3>
-            <p className="text-muted-foreground mb-4">
+            <Search className="h-10 w-10 mx-auto text-muted-foreground/50 mb-4" />
+            <h3 className="text-base font-medium mb-1.5">No modules found</h3>
+            <p className="text-sm text-muted-foreground mb-4">
               Try adjusting your search or filter criteria
             </p>
             <Button
               variant="outline"
+              size="sm"
               onClick={() => {
                 setSearchTerm("");
                 setActiveCategory("all");
