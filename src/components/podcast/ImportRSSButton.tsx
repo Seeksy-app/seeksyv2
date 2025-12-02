@@ -155,7 +155,9 @@ export function ImportRSSButton({ onImportComplete }: ImportRSSButtonProps) {
         setRssUrl("");
         setImportStatus("idle");
         setImportResult(null);
-        // Navigate to content hub with small delay to ensure transaction completes
+        // Set the active tab to RSS Migration before navigating
+        localStorage.setItem("podcast-detail-tab", "rss-migration");
+        // Navigate directly to the podcast with RSS Migration tab
         if (onImportComplete) {
           setTimeout(() => onImportComplete(podcastData.id), 300);
         }

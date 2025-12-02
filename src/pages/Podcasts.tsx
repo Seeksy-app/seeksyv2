@@ -123,8 +123,8 @@ const Podcasts = () => {
               onImportComplete={(podcastId) => {
                 console.log("Import complete, podcast ID:", podcastId);
                 queryClient.invalidateQueries({ queryKey: ["podcasts"] });
-                // Navigate to content hub to avoid timing issues
-                navigate("/content-and-media#podcasts");
+                // Navigate directly to the podcast's RSS Migration tab
+                navigate(`/podcasts/${podcastId}`);
               }} 
             />
             <Button onClick={() => navigate("/podcasts/create")}>
