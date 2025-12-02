@@ -121,7 +121,7 @@ export default function AdminInternalChat() {
       .eq("id", session.user.id)
       .single();
 
-    if (profile?.account_type !== "seeksy_admin") {
+    if (profile?.account_type !== "admin") {
       toast({
         title: "Access Denied",
         description: "Only Seeksy Admins can access this chat",

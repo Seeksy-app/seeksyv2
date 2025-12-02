@@ -9640,6 +9640,10 @@ export type Database = {
           account_full_name: string | null
           account_phone: string | null
           account_type: Database["public"]["Enums"]["account_type"] | null
+          account_types_enabled: string[] | null
+          active_account_type:
+            | Database["public"]["Enums"]["account_type"]
+            | null
           admin_avatar_url: string | null
           admin_email: string | null
           admin_full_name: string | null
@@ -9678,6 +9682,8 @@ export type Database = {
           newsletter_description: string | null
           newsletter_enabled: boolean | null
           newsletter_heading: string | null
+          onboarding_completed: boolean | null
+          onboarding_data: Json | null
           page_background_color: string | null
           preferred_role: string | null
           qr_code_color: string | null
@@ -9702,6 +9708,10 @@ export type Database = {
           account_full_name?: string | null
           account_phone?: string | null
           account_type?: Database["public"]["Enums"]["account_type"] | null
+          account_types_enabled?: string[] | null
+          active_account_type?:
+            | Database["public"]["Enums"]["account_type"]
+            | null
           admin_avatar_url?: string | null
           admin_email?: string | null
           admin_full_name?: string | null
@@ -9740,6 +9750,8 @@ export type Database = {
           newsletter_description?: string | null
           newsletter_enabled?: boolean | null
           newsletter_heading?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_data?: Json | null
           page_background_color?: string | null
           preferred_role?: string | null
           qr_code_color?: string | null
@@ -9764,6 +9776,10 @@ export type Database = {
           account_full_name?: string | null
           account_phone?: string | null
           account_type?: Database["public"]["Enums"]["account_type"] | null
+          account_types_enabled?: string[] | null
+          active_account_type?:
+            | Database["public"]["Enums"]["account_type"]
+            | null
           admin_avatar_url?: string | null
           admin_email?: string | null
           admin_full_name?: string | null
@@ -9802,6 +9818,8 @@ export type Database = {
           newsletter_description?: string | null
           newsletter_enabled?: boolean | null
           newsletter_heading?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_data?: Json | null
           page_background_color?: string | null
           preferred_role?: string | null
           qr_code_color?: string | null
@@ -13799,8 +13817,12 @@ export type Database = {
       account_type:
         | "creator"
         | "advertiser"
-        | "meeting_planner"
-        | "seeksy_admin"
+        | "agency"
+        | "podcaster"
+        | "event_planner"
+        | "brand"
+        | "studio_team"
+        | "admin"
       advertiser_team_role:
         | "super_admin"
         | "admin"
@@ -13970,8 +13992,12 @@ export const Constants = {
       account_type: [
         "creator",
         "advertiser",
-        "meeting_planner",
-        "seeksy_admin",
+        "agency",
+        "podcaster",
+        "event_planner",
+        "brand",
+        "studio_team",
+        "admin",
       ],
       advertiser_team_role: [
         "super_admin",

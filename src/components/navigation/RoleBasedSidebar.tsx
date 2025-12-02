@@ -83,6 +83,7 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { NAVIGATION_CONFIG, filterNavigationByRoles } from "@/config/navigation";
 import { useUserRoles } from "@/hooks/useUserRoles";
+import { useAccountType } from "@/hooks/useAccountType";
 import { SparkIcon } from "@/components/spark/SparkIcon";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
@@ -156,6 +157,7 @@ const ICON_MAP: Record<string, any> = {
 
 export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
   const { roles, isLoading } = useUserRoles();
+  const { activeAccountType } = useAccountType();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   
@@ -184,11 +186,25 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
     return null;
   }
 
-  // Filter navigation based on user's roles
-  const filteredNavigation = filterNavigationByRoles(
+  // Filter navigation based on user's roles and account type
+  let filteredNavigation = filterNavigationByRoles(
     NAVIGATION_CONFIG.navigation,
     roles
   );
+
+  // Additional filtering based on active account type
+  if (activeAccountType === 'advertiser') {
+    // Advertisers only see advertiser-specific sections
+    filteredNavigation = filteredNavigation.filter(group => 
+      ['Seeksy OS', 'Admin'].includes(group.group) || 
+      group.items.some(item => item.path.includes('advertiser'))
+    );
+  } else if (activeAccountType === 'podcaster') {
+    // Podcasters see creator tools focused on podcasting
+    filteredNavigation = filteredNavigation.filter(group => 
+      !group.group.includes('Advertiser')
+    );
+  }
 
   return (
     <Sidebar collapsible="icon">

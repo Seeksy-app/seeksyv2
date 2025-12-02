@@ -1,0 +1,149 @@
+/**
+ * Hook to manage user account types and switching
+ */
+
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
+
+export type AccountType = 
+  | 'creator'
+  | 'advertiser'
+  | 'agency'
+  | 'podcaster'
+  | 'event_planner'
+  | 'brand'
+  | 'studio_team'
+  | 'admin';
+
+interface AccountTypeData {
+  account_type: AccountType | null;
+  active_account_type: AccountType | null;
+  account_types_enabled: string[];
+  onboarding_completed: boolean;
+  onboarding_data: any;
+}
+
+export function useAccountType() {
+  const queryClient = useQueryClient();
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['accountType'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('account_type, active_account_type, account_types_enabled, onboarding_completed, onboarding_data')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+      return profile as AccountTypeData;
+    },
+  });
+
+  const switchAccountType = useMutation({
+    mutationFn: async (newType: AccountType) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Check if user has this type enabled
+      if (!data?.account_types_enabled?.includes(newType)) {
+        throw new Error('Account type not enabled');
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ active_account_type: newType })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      return newType;
+    },
+    onSuccess: (newType) => {
+      queryClient.invalidateQueries({ queryKey: ['accountType'] });
+      toast({
+        title: 'Account type switched',
+        description: `Now viewing as ${newType}`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Failed to switch account type',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const enableAccountType = useMutation({
+    mutationFn: async (newType: AccountType) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const currentTypes = data?.account_types_enabled || [];
+      if (currentTypes.includes(newType)) {
+        return; // Already enabled
+      }
+
+      const updatedTypes = [...currentTypes, newType];
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          account_types_enabled: updatedTypes,
+          active_account_type: newType, // Switch to new type
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      return newType;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accountType'] });
+    },
+  });
+
+  const completeOnboarding = useMutation({
+    mutationFn: async (updates: { 
+      account_type: AccountType;
+      onboarding_data?: any;
+    }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          account_type: updates.account_type,
+          active_account_type: updates.account_type,
+          account_types_enabled: [updates.account_type],
+          onboarding_completed: true,
+          onboarding_data: updates.onboarding_data || {},
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accountType'] });
+    },
+  });
+
+  return {
+    accountType: data?.account_type,
+    activeAccountType: data?.active_account_type,
+    accountTypesEnabled: data?.account_types_enabled || [],
+    onboardingCompleted: data?.onboarding_completed || false,
+    onboardingData: data?.onboarding_data,
+    isLoading,
+    error,
+    switchAccountType: switchAccountType.mutate,
+    isSwitching: switchAccountType.isPending,
+    enableAccountType: enableAccountType.mutate,
+    completeOnboarding: completeOnboarding.mutate,
+    isCompletingOnboarding: completeOnboarding.isPending,
+  };
+}
