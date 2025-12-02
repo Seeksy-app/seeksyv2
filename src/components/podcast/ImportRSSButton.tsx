@@ -64,6 +64,17 @@ export function ImportRSSButton({ onImportComplete }: ImportRSSButtonProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Check if podcast with this RSS URL already exists
+      const { data: existingPodcast } = await supabase
+        .from("podcasts")
+        .select("id, title")
+        .eq("source_url", rssUrl.trim())
+        .maybeSingle();
+
+      if (existingPodcast) {
+        throw new Error(`This RSS feed has already been imported as "${existingPodcast.title}"`);
+      }
+
       // Call edge function to import RSS
       const { data, error } = await supabase.functions.invoke("import-rss-feed", {
         body: { rssUrl: rssUrl.trim() },
@@ -77,11 +88,34 @@ export function ImportRSSButton({ onImportComplete }: ImportRSSButtonProps) {
 
       setImportResult(data);
 
+      // Generate unique slug
+      const baseSlug = data.podcast.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      
+      let slug = baseSlug;
+      let counter = 1;
+      
+      // Check if slug exists and append number if needed
+      while (true) {
+        const { data: existingSlug } = await supabase
+          .from("podcasts")
+          .select("id")
+          .eq("slug", slug)
+          .maybeSingle();
+        
+        if (!existingSlug) break;
+        slug = `${baseSlug}-${counter}`;
+        counter++;
+      }
+
       // Create podcast in database
       const { data: podcastData, error: podcastError } = await supabase
         .from("podcasts")
         .insert({
           user_id: user.id,
+          slug: slug,
           title: data.podcast.title,
           description: data.podcast.description || "",
           cover_image_url: data.podcast.imageUrl || null,

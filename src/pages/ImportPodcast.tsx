@@ -52,6 +52,17 @@ const ImportPodcast = () => {
     mutationFn: async () => {
       if (!user || !parsedData) throw new Error("Missing data");
 
+      // Check if podcast with this RSS URL already exists
+      const { data: existingPodcast } = await supabase
+        .from("podcasts")
+        .select("id, title")
+        .eq("source_url", rssUrl)
+        .maybeSingle();
+
+      if (existingPodcast) {
+        throw new Error(`This RSS feed has already been imported as "${existingPodcast.title}"`);
+      }
+
       // Generate unique slug
       const baseSlug = parsedData.podcast.title
         .toLowerCase()
