@@ -130,9 +130,23 @@ export const NAVIGATION_CONFIG: {
       "items": [
         {
           "id": "studio_hub",
-          "label": "Studio",
-          "icon": "mic",
+          "label": "Studio Hub",
+          "icon": "layout-dashboard",
           "path": "/studio",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        },
+        {
+          "id": "audio_studio",
+          "label": "Audio Studio",
+          "icon": "mic",
+          "path": "/studio/audio",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        },
+        {
+          "id": "video_studio",
+          "label": "Video Studio",
+          "icon": "video",
+          "path": "/studio/video",
           "roles": ["creator", "influencer", "agency", "admin"]
         },
         {
