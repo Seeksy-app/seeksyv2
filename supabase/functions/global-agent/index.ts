@@ -120,7 +120,7 @@ async function handleCastor(message: string, context: any, user: any, supabase: 
   const { data: podcasts } = await supabase
     .from("podcasts")
     .select("*")
-    .eq("owner_id", user.id)
+    .eq("user_id", user.id)
     .limit(5);
 
   const systemPrompt = `You are Castor, the Podcast Production Manager for Seeksy. You help with:

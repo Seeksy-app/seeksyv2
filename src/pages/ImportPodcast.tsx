@@ -57,7 +57,6 @@ const ImportPodcast = () => {
         .from("podcasts")
         .insert({
           user_id: user.id,
-          owner_id: user.id, // Ensure owner_id is set for RLS
           title: parsedData.podcast.title,
           description: parsedData.podcast.description,
           cover_image_url: parsedData.podcast.cover_image_url,
