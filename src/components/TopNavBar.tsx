@@ -6,7 +6,7 @@ import { NotificationsBell } from "@/components/NotificationsBell";
 import { AccountTypeSwitcher } from "@/components/AccountTypeSwitcher";
 import { BoardViewToggle } from "@/components/board/BoardViewToggle";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -29,9 +29,22 @@ export function TopNavBar() {
     }
   };
 
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 items-center gap-4 px-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleRefresh}
+          title="Refresh"
+          className="flex-shrink-0"
+        >
+          <RefreshCw className="h-4 w-4" />
+        </Button>
         <SidebarTrigger className="flex-shrink-0" />
         
         <div className="flex-1 flex items-center justify-between gap-4">
