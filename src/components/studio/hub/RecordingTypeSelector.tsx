@@ -10,20 +10,20 @@ interface RecordingTypeSelectorProps {
 const recordingTypes = [
   {
     id: "audio",
-    title: "Audio Podcast",
-    description: "Record audio-only podcast episodes with professional tools and AI enhancement.",
+    title: "Audio Studio",
+    description: "Professional audio-only recording with waveform preview and AI enhancement.",
     icon: Mic,
     color: "bg-violet-500",
-    features: ["No camera required", "AI audio cleanup", "Host-read scripts", "Auto markers"],
+    features: ["AI Cleanup", "Host-Read Scripts", "Auto Markers"],
     path: "/studio/audio",
   },
   {
     id: "video",
-    title: "Video Podcast",
-    description: "Record video podcasts with multi-guest layouts and AI auto-focus.",
+    title: "Video Studio",
+    description: "Video + audio recording for solo or guest sessions.",
     icon: Video,
     color: "bg-blue-500",
-    features: ["3 scene presets", "Guest support", "Auto vertical clips", "Live transcript"],
+    features: ["Guest Support", "Scene Presets", "Live Transcript", "Auto Vertical Clips"],
     path: "/studio/video",
   },
 ];

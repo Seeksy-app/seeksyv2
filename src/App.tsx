@@ -44,7 +44,6 @@ import MeetingStudio from "./pages/MeetingStudio";
 import MeetingRSVP from "./pages/MeetingRSVP";
 import Availability from "./pages/Availability";
 import MasterStudio from "./pages/MasterStudio";
-import VideoStudio from "./pages/VideoStudio";
 import LiveStudio from "./pages/LiveStudio";
 import StudioHome from "./pages/studio/StudioHome";
 import StudioRecording from "./pages/studio/StudioRecording";

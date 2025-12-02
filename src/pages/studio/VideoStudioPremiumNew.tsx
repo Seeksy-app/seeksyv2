@@ -1,70 +1,42 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
-  Video, VideoOff, Mic, MicOff, Square, CircleDot, Pause, Play,
-  Flag, FileText, MessageSquare, Wifi, Users, Settings,
-  Sparkles, Clock, LayoutGrid, User, Monitor, Presentation,
-  Image, Type, Palette, Camera, Wand2, ChevronRight
+  ArrowLeft, Video, Mic, MicOff, FileText, Bookmark, 
+  Sparkles, CircleDot, Square, Play, Pause, MessageSquare,
+  Settings, Users, Camera, CameraOff, Monitor, Clock, Wifi, User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Scene presets
-const scenePresets = [
-  { id: "side-by-side", label: "Side by Side", icon: LayoutGrid },
-  { id: "host-only", label: "Host Only", icon: User },
-  { id: "speaker-switch", label: "Speaker Switch", icon: Users },
-  { id: "presentation", label: "Presentation", icon: Presentation },
-];
-
-// Marker types
-const markerTypes = [
-  { id: "highlight", label: "Highlight", icon: "⭐", color: "bg-amber-500" },
-  { id: "quote", label: "Great Quote", icon: "🎙️", color: "bg-blue-500" },
-  { id: "ad-break", label: "Ad Break", icon: "📈", color: "bg-green-500" },
-  { id: "viral", label: "Viral Moment", icon: "🔥", color: "bg-orange-500" },
-  { id: "funny", label: "Funny Moment", icon: "😂", color: "bg-pink-500" },
-  { id: "topic", label: "Topic Change", icon: "📌", color: "bg-purple-500" },
-];
-
-// Sample ad scripts
-const adScripts = [
-  { id: "1", type: "pre-roll", brand: "Seeksy Pro", script: "Hey creators! Before we dive in...", duration: "30s" },
-  { id: "2", type: "mid-roll", brand: "AudioGear Co", script: "Speaking of quality...", duration: "45s" },
-];
-
-// Camera presets
-const cameraPresets = [
-  { id: "1", label: "Wide Shot" },
-  { id: "2", label: "Close Up" },
-  { id: "3", label: "Two Shot" },
-  { id: "4", label: "Custom" },
-];
+type SceneLayout = "side-by-side" | "speaker-auto-focus";
 
 export default function VideoStudioPremiumNew() {
+  const navigate = useNavigate();
+  
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isVideoOff, setIsVideoOff] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
-  const [selectedScene, setSelectedScene] = useState("side-by-side");
-  const [markers, setMarkers] = useState<Array<{ id: string; type: string; time: number }>>([]);
-  const [showMarkerMenu, setShowMarkerMenu] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isCameraOff, setIsCameraOff] = useState(false);
+  const [backgroundBlur, setBackgroundBlur] = useState(false);
+  const [activeLayout, setActiveLayout] = useState<SceneLayout>("side-by-side");
+  const [markers, setMarkers] = useState<{id: string; time: number; label: string}[]>([]);
   const [rightTab, setRightTab] = useState("scripts");
-  const [leftTab, setLeftTab] = useState("scenes");
+  const [selectedCamera, setSelectedCamera] = useState("default");
+  const [selectedMic, setSelectedMic] = useState("default");
   const [autoClips, setAutoClips] = useState(0);
-  const [aiEnhancement, setAiEnhancement] = useState(true);
 
-  // Recording timer
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isRecording && !isPaused) {
-      interval = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
-      }, 1000);
+      interval = setInterval(() => setRecordingTime(prev => prev + 1), 1000);
     }
     return () => clearInterval(interval);
   }, [isRecording, isPaused]);
@@ -83,37 +55,30 @@ export default function VideoStudioPremiumNew() {
     return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const addMarker = (type: string) => {
-    setMarkers(prev => [...prev, { id: Date.now().toString(), type, time: recordingTime }]);
-    setShowMarkerMenu(false);
+  const addMarker = (label: string) => {
+    setMarkers(prev => [...prev, { id: `m-${Date.now()}`, time: recordingTime, label }]);
+  };
+
+  const handleStop = () => {
+    setIsRecording(false);
+    setIsPaused(false);
+    navigate("/studio/session/new");
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0B0F14] via-[#0D1117] to-[#11151C] flex flex-col">
-      {/* Top Bar */}
-      <div className="h-16 border-b border-white/5 bg-black/20 backdrop-blur-xl flex items-center justify-between px-6">
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2">
-            <Video className="w-5 h-5 text-blue-400" />
-            <span className="font-semibold text-white">Video Studio</span>
-          </div>
-          
-          {/* Timer */}
-          <div className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-lg",
-            isRecording ? "bg-red-500/20" : "bg-white/5"
-          )}>
-            {isRecording && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
-            <Clock className="w-4 h-4 text-white/60" />
-            <span className={cn(
-              "font-mono text-lg",
-              isRecording ? "text-red-400" : "text-white/60"
-            )}>
-              {formatTime(recordingTime)}
-            </span>
-          </div>
-
-          {/* Auto clips counter */}
+    <div className="h-screen bg-gradient-to-br from-[#0B0F14] via-[#0D1117] to-[#11151C] flex flex-col overflow-hidden">
+      {/* Header */}
+      <header className="h-14 border-b border-white/10 px-4 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/studio")} className="text-white/60 hover:text-white hover:bg-white/10">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <span className="text-white/60 text-sm cursor-pointer hover:text-white" onClick={() => navigate("/studio")}>Back to Studio Home</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+            <Video className="w-3 h-3 mr-1" /> Video Studio
+          </Badge>
           {isRecording && autoClips > 0 && (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -124,438 +89,336 @@ export default function VideoStudioPremiumNew() {
               <span className="text-sm text-violet-300 font-medium">{autoClips} clips ready</span>
             </motion.div>
           )}
-        </div>
-
-        <div className="flex items-center gap-4">
-          {/* Guest indicator */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5">
-            <Users className="w-4 h-4 text-white/50" />
-            <span className="text-sm text-white/70">2 Participants</span>
-          </div>
-
-          {/* Network status */}
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5">
             <Wifi className="w-4 h-4 text-green-400" />
             <span className="text-sm text-white/70">Excellent</span>
           </div>
-
-          <Button variant="ghost" size="icon" className="text-white/60 hover:text-white">
+        </div>
+        <div className="flex items-center gap-2">
+          {isRecording && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/20 border border-red-500/30">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <Clock className="w-4 h-4 text-white/60" />
+              <span className="text-sm font-mono text-red-400">{formatTime(recordingTime)}</span>
+            </div>
+          )}
+          <Button variant="ghost" size="icon" className="text-white/60 hover:text-white hover:bg-white/10">
             <Settings className="w-5 h-5" />
           </Button>
         </div>
-      </div>
+      </header>
 
-      {/* Main Content */}
-      <div className="flex-1 flex">
-        {/* Left Panel */}
-        <div className="w-72 border-r border-white/5 bg-black/10 flex flex-col">
-          <Tabs value={leftTab} onValueChange={setLeftTab} className="flex-1 flex flex-col">
-            <TabsList className="w-full bg-transparent border-b border-white/5 rounded-none p-0">
-              <TabsTrigger 
-                value="scenes" 
-                className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent text-xs"
-              >
-                Scenes
-              </TabsTrigger>
-              <TabsTrigger 
-                value="backgrounds"
-                className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent text-xs"
-              >
-                Backgrounds
-              </TabsTrigger>
-              <TabsTrigger 
-                value="overlays"
-                className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent text-xs"
-              >
-                Overlays
-              </TabsTrigger>
-            </TabsList>
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Sidebar - Camera/Mic/Layout */}
+        <aside className="w-64 border-r border-white/10 p-4 space-y-5 overflow-y-auto hidden lg:block bg-black/20">
+          {/* Camera */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-medium text-white/50 uppercase tracking-wider">
+              Camera
+            </h4>
+            <Select value={selectedCamera} onValueChange={setSelectedCamera}>
+              <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                <SelectValue placeholder="Select camera" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Default Camera</SelectItem>
+                <SelectItem value="built-in">Built-in Webcam</SelectItem>
+                <SelectItem value="external">External USB Camera</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="ghost"
+              onClick={() => setIsCameraOff(!isCameraOff)}
+              className={cn("w-full h-11 rounded-xl justify-start gap-3", 
+                isCameraOff ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-white/5 text-white border border-white/10"
+              )}
+            >
+              {isCameraOff ? <CameraOff className="w-5 h-5" /> : <Camera className="w-5 h-5" />}
+              {isCameraOff ? "Camera Off" : "Camera On"}
+            </Button>
+          </div>
 
-            <TabsContent value="scenes" className="flex-1 m-0 p-4">
-              <ScrollArea className="h-full">
-                <div className="space-y-3">
-                  <p className="text-xs font-medium text-white/50 uppercase tracking-wider mb-3">
-                    Scene Presets
-                  </p>
-                  {scenePresets.map((scene) => (
-                    <button
-                      key={scene.id}
-                      onClick={() => setSelectedScene(scene.id)}
-                      className={cn(
-                        "w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all",
-                        selectedScene === scene.id
-                          ? "bg-blue-500/20 border border-blue-500/30"
-                          : "bg-white/5 border border-transparent hover:bg-white/10"
-                      )}
-                    >
-                      <div className={cn(
-                        "w-10 h-10 rounded-lg flex items-center justify-center",
-                        selectedScene === scene.id ? "bg-blue-500/30" : "bg-white/10"
-                      )}>
-                        <scene.icon className={cn(
-                          "w-5 h-5",
-                          selectedScene === scene.id ? "text-blue-400" : "text-white/60"
-                        )} />
-                      </div>
-                      <span className={cn(
-                        "text-sm font-medium",
-                        selectedScene === scene.id ? "text-white" : "text-white/70"
-                      )}>
-                        {scene.label}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </ScrollArea>
-            </TabsContent>
+          {/* Microphone */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-medium text-white/50 uppercase tracking-wider">
+              Microphone
+            </h4>
+            <Select value={selectedMic} onValueChange={setSelectedMic}>
+              <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                <SelectValue placeholder="Select microphone" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Default Microphone</SelectItem>
+                <SelectItem value="built-in">Built-in Microphone</SelectItem>
+                <SelectItem value="external">External USB Mic</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-            <TabsContent value="backgrounds" className="flex-1 m-0 p-4">
-              <div className="grid grid-cols-2 gap-2">
-                {["Blur", "Gradient", "Office", "Studio", "Nature", "Custom"].map((bg) => (
-                  <div
-                    key={bg}
-                    className="aspect-video rounded-lg bg-white/5 border border-white/10 hover:border-blue-500/50 cursor-pointer flex items-center justify-center"
-                  >
-                    <span className="text-xs text-white/50">{bg}</span>
+          {/* Background Blur Toggle */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
+              <div className="flex items-center gap-2">
+                <Monitor className="w-4 h-4 text-white/60" />
+                <Label className="text-sm text-white/70">Background Blur</Label>
+              </div>
+              <Switch checked={backgroundBlur} onCheckedChange={setBackgroundBlur} />
+            </div>
+          </div>
+
+          {/* Layout Selection - Only 2 Options */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-medium text-white/50 uppercase tracking-wider">
+              Layout
+            </h4>
+            <div className="space-y-2">
+              <Button
+                variant={activeLayout === "side-by-side" ? "default" : "outline"}
+                className={cn("w-full justify-start gap-3 h-auto py-3",
+                  activeLayout === "side-by-side" 
+                    ? "bg-blue-500 hover:bg-blue-600 border-blue-500" 
+                    : "bg-white/5 border-white/10 text-white hover:bg-white/10"
+                )}
+                onClick={() => setActiveLayout("side-by-side")}
+              >
+                <Users className="w-5 h-5" />
+                <div className="text-left">
+                  <div className="font-semibold">Side-by-Side</div>
+                  <div className={`text-xs ${activeLayout === "side-by-side" ? "opacity-80" : "text-white/60"}`}>
+                    Host + Guest equal view
                   </div>
-                ))}
-              </div>
-            </TabsContent>
+                </div>
+              </Button>
+              <Button
+                variant={activeLayout === "speaker-auto-focus" ? "default" : "outline"}
+                className={cn("w-full justify-start gap-3 h-auto py-3",
+                  activeLayout === "speaker-auto-focus" 
+                    ? "bg-blue-500 hover:bg-blue-600 border-blue-500" 
+                    : "bg-white/5 border-white/10 text-white hover:bg-white/10"
+                )}
+                onClick={() => setActiveLayout("speaker-auto-focus")}
+              >
+                <Sparkles className="w-5 h-5" />
+                <div className="text-left">
+                  <div className="font-semibold">Speaker Auto-Focus</div>
+                  <div className={`text-xs ${activeLayout === "speaker-auto-focus" ? "opacity-80" : "text-white/60"}`}>
+                    AI switches to active speaker
+                  </div>
+                </div>
+              </Button>
+            </div>
+            <p className="text-xs text-white/40 px-1">
+              AI post-production handles auto-focus, lower thirds, and vertical clips.
+            </p>
+          </div>
+        </aside>
 
-            <TabsContent value="overlays" className="flex-1 m-0 p-4">
-              <div className="space-y-3">
-                {[
-                  { icon: Type, label: "Lower Thirds" },
-                  { icon: Image, label: "Logo Watermark" },
-                  { icon: Palette, label: "Brand Colors" },
-                ].map((item) => (
-                  <button
-                    key={item.label}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
-                  >
-                    <item.icon className="w-4 h-4 text-white/50" />
-                    <span className="text-sm text-white/70">{item.label}</span>
-                  </button>
-                ))}
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-
-        {/* Center - Video Canvas */}
-        <div className="flex-1 flex flex-col p-6">
-          <div className="flex-1 relative rounded-2xl overflow-hidden bg-black/40 border border-white/10">
-            {/* Video frames */}
-            <div className={cn(
-              "absolute inset-0 p-4 gap-4",
-              selectedScene === "side-by-side" && "grid grid-cols-2",
-              selectedScene === "host-only" && "flex items-center justify-center",
-              selectedScene === "speaker-switch" && "flex items-center justify-center",
-              selectedScene === "presentation" && "grid grid-cols-[1fr_300px]"
-            )}>
-              {/* Host frame */}
+        {/* Center - Video Preview */}
+        <main className="flex-1 flex flex-col items-center justify-center p-6">
+          <div className="w-full max-w-4xl">
+            {/* Video Canvas */}
+            <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black/40 border border-white/10 relative mb-6">
+              {/* Video frames */}
               <div className={cn(
-                "rounded-xl overflow-hidden bg-gradient-to-br from-blue-900/30 to-purple-900/30 border border-white/10 flex items-center justify-center relative",
-                selectedScene === "host-only" && "w-full max-w-3xl aspect-video"
+                "absolute inset-0 p-4 gap-4",
+                activeLayout === "side-by-side" && "grid grid-cols-2",
+                activeLayout === "speaker-auto-focus" && "flex items-center justify-center"
               )}>
-                <div className="text-center">
-                  <div className="w-20 h-20 rounded-full bg-blue-500/20 flex items-center justify-center mx-auto mb-3">
-                    <User className="w-10 h-10 text-blue-400/50" />
-                  </div>
-                  <p className="text-white/50 text-sm">Host Camera</p>
-                </div>
-                {/* Name tag */}
-                <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-lg bg-black/60 backdrop-blur">
-                  <span className="text-sm text-white font-medium">You (Host)</span>
-                </div>
-              </div>
-
-              {/* Guest frame */}
-              {selectedScene !== "host-only" && (
-                <div className="rounded-xl overflow-hidden bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-white/10 flex items-center justify-center relative">
-                  <div className="text-center">
-                    <div className="w-20 h-20 rounded-full bg-purple-500/20 flex items-center justify-center mx-auto mb-3">
-                      <User className="w-10 h-10 text-purple-400/50" />
+                {/* Host frame */}
+                <div className={cn(
+                  "rounded-xl overflow-hidden bg-gradient-to-br from-blue-900/30 to-purple-900/30 border border-white/10 flex items-center justify-center relative",
+                  activeLayout === "speaker-auto-focus" && "w-full max-w-3xl aspect-video"
+                )}>
+                  {isCameraOff ? (
+                    <div className="text-center">
+                      <CameraOff className="w-16 h-16 text-white/20 mx-auto mb-3" />
+                      <p className="text-white/40">Camera is off</p>
                     </div>
-                    <p className="text-white/50 text-sm">Guest Camera</p>
-                  </div>
+                  ) : (
+                    <div className="text-center">
+                      <div className="w-20 h-20 rounded-full bg-blue-500/20 flex items-center justify-center mx-auto mb-3">
+                        <User className="w-10 h-10 text-blue-400/50" />
+                      </div>
+                      <p className="text-white/50 text-sm">Host Camera</p>
+                    </div>
+                  )}
                   {/* Name tag */}
                   <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-lg bg-black/60 backdrop-blur">
-                    <span className="text-sm text-white font-medium">Guest</span>
+                    <span className="text-sm text-white font-medium">You (Host)</span>
+                  </div>
+                </div>
+
+                {/* Guest frame - Only in side-by-side */}
+                {activeLayout === "side-by-side" && (
+                  <div className="rounded-xl overflow-hidden bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-white/10 flex items-center justify-center relative">
+                    <div className="text-center">
+                      <div className="w-20 h-20 rounded-full bg-purple-500/20 flex items-center justify-center mx-auto mb-3">
+                        <User className="w-10 h-10 text-purple-400/50" />
+                      </div>
+                      <p className="text-white/50 text-sm">Guest Camera</p>
+                    </div>
+                    <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-lg bg-black/60 backdrop-blur">
+                      <span className="text-sm text-white font-medium">Guest</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Recording indicator */}
+              {isRecording && (
+                <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/20 backdrop-blur">
+                  <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                  <span className="text-sm text-red-400 font-medium">REC</span>
+                </div>
+              )}
+
+              {/* Layout indicator */}
+              <div className="absolute top-4 right-4">
+                <Badge className="bg-black/50 text-white/70 border-white/20 text-xs">
+                  {activeLayout === "side-by-side" ? "Side-by-Side" : "Auto-Focus"}
+                </Badge>
+              </div>
+
+              {/* PiP Preview (when in auto-focus) */}
+              {activeLayout === "speaker-auto-focus" && (
+                <div className="absolute bottom-4 right-4 w-32 h-24 bg-black/60 rounded-lg border border-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <div className="text-center">
+                    <Users className="w-6 h-6 text-white/30 mx-auto" />
+                    <span className="text-[10px] text-white/40">Guest PiP</span>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Recording indicator */}
-            {isRecording && (
-              <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/20 backdrop-blur">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-sm text-red-400 font-medium">REC</span>
-              </div>
-            )}
-          </div>
-
-          {/* Camera presets */}
-          <div className="flex items-center justify-center gap-2 mt-4">
-            {cameraPresets.map((preset) => (
+            {/* Bottom Controls */}
+            <div className="flex items-center justify-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/10">
               <Button
-                key={preset.id}
                 variant="ghost"
-                size="sm"
-                className="h-8 px-3 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white text-xs"
+                size="icon"
+                onClick={() => setIsMuted(!isMuted)}
+                className={cn("w-11 h-11 rounded-xl", isMuted ? "bg-red-500/20 text-red-400" : "text-white/60 hover:text-white hover:bg-white/10")}
               >
-                <Camera className="w-3 h-3 mr-1.5" />
-                {preset.label}
+                {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
               </Button>
-            ))}
-          </div>
-        </div>
 
-        {/* Right Panel */}
-        <div className="w-80 border-l border-white/5 bg-black/10 flex flex-col">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsCameraOff(!isCameraOff)}
+                className={cn("w-11 h-11 rounded-xl", isCameraOff ? "bg-red-500/20 text-red-400" : "text-white/60 hover:text-white hover:bg-white/10")}
+              >
+                {isCameraOff ? <CameraOff className="w-5 h-5" /> : <Camera className="w-5 h-5" />}
+              </Button>
+
+              {isRecording && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => addMarker("Marker")}
+                  className="gap-2 text-white/60 hover:text-white hover:bg-white/10"
+                >
+                  <Bookmark className="w-4 h-4" />
+                </Button>
+              )}
+
+              <div className="flex items-center gap-2">
+                {!isRecording ? (
+                  <Button
+                    onClick={() => { setIsRecording(true); setRecordingTime(0); setAutoClips(0); }}
+                    className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 shadow-lg shadow-red-500/30"
+                  >
+                    <CircleDot className="w-7 h-7 text-white" />
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      onClick={() => setIsPaused(!isPaused)}
+                      className={cn("w-11 h-11 rounded-full", isPaused ? "bg-amber-500/20 text-amber-400" : "bg-white/10 text-white")}
+                    >
+                      {isPaused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
+                    </Button>
+                    <Button
+                      onClick={handleStop}
+                      className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-red-600 shadow-lg shadow-red-500/30 animate-pulse"
+                    >
+                      <Square className="w-6 h-6 text-white fill-white" />
+                    </Button>
+                  </>
+                )}
+              </div>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-11 h-11 rounded-xl text-white/60 hover:text-white hover:bg-white/10"
+              >
+                <Sparkles className="w-5 h-5" />
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-11 h-11 rounded-xl text-white/60 hover:text-white hover:bg-white/10"
+              >
+                <Settings className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+        </main>
+
+        {/* Right Drawer - Scripts/Markers/Transcript */}
+        <aside className="w-72 border-l border-white/10 flex flex-col hidden lg:flex bg-black/20">
           <Tabs value={rightTab} onValueChange={setRightTab} className="flex-1 flex flex-col">
-            <TabsList className="w-full bg-transparent border-b border-white/5 rounded-none p-0">
-              <TabsTrigger 
-                value="scripts" 
-                className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent text-xs"
-              >
-                Scripts
+            <TabsList className="bg-transparent border-b border-white/10 rounded-none h-12 p-0">
+              <TabsTrigger value="scripts" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent text-white/60 data-[state=active]:text-white">
+                <FileText className="w-4 h-4 mr-2" /> Scripts
               </TabsTrigger>
-              <TabsTrigger 
-                value="markers"
-                className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent text-xs"
-              >
-                Markers
+              <TabsTrigger value="markers" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent text-white/60 data-[state=active]:text-white">
+                <Bookmark className="w-4 h-4 mr-2" /> Markers
               </TabsTrigger>
-              <TabsTrigger 
-                value="clips"
-                className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent text-xs"
-              >
-                Auto-Clips
-              </TabsTrigger>
-              <TabsTrigger 
-                value="transcript"
-                className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent text-xs"
-              >
-                Transcript
+              <TabsTrigger value="transcript" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent text-white/60 data-[state=active]:text-white">
+                <MessageSquare className="w-4 h-4 mr-2" /> Transcript
               </TabsTrigger>
             </TabsList>
-
-            <TabsContent value="scripts" className="flex-1 m-0 p-4">
-              <ScrollArea className="h-full">
-                <div className="space-y-4">
-                  {adScripts.map((script) => (
-                    <div key={script.id} className="p-4 rounded-xl bg-white/5 border border-white/10">
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge className={cn(
-                          "text-[10px]",
-                          script.type === "pre-roll" && "bg-blue-500/20 text-blue-400",
-                          script.type === "mid-roll" && "bg-amber-500/20 text-amber-400"
-                        )}>
-                          {script.type}
-                        </Badge>
-                        <span className="text-xs text-white/40">{script.duration}</span>
-                      </div>
-                      <p className="text-sm font-medium text-white mb-1">{script.brand}</p>
-                      <p className="text-xs text-white/50">{script.script}</p>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
+            <TabsContent value="scripts" className="flex-1 p-4 m-0">
+              <div className="h-full flex flex-col items-center justify-center text-center">
+                <FileText className="w-12 h-12 text-white/20 mb-4" />
+                <p className="text-white/60 mb-2">Episode Scripts</p>
+                <p className="text-xs text-white/40 mb-4">Add scripts from Templates</p>
+                <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10">
+                  Browse Templates
+                </Button>
+              </div>
             </TabsContent>
-
-            <TabsContent value="markers" className="flex-1 m-0 p-4">
-              <ScrollArea className="h-full">
-                {markers.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Flag className="w-8 h-8 text-white/20 mx-auto mb-3" />
-                    <p className="text-sm text-white/40">No markers yet</p>
-                  </div>
-                ) : (
+            <TabsContent value="markers" className="flex-1 p-4 m-0">
+              {markers.length > 0 ? (
+                <ScrollArea className="h-full">
                   <div className="space-y-2">
-                    {markers.map((marker) => {
-                      const markerType = markerTypes.find(t => t.id === marker.type);
-                      return (
-                        <div key={marker.id} className="flex items-center gap-3 p-3 rounded-lg bg-white/5">
-                          <span className="text-lg">{markerType?.icon}</span>
-                          <div className="flex-1">
-                            <p className="text-sm text-white">{markerType?.label}</p>
-                            <p className="text-xs text-white/40">{formatTime(marker.time)}</p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </ScrollArea>
-            </TabsContent>
-
-            <TabsContent value="clips" className="flex-1 m-0 p-4">
-              <ScrollArea className="h-full">
-                {autoClips === 0 ? (
-                  <div className="text-center py-12">
-                    <Sparkles className="w-8 h-8 text-white/20 mx-auto mb-3" />
-                    <p className="text-sm text-white/40">AI is watching for viral moments</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <p className="text-xs text-white/50">✨ AI found {autoClips} viral moments</p>
-                    {[...Array(autoClips)].map((_, i) => (
-                      <div key={i} className="p-3 rounded-xl bg-violet-500/10 border border-violet-500/20">
-                        <p className="text-sm text-white font-medium">Clip {i + 1}</p>
-                        <p className="text-xs text-white/40">High engagement potential</p>
+                    {markers.map(m => (
+                      <div key={m.id} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
+                        <span className="text-sm text-white/70">{m.label}</span>
+                        <span className="text-xs text-white/40">{formatTime(m.time)}</span>
                       </div>
                     ))}
                   </div>
-                )}
-              </ScrollArea>
+                </ScrollArea>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center">
+                  <Bookmark className="w-12 h-12 text-white/20 mb-4" />
+                  <p className="text-white/60 mb-2">No Markers</p>
+                  <p className="text-xs text-white/40">{isRecording ? "Click marker button to add" : "Start recording to add markers"}</p>
+                </div>
+              )}
             </TabsContent>
-
-            <TabsContent value="transcript" className="flex-1 m-0 p-4">
-              <ScrollArea className="h-full">
-                {isRecording ? (
-                  <div className="space-y-4">
-                    <div className="animate-pulse">
-                      <p className="text-sm text-white/70">Transcribing live...</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <MessageSquare className="w-8 h-8 text-white/20 mx-auto mb-3" />
-                    <p className="text-sm text-white/40">Start recording to see transcript</p>
-                  </div>
-                )}
-              </ScrollArea>
+            <TabsContent value="transcript" className="flex-1 p-4 m-0">
+              <div className="h-full flex flex-col items-center justify-center text-center">
+                <MessageSquare className="w-12 h-12 text-white/20 mb-4" />
+                <p className="text-white/60 mb-2">Live Transcript</p>
+                <p className="text-xs text-white/40">{isRecording ? "Transcript will appear here" : "Available after recording"}</p>
+              </div>
             </TabsContent>
           </Tabs>
-        </div>
-      </div>
-
-      {/* Bottom Controls */}
-      <div className="h-24 border-t border-white/5 bg-black/30 backdrop-blur-xl flex items-center justify-center gap-4 px-6">
-        {/* Mic */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsMuted(!isMuted)}
-          className={cn(
-            "w-14 h-14 rounded-2xl transition-all",
-            isMuted 
-              ? "bg-red-500/20 text-red-400 hover:bg-red-500/30" 
-              : "bg-white/10 text-white hover:bg-white/20"
-          )}
-        >
-          {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
-        </Button>
-
-        {/* Video */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsVideoOff(!isVideoOff)}
-          className={cn(
-            "w-14 h-14 rounded-2xl transition-all",
-            isVideoOff 
-              ? "bg-red-500/20 text-red-400 hover:bg-red-500/30" 
-              : "bg-white/10 text-white hover:bg-white/20"
-          )}
-        >
-          {isVideoOff ? <VideoOff className="w-6 h-6" /> : <Video className="w-6 h-6" />}
-        </Button>
-
-        {/* Marker button */}
-        <div className="relative">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowMarkerMenu(!showMarkerMenu)}
-            disabled={!isRecording}
-            className="w-14 h-14 rounded-2xl bg-white/10 text-white hover:bg-white/20 disabled:opacity-50"
-          >
-            <Flag className="w-6 h-6" />
-          </Button>
-          
-          <AnimatePresence>
-            {showMarkerMenu && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 p-2 rounded-xl bg-[#1a1f2e]/95 backdrop-blur-xl border border-white/10 shadow-xl"
-              >
-                <div className="grid grid-cols-2 gap-1">
-                  {markerTypes.map((type) => (
-                    <button
-                      key={type.id}
-                      onClick={() => addMarker(type.id)}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 whitespace-nowrap"
-                    >
-                      <span>{type.icon}</span>
-                      <span className="text-sm text-white/80">{type.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Main record button */}
-        <div className="mx-4">
-          {!isRecording ? (
-            <Button
-              onClick={() => setIsRecording(true)}
-              className="w-20 h-20 rounded-full bg-gradient-to-br from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 shadow-lg shadow-red-500/30 transition-all hover:scale-105"
-            >
-              <CircleDot className="w-10 h-10 text-white" />
-            </Button>
-          ) : (
-            <div className="flex items-center gap-3">
-              <Button
-                onClick={() => setIsPaused(!isPaused)}
-                className={cn(
-                  "w-14 h-14 rounded-full",
-                  isPaused 
-                    ? "bg-amber-500/20 text-amber-400 hover:bg-amber-500/30"
-                    : "bg-white/10 text-white hover:bg-white/20"
-                )}
-              >
-                {isPaused ? <Play className="w-6 h-6" /> : <Pause className="w-6 h-6" />}
-              </Button>
-              <Button
-                onClick={() => setIsRecording(false)}
-                className="w-20 h-20 rounded-full bg-gradient-to-br from-red-500 to-red-600 animate-pulse"
-              >
-                <Square className="w-8 h-8 text-white fill-white" />
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {/* AI Enhancement */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setAiEnhancement(!aiEnhancement)}
-          className={cn(
-            "w-14 h-14 rounded-2xl transition-all",
-            aiEnhancement 
-              ? "bg-blue-500/20 text-blue-400 hover:bg-blue-500/30" 
-              : "bg-white/10 text-white hover:bg-white/20"
-          )}
-        >
-          <Wand2 className="w-6 h-6" />
-        </Button>
-
-        {/* Settings */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="w-14 h-14 rounded-2xl bg-white/10 text-white hover:bg-white/20"
-        >
-          <Settings className="w-6 h-6" />
-        </Button>
+        </aside>
       </div>
     </div>
   );

@@ -13,8 +13,8 @@ export const StudioModeSelector = ({ open, onOpenChange }: StudioModeSelectorPro
   const modes = [
     {
       id: "audio",
-      title: "Audio Podcast",
-      description: "Record audio-only podcast episodes with professional AI-enhanced tools",
+      title: "Audio Studio",
+      description: "Professional audio-only recording with waveform preview and AI enhancement",
       icon: Mic,
       color: "from-violet-500 to-violet-600",
       action: () => {
@@ -24,8 +24,8 @@ export const StudioModeSelector = ({ open, onOpenChange }: StudioModeSelectorPro
     },
     {
       id: "video",
-      title: "Video Podcast",
-      description: "Record video podcasts with guest support and AI auto-focus layouts",
+      title: "Video Studio",
+      description: "Video + audio recording for solo or guest sessions",
       icon: Video,
       color: "from-blue-500 to-blue-600",
       action: () => {

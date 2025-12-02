@@ -26,7 +26,6 @@ export default function AudioStudio() {
   const [noiseReduction, setNoiseReduction] = useState(true);
   const [voiceEnhancement, setVoiceEnhancement] = useState(true);
   const [autoLeveling, setAutoLeveling] = useState(true);
-  const [echoCancellation, setEchoCancellation] = useState(true);
   const [markers, setMarkers] = useState<{id: string; time: number; label: string}[]>([]);
   const [waveformBars, setWaveformBars] = useState<number[]>(Array(60).fill(0.2));
   const [rightTab, setRightTab] = useState("scripts");
@@ -147,10 +146,6 @@ export default function AudioStudio() {
                 <Label className="text-sm text-white/70">Auto-Leveling</Label>
                 <Switch checked={autoLeveling} onCheckedChange={setAutoLeveling} />
               </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
-                <Label className="text-sm text-white/70">Echo Cancellation</Label>
-                <Switch checked={echoCancellation} onCheckedChange={setEchoCancellation} />
-              </div>
             </div>
           </div>
 
@@ -258,18 +253,18 @@ export default function AudioStudio() {
           </div>
         </main>
 
-        {/* Right Drawer - Scripts/Ad Reads/Notes */}
+        {/* Right Drawer - Scripts/Markers/Transcript */}
         <aside className="w-72 border-l border-white/10 flex flex-col hidden lg:flex">
           <Tabs value={rightTab} onValueChange={setRightTab} className="flex-1 flex flex-col">
             <TabsList className="bg-transparent border-b border-white/10 rounded-none h-12 p-0">
               <TabsTrigger value="scripts" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-violet-500 data-[state=active]:bg-transparent text-white/60 data-[state=active]:text-white">
                 <FileText className="w-4 h-4 mr-2" /> Scripts
               </TabsTrigger>
-              <TabsTrigger value="ads" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-violet-500 data-[state=active]:bg-transparent text-white/60 data-[state=active]:text-white">
-                <Volume2 className="w-4 h-4 mr-2" /> Ad Reads
+              <TabsTrigger value="markers" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-violet-500 data-[state=active]:bg-transparent text-white/60 data-[state=active]:text-white">
+                <Bookmark className="w-4 h-4 mr-2" /> Markers
               </TabsTrigger>
-              <TabsTrigger value="notes" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-violet-500 data-[state=active]:bg-transparent text-white/60 data-[state=active]:text-white">
-                <MessageSquare className="w-4 h-4 mr-2" /> Notes
+              <TabsTrigger value="transcript" className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-violet-500 data-[state=active]:bg-transparent text-white/60 data-[state=active]:text-white">
+                <MessageSquare className="w-4 h-4 mr-2" /> Transcript
               </TabsTrigger>
             </TabsList>
             <TabsContent value="scripts" className="flex-1 p-4 m-0">
@@ -282,21 +277,31 @@ export default function AudioStudio() {
                 </Button>
               </div>
             </TabsContent>
-            <TabsContent value="ads" className="flex-1 p-4 m-0">
-              <div className="h-full flex flex-col items-center justify-center text-center">
-                <Volume2 className="w-12 h-12 text-white/20 mb-4" />
-                <p className="text-white/60 mb-2">Host-Read Ads</p>
-                <p className="text-xs text-white/40 mb-4">Ad scripts for your sponsors</p>
-                <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10">
-                  Add Ad Read
-                </Button>
-              </div>
+            <TabsContent value="markers" className="flex-1 p-4 m-0">
+              {markers.length > 0 ? (
+                <ScrollArea className="h-full">
+                  <div className="space-y-2">
+                    {markers.map(m => (
+                      <div key={m.id} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10">
+                        <span className="text-sm text-white/70">{m.label}</span>
+                        <span className="text-xs text-white/40">{formatTime(m.time)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center">
+                  <Bookmark className="w-12 h-12 text-white/20 mb-4" />
+                  <p className="text-white/60 mb-2">No Markers</p>
+                  <p className="text-xs text-white/40">{isRecording ? "Click marker button to add" : "Start recording to add markers"}</p>
+                </div>
+              )}
             </TabsContent>
-            <TabsContent value="notes" className="flex-1 p-4 m-0">
+            <TabsContent value="transcript" className="flex-1 p-4 m-0">
               <div className="h-full flex flex-col items-center justify-center text-center">
                 <MessageSquare className="w-12 h-12 text-white/20 mb-4" />
-                <p className="text-white/60 mb-2">Session Notes</p>
-                <p className="text-xs text-white/40">{isRecording ? "Add notes while recording" : "Start recording to take notes"}</p>
+                <p className="text-white/60 mb-2">Live Transcript</p>
+                <p className="text-xs text-white/40">{isRecording ? "Transcript will appear here" : "Available after recording"}</p>
               </div>
             </TabsContent>
           </Tabs>
