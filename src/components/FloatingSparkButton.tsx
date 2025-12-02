@@ -9,10 +9,8 @@ export const FloatingSparkButton = () => {
   const { animations, handleHoverEnter, handleHoverLeave } = useSparkAnimations();
 
   useEffect(() => {
-    // Use holiday logo if holiday mode is enabled, otherwise use regular spark
-    const imagePath = settings?.holidayMode 
-      ? "/spark/holiday/seeksy-logo-santa.png"
-      : "/spark/holiday/seeksy-logo-wreath.png";
+    // Always use Santa-themed Spark avatar for friendly assistant appearance
+    const imagePath = "/spark/holiday/spark-santa-waving.png";
     
     setSparkImage(imagePath);
   }, [settings?.holidayMode]);
@@ -27,10 +25,14 @@ export const FloatingSparkButton = () => {
         onMouseEnter={handleHoverEnter}
         onMouseLeave={handleHoverLeave}
         className={cn(
-          "fixed bottom-6 right-6 cursor-pointer transition-transform duration-200",
+          "fixed cursor-pointer transition-transform duration-200",
           "hover:scale-105"
         )}
-        style={{ zIndex: 99999 }}
+        style={{ 
+          zIndex: 99999,
+          bottom: '20px',
+          right: '20px'
+        }}
         aria-label="Ask Spark"
         role="button"
         tabIndex={0}

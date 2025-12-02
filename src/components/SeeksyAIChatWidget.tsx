@@ -268,7 +268,10 @@ export const SeeksyAIChatWidget = () => {
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-4">
+      <div 
+        className="fixed z-50 animate-in fade-in slide-in-from-bottom-4"
+        style={{ bottom: '20px', right: '20px' }}
+      >
         <button
           onClick={() => {
             setIsOpen(true);
@@ -295,10 +298,13 @@ export const SeeksyAIChatWidget = () => {
   }
   
   return (
-    <Card className={cn(
-      "fixed bottom-6 right-6 shadow-2xl transition-all duration-300 z-50 flex flex-col animate-in slide-in-from-bottom-4 bg-background/95 backdrop-blur-sm border-border",
-      isMinimized ? "h-14 w-80" : "h-[600px] w-[400px]"
-    )}>
+    <Card 
+      className={cn(
+        "fixed shadow-2xl transition-all duration-300 z-50 flex flex-col animate-in slide-in-from-bottom-4 bg-background/95 backdrop-blur-sm border-border",
+        isMinimized ? "h-14 w-80" : "h-[600px] w-[400px]"
+      )}
+      style={{ bottom: '20px', right: '20px' }}
+    >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b rounded-t-lg">
         <div className="flex items-center gap-3">
