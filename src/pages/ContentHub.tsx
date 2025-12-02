@@ -1,10 +1,59 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Video, Mic, FileText, Scissors, FolderOpen, Plus, Radio, Upload, RefreshCw } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Video, Mic, FileText, Scissors, FolderOpen, Plus, Radio, Upload, RefreshCw, Podcast } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function ContentHub() {
+  // Fetch user's podcasts
+  const { data: user } = useQuery({
+    queryKey: ["user"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    },
+  });
+
+  const { data: podcasts = [], isLoading: podcastsLoading } = useQuery({
+    queryKey: ["podcasts", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from("podcasts")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  // Count total episodes across all podcasts
+  const { data: episodeCount = 0 } = useQuery({
+    queryKey: ["total-episodes", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      
+      const podcastIds = podcasts.map(p => p.id);
+      if (podcastIds.length === 0) return 0;
+
+      const { count, error } = await supabase
+        .from("episodes")
+        .select("*", { count: "exact", head: true })
+        .in("podcast_id", podcastIds);
+
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: !!user?.id && podcasts.length > 0,
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-7xl mx-auto p-6 space-y-6">
@@ -125,68 +174,146 @@ export default function ContentHub() {
           </TabsContent>
 
           <TabsContent value="podcasts" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Podcast Management</CardTitle>
-                <CardDescription>
-                  Create, import, and manage your podcast episodes and RSS feeds
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Create New Podcast */}
-                  <Link to="/podcasts/create">
-                    <Card className="hover:border-primary transition-colors cursor-pointer h-full">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <Radio className="h-5 w-5 text-primary" />
+            {/* Analytics Row */}
+            {podcasts.length > 0 && (
+              <div className="grid grid-cols-2 gap-4">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-2xl font-bold">{podcasts.length}</div>
+                    <p className="text-xs text-muted-foreground">Total Podcasts</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-2xl font-bold">{episodeCount}</div>
+                    <p className="text-xs text-muted-foreground">Total Episodes</p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!podcastsLoading && podcasts.length === 0 && (
+              <Card>
+                <CardContent className="pt-12 pb-12">
+                  <div className="text-center space-y-6">
+                    <div className="flex justify-center">
+                      <div className="rounded-full bg-primary/10 p-6">
+                        <Podcast className="h-12 w-12 text-primary" />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2">Welcome to Podcast Studio</h3>
+                      <p className="text-muted-foreground">
+                        Start a podcast or import your existing one.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap justify-center gap-3">
+                      <Button asChild>
+                        <Link to="/podcasts/create">
+                          <Plus className="h-4 w-4 mr-2" />
                           Create Podcast
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                          Start a new podcast from scratch
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                        </Link>
+                      </Button>
+                      <Button variant="outline" asChild>
+                        <Link to="/podcasts">
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Import via RSS
+                        </Link>
+                      </Button>
+                      <Button variant="outline" asChild>
+                        <Link to="/podcasts">
+                          <Upload className="h-4 w-4 mr-2" />
+                          Migrate from Another Platform
+                        </Link>
+                      </Button>
+                      <Button variant="outline" asChild>
+                        <Link to="/studio">
+                          <Mic className="h-4 w-4 mr-2" />
+                          Open Podcast Studio
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-                  {/* Import from RSS */}
-                  <Link to="/podcasts">
-                    <Card className="hover:border-primary transition-colors cursor-pointer h-full">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <Upload className="h-5 w-5 text-primary" />
-                          Import from RSS
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                          Import existing podcast from RSS feed
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </Link>
-
-                  {/* View All Podcasts */}
-                  <Link to="/podcasts">
-                    <Card className="hover:border-primary transition-colors cursor-pointer h-full">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <FolderOpen className="h-5 w-5 text-primary" />
-                          View All Podcasts
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                          Browse and manage existing podcasts
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </Link>
+            {/* Podcast Cards Grid */}
+            {!podcastsLoading && podcasts.length > 0 && (
+              <>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Your Podcasts</h3>
                 </div>
-              </CardContent>
-            </Card>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {podcasts.map((podcast) => (
+                    <Card key={podcast.id} className="overflow-hidden hover:border-primary transition-colors">
+                      <div className="aspect-square bg-muted relative">
+                        {podcast.cover_image_url ? (
+                          <img 
+                            src={podcast.cover_image_url} 
+                            alt={podcast.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Podcast className="h-16 w-16 text-muted-foreground" />
+                          </div>
+                        )}
+                        {podcast.is_published && (
+                          <Badge className="absolute top-2 right-2">Published</Badge>
+                        )}
+                        {!podcast.is_published && (
+                          <Badge variant="secondary" className="absolute top-2 right-2">Draft</Badge>
+                        )}
+                      </div>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base line-clamp-2">{podcast.title}</CardTitle>
+                        <CardDescription className="text-xs">
+                          {/* Episode count would need a separate query per podcast or join */}
+                          {podcast.description?.substring(0, 60)}...
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Button asChild className="w-full" size="sm">
+                          <Link to={`/podcasts/${podcast.id}`}>
+                            Manage Podcast
+                          </Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Action Buttons Below Cards */}
+                <div className="flex gap-3 pt-4">
+                  <Button asChild>
+                    <Link to="/podcasts/create">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add New Podcast
+                    </Link>
+                  </Button>
+                  <Button variant="outline" asChild>
+                    <Link to="/podcasts">
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Import via RSS
+                    </Link>
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {/* Loading State */}
+            {podcastsLoading && (
+              <Card>
+                <CardContent className="pt-12 pb-12">
+                  <div className="text-center text-muted-foreground">
+                    <p>Loading podcasts...</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="videos" className="space-y-4">
