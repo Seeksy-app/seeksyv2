@@ -1128,6 +1128,27 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_view_mode: {
+        Row: {
+          id: string
+          updated_at: string
+          user_id: string
+          view_as_board: boolean
+        }
+        Insert: {
+          id?: string
+          updated_at?: string
+          user_id: string
+          view_as_board?: boolean
+        }
+        Update: {
+          id?: string
+          updated_at?: string
+          user_id?: string
+          view_as_board?: boolean
+        }
+        Relationships: []
+      }
       advertiser_preferences: {
         Row: {
           advertiser_id: string
@@ -2764,6 +2785,111 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      board_content: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          page_slug: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          page_slug: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          page_slug?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      board_documents: {
+        Row: {
+          content: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          display_order: number | null
+          file_type: string | null
+          file_url: string | null
+          id: string
+          is_active: boolean | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          display_order?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          display_order?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      board_metrics: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          id: string
+          metric_key: string
+          metric_label: string
+          metric_value: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          metric_key: string
+          metric_label: string
+          metric_value: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          metric_key?: string
+          metric_label?: string
+          metric_value?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       calendar_connections: {
         Row: {
@@ -13092,6 +13218,36 @@ export type Database = {
           },
         ]
       }
+      video_progress: {
+        Row: {
+          completed: boolean
+          created_at: string
+          id: string
+          seconds_watched: number
+          updated_at: string
+          user_id: string
+          video_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          seconds_watched?: number
+          updated_at?: string
+          user_id: string
+          video_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          seconds_watched?: number
+          updated_at?: string
+          user_id?: string
+          video_id?: string
+        }
+        Relationships: []
+      }
       voice_ad_usage: {
         Row: {
           advertiser_id: string | null
@@ -14015,6 +14171,7 @@ export type Database = {
         | "subscriber"
         | "influencer"
         | "agency"
+        | "board_member"
       award_program_status:
         | "draft"
         | "nominations_open"
@@ -14192,6 +14349,7 @@ export const Constants = {
         "subscriber",
         "influencer",
         "agency",
+        "board_member",
       ],
       award_program_status: [
         "draft",
