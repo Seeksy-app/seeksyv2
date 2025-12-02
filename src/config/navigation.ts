@@ -179,6 +179,13 @@ export const NAVIGATION_CONFIG: {
           "roles": ["creator", "influencer", "agency", "admin"]
         },
         {
+          "id": "social_analytics",
+          "label": "Social Analytics",
+          "icon": "instagram",
+          "path": "/social-analytics",
+          "roles": ["creator", "influencer", "agency", "admin"]
+        },
+        {
           "id": "marketing_segments",
           "label": "Segments",
           "icon": "users",
