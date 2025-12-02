@@ -52,11 +52,34 @@ const ImportPodcast = () => {
     mutationFn: async () => {
       if (!user || !parsedData) throw new Error("Missing data");
 
+      // Generate unique slug
+      const baseSlug = parsedData.podcast.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      
+      let slug = baseSlug;
+      let counter = 1;
+      
+      // Check if slug exists and append number if needed
+      while (true) {
+        const { data: existing } = await supabase
+          .from("podcasts")
+          .select("id")
+          .eq("slug", slug)
+          .maybeSingle();
+        
+        if (!existing) break;
+        slug = `${baseSlug}-${counter}`;
+        counter++;
+      }
+
       // Create podcast
       const { data: podcast, error: podcastError } = await supabase
         .from("podcasts")
         .insert({
           user_id: user.id,
+          slug: slug,
           title: parsedData.podcast.title,
           description: parsedData.podcast.description,
           cover_image_url: parsedData.podcast.cover_image_url,
