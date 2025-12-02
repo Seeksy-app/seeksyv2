@@ -159,17 +159,18 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   
-  // Track which collapsible groups are open
+  // Track which collapsible groups are open - collapsed by default for admin sections
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     "Email": true,
     "Marketing": true,
-    "Admin": true,
-    "Content Management": true,
-    "User Management": true,
-    "Identity & Certification": true,
-    "Advertising & Revenue": true,
-    "Business Operations": true,
-    "Developer Tools": true,
+    "Media": true,
+    "Admin": false,
+    "Content Management": false,
+    "User Management": false,
+    "Identity & Certification": false,
+    "Advertising & Revenue": false,
+    "Business Operations": false,
+    "Developer Tools": false,
   });
 
   const toggleGroup = (groupName: string) => {
