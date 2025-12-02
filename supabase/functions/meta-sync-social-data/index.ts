@@ -365,6 +365,28 @@ async function syncInstagramProfiles(supabase: any, userId: string | null, profi
 
       console.log(`Instagram profile ${profile.username} synced successfully`);
 
+      // Trigger valuation calculation after successful sync
+      try {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+        const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+        console.log(`[meta-sync] Triggering valuation calculation for Instagram profile: ${profile.id}`);
+        await fetch(`${supabaseUrl}/functions/v1/calculate-creator-valuation`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${serviceRoleKey}`,
+          },
+          body: JSON.stringify({
+            profile_id: profile.id,
+            user_id: profile.user_id,
+            _service_role: true,
+          }),
+        });
+        console.log(`[meta-sync] Valuation calculation triggered for Instagram profile: ${profile.id}`);
+      } catch (valError) {
+        console.error(`[meta-sync] Valuation trigger failed (non-blocking):`, valError);
+      }
+
     } catch (profileError) {
       console.error(`Error syncing Instagram profile ${profile.id}:`, profileError);
       const errorMsg = profileError instanceof Error ? profileError.message : 'Unknown error';
@@ -583,6 +605,28 @@ async function syncFacebookProfiles(supabase: any, userId: string | null, profil
         .eq('id', profile.id);
 
       console.log(`Facebook Page ${profile.username} synced successfully`);
+
+      // Trigger valuation calculation after successful sync
+      try {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+        const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+        console.log(`[meta-sync] Triggering valuation calculation for Facebook profile: ${profile.id}`);
+        await fetch(`${supabaseUrl}/functions/v1/calculate-creator-valuation`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${serviceRoleKey}`,
+          },
+          body: JSON.stringify({
+            profile_id: profile.id,
+            user_id: profile.user_id,
+            _service_role: true,
+          }),
+        });
+        console.log(`[meta-sync] Valuation calculation triggered for Facebook profile: ${profile.id}`);
+      } catch (valError) {
+        console.error(`[meta-sync] Valuation trigger failed (non-blocking):`, valError);
+      }
 
     } catch (profileError) {
       console.error(`Error syncing Facebook Page ${profile.id}:`, profileError);

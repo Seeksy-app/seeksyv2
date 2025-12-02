@@ -231,6 +231,26 @@ serve(async (req) => {
         });
 
         console.log(`Successfully synced profile: ${profile.id}`);
+
+        // Trigger valuation calculation after successful sync
+        try {
+          console.log(`[youtube-sync] Triggering valuation calculation for profile: ${profile.id}`);
+          await fetch(`${supabaseUrl}/functions/v1/calculate-creator-valuation`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${serviceRoleKey}`,
+            },
+            body: JSON.stringify({
+              profile_id: profile.id,
+              user_id: profile.user_id,
+              _service_role: true,
+            }),
+          });
+          console.log(`[youtube-sync] Valuation calculation triggered for profile: ${profile.id}`);
+        } catch (valError) {
+          console.error(`[youtube-sync] Valuation trigger failed (non-blocking):`, valError);
+        }
       } catch (profileError) {
         console.error(`Error syncing profile ${profile.id}:`, profileError);
         results.push({

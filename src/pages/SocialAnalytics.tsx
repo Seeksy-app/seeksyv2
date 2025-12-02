@@ -22,6 +22,7 @@ import { CreatorValuationCard } from "@/components/social/CreatorValuationCard";
 import { InstagramReconnectBanner } from "@/components/social/InstagramReconnectBanner";
 import { YouTubeChannelSelectModal } from "@/components/social/YouTubeChannelSelectModal";
 import { FacebookPageSelectModal } from "@/components/social/FacebookPageSelectModal";
+import { SyncStatusBanner } from "@/components/social/SyncStatusBanner";
 import { useYouTubeConnect } from "@/hooks/useYouTubeConnect";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -129,30 +130,37 @@ export default function SocialAnalytics() {
     if (connected === 'instagram') {
       toast({
         title: "Instagram Connected!",
-        description: "Syncing your data now. You can also connect your other channels.",
+        description: "We're syncing your posts and insights. This may take a few minutes.",
       });
       refetchProfiles();
-      setSearchParams({});
+      // Keep tab param but remove connected
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('connected');
+      setSearchParams(newParams);
     }
     
     // Only show auto-connected toast if there's no select session (single channel case)
     if (connected === 'youtube' && !ytSelectSession) {
       toast({
         title: "YouTube Connected!",
-        description: "Syncing your channel data now.",
+        description: "We're syncing your channel data now. This may take a few minutes.",
       });
       refetchProfiles();
-      setSearchParams({});
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('connected');
+      setSearchParams(newParams);
     }
     
     // Handle Facebook connection (only if no select session - single page auto-connected)
     if (connected === 'facebook' && !fbSelectSession) {
       toast({
         title: "Facebook Connected!",
-        description: "Syncing your page data now.",
+        description: "We're syncing your page data now. This may take a few minutes.",
       });
       refetchProfiles();
-      setSearchParams({});
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('connected');
+      setSearchParams(newParams);
     }
     
     if (error) {
@@ -422,6 +430,14 @@ export default function SocialAnalytics() {
               <InstagramReconnectBanner error={instagramProfile.sync_error || undefined} />
             )}
 
+            {/* Sync Status Banner */}
+            <SyncStatusBanner 
+              syncStatus={instagramProfile.sync_status}
+              platform="instagram"
+              onSyncComplete={() => refetchProfiles()}
+              onManualSync={() => syncData(instagramProfile.id)}
+            />
+
             {/* Instagram Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card>
@@ -528,6 +544,14 @@ export default function SocialAnalytics() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Sync Status Banner */}
+            <SyncStatusBanner 
+              syncStatus={youtubeProfile.sync_status}
+              platform="youtube"
+              onSyncComplete={() => refetchProfiles()}
+              onManualSync={() => syncYouTube(youtubeProfile.id)}
+            />
 
             {/* YouTube Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
