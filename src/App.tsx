@@ -139,7 +139,7 @@ import AIClipGeneratorPremium from "./pages/studio/AIClipGeneratorPremium";
 import MediaLibraryHub from "./pages/studio/MediaLibraryHub";
 import StudioTemplatesPage from "./pages/studio/StudioTemplates";
 import AudioStudioPremium from "./pages/studio/AudioStudioPremiumNew";
-import VideoStudioPremium from "./pages/studio/VideoStudioPremiumNew";
+import VideoStudioPremium from "./pages/studio/VideoStudio";
 import StudioComplete from "./pages/studio/StudioComplete";
 import PastStreams from "./pages/studio/PastStreams";
 import ScheduledStreams from "./pages/studio/ScheduledStreams";
