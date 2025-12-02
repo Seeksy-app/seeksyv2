@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { CookieConsent } from "@/components/CookieConsent";
+import { TopNavigation } from "@/components/homepage/TopNavigation";
 import { HeroSection } from "@/components/homepage/HeroSection";
 import { AudienceCards } from "@/components/homepage/AudienceCards";
 import { FeatureSections } from "@/components/homepage/FeatureSections";
@@ -58,11 +59,12 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <TopNavigation />
       <main>
         <HeroSection />
-        <TrustMetrics />
         <AudienceCards />
         <FeatureSections />
+        <TrustMetrics />
         <TestimonialsSection />
         <CreatorShowcase />
         <FAQSection />

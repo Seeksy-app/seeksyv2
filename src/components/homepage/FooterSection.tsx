@@ -1,18 +1,21 @@
 import { Link } from "react-router-dom";
 import { Twitter, Instagram, Youtube, Linkedin } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const footerLinks = {
   product: [
     { label: "Features", href: "#features" },
-    { label: "Pricing", href: "/pricing" },
     { label: "Studio", href: "/studio" },
+    { label: "Pricing", href: "/pricing" },
+    { label: "Integrations", href: "/integrations" },
     { label: "Analytics", href: "/social-analytics" },
   ],
   resources: [
     { label: "Help Center", href: "/help" },
     { label: "Blog", href: "/blog" },
-    { label: "API Docs", href: "/docs" },
+    { label: "Documentation", href: "/docs" },
     { label: "System Status", href: "/system-status" },
+    { label: "Security", href: "/security" },
   ],
   company: [
     { label: "About", href: "/about" },
@@ -24,6 +27,7 @@ const footerLinks = {
     { label: "Privacy", href: "/privacy" },
     { label: "Terms", href: "/terms" },
     { label: "Cookies", href: "/cookies" },
+    { label: "Login", href: "/auth?mode=login" },
   ],
 };
 
@@ -36,18 +40,23 @@ const socialLinks = [
 
 export function FooterSection() {
   return (
-    <footer className="bg-slate-950 text-white py-16 border-t border-white/10">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
-          {/* Brand */}
-          <div className="col-span-2 md:col-span-1">
-            <h3 className="text-2xl font-black bg-gradient-to-r from-brand-gold to-brand-orange bg-clip-text text-transparent mb-4">
-              Seeksy
-            </h3>
-            <p className="text-white/60 text-sm mb-6 max-w-xs">
+    <footer className="bg-slate-950 text-white border-t border-white/10">
+      {/* Main Footer */}
+      <div className="container mx-auto px-4 py-16">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-8 lg:gap-12">
+          {/* Brand Column */}
+          <div className="col-span-2">
+            <Link to="/" className="inline-block mb-4">
+              <span className="text-2xl font-black bg-gradient-to-r from-brand-gold to-brand-orange bg-clip-text text-transparent">
+                Seeksy
+              </span>
+            </Link>
+            <p className="text-white/60 text-sm mb-6 max-w-xs leading-relaxed">
               The all-in-one platform for creators and podcasters to host, grow, collaborate, and monetize.
             </p>
-            <div className="flex gap-4">
+            
+            {/* Social Links */}
+            <div className="flex gap-3">
               {socialLinks.map((social) => {
                 const Icon = social.icon;
                 return (
@@ -56,10 +65,10 @@ export function FooterSection() {
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                    className="p-2.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/5"
                     aria-label={social.label}
                   >
-                    <Icon className="h-5 w-5 text-white/70 hover:text-white transition-colors" />
+                    <Icon className="h-4 w-4 text-white/70 hover:text-white transition-colors" />
                   </a>
                 );
               })}
@@ -68,7 +77,7 @@ export function FooterSection() {
 
           {/* Product Links */}
           <div>
-            <h4 className="font-bold text-white mb-4">Product</h4>
+            <h4 className="font-semibold text-white mb-4 text-sm uppercase tracking-wider">Product</h4>
             <ul className="space-y-3">
               {footerLinks.product.map((link) => (
                 <li key={link.label}>
@@ -85,7 +94,7 @@ export function FooterSection() {
 
           {/* Resources Links */}
           <div>
-            <h4 className="font-bold text-white mb-4">Resources</h4>
+            <h4 className="font-semibold text-white mb-4 text-sm uppercase tracking-wider">Resources</h4>
             <ul className="space-y-3">
               {footerLinks.resources.map((link) => (
                 <li key={link.label}>
@@ -102,7 +111,7 @@ export function FooterSection() {
 
           {/* Company Links */}
           <div>
-            <h4 className="font-bold text-white mb-4">Company</h4>
+            <h4 className="font-semibold text-white mb-4 text-sm uppercase tracking-wider">Company</h4>
             <ul className="space-y-3">
               {footerLinks.company.map((link) => (
                 <li key={link.label}>
@@ -119,7 +128,7 @@ export function FooterSection() {
 
           {/* Legal Links */}
           <div>
-            <h4 className="font-bold text-white mb-4">Legal</h4>
+            <h4 className="font-semibold text-white mb-4 text-sm uppercase tracking-wider">Legal</h4>
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
                 <li key={link.label}>
@@ -134,15 +143,19 @@ export function FooterSection() {
             </ul>
           </div>
         </div>
+      </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-white/50 text-sm">
+      {/* Bottom Bar */}
+      <div className="border-t border-white/10">
+        <div className="container mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-white/40 text-sm">
             © {new Date().getFullYear()} Seeksy. All rights reserved.
           </p>
-          <p className="text-white/50 text-sm">
-            Made with ❤️ for creators everywhere
-          </p>
+          <div className="flex items-center gap-4">
+            <p className="text-white/40 text-sm">
+              Made with ❤️ for creators everywhere
+            </p>
+          </div>
         </div>
       </div>
     </footer>
