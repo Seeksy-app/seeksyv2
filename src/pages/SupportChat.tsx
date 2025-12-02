@@ -38,7 +38,7 @@ export default function SupportChat() {
       .eq("id", session.user.id)
       .single();
 
-    const userIsAdmin = profile?.account_type === "seeksy_admin";
+    const userIsAdmin = profile?.account_type === "admin";
     setIsAdmin(userIsAdmin);
 
     if (userIsAdmin) {
@@ -60,7 +60,7 @@ export default function SupportChat() {
           account_type
         )
       `)
-      .neq("profiles.account_type", "seeksy_admin");
+      .neq("profiles.account_type", "admin");
 
     if (teams) {
       const holders = teams

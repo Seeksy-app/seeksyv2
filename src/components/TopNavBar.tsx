@@ -3,6 +3,7 @@ import { GlobalSearch } from "@/components/GlobalSearch";
 import { CreditsBadge } from "@/components/CreditsBadge";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationsBell } from "@/components/NotificationsBell";
+import { AccountTypeSwitcher } from "@/components/AccountTypeSwitcher";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +37,7 @@ export function TopNavBar() {
           <GlobalSearch />
           
           <div className="flex items-center gap-2">
+            <AccountTypeSwitcher />
             <CreditsBadge />
             <ThemeToggle />
             <NotificationsBell />

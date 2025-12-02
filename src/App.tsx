@@ -248,6 +248,7 @@ import HelpCenter from "./pages/HelpCenter";
 import Comparison from "./pages/Comparison";
 import Credits from "./pages/Credits";
 import Certificate from "./pages/Certificate";
+import SignupSelect from "./pages/SignupSelect";
 import ZoomIntegration from "./pages/help/ZoomIntegration";
 import Forms from "./pages/Forms";
 import FormBuilder from "./pages/FormBuilder";
@@ -313,6 +314,7 @@ import AdvertiserReports from "./pages/advertiser/AdvertiserReports";
 import AdvertiserBilling from "./pages/advertiser/AdvertiserBilling";
 import AdvertiserIntegrations from "./pages/advertiser/AdvertiserIntegrations";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { OnboardingGuard } from "./components/OnboardingGuard";
 import MyDay from "./pages/MyDay";
 import Audience from "./pages/Audience";
 import ContentHub from "./pages/ContentHub";
@@ -415,6 +417,7 @@ const AppContent = () => {
 
   return (
     <RoleProvider>
+      <OnboardingGuard>
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-background">
           {/* Unified Seeksy / My Day OS Sidebar for all routes */}
@@ -429,6 +432,7 @@ const AppContent = () => {
               <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/signup-select" element={<SignupSelect />} />
               <Route path="/onboarding" element={<Onboarding />} />
               
               {/* My Day OS Routes */}
@@ -799,6 +803,7 @@ const AppContent = () => {
         <AIAssistantPanel />
         </div>
       </SidebarProvider>
+      </OnboardingGuard>
     </RoleProvider>
   );
 };
