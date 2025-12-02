@@ -57,10 +57,11 @@ const ImportPodcast = () => {
         .from("podcasts")
         .insert({
           user_id: user.id,
+          owner_id: user.id, // Ensure owner_id is set for RLS
           title: parsedData.podcast.title,
           description: parsedData.podcast.description,
           cover_image_url: parsedData.podcast.cover_image_url,
-          author_name: parsedData.podcast.author_name,
+          author: parsedData.podcast.author_name,
           author_email: parsedData.podcast.author_email,
           website_url: parsedData.podcast.website_url,
           language: parsedData.podcast.language,
@@ -68,7 +69,9 @@ const ImportPodcast = () => {
           is_explicit: parsedData.podcast.is_explicit,
           is_published: true,
           show_on_profile: true,
-          rss_feed_url: rssUrl, // Store RSS URL for future syncing
+          rss_feed_url: rssUrl,
+          source: "rss",
+          source_url: rssUrl,
         })
         .select()
         .single();
@@ -88,11 +91,16 @@ const ImportPodcast = () => {
         episode_number: ep.episode_number,
         season_number: ep.season_number,
         is_published: true,
+        source: "rss",
+        guid: ep.guid,
       }));
 
       const { error: episodesError } = await supabase
         .from("episodes")
-        .insert(episodesData);
+        .upsert(episodesData, { 
+          onConflict: 'guid',
+          ignoreDuplicates: false 
+        });
 
       if (episodesError) throw episodesError;
 
@@ -105,7 +113,10 @@ const ImportPodcast = () => {
     },
     onSuccess: (podcast) => {
       toast.success("Podcast imported successfully!");
-      navigate(`/podcasts/${podcast.id}`);
+      // Small delay to ensure database transaction completes
+      setTimeout(() => {
+        navigate(`/content-and-media#podcasts`);
+      }, 500);
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to import podcast");
@@ -130,7 +141,7 @@ const ImportPodcast = () => {
       <div className="max-w-4xl mx-auto">
         <Button
           variant="ghost"
-          onClick={() => navigate("/podcasts")}
+          onClick={() => navigate("/content-and-media#podcasts")}
           className="mb-4"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
