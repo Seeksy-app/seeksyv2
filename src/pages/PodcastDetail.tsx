@@ -172,9 +172,16 @@ const PodcastDetail = () => {
             <div className="flex flex-col">
               <h1 className="text-2xl font-bold">{podcast.title}</h1>
               <div className="flex items-center gap-2 mt-1">
-                <div className="px-2 py-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded text-xs font-medium text-white">
-                  Hosted by Seeksy
-                </div>
+                {podcast.source !== 'rss' && (
+                  <div className="px-2 py-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded text-xs font-medium text-white">
+                    Hosted by Seeksy
+                  </div>
+                )}
+                {podcast.source === 'rss' && (
+                  <div className="px-2 py-0.5 bg-amber-500/20 border border-amber-500/30 rounded text-xs font-medium text-amber-600 dark:text-amber-400">
+                    Imported from RSS
+                  </div>
+                )}
               </div>
             </div>
           </div>
