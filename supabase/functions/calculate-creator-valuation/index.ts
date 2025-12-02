@@ -38,34 +38,48 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get auth header
+    const body = await req.json();
+    const { profile_id, user_id: bodyUserId, _service_role } = body;
+    
+    let userId: string;
+
+    // Check if this is a service role call (from internal sync functions)
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
+    if (_service_role && authHeader?.includes(supabaseKey)) {
+      // Service role call - trust the user_id from body
+      if (!bodyUserId) {
+        return new Response(JSON.stringify({ error: "Missing user_id for service role call" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      userId = bodyUserId;
+      console.log(`[valuation] Service role call for user: ${userId}, profile: ${profile_id}`);
+    } else if (authHeader) {
+      // User JWT call - validate the token
+      const { data: { user }, error: authError } = await supabase.auth.getUser(
+        authHeader.replace("Bearer ", "")
+      );
+      if (authError || !user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      userId = user.id;
+    } else {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    // Get user from token
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace("Bearer ", "")
-    );
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { profile_id } = await req.json();
 
     // Fetch the profile
     const { data: profile, error: profileError } = await supabase
       .from("social_media_profiles")
       .select("*")
       .eq("id", profile_id)
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .single();
 
     if (profileError || !profile) {
@@ -131,7 +145,7 @@ serve(async (req) => {
 
     // Upsert valuation
     const valuationData = {
-      user_id: user.id,
+      user_id: userId,
       profile_id: profile_id,
       platform: profile.platform,
       calculated_at: new Date().toISOString(),
@@ -164,7 +178,7 @@ serve(async (req) => {
       .from("creator_valuations")
       .select("id")
       .eq("profile_id", profile_id)
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .single();
 
     let valuation;
