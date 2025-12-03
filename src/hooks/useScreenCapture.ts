@@ -35,7 +35,7 @@ interface CaptureDiagnostics {
   errorMessage?: string;
 }
 
-const PROCESSING_TIMEOUT_MS = 30000; // 30 seconds timeout
+const PROCESSING_TIMEOUT_MS = 60000; // 60 seconds timeout (max allowed)
 
 export function useScreenCapture() {
   const { toast } = useToast();
