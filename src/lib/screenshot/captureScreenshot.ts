@@ -27,6 +27,8 @@ export async function captureScreenshot({
   category,
   description,
 }: CaptureScreenshotParams): Promise<CaptureScreenshotResult> {
+  console.log('[captureScreenshot] Starting capture for:', url, pageName);
+  
   const { data, error } = await supabase.functions.invoke('capture-screenshot', {
     body: {
       url,
@@ -37,14 +39,25 @@ export async function captureScreenshot({
   });
 
   if (error) {
-    console.error('Screenshot capture error:', error);
-    throw new Error(error.message || 'Failed to capture screenshot');
+    console.error('[captureScreenshot] Edge function error:', {
+      message: error.message,
+      name: error.name,
+      context: error.context,
+      status: error.status,
+    });
+    
+    // Extract more meaningful error message
+    const errorMsg = error.message || 'Failed to capture screenshot';
+    throw new Error(`Screenshot failed: ${errorMsg}`);
   }
 
   if (!data?.success) {
-    throw new Error(data?.error || 'Screenshot capture failed');
+    const errorDetail = data?.error || 'Unknown error from screenshot service';
+    console.error('[captureScreenshot] API returned failure:', errorDetail);
+    throw new Error(errorDetail);
   }
 
+  console.log('[captureScreenshot] Success:', data.screenshot?.page_name);
   return data.screenshot;
 }
 

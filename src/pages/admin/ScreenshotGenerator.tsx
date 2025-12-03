@@ -98,15 +98,17 @@ export default function ScreenshotGenerator() {
     onSuccess: (data) => {
       toast({
         title: "Screenshot Captured",
-        description: `${data.page_name} screenshot has been created successfully.`,
+        description: `${data.page_name} screenshot has been saved to library.`,
       });
+      // Auto-refresh the library
       queryClient.invalidateQueries({ queryKey: ['ui-screenshots'] });
     },
     onError: (error: Error) => {
+      console.error('[ScreenshotGenerator] Capture mutation error:', error);
       toast({
         variant: "destructive",
         title: "Capture Failed",
-        description: error.message || "Failed to capture screenshot",
+        description: error.message || "Screenshot capture failed. Check console for details.",
       });
     },
   });
@@ -129,9 +131,11 @@ export default function ScreenshotGenerator() {
 
     let successCount = 0;
     let failCount = 0;
+    const errors: string[] = [];
 
     for (const preset of PRESET_PAGES) {
       try {
+        console.log(`[Batch] Capturing: ${preset.name} - ${preset.url}`);
         await captureScreenshot({
           url: preset.url,
           pageName: preset.name,
@@ -139,19 +143,28 @@ export default function ScreenshotGenerator() {
           description: preset.description,
         });
         successCount++;
+        console.log(`[Batch] Success: ${preset.name}`);
         // Add delay between requests to avoid rate limiting
         await new Promise(resolve => setTimeout(resolve, 2000));
       } catch (error) {
-        console.error(`Failed to capture ${preset.name}:`, error);
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+        console.error(`[Batch] Failed: ${preset.name}`, errorMsg);
+        errors.push(`${preset.name}: ${errorMsg}`);
         failCount++;
       }
     }
 
     queryClient.invalidateQueries({ queryKey: ['ui-screenshots'] });
 
+    // Log all errors for debugging
+    if (errors.length > 0) {
+      console.error('[Batch] All errors:', errors);
+    }
+
     toast({
       title: "Batch Generation Complete",
       description: `Generated ${successCount} screenshots successfully. ${failCount > 0 ? `${failCount} failed.` : ''}`,
+      variant: failCount > 0 && successCount === 0 ? "destructive" : "default",
     });
   };
 

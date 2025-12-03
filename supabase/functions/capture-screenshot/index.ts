@@ -81,14 +81,33 @@ serve(async (req) => {
     });
 
     console.log('Calling ScreenshotOne API for:', url);
+    console.log('ScreenshotOne API key present:', !!screenshotOneKey, 'length:', screenshotOneKey?.length);
+    
     const screenshotResponse = await fetch(
       `https://api.screenshotone.com/take?${screenshotParams.toString()}`
     );
 
+    console.log('ScreenshotOne response status:', screenshotResponse.status, screenshotResponse.statusText);
+
     if (!screenshotResponse.ok) {
       const errorText = await screenshotResponse.text();
-      console.error('ScreenshotOne API error:', errorText);
-      throw new Error(`ScreenshotOne API failed: ${screenshotResponse.status}`);
+      console.error('ScreenshotOne API error response:', {
+        status: screenshotResponse.status,
+        statusText: screenshotResponse.statusText,
+        body: errorText,
+        url: url
+      });
+      
+      // Parse error if JSON
+      let errorDetail = errorText;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorDetail = errorJson.message || errorJson.error || errorText;
+      } catch (_) {
+        // Not JSON, use raw text
+      }
+      
+      throw new Error(`ScreenshotOne API error (HTTP ${screenshotResponse.status}): ${errorDetail}`);
     }
 
     const imageBuffer = await screenshotResponse.arrayBuffer();
