@@ -26,10 +26,10 @@ export function RouteTransition({ children }: { children: React.ReactNode }) {
     const randomMessage = TRANSITION_MESSAGES[Math.floor(Math.random() * TRANSITION_MESSAGES.length)];
     setMessage(randomMessage);
     
-    // Longer delay for smooth transition with visible feedback
+    // Short delay - just enough to prevent flicker without ghosting
     const timer = setTimeout(() => {
       setIsTransitioning(false);
-    }, 400);
+    }, 150);
     
     return () => clearTimeout(timer);
   }, [location.pathname, location.search]);
