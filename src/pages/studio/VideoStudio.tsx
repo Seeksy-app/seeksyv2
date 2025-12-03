@@ -351,26 +351,6 @@ export default function VideoStudio() {
   // Main studio phase
   return (
     <div className="h-screen bg-[#0d0f12] flex flex-col overflow-hidden">
-      {/* AI Toggles Bar */}
-      <div className="h-10 bg-[#15171a] border-b border-white/10 px-4 flex items-center gap-6">
-        <div className="flex items-center gap-2">
-          <Switch 
-            checked={realtimeAIClips} 
-            onCheckedChange={setRealtimeAIClips}
-            className="scale-75 data-[state=checked]:bg-pink-500"
-          />
-          <span className="text-xs text-white/70">Capture Realtime AI Clips</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Switch 
-            checked={aiCameraFocus} 
-            onCheckedChange={setAiCameraFocus}
-            className="scale-75 data-[state=checked]:bg-blue-500"
-          />
-          <span className="text-xs text-white/70">AI Camera Focus</span>
-        </div>
-      </div>
-
       {/* Header */}
       <VideoStudioHeader
         sessionTitle={sessionTitle}
@@ -418,6 +398,26 @@ export default function VideoStudio() {
             onAddClipMarker={handleAddClipMarker}
             onAddAdMarker={handleAddAdMarker}
           />
+
+          {/* AI Toggles - Below Host Tools */}
+          <div className="flex items-center justify-center gap-6 py-2 bg-[#15171a] border-t border-white/10">
+            <div className="flex items-center gap-2">
+              <Switch 
+                checked={realtimeAIClips} 
+                onCheckedChange={setRealtimeAIClips}
+                className="scale-75 data-[state=checked]:bg-pink-500"
+              />
+              <span className="text-xs text-white/70">Capture Realtime AI Clips</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch 
+                checked={aiCameraFocus} 
+                onCheckedChange={setAiCameraFocus}
+                className="scale-75 data-[state=checked]:bg-blue-500"
+              />
+              <span className="text-xs text-white/70">AI Camera Focus</span>
+            </div>
+          </div>
 
           {/* Script Drawer */}
           <ScriptDrawer
