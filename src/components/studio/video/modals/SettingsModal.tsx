@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { 
   Settings, Video, Mic, Circle, Image, 
-  Keyboard, User, Code, ChevronRight
+  Keyboard, User, Code, ChevronRight, Sparkles, Focus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +35,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const [showNonVideo, setShowNonVideo] = useState(false);
   const [showQrAlerts, setShowQrAlerts] = useState(true);
   const [pushProductLinks, setPushProductLinks] = useState(true);
+  // NEW AI FEATURES
+  const [captureRealtimeClips, setCaptureRealtimeClips] = useState(false);
+  const [captureCameraFocus, setCaptureCameraFocus] = useState(false);
 
   const sections = [
     { id: "general" as const, label: "General", icon: Settings },
@@ -92,11 +95,39 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                     <SelectItem value="1080p60">Full HD (1080p @ 60fps)</SelectItem>
                   </SelectContent>
                 </Select>
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-blue-700">
-                    Want Full HD quality?{" "}
-                    <span className="font-semibold underline cursor-pointer">Upgrade Now</span>
-                  </p>
+              </div>
+
+              {/* AI Features Section */}
+              <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-100">
+                <div className="flex items-center gap-2 mb-4">
+                  <Sparkles className="w-5 h-5 text-purple-600" />
+                  <h4 className="font-semibold text-gray-900">AI Features</h4>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center mt-0.5">
+                        <Sparkles className="w-4 h-4 text-purple-600" />
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-700">Capture Realtime AI Clips</span>
+                        <p className="text-xs text-gray-500 mt-0.5">Auto-generate clips during streaming. Appear in Media Library within 10 min.</p>
+                      </div>
+                    </div>
+                    <Switch checked={captureRealtimeClips} onCheckedChange={setCaptureRealtimeClips} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mt-0.5">
+                        <Focus className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-700">Capture AI Camera Focus</span>
+                        <p className="text-xs text-gray-500 mt-0.5">Auto-adjusts camera to follow active speaker and crop faces.</p>
+                      </div>
+                    </div>
+                    <Switch checked={captureCameraFocus} onCheckedChange={setCaptureCameraFocus} />
+                  </div>
                 </div>
               </div>
 

@@ -1,15 +1,14 @@
 import { Button } from "@/components/ui/button";
-import { 
-  Mic, MicOff, Video, VideoOff, Monitor, 
+import {
+  Mic, MicOff, Video, VideoOff, Monitor,
   UserPlus, Plus, Settings, ChevronDown,
-  LayoutGrid, Square, PhoneOff
+  PhoneOff, Upload, Radio
 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +24,7 @@ interface VideoStudioControlsEnhancedProps {
   onSettings: () => void;
   onLayoutChange: (layout: string) => void;
   onEndSession: () => void;
+  onUploadMedia?: () => void;
 }
 
 export function VideoStudioControlsEnhanced({
@@ -39,6 +39,7 @@ export function VideoStudioControlsEnhanced({
   onSettings,
   onLayoutChange,
   onEndSession,
+  onUploadMedia,
 }: VideoStudioControlsEnhancedProps) {
   return (
     <div className="h-20 bg-[#0d0f12] border-t border-white/10 flex items-center justify-center px-6 gap-3">
@@ -50,8 +51,8 @@ export function VideoStudioControlsEnhanced({
           onClick={onToggleMic}
           className={cn(
             "h-14 w-14 rounded-full rounded-r-none transition-all",
-            isMuted 
-              ? "bg-red-500/20 text-red-400 hover:bg-red-500/30" 
+            isMuted
+              ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
               : "bg-white/10 text-white hover:bg-white/20"
           )}
         >
@@ -64,8 +65,8 @@ export function VideoStudioControlsEnhanced({
               size="icon"
               className={cn(
                 "h-14 w-8 rounded-full rounded-l-none border-l border-white/20",
-                isMuted 
-                  ? "bg-red-500/20 text-red-400 hover:bg-red-500/30" 
+                isMuted
+                  ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
                   : "bg-white/10 text-white hover:bg-white/20"
               )}
             >
@@ -91,8 +92,8 @@ export function VideoStudioControlsEnhanced({
           onClick={onToggleVideo}
           className={cn(
             "h-14 w-14 rounded-full rounded-r-none transition-all",
-            isVideoOff 
-              ? "bg-red-500/20 text-red-400 hover:bg-red-500/30" 
+            isVideoOff
+              ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
               : "bg-white/10 text-white hover:bg-white/20"
           )}
         >
@@ -105,8 +106,8 @@ export function VideoStudioControlsEnhanced({
               size="icon"
               className={cn(
                 "h-14 w-8 rounded-full rounded-l-none border-l border-white/20",
-                isVideoOff 
-                  ? "bg-red-500/20 text-red-400 hover:bg-red-500/30" 
+                isVideoOff
+                  ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
                   : "bg-white/10 text-white hover:bg-white/20"
               )}
             >
@@ -130,6 +131,7 @@ export function VideoStudioControlsEnhanced({
         size="icon"
         onClick={onScreenShare}
         className="h-14 w-14 rounded-full bg-white/10 text-white hover:bg-white/20"
+        title="Screen Share"
       >
         <Monitor className="w-6 h-6" />
       </Button>
@@ -140,84 +142,55 @@ export function VideoStudioControlsEnhanced({
         size="icon"
         onClick={onInviteGuest}
         className="h-14 w-14 rounded-full bg-white/10 text-white hover:bg-white/20 ring-2 ring-blue-500/50"
+        title="Invite Guest"
       >
         <UserPlus className="w-6 h-6" />
       </Button>
 
-      {/* Add Source */}
+      {/* Add Source - SIMPLIFIED MENU */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
             size="icon"
             className="h-14 w-14 rounded-full bg-white/10 text-white hover:bg-white/20"
+            title="Add Source"
           >
             <Plus className="w-6 h-6" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="bg-white border-gray-200 w-56" align="center">
-          <DropdownMenuItem className="gap-3 py-3 cursor-pointer">
-            <span className="text-gray-600">🎤</span>
-            <div>
-              <div className="font-medium">Presentations</div>
-            </div>
-            <span className="ml-auto text-xs text-gray-400">P</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem className="gap-3 py-3 cursor-pointer">
-            <span className="text-gray-600">☁️</span>
-            <div>
-              <div className="font-medium">Video storage</div>
-            </div>
-            <span className="ml-auto text-xs text-gray-400">D</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem className="gap-3 py-3 cursor-pointer" onClick={onScreenShare}>
-            <Monitor className="w-4 h-4 text-gray-600" />
+        <DropdownMenuContent className="bg-[#1a1d21] border-white/10 w-56" align="center">
+          <DropdownMenuItem
+            className="gap-3 py-3 cursor-pointer text-white hover:bg-white/10"
+            onClick={onScreenShare}
+          >
+            <Monitor className="w-5 h-5 text-blue-400" />
             <div>
               <div className="font-medium">Screen share</div>
+              <div className="text-xs text-white/50">Share your screen</div>
             </div>
-            <span className="ml-auto text-xs text-gray-400">H</span>
+            <span className="ml-auto text-xs text-white/40">H</span>
           </DropdownMenuItem>
-          <DropdownMenuItem className="gap-3 py-3 cursor-pointer">
-            <span className="text-gray-600">🖼️</span>
+
+          <DropdownMenuItem
+            className="gap-3 py-3 cursor-pointer text-white hover:bg-white/10"
+            onClick={onUploadMedia}
+          >
+            <Upload className="w-5 h-5 text-green-400" />
             <div>
-              <div className="font-medium">Image</div>
+              <div className="font-medium">Upload Media</div>
+              <div className="text-xs text-white/50">From Media Library</div>
             </div>
-            <span className="ml-auto text-xs text-gray-400">G</span>
+            <span className="ml-auto text-xs text-white/40">U</span>
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem className="gap-3 py-3 cursor-pointer">
-            <span className="text-gray-600">📹</span>
-            <div>
-              <div className="font-medium">Extra camera</div>
-            </div>
-            <span className="ml-auto text-xs text-gray-400">E</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem className="gap-3 py-3 cursor-pointer">
-            <span className="text-gray-600">🎬</span>
-            <div>
-              <div className="font-medium">Local video</div>
-            </div>
-            <span className="ml-auto text-xs text-gray-400">O</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem className="gap-3 py-3 cursor-pointer">
-            <span className="text-gray-600">RT</span>
+
+          <DropdownMenuItem className="gap-3 py-3 cursor-pointer text-white hover:bg-white/10">
+            <Radio className="w-5 h-5 text-purple-400" />
             <div>
               <div className="font-medium">RTMP source</div>
+              <div className="text-xs text-white/50">External stream input</div>
             </div>
-            <span className="ml-auto text-xs text-gray-400">R</span>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem className="gap-3 py-3 cursor-pointer">
-            <span className="text-gray-600">👤</span>
-            <div>
-              <div className="font-medium">Media placeholder</div>
-            </div>
-          </DropdownMenuItem>
-          <DropdownMenuItem className="gap-3 py-3 cursor-pointer">
-            <span className="text-gray-600">👥</span>
-            <div>
-              <div className="font-medium">Participant placeholder</div>
-            </div>
+            <span className="ml-auto text-xs text-white/40">R</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -228,6 +201,7 @@ export function VideoStudioControlsEnhanced({
         size="icon"
         onClick={onSettings}
         className="h-14 w-14 rounded-full bg-white/10 text-white hover:bg-white/20"
+        title="Settings"
       >
         <Settings className="w-6 h-6" />
       </Button>
@@ -238,6 +212,7 @@ export function VideoStudioControlsEnhanced({
         size="icon"
         onClick={onEndSession}
         className="h-14 w-14 rounded-full bg-red-500/20 text-red-400 hover:bg-red-500/30 ml-4"
+        title="End Session"
       >
         <PhoneOff className="w-6 h-6" />
       </Button>

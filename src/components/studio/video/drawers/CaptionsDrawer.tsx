@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Slider } from "@/components/ui/slider";
 import { 
   X, Plus, ChevronDown, ChevronRight, 
-  Gauge, Info, GripVertical
+  Gauge, Info, GripVertical, Trash2, Edit2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,25 +25,47 @@ interface Ticker {
   text: string;
 }
 
-const mockLowerThirds: LowerThird[] = [
-  { id: "1", name: "#behooves you" },
-  { id: "2", name: "Army National Guard" },
-  { id: "3", name: "Air National Guard, Tech Sgt." },
-  { id: "4", name: "Greg Bernard", title: "On-Air Personality" },
-];
-
-const mockTickers: Ticker[] = [
-  { id: "1", text: "@Paradedeck @TommysFigz @dupreegod @HIM" },
-  { id: "2", text: "ParadeDeck.com" },
-  { id: "3", text: "#AnimeNYC #ParadeDeck #SideStage1 #HIM" },
-];
-
 export function CaptionsDrawer({ isOpen, onClose }: CaptionsDrawerProps) {
   const [expandedSections, setExpandedSections] = useState<string[]>(["lowerthird", "ticker"]);
   const [activeLowerThird, setActiveLowerThird] = useState<string | null>(null);
   const [activeTicker, setActiveTicker] = useState<string | null>(null);
-  const [newLowerThird, setNewLowerThird] = useState("");
-  const [newTicker, setNewTicker] = useState("");
+  const [tickerSpeed, setTickerSpeed] = useState(50);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const [lowerThirds, setLowerThirds] = useState<LowerThird[]>([
+    { id: "1", name: "#behooves you" },
+    { id: "2", name: "Army National Guard" },
+    { id: "3", name: "Air National Guard, Tech Sgt." },
+    { id: "4", name: "Greg Bernard", title: "On-Air Personality" },
+  ]);
+
+  const [tickers, setTickers] = useState<Ticker[]>([
+    { id: "1", text: "@Paradedeck @TommysFigz @dupreegod @HIM" },
+    { id: "2", text: "ParadeDeck.com" },
+    { id: "3", text: "#AnimeNYC #ParadeDeck #SideStage1 #HIM" },
+  ]);
+
+  const handleAddLowerThird = () => {
+    const newItem: LowerThird = { id: `lt-${Date.now()}`, name: "New Lower Third", title: "Subtitle" };
+    setLowerThirds([...lowerThirds, newItem]);
+    setEditingId(newItem.id);
+  };
+
+  const handleAddTicker = () => {
+    const newItem: Ticker = { id: `tk-${Date.now()}`, text: "New ticker text..." };
+    setTickers([...tickers, newItem]);
+    setEditingId(newItem.id);
+  };
+
+  const handleDeleteLowerThird = (id: string) => {
+    setLowerThirds(lowerThirds.filter(lt => lt.id !== id));
+    if (activeLowerThird === id) setActiveLowerThird(null);
+  };
+
+  const handleDeleteTicker = (id: string) => {
+    setTickers(tickers.filter(t => t.id !== id));
+    if (activeTicker === id) setActiveTicker(null);
+  };
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => 
