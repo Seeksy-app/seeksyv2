@@ -68,7 +68,8 @@ import PollDetail from "./pages/PollDetail";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Cookies from "./pages/Cookies";
-import Security from "./pages/Security";
+import SecurityPublic from "./pages/SecurityPublic";
+import AdminSecurityOverview from "./pages/admin/AdminSecurityOverview";
 import AdminLegal from "./pages/AdminLegal";
 import Settings from "./pages/Settings";
 import SettingsBilling from "./pages/SettingsBilling";
@@ -578,7 +579,7 @@ const AppContent = () => {
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/cookies" element={<Cookies />} />
-              <Route path="/security" element={<Security />} />
+              <Route path="/security" element={<SecurityPublic />} />
           <Route path="/dashboard" element={<UniversalDashboard />} />
           <Route path="/dashboard-legacy" element={<Dashboard />} />
           <Route path="/dashboard-v2" element={<DashboardV2 />} />
@@ -721,6 +722,7 @@ const AppContent = () => {
             <Route path="/admin/screenshot-generator" element={<ScreenshotGenerator />} />
               <Route path="/admin/screen-capture" element={<ScreenCapture />} />
               <Route path="/admin/system-tools" element={<SystemTools />} />
+              <Route path="/admin/security" element={<AdminSecurityOverview />} />
           <Route path="/demo-videos" element={<DemoVideos />} />
           <Route path="/marketing-gtm" element={<MarketingGTMPlan />} />
             <Route path="/admin/hero-generator" element={<HeroImageGeneratorPage />} />

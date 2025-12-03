@@ -5,7 +5,7 @@ const footerLinks = {
   product: { title: "Product", links: [{ label: "Studio", href: "/studio" }, { label: "Analytics", href: "/analytics" }, { label: "Media Kit", href: "/media-kit" }, { label: "Booking", href: "/meetings" }, { label: "Pricing", href: "/pricing" }] },
   resources: { title: "Resources", links: [{ label: "Blog", href: "/blog" }, { label: "Help Center", href: "/help" }, { label: "Tutorials", href: "/tutorials" }, { label: "API Docs", href: "/docs" }] },
   company: { title: "Company", links: [{ label: "About", href: "/about" }, { label: "Careers", href: "/careers" }, { label: "Contact", href: "/contact" }] },
-  legal: { title: "Legal", links: [{ label: "Privacy", href: "/privacy" }, { label: "Terms", href: "/terms" }] },
+  legal: { title: "Legal", links: [{ label: "Privacy", href: "/privacy" }, { label: "Terms", href: "/terms" }, { label: "Security & Privacy", href: "/security" }] },
 };
 
 const socialLinks = [

@@ -269,6 +269,20 @@ export const NAVIGATION_CONFIG: {
           "icon": "activity",
           "path": "/admin/system-status",
           "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_security",
+          "label": "Security",
+          "icon": "shield-check",
+          "path": "/admin/security",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_system_tools",
+          "label": "System Tools",
+          "icon": "wrench",
+          "path": "/admin/system-tools",
+          "roles": ["admin", "super_admin"]
         }
       ]
     },
