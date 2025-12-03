@@ -6,6 +6,7 @@ import { Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EmailTrackingPills } from "./EmailTrackingPills";
 import { useState } from "react";
+import { sanitizeEmailHtml } from "@/lib/sanitizeHtml";
 import { EngagementTimelinePanel } from "./EngagementTimelinePanel";
 import { EmailRepliesPanel } from "./EmailRepliesPanel";
 import { useToast } from "@/hooks/use-toast";

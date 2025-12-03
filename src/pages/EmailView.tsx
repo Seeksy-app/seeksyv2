@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { sanitizeEmailHtml } from "@/lib/sanitizeHtml";
 
 export default function EmailView() {
   const { id } = useParams();

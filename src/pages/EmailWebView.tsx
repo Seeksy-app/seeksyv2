@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { sanitizeEmailHtml } from "@/lib/sanitizeHtml";
 
 export default function EmailWebView() {
   const { emailId } = useParams();
