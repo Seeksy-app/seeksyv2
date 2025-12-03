@@ -1,26 +1,38 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { VideoStudioHeader } from "@/components/studio/video/VideoStudioHeader";
-import { VideoStudioScenes, SceneLayout } from "@/components/studio/video/VideoStudioScenes";
+import { VideoStudioScenesResizable, SceneLayout, Scene } from "@/components/studio/video/VideoStudioScenesResizable";
 import { VideoStudioCanvas } from "@/components/studio/video/VideoStudioCanvas";
-import { VideoStudioControls } from "@/components/studio/video/VideoStudioControls";
-import { VideoStudioToolbar } from "@/components/studio/video/VideoStudioToolbar";
+import type { SceneLayout as CanvasSceneLayout } from "@/components/studio/video/VideoStudioScenes";
+import { VideoStudioControlsEnhanced } from "@/components/studio/video/VideoStudioControlsEnhanced";
+import { VideoStudioToolbarEnhanced, ToolbarTab } from "@/components/studio/video/VideoStudioToolbarEnhanced";
+import { HostToolsBar } from "@/components/studio/video/HostToolsBar";
 import { VideoPreJoinScreen } from "@/components/studio/video/VideoPreJoinScreen";
 import { VideoStudioLoadingScreen } from "@/components/studio/video/VideoStudioLoadingScreen";
+
+// Drawers
+import { GraphicsDrawer } from "@/components/studio/video/drawers/GraphicsDrawer";
+import { CaptionsDrawer } from "@/components/studio/video/drawers/CaptionsDrawer";
+import { MusicDrawer } from "@/components/studio/video/drawers/MusicDrawer";
+import { NotesDrawer } from "@/components/studio/video/drawers/NotesDrawer";
+import { ChatDrawer } from "@/components/studio/video/drawers/ChatDrawer";
+import { QRCodesDrawer } from "@/components/studio/video/drawers/QRCodesDrawer";
+import { ScriptDrawer } from "@/components/studio/video/drawers/ScriptDrawer";
+
+// Modals
+import { InviteGuestModal } from "@/components/studio/video/modals/InviteGuestModal";
+import { SettingsModal } from "@/components/studio/video/modals/SettingsModal";
+import { ChannelsModal } from "@/components/studio/video/modals/ChannelsModal";
+
 import { toast } from "sonner";
 
-interface Scene {
-  id: string;
-  name: string;
-  layout: SceneLayout;
-}
-
 type StudioPhase = "loading" | "prejoin" | "studio";
-type ToolbarTab = "graphics" | "captions" | "qr" | "notes" | "chat" | "music" | "theme" | "help";
+type HostDrawer = "script" | "clip" | "ad" | null;
 
 const defaultScenes: Scene[] = [
   { id: "welcome", name: "Welcome", layout: "host-only" },
   { id: "demo", name: "Demo", layout: "side-by-side" },
+  { id: "interview", name: "Interview", layout: "host-guest" },
 ];
 
 export default function VideoStudio() {
@@ -42,10 +54,20 @@ export default function VideoStudio() {
   // Scenes
   const [scenes, setScenes] = useState<Scene[]>(defaultScenes);
   const [activeSceneId, setActiveSceneId] = useState("welcome");
-  const [currentLayout, setCurrentLayout] = useState<SceneLayout>("host-only");
+  const [currentLayout, setCurrentLayout] = useState<string>("host-only");
   
-  // Toolbar
+  // Toolbar & Drawers
   const [activeToolbarTab, setActiveToolbarTab] = useState<ToolbarTab | null>(null);
+  const [activeHostDrawer, setActiveHostDrawer] = useState<HostDrawer>(null);
+  
+  // Modals
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showChannelsModal, setShowChannelsModal] = useState(false);
+
+  // Markers
+  const [markers, setMarkers] = useState<Array<{ type: string; time: number }>>([]);
+  const [recordingTime, setRecordingTime] = useState(0);
 
   // Simulate loading
   useEffect(() => {
@@ -84,6 +106,17 @@ export default function VideoStudio() {
     };
   }, [phase]);
 
+  // Recording timer
+  useEffect(() => {
+    if (!isRecording) return;
+    
+    const interval = setInterval(() => {
+      setRecordingTime(prev => prev + 1);
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [isRecording]);
+
   const handleEnterStudio = (name: string, title: string) => {
     setUserName(name);
     setUserTitle(title);
@@ -91,11 +124,11 @@ export default function VideoStudio() {
   };
 
   const handleGoLive = () => {
-    toast.info("Go Live feature coming soon!");
+    setShowChannelsModal(true);
   };
 
   const handleChannels = () => {
-    toast.info("Channel management coming soon!");
+    setShowChannelsModal(true);
   };
 
   const handleSchedule = () => {
@@ -113,23 +146,60 @@ export default function VideoStudio() {
   };
 
   const handleSceneMenu = (id: string) => {
-    // TODO: Show scene context menu
+    // Duplicate scene
+    const scene = scenes.find(s => s.id === id);
+    if (scene) {
+      const newScene: Scene = {
+        ...scene,
+        id: `scene-${Date.now()}`,
+        name: `${scene.name} (Copy)`,
+      };
+      setScenes([...scenes, newScene]);
+    }
   };
 
-  const handleScreenShare = () => {
-    toast.info("Screen share coming soon!");
+  const handleDeleteScene = (id: string) => {
+    if (scenes.length <= 1) {
+      toast.error("Cannot delete the last scene");
+      return;
+    }
+    setScenes(scenes.filter(s => s.id !== id));
+    if (activeSceneId === id) {
+      setActiveSceneId(scenes[0].id);
+    }
   };
 
-  const handleInviteGuest = () => {
-    toast.info("Guest invite coming soon!");
+  const handleScreenShare = async () => {
+    try {
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: true,
+      });
+      toast.success("Screen sharing started!");
+      // Handle screen share stream
+    } catch (err) {
+      console.error("Screen share error:", err);
+    }
   };
 
-  const handleAddMedia = () => {
-    toast.info("Add media coming soon!");
+  const handleAddClipMarker = () => {
+    const marker = { type: "clip", time: recordingTime };
+    setMarkers([...markers, marker]);
+    toast.success(`Clip marker added at ${formatTime(recordingTime)}`);
   };
 
-  const handleSettings = () => {
-    toast.info("Settings coming soon!");
+  const handleAddAdMarker = () => {
+    const marker = { type: "ad", time: recordingTime };
+    setMarkers([...markers, marker]);
+    toast.success(`Ad marker added at ${formatTime(recordingTime)}`);
+  };
+
+  const handleEndSession = () => {
+    if (isRecording) {
+      setIsRecording(false);
+      toast.success("Recording stopped and saved to Media Library");
+    }
+    navigate("/studio");
   };
 
   const handleFullscreen = () => {
@@ -138,6 +208,12 @@ export default function VideoStudio() {
     } else {
       document.documentElement.requestFullscreen();
     }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   // Loading phase
@@ -176,46 +252,119 @@ export default function VideoStudio() {
       />
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left - Scenes Panel */}
-        <VideoStudioScenes
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Left - Resizable Scenes Panel */}
+        <VideoStudioScenesResizable
           scenes={scenes}
           activeSceneId={activeSceneId}
           onSceneSelect={setActiveSceneId}
           onAddScene={handleAddScene}
           onSceneMenu={handleSceneMenu}
+          onDeleteScene={handleDeleteScene}
         />
 
         {/* Center - Canvas + Controls */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col relative">
           <VideoStudioCanvas
             videoRef={videoRef}
             resolution="720p"
             isVideoOff={isVideoOff}
-            layout={currentLayout}
+            layout={currentLayout as CanvasSceneLayout}
             onFullscreen={handleFullscreen}
           />
 
-          {/* Bottom Controls */}
-          <VideoStudioControls
+          {/* Host Tools Bar */}
+          <HostToolsBar
+            activeDrawer={activeHostDrawer}
+            onOpenScript={() => setActiveHostDrawer(activeHostDrawer === "script" ? null : "script")}
+            onAddClipMarker={handleAddClipMarker}
+            onAddAdMarker={handleAddAdMarker}
+          />
+
+          {/* Script Drawer */}
+          <ScriptDrawer
+            isOpen={activeHostDrawer === "script"}
+            onClose={() => setActiveHostDrawer(null)}
+          />
+
+          {/* Bottom Controls - ENLARGED */}
+          <VideoStudioControlsEnhanced
             isMuted={isMuted}
             isVideoOff={isVideoOff}
-            onToggleMic={() => setIsMuted(!isMuted)}
-            onToggleVideo={() => setIsVideoOff(!isVideoOff)}
+            isRecording={isRecording}
+            onToggleMic={() => {
+              setIsMuted(!isMuted);
+              if (stream) {
+                stream.getAudioTracks().forEach(track => {
+                  track.enabled = isMuted;
+                });
+              }
+            }}
+            onToggleVideo={() => {
+              setIsVideoOff(!isVideoOff);
+              if (stream) {
+                stream.getVideoTracks().forEach(track => {
+                  track.enabled = isVideoOff;
+                });
+              }
+            }}
             onScreenShare={handleScreenShare}
-            onInviteGuest={handleInviteGuest}
-            onAddMedia={handleAddMedia}
-            onSettings={handleSettings}
+            onInviteGuest={() => setShowInviteModal(true)}
+            onAddSource={() => toast.info("Add source menu")}
+            onSettings={() => setShowSettingsModal(true)}
+            onLayoutChange={(layout) => setCurrentLayout(layout)}
+            onEndSession={handleEndSession}
           />
         </div>
 
         {/* Right - Toolbar */}
-        <VideoStudioToolbar
+        <VideoStudioToolbarEnhanced
           activeTab={activeToolbarTab}
           onTabChange={setActiveToolbarTab}
+          onInviteGuest={() => setShowInviteModal(true)}
           notificationCount={3}
         />
+
+        {/* Drawers */}
+        <GraphicsDrawer
+          isOpen={activeToolbarTab === "graphics"}
+          onClose={() => setActiveToolbarTab(null)}
+        />
+        <CaptionsDrawer
+          isOpen={activeToolbarTab === "captions"}
+          onClose={() => setActiveToolbarTab(null)}
+        />
+        <QRCodesDrawer
+          isOpen={activeToolbarTab === "qr"}
+          onClose={() => setActiveToolbarTab(null)}
+        />
+        <NotesDrawer
+          isOpen={activeToolbarTab === "notes"}
+          onClose={() => setActiveToolbarTab(null)}
+        />
+        <ChatDrawer
+          isOpen={activeToolbarTab === "chat"}
+          onClose={() => setActiveToolbarTab(null)}
+        />
+        <MusicDrawer
+          isOpen={activeToolbarTab === "music"}
+          onClose={() => setActiveToolbarTab(null)}
+        />
       </div>
+
+      {/* Modals */}
+      <InviteGuestModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+      />
+      <SettingsModal
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+      />
+      <ChannelsModal
+        isOpen={showChannelsModal}
+        onClose={() => setShowChannelsModal(false)}
+      />
     </div>
   );
 }
