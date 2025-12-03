@@ -11,6 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { captureScreenshot, fetchScreenshots, deleteScreenshot } from "@/lib/screenshot/captureScreenshot";
+import { BackButton } from "@/components/navigation/BackButton";
 
 interface Screenshot {
   id: string;
@@ -234,9 +235,10 @@ export default function ScreenshotGenerator() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      <BackButton fallbackPath="/admin" className="mb-2" />
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Page Scraper + Screenshot System</h1>
+          <h1 className="text-3xl font-bold">Screenshot Generator</h1>
           <p className="text-muted-foreground mt-2">
             Capture live screenshots from any URL using ScreenshotOne API
           </p>

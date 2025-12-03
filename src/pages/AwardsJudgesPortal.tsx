@@ -11,6 +11,7 @@ import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Trophy, Award, User, Star, CheckCircle, Loader2 } from "lucide-react";
+import { BackButton } from "@/components/navigation/BackButton";
 
 export default function AwardsJudgesPortal() {
   const navigate = useNavigate();
@@ -176,6 +177,7 @@ export default function AwardsJudgesPortal() {
       {/* Header */}
       <div className="bg-brand-navy text-white py-8">
         <div className="container mx-auto px-4">
+          <BackButton fallbackPath="/awards" label="Back to Awards" className="mb-4 text-white hover:bg-white/10" />
           <div className="flex items-center gap-3 mb-2">
             <User className="h-6 w-6" />
             <Badge variant="secondary">Judge Portal</Badge>
