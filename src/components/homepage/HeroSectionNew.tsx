@@ -36,14 +36,6 @@ export function HeroSectionNew() {
         />
       </div>
 
-      {/* Grid pattern */}
-      <div 
-        className="absolute inset-0 opacity-[0.015]"
-        style={{
-          backgroundImage: 'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
-          backgroundSize: '60px 60px'
-        }}
-      />
 
       <div className="container relative z-10 mx-auto px-4 py-20 pt-32">
         <div className="max-w-4xl mx-auto text-center">
