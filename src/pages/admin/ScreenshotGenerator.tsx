@@ -43,11 +43,15 @@ const PRESET_PAGES = [
   { name: "Admin Console", url: "https://seeksy.io/admin", category: "internal", description: "Admin dashboard with user management, system status, and analytics overview" },
   { name: "CFO Dashboard", url: "https://seeksy.io/cfo-dashboard", category: "internal", description: "Financial metrics, revenue insights, and business intelligence" },
   { name: "Board Portal", url: "https://seeksy.io/board", category: "internal", description: "Board member view with business model, GTM strategy, and forecasts" },
+  { name: "Pro Forma", url: "https://seeksy.io/proforma", category: "internal", description: "Financial projections, AI-generated and custom scenarios" },
+  { name: "GTM Strategy", url: "https://seeksy.io/gtm", category: "internal", description: "Go-to-market strategy, market analysis, and quarterly projections" },
   
   // Creator Tools
   { name: "Media Vault", url: "https://seeksy.io/media-vault", category: "creator-tools", description: "Grid of video thumbnails with upload button, search bar, and filtering options" },
   { name: "Podcast Manager", url: "https://seeksy.io/podcasts", category: "creator-tools", description: "List of podcast episodes with status badges, publish dates, and edit buttons" },
   { name: "Studio Hub", url: "https://seeksy.io/studio", category: "creator-tools", description: "Audio and video recording studio with AI production features" },
+  { name: "Audio Recording", url: "https://seeksy.io/studio/audio", category: "creator-tools", description: "Audio recording studio with waveform, enhancement toggles, and script panel" },
+  { name: "Video Recording", url: "https://seeksy.io/studio/video", category: "creator-tools", description: "Video recording studio with scenes, layouts, and broadcast controls" },
   { name: "AI Clips Studio", url: "https://seeksy.io/studio/clips", category: "creator-tools", description: "AI clip generation with timeline, transcript, and export options" },
   { name: "My Page Editor", url: "https://seeksy.io/profile/edit", category: "creator-tools", description: "Customization interface with section builder, module toggles, and live preview" },
   { name: "Voice Identity", url: "https://seeksy.io/my-voice-identity", category: "creator-tools", description: "Voice certification, fingerprint verification, and blockchain credentials" },
@@ -60,7 +64,9 @@ const PRESET_PAGES = [
   
   // Events & Awards
   { name: "Events", url: "https://seeksy.io/events", category: "internal", description: "Event list with registration, check-in, and analytics" },
+  { name: "Create Event", url: "https://seeksy.io/events/create", category: "internal", description: "Event creation wizard with details, ticketing, and scheduling" },
   { name: "Awards Programs", url: "https://seeksy.io/awards", category: "internal", description: "Awards programs with categories, nominees, and voting" },
+  { name: "Create Awards", url: "https://seeksy.io/awards/create", category: "internal", description: "Awards program creation with categories and nomination setup" },
   { name: "Meetings", url: "https://seeksy.io/meetings", category: "internal", description: "Meeting types, booking links, and scheduling" },
   
   // Onboarding
