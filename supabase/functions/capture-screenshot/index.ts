@@ -45,24 +45,44 @@ serve(async (req) => {
   }
 
   try {
+    // Check Authorization header first
+    const authHeader = req.headers.get('Authorization');
+    console.log('[capture-screenshot] Authorization header present:', !!authHeader);
+    
+    if (!authHeader) {
+      console.error('[capture-screenshot] No Authorization header provided');
+      return new Response(JSON.stringify({ 
+        error: 'Authorization header required. Please ensure you are logged in.', 
+        code: 'UNAUTHORIZED' 
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: { Authorization: authHeader },
         },
       }
     );
 
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     if (userError || !user) {
-      console.error('[capture-screenshot] Auth error:', userError);
-      return new Response(JSON.stringify({ error: 'Unauthorized', code: 'UNAUTHORIZED' }), {
+      console.error('[capture-screenshot] Auth error:', userError?.message || 'No user found');
+      return new Response(JSON.stringify({ 
+        error: 'Session expired or invalid. Please log in again.', 
+        code: 'UNAUTHORIZED' 
+      }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+    
+    console.log('[capture-screenshot] Authenticated user:', user.id);
 
     // Verify admin role
     const { data: roles } = await supabaseClient

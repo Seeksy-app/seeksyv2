@@ -58,6 +58,20 @@ function mapErrorCodeToMessage(code: string, fallbackMessage: string): string {
 export async function runHealthCheck(): Promise<HealthCheckResult> {
   console.log('[captureScreenshot] Running health check...');
   
+  // First verify we have an active session
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  
+  if (sessionError || !session) {
+    console.error('[captureScreenshot] No active session for health check:', sessionError?.message);
+    return {
+      success: false,
+      error: 'You must be logged in to run the health check. Please refresh the page and try again.',
+      code: 'NO_SESSION',
+    };
+  }
+  
+  console.log('[captureScreenshot] Session found, invoking edge function...');
+  
   const { data, error } = await supabase.functions.invoke('capture-screenshot', {
     body: { healthCheck: true },
   });
@@ -85,6 +99,14 @@ export async function captureScreenshot({
   description,
 }: CaptureScreenshotParams): Promise<CaptureScreenshotResult> {
   console.log('[captureScreenshot] Starting capture for:', url, pageName);
+  
+  // First verify we have an active session
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  
+  if (sessionError || !session) {
+    console.error('[captureScreenshot] No active session:', sessionError?.message);
+    throw new Error('You must be logged in to capture screenshots. Please refresh the page and try again.');
+  }
   
   const { data, error } = await supabase.functions.invoke('capture-screenshot', {
     body: {
