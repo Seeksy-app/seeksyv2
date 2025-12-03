@@ -2066,39 +2066,72 @@ export type Database = {
       award_categories: {
         Row: {
           allow_media_submission: boolean | null
+          allowed_media_types: string[] | null
           created_at: string
+          custom_fields: Json | null
           description: string | null
           display_order: number | null
+          eligibility_guidelines: string | null
           id: string
+          is_active: boolean | null
+          judging_instructions: string | null
           max_nominees: number | null
+          max_score: number | null
           media_type: string | null
+          min_score: number | null
           name: string
           program_id: string
+          require_media: boolean | null
+          scoring_rubric: Json | null
+          scoring_type: string | null
           updated_at: string
+          weight: number | null
         }
         Insert: {
           allow_media_submission?: boolean | null
+          allowed_media_types?: string[] | null
           created_at?: string
+          custom_fields?: Json | null
           description?: string | null
           display_order?: number | null
+          eligibility_guidelines?: string | null
           id?: string
+          is_active?: boolean | null
+          judging_instructions?: string | null
           max_nominees?: number | null
+          max_score?: number | null
           media_type?: string | null
+          min_score?: number | null
           name: string
           program_id: string
+          require_media?: boolean | null
+          scoring_rubric?: Json | null
+          scoring_type?: string | null
           updated_at?: string
+          weight?: number | null
         }
         Update: {
           allow_media_submission?: boolean | null
+          allowed_media_types?: string[] | null
           created_at?: string
+          custom_fields?: Json | null
           description?: string | null
           display_order?: number | null
+          eligibility_guidelines?: string | null
           id?: string
+          is_active?: boolean | null
+          judging_instructions?: string | null
           max_nominees?: number | null
+          max_score?: number | null
           media_type?: string | null
+          min_score?: number | null
           name?: string
           program_id?: string
+          require_media?: boolean | null
+          scoring_rubric?: Json | null
+          scoring_type?: string | null
           updated_at?: string
+          weight?: number | null
         }
         Relationships: [
           {
@@ -2110,20 +2143,385 @@ export type Database = {
           },
         ]
       }
+      award_ceremony_elements: {
+        Row: {
+          category_id: string | null
+          content: string | null
+          created_at: string | null
+          duration_seconds: number | null
+          element_type: string
+          id: string
+          is_generated: boolean | null
+          nominee_id: string | null
+          order_position: number | null
+          program_id: string
+          speaker_notes: string | null
+          title: string | null
+          updated_at: string | null
+          visual_cue: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          element_type: string
+          id?: string
+          is_generated?: boolean | null
+          nominee_id?: string | null
+          order_position?: number | null
+          program_id: string
+          speaker_notes?: string | null
+          title?: string | null
+          updated_at?: string | null
+          visual_cue?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          element_type?: string
+          id?: string
+          is_generated?: boolean | null
+          nominee_id?: string | null
+          order_position?: number | null
+          program_id?: string
+          speaker_notes?: string | null
+          title?: string | null
+          updated_at?: string | null
+          visual_cue?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "award_ceremony_elements_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "award_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "award_ceremony_elements_nominee_id_fkey"
+            columns: ["nominee_id"]
+            isOneToOne: false
+            referencedRelation: "award_nominees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "award_ceremony_elements_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "awards_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      award_judge_assignments: {
+        Row: {
+          assigned_at: string | null
+          due_date: string | null
+          id: string
+          is_blind: boolean | null
+          judge_id: string
+          nominee_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          due_date?: string | null
+          id?: string
+          is_blind?: boolean | null
+          judge_id: string
+          nominee_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          due_date?: string | null
+          id?: string
+          is_blind?: boolean | null
+          judge_id?: string
+          nominee_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "award_judge_assignments_judge_id_fkey"
+            columns: ["judge_id"]
+            isOneToOne: false
+            referencedRelation: "award_judges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "award_judge_assignments_nominee_id_fkey"
+            columns: ["nominee_id"]
+            isOneToOne: false
+            referencedRelation: "award_nominees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      award_judge_scores: {
+        Row: {
+          category_id: string
+          comments: string | null
+          created_at: string | null
+          id: string
+          is_complete: boolean | null
+          judge_id: string
+          nominee_id: string
+          private_notes: string | null
+          program_id: string
+          rubric_scores: Json | null
+          score: number | null
+          scored_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category_id: string
+          comments?: string | null
+          created_at?: string | null
+          id?: string
+          is_complete?: boolean | null
+          judge_id: string
+          nominee_id: string
+          private_notes?: string | null
+          program_id: string
+          rubric_scores?: Json | null
+          score?: number | null
+          scored_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category_id?: string
+          comments?: string | null
+          created_at?: string | null
+          id?: string
+          is_complete?: boolean | null
+          judge_id?: string
+          nominee_id?: string
+          private_notes?: string | null
+          program_id?: string
+          rubric_scores?: Json | null
+          score?: number | null
+          scored_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "award_judge_scores_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "award_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "award_judge_scores_judge_id_fkey"
+            columns: ["judge_id"]
+            isOneToOne: false
+            referencedRelation: "award_judges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "award_judge_scores_nominee_id_fkey"
+            columns: ["nominee_id"]
+            isOneToOne: false
+            referencedRelation: "award_nominees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "award_judge_scores_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "awards_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      award_judges: {
+        Row: {
+          assigned_categories: string[] | null
+          bio: string | null
+          can_see_other_scores: boolean | null
+          company: string | null
+          created_at: string | null
+          email: string
+          id: string
+          invite_accepted_at: string | null
+          invite_sent_at: string | null
+          invite_token: string | null
+          is_lead_judge: boolean | null
+          name: string
+          photo_url: string | null
+          program_id: string
+          status: string | null
+          title: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          assigned_categories?: string[] | null
+          bio?: string | null
+          can_see_other_scores?: boolean | null
+          company?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          invite_accepted_at?: string | null
+          invite_sent_at?: string | null
+          invite_token?: string | null
+          is_lead_judge?: boolean | null
+          name: string
+          photo_url?: string | null
+          program_id: string
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          assigned_categories?: string[] | null
+          bio?: string | null
+          can_see_other_scores?: boolean | null
+          company?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          invite_accepted_at?: string | null
+          invite_sent_at?: string | null
+          invite_token?: string | null
+          is_lead_judge?: boolean | null
+          name?: string
+          photo_url?: string | null
+          program_id?: string
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "award_judges_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "awards_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      award_leaderboard_snapshots: {
+        Row: {
+          category_id: string
+          id: string
+          program_id: string
+          rankings: Json
+          snapshot_time: string | null
+          total_votes: number | null
+        }
+        Insert: {
+          category_id: string
+          id?: string
+          program_id: string
+          rankings?: Json
+          snapshot_time?: string | null
+          total_votes?: number | null
+        }
+        Update: {
+          category_id?: string
+          id?: string
+          program_id?: string
+          rankings?: Json
+          snapshot_time?: string | null
+          total_votes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "award_leaderboard_snapshots_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "award_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "award_leaderboard_snapshots_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "awards_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      award_nomination_drafts: {
+        Row: {
+          category_id: string
+          created_at: string | null
+          draft_data: Json
+          id: string
+          last_saved_at: string | null
+          nominator_email: string | null
+          program_id: string
+          user_id: string | null
+        }
+        Insert: {
+          category_id: string
+          created_at?: string | null
+          draft_data?: Json
+          id?: string
+          last_saved_at?: string | null
+          nominator_email?: string | null
+          program_id: string
+          user_id?: string | null
+        }
+        Update: {
+          category_id?: string
+          created_at?: string | null
+          draft_data?: Json
+          id?: string
+          last_saved_at?: string | null
+          nominator_email?: string | null
+          program_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "award_nomination_drafts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "award_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "award_nomination_drafts_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "awards_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       award_nominees: {
         Row: {
+          ai_summary: string | null
+          approved_at: string | null
+          approved_by: string | null
           audio_url: string | null
           category_id: string
           created_at: string
+          custom_field_responses: Json | null
+          finalist_rank: number | null
           id: string
+          is_finalist: boolean | null
+          media_uploads: Json | null
+          nomination_status: string | null
+          nomination_story: string | null
           nominee_description: string | null
           nominee_email: string | null
           nominee_image_url: string | null
           nominee_name: string
           predicted_rank: number | null
           program_id: string
+          rejection_reason: string | null
           rss_feed_url: string | null
+          social_links: Json | null
           status: Database["public"]["Enums"]["nominee_status"]
+          submitted_at: string | null
           submitted_by_user_id: string | null
           total_votes: number | null
           unique_voting_link: string | null
@@ -2132,18 +2530,30 @@ export type Database = {
           vote_breakdown: Json | null
         }
         Insert: {
+          ai_summary?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           audio_url?: string | null
           category_id: string
           created_at?: string
+          custom_field_responses?: Json | null
+          finalist_rank?: number | null
           id?: string
+          is_finalist?: boolean | null
+          media_uploads?: Json | null
+          nomination_status?: string | null
+          nomination_story?: string | null
           nominee_description?: string | null
           nominee_email?: string | null
           nominee_image_url?: string | null
           nominee_name: string
           predicted_rank?: number | null
           program_id: string
+          rejection_reason?: string | null
           rss_feed_url?: string | null
+          social_links?: Json | null
           status?: Database["public"]["Enums"]["nominee_status"]
+          submitted_at?: string | null
           submitted_by_user_id?: string | null
           total_votes?: number | null
           unique_voting_link?: string | null
@@ -2152,18 +2562,30 @@ export type Database = {
           vote_breakdown?: Json | null
         }
         Update: {
+          ai_summary?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           audio_url?: string | null
           category_id?: string
           created_at?: string
+          custom_field_responses?: Json | null
+          finalist_rank?: number | null
           id?: string
+          is_finalist?: boolean | null
+          media_uploads?: Json | null
+          nomination_status?: string | null
+          nomination_story?: string | null
           nominee_description?: string | null
           nominee_email?: string | null
           nominee_image_url?: string | null
           nominee_name?: string
           predicted_rank?: number | null
           program_id?: string
+          rejection_reason?: string | null
           rss_feed_url?: string | null
+          social_links?: Json | null
           status?: Database["public"]["Enums"]["nominee_status"]
+          submitted_at?: string | null
           submitted_by_user_id?: string | null
           total_votes?: number | null
           unique_voting_link?: string | null
@@ -2481,6 +2903,7 @@ export type Database = {
         Row: {
           category_id: string
           id: string
+          is_verified: boolean | null
           nominee_id: string
           program_id: string
           rank_position: number | null
@@ -2490,10 +2913,12 @@ export type Database = {
           voter_id: string | null
           voter_ip_hash: string | null
           voter_name: string | null
+          voting_session_id: string | null
         }
         Insert: {
           category_id: string
           id?: string
+          is_verified?: boolean | null
           nominee_id: string
           program_id: string
           rank_position?: number | null
@@ -2503,10 +2928,12 @@ export type Database = {
           voter_id?: string | null
           voter_ip_hash?: string | null
           voter_name?: string | null
+          voting_session_id?: string | null
         }
         Update: {
           category_id?: string
           id?: string
+          is_verified?: boolean | null
           nominee_id?: string
           program_id?: string
           rank_position?: number | null
@@ -2516,6 +2943,7 @@ export type Database = {
           voter_id?: string | null
           voter_ip_hash?: string | null
           voter_name?: string | null
+          voting_session_id?: string | null
         }
         Relationships: [
           {
@@ -2534,6 +2962,60 @@ export type Database = {
           },
           {
             foreignKeyName: "award_votes_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "awards_programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "award_votes_voting_session_id_fkey"
+            columns: ["voting_session_id"]
+            isOneToOne: false
+            referencedRelation: "award_voting_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      award_voting_sessions: {
+        Row: {
+          created_at: string | null
+          email: string
+          expires_at: string | null
+          id: string
+          ip_address: string | null
+          program_id: string
+          user_agent: string | null
+          verification_token: string | null
+          verified_at: string | null
+          votes_cast: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          expires_at?: string | null
+          id?: string
+          ip_address?: string | null
+          program_id: string
+          user_agent?: string | null
+          verification_token?: string | null
+          verified_at?: string | null
+          votes_cast?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          expires_at?: string | null
+          id?: string
+          ip_address?: string | null
+          program_id?: string
+          user_agent?: string | null
+          verification_token?: string | null
+          verified_at?: string | null
+          votes_cast?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "award_voting_sessions_program_id_fkey"
             columns: ["program_id"]
             isOneToOne: false
             referencedRelation: "awards_programs"
@@ -2596,21 +3078,36 @@ export type Database = {
       awards_programs: {
         Row: {
           allow_public_nominations: boolean | null
+          anonymous_voting: boolean | null
+          branding: Json | null
+          captcha_enabled: boolean | null
           ceremony_date: string | null
+          ceremony_location: string | null
+          ceremony_run_of_show: Json | null
+          ceremony_script: string | null
+          ceremony_virtual_url: string | null
           cover_image_url: string | null
           created_at: string
           description: string | null
           fee_configuration: Json | null
           id: string
+          ip_throttle_enabled: boolean | null
+          ip_throttle_max_votes: number | null
+          judging_deadline: string | null
+          max_nominations_per_user: number | null
           max_votes_per_voter: number | null
           nomination_type: string | null
           nominations_close_date: string | null
           nominations_open_date: string | null
           payout_scheduled_date: string | null
           registration_fee: number | null
+          require_email_verification: boolean | null
+          require_nomination_approval: boolean | null
           require_voter_registration: boolean | null
           self_nomination_fee: number | null
+          show_live_leaderboard: boolean | null
           show_live_results: boolean | null
+          slug: string | null
           sponsorship_flyer_url: string | null
           status: Database["public"]["Enums"]["award_program_status"]
           stripe_connect_account_id: string | null
@@ -2625,21 +3122,36 @@ export type Database = {
         }
         Insert: {
           allow_public_nominations?: boolean | null
+          anonymous_voting?: boolean | null
+          branding?: Json | null
+          captcha_enabled?: boolean | null
           ceremony_date?: string | null
+          ceremony_location?: string | null
+          ceremony_run_of_show?: Json | null
+          ceremony_script?: string | null
+          ceremony_virtual_url?: string | null
           cover_image_url?: string | null
           created_at?: string
           description?: string | null
           fee_configuration?: Json | null
           id?: string
+          ip_throttle_enabled?: boolean | null
+          ip_throttle_max_votes?: number | null
+          judging_deadline?: string | null
+          max_nominations_per_user?: number | null
           max_votes_per_voter?: number | null
           nomination_type?: string | null
           nominations_close_date?: string | null
           nominations_open_date?: string | null
           payout_scheduled_date?: string | null
           registration_fee?: number | null
+          require_email_verification?: boolean | null
+          require_nomination_approval?: boolean | null
           require_voter_registration?: boolean | null
           self_nomination_fee?: number | null
+          show_live_leaderboard?: boolean | null
           show_live_results?: boolean | null
+          slug?: string | null
           sponsorship_flyer_url?: string | null
           status?: Database["public"]["Enums"]["award_program_status"]
           stripe_connect_account_id?: string | null
@@ -2654,21 +3166,36 @@ export type Database = {
         }
         Update: {
           allow_public_nominations?: boolean | null
+          anonymous_voting?: boolean | null
+          branding?: Json | null
+          captcha_enabled?: boolean | null
           ceremony_date?: string | null
+          ceremony_location?: string | null
+          ceremony_run_of_show?: Json | null
+          ceremony_script?: string | null
+          ceremony_virtual_url?: string | null
           cover_image_url?: string | null
           created_at?: string
           description?: string | null
           fee_configuration?: Json | null
           id?: string
+          ip_throttle_enabled?: boolean | null
+          ip_throttle_max_votes?: number | null
+          judging_deadline?: string | null
+          max_nominations_per_user?: number | null
           max_votes_per_voter?: number | null
           nomination_type?: string | null
           nominations_close_date?: string | null
           nominations_open_date?: string | null
           payout_scheduled_date?: string | null
           registration_fee?: number | null
+          require_email_verification?: boolean | null
+          require_nomination_approval?: boolean | null
           require_voter_registration?: boolean | null
           self_nomination_fee?: number | null
+          show_live_leaderboard?: boolean | null
           show_live_results?: boolean | null
+          slug?: string | null
           sponsorship_flyer_url?: string | null
           status?: Database["public"]["Enums"]["award_program_status"]
           stripe_connect_account_id?: string | null
@@ -15778,6 +16305,10 @@ export type Database = {
           revenue_generated: number
         }[]
       }
+      calculate_nominee_average_score: {
+        Args: { p_nominee_id: string }
+        Returns: number
+      }
       create_meeting_public: {
         Args: {
           p_attendee_email: string
@@ -15802,6 +16333,7 @@ export type Database = {
       }
       generate_check_in_code: { Args: never; Returns: string }
       generate_investor_code: { Args: never; Returns: string }
+      generate_judge_invite_token: { Args: never; Returns: string }
       generate_rsvp_token: { Args: never; Returns: string }
       generate_ticket_number: { Args: never; Returns: string }
       get_current_usage: {
