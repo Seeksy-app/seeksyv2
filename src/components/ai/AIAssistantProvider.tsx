@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 
 interface AIAssistantContextType {
   isOpen: boolean;
@@ -18,6 +18,20 @@ export function AIAssistantProvider({ children }: { children: ReactNode }) {
   const open = () => setIsOpen(true);
   const close = () => setIsOpen(false);
   const toggle = () => setIsOpen((prev) => !prev);
+
+  // Listen for sidebar "Ask Spark" click and custom events
+  useEffect(() => {
+    const handleOpenChat = () => setIsOpen(true);
+    const handleOpenSparkAssistant = () => setIsOpen(true);
+    
+    window.addEventListener('openSparkChat', handleOpenChat);
+    document.addEventListener('open-spark-assistant', handleOpenSparkAssistant);
+    
+    return () => {
+      window.removeEventListener('openSparkChat', handleOpenChat);
+      document.removeEventListener('open-spark-assistant', handleOpenSparkAssistant);
+    };
+  }, []);
 
   return (
     <AIAssistantContext.Provider value={{ isOpen, open, close, toggle, context, setContext }}>
