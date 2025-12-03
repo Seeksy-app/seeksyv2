@@ -145,7 +145,7 @@ export default function RDIntelligenceFeeds() {
   const podcastFeeds = feeds?.filter(f => f.type === 'podcast') || [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-foreground">R&D Intelligence Feeds</h1>
