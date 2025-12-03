@@ -169,6 +169,9 @@ import AwardsProgramDetail from "./pages/AwardsProgramDetail";
 import PublicNomination from "./pages/PublicNomination";
 import BrowseAwards from "./pages/BrowseAwards";
 import AwardsVoting from "./pages/AwardsVoting";
+import AwardsWinners from "./pages/AwardsWinners";
+import AwardsJudgesPortal from "./pages/AwardsJudgesPortal";
+import AwardsAdminTally from "./pages/AwardsAdminTally";
 import PurchaseSponsorship from "./pages/PurchaseSponsorship";
 import TeamChat from "./pages/TeamChat";
 import Team from "./pages/Team";
@@ -821,12 +824,18 @@ const AppContent = () => {
           <Route path="/help-center" element={<HelpCenter />} />
           <Route path="/help-center/:guideId" element={<HelpCenter />} />
           <Route path="/system-status" element={<SystemStatus />} />
+        {/* Awards Routes - Public */}
         <Route path="/awards" element={<Awards />} />
         <Route path="/awards/create" element={<CreateAwardsProgram />} />
         <Route path="/awards/:id" element={<AwardsProgramDetail />} />
         <Route path="/awards/:id/vote" element={<AwardsVoting />} />
+        <Route path="/awards/:id/winners" element={<AwardsWinners />} />
         <Route path="/awards/:id/sponsor" element={<PurchaseSponsorship />} />
         <Route path="/browse-awards" element={<BrowseAwards />} />
+        
+        {/* Awards Routes - Restricted */}
+        <Route path="/awards/judges" element={<AwardsJudgesPortal />} />
+        <Route path="/awards/admin/tally" element={<AwardsAdminTally />} />
         <Route path="/nominate/:programId" element={<PublicNomination />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/crm" element={<CRM />} />

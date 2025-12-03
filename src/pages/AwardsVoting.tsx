@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,10 +8,29 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
-  Trophy, ArrowLeft, Heart, Star, Award, ExternalLink 
+  Trophy, ArrowLeft, Heart, Star, Award, ExternalLink, CheckCircle, XCircle 
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+
+const VOTED_STORAGE_KEY = "seeksy_awards_voted";
+
+function getVotedPrograms(): string[] {
+  try {
+    const stored = localStorage.getItem(VOTED_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function markProgramAsVoted(programId: string) {
+  const voted = getVotedPrograms();
+  if (!voted.includes(programId)) {
+    voted.push(programId);
+    localStorage.setItem(VOTED_STORAGE_KEY, JSON.stringify(voted));
+  }
+}
 
 export default function AwardsVoting() {
   const { id } = useParams();
@@ -22,6 +41,14 @@ export default function AwardsVoting() {
   const [selectedVotes, setSelectedVotes] = useState<Record<string, string>>({});
   const [voterName, setVoterName] = useState("");
   const [voterEmail, setVoterEmail] = useState("");
+  const [hasAlreadyVoted, setHasAlreadyVoted] = useState(false);
+
+  // Check if user already voted
+  useEffect(() => {
+    if (id) {
+      setHasAlreadyVoted(getVotedPrograms().includes(id));
+    }
+  }, [id]);
 
   const { data: program, isLoading } = useQuery({
     queryKey: ["awards-voting", id],
@@ -73,6 +100,8 @@ export default function AwardsVoting() {
         title: "Votes Submitted!",
         description: "Thank you for participating in the awards!",
       });
+      if (id) markProgramAsVoted(id);
+      setHasAlreadyVoted(true);
       queryClient.invalidateQueries({ queryKey: ["awards-voting", id] });
       setSelectedVotes({});
       setVoterName("");
@@ -101,7 +130,10 @@ export default function AwardsVoting() {
 
   const totalCategories = program.award_categories?.length || 0;
   const votedCategories = Object.keys(selectedVotes).length;
-  const canSubmit = voterName && voterEmail && votedCategories > 0;
+  const canSubmit = voterName && voterEmail && votedCategories > 0 && !hasAlreadyVoted;
+  
+  // Check if voting is closed
+  const isVotingClosed = program.status === "closed" || program.status === "completed";
 
   return (
     <div className="min-h-screen bg-background">
@@ -125,9 +157,15 @@ export default function AwardsVoting() {
             {program.description && (
               <p className="text-xl text-white/90 mb-4">{program.description}</p>
             )}
-            <Badge className="bg-green-500 text-white text-lg px-4 py-2">
-              Voting Open
-            </Badge>
+            {isVotingClosed ? (
+              <Badge className="bg-orange-500 text-white text-lg px-4 py-2">
+                Voting Closed
+              </Badge>
+            ) : (
+              <Badge className="bg-green-500 text-white text-lg px-4 py-2">
+                Voting Open
+              </Badge>
+            )}
             {program.ceremony_date && (
               <p className="text-white/80 mt-4">
                 Ceremony: {format(new Date(program.ceremony_date), "MMMM d, yyyy")}
@@ -138,6 +176,48 @@ export default function AwardsVoting() {
       </div>
 
       <div className="container mx-auto px-4 py-12 max-w-6xl">
+        {/* Already Voted or Voting Closed Banner */}
+        {hasAlreadyVoted && (
+          <Card className="p-6 mb-8 border-green-500/30 bg-green-500/10">
+            <div className="flex items-center gap-4">
+              <CheckCircle className="h-8 w-8 text-green-500 flex-shrink-0" />
+              <div>
+                <h3 className="text-lg font-bold text-green-700 dark:text-green-400">
+                  You've already submitted your votes for this program
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Thank you for participating! Your votes have been recorded.
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {isVotingClosed && !hasAlreadyVoted && (
+          <Card className="p-6 mb-8 border-orange-500/30 bg-orange-500/10">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <XCircle className="h-8 w-8 text-orange-500 flex-shrink-0" />
+                <div>
+                  <h3 className="text-lg font-bold text-orange-700 dark:text-orange-400">
+                    Voting has closed for this program
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Winners will be announced soon. Check back later!
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={() => navigate(`/awards/${id}/winners`)}
+                className="bg-brand-gold hover:bg-brand-gold/90 text-brand-navy"
+              >
+                <Trophy className="mr-2 h-4 w-4" />
+                View Winners
+              </Button>
+            </div>
+          </Card>
+        )}
+
         {/* Sponsors Section */}
         {program.award_sponsorships && program.award_sponsorships.length > 0 && (
           <Card className="p-8 mb-8 border-brand-gold/20">
@@ -166,46 +246,50 @@ export default function AwardsVoting() {
           </Card>
         )}
 
-        {/* Voting Progress */}
-        <Card className="p-6 mb-8 border-brand-gold/20 bg-brand-gold/5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-bold mb-1">Your Voting Progress</h3>
-              <p className="text-sm text-muted-foreground">
-                Voted in {votedCategories} of {totalCategories} categories
-              </p>
+        {/* Voting Progress - Only show if voting is open */}
+        {!isVotingClosed && !hasAlreadyVoted && (
+          <Card className="p-6 mb-8 border-brand-gold/20 bg-brand-gold/5">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold mb-1">Your Voting Progress</h3>
+                <p className="text-sm text-muted-foreground">
+                  Voted in {votedCategories} of {totalCategories} categories
+                </p>
+              </div>
+              <div className="text-3xl font-black text-brand-gold">
+                {totalCategories > 0 ? Math.round((votedCategories / totalCategories) * 100) : 0}%
+              </div>
             </div>
-            <div className="text-3xl font-black text-brand-gold">
-              {totalCategories > 0 ? Math.round((votedCategories / totalCategories) * 100) : 0}%
-            </div>
-          </div>
-        </Card>
+          </Card>
+        )}
 
-        {/* Voter Information */}
-        <Card className="p-6 mb-8 border-brand-gold/20">
-          <h3 className="text-xl font-bold mb-4">Your Information</h3>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="voterName">Your Name *</Label>
-              <Input
-                id="voterName"
-                value={voterName}
-                onChange={(e) => setVoterName(e.target.value)}
-                placeholder="Enter your name"
-              />
+        {/* Voter Information - Only show if voting is open */}
+        {!isVotingClosed && !hasAlreadyVoted && (
+          <Card className="p-6 mb-8 border-brand-gold/20">
+            <h3 className="text-xl font-bold mb-4">Your Information</h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="voterName">Your Name *</Label>
+                <Input
+                  id="voterName"
+                  value={voterName}
+                  onChange={(e) => setVoterName(e.target.value)}
+                  placeholder="Enter your name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="voterEmail">Your Email *</Label>
+                <Input
+                  id="voterEmail"
+                  type="email"
+                  value={voterEmail}
+                  onChange={(e) => setVoterEmail(e.target.value)}
+                  placeholder="Enter your email"
+                />
+              </div>
             </div>
-            <div>
-              <Label htmlFor="voterEmail">Your Email *</Label>
-              <Input
-                id="voterEmail"
-                type="email"
-                value={voterEmail}
-                onChange={(e) => setVoterEmail(e.target.value)}
-                placeholder="Enter your email"
-              />
-            </div>
-          </div>
-        </Card>
+          </Card>
+        )}
 
         {/* Categories and Nominees */}
         <div className="space-y-8">
@@ -225,20 +309,27 @@ export default function AwardsVoting() {
                 <div className="grid gap-4 mt-6">
                   {category.award_nominees.map((nominee: any) => {
                     const isSelected = selectedVotes[category.id] === nominee.id;
+                    const canVote = !isVotingClosed && !hasAlreadyVoted;
                     
                     return (
                       <Card
                         key={nominee.id}
-                        className={`p-4 cursor-pointer transition-all ${
+                        className={`p-4 transition-all ${
+                          canVote ? "cursor-pointer" : "cursor-default"
+                        } ${
                           isSelected
                             ? "border-2 border-brand-gold bg-brand-gold/5 shadow-lg"
-                            : "border hover:border-brand-gold/50 hover:shadow-md"
+                            : canVote 
+                              ? "border hover:border-brand-gold/50 hover:shadow-md"
+                              : "border"
                         }`}
                         onClick={() => {
-                          setSelectedVotes((prev) => ({
-                            ...prev,
-                            [category.id]: nominee.id,
-                          }));
+                          if (canVote) {
+                            setSelectedVotes((prev) => ({
+                              ...prev,
+                              [category.id]: nominee.id,
+                            }));
+                          }
                         }}
                       >
                         <div className="flex items-start gap-4">
@@ -286,28 +377,30 @@ export default function AwardsVoting() {
           ))}
         </div>
 
-        {/* Submit Button */}
-        <div className="sticky bottom-6 mt-8 z-10">
-          <Card className="p-6 border-brand-gold shadow-2xl bg-background">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="font-bold">Ready to submit your votes?</p>
-                <p className="text-sm text-muted-foreground">
-                  You've voted in {votedCategories} categor{votedCategories !== 1 ? "ies" : "y"}
-                </p>
+        {/* Submit Button - Only show if voting is open and user hasn't voted */}
+        {!isVotingClosed && !hasAlreadyVoted && (
+          <div className="sticky bottom-6 mt-8 z-10">
+            <Card className="p-6 border-brand-gold shadow-2xl bg-background">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="font-bold">Ready to submit your votes?</p>
+                  <p className="text-sm text-muted-foreground">
+                    You've voted in {votedCategories} categor{votedCategories !== 1 ? "ies" : "y"}
+                  </p>
+                </div>
+                <Button
+                  size="lg"
+                  onClick={() => submitVotes.mutate()}
+                  disabled={!canSubmit || submitVotes.isPending}
+                  className="bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-bold"
+                >
+                  {submitVotes.isPending ? "Submitting..." : "Submit Votes"}
+                  <Trophy className="ml-2 h-5 w-5" />
+                </Button>
               </div>
-              <Button
-                size="lg"
-                onClick={() => submitVotes.mutate()}
-                disabled={!canSubmit || submitVotes.isPending}
-                className="bg-brand-gold hover:bg-brand-gold/90 text-brand-navy font-bold"
-              >
-                {submitVotes.isPending ? "Submitting..." : "Submit Votes"}
-                <Trophy className="ml-2 h-5 w-5" />
-              </Button>
-            </div>
-          </Card>
-        </div>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );

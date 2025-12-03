@@ -9,13 +9,15 @@ import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Trophy, ArrowLeft } from "lucide-react";
+import { Trophy, ArrowLeft, Sparkles } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
 import { FeeConfigurationForm } from "@/components/awards/FeeConfigurationForm";
+import { AIAwardsDesignerDialog, type AIAwardsInput } from "@/components/awards/AIAwardsDesignerDialog";
 
 export default function CreateAwardsProgram() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [aiDialogOpen, setAiDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -81,16 +83,43 @@ export default function CreateAwardsProgram() {
       </Button>
 
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <Trophy className="h-8 w-8 text-brand-gold" />
-          <h1 className="text-4xl font-bold text-brand-gold">
-            Create Awards Program
-          </h1>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <Trophy className="h-8 w-8 text-brand-gold" />
+              <h1 className="text-4xl font-bold text-brand-gold">
+                Create Awards Program
+              </h1>
+            </div>
+            <p className="text-muted-foreground">
+              Set up your awards program with categories, nominees, and voting
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setAiDialogOpen(true)}
+            className="border-brand-gold text-brand-gold hover:bg-brand-gold/10"
+          >
+            <Sparkles className="mr-2 h-4 w-4" />
+            AI Awards Designer
+          </Button>
         </div>
-        <p className="text-muted-foreground">
-          Set up your awards program with categories, nominees, and voting
-        </p>
       </div>
+
+      <AIAwardsDesignerDialog
+        open={aiDialogOpen}
+        onOpenChange={setAiDialogOpen}
+        onGenerate={(data: AIAwardsInput) => {
+          // Pre-fill form with AI suggestions
+          setFormData(prev => ({
+            ...prev,
+            title: data.programName || prev.title,
+            description: data.additionalNotes || prev.description,
+          }));
+          toast.success("AI suggestions applied! Review and customize as needed.");
+        }}
+      />
 
       <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-6">
         <Card className="p-6 border-brand-gold/20">
