@@ -100,7 +100,7 @@ export default function AIClipGeneratorFull() {
       if (!mediaId) return null;
       const { data } = await supabase
         .from("media_files")
-        .select("*")
+        .select("id, file_name, file_url, duration_seconds")
         .eq("id", mediaId)
         .single();
       return data as { 
@@ -113,21 +113,31 @@ export default function AIClipGeneratorFull() {
     enabled: !!mediaId,
   });
 
+  type RealtimeClip = {
+    id: string;
+    title: string | null;
+    status: string | null;
+    created_at: string;
+    thumbnail_url: string | null;
+    duration_seconds: number | null;
+  };
+
   const { data: realtimeClips } = useQuery({
     queryKey: ["realtime-clips"],
-    queryFn: async () => {
+    queryFn: async (): Promise<RealtimeClip[]> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
       
-      const { data } = await supabase
+      // Use explicit query to avoid deep type instantiation
+      const result = await (supabase as any)
         .from("clips")
-        .select("*")
+        .select("id, title, status, created_at, thumbnail_url, duration_seconds")
         .eq("user_id", user.id)
         .eq("source", "realtime_ai")
         .order("created_at", { ascending: false })
         .limit(10);
       
-      return data || [];
+      return (result.data || []) as RealtimeClip[];
     },
     enabled: fromRealtime,
   });

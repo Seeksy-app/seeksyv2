@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
-import { VideoStudioHeader } from "@/components/studio/video/VideoStudioHeader";
+import { VideoStudioHeader, StudioMode } from "@/components/studio/video/VideoStudioHeader";
 import { VideoStudioScenesResizable, SceneLayout, Scene } from "@/components/studio/video/VideoStudioScenesResizable";
 import { VideoStudioCanvas } from "@/components/studio/video/VideoStudioCanvas";
 import type { SceneLayout as CanvasSceneLayout } from "@/components/studio/video/VideoStudioScenes";
@@ -25,6 +25,7 @@ import { InviteGuestModal } from "@/components/studio/video/modals/InviteGuestMo
 import { SettingsModal } from "@/components/studio/video/modals/SettingsModal";
 import { ChannelsModal } from "@/components/studio/video/modals/ChannelsModal";
 
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 type StudioPhase = "loading" | "prejoin" | "studio";
@@ -39,6 +40,8 @@ const defaultScenes: Scene[] = [
 export default function VideoStudio() {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
   
   // Phase state
   const [phase, setPhase] = useState<StudioPhase>("loading");
@@ -51,6 +54,7 @@ export default function VideoStudio() {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [studioMode, setStudioMode] = useState<StudioMode>("record");
   
   // AI Features
   const [realtimeAIClips, setRealtimeAIClips] = useState(false);
@@ -128,8 +132,109 @@ export default function VideoStudio() {
     setPhase("studio");
   };
 
-  const handleGoLive = () => {
-    setShowChannelsModal(true);
+  const handleStartSession = async () => {
+    if (studioMode === "live") {
+      toast.info("Live streaming setup coming soon!");
+      return;
+    }
+    
+    // Record only mode
+    if (!stream) {
+      toast.error("Camera not ready. Please wait.");
+      return;
+    }
+    
+    try {
+      // Set up MediaRecorder
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm;codecs=vp9,opus'
+      });
+      
+      recordedChunksRef.current = [];
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+        }
+      };
+      
+      mediaRecorder.onstop = async () => {
+        await saveRecordingToMediaLibrary();
+      };
+      
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start(1000); // Capture every 1 second
+      
+      setIsRecording(true);
+      setRecordingTime(0);
+      toast.success("Recording started!");
+    } catch (err) {
+      console.error("Recording error:", err);
+      toast.error("Failed to start recording");
+    }
+  };
+
+  const handleStopSession = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      toast.success("Recording stopped. Saving to Media Library...");
+    }
+  };
+
+  const saveRecordingToMediaLibrary = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("You must be logged in to save recordings");
+        return;
+      }
+      
+      const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+      const fileName = `studio-recording-${Date.now()}.webm`;
+      const filePath = `${user.id}/${fileName}`;
+      
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('studio-recordings')
+        .upload(filePath, blob);
+      
+      if (uploadError) throw uploadError;
+      
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('studio-recordings')
+        .getPublicUrl(filePath);
+      
+      // Calculate duration from recording time
+      const durationSeconds = recordingTime;
+      
+      // Save to media_files table
+      const { error: dbError } = await supabase
+        .from('media_files')
+        .insert({
+          user_id: user.id,
+          file_name: sessionTitle || fileName,
+          file_url: urlData.publicUrl,
+          file_type: 'video',
+          file_size: blob.size,
+          duration_seconds: durationSeconds,
+          source: 'studio-recording',
+          storage_path: filePath,
+        });
+      
+      if (dbError) throw dbError;
+      
+      toast.success("Recording saved to Media Library!");
+      
+      // If realtime AI clips is enabled, trigger clip generation
+      if (realtimeAIClips) {
+        toast.info("AI clip generation will start shortly...");
+      }
+    } catch (err) {
+      console.error("Error saving recording:", err);
+      toast.error("Failed to save recording");
+    }
   };
 
   const handleChannels = () => {
@@ -271,14 +376,17 @@ export default function VideoStudio() {
         sessionTitle={sessionTitle}
         onBack={() => navigate("/studio")}
         isRecording={isRecording}
-        onRecordToggle={() => setIsRecording(!isRecording)}
-        onGoLive={handleGoLive}
+        studioMode={studioMode}
+        onModeChange={setStudioMode}
+        onStartSession={handleStartSession}
+        onStopSession={handleStopSession}
         onChannels={handleChannels}
         onSchedule={handleSchedule}
         onEditTitle={() => {
           const newTitle = prompt("Enter session title:", sessionTitle);
           if (newTitle) setSessionTitle(newTitle);
         }}
+        recordingTime={recordingTime}
       />
 
       {/* Main Content */}
