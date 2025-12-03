@@ -99,8 +99,8 @@ export function RoleSelectionStep({ onSelect }: RoleSelectionStepProps) {
         </div>
       </div>
 
-      {/* 4x2 Grid - uniform card sizes */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+      {/* 4x2 Grid - all cards uniform 160px height */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {roleOptions.map((option, index) => {
           const Icon = option.icon;
           return (
