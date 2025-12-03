@@ -5,6 +5,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { attemptBootRecovery, isAuthError, shouldAttemptRecovery } from '@/utils/bootRecovery';
 
 export type AccountType = 
   | 'creator'
@@ -34,18 +35,47 @@ export function useAccountType() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['accountType'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
+      try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError) {
+          console.error('[useAccountType] Auth error:', authError);
+          // If auth error and recovery is allowed, trigger it
+          if (isAuthError(authError) && shouldAttemptRecovery()) {
+            attemptBootRecovery();
+          }
+          return null;
+        }
+        
+        if (!user) return null;
 
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('account_type, active_account_type, account_types_enabled, onboarding_completed, onboarding_data')
-        .eq('id', user.id)
-        .single();
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('account_type, active_account_type, account_types_enabled, onboarding_completed, onboarding_data')
+          .eq('id', user.id)
+          .single();
 
-      if (error) throw error;
-      return profile as AccountTypeData;
+        if (profileError) {
+          console.error('[useAccountType] Profile fetch error:', profileError);
+          // If RLS/auth error (406, etc.), attempt recovery
+          if (isAuthError(profileError) && shouldAttemptRecovery()) {
+            attemptBootRecovery();
+          }
+          // Return null instead of throwing to prevent stuck loading
+          return null;
+        }
+        
+        return profile as AccountTypeData;
+      } catch (err) {
+        console.error('[useAccountType] Unexpected error:', err);
+        if (isAuthError(err) && shouldAttemptRecovery()) {
+          attemptBootRecovery();
+        }
+        return null;
+      }
     },
+    retry: 1,
+    retryDelay: 1000,
   });
 
   const switchAccountType = useMutation({

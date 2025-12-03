@@ -2,12 +2,20 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAccountType } from '@/hooks/useAccountType';
 import { useUserRoles } from '@/hooks/useUserRoles';
+import { clearRecoveryFlag } from '@/utils/bootRecovery';
 
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {
-  const { onboardingCompleted, isLoading, accountType } = useAccountType();
-  const { isAdmin, isLoading: rolesLoading } = useUserRoles();
+  const { onboardingCompleted, isLoading, accountType, error: accountError } = useAccountType();
+  const { isAdmin, isLoading: rolesLoading, error: rolesError } = useUserRoles();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Clear recovery flag on successful load
+  useEffect(() => {
+    if (!isLoading && !rolesLoading) {
+      clearRecoveryFlag();
+    }
+  }, [isLoading, rolesLoading]);
 
   useEffect(() => {
     // Don't redirect if we're loading, already on onboarding, or on public/auth pages
@@ -46,13 +54,19 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
     }
   }, [onboardingCompleted, accountType, isLoading, rolesLoading, isAdmin, navigate, location.pathname]);
 
+  // Show loading spinner only while actively loading (with timeout protection)
   if (isLoading || rolesLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
       </div>
     );
   }
 
+  // If there were errors but we're no longer loading, continue rendering
+  // (The hooks handle recovery automatically)
   return <>{children}</>;
 }

@@ -99,6 +99,7 @@ import { CommandPaletteProvider } from "./components/command/CommandPaletteProvi
 import { AIAssistantProvider } from "./components/ai/AIAssistantProvider";
 import { CommandPalette } from "./components/command/CommandPalette";
 import { AIAssistantPanel } from "./components/ai/AIAssistantPanel";
+import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import AdminSettings from "./pages/admin/Settings";
 import LogoManagerV2 from "./pages/admin/LogoManagerV2";
 import HeroManager from "./pages/admin/HeroManager";
@@ -918,21 +919,23 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem storageKey="seeksy-theme">
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <CommandPaletteProvider>
-            <AIAssistantProvider>
-              <AppContent />
-            </AIAssistantProvider>
-          </CommandPaletteProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+  <AppErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem storageKey="seeksy-theme">
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <CommandPaletteProvider>
+              <AIAssistantProvider>
+                <AppContent />
+              </AIAssistantProvider>
+            </CommandPaletteProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </AppErrorBoundary>
 );
 
 export default App;
