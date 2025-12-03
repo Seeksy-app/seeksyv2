@@ -1,7 +1,7 @@
 import { 
   Video, Upload, Scissors, FolderOpen, Calendar, 
   ListTodo, Wand2, Mic, Sparkles, BarChart3,
-  Share2, CheckCircle, ClipboardList, FileText
+  Share2, CheckCircle, ClipboardList, FileText, Shield
 } from "lucide-react";
 import { DashboardWidget } from "./types";
 
@@ -93,6 +93,17 @@ export const defaultWidgets: DashboardWidget[] = [
     enabled: true,
     expanded: true,
     order: 7,
+  },
+  // Identity Verification
+  {
+    id: "identity-verification",
+    name: "Voice & Face Verification",
+    description: "Verify your identity to unlock monetization",
+    icon: Shield,
+    category: "actions",
+    enabled: true,
+    expanded: true,
+    order: 8,
   },
 ];
 

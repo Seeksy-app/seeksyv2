@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, LayoutGrid, Sparkles } from "lucide-react";
+import { Plus, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   getGreetingByTime, 
@@ -12,10 +12,13 @@ import {
 } from "@/utils/greetingHelpers";
 import { useWeather } from "@/hooks/useWeather";
 import { cn } from "@/lib/utils";
+import { getDashboardTitle, getDashboardSubtitle } from "@/utils/dashboardTitles";
+import { PersonaType } from "@/config/personaConfig";
 
 interface DashboardHeaderProps {
   firstName: string;
   onAddWidgets: () => void;
+  personaType?: PersonaType | null;
 }
 
 function MascotStar({ timeOfDay }: { timeOfDay: TimeOfDay }) {
@@ -84,11 +87,14 @@ function SeasonalAccent({ season }: { season: string }) {
   return null;
 }
 
-export function DashboardHeader({ firstName, onAddWidgets }: DashboardHeaderProps) {
+export function DashboardHeader({ firstName, onAddWidgets, personaType }: DashboardHeaderProps) {
   const [greeting, setGreeting] = useState(getGreetingByTime());
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(getTimeOfDay());
   const [moodGradient, setMoodGradient] = useState(getMoodGradient());
   const season = getCurrentSeason();
+
+  const dashboardTitle = useMemo(() => getDashboardTitle(personaType), [personaType]);
+  const dashboardSubtitle = useMemo(() => getDashboardSubtitle(personaType), [personaType]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -136,6 +142,14 @@ export function DashboardHeader({ firstName, onAddWidgets }: DashboardHeaderProp
       <div className="relative z-10 px-6 py-5 sm:px-8 sm:py-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-2">
+            {/* Dynamic Dashboard Title */}
+            <p className={cn(
+              "text-xs font-medium uppercase tracking-wide opacity-80",
+              timeOfDay === 'night' ? 'text-white/70' : 'text-foreground/70'
+            )}>
+              {dashboardTitle}
+            </p>
+            
             <div className="flex items-center gap-3">
               <MascotStar timeOfDay={timeOfDay} />
               <h1 className={cn(
@@ -165,6 +179,7 @@ export function DashboardHeader({ firstName, onAddWidgets }: DashboardHeaderProp
 
           <Button
             onClick={onAddWidgets}
+            data-tooltip="add-widgets"
             className={cn(
               "gap-2 shrink-0",
               timeOfDay === 'night' 

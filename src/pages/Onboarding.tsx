@@ -73,8 +73,8 @@ export default function Onboarding() {
       localStorage.setItem("show_welcome_spin", "true");
       toast.success("Your workspace is ready!");
 
-      // Route to dashboard
-      navigate("/dashboard");
+      // Route to completion page
+      navigate("/onboarding/complete");
     } catch (error) {
       console.error("Error completing onboarding:", error);
       toast.error("Failed to complete setup");

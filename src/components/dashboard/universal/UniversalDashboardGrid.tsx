@@ -26,6 +26,7 @@ import { PerformanceOverviewWidget } from "./widgets/PerformanceOverviewWidget";
 import { TasksNotesWidget } from "./widgets/TasksNotesWidget";
 import { MarketingPublishingWidget } from "./widgets/MarketingPublishingWidget";
 import { RecommendedActionsWidget } from "./widgets/RecommendedActionsWidget";
+import { IdentityVerificationWidget } from "./widgets/IdentityVerificationWidget";
 
 interface UniversalDashboardGridProps {
   widgets: DashboardWidget[];
@@ -108,6 +109,8 @@ export function UniversalDashboardGrid({ widgets, onWidgetsChange, data = {} }: 
         return <MarketingPublishingWidget connectedAccounts={data.connectedAccounts} />;
       case "recommended-actions":
         return <RecommendedActionsWidget completedSteps={data.completedSteps} />;
+      case "identity-verification":
+        return <IdentityVerificationWidget />;
       default:
         return <div className="text-sm text-muted-foreground">Widget content coming soon...</div>;
     }

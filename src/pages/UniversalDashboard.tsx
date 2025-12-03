@@ -9,6 +9,8 @@ import { UniversalDashboardGrid } from "@/components/dashboard/universal/Univers
 import { AddWidgetsDrawer } from "@/components/dashboard/universal/AddWidgetsDrawer";
 import { DashboardWidget } from "@/components/dashboard/universal/types";
 import { defaultWidgets, allAvailableWidgets } from "@/components/dashboard/universal/defaultWidgets";
+import { OnboardingTooltipSystem } from "@/components/onboarding/OnboardingTooltip";
+import { PersonaType } from "@/config/personaConfig";
 
 const STORAGE_KEY = "seeksy-dashboard-widgets-v3";
 
@@ -16,8 +18,10 @@ export default function UniversalDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [firstName, setFirstName] = useState("");
+  const [personaType, setPersonaType] = useState<PersonaType | null>(null);
   const [loading, setLoading] = useState(true);
   const [addWidgetsOpen, setAddWidgetsOpen] = useState(false);
+  const [showTooltips, setShowTooltips] = useState(false);
 
   // Widget state
   const [widgets, setWidgets] = useState<DashboardWidget[]>(() => {
@@ -83,6 +87,36 @@ export default function UniversalDashboard() {
       const nameParts = profile.account_full_name.split(" ");
       setFirstName(nameParts[0]);
     }
+
+    // Load persona type from user_preferences
+    const { data: prefs } = await supabase
+      .from("user_preferences")
+      .select("user_type")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (prefs?.user_type) {
+      const typeMapping: Record<string, PersonaType> = {
+        creator: "influencer",
+        influencer: "influencer",
+        podcaster: "podcaster",
+        speaker: "speaker",
+        event_host: "eventHost",
+        eventHost: "eventHost",
+        entrepreneur: "entrepreneur",
+        business: "entrepreneur",
+        agency: "agency",
+        brand: "brand",
+      };
+      setPersonaType(typeMapping[prefs.user_type] || null);
+    }
+
+    // Check if we should show tooltips (first time visitor)
+    const tooltipsDismissed = localStorage.getItem("seeksy-onboarding-tooltips-dismissed");
+    if (!tooltipsDismissed) {
+      setShowTooltips(true);
+    }
+
     setLoading(false);
   };
 
@@ -203,6 +237,7 @@ export default function UniversalDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <DashboardHeader
           firstName={firstName}
+          personaType={personaType}
           onAddWidgets={() => setAddWidgetsOpen(true)}
         />
 
@@ -219,6 +254,9 @@ export default function UniversalDashboard() {
           onToggleWidget={handleToggleWidget}
         />
       </div>
+
+      {/* Onboarding tooltips for new users */}
+      <OnboardingTooltipSystem enabled={showTooltips} />
     </div>
   );
 }

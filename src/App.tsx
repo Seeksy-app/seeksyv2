@@ -181,6 +181,7 @@ import ProForma from "./pages/ProForma";
 import TechStack from "./pages/TechStack";
 import Onboarding from "./pages/Onboarding";
 import OnboardingTest from "./pages/OnboardingTest";
+import OnboardingComplete from "./pages/OnboardingComplete";
 import SalesDashboard from "./pages/SalesDashboard";
 import SalesAdLibrary from "./pages/SalesAdLibrary";
 import AdminMasterBlog from "./pages/AdminMasterBlog";
@@ -479,6 +480,7 @@ const AppContent = () => {
               <Route path="/auth" element={<Auth />} />
               <Route path="/signup-select" element={<SignupSelect />} />
               <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/onboarding/complete" element={<OnboardingComplete />} />
               <Route path="/onboarding-test" element={<OnboardingTest />} />
               <Route path="/seekies" element={<Apps />} />
               
