@@ -22,6 +22,19 @@ export interface CapturedRecording {
   createdAt: Date;
 }
 
+// Diagnostic timing interface
+interface CaptureDiagnostics {
+  startCaptureTime: number;
+  stopCaptureTime: number;
+  encodingDuration: number;
+  uploadDuration: number;
+  totalDuration: number;
+  status: 'success' | 'error';
+  errorMessage?: string;
+}
+
+const PROCESSING_TIMEOUT_MS = 30000; // 30 seconds timeout
+
 export function useScreenCapture() {
   const { toast } = useToast();
   const [isRecording, setIsRecording] = useState(false);
@@ -34,6 +47,8 @@ export function useScreenCapture() {
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
+  const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isStoppingRef = useRef(false); // Prevent double-stop
 
   const generateFileName = (preset: ScreenCapturePreset): string => {
     const now = new Date();
@@ -45,7 +60,51 @@ export function useScreenCapture() {
     return `seeksy-demo_${sceneNum}_${preset.shortName}_${timestamp}.webm`;
   };
 
+  const logDiagnostics = (diagnostics: CaptureDiagnostics) => {
+    console.log('=== Screen Capture Diagnostics ===');
+    console.log('Start capture time:', new Date(diagnostics.startCaptureTime).toISOString());
+    console.log('Stop capture time:', new Date(diagnostics.stopCaptureTime).toISOString());
+    console.log('Encoding duration:', diagnostics.encodingDuration, 'ms');
+    console.log('Upload duration:', diagnostics.uploadDuration, 'ms');
+    console.log('Total duration:', diagnostics.totalDuration, 'ms');
+    console.log('Status:', diagnostics.status);
+    if (diagnostics.errorMessage) {
+      console.log('Error:', diagnostics.errorMessage);
+    }
+    console.log('=================================');
+  };
+
+  const cleanup = useCallback(() => {
+    console.log('[ScreenCapture] Running cleanup');
+    
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    
+    if (processingTimeoutRef.current) {
+      clearTimeout(processingTimeoutRef.current);
+      processingTimeoutRef.current = null;
+    }
+    
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    
+    mediaRecorderRef.current = null;
+    chunksRef.current = [];
+    isStoppingRef.current = false;
+    setIsRecording(false);
+    setIsProcessing(false);
+    setCurrentPresetId(null);
+    setRecordingDuration(0);
+  }, []);
+
   const startCapture = useCallback(async (preset: ScreenCapturePreset): Promise<void> => {
+    console.log('[ScreenCapture] Starting capture for preset:', preset.name);
+    const captureStartTime = Date.now();
+    
     try {
       // Request screen capture - user will pick which tab/window
       const stream = await navigator.mediaDevices.getDisplayMedia({
@@ -57,8 +116,11 @@ export function useScreenCapture() {
         audio: false, // No audio for demo clips
       });
 
+      console.log('[ScreenCapture] Got display media stream');
+      
       streamRef.current = stream;
       chunksRef.current = [];
+      isStoppingRef.current = false;
       setCurrentPresetId(preset.id);
 
       // Determine best supported format
@@ -69,6 +131,7 @@ export function useScreenCapture() {
           mimeType = 'video/webm';
         }
       }
+      console.log('[ScreenCapture] Using MIME type:', mimeType);
 
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType,
@@ -78,19 +141,35 @@ export function useScreenCapture() {
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           chunksRef.current.push(event.data);
+          console.log('[ScreenCapture] Chunk received, size:', event.data.size, 'total chunks:', chunksRef.current.length);
         }
+      };
+
+      mediaRecorder.onerror = (event) => {
+        console.error('[ScreenCapture] MediaRecorder error:', event);
+        toast({
+          variant: "destructive",
+          title: "Recording Error",
+          description: "An error occurred during recording.",
+        });
+        cleanup();
       };
 
       // Handle stream ending (user clicks "Stop sharing")
       stream.getVideoTracks()[0].onended = () => {
-        if (isRecording) {
-          stopCapture(preset);
-        }
+        console.log('[ScreenCapture] Stream ended by user (Stop sharing clicked)');
+        // Use a timeout to allow any pending data to be collected
+        setTimeout(() => {
+          if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive' && !isStoppingRef.current) {
+            console.log('[ScreenCapture] Auto-stopping due to stream end');
+            // The stop will be handled by the page component
+          }
+        }, 100);
       };
 
       mediaRecorderRef.current = mediaRecorder;
+      startTimeRef.current = captureStartTime;
       mediaRecorder.start(1000); // Capture every 1 second
-      startTimeRef.current = Date.now();
       setIsRecording(true);
       setRecordingDuration(0);
 
@@ -99,56 +178,123 @@ export function useScreenCapture() {
         setRecordingDuration(Math.floor((Date.now() - startTimeRef.current) / 1000));
       }, 1000);
 
+      console.log('[ScreenCapture] Recording started successfully');
+      
       toast({
         title: "Recording Started",
         description: `Recording "${preset.name}". Perform your demo actions, then click Stop.`,
       });
     } catch (error) {
-      console.error('Screen capture error:', error);
+      console.error('[ScreenCapture] Start capture error:', error);
+      cleanup();
       toast({
         variant: "destructive",
         title: "Capture Failed",
         description: error instanceof Error ? error.message : "Failed to start screen capture",
       });
     }
-  }, [toast, isRecording]);
+  }, [toast, cleanup]);
 
   const stopCapture = useCallback(async (preset: ScreenCapturePreset): Promise<CapturedRecording | null> => {
+    console.log('[ScreenCapture] stopCapture called for preset:', preset.name);
+    
+    // Prevent double-stop
+    if (isStoppingRef.current) {
+      console.log('[ScreenCapture] Already stopping, ignoring duplicate call');
+      return null;
+    }
+    isStoppingRef.current = true;
+    
+    const stopTime = Date.now();
+    const diagnostics: CaptureDiagnostics = {
+      startCaptureTime: startTimeRef.current,
+      stopCaptureTime: stopTime,
+      encodingDuration: 0,
+      uploadDuration: 0,
+      totalDuration: 0,
+      status: 'error',
+    };
+
     return new Promise((resolve) => {
       if (!mediaRecorderRef.current || !streamRef.current) {
+        console.warn('[ScreenCapture] No active recorder or stream');
+        diagnostics.errorMessage = 'No active recorder or stream';
+        logDiagnostics(diagnostics);
+        cleanup();
         resolve(null);
         return;
       }
 
-      setIsProcessing(true);
-
-      // Clear timer
+      // Clear recording timer
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
 
-      const finalDuration = Math.floor((Date.now() - startTimeRef.current) / 1000);
+      setIsProcessing(true);
+      const finalDuration = Math.floor((stopTime - startTimeRef.current) / 1000);
+      console.log('[ScreenCapture] Final duration:', finalDuration, 'seconds');
 
+      // Set timeout for processing
+      processingTimeoutRef.current = setTimeout(() => {
+        console.error('[ScreenCapture] Processing timeout exceeded');
+        diagnostics.errorMessage = 'Processing timeout exceeded (30s)';
+        diagnostics.totalDuration = Date.now() - stopTime;
+        logDiagnostics(diagnostics);
+        
+        toast({
+          variant: "destructive",
+          title: "Saving Failed",
+          description: "Processing took too long. Please try again with a shorter recording.",
+        });
+        
+        cleanup();
+        resolve(null);
+      }, PROCESSING_TIMEOUT_MS);
+
+      // Store mimeType before stop clears the ref
+      const mimeType = mediaRecorderRef.current.mimeType || 'video/webm';
+      
       mediaRecorderRef.current.onstop = async () => {
+        console.log('[ScreenCapture] MediaRecorder stopped, processing chunks');
+        const encodingStart = Date.now();
+        
         try {
           // Stop all tracks
-          streamRef.current?.getTracks().forEach(track => track.stop());
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach(track => track.stop());
+          }
+
+          // Check if we have chunks
+          if (chunksRef.current.length === 0) {
+            throw new Error('No recording data captured. Try recording for a longer duration.');
+          }
 
           // Create blob from chunks
-          const blob = new Blob(chunksRef.current, { 
-            type: mediaRecorderRef.current?.mimeType || 'video/webm' 
-          });
+          console.log('[ScreenCapture] Creating blob from', chunksRef.current.length, 'chunks');
+          const blob = new Blob(chunksRef.current, { type: mimeType });
+          console.log('[ScreenCapture] Blob created, size:', blob.size, 'bytes');
+          
+          if (blob.size === 0) {
+            throw new Error('Recording is empty. Please try again.');
+          }
+
+          diagnostics.encodingDuration = Date.now() - encodingStart;
+          console.log('[ScreenCapture] Encoding duration:', diagnostics.encodingDuration, 'ms');
 
           // Generate filename
           const fileName = generateFileName(preset);
           const storagePath = `demo-videos/${fileName}`;
+          console.log('[ScreenCapture] Uploading to:', storagePath);
+
+          const uploadStart = Date.now();
 
           // Get current user
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) {
-            throw new Error('Not authenticated');
+          const { data: { user }, error: userError } = await supabase.auth.getUser();
+          if (userError || !user) {
+            throw new Error('Not authenticated. Please log in and try again.');
           }
+          console.log('[ScreenCapture] User authenticated:', user.id);
 
           // Upload to Supabase storage
           const { error: uploadError } = await supabase.storage
@@ -159,13 +305,16 @@ export function useScreenCapture() {
             });
 
           if (uploadError) {
-            throw uploadError;
+            console.error('[ScreenCapture] Storage upload error:', uploadError);
+            throw new Error(`Upload failed: ${uploadError.message}`);
           }
+          console.log('[ScreenCapture] Storage upload successful');
 
           // Get public URL
           const { data: { publicUrl } } = supabase.storage
             .from('media-vault')
             .getPublicUrl(storagePath);
+          console.log('[ScreenCapture] Public URL:', publicUrl);
 
           // Save to media_files table
           const { data: mediaFile, error: dbError } = await supabase
@@ -175,9 +324,9 @@ export function useScreenCapture() {
               file_name: fileName,
               file_type: 'video/webm',
               file_url: publicUrl,
-              file_size: blob.size,
-              storage_path: storagePath,
-              metadata: {
+              file_size_bytes: blob.size,
+              source: 'screen-capture',
+              clip_metadata: {
                 tag: 'demo-video',
                 preset_id: preset.id,
                 preset_name: preset.name,
@@ -190,8 +339,15 @@ export function useScreenCapture() {
             .single();
 
           if (dbError) {
-            throw dbError;
+            console.error('[ScreenCapture] Database insert error:', dbError);
+            throw new Error(`Database save failed: ${dbError.message}`);
           }
+          console.log('[ScreenCapture] Database record created:', mediaFile.id);
+
+          diagnostics.uploadDuration = Date.now() - uploadStart;
+          diagnostics.totalDuration = Date.now() - stopTime;
+          diagnostics.status = 'success';
+          logDiagnostics(diagnostics);
 
           const recording: CapturedRecording = {
             id: mediaFile.id,
@@ -208,49 +364,61 @@ export function useScreenCapture() {
             description: `"${preset.name}" (${finalDuration}s) saved to Media Library.`,
           });
 
+          // Clear timeout since we succeeded
+          if (processingTimeoutRef.current) {
+            clearTimeout(processingTimeoutRef.current);
+            processingTimeoutRef.current = null;
+          }
+
+          cleanup();
           resolve(recording);
         } catch (error) {
-          console.error('Save recording error:', error);
+          console.error('[ScreenCapture] Save recording error:', error);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          
+          diagnostics.errorMessage = errorMessage;
+          diagnostics.totalDuration = Date.now() - stopTime;
+          logDiagnostics(diagnostics);
+          
           toast({
             variant: "destructive",
             title: "Save Failed",
-            description: error instanceof Error ? error.message : "Failed to save recording",
+            description: errorMessage,
           });
+          
+          // Clear timeout
+          if (processingTimeoutRef.current) {
+            clearTimeout(processingTimeoutRef.current);
+            processingTimeoutRef.current = null;
+          }
+          
+          cleanup();
           resolve(null);
-        } finally {
-          // Cleanup
-          setIsRecording(false);
-          setIsProcessing(false);
-          setCurrentPresetId(null);
-          setRecordingDuration(0);
-          mediaRecorderRef.current = null;
-          streamRef.current = null;
-          chunksRef.current = [];
         }
       };
 
-      mediaRecorderRef.current.stop();
+      // Trigger stop
+      try {
+        console.log('[ScreenCapture] Calling mediaRecorder.stop()');
+        mediaRecorderRef.current.stop();
+      } catch (stopError) {
+        console.error('[ScreenCapture] Error calling stop:', stopError);
+        diagnostics.errorMessage = 'Failed to stop recorder';
+        logDiagnostics(diagnostics);
+        cleanup();
+        resolve(null);
+      }
     });
-  }, [toast]);
+  }, [toast, cleanup]);
 
   const cancelCapture = useCallback(() => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-    
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-    }
-    
-    setIsRecording(false);
-    setIsProcessing(false);
-    setCurrentPresetId(null);
-    setRecordingDuration(0);
-    mediaRecorderRef.current = null;
-    streamRef.current = null;
-    chunksRef.current = [];
-  }, []);
+    console.log('[ScreenCapture] Cancelling capture');
+    cleanup();
+    toast({
+      title: "Recording Cancelled",
+      description: "The recording was cancelled.",
+    });
+  }, [cleanup, toast]);
 
   return {
     isRecording,
