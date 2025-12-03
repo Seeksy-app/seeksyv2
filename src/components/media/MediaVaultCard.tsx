@@ -193,6 +193,10 @@ export function MediaVaultCard({
               className="w-full h-full object-cover"
               preload="metadata"
               muted
+              onLoadedData={(e) => {
+                // Seek to 1 second for thumbnail frame
+                e.currentTarget.currentTime = 1;
+              }}
             />
           ) : item.type === "image" && item.url ? (
             <img

@@ -3,21 +3,37 @@ import { useTheme } from "next-themes";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
+// Studio recording pages that should have dark theme
+const DARK_STUDIO_ROUTES = ['/studio/video', '/studio/audio', '/studio/record'];
+
 export function useAutoTheme() {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const location = useLocation();
-  const isStudio = location.pathname === '/studio'; // Only /studio forces dark, not /studio-templates or any other page
+  
+  // Only force dark mode for actual recording studio pages
+  const isStudioRecording = DARK_STUDIO_ROUTES.some(route => 
+    location.pathname === route || location.pathname.startsWith(route + '/')
+  );
+  
   const previousTheme = useRef<string | null>(null);
-  const wasInStudio = useRef(false);
+  const wasInStudioRecording = useRef(false);
   const hasSetStudioTheme = useRef(false);
 
-  // Load and maintain user's theme preference
+  // Ensure light mode is default for all non-studio pages
   useEffect(() => {
-    if (isStudio) return; // Skip when in Studio - let Studio effect handle it
+    if (isStudioRecording) return; // Let studio effect handle it
     
+    // Force light mode if currently dark and not a user preference
     const loadUserTheme = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      
+      // If no user, default to light mode
+      if (!user) {
+        if (resolvedTheme === 'dark' || resolvedTheme === 'midnight') {
+          setTheme('light');
+        }
+        return;
+      }
 
       const { data: prefs } = await supabase
         .from("user_preferences")
@@ -25,26 +41,27 @@ export function useAutoTheme() {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (prefs?.theme_preference && prefs.theme_preference !== theme) {
-        setTheme(prefs.theme_preference);
+      // Use user preference or default to light
+      const preferredTheme = prefs?.theme_preference || 'light';
+      if (theme !== preferredTheme) {
+        setTheme(preferredTheme);
       }
     };
 
     loadUserTheme();
-  }, [location.pathname, setTheme, isStudio]); // Reload on every navigation
+  }, [location.pathname, setTheme, isStudioRecording, resolvedTheme]);
 
-  // Handle Studio theme switching
+  // Handle Studio recording theme switching
   useEffect(() => {
-    // Set dark mode on Studio entry (but allow manual changes)
-    if (isStudio) {
-      if (!wasInStudio.current) {
-        // Entering Studio - save current theme and switch to dark
+    if (isStudioRecording) {
+      if (!wasInStudioRecording.current) {
+        // Entering Studio recording - save current theme and switch to dark
         previousTheme.current = theme;
-        wasInStudio.current = true;
+        wasInStudioRecording.current = true;
         hasSetStudioTheme.current = false;
       }
       
-      // Only force dark mode once on entry, then respect user's choice
+      // Force dark mode for studio recording
       if (!hasSetStudioTheme.current && resolvedTheme !== 'dark') {
         setTheme('dark');
         hasSetStudioTheme.current = true;
@@ -52,14 +69,18 @@ export function useAutoTheme() {
       return;
     }
 
-    // Leaving Studio - restore user's preference from database
-    if (wasInStudio.current && !isStudio) {
-      wasInStudio.current = false;
+    // Leaving Studio recording - restore light theme
+    if (wasInStudioRecording.current && !isStudioRecording) {
+      wasInStudioRecording.current = false;
       hasSetStudioTheme.current = false;
       
       const restoreTheme = async () => {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        
+        if (!user) {
+          setTheme('light');
+          return;
+        }
 
         const { data: prefs } = await supabase
           .from("user_preferences")
@@ -67,13 +88,13 @@ export function useAutoTheme() {
           .eq("user_id", user.id)
           .maybeSingle();
 
-        // Restore saved preference or use system theme
-        const savedTheme = prefs?.theme_preference || previousTheme.current || 'light';
+        // Restore saved preference or default to light
+        const savedTheme = prefs?.theme_preference || 'light';
         setTheme(savedTheme);
       };
       
       restoreTheme();
       return;
     }
-  }, [resolvedTheme, setTheme, isStudio, location.pathname]);
+  }, [resolvedTheme, setTheme, isStudioRecording, location.pathname]);
 }

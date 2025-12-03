@@ -1077,13 +1077,18 @@ export default function MediaLibrary() {
                          <TableCell>
                            <div className="flex items-center gap-3">
                              <div className="relative w-32 h-20 bg-black rounded overflow-hidden flex-shrink-0">
-                               {file.file_type === 'video' ? (
-                                 <>
-                                   <video
-                                     src={file.file_url}
-                                     className="w-full h-full object-cover"
-                                     muted
-                                     onLoadedMetadata={async (e) => {
+                             {file.file_type === 'video' ? (
+                                  <>
+                                    <video
+                                      src={file.file_url}
+                                      className="w-full h-full object-cover"
+                                      muted
+                                      preload="metadata"
+                                      onLoadedData={(e) => {
+                                        // Seek to 1 second for thumbnail
+                                        e.currentTarget.currentTime = 1;
+                                      }}
+                                      onLoadedMetadata={async (e) => {
                                        const video = e.currentTarget;
                                        try {
                                          const metadata = await loadVideoMetadata(file.file_url);

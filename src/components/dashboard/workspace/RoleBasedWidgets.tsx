@@ -28,8 +28,8 @@ const widgetsByRole: Record<string, WidgetConfig[]> = {
     { id: "analytics", title: "Analytics", description: "Track your growth", icon: BarChart3, path: "/social-analytics", color: "from-emerald-500 to-teal-500" },
   ],
   influencer: [
-    { id: "social", title: "Social Hub", description: "Connect & sync your accounts", icon: Link2, path: "/social-analytics", color: "from-pink-500 to-rose-500" },
-    { id: "links", title: "My Page", description: "Your link-in-bio", icon: Users, path: "/my-page", color: "from-violet-500 to-purple-500" },
+    { id: "social", title: "Social Hub", description: "Connect & sync your accounts", icon: Link2, path: "/integrations", color: "from-pink-500 to-rose-500" },
+    { id: "links", title: "My Page", description: "Your link-in-bio", icon: Users, path: "/profile/edit", color: "from-violet-500 to-purple-500" },
     { id: "monetize", title: "Monetization", description: "Earn from your content", icon: DollarSign, path: "/monetization", color: "from-amber-500 to-yellow-500" },
     { id: "clips", title: "AI Clips", description: "Auto-generate content", icon: Scissors, path: "/studio/clips", color: "from-blue-500 to-cyan-500", badge: "AI" },
   ],

@@ -371,7 +371,7 @@ export default function MediaVault() {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-background">
       {/* Folder Sidebar */}
       <FolderSidebar
         folders={foldersWithCounts}
