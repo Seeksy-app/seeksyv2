@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { VideoStudioHeader } from "@/components/studio/video/VideoStudioHeader";
 import { VideoStudioScenesResizable, SceneLayout, Scene } from "@/components/studio/video/VideoStudioScenesResizable";
