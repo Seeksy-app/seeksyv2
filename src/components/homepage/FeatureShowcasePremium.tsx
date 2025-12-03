@@ -3,6 +3,8 @@ import { Mic, Calendar, BarChart3, FileText, Shield, TrendingUp, Users, Sparkles
 import creatorStudioImg from "@/assets/homepage/creator-podcast-studio.jpg";
 import analyticsDashboardImg from "@/assets/homepage/analytics-dashboard.jpg";
 import influencerCreatingImg from "@/assets/homepage/influencer-creating.jpg";
+import bookingSchedulingImg from "@/assets/homepage/booking-scheduling.jpg";
+import identityProtectionImg from "@/assets/homepage/identity-protection.jpg";
 
 interface Feature {
   title: string;
@@ -27,7 +29,8 @@ const features: Feature[] = [
     description: "Let brands and collaborators book time with you. Integrated calendar, automatic reminders, and seamless payments.",
     icon: Calendar,
     mockType: "booking",
-    gradient: "from-brand-gold to-amber-500"
+    gradient: "from-brand-gold to-amber-500",
+    image: bookingSchedulingImg
   },
   {
     title: "Powerful Analytics Dashboard",
@@ -50,7 +53,8 @@ const features: Feature[] = [
     description: "Blockchain-verified identity. Protect your voice, face, and content with on-chain certification and rights management.",
     icon: Shield,
     mockType: "identity",
-    gradient: "from-emerald-500 to-teal-500"
+    gradient: "from-emerald-500 to-teal-500",
+    image: identityProtectionImg
   },
 ];
 
@@ -100,98 +104,105 @@ function MockUI({ type, image }: { type: Feature["mockType"]; image?: string }) 
       </div>
     ),
     booking: (
-      <div className="p-6 space-y-4">
-        {/* Header with avatar and meeting types */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-gold to-amber-500 flex items-center justify-center shadow-lg shadow-brand-gold/30">
-            <Video className="h-6 w-6 text-white" />
+      <div className="relative">
+        {image && (
+          <div className="absolute inset-0 opacity-30 rounded-xl overflow-hidden">
+            <img src={image} alt="" className="w-full h-full object-cover" loading="lazy" />
           </div>
-          <div>
-            <div className="text-white font-semibold">Book with Creator</div>
-            <div className="text-xs text-white/60">Choose a time that works</div>
-          </div>
-        </div>
-
-        {/* Meeting type cards */}
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          {[
-            { name: "30 min Call", price: "Free", icon: Clock, popular: true },
-            { name: "Brand Collab", price: "$150", icon: Star, popular: false },
-          ].map((meeting, i) => (
-            <motion.div
-              key={i}
-              whileHover={{ scale: 1.02 }}
-              className={`p-3 rounded-xl cursor-pointer transition-all ${
-                meeting.popular 
-                  ? 'bg-brand-gold/20 border-2 border-brand-gold/40' 
-                  : 'bg-white/5 border border-white/10'
-              }`}
-            >
-              <meeting.icon className={`h-5 w-5 mb-2 ${meeting.popular ? 'text-brand-gold' : 'text-white/60'}`} />
-              <div className="text-sm text-white font-medium">{meeting.name}</div>
-              <div className={`text-xs ${meeting.popular ? 'text-brand-gold' : 'text-white/40'}`}>{meeting.price}</div>
-              {meeting.popular && (
-                <span className="inline-block mt-2 text-[10px] px-2 py-0.5 bg-brand-gold/30 rounded-full text-brand-gold">
-                  Popular
-                </span>
-              )}
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Calendar mini preview */}
-        <div className="bg-white/5 rounded-xl border border-white/10 p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-sm text-white font-medium">December 2025</div>
-            <div className="flex gap-1">
-              <div className="h-6 w-6 bg-white/10 rounded flex items-center justify-center text-white/60 text-xs cursor-pointer hover:bg-white/20">‹</div>
-              <div className="h-6 w-6 bg-white/10 rounded flex items-center justify-center text-white/60 text-xs cursor-pointer hover:bg-white/20">›</div>
+        )}
+        <div className="relative p-6 space-y-4">
+          {/* Header with avatar and meeting types */}
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-gold to-amber-500 flex items-center justify-center shadow-lg shadow-brand-gold/30">
+              <Video className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <div className="text-white font-semibold">Book with Creator</div>
+              <div className="text-xs text-white/60">Choose a time that works</div>
             </div>
           </div>
-          <div className="grid grid-cols-7 gap-1">
-            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
-              <div key={i} className="text-center text-[10px] text-white/40 py-1">{day}</div>
-            ))}
-            {Array.from({ length: 28 }).map((_, i) => (
-              <motion.div 
+
+          {/* Meeting type cards */}
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            {[
+              { name: "30 min Call", price: "Free", icon: Clock, popular: true },
+              { name: "Brand Collab", price: "$150", icon: Star, popular: false },
+            ].map((meeting, i) => (
+              <motion.div
                 key={i}
-                whileHover={{ scale: 1.15 }}
-                className={`aspect-square rounded flex items-center justify-center text-[10px] cursor-pointer transition-all ${
-                  i === 15 ? 'bg-brand-gold text-slate-900 font-bold shadow-lg shadow-brand-gold/30' : 
-                  [8, 12, 20].includes(i) ? 'bg-brand-gold/20 text-brand-gold hover:bg-brand-gold/30' : 
-                  'bg-white/5 text-white/30 hover:bg-white/10'
+                whileHover={{ scale: 1.02 }}
+                className={`p-3 rounded-xl cursor-pointer transition-all backdrop-blur-sm ${
+                  meeting.popular 
+                    ? 'bg-brand-gold/20 border-2 border-brand-gold/40' 
+                    : 'bg-white/10 border border-white/20'
                 }`}
               >
-                {i + 1}
+                <meeting.icon className={`h-5 w-5 mb-2 ${meeting.popular ? 'text-brand-gold' : 'text-white/60'}`} />
+                <div className="text-sm text-white font-medium">{meeting.name}</div>
+                <div className={`text-xs ${meeting.popular ? 'text-brand-gold' : 'text-white/40'}`}>{meeting.price}</div>
+                {meeting.popular && (
+                  <span className="inline-block mt-2 text-[10px] px-2 py-0.5 bg-brand-gold/30 rounded-full text-brand-gold">
+                    Popular
+                  </span>
+                )}
               </motion.div>
             ))}
           </div>
-        </div>
 
-        {/* Time slots */}
-        <div className="flex gap-2">
-          {['9:00 AM', '10:30 AM', '2:00 PM'].map((time, i) => (
-            <motion.div
-              key={i}
-              whileHover={{ scale: 1.05 }}
-              className={`flex-1 py-2 rounded-lg text-center text-xs font-medium cursor-pointer transition-all ${
-                i === 1 ? 'bg-brand-gold text-slate-900 shadow-lg shadow-brand-gold/30' : 'bg-white/10 text-white/70 hover:bg-white/20'
-              }`}
-            >
-              {time}
-            </motion.div>
-          ))}
-        </div>
+          {/* Calendar mini preview */}
+          <div className="bg-white/10 rounded-xl border border-white/20 p-4 backdrop-blur-sm">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm text-white font-medium">December 2025</div>
+              <div className="flex gap-1">
+                <div className="h-6 w-6 bg-white/10 rounded flex items-center justify-center text-white/60 text-xs cursor-pointer hover:bg-white/20">‹</div>
+                <div className="h-6 w-6 bg-white/10 rounded flex items-center justify-center text-white/60 text-xs cursor-pointer hover:bg-white/20">›</div>
+              </div>
+            </div>
+            <div className="grid grid-cols-7 gap-1">
+              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
+                <div key={i} className="text-center text-[10px] text-white/40 py-1">{day}</div>
+              ))}
+              {Array.from({ length: 28 }).map((_, i) => (
+                <motion.div 
+                  key={i}
+                  whileHover={{ scale: 1.15 }}
+                  className={`aspect-square rounded flex items-center justify-center text-[10px] cursor-pointer transition-all ${
+                    i === 15 ? 'bg-brand-gold text-slate-900 font-bold shadow-lg shadow-brand-gold/30' : 
+                    [8, 12, 20].includes(i) ? 'bg-brand-gold/20 text-brand-gold hover:bg-brand-gold/30' : 
+                    'bg-white/5 text-white/30 hover:bg-white/10'
+                  }`}
+                >
+                  {i + 1}
+                </motion.div>
+              ))}
+            </div>
+          </div>
 
-        {/* Confirm button */}
-        <motion.button 
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="w-full py-3 bg-gradient-to-r from-brand-gold to-amber-500 rounded-xl text-sm font-semibold text-slate-900 shadow-lg shadow-brand-gold/30 flex items-center justify-center gap-2"
-        >
-          <Bell className="w-4 h-4" />
-          Confirm Booking
-        </motion.button>
+          {/* Time slots */}
+          <div className="flex gap-2">
+            {['9:00 AM', '10:30 AM', '2:00 PM'].map((time, i) => (
+              <motion.div
+                key={i}
+                whileHover={{ scale: 1.05 }}
+                className={`flex-1 py-2 rounded-lg text-center text-xs font-medium cursor-pointer transition-all ${
+                  i === 1 ? 'bg-brand-gold text-slate-900 shadow-lg shadow-brand-gold/30' : 'bg-white/10 text-white/70 hover:bg-white/20'
+                }`}
+              >
+                {time}
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Confirm button */}
+          <motion.button 
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full py-3 bg-gradient-to-r from-brand-gold to-amber-500 rounded-xl text-sm font-semibold text-slate-900 shadow-lg shadow-brand-gold/30 flex items-center justify-center gap-2"
+          >
+            <Bell className="w-4 h-4" />
+            Confirm Booking
+          </motion.button>
+        </div>
       </div>
     ),
     analytics: (
@@ -293,77 +304,84 @@ function MockUI({ type, image }: { type: Feature["mockType"]; image?: string }) 
       </div>
     ),
     identity: (
-      <div className="p-6 space-y-4">
-        {/* Header with verification status */}
-        <div className="flex items-center gap-4 mb-2">
-          <div className="relative">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-              <Shield className="h-8 w-8 text-white" />
-            </div>
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-2 border-slate-900 flex items-center justify-center">
-              <CheckCircle className="w-4 h-4 text-white" />
-            </div>
+      <div className="relative">
+        {image && (
+          <div className="absolute inset-0 opacity-25 rounded-xl overflow-hidden">
+            <img src={image} alt="" className="w-full h-full object-cover" loading="lazy" />
           </div>
-          <div>
-            <div className="text-white font-semibold">Verified Creator</div>
-            <div className="text-xs text-emerald-400">Identity protected on-chain</div>
-          </div>
-        </div>
-
-        {/* Main verification card */}
-        <motion.div 
-          whileHover={{ scale: 1.02 }}
-          className="p-4 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 rounded-xl border border-emerald-500/30 cursor-pointer"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/30 flex items-center justify-center">
-                <Shield className="h-4 w-4 text-emerald-400" />
+        )}
+        <div className="relative p-6 space-y-4">
+          {/* Header with verification status */}
+          <div className="flex items-center gap-4 mb-2">
+            <div className="relative">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                <Shield className="h-8 w-8 text-white" />
               </div>
-              <span className="text-white font-medium">Identity Verified</span>
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-2 border-slate-900 flex items-center justify-center">
+                <CheckCircle className="w-4 h-4 text-white" />
+              </div>
             </div>
-            <span className="px-3 py-1 bg-emerald-500/30 rounded-full text-xs text-emerald-400 font-medium">
-              ✓ Active
-            </span>
+            <div>
+              <div className="text-white font-semibold">Verified Creator</div>
+              <div className="text-xs text-emerald-400">Identity protected on-chain</div>
+            </div>
           </div>
-          <p className="text-xs text-white/60">Voice & Face certified and protected</p>
-        </motion.div>
 
-        {/* Verification items */}
-        <div className="space-y-2">
-          {[
-            { label: 'Voice Fingerprint', status: 'Verified', icon: Mic, color: 'emerald' },
-            { label: 'Face Recognition', status: 'Verified', icon: Users, color: 'emerald' },
-            { label: 'Content Rights', status: 'Protected', icon: Link, color: 'cyan' },
-          ].map((item) => (
-            <motion.div 
-              key={item.label}
-              whileHover={{ scale: 1.01, x: 4 }}
-              className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10 cursor-pointer hover:bg-white/10 transition-all"
-            >
-              <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-lg bg-${item.color}-500/20 flex items-center justify-center`}>
-                  <item.icon className={`w-4 h-4 text-${item.color}-400`} />
+          {/* Main verification card */}
+          <motion.div 
+            whileHover={{ scale: 1.02 }}
+            className="p-4 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 rounded-xl border border-emerald-500/30 cursor-pointer backdrop-blur-sm"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/30 flex items-center justify-center">
+                  <Shield className="h-4 w-4 text-emerald-400" />
                 </div>
-                <span className="text-sm text-white/80">{item.label}</span>
+                <span className="text-white font-medium">Identity Verified</span>
               </div>
-              <span className={`px-3 py-1 bg-${item.color}-500/20 rounded-full text-xs text-${item.color}-400 font-medium`}>
-                {item.status}
+              <span className="px-3 py-1 bg-emerald-500/30 rounded-full text-xs text-emerald-400 font-medium">
+                ✓ Active
               </span>
-            </motion.div>
-          ))}
-        </div>
+            </div>
+            <p className="text-xs text-white/60">Voice & Face certified and protected</p>
+          </motion.div>
 
-        {/* Blockchain badge */}
-        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-xl border border-blue-500/20">
-          <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-            <span className="text-blue-400 font-bold text-sm">◆</span>
+          {/* Verification items */}
+          <div className="space-y-2">
+            {[
+              { label: 'Voice Fingerprint', status: 'Verified', icon: Mic, color: 'emerald' },
+              { label: 'Face Recognition', status: 'Verified', icon: Users, color: 'emerald' },
+              { label: 'Content Rights', status: 'Protected', icon: Link, color: 'cyan' },
+            ].map((item) => (
+              <motion.div 
+                key={item.label}
+                whileHover={{ scale: 1.01, x: 4 }}
+                className="flex items-center justify-between p-3 bg-white/10 rounded-xl border border-white/20 cursor-pointer hover:bg-white/15 transition-all backdrop-blur-sm"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-lg bg-${item.color}-500/20 flex items-center justify-center`}>
+                    <item.icon className={`w-4 h-4 text-${item.color}-400`} />
+                  </div>
+                  <span className="text-sm text-white/80">{item.label}</span>
+                </div>
+                <span className={`px-3 py-1 bg-${item.color}-500/20 rounded-full text-xs text-${item.color}-400 font-medium`}>
+                  {item.status}
+                </span>
+              </motion.div>
+            ))}
           </div>
-          <div>
-            <span className="text-xs text-white/70">Secured on</span>
-            <span className="text-xs text-blue-400 font-medium ml-1">Polygon Network</span>
+
+          {/* Blockchain badge */}
+          <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-500/15 to-indigo-500/15 rounded-xl border border-blue-500/30 backdrop-blur-sm">
+            <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+              <span className="text-blue-400 font-bold text-sm">◆</span>
+            </div>
+            <div>
+              <span className="text-xs text-white/70">Secured on</span>
+              <span className="text-xs text-blue-400 font-medium ml-1">Polygon Network</span>
+            </div>
+            <div className="ml-auto text-[10px] text-white/40">Block #18,234,567</div>
           </div>
-          <div className="ml-auto text-[10px] text-white/40">Block #18,234,567</div>
         </div>
       </div>
     ),
