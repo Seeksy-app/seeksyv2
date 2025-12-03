@@ -109,11 +109,15 @@ export function StudioScenes({
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="text-lg">Scenes</CardTitle>
-        <Button size="sm" onClick={() => setShowCreateDialog(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Scene
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+        <CardTitle className="text-base">Scenes</CardTitle>
+        <Button 
+          size="sm" 
+          onClick={() => setShowCreateDialog(true)}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 h-8"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Add
         </Button>
       </CardHeader>
       <CardContent className="space-y-2">
@@ -125,31 +129,34 @@ export function StudioScenes({
           scenes.map(scene => (
             <div
               key={scene.id}
-              className={`flex items-center justify-between p-3 rounded-lg border transition-all cursor-pointer hover:border-primary/50 ${
+              className={`flex items-center justify-between p-2.5 rounded-lg border transition-all cursor-pointer hover:border-primary/50 ${
                 activeSceneId === scene.id 
-                  ? "border-primary bg-primary/5" 
-                  : "border-border"
+                  ? "border-primary bg-primary/10" 
+                  : "border-border/50 bg-muted/30"
               }`}
               onClick={() => onSceneChange(scene.id)}
             >
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center shrink-0">
                   {getLayoutIcon(scene.layout)}
-                  <span className="font-medium">{scene.name}</span>
                 </div>
-                <span className="text-xs text-muted-foreground">
-                  {getLayoutLabel(scene.layout)}
-                </span>
+                <div className="min-w-0">
+                  <span className="font-medium text-sm truncate block">{scene.name}</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {getLayoutLabel(scene.layout)}
+                  </span>
+                </div>
               </div>
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
+                className="h-7 w-7 opacity-60 hover:opacity-100"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDeleteScene(scene.id);
                 }}
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </div>
           ))
