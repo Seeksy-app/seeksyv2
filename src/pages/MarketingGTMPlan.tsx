@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Target, TrendingUp, BarChart3, Megaphone, Calculator } from "lucide-react";
+import { Target, TrendingUp, BarChart3, Megaphone, Calculator, FileText } from "lucide-react";
 import { MarketOverviewTab } from "@/components/gtm/MarketOverviewTab";
 import { GTMStrategyTab } from "@/components/gtm/GTMStrategyTab";
 import { KeyMetricsTab } from "@/components/gtm/KeyMetricsTab";
 import { ChannelsTab } from "@/components/gtm/ChannelsTab";
 import { ROICalculatorTab } from "@/components/gtm/ROICalculatorTab";
+import { GTMBoardReport } from "@/components/cfo/GTMBoardReport";
 
 const MarketingGTMPlan = () => {
-  const [activeTab, setActiveTab] = useState("market-overview");
+  const [activeTab, setActiveTab] = useState("board-report");
 
   return (
     <div className="min-h-screen bg-background">
@@ -29,7 +30,14 @@ const MarketingGTMPlan = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 h-auto gap-2 bg-muted/50 p-1">
+          <TabsList className="grid w-full grid-cols-6 h-auto gap-2 bg-muted/50 p-1">
+            <TabsTrigger 
+              value="board-report" 
+              className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:text-foreground"
+            >
+              <FileText className="w-4 h-4" />
+              <span className="hidden sm:inline">Board Report</span>
+            </TabsTrigger>
             <TabsTrigger 
               value="market-overview" 
               className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:text-foreground"
@@ -66,6 +74,11 @@ const MarketingGTMPlan = () => {
               <span className="hidden sm:inline">ROI Calculator</span>
             </TabsTrigger>
           </TabsList>
+
+          {/* Board Report Tab - Investor Ready View */}
+          <TabsContent value="board-report" className="space-y-6">
+            <GTMBoardReport />
+          </TabsContent>
 
           <TabsContent value="market-overview" className="space-y-6">
             <MarketOverviewTab />

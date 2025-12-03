@@ -17,6 +17,7 @@ import { TalkingPointsWidget } from "@/components/dashboard/TalkingPointsWidget"
 import { ForecastTab } from "@/components/cfo/ForecastTab";
 import { InteractiveSpreadsheet } from "@/components/cfo/InteractiveSpreadsheet";
 import { CFOAIChat } from "@/components/cfo/CFOAIChat";
+import { CFOBoardSummary } from "@/components/cfo/CFOBoardSummary";
 import { 
   getFinancialOverview,
   getAwardsSummary,
@@ -307,14 +308,20 @@ const CFODashboard = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
+      <Tabs defaultValue="board-summary" className="space-y-6">
         <TabsList className="inline-flex w-full overflow-x-auto -mx-4 px-4 scrollbar-hide">
+          <TabsTrigger value="board-summary" className="flex-shrink-0">Board Summary</TabsTrigger>
           <TabsTrigger value="overview" className="flex-shrink-0">Overview</TabsTrigger>
           <TabsTrigger value="revenue" className="flex-shrink-0">Revenue</TabsTrigger>
           <TabsTrigger value="ad-breakdown" className="flex-shrink-0">Ads</TabsTrigger>
           <TabsTrigger value="financial-models" className="flex-shrink-0">Financial Models</TabsTrigger>
           <TabsTrigger value="forecast" className="flex-shrink-0">Forecast</TabsTrigger>
         </TabsList>
+
+        {/* Board Summary Tab - Investor Ready View */}
+        <TabsContent value="board-summary" className="space-y-6">
+          <CFOBoardSummary />
+        </TabsContent>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
