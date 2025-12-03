@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,8 +14,10 @@ import {
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { AIWorkspaceRecommendation } from "@/components/onboarding/steps/AIWorkspaceRecommendation";
+import confetti from "canvas-confetti";
 
-const TOTAL_STEPS = 5; // Welcome + Persona Selection + Questions + Recommendations + Confirmation
+const TOTAL_STEPS = 6; // Welcome + Persona + Questions + AI Recommendation + Preview + Complete
 
 // Questions for Step 3
 const GOALS = [
@@ -47,24 +49,74 @@ const PUBLISH_PLATFORMS = [
   { id: "website", label: "My own website" },
 ];
 
+// Storage key for progress persistence
+const ONBOARDING_STORAGE_KEY = "seeksy_onboarding_progress";
+
+interface OnboardingProgress {
+  step: number;
+  selectedPersona: PersonaType | null;
+  selectedGoals: string[];
+  selectedTools: string[];
+  selectedPlatforms: string[];
+  selectedModules: string[];
+}
+
 export default function Onboarding() {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
+  
+  // Load saved progress from localStorage
+  const loadSavedProgress = (): OnboardingProgress => {
+    try {
+      const saved = localStorage.getItem(ONBOARDING_STORAGE_KEY);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error("Failed to load onboarding progress:", e);
+    }
+    return {
+      step: 1,
+      selectedPersona: null,
+      selectedGoals: [],
+      selectedTools: [],
+      selectedPlatforms: [],
+      selectedModules: [],
+    };
+  };
+
+  const savedProgress = loadSavedProgress();
+  const [step, setStep] = useState(savedProgress.step);
   const [completing, setCompleting] = useState(false);
-  const [selectedPersona, setSelectedPersona] = useState<PersonaType | null>(null);
-  const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
-  const [selectedTools, setSelectedTools] = useState<string[]>([]);
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+  const [retrying, setRetrying] = useState(false);
+  const [selectedPersona, setSelectedPersona] = useState<PersonaType | null>(savedProgress.selectedPersona);
+  const [selectedGoals, setSelectedGoals] = useState<string[]>(savedProgress.selectedGoals);
+  const [selectedTools, setSelectedTools] = useState<string[]>(savedProgress.selectedTools);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(savedProgress.selectedPlatforms);
+  const [selectedModules, setSelectedModules] = useState<string[]>(savedProgress.selectedModules);
 
   const progress = (step / TOTAL_STEPS) * 100;
   const personaConfig = selectedPersona ? getPersonaConfig(selectedPersona) : null;
+
+  // Save progress whenever state changes
+  useEffect(() => {
+    const progressData: OnboardingProgress = {
+      step,
+      selectedPersona,
+      selectedGoals,
+      selectedTools,
+      selectedPlatforms,
+      selectedModules,
+    };
+    localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(progressData));
+  }, [step, selectedPersona, selectedGoals, selectedTools, selectedPlatforms, selectedModules]);
 
   const canProceed = () => {
     switch (step) {
       case 1: return true;
       case 2: return !!selectedPersona;
       case 3: return selectedGoals.length > 0;
-      case 4: return true;
+      case 4: return true; // AI recommendation step
+      case 5: return true; // Preview step
       default: return true;
     }
   };
@@ -95,10 +147,20 @@ export default function Onboarding() {
     );
   };
 
-  const handleComplete = async () => {
+  const handleModulesSelected = (modules: string[]) => {
+    setSelectedModules(modules);
+    handleNext();
+  };
+
+  const handleComplete = async (isRetry = false) => {
     if (!selectedPersona) return;
     
-    setCompleting(true);
+    if (isRetry) {
+      setRetrying(true);
+    } else {
+      setCompleting(true);
+    }
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
@@ -106,41 +168,86 @@ export default function Onboarding() {
       const config = getPersonaConfig(selectedPersona);
 
       // Save to user_preferences
-      await supabase.from("user_preferences").upsert({
+      const { error: prefsError } = await supabase.from("user_preferences").upsert({
         user_id: user.id,
         onboarding_completed: true,
         user_type: selectedPersona,
         my_page_enabled: true,
-        pinned_modules: config.defaultWidgets,
+        pinned_modules: selectedModules.length > 0 ? selectedModules : config.defaultWidgets,
       }, { onConflict: "user_id" });
 
+      if (prefsError) {
+        console.error("Preferences error:", prefsError);
+        throw prefsError;
+      }
+
       // Update profile with onboarding data
-      await supabase.from("profiles").update({
+      const { error: profileError } = await supabase.from("profiles").update({
         onboarding_completed: true,
         onboarding_data: {
           personaType: selectedPersona,
           goals: selectedGoals,
           currentTools: selectedTools,
           publishPlatforms: selectedPlatforms,
+          selectedModules: selectedModules,
           completedAt: new Date().toISOString(),
           checklistStatus: {},
         }
       }).eq("id", user.id);
 
+      if (profileError) {
+        console.error("Profile error:", profileError);
+        throw profileError;
+      }
+
+      // Clear saved progress
+      localStorage.removeItem(ONBOARDING_STORAGE_KEY);
       localStorage.setItem("show_welcome_spin", "true");
+      
+      // Trigger confetti celebration
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+      
       toast.success("Your workspace is ready!");
 
-      // Route to completion page
-      navigate("/onboarding/complete");
+      // Brief delay for celebration, then navigate
+      setTimeout(() => {
+        navigate("/onboarding/complete");
+      }, 1200);
+      
     } catch (error) {
       console.error("Error completing onboarding:", error);
-      toast.error("Failed to complete setup");
+      
+      if (!isRetry) {
+        // First failure - show retry toast
+        toast.error("We couldn't finish setting up your workspace. Retrying now...", {
+          duration: 3000,
+        });
+        
+        // Auto-retry once
+        setTimeout(() => {
+          handleComplete(true);
+        }, 1500);
+      } else {
+        // Second failure - show final error
+        toast.error("Failed to complete setup. Please try again.", {
+          action: {
+            label: "Retry",
+            onClick: () => handleComplete(false),
+          },
+        });
+      }
     } finally {
       setCompleting(false);
+      setRetrying(false);
     }
   };
 
   const handleSkip = () => {
+    localStorage.removeItem(ONBOARDING_STORAGE_KEY);
     navigate("/dashboard");
   };
 
@@ -168,7 +275,7 @@ export default function Onboarding() {
         transition={{ delay: 0.3 }}
         className="text-muted-foreground text-lg"
       >
-        Let's personalize your workspace.
+        Let's personalize your workspace in just a few steps.
       </motion.p>
     </div>
   );
@@ -438,6 +545,17 @@ export default function Onboarding() {
     );
   };
 
+  const renderAIRecommendation = () => (
+    <AIWorkspaceRecommendation
+      persona={selectedPersona}
+      goals={selectedGoals}
+      tools={selectedTools}
+      platforms={selectedPlatforms}
+      selectedModules={selectedModules}
+      onModulesChange={setSelectedModules}
+    />
+  );
+
   const renderStep = () => {
     switch (step) {
       case 1:
@@ -447,8 +565,10 @@ export default function Onboarding() {
       case 3:
         return renderQuestions();
       case 4:
-        return renderRecommendations();
+        return renderAIRecommendation();
       case 5:
+        return renderRecommendations();
+      case 6:
         return renderConfirmation();
       default:
         return null;
@@ -459,8 +579,9 @@ export default function Onboarding() {
     switch (step) {
       case 2: return "Select your focus";
       case 3: return "Tell us more";
-      case 4: return "Review setup";
-      case 5: return "Get started";
+      case 4: return "AI Workspace";
+      case 5: return "Review setup";
+      case 6: return "Get started";
       default: return "";
     }
   };
@@ -524,13 +645,13 @@ export default function Onboarding() {
                   </Button>
                 ) : (
                   <Button
-                    onClick={handleComplete}
-                    disabled={completing}
+                    onClick={() => handleComplete()}
+                    disabled={completing || retrying}
                     size="lg"
                     className="gap-2"
                   >
-                    {completing ? (
-                      "Activating..."
+                    {completing || retrying ? (
+                      retrying ? "Retrying..." : "Activating..."
                     ) : (
                       <>
                         <Sparkles className="h-4 w-4" />
