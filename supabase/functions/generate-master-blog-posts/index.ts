@@ -6,6 +6,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Only admins and editors can generate master blog posts
+const ALLOWED_ROLES = ['admin', 'super_admin', 'editor'];
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -13,19 +16,67 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
 
+    // === AUTHENTICATION ===
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.log("🔒 Blog Generator: Missing Authorization header");
+      return new Response(
+        JSON.stringify({ error: "Authentication required" }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+
+    // Verify the user's JWT
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    });
+
+    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
+    
+    if (userError || !user) {
+      console.log("🔒 Blog Generator: Invalid token -", userError?.message);
+      return new Response(
+        JSON.stringify({ error: "Invalid or expired authentication token" }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log('Starting master blog post generation...');
+    // === AUTHORIZATION ===
+    const { data: userRoles, error: rolesError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id);
+
+    if (rolesError) {
+      console.error("🔒 Blog Generator: Failed to fetch roles -", rolesError);
+    }
+
+    const roles = userRoles?.map(r => r.role) || [];
+    const hasAccess = roles.some(role => ALLOWED_ROLES.includes(role));
+
+    if (!hasAccess) {
+      console.log(`🔒 Blog Generator: Access denied for user ${user.id} with roles [${roles.join(', ')}]`);
+      return new Response(
+        JSON.stringify({ error: "Access denied. Only admins and editors can generate master blog posts." }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`✅ Blog Generator: Authorized - user=${user.id}, roles=[${roles.join(',')}]`);
 
     // Generate 3 blog posts
     const posts = [];
     for (let i = 0; i < 3; i++) {
       console.log(`Generating post ${i + 1}/3...`);
 
-      // Generate blog content using AI
       const topicResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -73,7 +124,6 @@ Return ONLY a JSON object with this exact structure:
       
       let blogData;
       try {
-        // Try to parse JSON from the response
         const jsonMatch = content.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           blogData = JSON.parse(jsonMatch[0]);
@@ -86,57 +136,16 @@ Return ONLY a JSON object with this exact structure:
         continue;
       }
 
-      // Generate a URL-friendly slug
       const slug = blogData.title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '') + `-${Date.now()}-${i}`;
 
-      // Generate an image for the post
-      let imageUrl = null;
-      try {
-        const imageResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${lovableApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'google/gemini-2.5-flash-image',
-            messages: [
-              {
-                role: 'user',
-                content: `Create a professional, modern blog header image for: "${blogData.title}". Style: clean, vibrant, engaging for creators and influencers. 16:9 aspect ratio.`
-              }
-            ],
-          }),
-        });
-
-        if (imageResponse.ok) {
-          const imageData = await imageResponse.json();
-          imageUrl = imageData.choices[0].message.content;
-        }
-      } catch (e) {
-        console.error('Failed to generate image:', e);
-      }
-
-      // Get a system user for posting (use service role to find first admin or creator)
-      const { data: systemUsers } = await supabase
-        .from('profiles')
-        .select('id')
-        .limit(1);
-
-      const userId = systemUsers?.[0]?.id;
-      if (!userId) {
-        console.error('No system user found to create posts');
-        continue;
-      }
-
-      // Insert the blog post
+      // Use the authenticated user as the author
       const { data: insertedPost, error: insertError } = await supabase
         .from('blog_posts')
         .insert({
-          user_id: userId,
+          user_id: user.id, // Use authenticated user, not arbitrary first user
           title: blogData.title,
           slug: slug,
           excerpt: blogData.excerpt,
@@ -144,7 +153,6 @@ Return ONLY a JSON object with this exact structure:
           seo_title: blogData.title,
           seo_description: blogData.seo_description,
           seo_keywords: blogData.seo_keywords,
-          featured_image_url: imageUrl,
           status: 'published',
           published_at: new Date().toISOString(),
           publish_to_master: true,

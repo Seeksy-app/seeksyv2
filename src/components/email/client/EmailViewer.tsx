@@ -291,7 +291,7 @@ export function EmailViewer({
             <h3 className="font-medium mb-3">Email Preview</h3>
             <div 
               className="border rounded-md p-4 bg-background"
-              dangerouslySetInnerHTML={{ __html: email.html_content }}
+              dangerouslySetInnerHTML={{ __html: sanitizeEmailHtml(email.html_content) }}
             />
           </Card>
         )}

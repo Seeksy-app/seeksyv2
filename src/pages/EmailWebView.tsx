@@ -47,7 +47,7 @@ export default function EmailWebView() {
             </p>
           </div>
           <div 
-            dangerouslySetInnerHTML={{ __html: campaign.html_content || "" }}
+            dangerouslySetInnerHTML={{ __html: sanitizeEmailHtml(campaign.html_content) }}
             className="prose prose-sm max-w-none"
           />
         </div>

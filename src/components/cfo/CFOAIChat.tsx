@@ -150,7 +150,7 @@ export const CFOAIChat = ({ financialData }: CFOAIChatProps) => {
                       }
                       
                       return (
-                        <p key={i} className="mb-2 last:mb-0" dangerouslySetInnerHTML={{ __html: boldFormatted }} />
+                        <p key={i} className="mb-2 last:mb-0" dangerouslySetInnerHTML={{ __html: sanitizeHtml(boldFormatted) }} />
                       );
                     })}
                   </div>

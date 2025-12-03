@@ -79,7 +79,7 @@ export default function EmailView() {
           <div className="p-6 bg-background">
             <div 
               className="prose prose-sm max-w-none dark:prose-invert"
-              dangerouslySetInnerHTML={{ __html: email.message_body || "" }}
+              dangerouslySetInnerHTML={{ __html: sanitizeEmailHtml(email.message_body) }}
             />
           </div>
 
