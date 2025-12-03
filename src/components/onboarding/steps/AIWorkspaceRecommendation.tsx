@@ -21,6 +21,7 @@ import { PersonaType } from "@/config/personaConfig";
 interface Module {
   id: string;
   name: string;
+  shortName: string;
   description: string;
   icon: any;
   gradient: string;
@@ -28,18 +29,16 @@ interface Module {
 }
 
 const ALL_MODULES: Module[] = [
-  { id: "media-studio", name: "Media AI Studio", description: "Record & edit video with AI", icon: Video, gradient: "from-blue-500 to-cyan-500" },
-  { id: "ai-clips", name: "AI Clips Generator", description: "Auto-generate viral clips", icon: Scissors, gradient: "from-purple-500 to-pink-500" },
-  { id: "podcast-hosting", name: "Podcast Hosting & RSS", description: "Distribute your podcast everywhere", icon: Rss, gradient: "from-amber-500 to-orange-500" },
-  { id: "my-page", name: "My Page (Link-in-bio)", description: "Turn your links into revenue", icon: Link2, gradient: "from-violet-500 to-purple-500" },
-  { id: "meetings", name: "Meetings & Scheduling", description: "Book calls & appointments", icon: Calendar, gradient: "from-emerald-500 to-teal-500" },
-  { id: "events", name: "Events & Ticketing", description: "Sell tickets to your events", icon: Ticket, gradient: "from-rose-500 to-pink-500" },
-  { id: "crm", name: "CRM Lite", description: "Manage contacts & sponsors", icon: Users, gradient: "from-sky-500 to-blue-500" },
-  { id: "communications", name: "Email & SMS", description: "Reach your audience directly", icon: MessageSquare, gradient: "from-indigo-500 to-violet-500" },
-  { id: "monetization", name: "Monetization Hub", description: "Track revenue & deals", icon: DollarSign, gradient: "from-amber-500 to-yellow-500" },
-  { id: "analytics", name: "Analytics Dashboard", description: "Track your growth metrics", icon: BarChart3, gradient: "from-green-500 to-emerald-500" },
-  { id: "awards", name: "Awards & Competitions", description: "Run contests & voting", icon: Trophy, gradient: "from-orange-500 to-red-500" },
-  { id: "identity", name: "Identity Verification", description: "Voice & face protection", icon: Shield, gradient: "from-slate-500 to-gray-600" },
+  { id: "media-studio", name: "Media AI Studio", shortName: "Studio", description: "Record & edit", icon: Video, gradient: "from-blue-500 to-cyan-500" },
+  { id: "ai-clips", name: "AI Clips Generator", shortName: "AI Clips", description: "Auto-generate clips", icon: Scissors, gradient: "from-purple-500 to-pink-500" },
+  { id: "podcast-hosting", name: "Podcast Hosting", shortName: "Podcasts", description: "Distribute shows", icon: Rss, gradient: "from-amber-500 to-orange-500" },
+  { id: "my-page", name: "My Page", shortName: "My Page", description: "Link-in-bio", icon: Link2, gradient: "from-violet-500 to-purple-500" },
+  { id: "meetings", name: "Meetings", shortName: "Meetings", description: "Book calls", icon: Calendar, gradient: "from-emerald-500 to-teal-500" },
+  { id: "events", name: "Events & Ticketing", shortName: "Events", description: "Sell tickets", icon: Ticket, gradient: "from-rose-500 to-pink-500" },
+  { id: "crm", name: "CRM Lite", shortName: "CRM", description: "Manage contacts", icon: Users, gradient: "from-sky-500 to-blue-500" },
+  { id: "communications", name: "Email & SMS", shortName: "Email/SMS", description: "Reach audience", icon: MessageSquare, gradient: "from-indigo-500 to-violet-500" },
+  { id: "monetization", name: "Monetization", shortName: "Revenue", description: "Track revenue", icon: DollarSign, gradient: "from-amber-500 to-yellow-500" },
+  { id: "analytics", name: "Analytics", shortName: "Analytics", description: "Track growth", icon: BarChart3, gradient: "from-green-500 to-emerald-500" },
 ];
 
 // Map persona labels for display
@@ -81,7 +80,6 @@ function getRecommendationReason(
   goals: string[],
   platforms: string[]
 ): string | null {
-  // Check persona-based recommendations first
   const personaReasons: Record<string, string[]> = {
     podcaster: ["media-studio", "podcast-hosting", "ai-clips", "analytics"],
     influencer: ["my-page", "ai-clips", "analytics", "monetization"],
@@ -93,10 +91,9 @@ function getRecommendationReason(
   };
 
   if (persona && personaReasons[persona]?.includes(moduleId)) {
-    return `Recommended because you chose ${PERSONA_LABELS[persona] || persona} as your focus.`;
+    return `Recommended for ${PERSONA_LABELS[persona] || persona}`;
   }
 
-  // Check goal-based recommendations
   const goalModules: Record<string, string[]> = {
     "grow-audience": ["my-page", "analytics"],
     "create-content": ["media-studio", "ai-clips"],
@@ -108,19 +105,8 @@ function getRecommendationReason(
 
   for (const goal of goals) {
     if (goalModules[goal]?.includes(moduleId)) {
-      return `Recommended because you want to "${GOAL_LABELS[goal] || goal}".`;
+      return `Matches: "${GOAL_LABELS[goal] || goal}"`;
     }
-  }
-
-  // Check platform-based recommendations
-  if ((platforms.includes("spotify") || platforms.includes("youtube")) && moduleId === "podcast-hosting") {
-    return `Recommended because you publish to ${platforms.includes("spotify") ? "Spotify" : "YouTube"}.`;
-  }
-  if ((platforms.includes("tiktok") || platforms.includes("instagram")) && moduleId === "ai-clips") {
-    const platformNames = [];
-    if (platforms.includes("tiktok")) platformNames.push("TikTok");
-    if (platforms.includes("instagram")) platformNames.push("Instagram");
-    return `Recommended because you publish to ${platformNames.join(" & ")}.`;
   }
 
   return null;
@@ -134,7 +120,6 @@ function getRecommendedModules(
 ): string[] {
   const recommended = new Set<string>();
   
-  // Base recommendations by persona
   switch (persona) {
     case "podcaster":
       recommended.add("media-studio");
@@ -174,7 +159,6 @@ function getRecommendedModules(
       recommended.add("analytics");
   }
   
-  // Add based on goals
   if (goals.includes("grow-audience")) {
     recommended.add("my-page");
     recommended.add("analytics");
@@ -185,7 +169,6 @@ function getRecommendedModules(
   }
   if (goals.includes("monetize")) {
     recommended.add("monetization");
-    recommended.add("identity");
   }
   if (goals.includes("book-meetings")) {
     recommended.add("meetings");
@@ -199,7 +182,6 @@ function getRecommendedModules(
     recommended.add("communications");
   }
   
-  // Add based on platforms
   if (platforms.includes("spotify") || platforms.includes("youtube")) {
     recommended.add("podcast-hosting");
   }
@@ -230,12 +212,10 @@ export function AIWorkspaceRecommendation({
   const recommendedIds = getRecommendedModules(persona, goals, platforms);
   const [hasAnimated, setHasAnimated] = useState(false);
   
-  // Initialize with recommendations if nothing selected yet
   useEffect(() => {
     if (selectedModules.length === 0) {
       onModulesChange(recommendedIds);
     }
-    // Stop AI animation after 3 seconds
     const timer = setTimeout(() => setHasAnimated(true), 3000);
     return () => clearTimeout(timer);
   }, []);
@@ -254,58 +234,68 @@ export function AIWorkspaceRecommendation({
 
   return (
     <TooltipProvider>
-      <div className="space-y-8">
-        {/* Gradient header */}
-        <div className="relative text-center mb-8">
-          <div className="absolute inset-0 -mx-8 -mt-8 h-32 bg-gradient-to-br from-primary/5 via-primary/10 to-transparent rounded-t-3xl" />
+      <div className="space-y-4">
+        {/* Compact header */}
+        <div className="relative text-center">
+          <div className="absolute inset-0 -mx-8 -mt-8 h-24 bg-gradient-to-br from-primary/5 via-primary/10 to-transparent rounded-t-3xl" />
           <div className="relative">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", delay: 0.1 }}
-              className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 mb-5"
+              className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 mb-3"
             >
-              <Sparkles className="h-10 w-10 text-primary" />
+              <Sparkles className="h-7 w-7 text-primary" />
             </motion.div>
-            <h2 className="text-2xl sm:text-3xl font-bold mb-3">Seeksy AI Built Your Workspace</h2>
-            <p className="text-muted-foreground text-base sm:text-lg max-w-xl mx-auto leading-relaxed">
+            <h2 className="text-xl sm:text-2xl font-bold mb-1">Seeksy AI Built Your Workspace</h2>
+            <p className="text-muted-foreground text-sm max-w-lg mx-auto">
               We analyzed your goals, persona, and platforms to build a personalized Seeksy workspace. 
               You can turn modules on or off — recommendations update automatically.
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          {/* Left: Summary of choices */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          {/* Left: Summary of choices - narrower */}
           <Card className="border-border/50 bg-gradient-to-br from-muted/30 to-muted/10">
-            <CardContent className="p-5 sm:p-6">
-              <h3 className="text-base sm:text-lg font-bold mb-4 text-foreground">Your Selections</h3>
-              <div className="space-y-5">
+            <CardContent className="p-4">
+              <h3 className="text-sm font-bold mb-3 text-foreground">Your Selections</h3>
+              <div className="space-y-3">
                 {persona && (
                   <div>
-                    <p className="text-sm text-muted-foreground mb-2 font-medium">Focus</p>
-                    <Badge variant="secondary" className="capitalize text-sm px-3 py-1">{PERSONA_LABELS[persona] || persona}</Badge>
+                    <p className="text-xs text-muted-foreground mb-1 font-medium">Focus</p>
+                    <Badge variant="secondary" className="capitalize text-xs px-2 py-0.5">{PERSONA_LABELS[persona] || persona}</Badge>
                   </div>
                 )}
                 {goals.length > 0 && (
                   <div>
-                    <p className="text-sm text-muted-foreground mb-2 font-medium">Goals</p>
-                    <div className="flex flex-wrap gap-2">
-                      {goals.map(g => (
-                        <Badge key={g} variant="outline" className="text-sm px-3 py-1 rounded-full">
+                    <p className="text-xs text-muted-foreground mb-1 font-medium">Goals</p>
+                    <div className="flex flex-wrap gap-1">
+                      {goals.slice(0, 2).map(g => (
+                        <Badge key={g} variant="outline" className="text-xs px-2 py-0.5 rounded-full">
                           {GOAL_LABELS[g] || g.replace(/-/g, " ")}
                         </Badge>
                       ))}
+                      {goals.length > 2 && (
+                        <Badge variant="outline" className="text-xs px-2 py-0.5 rounded-full">
+                          +{goals.length - 2}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 )}
                 {platforms.length > 0 && (
                   <div>
-                    <p className="text-sm text-muted-foreground mb-2 font-medium">Platforms</p>
-                    <div className="flex flex-wrap gap-2">
-                      {platforms.map(p => (
-                        <Badge key={p} variant="outline" className="text-sm px-3 py-1 rounded-full">{PLATFORM_LABELS[p] || p}</Badge>
+                    <p className="text-xs text-muted-foreground mb-1 font-medium">Platforms</p>
+                    <div className="flex flex-wrap gap-1">
+                      {platforms.slice(0, 2).map(p => (
+                        <Badge key={p} variant="outline" className="text-xs px-2 py-0.5 rounded-full">{PLATFORM_LABELS[p] || p}</Badge>
                       ))}
+                      {platforms.length > 2 && (
+                        <Badge variant="outline" className="text-xs px-2 py-0.5 rounded-full">
+                          +{platforms.length - 2}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 )}
@@ -313,17 +303,18 @@ export function AIWorkspaceRecommendation({
             </CardContent>
           </Card>
 
-          {/* Right: Module toggles */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base sm:text-lg font-bold text-foreground">Recommended Modules</h3>
-              <Button variant="ghost" size="sm" onClick={acceptRecommendation} className="text-primary hover:text-primary">
-                <Sparkles className="h-4 w-4 mr-1.5" />
+          {/* Right: Module toggles - wider, compact grid */}
+          <div className="lg:col-span-3">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-bold text-foreground">Recommended Modules</h3>
+              <Button variant="ghost" size="sm" onClick={acceptRecommendation} className="text-primary hover:text-primary h-7 text-xs">
+                <Sparkles className="h-3 w-3 mr-1" />
                 Reset to AI picks
               </Button>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-h-[450px] overflow-y-auto pr-1">
+            {/* Compact 2x5 grid that fits without scroll */}
+            <div className="grid grid-cols-2 gap-2">
               {ALL_MODULES.map((module, index) => {
                 const isSelected = selectedModules.includes(module.id);
                 const isRecommended = recommendedIds.includes(module.id);
@@ -333,70 +324,68 @@ export function AIWorkspaceRecommendation({
                 return (
                   <motion.div
                     key={module.id}
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.03 }}
+                    transition={{ delay: index * 0.02 }}
                   >
                     <div
                       className={cn(
-                        "flex items-center gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer relative min-h-[80px]",
+                        "flex items-center gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer",
+                        "h-[60px]", // Fixed height for uniformity
                         isSelected
-                          ? "border-primary bg-primary/5 shadow-sm"
+                          ? "border-primary bg-primary/5"
                           : "border-border/50 hover:border-border hover:bg-muted/30",
-                        // Subtle AI glow animation for recommended modules
                         isRecommended && !hasAnimated && "animate-pulse"
                       )}
                       onClick={() => toggleModule(module.id)}
                       style={isRecommended && !hasAnimated ? {
-                        boxShadow: "0 0 16px 3px hsl(var(--primary) / 0.15)"
+                        boxShadow: "0 0 12px 2px hsl(var(--primary) / 0.12)"
                       } : undefined}
                     >
                       <div className={cn(
-                        "p-3 rounded-xl bg-gradient-to-br text-white shrink-0 shadow-md",
+                        "p-2 rounded-lg bg-gradient-to-br text-white shrink-0",
                         module.gradient
                       )}>
-                        <Icon className="h-5 w-5" />
+                        <Icon className="h-4 w-4" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="font-semibold text-sm sm:text-base truncate">{module.name}</p>
+                        <div className="flex items-center gap-1.5">
+                          <p className="font-semibold text-sm truncate">{module.shortName}</p>
                           {isRecommended && (
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              <Badge 
-                                variant="secondary" 
-                                className={cn(
-                                  "text-xs px-2 py-0.5 bg-primary/10 text-primary border-0 rounded-full",
-                                  !hasAnimated && "animate-pulse"
-                                )}
-                              >
-                                <Sparkles className="h-3 w-3 mr-1" />
-                                AI
-                              </Badge>
-                              {reason && (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <button 
-                                      type="button"
-                                      className="text-muted-foreground hover:text-foreground transition-colors"
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      <Info className="h-4 w-4" />
-                                    </button>
-                                  </TooltipTrigger>
-                                  <TooltipContent side="top" className="max-w-xs">
-                                    <p className="text-sm">{reason}</p>
-                                  </TooltipContent>
-                                </Tooltip>
+                            <Badge 
+                              variant="secondary" 
+                              className={cn(
+                                "text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-0 rounded-full",
+                                !hasAnimated && "animate-pulse"
                               )}
-                            </div>
+                            >
+                              <Sparkles className="h-2.5 w-2.5 mr-0.5" />
+                              AI
+                            </Badge>
+                          )}
+                          {reason && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button 
+                                  type="button"
+                                  className="text-muted-foreground hover:text-foreground transition-colors"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Info className="h-3 w-3" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-xs">
+                                <p className="text-xs">{reason}</p>
+                              </TooltipContent>
+                            </Tooltip>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground truncate">{module.description}</p>
+                        <p className="text-xs text-muted-foreground truncate">{module.description}</p>
                       </div>
                       <Switch
                         checked={isSelected}
                         onCheckedChange={() => toggleModule(module.id)}
-                        className="shrink-0"
+                        className="shrink-0 scale-90"
                       />
                     </div>
                   </motion.div>
@@ -406,8 +395,8 @@ export function AIWorkspaceRecommendation({
           </div>
         </div>
 
-        <div className="flex items-center justify-center pt-6">
-          <p className="text-base text-muted-foreground font-medium">
+        <div className="flex items-center justify-center pt-2">
+          <p className="text-sm text-muted-foreground font-medium">
             {selectedModules.length} module{selectedModules.length !== 1 ? 's' : ''} selected
           </p>
         </div>

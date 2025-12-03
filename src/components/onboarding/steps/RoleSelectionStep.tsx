@@ -13,70 +13,71 @@ interface RoleOption {
   bgGradient: string;
 }
 
+// All descriptions trimmed to be uniform in length
 const roleOptions: RoleOption[] = [
-  {
-    type: 'creator',
-    label: 'Content Creator',
-    description: 'Video, audio, and social content',
-    icon: Sparkles,
-    gradient: 'from-purple-500 to-pink-500',
-    bgGradient: 'from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30',
-  },
   {
     type: 'podcaster',
     label: 'Podcaster',
-    description: 'Host, produce, and distribute shows',
+    description: 'Record, distribute & monetize',
     icon: Mic,
     gradient: 'from-blue-500 to-cyan-500',
     bgGradient: 'from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30',
   },
   {
-    type: 'influencer',
-    label: 'Influencer',
-    description: 'Grow and monetize your presence',
-    icon: Star,
-    gradient: 'from-amber-500 to-yellow-500',
-    bgGradient: 'from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30',
-  },
-  {
-    type: 'advertiser',
-    label: 'Brand / Advertiser',
-    description: 'Advertise, sponsor, and promote',
-    icon: Megaphone,
-    gradient: 'from-orange-500 to-red-500',
-    bgGradient: 'from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30',
-  },
-  {
-    type: 'agency',
-    label: 'Agency / Manager',
-    description: 'Manage multiple creators or clients',
-    icon: Users,
-    gradient: 'from-green-500 to-emerald-500',
-    bgGradient: 'from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30',
+    type: 'creator',
+    label: 'Content Creator',
+    description: 'Create & grow your audience',
+    icon: Sparkles,
+    gradient: 'from-purple-500 to-pink-500',
+    bgGradient: 'from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30',
   },
   {
     type: 'event_planner',
-    label: 'Event Host / Speaker',
-    description: 'Virtual, hybrid, or physical events',
+    label: 'Speaker / Coach',
+    description: 'Book sessions & grow reach',
     icon: Calendar,
     gradient: 'from-indigo-500 to-purple-500',
     bgGradient: 'from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30',
   },
   {
     type: 'studio_team',
-    label: 'Studio / Production',
-    description: 'Collaborate on productions',
+    label: 'Event Host',
+    description: 'Plan, promote & host events',
     icon: Video,
-    gradient: 'from-rose-500 to-pink-500',
-    bgGradient: 'from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30',
+    gradient: 'from-orange-500 to-amber-500',
+    bgGradient: 'from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30',
   },
   {
     type: 'brand',
-    label: 'Explorer',
-    description: 'Discover what Seeksy can do',
+    label: 'Entrepreneur',
+    description: 'Manage contacts & grow',
     icon: Building,
+    gradient: 'from-cyan-500 to-blue-500',
+    bgGradient: 'from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-blue-950/30',
+  },
+  {
+    type: 'agency',
+    label: 'Agency',
+    description: 'Manage creators at scale',
+    icon: Users,
+    gradient: 'from-green-500 to-emerald-500',
+    bgGradient: 'from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30',
+  },
+  {
+    type: 'advertiser',
+    label: 'Brand / Venue',
+    description: 'Discover & run campaigns',
+    icon: Megaphone,
     gradient: 'from-slate-500 to-gray-500',
     bgGradient: 'from-slate-50 to-gray-50 dark:from-slate-950/30 dark:to-gray-950/30',
+  },
+  {
+    type: 'influencer',
+    label: 'Influencer',
+    description: 'Grow & monetize influence',
+    icon: Star,
+    gradient: 'from-amber-500 to-yellow-500',
+    bgGradient: 'from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30',
   },
 ];
 
@@ -86,50 +87,51 @@ interface RoleSelectionStepProps {
 
 export function RoleSelectionStep({ onSelect }: RoleSelectionStepProps) {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Gradient header background */}
       <div className="relative">
-        <div className="absolute inset-0 -mx-8 -mt-8 h-32 bg-gradient-to-br from-primary/5 via-primary/10 to-transparent rounded-t-3xl" />
-        <div className="relative text-center space-y-3 pt-4">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Welcome to Seeksy</h1>
-          <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-md mx-auto">
-            What brings you here today?
+        <div className="absolute inset-0 -mx-8 -mt-8 h-28 bg-gradient-to-br from-primary/5 via-primary/10 to-transparent rounded-t-3xl" />
+        <div className="relative text-center space-y-2 pt-2">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">What brings you to Seeksy?</h1>
+          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+            Select your primary focus — you can always change this later.
           </p>
         </div>
       </div>
 
-      {/* 4x2 Grid - larger, premium tiles */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
+      {/* 4x2 Grid - uniform card sizes */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {roleOptions.map((option, index) => {
           const Icon = option.icon;
           return (
             <motion.div
               key={option.type}
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.04 }}
-              whileHover={{ scale: 1.03, y: -3 }}
+              transition={{ delay: index * 0.03 }}
+              whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
             >
               <Card
                 className={cn(
-                  "p-5 sm:p-6 cursor-pointer transition-all duration-200 h-[180px] sm:h-[200px]",
+                  "p-4 cursor-pointer transition-all duration-200",
+                  "h-[140px]", // Fixed uniform height
                   "border-2 border-transparent hover:border-primary/50",
-                  "shadow-sm hover:shadow-xl rounded-2xl",
+                  "shadow-sm hover:shadow-lg rounded-xl",
                   `bg-gradient-to-br ${option.bgGradient}`
                 )}
                 onClick={() => onSelect(option.type)}
               >
-                <div className="flex flex-col items-center text-center gap-4 h-full justify-center">
+                <div className="flex flex-col items-center text-center gap-3 h-full justify-center">
                   <div className={cn(
-                    "p-4 rounded-2xl bg-gradient-to-br text-white shadow-lg",
+                    "p-3 rounded-xl bg-gradient-to-br text-white shadow-md",
                     option.gradient
                   )}>
-                    <Icon className="h-7 w-7 sm:h-8 sm:w-8" />
+                    <Icon className="h-5 w-5" />
                   </div>
-                  <div className="space-y-1.5">
-                    <h3 className="font-semibold text-sm sm:text-base">{option.label}</h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  <div className="space-y-0.5">
+                    <h3 className="font-semibold text-sm">{option.label}</h3>
+                    <p className="text-xs text-muted-foreground leading-snug">
                       {option.description}
                     </p>
                   </div>
