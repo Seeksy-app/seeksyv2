@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -6,7 +6,7 @@ import { CookieConsent } from "@/components/CookieConsent";
 import { TopNavigation } from "@/components/homepage/TopNavigation";
 import { HeroSectionNew } from "@/components/homepage/HeroSectionNew";
 import { PersonaSelector } from "@/components/homepage/PersonaSelector";
-import { ModuleBuilder } from "@/components/homepage/ModuleBuilder";
+import { ModuleBuilder, ModuleBuilderHandle } from "@/components/homepage/ModuleBuilder";
 import { GlobalStatsSection } from "@/components/homepage/GlobalStatsSection";
 import { FeatureShowcasePremium } from "@/components/homepage/FeatureShowcasePremium";
 import { TestimonialsSection } from "@/components/homepage/TestimonialsSection";
@@ -14,9 +14,20 @@ import { FAQSection } from "@/components/homepage/FAQSection";
 import { CTASection } from "@/components/homepage/CTASection";
 import { FooterSection } from "@/components/homepage/FooterSection";
 
+// Map persona IDs to module IDs in ModuleBuilder
+const personaModuleMapping: Record<string, string[]> = {
+  creator: ["studio", "clips", "mypage", "monetize", "email"],
+  podcaster: ["studio", "podcast", "rss", "clips", "mypage"],
+  speaker: ["meetings", "events", "studio", "mypage", "email"],
+  business: ["crm", "meetings", "email", "sms", "events"],
+  community: ["crm", "email", "events", "mypage", "sms"],
+  agency: ["crm", "email", "events", "sms", "monetize"],
+};
+
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
+  const moduleBuilderRef = useRef<ModuleBuilderHandle>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -57,6 +68,16 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  const handlePersonaSelect = (personaId: string) => {
+    const modules = personaModuleMapping[personaId] || ["studio", "clips", "mypage"];
+    
+    // Scroll to module builder
+    moduleBuilderRef.current?.scrollIntoView();
+    
+    // Set the preset modules
+    moduleBuilderRef.current?.setModules(modules);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <TopNavigation />
@@ -65,10 +86,10 @@ const Index = () => {
         <HeroSectionNew />
         
         {/* Who Are You? Persona Selector */}
-        <PersonaSelector />
+        <PersonaSelector onSelect={handlePersonaSelect} />
         
         {/* Build Your Own Platform - Module Builder */}
-        <ModuleBuilder />
+        <ModuleBuilder ref={moduleBuilderRef} />
         
         {/* Stats & Social Proof */}
         <GlobalStatsSection />
