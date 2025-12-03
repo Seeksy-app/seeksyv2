@@ -20,6 +20,7 @@ const accountTypeLabels: Record<AccountType, string> = {
   brand: 'Brand',
   studio_team: 'Studio Team',
   admin: 'Admin',
+  influencer: 'Influencer',
 };
 
 export function AccountTypeSwitcher() {

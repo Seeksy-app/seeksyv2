@@ -14,7 +14,11 @@ export type AccountType =
   | 'event_planner'
   | 'brand'
   | 'studio_team'
-  | 'admin';
+  | 'admin'
+  | 'influencer';
+
+// Database-compatible type (without influencer until migration)
+type DbAccountType = Exclude<AccountType, 'influencer'> | 'influencer';
 
 interface AccountTypeData {
   account_type: AccountType | null;
@@ -56,7 +60,7 @@ export function useAccountType() {
 
       const { error } = await supabase
         .from('profiles')
-        .update({ active_account_type: newType })
+        .update({ active_account_type: newType as any })
         .eq('id', user.id);
 
       if (error) throw error;
@@ -94,7 +98,7 @@ export function useAccountType() {
         .from('profiles')
         .update({
           account_types_enabled: updatedTypes,
-          active_account_type: newType, // Switch to new type
+          active_account_type: newType as any,
         })
         .eq('id', user.id);
 
@@ -117,8 +121,8 @@ export function useAccountType() {
       const { error } = await supabase
         .from('profiles')
         .update({
-          account_type: updates.account_type,
-          active_account_type: updates.account_type,
+          account_type: updates.account_type as any,
+          active_account_type: updates.account_type as any,
           account_types_enabled: [updates.account_type],
           onboarding_completed: true,
           onboarding_data: updates.onboarding_data || {},

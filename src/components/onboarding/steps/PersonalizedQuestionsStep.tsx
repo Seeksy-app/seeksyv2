@@ -7,13 +7,27 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { type AccountType } from '@/hooks/useAccountType';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface PersonalizedQuestionsStepProps {
   accountType: AccountType;
   onComplete: (data: Record<string, any>) => void;
   onBack: () => void;
 }
+
+const accountTypeLabels: Record<AccountType, string> = {
+  creator: 'Content Creator',
+  podcaster: 'Podcaster',
+  advertiser: 'Brand / Advertiser',
+  agency: 'Agency / Manager',
+  event_planner: 'Event Host / Speaker',
+  brand: 'Explorer',
+  studio_team: 'Studio / Production',
+  admin: 'Administrator',
+  influencer: 'Influencer',
+};
 
 export function PersonalizedQuestionsStep({ 
   accountType, 
@@ -30,16 +44,59 @@ export function PersonalizedQuestionsStep({
     setFormData(prev => ({ ...prev, [key]: value }));
   };
 
+  const CheckboxGroup = ({ 
+    label, 
+    options, 
+    fieldKey 
+  }: { 
+    label: string; 
+    options: string[]; 
+    fieldKey: string;
+  }) => (
+    <div className="space-y-3">
+      <Label className="text-base font-medium">{label}</Label>
+      <div className="grid grid-cols-2 gap-2">
+        {options.map((option) => (
+          <motion.div 
+            key={option} 
+            className={cn(
+              "flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-all",
+              (formData[fieldKey] || []).includes(option)
+                ? "bg-primary/10 border-primary/50"
+                : "bg-muted/30 border-border hover:border-primary/30"
+            )}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            onClick={() => {
+              const current = formData[fieldKey] || [];
+              if (current.includes(option)) {
+                updateField(fieldKey, current.filter((p: string) => p !== option));
+              } else {
+                updateField(fieldKey, [...current, option]);
+              }
+            }}
+          >
+            <Checkbox
+              checked={(formData[fieldKey] || []).includes(option)}
+              className="pointer-events-none"
+            />
+            <label className="text-sm cursor-pointer">{option}</label>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+
   const renderQuestions = () => {
     switch (accountType) {
       case 'creator':
       case 'podcaster':
         return (
-          <div className="space-y-6">
+          <div className="space-y-5">
             <div>
-              <Label>Do you have an existing podcast?</Label>
+              <Label className="text-base font-medium">Do you have an existing podcast?</Label>
               <Select onValueChange={(v) => updateField('hasPodcast', v)}>
-                <SelectTrigger>
+                <SelectTrigger className="mt-2">
                   <SelectValue placeholder="Select..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -51,82 +108,78 @@ export function PersonalizedQuestionsStep({
 
             {formData.hasPodcast === 'yes' && (
               <div>
-                <Label>RSS Feed URL (optional)</Label>
+                <Label className="text-base font-medium">RSS Feed URL (optional)</Label>
                 <Input
+                  className="mt-2"
                   placeholder="https://feeds.example.com/podcast.rss"
                   onChange={(e) => updateField('rssFeedUrl', e.target.value)}
                 />
               </div>
             )}
 
-            <div>
-              <Label>What platforms do you publish on?</Label>
-              <div className="space-y-2 mt-2">
-                {['YouTube', 'Spotify', 'Apple Podcasts', 'TikTok', 'Instagram', 'Twitter/X'].map((platform) => (
-                  <div key={platform} className="flex items-center gap-2">
-                    <Checkbox
-                      onCheckedChange={(checked) => {
-                        const platforms = formData.platforms || [];
-                        if (checked) {
-                          updateField('platforms', [...platforms, platform]);
-                        } else {
-                          updateField('platforms', platforms.filter((p: string) => p !== platform));
-                        }
-                      }}
-                    />
-                    <label className="text-sm">{platform}</label>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <CheckboxGroup
+              label="Where do you publish content?"
+              options={['YouTube', 'Spotify', 'Apple Podcasts', 'TikTok', 'Instagram', 'Twitter/X']}
+              fieldKey="platforms"
+            />
+          </div>
+        );
+
+      case 'influencer':
+        return (
+          <div className="space-y-5">
+            <CheckboxGroup
+              label="What's your main platform?"
+              options={['Instagram', 'TikTok', 'YouTube', 'Twitter/X', 'LinkedIn', 'Twitch']}
+              fieldKey="platforms"
+            />
 
             <div>
-              <Label>Social Links (optional)</Label>
-              <Input
-                placeholder="@yourhandle or URL"
-                onChange={(e) => updateField('socialLinks', e.target.value)}
-              />
+              <Label className="text-base font-medium">Follower range</Label>
+              <Select onValueChange={(v) => updateField('followerRange', v)}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select range..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="<10k">Under 10K</SelectItem>
+                  <SelectItem value="10k-100k">10K - 100K</SelectItem>
+                  <SelectItem value="100k-1m">100K - 1M</SelectItem>
+                  <SelectItem value="1m+">1M+</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
+            <CheckboxGroup
+              label="What are your goals?"
+              options={['Brand Deals', 'Grow Audience', 'Monetize Content', 'AI Clips', 'Build Community', 'Events']}
+              fieldKey="goals"
+            />
           </div>
         );
 
       case 'advertiser':
       case 'brand':
         return (
-          <div className="space-y-6">
+          <div className="space-y-5">
             <div>
-              <Label>Company Name</Label>
+              <Label className="text-base font-medium">Company Name</Label>
               <Input
+                className="mt-2"
                 placeholder="Your company name"
                 onChange={(e) => updateField('companyName', e.target.value)}
               />
             </div>
 
-            <div>
-              <Label>Advertising Goals</Label>
-              <div className="space-y-2 mt-2">
-                {['Brand Awareness', 'Lead Generation', 'Podcast Ads', 'Creator Sponsorships', 'Event Promotion'].map((goal) => (
-                  <div key={goal} className="flex items-center gap-2">
-                    <Checkbox
-                      onCheckedChange={(checked) => {
-                        const goals = formData.goals || [];
-                        if (checked) {
-                          updateField('goals', [...goals, goal]);
-                        } else {
-                          updateField('goals', goals.filter((g: string) => g !== goal));
-                        }
-                      }}
-                    />
-                    <label className="text-sm">{goal}</label>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <CheckboxGroup
+              label="Advertising Goals"
+              options={['Brand Awareness', 'Lead Generation', 'Podcast Ads', 'Creator Sponsorships', 'Event Promotion']}
+              fieldKey="goals"
+            />
 
             <div>
-              <Label>Budget Range (optional)</Label>
+              <Label className="text-base font-medium">Budget Range (optional)</Label>
               <Select onValueChange={(v) => updateField('budgetRange', v)}>
-                <SelectTrigger>
+                <SelectTrigger className="mt-2">
                   <SelectValue placeholder="Select budget range..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -137,32 +190,25 @@ export function PersonalizedQuestionsStep({
                 </SelectContent>
               </Select>
             </div>
-
-            <div>
-              <Label>Industry/Vertical</Label>
-              <Input
-                placeholder="e.g., Technology, Healthcare, Fashion"
-                onChange={(e) => updateField('industry', e.target.value)}
-              />
-            </div>
           </div>
         );
 
       case 'agency':
         return (
-          <div className="space-y-6">
+          <div className="space-y-5">
             <div>
-              <Label>Agency Name</Label>
+              <Label className="text-base font-medium">Agency Name</Label>
               <Input
+                className="mt-2"
                 placeholder="Your agency name"
                 onChange={(e) => updateField('agencyName', e.target.value)}
               />
             </div>
 
             <div>
-              <Label>How many creators do you manage?</Label>
+              <Label className="text-base font-medium">How many creators do you manage?</Label>
               <Select onValueChange={(v) => updateField('creatorCount', v)}>
-                <SelectTrigger>
+                <SelectTrigger className="mt-2">
                   <SelectValue placeholder="Select..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -175,10 +221,11 @@ export function PersonalizedQuestionsStep({
             </div>
 
             <div>
-              <Label>Team Members' Emails (optional, one per line)</Label>
+              <Label className="text-base font-medium">Team Members' Emails (optional)</Label>
               <Textarea
+                className="mt-2"
                 placeholder="john@example.com&#10;jane@example.com"
-                rows={4}
+                rows={3}
                 onChange={(e) => updateField('teamEmails', e.target.value)}
               />
             </div>
@@ -187,32 +234,17 @@ export function PersonalizedQuestionsStep({
 
       case 'event_planner':
         return (
-          <div className="space-y-6">
-            <div>
-              <Label>Event Type</Label>
-              <div className="space-y-2 mt-2">
-                {['Virtual', 'Hybrid', 'Physical/In-Person'].map((type) => (
-                  <div key={type} className="flex items-center gap-2">
-                    <Checkbox
-                      onCheckedChange={(checked) => {
-                        const types = formData.eventTypes || [];
-                        if (checked) {
-                          updateField('eventTypes', [...types, type]);
-                        } else {
-                          updateField('eventTypes', types.filter((t: string) => t !== type));
-                        }
-                      }}
-                    />
-                    <label className="text-sm">{type}</label>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div className="space-y-5">
+            <CheckboxGroup
+              label="Event Type"
+              options={['Virtual', 'Hybrid', 'In-Person']}
+              fieldKey="eventTypes"
+            />
 
             <div>
-              <Label>Expected Attendee Size</Label>
+              <Label className="text-base font-medium">Expected Attendee Size</Label>
               <Select onValueChange={(v) => updateField('attendeeSize', v)}>
-                <SelectTrigger>
+                <SelectTrigger className="mt-2">
                   <SelectValue placeholder="Select size..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -223,44 +255,74 @@ export function PersonalizedQuestionsStep({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+        );
 
+      case 'studio_team':
+        return (
+          <div className="space-y-5">
             <div>
-              <Label>Event Calendar Link (optional)</Label>
+              <Label className="text-base font-medium">Team/Studio Name</Label>
               <Input
-                placeholder="https://calendly.com/yourlink"
-                onChange={(e) => updateField('calendarLink', e.target.value)}
+                className="mt-2"
+                placeholder="Your studio name"
+                onChange={(e) => updateField('studioName', e.target.value)}
               />
             </div>
+
+            <CheckboxGroup
+              label="What do you produce?"
+              options={['Podcasts', 'Videos', 'Live Streams', 'Social Content', 'Ads', 'Events']}
+              fieldKey="productions"
+            />
           </div>
         );
 
       default:
         return (
-          <div className="text-center text-muted-foreground">
-            <p>No additional setup required. Click Continue to proceed.</p>
+          <div className="text-center py-6">
+            <div className="inline-flex p-4 rounded-full bg-primary/10 mb-4">
+              <Sparkles className="h-8 w-8 text-primary" />
+            </div>
+            <p className="text-muted-foreground">
+              Great choice! Click Continue to see your personalized workspace.
+            </p>
           </div>
         );
     }
   };
 
   return (
-    <Card className="p-8">
-      <div className="space-y-6">
-        <div>
+    <Card className="p-6 shadow-xl border-border/50 bg-gradient-to-br from-card to-muted/20">
+      <div className="space-y-5">
+        <div className="text-center">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-3"
+          >
+            {accountTypeLabels[accountType]}
+          </motion.div>
           <h2 className="text-2xl font-bold">Tell us more</h2>
-          <p className="text-muted-foreground">
-            Help us personalize your Seeksy experience
+          <p className="text-muted-foreground text-sm mt-1">
+            Help us personalize your experience
           </p>
         </div>
 
-        {renderQuestions()}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          {renderQuestions()}
+        </motion.div>
 
-        <div className="flex justify-between pt-6 border-t">
+        <div className="flex justify-between pt-4 border-t">
           <Button variant="outline" onClick={onBack}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
-          <Button onClick={handleSubmit}>
+          <Button onClick={handleSubmit} className="bg-gradient-to-r from-primary to-primary/80">
             Continue
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>

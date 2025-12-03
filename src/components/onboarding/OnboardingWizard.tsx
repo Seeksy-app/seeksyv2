@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAccountType, type AccountType } from '@/hooks/useAccountType';
+import { useUserRoles } from '@/hooks/useUserRoles';
 import { RoleSelectionStep } from './steps/RoleSelectionStep';
 import { PersonalizedQuestionsStep } from './steps/PersonalizedQuestionsStep';
 import { RecommendedToolsStep } from './steps/RecommendedToolsStep';
@@ -15,10 +16,19 @@ export function OnboardingWizard() {
   const [onboardingData, setOnboardingData] = useState<Record<string, any>>({});
   const [recommendedTools, setRecommendedTools] = useState<string[]>([]);
   const [retryCount, setRetryCount] = useState(0);
+  const [isAdminPreview, setIsAdminPreview] = useState(false);
   const { completeOnboarding, isCompletingOnboarding } = useAccountType();
+  const { isAdmin } = useUserRoles();
   const navigate = useNavigate();
 
   const totalSteps = 5;
+
+  // Check if admin is previewing
+  useEffect(() => {
+    if (isAdmin) {
+      setIsAdminPreview(true);
+    }
+  }, [isAdmin]);
 
   const handleRoleSelect = (type: AccountType) => {
     setSelectedType(type);
@@ -44,6 +54,15 @@ export function OnboardingWizard() {
   const handleFinish = async () => {
     if (!selectedType) return;
 
+    // Admin preview mode - skip database writes
+    if (isAdminPreview) {
+      toast.success('Admin Preview Complete', {
+        description: 'Skipped database writes. Redirecting to admin dashboard.',
+      });
+      navigate('/admin');
+      return;
+    }
+
     try {
       await completeOnboarding({
         account_type: selectedType,
@@ -59,6 +78,7 @@ export function OnboardingWizard() {
             brand: '/seekies',
             studio_team: '/studio',
             admin: '/admin',
+            influencer: '/dashboard',
           };
           
           navigate(redirects[selectedType] || '/dashboard');
@@ -97,6 +117,7 @@ export function OnboardingWizard() {
     const toolMap: Record<AccountType, string[]> = {
       creator: ['Studio & Recording', 'Social Analytics', 'Media Library', 'My Page Builder', 'Clips & Editing'],
       podcaster: ['Studio & Recording', 'Podcasts', 'Media Library', 'Social Connect', 'Clips & Editing'],
+      influencer: ['Social Analytics', 'My Page Builder', 'Media Library', 'Clips & Editing', 'Identity & Verification'],
       advertiser: ['Campaigns', 'Contacts & Audience', 'Social Analytics', 'Segments'],
       agency: ['Contacts & Audience', 'Campaigns', 'Team & Collaboration', 'Proposals'],
       event_planner: ['Events', 'Contacts & Audience', 'Forms', 'Automations', 'SMS'],
@@ -110,8 +131,19 @@ export function OnboardingWizard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background flex items-center justify-center p-4">
       <div className="w-full max-w-4xl">
+        {/* Admin preview banner */}
+        {isAdminPreview && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-sm text-center"
+          >
+            🔧 Admin Preview Mode — database writes will be skipped
+          </motion.div>
+        )}
+
         {/* Progress indicator with smooth animation */}
-        <div className="flex justify-center mb-8 gap-2">
+        <div className="flex justify-center mb-6 gap-2">
           {Array.from({ length: totalSteps }).map((_, idx) => {
             const num = idx + 1;
             return (
@@ -135,6 +167,11 @@ export function OnboardingWizard() {
               </motion.div>
             );
           })}
+        </div>
+
+        {/* Step label */}
+        <div className="text-center mb-4">
+          <span className="text-sm text-muted-foreground">Step {step} of {totalSteps}</span>
         </div>
 
         {/* Steps with AnimatePresence for smooth transitions */}
