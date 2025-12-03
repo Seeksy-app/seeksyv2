@@ -8,6 +8,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { RoleBasedSidebar } from "@/components/navigation/RoleBasedSidebar";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { TopNavBar } from "@/components/TopNavBar";
+import { TourModeWrapper } from "@/components/layout/TourModeWrapper";
 // AskSparkDock removed - using sidebar Ask Spark only
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -459,7 +460,13 @@ const AppContent = () => {
                         location.pathname.includes('/ai-production') ||
                         location.pathname.includes('/clip-generator');
   
-  const shouldShowSidebar = user && !isStudioRoute;
+  // Check if we're in tour mode (post-onboarding guided experience)
+  const isTourMode = sessionStorage.getItem("tourMode") === "true";
+  const isOnboardingComplete = location.pathname === '/onboarding/complete';
+  
+  // Hide sidebar in tour mode or on special routes
+  const shouldShowSidebar = user && !isStudioRoute && !isTourMode && !isOnboardingComplete;
+  const shouldShowTopNav = user && !isStudioRoute && !isTourMode && !isOnboardingComplete;
 
   return (
     <RoleProvider>
@@ -471,8 +478,8 @@ const AppContent = () => {
           {shouldShowSidebar && <RoleBasedSidebar user={user} />}
         
         <div className="flex-1 flex flex-col">
-          {/* TopNavBar on all authenticated pages except studio routes */}
-          {user && !isStudioRoute && <TopNavBar />}
+          {/* TopNavBar on all authenticated pages except studio routes and tour mode */}
+          {shouldShowTopNav && <TopNavBar />}
           
           {/* Board View Banner for super admins in preview mode */}
           <BoardViewBanner />
@@ -641,13 +648,13 @@ const AppContent = () => {
               <Route path="/meeting-rsvp" element={<MeetingRSVP />} />
               
               {/* Studio Hub */}
-              <Route path="/studio" element={<StudioHubPremium />} />
-              <Route path="/studio/audio" element={<AudioStudioPremium />} />
-              <Route path="/studio/video" element={<VideoStudioPremium />} />
-              <Route path="/studio/clips" element={<AIClipGeneratorFull />} />
+              <Route path="/studio" element={<TourModeWrapper><StudioHubPremium /></TourModeWrapper>} />
+              <Route path="/studio/audio" element={<TourModeWrapper><AudioStudioPremium /></TourModeWrapper>} />
+              <Route path="/studio/video" element={<TourModeWrapper><VideoStudioPremium /></TourModeWrapper>} />
+              <Route path="/studio/clips" element={<TourModeWrapper><AIClipGeneratorFull /></TourModeWrapper>} />
               <Route path="/studio/ai-clips" element={<AIClipGeneratorFull />} />
               <Route path="/studio/ai-production" element={<AIClipGeneratorFull />} />
-              <Route path="/studio/media" element={<MediaLibraryHub />} />
+              <Route path="/studio/media" element={<TourModeWrapper><MediaLibraryHub /></TourModeWrapper>} />
               <Route path="/studio/templates" element={<StudioTemplatesPage />} />
               <Route path="/studio/settings" element={<StudioSettings />} />
               <Route path="/studio/recordings" element={<StudioRecordings />} />
@@ -821,10 +828,10 @@ const AppContent = () => {
           <Route path="/studio-templates" element={<StudioTemplates />} />
           <Route path="/broadcast/session/:id" element={<BroadcastStudio />} />
           <Route path="/broadcast/:id" element={<BroadcastStudio />} />
-          <Route path="/media-library" element={<MediaVault />} />
-          <Route path="/media/library" element={<MediaVault />} />
+          <Route path="/media-library" element={<TourModeWrapper><MediaVault /></TourModeWrapper>} />
+          <Route path="/media/library" element={<TourModeWrapper><MediaVault /></TourModeWrapper>} />
           <Route path="/media-library-legacy" element={<MediaLibrary />} />
-          <Route path="/clips" element={<ClipsLibrary />} />
+          <Route path="/clips" element={<TourModeWrapper><ClipsLibrary /></TourModeWrapper>} />
           <Route path="/social-analytics" element={<SocialAnalytics />} />
           <Route path="/update-media-durations" element={<UpdateMediaDurations />} />
           <Route path="/post-production-studio" element={<PostProductionStudio />} />
