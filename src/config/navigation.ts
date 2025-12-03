@@ -349,6 +349,13 @@ export const NAVIGATION_CONFIG: {
           "roles": ["admin", "super_admin"]
         },
         {
+          "id": "admin_demo_recorder",
+          "label": "Demo Video Recorder",
+          "icon": "video",
+          "path": "/admin/demo-recorder",
+          "roles": ["admin", "super_admin"]
+        },
+        {
           "id": "admin_background_remover",
           "label": "Background Remover",
           "icon": "scissors",
