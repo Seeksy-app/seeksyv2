@@ -8,10 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
-  Trophy, ArrowLeft, Heart, Star, Award, ExternalLink, CheckCircle, XCircle 
+  Trophy, Heart, Star, Award, ExternalLink, CheckCircle, XCircle 
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { BackButton } from "@/components/navigation/BackButton";
 
 const VOTED_STORAGE_KEY = "seeksy_awards_voted";
 
@@ -140,14 +141,7 @@ export default function AwardsVoting() {
       {/* Header */}
       <div className="bg-brand-navy text-white py-12">
         <div className="container mx-auto px-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/browse-awards")}
-            className="mb-6 text-white hover:bg-white/10"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Awards
-          </Button>
+          <BackButton fallbackPath="/browse-awards" label="Back to Awards" className="mb-6 text-white hover:bg-white/10" />
 
           <div className="max-w-4xl mx-auto text-center">
             <div className="flex items-center justify-center gap-3 mb-4">

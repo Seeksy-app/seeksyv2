@@ -8,8 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { 
-  Trophy, Award, Lock, Crown, ArrowLeft, Loader2, BarChart3 
+  Trophy, Award, Lock, Crown, Loader2, BarChart3 
 } from "lucide-react";
+import { BackButton } from "@/components/navigation/BackButton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -167,14 +168,7 @@ export default function AwardsAdminTally() {
       {/* Header */}
       <div className="bg-brand-navy text-white py-8">
         <div className="container mx-auto px-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(`/awards/${id}`)}
-            className="mb-4 text-white hover:bg-white/10"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Program
-          </Button>
+          <BackButton fallbackPath={`/awards/${id}`} label="Back to Program" className="mb-4 text-white hover:bg-white/10" />
           <div className="flex items-center gap-3 mb-2">
             <BarChart3 className="h-6 w-6" />
             <Badge variant="secondary">Admin Tally</Badge>

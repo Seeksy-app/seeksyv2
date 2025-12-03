@@ -17,6 +17,7 @@ import { SponsorshipFlyerUpload } from "@/components/awards/SponsorshipFlyerUplo
 import { NomineeManager } from "@/components/awards/NomineeManager";
 import { AwardsFinancialDashboard } from "@/components/awards/AwardsFinancialDashboard";
 import { useToast } from "@/hooks/use-toast";
+import { BackButton } from "@/components/navigation/BackButton";
 
 export default function AwardsProgramDetail() {
   const { id } = useParams();
@@ -82,14 +83,7 @@ export default function AwardsProgramDetail() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <Button
-        variant="ghost"
-        onClick={() => navigate("/awards")}
-        className="mb-6"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Awards
-      </Button>
+      <BackButton fallbackPath="/awards" className="mb-6" />
 
       {/* Header */}
       <div className="mb-8">

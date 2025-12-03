@@ -24,6 +24,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DemoRecorderSettings, defaultDemoRecorderSettings, type DemoRecorderSettingsData } from "@/components/studio/DemoRecorderSettings";
+import { BackButton } from "@/components/navigation/BackButton";
 
 const CAPTURE_PRESETS: ScreenCapturePreset[] = [
   {
@@ -226,6 +227,7 @@ export default function ScreenCapture() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      <BackButton fallbackPath="/admin" className="mb-2" />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

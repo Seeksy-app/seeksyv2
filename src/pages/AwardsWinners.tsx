@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Award, ArrowLeft, Loader2, Crown, ExternalLink } from "lucide-react";
+import { Trophy, Award, Crown, Loader2, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
+import { BackButton } from "@/components/navigation/BackButton";
 
 export default function AwardsWinners() {
   const { id } = useParams();
@@ -57,14 +58,7 @@ export default function AwardsWinners() {
       <div className="min-h-screen bg-background">
         <div className="bg-brand-navy text-white py-12">
           <div className="container mx-auto px-4 text-center">
-            <Button
-              variant="ghost"
-              onClick={() => navigate(`/awards/${id}`)}
-              className="mb-6 text-white hover:bg-white/10"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Program
-            </Button>
+            <BackButton fallbackPath={`/awards/${id}`} label="Back to Program" className="mb-6 text-white hover:bg-white/10" />
             <Trophy className="h-16 w-16 mx-auto mb-4 text-brand-gold" />
             <h1 className="text-4xl font-bold">{program.title}</h1>
             <p className="text-xl text-white/80 mt-2">Winners</p>
@@ -92,14 +86,7 @@ export default function AwardsWinners() {
       {/* Header */}
       <div className="bg-brand-navy text-white py-12">
         <div className="container mx-auto px-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(`/awards/${id}`)}
-            className="mb-6 text-white hover:bg-white/10"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Program
-          </Button>
+          <BackButton fallbackPath={`/awards/${id}`} label="Back to Program" className="mb-6 text-white hover:bg-white/10" />
           <div className="text-center max-w-3xl mx-auto">
             <div className="flex items-center justify-center gap-3 mb-4">
               <Trophy className="h-12 w-12 text-brand-gold" />

@@ -18,6 +18,7 @@ import { EventSponsorshipPackageManager } from "@/components/events/EventSponsor
 import { EventCheckIn } from "@/components/events/EventCheckIn";
 import { EventSessionManager } from "@/components/events/EventSessionManager";
 import { EventAnalytics } from "@/components/events/EventAnalytics";
+import { BackButton } from "@/components/navigation/BackButton";
 
 interface Event {
   id: string;
@@ -174,6 +175,7 @@ const EventDetail = () => {
     return (
       <div className="min-h-screen bg-background">
         <main className="container mx-auto px-4 py-12 max-w-4xl">
+          <BackButton fallbackPath="/events" className="mb-6" />
           {event.image_url && (
             <div className="mb-8 rounded-xl overflow-hidden shadow-soft">
               <img
@@ -247,6 +249,7 @@ const EventDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 py-8 max-w-6xl">
+        <BackButton fallbackPath="/events" className="mb-4" />
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-8">
           <div>
