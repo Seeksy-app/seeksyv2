@@ -145,38 +145,38 @@ export function LayoutTemplatesBar({
   const filteredLayouts = LAYOUT_TEMPLATES.filter(l => l.sceneTypes.includes(sceneType));
 
   return (
-    <div className="h-[88px] bg-[#0d0f12] border-t border-white/10 px-4 flex items-center gap-3">
+    <div className="h-[110px] bg-[#0d0f12] border-t border-white/10 px-4 flex items-center gap-4">
       <span className="text-xs text-white/40 uppercase tracking-wider font-medium shrink-0">
         Layouts
       </span>
-      <div className="h-6 w-px bg-white/10 shrink-0" />
+      <div className="h-8 w-px bg-white/10 shrink-0" />
       
-      <div className="flex items-center gap-3 overflow-x-auto pb-1">
+      <div className="flex items-center gap-4 overflow-x-auto pb-1">
         {filteredLayouts.map((layout) => (
           <button
             key={layout.id}
             onClick={() => onLayoutChange(layout.id)}
             className={cn(
-              "flex flex-col items-center gap-1.5 p-2 rounded-lg transition-all group shrink-0",
+              "flex flex-col items-center gap-2 p-3 rounded-xl transition-all group shrink-0",
               currentLayout === layout.id 
-                ? "bg-primary/20 ring-2 ring-primary" 
-                : "hover:bg-white/10"
+                ? "bg-gradient-to-br from-primary/30 to-primary/10 ring-2 ring-primary shadow-lg shadow-primary/20" 
+                : "hover:bg-white/10 hover:scale-105"
             )}
             title={layout.description}
           >
             <div className={cn(
-              "w-20 h-12 rounded border transition-colors overflow-hidden",
+              "w-28 h-16 rounded-lg border-2 transition-all overflow-hidden",
               currentLayout === layout.id 
-                ? "border-primary bg-black/40" 
-                : "border-white/20 bg-black/20 group-hover:border-white/30"
+                ? "border-primary bg-black/50 shadow-inner" 
+                : "border-white/20 bg-black/30 group-hover:border-white/40"
             )}>
-              <div className="w-full h-full p-1.5">
+              <div className="w-full h-full p-2">
                 {layout.icon}
               </div>
             </div>
             <span className={cn(
-              "text-[11px] font-medium transition-colors",
-              currentLayout === layout.id ? "text-primary" : "text-white/50 group-hover:text-white/70"
+              "text-xs font-semibold transition-colors",
+              currentLayout === layout.id ? "text-primary" : "text-white/60 group-hover:text-white/90"
             )}>
               {layout.name}
             </span>
