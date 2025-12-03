@@ -82,22 +82,38 @@ serve(async (req) => {
       });
     }
     
-    console.log('[capture-screenshot] Authenticated user:', user.id);
+    console.log('[capture-screenshot] Authenticated user:', user.id, 'email:', user.email);
 
     // Verify admin role
-    const { data: roles } = await supabaseClient
+    const { data: roles, error: rolesError } = await supabaseClient
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id);
     
+    console.log('[capture-screenshot] Roles query result:', { 
+      roles, 
+      error: rolesError?.message,
+      userId: user.id 
+    });
+    
     const isAdmin = roles?.some(r => r.role === 'admin' || r.role === 'super_admin');
     if (!isAdmin) {
-      console.error('[capture-screenshot] Not admin, user_id:', user.id);
-      return new Response(JSON.stringify({ error: 'Admin access required', code: 'FORBIDDEN' }), {
+      console.error('[capture-screenshot] Not admin:', { 
+        userId: user.id, 
+        email: user.email,
+        rolesFound: roles,
+        rolesError: rolesError?.message
+      });
+      return new Response(JSON.stringify({ 
+        error: 'Admin access required. Your roles: ' + (roles?.map(r => r.role).join(', ') || 'none'),
+        code: 'FORBIDDEN' 
+      }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+    
+    console.log('[capture-screenshot] Admin verified, proceeding...');
 
     const body = await req.json();
     const { url, pageName, category, description, healthCheck }: CaptureRequest = body;
