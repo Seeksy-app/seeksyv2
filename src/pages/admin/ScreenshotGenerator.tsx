@@ -6,12 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, Loader2, CheckCircle, Trash2, Folder, Globe, Download, ExternalLink } from "lucide-react";
+import { Camera, Loader2, CheckCircle, Trash2, Folder, Globe, Download, ExternalLink, Activity, AlertCircle, CheckCircle2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { captureScreenshot, fetchScreenshots, deleteScreenshot } from "@/lib/screenshot/captureScreenshot";
+import { captureScreenshot, fetchScreenshots, deleteScreenshot, runHealthCheck, HealthCheckResult } from "@/lib/screenshot/captureScreenshot";
 import { BackButton } from "@/components/navigation/BackButton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface Screenshot {
   id: string;
@@ -83,12 +84,41 @@ export default function ScreenshotGenerator() {
   const [customCategory, setCustomCategory] = useState<'advertiser-tools' | 'creator-tools' | 'internal' | 'external' | 'onboarding'>("internal");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedScreenshots, setSelectedScreenshots] = useState<Set<string>>(new Set());
+  const [healthCheckResult, setHealthCheckResult] = useState<HealthCheckResult | null>(null);
+  const [isHealthChecking, setIsHealthChecking] = useState(false);
 
   // Fetch existing screenshots from database
   const { data: screenshots = [], isLoading } = useQuery({
     queryKey: ['ui-screenshots', selectedCategory],
     queryFn: () => fetchScreenshots(selectedCategory),
   });
+
+  // Health check function
+  const handleHealthCheck = async () => {
+    setIsHealthChecking(true);
+    setHealthCheckResult(null);
+    try {
+      const result = await runHealthCheck();
+      setHealthCheckResult(result);
+      toast({
+        title: result.success ? "Health Check Passed" : "Health Check Failed",
+        description: result.success 
+          ? `API is working. Response time: ${result.elapsed}` 
+          : result.error || "Unknown error",
+        variant: result.success ? "default" : "destructive",
+      });
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      setHealthCheckResult({ success: false, error: errorMsg, code: 'EXCEPTION' });
+      toast({
+        variant: "destructive",
+        title: "Health Check Failed",
+        description: errorMsg,
+      });
+    } finally {
+      setIsHealthChecking(false);
+    }
+  };
 
   // Single screenshot mutation
   const captureMutation = useMutation({
@@ -256,24 +286,84 @@ export default function ScreenshotGenerator() {
             Capture live screenshots from any URL using ScreenshotOne API
           </p>
         </div>
-        <Button 
-          size="lg" 
-          onClick={generateAllPresets}
-          disabled={captureMutation.isPending}
-        >
-          {captureMutation.isPending ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Generating...
-            </>
-          ) : (
-            <>
-              <Camera className="mr-2 h-4 w-4" />
-              Generate All Presets ({PRESET_PAGES.length})
-            </>
-          )}
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="outline"
+            onClick={handleHealthCheck}
+            disabled={isHealthChecking}
+          >
+            {isHealthChecking ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Testing...
+              </>
+            ) : (
+              <>
+                <Activity className="mr-2 h-4 w-4" />
+                Run Health Check
+              </>
+            )}
+          </Button>
+          <Button 
+            size="lg" 
+            onClick={generateAllPresets}
+            disabled={captureMutation.isPending}
+          >
+            {captureMutation.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Camera className="mr-2 h-4 w-4" />
+                Generate All Presets ({PRESET_PAGES.length})
+              </>
+            )}
+          </Button>
+        </div>
       </div>
+
+      {/* Health Check Result */}
+      {healthCheckResult && (
+        <Alert variant={healthCheckResult.success ? "default" : "destructive"}>
+          {healthCheckResult.success ? (
+            <CheckCircle2 className="h-4 w-4" />
+          ) : (
+            <AlertCircle className="h-4 w-4" />
+          )}
+          <AlertTitle>
+            {healthCheckResult.success ? "API Health Check Passed" : "API Health Check Failed"}
+          </AlertTitle>
+          <AlertDescription>
+            {healthCheckResult.success ? (
+              <div className="space-y-1 text-sm">
+                <p>{healthCheckResult.message}</p>
+                <p className="text-muted-foreground">
+                  Response time: {healthCheckResult.elapsed} • Image size: {healthCheckResult.imageSize}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-1 text-sm">
+                <p>{healthCheckResult.error}</p>
+                {healthCheckResult.code && (
+                  <p className="text-muted-foreground">Error code: {healthCheckResult.code}</p>
+                )}
+                {healthCheckResult.rawError && (
+                  <details className="mt-2">
+                    <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                      View raw error
+                    </summary>
+                    <pre className="mt-2 p-2 bg-muted rounded text-xs overflow-auto max-h-32">
+                      {healthCheckResult.rawError}
+                    </pre>
+                  </details>
+                )}
+              </div>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Custom Screenshot Capture */}

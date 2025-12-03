@@ -17,9 +17,66 @@ export interface CaptureScreenshotResult {
   created_at: string;
 }
 
+export interface HealthCheckResult {
+  success: boolean;
+  message?: string;
+  error?: string;
+  code?: string;
+  status?: number;
+  rawError?: string;
+  elapsed?: string;
+  imageSize?: string;
+}
+
+// Map error codes to user-friendly toast messages
+function mapErrorCodeToMessage(code: string, fallbackMessage: string): string {
+  switch (code) {
+    case 'AUTH_ERROR':
+      return 'Invalid ScreenshotOne API key or access denied.';
+    case 'RATE_LIMIT':
+      return 'Rate limit reached, try again later.';
+    case 'PROVIDER_ERROR':
+      return 'Screenshot provider is temporarily unavailable.';
+    case 'MISSING_API_KEY':
+      return 'ScreenshotOne API key not configured in secrets.';
+    case 'STORAGE_ERROR':
+      return 'Failed to upload screenshot to storage.';
+    case 'DATABASE_ERROR':
+      return 'Failed to save screenshot metadata.';
+    case 'UNAUTHORIZED':
+      return 'You must be logged in to capture screenshots.';
+    case 'FORBIDDEN':
+      return 'Admin access required for screenshots.';
+    default:
+      return fallbackMessage;
+  }
+}
+
+/**
+ * Run a health check on the ScreenshotOne API
+ */
+export async function runHealthCheck(): Promise<HealthCheckResult> {
+  console.log('[captureScreenshot] Running health check...');
+  
+  const { data, error } = await supabase.functions.invoke('capture-screenshot', {
+    body: { healthCheck: true },
+  });
+
+  if (error) {
+    console.error('[captureScreenshot] Health check edge function error:', error);
+    return {
+      success: false,
+      error: error.message || 'Failed to connect to screenshot service',
+      code: 'EDGE_FUNCTION_ERROR',
+    };
+  }
+
+  console.log('[captureScreenshot] Health check result:', data);
+  return data as HealthCheckResult;
+}
+
 /**
  * Capture a screenshot using the Screenshot API service
- * This is an abstraction layer that can be replaced with Playwright later
  */
 export async function captureScreenshot({
   url,
@@ -46,15 +103,16 @@ export async function captureScreenshot({
       status: error.status,
     });
     
-    // Extract more meaningful error message
     const errorMsg = error.message || 'Failed to capture screenshot';
     throw new Error(`Screenshot failed: ${errorMsg}`);
   }
 
   if (!data?.success) {
+    const errorCode = data?.code || 'UNKNOWN_ERROR';
     const errorDetail = data?.error || 'Unknown error from screenshot service';
-    console.error('[captureScreenshot] API returned failure:', errorDetail);
-    throw new Error(errorDetail);
+    const userMessage = mapErrorCodeToMessage(errorCode, errorDetail);
+    console.error('[captureScreenshot] API returned failure:', { code: errorCode, error: errorDetail });
+    throw new Error(userMessage);
   }
 
   console.log('[captureScreenshot] Success:', data.screenshot?.page_name);
