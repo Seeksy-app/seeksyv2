@@ -4,12 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { CookieConsent } from "@/components/CookieConsent";
 import { TopNavigation } from "@/components/homepage/TopNavigation";
-import { HeroSectionPremium } from "@/components/homepage/HeroSectionPremium";
+import { HeroSectionNew } from "@/components/homepage/HeroSectionNew";
+import { PersonaSelector } from "@/components/homepage/PersonaSelector";
+import { ModuleBuilder } from "@/components/homepage/ModuleBuilder";
 import { GlobalStatsSection } from "@/components/homepage/GlobalStatsSection";
-import { AudienceCards } from "@/components/homepage/AudienceCards";
 import { FeatureShowcasePremium } from "@/components/homepage/FeatureShowcasePremium";
 import { TestimonialsSection } from "@/components/homepage/TestimonialsSection";
-import { CreatorShowcase } from "@/components/homepage/CreatorShowcase";
 import { FAQSection } from "@/components/homepage/FAQSection";
 import { CTASection } from "@/components/homepage/CTASection";
 import { FooterSection } from "@/components/homepage/FooterSection";
@@ -61,14 +61,31 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <TopNavigation />
       <main>
-        <HeroSectionPremium />
+        {/* New Hero - Connection focused */}
+        <HeroSectionNew />
+        
+        {/* Who Are You? Persona Selector */}
+        <PersonaSelector />
+        
+        {/* Build Your Own Platform - Module Builder */}
+        <ModuleBuilder />
+        
+        {/* Stats & Social Proof */}
         <GlobalStatsSection />
-        <AudienceCards />
+        
+        {/* Feature Showcase */}
         <FeatureShowcasePremium />
+        
+        {/* Testimonials */}
         <TestimonialsSection />
-        <CreatorShowcase />
+        
+        {/* FAQ */}
         <FAQSection />
+        
+        {/* Final CTA */}
         <CTASection />
+        
+        {/* Footer */}
         <FooterSection />
       </main>
       <CookieConsent />
