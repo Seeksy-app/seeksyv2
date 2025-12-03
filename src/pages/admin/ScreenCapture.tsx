@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,12 +13,14 @@ import {
   Clock,
   Loader2,
   CheckCircle,
-  Monitor
+  Monitor,
+  RefreshCw
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useScreenCapture, ScreenCapturePreset, CapturedRecording } from "@/hooks/useScreenCapture";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const CAPTURE_PRESETS: ScreenCapturePreset[] = [
   {
@@ -89,6 +91,7 @@ const CAPTURE_PRESETS: ScreenCapturePreset[] = [
 export default function ScreenCapture() {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const {
     isRecording,
     isProcessing,
@@ -99,8 +102,37 @@ export default function ScreenCapture() {
     cancelCapture,
   } = useScreenCapture();
 
-  const [recordings, setRecordings] = useState<CapturedRecording[]>([]);
+  const [sessionRecordings, setSessionRecordings] = useState<CapturedRecording[]>([]);
   const [activePreset, setActivePreset] = useState<ScreenCapturePreset | null>(null);
+  const activePresetRef = useRef<ScreenCapturePreset | null>(null);
+
+  // Query recent demo video recordings from database
+  const { data: dbRecordings, refetch: refetchRecordings } = useQuery({
+    queryKey: ['demo-video-recordings'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+      
+      const { data, error } = await supabase
+        .from('media_files')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      
+      if (error) {
+        console.error('[ScreenCapture] Error fetching recordings:', error);
+        return [];
+      }
+      // Filter for demo-video tag in clip_metadata
+      return (data || []).filter(r => (r.clip_metadata as any)?.tag === 'demo-video');
+    },
+  });
+
+  // Keep ref in sync with state for async callbacks
+  useEffect(() => {
+    activePresetRef.current = activePreset;
+  }, [activePreset]);
 
   const handleStartCapture = async (preset: ScreenCapturePreset) => {
     setActivePreset(preset);
@@ -108,11 +140,20 @@ export default function ScreenCapture() {
   };
 
   const handleStopCapture = async () => {
-    if (!activePreset) return;
+    const preset = activePresetRef.current || activePreset;
+    if (!preset) {
+      console.warn('[ScreenCapture] No active preset to stop');
+      return;
+    }
     
-    const recording = await stopCapture(activePreset);
+    console.log('[ScreenCapture] handleStopCapture called for:', preset.name);
+    const recording = await stopCapture(preset);
+    
     if (recording) {
-      setRecordings(prev => [recording, ...prev]);
+      setSessionRecordings(prev => [recording, ...prev]);
+      // Refresh the database query to show the new recording
+      await refetchRecordings();
+      queryClient.invalidateQueries({ queryKey: ['media-files'] });
     }
     setActivePreset(null);
   };
@@ -133,6 +174,30 @@ export default function ScreenCapture() {
       const a = document.createElement('a');
       a.href = url;
       a.download = recording.fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Download Failed",
+        description: "Could not download the recording.",
+      });
+    }
+  };
+
+  const handleDownloadDb = async (recording: { file_name: string; file_url: string }) => {
+    try {
+      // Use the file_url directly for download
+      const response = await fetch(recording.file_url);
+      if (!response.ok) throw new Error('Failed to fetch file');
+      
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = recording.file_name;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -232,7 +297,8 @@ export default function ScreenCapture() {
               <div className="space-y-3">
                 {CAPTURE_PRESETS.map((preset) => {
                   const isActive = currentPresetId === preset.id;
-                  const hasRecording = recordings.some(r => r.presetId === preset.id);
+                  const hasRecording = sessionRecordings.some(r => r.presetId === preset.id) || 
+                    (dbRecordings?.some(r => (r.clip_metadata as any)?.preset_id === preset.id));
                   
                   return (
                     <div
@@ -306,16 +372,23 @@ export default function ScreenCapture() {
         {/* Recent Recordings */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Video className="h-5 w-5" />
-              Recent Recordings
-            </CardTitle>
-            <CardDescription>
-              Recordings from this session. All saved to Media Library with "demo-video" tag.
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Video className="h-5 w-5" />
+                  Recent Recordings
+                </CardTitle>
+                <CardDescription>
+                  Demo videos saved to Media Library with "demo-video" tag.
+                </CardDescription>
+              </div>
+              <Button size="sm" variant="ghost" onClick={() => refetchRecordings()}>
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            {recordings.length === 0 ? (
+            {(!dbRecordings || dbRecordings.length === 0) && sessionRecordings.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <Video className="h-12 w-12 text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">No recordings yet</p>
@@ -326,8 +399,55 @@ export default function ScreenCapture() {
             ) : (
               <ScrollArea className="h-[420px]">
                 <div className="space-y-3">
-                  {recordings.map((recording) => {
+                  {/* Show session recordings first (most recent) */}
+                  {sessionRecordings.map((recording) => {
                     const preset = CAPTURE_PRESETS.find(p => p.id === recording.presetId);
+                    return (
+                      <div
+                        key={recording.id}
+                        className="p-3 border rounded-lg space-y-2 border-primary/50 bg-primary/5"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium text-sm">
+                              Scene {preset?.sceneNumber}: {preset?.shortName}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatDuration(recording.duration)} • Just now
+                            </p>
+                          </div>
+                          <Badge variant="default">
+                            <CheckCircle className="mr-1 h-3 w-3" />
+                            New
+                          </Badge>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1"
+                            onClick={() => handleDownload(recording)}
+                          >
+                            <Download className="mr-1 h-3 w-3" />
+                            Download
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1"
+                            onClick={() => navigate('/media/library')}
+                          >
+                            <FolderOpen className="mr-1 h-3 w-3" />
+                            Library
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {/* Show database recordings (excluding duplicates from session) */}
+                  {dbRecordings?.filter(r => !sessionRecordings.some(s => s.id === r.id)).map((recording) => {
+                    const clipMeta = recording.clip_metadata as any;
+                    const preset = CAPTURE_PRESETS.find(p => p.id === clipMeta?.preset_id);
                     return (
                       <div
                         key={recording.id}
@@ -336,10 +456,10 @@ export default function ScreenCapture() {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-medium text-sm">
-                              Scene {preset?.sceneNumber}: {preset?.shortName}
+                              {preset ? `Scene ${preset.sceneNumber}: ${preset.shortName}` : recording.file_name}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {formatDuration(recording.duration)} • {new Date(recording.createdAt).toLocaleTimeString()}
+                              {clipMeta?.duration_seconds ? formatDuration(clipMeta.duration_seconds) : 'N/A'} • {new Date(recording.created_at).toLocaleString()}
                             </p>
                           </div>
                           <Badge variant="secondary">
@@ -352,7 +472,7 @@ export default function ScreenCapture() {
                             size="sm"
                             variant="outline"
                             className="flex-1"
-                            onClick={() => handleDownload(recording)}
+                            onClick={() => handleDownloadDb(recording)}
                           >
                             <Download className="mr-1 h-3 w-3" />
                             Download
