@@ -275,6 +275,7 @@ import VoiceTag from "./pages/VoiceTag";
 import VoiceTagAdmin from "./pages/VoiceTagAdmin";
 import ScreenshotGenerator from "./pages/admin/ScreenshotGenerator";
 import ScreenCapture from "./pages/admin/ScreenCapture";
+import SystemTools from "./pages/admin/SystemTools";
 import DemoVideos from "./pages/DemoVideos";
 import MarketingGTMPlan from "./pages/MarketingGTMPlan";
 import RevenueReports from "./pages/admin/RevenueReports";
@@ -719,6 +720,7 @@ const AppContent = () => {
               <Route path="/admin/personas" element={<PersonaManagement />} />
             <Route path="/admin/screenshot-generator" element={<ScreenshotGenerator />} />
               <Route path="/admin/screen-capture" element={<ScreenCapture />} />
+              <Route path="/admin/system-tools" element={<SystemTools />} />
           <Route path="/demo-videos" element={<DemoVideos />} />
           <Route path="/marketing-gtm" element={<MarketingGTMPlan />} />
             <Route path="/admin/hero-generator" element={<HeroImageGeneratorPage />} />
