@@ -13,12 +13,12 @@ interface RoleOption {
   bgGradient: string;
 }
 
-// All descriptions trimmed to be uniform in length
+// All descriptions exactly 2 lines for uniform card height
 const roleOptions: RoleOption[] = [
   {
     type: 'podcaster',
     label: 'Podcaster',
-    description: 'Record, distribute & monetize',
+    description: 'Record, distribute, and monetize your podcast',
     icon: Mic,
     gradient: 'from-blue-500 to-cyan-500',
     bgGradient: 'from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30',
@@ -26,7 +26,7 @@ const roleOptions: RoleOption[] = [
   {
     type: 'creator',
     label: 'Content Creator',
-    description: 'Create & grow your audience',
+    description: 'Create content and grow your audience',
     icon: Sparkles,
     gradient: 'from-purple-500 to-pink-500',
     bgGradient: 'from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30',
@@ -34,7 +34,7 @@ const roleOptions: RoleOption[] = [
   {
     type: 'event_planner',
     label: 'Speaker / Coach',
-    description: 'Book sessions & grow reach',
+    description: 'Book sessions and grow your reach',
     icon: Calendar,
     gradient: 'from-indigo-500 to-purple-500',
     bgGradient: 'from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30',
@@ -42,7 +42,7 @@ const roleOptions: RoleOption[] = [
   {
     type: 'studio_team',
     label: 'Event Host',
-    description: 'Plan, promote & host events',
+    description: 'Plan, promote, and host events',
     icon: Video,
     gradient: 'from-orange-500 to-amber-500',
     bgGradient: 'from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30',
@@ -50,7 +50,7 @@ const roleOptions: RoleOption[] = [
   {
     type: 'brand',
     label: 'Entrepreneur',
-    description: 'Manage contacts & grow',
+    description: 'Manage contacts and grow business',
     icon: Building,
     gradient: 'from-cyan-500 to-blue-500',
     bgGradient: 'from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-blue-950/30',
@@ -58,7 +58,7 @@ const roleOptions: RoleOption[] = [
   {
     type: 'agency',
     label: 'Agency',
-    description: 'Manage creators at scale',
+    description: 'Manage creators and campaigns',
     icon: Users,
     gradient: 'from-green-500 to-emerald-500',
     bgGradient: 'from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30',
@@ -66,7 +66,7 @@ const roleOptions: RoleOption[] = [
   {
     type: 'advertiser',
     label: 'Brand / Venue',
-    description: 'Discover & run campaigns',
+    description: 'Discover creators and sponsors',
     icon: Megaphone,
     gradient: 'from-slate-500 to-gray-500',
     bgGradient: 'from-slate-50 to-gray-50 dark:from-slate-950/30 dark:to-gray-950/30',
@@ -74,7 +74,7 @@ const roleOptions: RoleOption[] = [
   {
     type: 'influencer',
     label: 'Influencer',
-    description: 'Grow & monetize influence',
+    description: 'Grow and monetize your influence',
     icon: Star,
     gradient: 'from-amber-500 to-yellow-500',
     bgGradient: 'from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30',
@@ -114,8 +114,8 @@ export function RoleSelectionStep({ onSelect }: RoleSelectionStepProps) {
             >
               <Card
                 className={cn(
-                  "p-4 cursor-pointer transition-all duration-200",
-                  "h-[140px]", // Fixed uniform height
+                  "p-5 cursor-pointer transition-all duration-200",
+                  "h-[160px]", // Uniform height for all cards
                   "border-2 border-transparent hover:border-primary/50",
                   "shadow-sm hover:shadow-lg rounded-xl",
                   `bg-gradient-to-br ${option.bgGradient}`
@@ -129,9 +129,9 @@ export function RoleSelectionStep({ onSelect }: RoleSelectionStepProps) {
                   )}>
                     <Icon className="h-5 w-5" />
                   </div>
-                  <div className="space-y-0.5">
+                  <div className="space-y-1">
                     <h3 className="font-semibold text-sm">{option.label}</h3>
-                    <p className="text-xs text-muted-foreground leading-snug">
+                    <p className="text-xs text-muted-foreground leading-snug line-clamp-2">
                       {option.description}
                     </p>
                   </div>
