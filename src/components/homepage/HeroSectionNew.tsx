@@ -3,11 +3,24 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, Play, Link2, Calendar, Mic, Video } from "lucide-react";
 import { motion } from "framer-motion";
 
+// Hero card images
+import heroPeopleImg from "@/assets/homepage/hero-people.png";
+import heroConversationsImg from "@/assets/homepage/hero-conversations.png";
+import heroContentImg from "@/assets/homepage/hero-content.png";
+import heroCommunityImg from "@/assets/homepage/hero-community.png";
+
 const connectionTypes = [
   { icon: Link2, label: "Social" },
   { icon: Calendar, label: "Meetings" },
   { icon: Mic, label: "Podcasts" },
   { icon: Video, label: "Content" },
+];
+
+const heroCards = [
+  { label: "People", desc: "Connect & collaborate", image: heroPeopleImg },
+  { label: "Conversations", desc: "Meetings & podcasts", image: heroConversationsImg },
+  { label: "Content", desc: "Create & share", image: heroContentImg },
+  { label: "Community", desc: "Grow together", image: heroCommunityImg },
 ];
 
 export function HeroSectionNew() {
@@ -124,12 +137,7 @@ export function HeroSectionNew() {
           className="mt-16 relative max-w-5xl mx-auto"
         >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { label: "People", desc: "Connect & collaborate" },
-              { label: "Conversations", desc: "Meetings & podcasts" },
-              { label: "Content", desc: "Create & share" },
-              { label: "Community", desc: "Grow together" },
-            ].map((item, index) => (
+            {heroCards.map((item, index) => (
               <motion.div
                 key={item.label}
                 initial={{ opacity: 0, y: 20 }}
@@ -138,9 +146,15 @@ export function HeroSectionNew() {
                 whileHover={{ y: -8, scale: 1.02 }}
                 className="group relative rounded-2xl overflow-hidden border border-border/50 bg-card shadow-lg hover:shadow-xl transition-all duration-300"
               >
-                {/* Gradient placeholder instead of heavy images */}
-                <div className="relative h-52 md:h-56 overflow-hidden bg-gradient-to-br from-primary/20 via-purple-500/10 to-muted">
-                  <div className="absolute inset-0 bg-gradient-to-t from-card via-card/50 to-transparent" />
+                {/* Image background */}
+                <div className="relative h-52 md:h-56 overflow-hidden">
+                  <img 
+                    src={item.image} 
+                    alt={item.label} 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-card via-card/60 to-transparent" />
                 </div>
                 {/* Content */}
                 <div className="relative p-5 -mt-10">
