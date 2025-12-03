@@ -11540,6 +11540,7 @@ export type Database = {
           is_creator: boolean | null
           is_live: boolean | null
           is_live_on_profile: boolean | null
+          is_public: boolean | null
           legal_on_profile: boolean | null
           live_stream_title: string | null
           live_video_url: string | null
@@ -11608,6 +11609,7 @@ export type Database = {
           is_creator?: boolean | null
           is_live?: boolean | null
           is_live_on_profile?: boolean | null
+          is_public?: boolean | null
           legal_on_profile?: boolean | null
           live_stream_title?: string | null
           live_video_url?: string | null
@@ -11676,6 +11678,7 @@ export type Database = {
           is_creator?: boolean | null
           is_live?: boolean | null
           is_live_on_profile?: boolean | null
+          is_public?: boolean | null
           legal_on_profile?: boolean | null
           live_stream_title?: string | null
           live_video_url?: string | null
