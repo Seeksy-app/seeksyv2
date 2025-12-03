@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { format, isToday, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 
 export function TodaysKeyTasks() {
@@ -39,10 +39,12 @@ export function TodaysKeyTasks() {
   };
 
   return (
-    <Card>
+    <Card className="shadow-sm hover:shadow-md transition-all duration-200">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CheckSquare className="h-5 w-5 text-primary" />
+        <CardTitle className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-[hsl(217,90%,95%)]">
+            <CheckSquare className="h-5 w-5 text-[hsl(217,90%,50%)]" />
+          </div>
           Today's Key Tasks
         </CardTitle>
       </CardHeader>
@@ -54,9 +56,11 @@ export function TodaysKeyTasks() {
               <p className="text-sm text-muted-foreground">Loading tasks...</p>
             </div>
           ) : tasks.length === 0 ? (
-            <div className="flex items-start gap-3 p-2 hover:bg-muted/50 rounded-lg transition-colors">
-              <Circle className="h-4 w-4 mt-1 text-muted-foreground" />
-              <div className="flex-1">
+            <div className="flex flex-col items-center gap-3 p-4 rounded-lg bg-[hsl(217,90%,97%)]">
+              <div className="p-3 rounded-full bg-[hsl(217,90%,92%)]">
+                <CheckSquare className="h-8 w-8 text-[hsl(217,90%,60%)] opacity-60" />
+              </div>
+              <div className="text-center">
                 <p className="text-sm font-medium">No tasks scheduled for today</p>
                 <p className="text-xs text-muted-foreground">Add a task with today's due date</p>
               </div>

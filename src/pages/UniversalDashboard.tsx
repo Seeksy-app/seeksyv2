@@ -186,13 +186,18 @@ export default function UniversalDashboard() {
             voiceVerified={voiceVerified} 
           />
           
-          {/* Recent Activity Placeholder */}
-          <div className="md:col-span-2 rounded-xl border border-border/50 bg-card/50 p-4">
-            <h3 className="font-semibold text-sm mb-3">Recent Activity</h3>
+          {/* Recent Activity Card */}
+          <div className="md:col-span-2 rounded-xl border border-border/50 bg-card shadow-sm hover:shadow-md transition-all duration-200 p-4">
+            <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-[hsl(142,70%,95%)]">
+                <div className="w-3 h-3 rounded-full bg-[hsl(142,70%,50%)]" />
+              </div>
+              Recent Activity
+            </h3>
             <div className="space-y-2">
-              <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
-                <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span className="text-sm text-muted-foreground">Welcome to your Seeksy Workspace!</span>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-[hsl(142,70%,97%)] border border-[hsl(142,60%,90%)]">
+                <div className="w-2 h-2 rounded-full bg-[hsl(142,70%,50%)]" />
+                <span className="text-sm text-foreground">Welcome to your Seeksy Workspace!</span>
               </div>
               <p className="text-xs text-muted-foreground text-center py-4">
                 Your activity will appear here as you use the platform

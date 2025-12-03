@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Settings, Plus } from "lucide-react";
+import { Settings } from "lucide-react";
 import { motion } from "framer-motion";
 import { PersonaType } from "@/config/personaConfig";
 
@@ -32,14 +32,6 @@ const getRoleLabel = (personaType?: PersonaType | null): string => {
   return personaType ? labels[personaType] || "Creator" : "Creator";
 };
 
-const getTimeBasedGradient = () => {
-  const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return "from-amber-500/10 via-orange-500/5 to-transparent";
-  if (hour >= 12 && hour < 17) return "from-blue-500/10 via-cyan-500/5 to-transparent";
-  if (hour >= 17 && hour < 21) return "from-purple-500/10 via-pink-500/5 to-transparent";
-  return "from-indigo-500/10 via-violet-500/5 to-transparent";
-};
-
 export function WorkspaceHeader({ firstName, personaType, onCustomize }: WorkspaceHeaderProps) {
   const [greeting, setGreeting] = useState(getGreeting());
   
@@ -50,18 +42,17 @@ export function WorkspaceHeader({ firstName, personaType, onCustomize }: Workspa
     return () => clearInterval(interval);
   }, []);
 
-  const gradientClass = useMemo(() => getTimeBasedGradient(), []);
   const roleLabel = getRoleLabel(personaType);
 
   return (
     <motion.div 
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`relative rounded-xl p-6 mb-6 overflow-hidden bg-gradient-to-r ${gradientClass}`}
+      className="relative rounded-2xl p-6 mb-6 overflow-hidden bg-gradient-to-r from-[hsl(220,80%,96%)] to-[hsl(270,60%,97%)]"
     >
       {/* Subtle background pattern */}
       <div 
-        className="absolute inset-0 opacity-[0.02]"
+        className="absolute inset-0 opacity-[0.03]"
         style={{
           backgroundImage: 'radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)',
           backgroundSize: '24px 24px'
@@ -101,7 +92,7 @@ export function WorkspaceHeader({ firstName, personaType, onCustomize }: Workspa
             variant="ghost" 
             size="sm"
             onClick={onCustomize}
-            className="text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground hover:bg-white/50"
           >
             <Settings className="h-4 w-4 mr-1" />
             Customize

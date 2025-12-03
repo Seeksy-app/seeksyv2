@@ -73,124 +73,152 @@ export default function MyDay() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-7xl mx-auto p-6 space-y-6">
-        {/* Welcome Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-start gap-4">
-            <div className="mt-1">
-              <SparkIcon size={48} />
+      <div className="container max-w-7xl mx-auto p-6 space-y-8">
+        {/* Welcome Header with Gradient */}
+        <div className="rounded-2xl bg-gradient-to-r from-[hsl(220,80%,96%)] to-[hsl(270,60%,97%)] p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-start gap-4">
+              <div className="mt-1">
+                <SparkIcon size={48} />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold mb-2 text-foreground">Good morning, {firstName}! ✨</h1>
+                <p className="text-muted-foreground">
+                  Here's what needs your attention today
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Good morning, {firstName}! ✨</h1>
-              <p className="text-muted-foreground">
-                Here's what needs your attention today
-              </p>
+            <div className="w-96">
+              <GlobalSearch />
             </div>
-          </div>
-          <div className="w-96">
-            <GlobalSearch />
           </div>
         </div>
 
-        {/* Stats Grid */}
+        {/* Stats Grid - Metric Cards with Colors */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Inbox - Blue */}
           <Link to="/email">
-            <Card className="cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:border-muted active:scale-[0.98] active:shadow-xl bg-background border border-border/60 rounded-xl">
+            <Card className="cursor-pointer transition-all duration-200 hover:scale-[1.02] shadow-sm hover:shadow-md bg-[hsl(217,100%,97%)] hover:bg-[hsl(217,100%,95%)] border-[hsl(217,90%,90%)] rounded-xl group">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2 text-foreground">
-                  <Mail className="h-4 w-4 text-primary" />
+                <CardTitle className="text-sm font-medium flex items-center gap-3 text-foreground">
+                  <div className="p-2 rounded-full bg-[hsl(217,90%,60%)] shadow-sm">
+                    <Mail className="h-4 w-4 text-white" />
+                  </div>
                   Inbox
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-[28px] font-bold text-foreground">{stats.unreadEmails}</div>
+                <div className="text-[1.5rem] font-bold text-foreground">{stats.unreadEmails}</div>
                 <p className="text-xs text-muted-foreground">unread messages</p>
               </CardContent>
             </Card>
           </Link>
 
+          {/* Audience - Green */}
           <Link to="/contacts">
-            <Card className="cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:border-muted active:scale-[0.98] active:shadow-xl bg-background border border-border/60 rounded-xl">
+            <Card className="cursor-pointer transition-all duration-200 hover:scale-[1.02] shadow-sm hover:shadow-md bg-[hsl(142,70%,96%)] hover:bg-[hsl(142,70%,93%)] border-[hsl(142,60%,85%)] rounded-xl group">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2 text-foreground">
-                  <Users className="h-4 w-4 text-primary" />
+                <CardTitle className="text-sm font-medium flex items-center gap-3 text-foreground">
+                  <div className="p-2 rounded-full bg-[hsl(142,70%,45%)] shadow-sm">
+                    <Users className="h-4 w-4 text-white" />
+                  </div>
                   Audience
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-[28px] font-bold text-foreground">{stats.newContacts}</div>
+                <div className="text-[1.5rem] font-bold text-foreground">{stats.newContacts}</div>
                 <p className="text-xs text-muted-foreground">new contacts</p>
               </CardContent>
             </Card>
           </Link>
 
+          {/* Meetings - Teal */}
           <Link to="/meetings">
-            <Card className="cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:border-muted active:scale-[0.98] active:shadow-xl bg-background border border-border/60 rounded-xl">
+            <Card className="cursor-pointer transition-all duration-200 hover:scale-[1.02] shadow-sm hover:shadow-md bg-[hsl(199,90%,96%)] hover:bg-[hsl(199,90%,93%)] border-[hsl(199,80%,85%)] rounded-xl group">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2 text-foreground">
-                  <Calendar className="h-4 w-4 text-primary" />
+                <CardTitle className="text-sm font-medium flex items-center gap-3 text-foreground">
+                  <div className="p-2 rounded-full bg-[hsl(199,90%,48%)] shadow-sm">
+                    <Calendar className="h-4 w-4 text-white" />
+                  </div>
                   Meetings
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-[28px] font-bold text-foreground">{stats.meetingsToday}</div>
+                <div className="text-[1.5rem] font-bold text-foreground">{stats.meetingsToday}</div>
                 <p className="text-xs text-muted-foreground">meetings today</p>
               </CardContent>
             </Card>
           </Link>
 
+          {/* Tasks - Orange */}
           <Link to="/tasks">
-            <Card className="cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:border-muted active:scale-[0.98] active:shadow-xl bg-background border border-border/60 rounded-xl">
+            <Card className="cursor-pointer transition-all duration-200 hover:scale-[1.02] shadow-sm hover:shadow-md bg-[hsl(25,100%,96%)] hover:bg-[hsl(25,100%,93%)] border-[hsl(25,90%,85%)] rounded-xl group">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2 text-foreground">
-                  <CheckSquare className="h-4 w-4 text-primary" />
+                <CardTitle className="text-sm font-medium flex items-center gap-3 text-foreground">
+                  <div className="p-2 rounded-full bg-[hsl(25,95%,53%)] shadow-sm">
+                    <CheckSquare className="h-4 w-4 text-white" />
+                  </div>
                   Tasks
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-[28px] font-bold text-foreground">{stats.pendingTasks}</div>
+                <div className="text-[1.5rem] font-bold text-foreground">{stats.pendingTasks}</div>
                 <p className="text-xs text-muted-foreground">pending tasks</p>
               </CardContent>
             </Card>
           </Link>
         </div>
 
-        {/* Quick Actions */}
-        <Card>
+        {/* Quick Actions - Quick Create Cards with Colors */}
+        <Card className="shadow-sm hover:shadow-md transition-all duration-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Plus className="h-5 w-5" />
+              <div className="p-1.5 rounded-lg bg-primary/10">
+                <Plus className="h-5 w-5 text-primary" />
+              </div>
               Quick Create
             </CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {/* Create Email - Blue */}
             <Button 
               variant="outline" 
-              className="h-auto py-6 flex-col gap-2"
+              className="h-auto py-6 flex-col gap-2 border-border/60 hover:bg-[hsl(217,100%,97%)] hover:border-[hsl(217,90%,80%)] transition-all"
               onClick={() => setIsComposerOpen(true)}
             >
-              <Mail className="h-6 w-6" />
-              <span>Create Email</span>
+              <div className="p-2 rounded-full bg-[hsl(217,90%,95%)]">
+                <Mail className="h-6 w-6 text-[hsl(217,90%,50%)]" />
+              </div>
+              <span className="font-medium">Create Email</span>
             </Button>
             
-            <Button variant="outline" className="h-auto py-6 flex-col gap-2" asChild>
+            {/* Create Post - Purple */}
+            <Button variant="outline" className="h-auto py-6 flex-col gap-2 border-border/60 hover:bg-[hsl(270,80%,97%)] hover:border-[hsl(270,70%,80%)] transition-all" asChild>
               <Link to="/content">
-                <FileText className="h-6 w-6" />
-                <span>Create Post</span>
+                <div className="p-2 rounded-full bg-[hsl(270,80%,95%)]">
+                  <FileText className="h-6 w-6 text-[hsl(270,70%,50%)]" />
+                </div>
+                <span className="font-medium">Create Post</span>
               </Link>
             </Button>
             
-            <Button variant="outline" className="h-auto py-6 flex-col gap-2" asChild>
-              <Link to="/content">
-                <Video className="h-6 w-6" />
-                <span>Create Clip</span>
+            {/* Create Clip - Pink */}
+            <Button variant="outline" className="h-auto py-6 flex-col gap-2 border-border/60 hover:bg-[hsl(330,80%,97%)] hover:border-[hsl(330,70%,80%)] transition-all" asChild>
+              <Link to="/studio/clips">
+                <div className="p-2 rounded-full bg-[hsl(330,80%,95%)]">
+                  <Video className="h-6 w-6 text-[hsl(330,70%,50%)]" />
+                </div>
+                <span className="font-medium">Create Clip</span>
               </Link>
             </Button>
             
-            <Button variant="outline" className="h-auto py-6 flex-col gap-2" asChild>
+            {/* Schedule Meeting - Teal */}
+            <Button variant="outline" className="h-auto py-6 flex-col gap-2 border-border/60 hover:bg-[hsl(199,90%,97%)] hover:border-[hsl(199,80%,80%)] transition-all" asChild>
               <Link to="/meetings">
-                <CalendarCheck className="h-6 w-6" />
-                <span>Schedule Meeting</span>
+                <div className="p-2 rounded-full bg-[hsl(199,90%,95%)]">
+                  <CalendarCheck className="h-6 w-6 text-[hsl(199,80%,45%)]" />
+                </div>
+                <span className="font-medium">Schedule Meeting</span>
               </Link>
             </Button>
           </CardContent>

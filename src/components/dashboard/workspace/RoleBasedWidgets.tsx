@@ -11,30 +11,33 @@ import { PersonaType } from "@/config/personaConfig";
 
 interface WidgetConfig {
   id: string;
-  moduleId: string; // Maps to onboarding module IDs
+  moduleId: string;
   title: string;
   description: string;
   icon: any;
   path: string;
   color: string;
+  bgColor: string;
+  iconBg: string;
+  iconColor: string;
   badge?: string;
 }
 
 // All available widgets mapped to module IDs from onboarding
 const ALL_WIDGETS: WidgetConfig[] = [
-  { id: "media", moduleId: "media-studio", title: "Media AI Studio", description: "Record & edit video with AI", icon: Video, path: "/studio", color: "from-blue-500 to-cyan-500" },
-  { id: "clips", moduleId: "ai-clips", title: "AI Clips", description: "Auto-generate viral clips", icon: Scissors, path: "/studio/clips", color: "from-purple-500 to-pink-500", badge: "AI" },
-  { id: "podcast", moduleId: "podcast-hosting", title: "Podcast & RSS", description: "Distribute your podcast", icon: Rss, path: "/podcasts", color: "from-amber-500 to-orange-500" },
-  { id: "mypage", moduleId: "my-page", title: "My Page", description: "Your link-in-bio", icon: Link2, path: "/profile/edit", color: "from-violet-500 to-purple-500" },
-  { id: "meetings", moduleId: "meetings", title: "Meetings", description: "Book calls & appointments", icon: Calendar, path: "/meetings", color: "from-emerald-500 to-teal-500" },
-  { id: "events", moduleId: "events", title: "Events & Ticketing", description: "Sell tickets to events", icon: Ticket, path: "/events", color: "from-rose-500 to-pink-500" },
-  { id: "crm", moduleId: "crm", title: "CRM Lite", description: "Manage contacts & sponsors", icon: Users, path: "/contacts", color: "from-sky-500 to-blue-500" },
-  { id: "communications", moduleId: "communications", title: "Email & SMS", description: "Reach your audience", icon: MessageSquare, path: "/communications", color: "from-indigo-500 to-violet-500" },
-  { id: "monetization", moduleId: "monetization", title: "Monetization", description: "Track revenue & deals", icon: DollarSign, path: "/monetization", color: "from-amber-500 to-yellow-500" },
-  { id: "analytics", moduleId: "analytics", title: "Analytics", description: "Track your growth", icon: BarChart3, path: "/social-analytics", color: "from-green-500 to-emerald-500" },
-  { id: "awards", moduleId: "awards", title: "Awards", description: "Run contests & voting", icon: Trophy, path: "/awards", color: "from-orange-500 to-red-500" },
-  { id: "identity", moduleId: "identity", title: "Identity", description: "Voice & face verification", icon: Shield, path: "/identity", color: "from-slate-500 to-gray-600" },
-  { id: "social", moduleId: "social-hub", title: "Social Hub", description: "Connect & sync accounts", icon: Link2, path: "/integrations", color: "from-pink-500 to-rose-500" },
+  { id: "media", moduleId: "media-studio", title: "Media AI Studio", description: "Record & edit video with AI", icon: Video, path: "/studio", color: "from-blue-500 to-cyan-500", bgColor: "hover:bg-[hsl(217,100%,97%)]", iconBg: "bg-[hsl(217,90%,95%)]", iconColor: "text-[hsl(217,90%,50%)]" },
+  { id: "clips", moduleId: "ai-clips", title: "AI Clips", description: "Auto-generate viral clips", icon: Scissors, path: "/studio/clips", color: "from-purple-500 to-pink-500", bgColor: "hover:bg-[hsl(270,80%,97%)]", iconBg: "bg-[hsl(270,80%,95%)]", iconColor: "text-[hsl(270,70%,50%)]", badge: "AI" },
+  { id: "podcast", moduleId: "podcast-hosting", title: "Podcast & RSS", description: "Distribute your podcast", icon: Rss, path: "/podcasts", color: "from-amber-500 to-orange-500", bgColor: "hover:bg-[hsl(25,100%,97%)]", iconBg: "bg-[hsl(25,90%,95%)]", iconColor: "text-[hsl(25,90%,50%)]" },
+  { id: "mypage", moduleId: "my-page", title: "My Page", description: "Your link-in-bio", icon: Link2, path: "/profile/edit", color: "from-violet-500 to-purple-500", bgColor: "hover:bg-[hsl(270,80%,97%)]", iconBg: "bg-[hsl(270,70%,95%)]", iconColor: "text-[hsl(270,70%,50%)]" },
+  { id: "meetings", moduleId: "meetings", title: "Meetings", description: "Book calls & appointments", icon: Calendar, path: "/meetings", color: "from-emerald-500 to-teal-500", bgColor: "hover:bg-[hsl(199,90%,97%)]", iconBg: "bg-[hsl(199,90%,95%)]", iconColor: "text-[hsl(199,80%,45%)]" },
+  { id: "events", moduleId: "events", title: "Events & Ticketing", description: "Sell tickets to events", icon: Ticket, path: "/events", color: "from-rose-500 to-pink-500", bgColor: "hover:bg-[hsl(330,80%,97%)]", iconBg: "bg-[hsl(330,80%,95%)]", iconColor: "text-[hsl(330,70%,50%)]" },
+  { id: "crm", moduleId: "crm", title: "CRM Lite", description: "Manage contacts & sponsors", icon: Users, path: "/contacts", color: "from-sky-500 to-blue-500", bgColor: "hover:bg-[hsl(199,90%,97%)]", iconBg: "bg-[hsl(199,90%,95%)]", iconColor: "text-[hsl(199,80%,45%)]" },
+  { id: "communications", moduleId: "communications", title: "Email & SMS", description: "Reach your audience", icon: MessageSquare, path: "/communications", color: "from-indigo-500 to-violet-500", bgColor: "hover:bg-[hsl(240,80%,97%)]", iconBg: "bg-[hsl(240,80%,95%)]", iconColor: "text-[hsl(240,70%,50%)]" },
+  { id: "monetization", moduleId: "monetization", title: "Monetization", description: "Track revenue & deals", icon: DollarSign, path: "/monetization", color: "from-amber-500 to-yellow-500", bgColor: "hover:bg-[hsl(45,100%,97%)]", iconBg: "bg-[hsl(45,90%,92%)]", iconColor: "text-[hsl(45,90%,40%)]" },
+  { id: "analytics", moduleId: "analytics", title: "Analytics", description: "Track your growth", icon: BarChart3, path: "/social-analytics", color: "from-green-500 to-emerald-500", bgColor: "hover:bg-[hsl(142,70%,97%)]", iconBg: "bg-[hsl(142,70%,95%)]", iconColor: "text-[hsl(142,70%,40%)]" },
+  { id: "awards", moduleId: "awards", title: "Awards", description: "Run contests & voting", icon: Trophy, path: "/awards", color: "from-orange-500 to-red-500", bgColor: "hover:bg-[hsl(25,100%,97%)]", iconBg: "bg-[hsl(25,90%,95%)]", iconColor: "text-[hsl(25,90%,50%)]" },
+  { id: "identity", moduleId: "identity", title: "Identity", description: "Voice & face verification", icon: Shield, path: "/identity", color: "from-slate-500 to-gray-600", bgColor: "hover:bg-muted/50", iconBg: "bg-muted", iconColor: "text-muted-foreground" },
+  { id: "social", moduleId: "social-hub", title: "Social Hub", description: "Connect & sync accounts", icon: Link2, path: "/integrations", color: "from-pink-500 to-rose-500", bgColor: "hover:bg-[hsl(330,80%,97%)]", iconBg: "bg-[hsl(330,80%,95%)]", iconColor: "text-[hsl(330,70%,50%)]" },
 ];
 
 // Default widgets by role (fallback when no modules selected)
@@ -63,10 +66,8 @@ export function RoleBasedWidgets({ personaType, selectedModules, showDemoWidgets
   let moduleIds: string[] = [];
   
   if (selectedModules && selectedModules.length > 0) {
-    // Use the modules selected during onboarding
     moduleIds = selectedModules;
   } else {
-    // Fallback to role-based defaults
     const roleKey = personaType || "default";
     moduleIds = defaultWidgetsByRole[roleKey] || defaultWidgetsByRole.default;
   }
@@ -95,14 +96,13 @@ export function RoleBasedWidgets({ personaType, selectedModules, showDemoWidgets
           transition={{ delay: index * 0.05 }}
         >
           <Card 
-            className="group cursor-pointer hover:shadow-lg transition-all duration-300 border-border/50 hover:border-border overflow-hidden h-full"
+            className={`group cursor-pointer shadow-sm hover:shadow-md transition-all duration-200 border-border/50 hover:border-border overflow-hidden h-full ${widget.bgColor}`}
             onClick={() => navigate(widget.path)}
           >
-            <div className={`absolute inset-0 bg-gradient-to-br ${widget.color} opacity-0 group-hover:opacity-5 transition-opacity`} />
             <CardContent className="p-4">
               <div className="flex items-start justify-between mb-2">
-                <div className={`p-2 rounded-lg bg-gradient-to-br ${widget.color} bg-opacity-10`}>
-                  <widget.icon className="h-5 w-5 text-foreground" />
+                <div className={`p-2 rounded-lg ${widget.iconBg}`}>
+                  <widget.icon className={`h-5 w-5 ${widget.iconColor}`} />
                 </div>
                 {widget.badge && (
                   <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
