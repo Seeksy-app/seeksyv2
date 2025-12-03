@@ -8,6 +8,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 const quickActions = [
   { 
@@ -15,50 +16,50 @@ const quickActions = [
     label: "Create Meeting", 
     icon: Calendar, 
     path: "/meetings/new",
-    hoverBg: "hover:bg-[hsl(199,90%,97%)]",
-    hoverBorder: "hover:border-[hsl(199,80%,80%)]",
-    iconBg: "bg-[hsl(199,90%,95%)]",
-    iconColor: "text-[hsl(199,80%,45%)]"
+    gradient: "from-sky-500 to-blue-500",
+    bgColor: "bg-sky-50",
+    hoverBg: "hover:bg-sky-100",
+    iconColor: "text-sky-600"
   },
   { 
     id: "upload", 
     label: "Upload → AI Edit", 
     icon: Upload, 
     path: "/media/library",
-    hoverBg: "hover:bg-[hsl(270,80%,97%)]",
-    hoverBorder: "hover:border-[hsl(270,70%,80%)]",
-    iconBg: "bg-[hsl(270,80%,95%)]",
-    iconColor: "text-[hsl(270,70%,50%)]"
+    gradient: "from-violet-500 to-purple-500",
+    bgColor: "bg-violet-50",
+    hoverBg: "hover:bg-violet-100",
+    iconColor: "text-violet-600"
   },
   { 
     id: "podcast", 
     label: "Create Episode", 
     icon: Mic, 
     path: "/podcasts/create",
-    hoverBg: "hover:bg-[hsl(25,100%,97%)]",
-    hoverBorder: "hover:border-[hsl(25,90%,80%)]",
-    iconBg: "bg-[hsl(25,90%,95%)]",
-    iconColor: "text-[hsl(25,90%,50%)]"
+    gradient: "from-orange-500 to-amber-500",
+    bgColor: "bg-orange-50",
+    hoverBg: "hover:bg-orange-100",
+    iconColor: "text-orange-600"
   },
   { 
     id: "studio", 
     label: "Launch Studio", 
     icon: Video, 
     path: "/studio",
-    hoverBg: "hover:bg-[hsl(217,100%,97%)]",
-    hoverBorder: "hover:border-[hsl(217,90%,80%)]",
-    iconBg: "bg-[hsl(217,90%,95%)]",
-    iconColor: "text-[hsl(217,90%,50%)]"
+    gradient: "from-blue-500 to-indigo-500",
+    bgColor: "bg-blue-50",
+    hoverBg: "hover:bg-blue-100",
+    iconColor: "text-blue-600"
   },
   { 
     id: "spark", 
     label: "Ask Spark", 
     icon: Sparkles, 
     path: "#spark",
-    hoverBg: "hover:bg-[hsl(45,100%,97%)]",
-    hoverBorder: "hover:border-[hsl(45,90%,70%)]",
-    iconBg: "bg-[hsl(45,90%,92%)]",
-    iconColor: "text-[hsl(45,90%,40%)]"
+    gradient: "from-yellow-500 to-amber-500",
+    bgColor: "bg-yellow-50",
+    hoverBg: "hover:bg-yellow-100",
+    iconColor: "text-yellow-600"
   },
 ];
 
@@ -74,26 +75,36 @@ export function QuickActionsRow() {
   };
 
   return (
-    <div className="mb-6">
-      <h3 className="text-sm font-medium text-muted-foreground mb-3">Quick Actions</h3>
-      <div className="flex flex-wrap gap-2">
+    <div className="mb-8">
+      <h3 className="text-sm font-semibold text-foreground mb-4">Quick Actions</h3>
+      <div className="flex flex-wrap gap-3">
         {quickActions.map((action, index) => (
           <motion.div
             key={action.id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
           >
             <Button
               variant="outline"
-              size="sm"
               onClick={() => handleAction(action)}
-              className={`group relative overflow-hidden border-border/50 bg-card/50 hover:bg-card transition-all shadow-sm hover:shadow-md ${action.hoverBg} ${action.hoverBorder}`}
+              className={cn(
+                "group relative overflow-hidden border-2 transition-all duration-200",
+                "h-12 px-5 rounded-xl shadow-sm hover:shadow-lg",
+                action.bgColor,
+                action.hoverBg,
+                "border-transparent hover:border-primary/20"
+              )}
             >
-              <div className={`p-1 rounded-md mr-2 ${action.iconBg}`}>
-                <action.icon className={`h-3.5 w-3.5 ${action.iconColor}`} />
+              <div className={cn(
+                "p-1.5 rounded-lg mr-2.5 bg-gradient-to-br text-white",
+                action.gradient
+              )}>
+                <action.icon className="h-4 w-4" />
               </div>
-              <span className="text-sm font-medium">{action.label}</span>
+              <span className="text-sm font-semibold text-foreground">{action.label}</span>
             </Button>
           </motion.div>
         ))}

@@ -50,23 +50,25 @@ const dashboardDescriptions: Record<AccountType, string> = {
 
 // Confetti particle component
 function ConfettiParticle({ delay, x }: { delay: number; x: number }) {
-  const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#A855F7', '#3B82F6'];
+  const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#A855F7', '#3B82F6', '#F472B6', '#34D399'];
   const color = colors[Math.floor(Math.random() * colors.length)];
+  const shapes = ['rounded-full', 'rounded-sm', 'rounded-none'];
+  const shape = shapes[Math.floor(Math.random() * shapes.length)];
   
   return (
     <motion.div
-      className="absolute w-2 h-2 rounded-full"
+      className={cn("absolute w-3 h-3", shape)}
       style={{ backgroundColor: color, left: `${x}%` }}
       initial={{ top: '0%', opacity: 1, scale: 1 }}
       animate={{ 
         top: '100%', 
         opacity: 0, 
         scale: 0,
-        x: Math.random() * 100 - 50,
-        rotate: Math.random() * 360
+        x: Math.random() * 150 - 75,
+        rotate: Math.random() * 720
       }}
       transition={{ 
-        duration: 2, 
+        duration: 2.5, 
         delay, 
         ease: 'easeOut' 
       }}
@@ -79,22 +81,22 @@ export function CompletionStep({ accountType, onFinish, isLoading }: CompletionS
   const gradient = accountTypeGradients[accountType];
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowConfetti(false), 3000);
+    const timer = setTimeout(() => setShowConfetti(false), 4000);
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <Card className="p-8 shadow-xl border-border/50 bg-gradient-to-br from-card via-card to-muted/30 overflow-hidden relative">
+    <Card className="p-8 sm:p-10 shadow-xl border-border/50 bg-gradient-to-br from-card via-card to-muted/30 overflow-hidden relative rounded-2xl">
       {/* Confetti */}
       {showConfetti && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {Array.from({ length: 20 }).map((_, i) => (
-            <ConfettiParticle key={i} delay={i * 0.1} x={Math.random() * 100} />
+          {Array.from({ length: 30 }).map((_, i) => (
+            <ConfettiParticle key={i} delay={i * 0.08} x={Math.random() * 100} />
           ))}
         </div>
       )}
 
-      <div className="text-center space-y-6 relative z-10">
+      <div className="text-center space-y-8 relative z-10">
         {/* Trophy with gradient glow */}
         <motion.div 
           className="flex justify-center"
@@ -104,47 +106,54 @@ export function CompletionStep({ accountType, onFinish, isLoading }: CompletionS
         >
           <div className="relative">
             <div className={cn(
-              "absolute inset-0 bg-gradient-to-br blur-2xl opacity-50 rounded-full scale-150",
+              "absolute inset-0 bg-gradient-to-br blur-3xl opacity-50 rounded-full scale-[1.8]",
               gradient
             )} />
             <div className={cn(
-              "relative p-6 rounded-full bg-gradient-to-br shadow-xl",
+              "relative p-8 rounded-full bg-gradient-to-br shadow-2xl",
               gradient
             )}>
-              <Trophy className="h-12 w-12 text-white" />
+              <Trophy className="h-16 w-16 text-white" />
             </div>
             {/* Floating stars */}
             <motion.div
-              className="absolute -top-2 -right-2"
+              className="absolute -top-3 -right-3"
               animate={{ rotate: 360 }}
               transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
             >
-              <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+              <Star className="h-7 w-7 text-yellow-400 fill-yellow-400" />
             </motion.div>
             <motion.div
-              className="absolute -bottom-1 -left-3"
+              className="absolute -bottom-2 -left-4"
               animate={{ rotate: -360 }}
               transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
             >
-              <Sparkles className="h-4 w-4 text-pink-400" />
+              <Sparkles className="h-6 w-6 text-pink-400" />
+            </motion.div>
+            <motion.div
+              className="absolute top-1/2 -right-6"
+              animate={{ y: [0, -5, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <Star className="h-5 w-5 text-cyan-400 fill-cyan-400" />
             </motion.div>
           </div>
         </motion.div>
 
         <motion.div 
-          className="space-y-2"
+          className="space-y-3"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <h2 className="text-3xl sm:text-4xl font-bold">You're all set!</h2>
-          <p className="text-lg text-muted-foreground">
-            Welcome to Seeksy as a <span className={cn("font-semibold bg-gradient-to-r bg-clip-text text-transparent", gradient)}>{accountTypeLabels[accountType]}</span>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">You're all set!</h2>
+          <p className="text-lg sm:text-xl text-muted-foreground">
+            Welcome to Seeksy as a <span className={cn("font-bold bg-gradient-to-r bg-clip-text text-transparent", gradient)}>{accountTypeLabels[accountType]}</span>
           </p>
         </motion.div>
 
         <motion.div 
-          className="bg-muted/30 rounded-xl p-5 text-left space-y-3 border border-border/50"
+          className="bg-muted/30 rounded-2xl p-6 sm:p-8 text-left space-y-4 border border-border/50 max-w-lg mx-auto"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
@@ -156,17 +165,17 @@ export function CompletionStep({ accountType, onFinish, isLoading }: CompletionS
           ].map((item, index) => (
             <motion.div 
               key={item.title}
-              className="flex items-start gap-3"
+              className="flex items-start gap-4"
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 + index * 0.1 }}
             >
-              <div className={cn("p-1 rounded-full bg-gradient-to-br", gradient)}>
-                <CheckCircle className="h-4 w-4 text-white" />
+              <div className={cn("p-1.5 rounded-full bg-gradient-to-br shrink-0", gradient)}>
+                <CheckCircle className="h-5 w-5 text-white" />
               </div>
               <div>
-                <p className="font-medium text-sm">{item.title}</p>
-                <p className="text-xs text-muted-foreground">{item.desc}</p>
+                <p className="font-semibold text-base">{item.title}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
               </div>
             </motion.div>
           ))}
@@ -176,11 +185,12 @@ export function CompletionStep({ accountType, onFinish, isLoading }: CompletionS
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
+          className="pt-2"
         >
           <Button 
             size="lg" 
             className={cn(
-              "w-full h-12 text-base font-semibold shadow-lg",
+              "w-full max-w-md h-14 text-lg font-bold shadow-xl",
               "bg-gradient-to-r text-white",
               gradient
             )}
@@ -189,12 +199,12 @@ export function CompletionStep({ accountType, onFinish, isLoading }: CompletionS
           >
             {isLoading ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                 Setting up...
               </>
             ) : (
               <>
-                <Rocket className="h-4 w-4 mr-2" />
+                <Rocket className="h-5 w-5 mr-2" />
                 Go to Dashboard
               </>
             )}

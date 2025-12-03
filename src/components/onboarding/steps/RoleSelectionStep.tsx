@@ -86,16 +86,20 @@ interface RoleSelectionStepProps {
 
 export function RoleSelectionStep({ onSelect }: RoleSelectionStepProps) {
   return (
-    <div className="space-y-6">
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Welcome to Seeksy</h1>
-        <p className="text-base text-muted-foreground">
-          What brings you here today?
-        </p>
+    <div className="space-y-8">
+      {/* Gradient header background */}
+      <div className="relative">
+        <div className="absolute inset-0 -mx-8 -mt-8 h-32 bg-gradient-to-br from-primary/5 via-primary/10 to-transparent rounded-t-3xl" />
+        <div className="relative text-center space-y-3 pt-4">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Welcome to Seeksy</h1>
+          <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-md mx-auto">
+            What brings you here today?
+          </p>
+        </div>
       </div>
 
-      {/* 4x2 Grid - compact tiles */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* 4x2 Grid - larger, premium tiles */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
         {roleOptions.map((option, index) => {
           const Icon = option.icon;
           return (
@@ -104,28 +108,28 @@ export function RoleSelectionStep({ onSelect }: RoleSelectionStepProps) {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.04 }}
-              whileHover={{ scale: 1.03, y: -2 }}
+              whileHover={{ scale: 1.03, y: -3 }}
               whileTap={{ scale: 0.98 }}
             >
               <Card
                 className={cn(
-                  "p-4 cursor-pointer transition-all duration-200 h-[150px]",
+                  "p-5 sm:p-6 cursor-pointer transition-all duration-200 h-[180px] sm:h-[200px]",
                   "border-2 border-transparent hover:border-primary/50",
-                  "shadow-sm hover:shadow-xl",
+                  "shadow-sm hover:shadow-xl rounded-2xl",
                   `bg-gradient-to-br ${option.bgGradient}`
                 )}
                 onClick={() => onSelect(option.type)}
               >
-                <div className="flex flex-col items-center text-center gap-3 h-full justify-center">
+                <div className="flex flex-col items-center text-center gap-4 h-full justify-center">
                   <div className={cn(
-                    "p-3 rounded-xl bg-gradient-to-br text-white shadow-lg",
+                    "p-4 rounded-2xl bg-gradient-to-br text-white shadow-lg",
                     option.gradient
                   )}>
-                    <Icon className="h-6 w-6" />
+                    <Icon className="h-7 w-7 sm:h-8 sm:w-8" />
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-sm mb-0.5">{option.label}</h3>
-                    <p className="text-xs text-muted-foreground leading-tight">
+                  <div className="space-y-1.5">
+                    <h3 className="font-semibold text-sm sm:text-base">{option.label}</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                       {option.description}
                     </p>
                   </div>

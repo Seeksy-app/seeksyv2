@@ -165,7 +165,7 @@ export default function UniversalDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Workspace Header */}
         <WorkspaceHeader
           firstName={firstName}
@@ -180,26 +180,26 @@ export default function UniversalDashboard() {
         <RoleBasedWidgets personaType={personaType} selectedModules={selectedModules} />
 
         {/* Identity & Additional Widgets */}
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-3 gap-5 mt-6">
           <IdentityWidget 
             faceVerified={faceVerified} 
             voiceVerified={voiceVerified} 
           />
           
           {/* Recent Activity Card */}
-          <div className="md:col-span-2 rounded-xl border border-border/50 bg-card shadow-sm hover:shadow-md transition-all duration-200 p-4">
-            <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-[hsl(142,70%,95%)]">
-                <div className="w-3 h-3 rounded-full bg-[hsl(142,70%,50%)]" />
+          <div className="md:col-span-2 rounded-2xl border-2 border-border/50 bg-gradient-to-br from-emerald-50/50 to-teal-50/50 shadow-md hover:shadow-lg transition-all duration-300 p-5 sm:p-6">
+            <h3 className="font-bold text-base mb-4 flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md">
+                <div className="w-4 h-4 rounded-full bg-white/90" />
               </div>
               Recent Activity
             </h3>
-            <div className="space-y-2">
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-[hsl(142,70%,97%)] border border-[hsl(142,60%,90%)]">
-                <div className="w-2 h-2 rounded-full bg-[hsl(142,70%,50%)]" />
-                <span className="text-sm text-foreground">Welcome to your Seeksy Workspace!</span>
+            <div className="space-y-3">
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-white/80 border-2 border-emerald-100">
+                <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-sm" />
+                <span className="text-sm font-medium text-foreground">Welcome to your Seeksy Workspace!</span>
               </div>
-              <p className="text-xs text-muted-foreground text-center py-4">
+              <p className="text-sm text-muted-foreground text-center py-6">
                 Your activity will appear here as you use the platform
               </p>
             </div>

@@ -143,23 +143,27 @@ export function DashboardPreviewStep({ accountType, tools, onContinue, onBack }:
   const config = dashboardConfigs[accountType];
 
   return (
-    <Card className="p-6 shadow-xl border-border/50 bg-gradient-to-br from-card to-muted/20">
-      <div className="space-y-5">
-        <div className="text-center space-y-2">
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className={cn(
-              "inline-flex p-3 rounded-2xl bg-gradient-to-br mb-2",
-              config.gradient
-            )}
-          >
-            <Layout className="h-6 w-6 text-white" />
-          </motion.div>
-          <h2 className="text-2xl font-bold">Your Workspace Preview</h2>
-          <p className="text-muted-foreground text-sm">
-            Here's what your personalized dashboard will look like
-          </p>
+    <Card className="p-6 sm:p-8 shadow-xl border-border/50 bg-gradient-to-br from-card to-muted/20 rounded-2xl">
+      <div className="space-y-6">
+        {/* Gradient header */}
+        <div className="relative text-center space-y-3">
+          <div className="absolute inset-0 -mx-8 -mt-8 h-28 bg-gradient-to-br from-primary/5 via-primary/10 to-transparent rounded-t-2xl" />
+          <div className="relative">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className={cn(
+                "inline-flex p-4 rounded-2xl bg-gradient-to-br mb-3",
+                config.gradient
+              )}
+            >
+              <Layout className="h-8 w-8 text-white" />
+            </motion.div>
+            <h2 className="text-2xl sm:text-3xl font-bold">Your Workspace Preview</h2>
+            <p className="text-muted-foreground text-base sm:text-lg mt-2">
+              Here's what your personalized dashboard will look like
+            </p>
+          </div>
         </div>
 
         {/* Mock Dashboard Preview */}
@@ -167,38 +171,38 @@ export function DashboardPreviewStep({ accountType, tools, onContinue, onBack }:
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
-          className="relative rounded-xl border-2 border-border/50 bg-background overflow-hidden"
+          className="relative rounded-2xl border-2 border-border/50 bg-background overflow-hidden shadow-lg"
         >
           {/* Mock browser chrome */}
-          <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 border-b border-border/50">
-            <div className="flex gap-1">
-              <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
-              <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
-              <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
+          <div className="flex items-center gap-2 px-4 py-3 bg-muted/50 border-b border-border/50">
+            <div className="flex gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-red-400" />
+              <div className="w-3 h-3 rounded-full bg-yellow-400" />
+              <div className="w-3 h-3 rounded-full bg-green-400" />
             </div>
-            <div className="flex-1 mx-3">
-              <div className="h-5 bg-muted rounded px-2 flex items-center text-xs text-muted-foreground">
+            <div className="flex-1 mx-4">
+              <div className="h-6 bg-muted rounded-lg px-3 flex items-center text-sm text-muted-foreground">
                 seeksy.io/dashboard
               </div>
             </div>
           </div>
 
           {/* Dashboard content */}
-          <div className="p-4 space-y-4">
+          <div className="p-5 sm:p-6 space-y-5">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-semibold">{config.title}</h3>
-                <p className="text-xs text-muted-foreground">{config.description}</p>
+                <h3 className="font-bold text-lg sm:text-xl">{config.title}</h3>
+                <p className="text-sm text-muted-foreground">{config.description}</p>
               </div>
             </div>
 
             {/* Three sections side by side */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
               {/* Widgets */}
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground">Dashboard Widgets</p>
-                <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-3">
+                <p className="text-sm font-bold text-foreground">Dashboard Widgets</p>
+                <div className="grid grid-cols-2 gap-2.5">
                   {config.widgets.map((widget, index) => {
                     const Icon = widget.icon;
                     return (
@@ -207,12 +211,12 @@ export function DashboardPreviewStep({ accountType, tools, onContinue, onBack }:
                         initial={{ opacity: 0, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 + index * 0.05 }}
-                        className="bg-muted/50 rounded-lg p-2 border border-border/30"
+                        className="bg-muted/50 rounded-xl p-3 border border-border/30"
                       >
-                        <div className={cn("w-5 h-5 rounded flex items-center justify-center mb-1", widget.color)}>
-                          <Icon className="h-3 w-3 text-white" />
+                        <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center mb-2", widget.color)}>
+                          <Icon className="h-4 w-4 text-white" />
                         </div>
-                        <p className="text-[10px] font-medium truncate">{widget.name}</p>
+                        <p className="text-xs font-semibold truncate">{widget.name}</p>
                       </motion.div>
                     );
                   })}
@@ -220,9 +224,9 @@ export function DashboardPreviewStep({ accountType, tools, onContinue, onBack }:
               </div>
 
               {/* Quick Actions */}
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground">Quick Navigation</p>
-                <div className="space-y-1.5">
+              <div className="space-y-3">
+                <p className="text-sm font-bold text-foreground">Quick Navigation</p>
+                <div className="space-y-2">
                   {config.quickActions.map((action, i) => (
                     <motion.div
                       key={action}
@@ -230,9 +234,9 @@ export function DashboardPreviewStep({ accountType, tools, onContinue, onBack }:
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.3 + i * 0.05 }}
                       className={cn(
-                        "px-2 py-1.5 rounded text-[10px] font-medium",
+                        "px-3 py-2.5 rounded-xl text-sm font-medium",
                         i === 0 
-                          ? `bg-gradient-to-r ${config.gradient} text-white` 
+                          ? `bg-gradient-to-r ${config.gradient} text-white shadow-sm` 
                           : "bg-muted/50 border border-border/30"
                       )}
                     >
@@ -243,21 +247,21 @@ export function DashboardPreviewStep({ accountType, tools, onContinue, onBack }:
               </div>
 
               {/* Checklist */}
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground">Setup Checklist</p>
-                <div className="space-y-1.5">
+              <div className="space-y-3">
+                <p className="text-sm font-bold text-foreground">Setup Checklist</p>
+                <div className="space-y-2.5">
                   {config.checklist.map((item, i) => (
                     <motion.div
                       key={item}
                       initial={{ opacity: 0, x: 5 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.4 + i * 0.05 }}
-                      className="flex items-center gap-1.5 text-[10px]"
+                      className="flex items-center gap-2.5 text-sm"
                     >
-                      <div className="w-3.5 h-3.5 rounded-full border border-primary/50 flex items-center justify-center">
-                        <CheckCircle className="h-2.5 w-2.5 text-primary/50" />
+                      <div className="w-5 h-5 rounded-full border-2 border-primary/50 flex items-center justify-center bg-primary/5">
+                        <CheckCircle className="h-3 w-3 text-primary/50" />
                       </div>
-                      <span className="text-muted-foreground">{item}</span>
+                      <span className="text-muted-foreground font-medium">{item}</span>
                     </motion.div>
                   ))}
                 </div>
@@ -265,20 +269,20 @@ export function DashboardPreviewStep({ accountType, tools, onContinue, onBack }:
             </div>
 
             {/* Preview badge */}
-            <div className="flex justify-center pt-2">
-              <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-medium rounded-full">
+            <div className="flex justify-center pt-3">
+              <span className="px-4 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-full">
                 ✨ Preview — your real data appears after setup
               </span>
             </div>
           </div>
         </motion.div>
 
-        <div className="flex justify-between pt-4 border-t">
-          <Button variant="outline" onClick={onBack} size="sm">
+        <div className="flex justify-between pt-6 border-t">
+          <Button variant="outline" onClick={onBack} size="lg" className="h-12 px-6">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
-          <Button onClick={onContinue} size="sm" className={cn("bg-gradient-to-r", config.gradient, "text-white")}>
+          <Button onClick={onContinue} size="lg" className={cn("h-12 px-8 bg-gradient-to-r", config.gradient, "text-white")}>
             Activate My Tools
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
