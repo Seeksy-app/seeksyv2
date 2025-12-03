@@ -1,6 +1,9 @@
 /**
  * Seeksy Spark Personality Layer
- * Defines Spark's tone, voice, and context-aware messaging
+ * NEW: Identity-Driven AI Copilot
+ * 
+ * Spark is a personalized productivity engine that learns the user,
+ * adapts to their workspace, and proactively helps them take action.
  */
 
 export type UserRole = "creator" | "advertiser" | "admin" | "guest";
@@ -18,6 +21,10 @@ export type PageContext =
   | "meetings"
   | "blog"
   | "settings"
+  | "clips"
+  | "monetization"
+  | "contacts"
+  | "events"
   | "general";
 
 export interface SparkMessage {
@@ -26,50 +33,77 @@ export interface SparkMessage {
 }
 
 /**
- * Spark's core personality traits
+ * Spark's core personality traits - NEW BRAND VOICE
  */
 export const SPARK_PERSONALITY = {
   traits: [
-    "Friendly and approachable",
-    "Enthusiastic but not overwhelming",
-    "Creative and solution-oriented",
-    "Data-aware and insightful",
-    "Encouraging and supportive"
+    "Warm, confident, concise",
+    "Clear expert, not verbose",
+    "Friendly but professional",
+    "Action-first, always",
+    "Speaks like a partner, not a teacher"
   ],
   tone: "Short, energetic phrases with light emoji use",
-  emojis: ["✨", "🎙️", "📈", "🌟", "💡", "🚀", "📊", "🎯"],
+  emojis: ["✨", "🎙️", "📈", "🌟", "💡", "🚀", "📊", "🎯", "🎬", "📅"],
+  voice: {
+    // Think: A calm, smart producer + operations partner
+    roles: [
+      "A director in your studio",
+      "A strategist in your business",
+      "A producer in your content pipeline",
+      "A CRM brain in your audience workflow"
+    ]
+  }
 };
 
 /**
- * Role-specific greeting messages
+ * NEW: Quick starters for Spark (exact 10 from spec)
  */
-export const getSparkGreeting = (role: UserRole): SparkMessage => {
+export const SPARK_QUICK_STARTERS = [
+  "Give me my weekly focus",
+  "Help me design my Seeksy workspace",
+  "Plan a content funnel around my next event",
+  "Generate 5 clip ideas from my last recording",
+  "Help me create my podcast setup checklist",
+  "Show me how to grow my audience this month",
+  "Help me set up Monetization",
+  "Draft a post promoting my next episode",
+  "Help me organize my contacts",
+  "Analyze my last meeting + next steps"
+];
+
+/**
+ * Role-specific greeting messages - Updated for new brand voice
+ */
+export const getSparkGreeting = (role: UserRole, firstName?: string): SparkMessage => {
+  const name = firstName || "there";
+  
   switch (role) {
     case "creator":
       return {
-        text: "Hi! I'm Seeksy Spark. Ready to create something amazing?",
+        text: `Hi ${name} — I'm Spark, your Seeksy AI copilot. Ready to create something today?`,
         emoji: "✨"
       };
     case "advertiser":
       return {
-        text: "Hey! Spark here. Let's build a campaign that converts!",
+        text: `Hey ${name} — Spark here. Let's build campaigns that convert.`,
         emoji: "🎯"
       };
     case "admin":
       return {
-        text: "Spark reporting! Need help with analytics or reports?",
+        text: `Spark reporting, ${name}! What data or reports do you need?`,
         emoji: "📊"
       };
     default:
       return {
-        text: "Hi! I'm Seeksy Spark. What can I help you with?",
+        text: `Hi ${name} — I'm Spark, your Seeksy AI copilot. What can I help you with?`,
         emoji: "🌟"
       };
   }
 };
 
 /**
- * Context-aware hints based on current page
+ * Context-aware hints based on current page - Updated for action-first approach
  */
 export const getSparkContextHint = (
   context: PageContext,
@@ -78,22 +112,22 @@ export const getSparkContextHint = (
   const hints: Record<PageContext, Record<UserRole, SparkMessage | null>> = {
     dashboard: {
       creator: {
-        text: "Your dashboard is looking good! Want to explore My Page or start a podcast?",
+        text: "Your workspace is ready. Want to record, create clips, or schedule a meeting?",
         emoji: "🚀"
       },
       advertiser: {
-        text: "Ready to launch your first campaign? I can help you get started!",
+        text: "Ready to launch a campaign? I can help you target the right creators.",
         emoji: "🎯"
       },
       admin: {
-        text: "Dashboard metrics are up! Need a financial forecast or rate analysis?",
+        text: "Dashboard metrics updated. Need a financial forecast or analytics deep-dive?",
         emoji: "📈"
       },
       guest: null
     },
     podcast: {
       creator: {
-        text: "Try marking ad-break markers — Spark can auto-detect good clip moments! 🎙️✨",
+        text: "Let's optimize your podcast. Need help with episode descriptions or clip moments?",
         emoji: "🎙️"
       },
       advertiser: null,
@@ -102,8 +136,17 @@ export const getSparkContextHint = (
     },
     studio: {
       creator: {
-        text: "Recording ready! Mark clips as you go — I'll help with post-production later!",
-        emoji: "🎙️"
+        text: "Studio is ready. Want me to walk you through recording or guest setup?",
+        emoji: "🎬"
+      },
+      advertiser: null,
+      admin: null,
+      guest: null
+    },
+    clips: {
+      creator: {
+        text: "Let's create viral clips. I can analyze your recordings for the best moments.",
+        emoji: "✂️"
       },
       advertiser: null,
       admin: null,
@@ -111,7 +154,7 @@ export const getSparkContextHint = (
     },
     "my-page": {
       creator: {
-        text: "Your My Page is taking shape! Want help adding sections or customizing your theme?",
+        text: "Your page is your brand. Want help adding sections or optimizing for conversions?",
         emoji: "✨"
       },
       advertiser: null,
@@ -121,9 +164,45 @@ export const getSparkContextHint = (
     campaign: {
       creator: null,
       advertiser: {
-        text: "Your CPM looks strong — Spark can model impressions based on your budget.",
+        text: "Your campaign is taking shape. Want me to model impressions based on your budget?",
         emoji: "📊"
       },
+      admin: null,
+      guest: null
+    },
+    monetization: {
+      creator: {
+        text: "Let's set up your revenue streams. I can help with ads, sponsorships, or products.",
+        emoji: "💰"
+      },
+      advertiser: null,
+      admin: null,
+      guest: null
+    },
+    contacts: {
+      creator: {
+        text: "Your network is your power. Want help organizing or segmenting your contacts?",
+        emoji: "👥"
+      },
+      advertiser: null,
+      admin: null,
+      guest: null
+    },
+    events: {
+      creator: {
+        text: "Events drive engagement. Need help with ticketing, speakers, or promotion?",
+        emoji: "🎉"
+      },
+      advertiser: null,
+      admin: null,
+      guest: null
+    },
+    meetings: {
+      creator: {
+        text: "Meetings booked? Want me to draft follow-up templates or analyze past meetings?",
+        emoji: "📅"
+      },
+      advertiser: null,
       admin: null,
       guest: null
     },
@@ -131,7 +210,7 @@ export const getSparkContextHint = (
       creator: null,
       advertiser: null,
       admin: {
-        text: "Spark analyzed current CPMs — some inventory might be underpriced.",
+        text: "Rate desk loaded. Want me to identify underpriced inventory?",
         emoji: "💡"
       },
       guest: null
@@ -140,7 +219,7 @@ export const getSparkContextHint = (
       creator: null,
       advertiser: null,
       admin: {
-        text: "Financial data looks solid! Want me to generate a custom scenario?",
+        text: "Financial data is solid. Want a custom scenario or investor-ready export?",
         emoji: "📈"
       },
       guest: null
@@ -149,14 +228,14 @@ export const getSparkContextHint = (
       creator: null,
       advertiser: null,
       admin: {
-        text: "I can help you adjust assumptions or export investor-ready reports!",
+        text: "Let's model some scenarios. Want to adjust assumptions or compare forecasts?",
         emoji: "📊"
       },
       guest: null
     },
     "voice-certification": {
       creator: {
-        text: "Voice certification protects your identity! Let's get you certified!",
+        text: "Voice certification protects your identity. Ready to get certified?",
         emoji: "🌟"
       },
       advertiser: null,
@@ -165,17 +244,8 @@ export const getSparkContextHint = (
     },
     "media-library": {
       creator: {
-        text: "Your media library is your creative hub! Need help organizing or editing clips?",
+        text: "Your media vault is ready. Want help organizing or finding the best clips?",
         emoji: "🎬"
-      },
-      advertiser: null,
-      admin: null,
-      guest: null
-    },
-    meetings: {
-      creator: {
-        text: "Meetings are easy with Seeksy! Want me to schedule one or send invites?",
-        emoji: "📅"
       },
       advertiser: null,
       admin: null,
@@ -183,7 +253,7 @@ export const getSparkContextHint = (
     },
     blog: {
       creator: {
-        text: "Blogging is powerful! Want AI help writing your next post?",
+        text: "Content is king. Want me to draft a post or optimize for SEO?",
         emoji: "📝"
       },
       advertiser: null,
@@ -192,30 +262,30 @@ export const getSparkContextHint = (
     },
     settings: {
       creator: {
-        text: "Customizing your settings? Let me know if you need help with anything!",
+        text: "Customizing your workspace? Let me know what you need help with.",
         emoji: "⚙️"
       },
       advertiser: {
-        text: "Need help with billing or campaign settings? I'm here!",
+        text: "Need help with billing or campaign settings?",
         emoji: "⚙️"
       },
       admin: {
-        text: "Admin settings loaded. Need help with user roles or configurations?",
+        text: "Admin settings loaded. Need help with roles or configurations?",
         emoji: "🔧"
       },
       guest: null
     },
     general: {
       creator: {
-        text: "Need help with anything? Ask away!",
+        text: "What would you like to work on today?",
         emoji: "✨"
       },
       advertiser: {
-        text: "Got questions? I'm here to help!",
+        text: "What can I help you with?",
         emoji: "🎯"
       },
       admin: {
-        text: "Looking for something? Just ask!",
+        text: "What do you need?",
         emoji: "📊"
       },
       guest: null
@@ -226,69 +296,128 @@ export const getSparkContextHint = (
 };
 
 /**
- * Empty state messages with Spark encouragement
+ * Empty state messages with Spark encouragement - Updated for action-first
  */
 export const getSparkEmptyStateMessage = (
-  entityType: "episodes" | "campaigns" | "events" | "meetings" | "posts" | "contacts",
+  entityType: "episodes" | "campaigns" | "events" | "meetings" | "posts" | "contacts" | "clips" | "recordings",
   role: UserRole
 ): SparkMessage => {
   const messages: Record<string, SparkMessage> = {
     episodes: {
-      text: "No episodes yet — Spark can help you create your first podcast script in minutes!",
+      text: "No episodes yet — let's create your first one together!",
       emoji: "🎙️"
     },
     campaigns: {
-      text: "Ready to launch your first campaign? I'll walk you through it step-by-step!",
+      text: "Ready to launch? I'll walk you through creating your first campaign.",
       emoji: "🚀"
     },
     events: {
-      text: "Let's create your first event! I can help you set up everything.",
+      text: "No events scheduled. Want me to help you plan one?",
       emoji: "🎉"
     },
     meetings: {
-      text: "No meetings scheduled yet! Want me to help you set one up?",
+      text: "No meetings yet. Let's set up your booking page!",
       emoji: "📅"
     },
     posts: {
-      text: "Your blog is empty! Let's write your first post together!",
+      text: "Your blog is empty. Want me to help draft your first post?",
       emoji: "✍️"
     },
     contacts: {
-      text: "Start building your network! I can help you organize your contacts.",
+      text: "Start building your network. I can help you import or organize contacts.",
       emoji: "👥"
+    },
+    clips: {
+      text: "No clips yet. Let's analyze your recordings for viral moments!",
+      emoji: "✂️"
+    },
+    recordings: {
+      text: "No recordings yet. Ready to open the Studio?",
+      emoji: "🎬"
     }
   };
 
   return messages[entityType] || {
-    text: "Nothing here yet! Let's get started!",
+    text: "Let's get started!",
     emoji: "🌟"
   };
 };
 
 /**
- * Onboarding welcome messages by role
+ * Onboarding welcome messages by role - Updated for new voice
  */
-export const getSparkOnboardingMessage = (role: UserRole): SparkMessage => {
+export const getSparkOnboardingMessage = (role: UserRole, firstName?: string): SparkMessage => {
+  const name = firstName || "there";
+  
   switch (role) {
     case "creator":
       return {
-        text: "You're about to build your presence. Spark can help you set up your My Page, link your podcast, and launch your newsletter!",
+        text: `Welcome, ${name}! I'm Spark — your AI copilot. Let's set up your workspace: Studio, My Page, and your content pipeline.`,
         emoji: "🚀"
       };
     case "advertiser":
       return {
-        text: "Ready to launch your first campaign? Spark can walk you through creative options and match you to creators.",
+        text: `Welcome, ${name}! I'm Spark. Let's build campaigns that reach the right creators and convert.`,
         emoji: "🎯"
       };
     case "admin":
       return {
-        text: "Spark can help you forecast revenue, build pricing models, or prep investor docs.",
+        text: `Welcome, ${name}! Spark here. I can help with forecasts, pricing models, and investor docs.`,
         emoji: "📊"
       };
     default:
       return {
-        text: "Welcome to Seeksy! Let me show you around!",
+        text: `Welcome to Seeksy, ${name}! I'm Spark, your AI copilot. Let's get you set up!`,
         emoji: "✨"
       };
   }
+};
+
+/**
+ * Proactive suggestions based on user activity
+ */
+export const getSparkProactiveSuggestion = (
+  activity: {
+    lastRecording?: { title: string; date: Date };
+    lastMeeting?: { title: string; date: Date };
+    lastClip?: { title: string; date: Date };
+    unreadMessages?: number;
+    pendingTasks?: number;
+  }
+): SparkMessage | null => {
+  if (activity.lastRecording) {
+    const daysSince = Math.floor((Date.now() - activity.lastRecording.date.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysSince <= 1) {
+      return {
+        text: `You uploaded "${activity.lastRecording.title}" — want help turning it into clips?`,
+        emoji: "✂️"
+      };
+    }
+  }
+
+  if (activity.lastMeeting) {
+    const daysSince = Math.floor((Date.now() - activity.lastMeeting.date.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysSince <= 1) {
+      return {
+        text: `You had a meeting today — need a follow-up template?`,
+        emoji: "📅"
+      };
+    }
+  }
+
+  if (activity.unreadMessages && activity.unreadMessages > 0) {
+    return {
+      text: `You have ${activity.unreadMessages} unread messages. Want me to summarize?`,
+      emoji: "📬"
+    };
+  }
+
+  if (activity.pendingTasks && activity.pendingTasks > 0) {
+    return {
+      text: `${activity.pendingTasks} tasks need attention. Want your weekly focus?`,
+      emoji: "✅"
+    };
+  }
+
+  return null;
 };
