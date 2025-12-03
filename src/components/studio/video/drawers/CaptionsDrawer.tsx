@@ -117,7 +117,7 @@ export function CaptionsDrawer({ isOpen, onClose }: CaptionsDrawerProps) {
             
             {expandedSections.includes("lowerthird") && (
               <div className="space-y-2">
-                {mockLowerThirds.map(item => (
+                {lowerThirds.map(item => (
                   <button
                     key={item.id}
                     onClick={() => setActiveLowerThird(activeLowerThird === item.id ? null : item.id)}
@@ -170,7 +170,7 @@ export function CaptionsDrawer({ isOpen, onClose }: CaptionsDrawerProps) {
             
             {expandedSections.includes("ticker") && (
               <div className="space-y-2">
-                {mockTickers.map(item => (
+                {tickers.map(item => (
                   <button
                     key={item.id}
                     onClick={() => setActiveTicker(activeTicker === item.id ? null : item.id)}
