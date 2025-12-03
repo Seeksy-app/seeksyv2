@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { encryptToken } from "../_shared/token-encryption.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -30,6 +31,13 @@ Deno.serve(async (req) => {
     if (!code || !state) {
       console.error('[meta-callback] Missing code or state parameter');
       return Response.redirect(`${FRONTEND_URL}/social-analytics?error=missing_params`, 302);
+    }
+
+    // Validate state is a valid UUID (user_id)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(state)) {
+      console.error('[meta-callback] Invalid state format');
+      return Response.redirect(`${FRONTEND_URL}/social-analytics?error=invalid_state`, 302);
     }
 
     console.log('[meta-callback] User ID from state:', state);
@@ -97,6 +105,10 @@ Deno.serve(async (req) => {
           const igAccount = igData.instagram_business_account;
           console.log('[meta-callback] Found Instagram account:', igAccount.username);
 
+          // Encrypt the page access token before storing
+          const encryptedAccessToken = await encryptToken(page.access_token);
+          console.log('[meta-callback] Instagram token encrypted');
+
           // Insert into social_media_profiles table
           const { error: insertError } = await supabaseClient
             .from('social_media_profiles')
@@ -111,7 +123,7 @@ Deno.serve(async (req) => {
               followers_count: igAccount.followers_count || 0,
               follows_count: igAccount.follows_count || 0,
               media_count: igAccount.media_count || 0,
-              access_token: page.access_token,
+              access_token: encryptedAccessToken,
               connected_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
               sync_status: 'pending',
@@ -122,7 +134,7 @@ Deno.serve(async (req) => {
           if (insertError) {
             console.error('[meta-callback] Error inserting Instagram profile:', insertError);
           } else {
-            console.log('[meta-callback] Successfully stored Instagram profile:', igAccount.username);
+            console.log('[meta-callback] Successfully stored encrypted Instagram profile:', igAccount.username);
             instagramConnected = true;
           }
         }
@@ -151,6 +163,10 @@ Deno.serve(async (req) => {
       const page = fbPages[0];
       console.log('[meta-callback] Auto-connecting single Facebook Page:', page.name);
 
+      // Encrypt the page access token before storing
+      const encryptedAccessToken = await encryptToken(page.access_token);
+      console.log('[meta-callback] Facebook token encrypted');
+
       const { error: fbInsertError } = await supabaseClient
         .from('social_media_profiles')
         .upsert({
@@ -161,7 +177,7 @@ Deno.serve(async (req) => {
           profile_picture: page.picture,
           account_type: 'page',
           followers_count: page.fans,
-          access_token: page.access_token,
+          access_token: encryptedAccessToken,
           connected_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           sync_status: 'pending',
@@ -172,11 +188,11 @@ Deno.serve(async (req) => {
       if (fbInsertError) {
         console.error('[meta-callback] Error inserting Facebook Page:', fbInsertError);
       } else {
-        console.log('[meta-callback] Successfully stored Facebook Page:', page.name);
+        console.log('[meta-callback] Successfully stored encrypted Facebook Page:', page.name);
         fbRedirectParam = '&fb_connected=true';
       }
     } else if (fbPages.length > 1) {
-      // Multiple pages - create selection session
+      // Multiple pages - create selection session (tokens stored temporarily, encrypted when final selection made)
       console.log('[meta-callback] Multiple Facebook Pages, creating selection session');
 
       const { data: session, error: sessionError } = await supabaseClient

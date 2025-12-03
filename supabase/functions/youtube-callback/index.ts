@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encryptToken } from "../_shared/token-encryption.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,14 +16,15 @@ serve(async (req) => {
   const productionRedirectBase = 'https://seeksy.io';
 
   try {
+    console.log('[youtube-callback] Processing OAuth callback');
+    
     const url = new URL(req.url);
     const code = url.searchParams.get('code');
     const state = url.searchParams.get('state');
     const error = url.searchParams.get('error');
 
-    console.log('YouTube callback received - code:', !!code, 'state:', !!state, 'error:', error);
-
     if (error) {
+      console.error('[youtube-callback] OAuth error:', error);
       throw new Error(`OAuth error: ${error}`);
     }
 
@@ -42,9 +44,16 @@ serve(async (req) => {
       if (!userId) {
         throw new Error('No user_id in state');
       }
-      console.log('Decoded user_id from state:', userId);
+      
+      // Validate userId is a valid UUID
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(userId)) {
+        throw new Error('Invalid user_id format');
+      }
+      
+      console.log('[youtube-callback] Decoded user_id from state:', userId);
     } catch (e) {
-      console.error('Failed to decode state:', e);
+      console.error('[youtube-callback] Failed to decode state:', e);
       throw new Error('Invalid state parameter');
     }
 
@@ -58,7 +67,7 @@ serve(async (req) => {
     const redirectUri = `${supabaseUrl}/functions/v1/youtube-callback`;
 
     // Exchange code for tokens
-    console.log('Exchanging code for tokens...');
+    console.log('[youtube-callback] Exchanging code for tokens...');
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -73,15 +82,15 @@ serve(async (req) => {
 
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.text();
-      console.error('Token exchange failed:', errorData);
+      console.error('[youtube-callback] Token exchange failed:', errorData);
       throw new Error('Failed to exchange authorization code');
     }
 
     const tokens = await tokenResponse.json();
-    console.log('Tokens received - access_token:', !!tokens.access_token, 'refresh_token:', !!tokens.refresh_token);
+    console.log('[youtube-callback] Tokens received');
 
     // Fetch ALL YouTube channels for this Google account
-    console.log('Fetching YouTube channels...');
+    console.log('[youtube-callback] Fetching YouTube channels...');
     const channelResponse = await fetch(
       'https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true',
       {
@@ -93,12 +102,11 @@ serve(async (req) => {
 
     if (!channelResponse.ok) {
       const errorData = await channelResponse.text();
-      console.error('Channel fetch failed:', errorData);
+      console.error('[youtube-callback] Channel fetch failed:', errorData);
       throw new Error('Failed to fetch YouTube channel data');
     }
 
     const channelData = await channelResponse.json();
-    console.log('Channel data received:', JSON.stringify(channelData, null, 2));
 
     if (!channelData.items || channelData.items.length === 0) {
       throw new Error('No YouTube channel found for this account');
@@ -118,7 +126,7 @@ serve(async (req) => {
       videoCount: parseInt(channel.statistics?.videoCount || '0', 10),
     }));
 
-    console.log(`Found ${channels.length} channel(s) for this account`);
+    console.log(`[youtube-callback] Found ${channels.length} channel(s)`);
 
     // If only 1 channel, auto-connect (existing behavior)
     if (channels.length === 1) {
@@ -127,15 +135,21 @@ serve(async (req) => {
     }
 
     // Multiple channels: store session and redirect to selection UI
-    console.log('Multiple channels detected, creating selection session...');
+    // Encrypt tokens before storing in session
+    console.log('[youtube-callback] Multiple channels, creating selection session with encrypted tokens...');
+    
+    const encryptedAccessToken = await encryptToken(tokens.access_token);
+    const encryptedRefreshToken = tokens.refresh_token 
+      ? await encryptToken(tokens.refresh_token) 
+      : null;
     
     const { data: session, error: sessionError } = await supabase
       .from('youtube_oauth_sessions')
       .insert({
         user_id: userId,
         channels: channels,
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token || null,
+        access_token: encryptedAccessToken,
+        refresh_token: encryptedRefreshToken,
         expires_at: tokens.expires_in 
           ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
           : null,
@@ -144,11 +158,11 @@ serve(async (req) => {
       .single();
 
     if (sessionError) {
-      console.error('Failed to create session:', sessionError);
+      console.error('[youtube-callback] Failed to create session:', sessionError);
       throw new Error('Failed to create channel selection session');
     }
 
-    console.log('Session created:', session.id);
+    console.log('[youtube-callback] Session created with encrypted tokens:', session.id);
 
     // Redirect to selection UI
     const redirectUrl = new URL('/social-analytics', productionRedirectBase);
@@ -156,7 +170,7 @@ serve(async (req) => {
     redirectUrl.searchParams.set('tab', 'youtube');
     redirectUrl.searchParams.set('yt_select_session', session.id);
     
-    console.log('Redirecting to channel selection:', redirectUrl.toString());
+    console.log('[youtube-callback] Redirecting to channel selection');
     return new Response(null, {
       status: 302,
       headers: {
@@ -164,7 +178,7 @@ serve(async (req) => {
       },
     });
   } catch (error) {
-    console.error('YouTube callback error:', error);
+    console.error('[youtube-callback] Error:', error);
     
     const redirectUrl = new URL('/social-analytics', productionRedirectBase);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -187,7 +201,15 @@ async function connectSingleChannel(
   tokens: { access_token: string; refresh_token?: string; expires_in?: number },
   productionRedirectBase: string
 ) {
-  console.log('Auto-connecting single channel:', channel.title);
+  console.log('[youtube-callback] Auto-connecting single channel:', channel.title);
+
+  // Encrypt tokens before storing
+  const encryptedAccessToken = await encryptToken(tokens.access_token);
+  const encryptedRefreshToken = tokens.refresh_token 
+    ? await encryptToken(tokens.refresh_token) 
+    : null;
+  
+  console.log('[youtube-callback] Tokens encrypted');
 
   // Check if profile already exists
   const { data: existingProfile } = await supabase
@@ -206,8 +228,8 @@ async function connectSingleChannel(
     profile_picture: channel.thumbnail,
     followers_count: channel.subscriberCount,
     media_count: channel.videoCount,
-    access_token: tokens.access_token,
-    refresh_token: tokens.refresh_token || null,
+    access_token: encryptedAccessToken,
+    refresh_token: encryptedRefreshToken,
     token_expires_at: tokens.expires_in 
       ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
       : null,
@@ -218,7 +240,7 @@ async function connectSingleChannel(
 
   let savedProfile;
   if (existingProfile) {
-    console.log('Updating existing YouTube profile:', existingProfile.id);
+    console.log('[youtube-callback] Updating existing YouTube profile:', existingProfile.id);
     const { data, error: updateError } = await supabase
       .from('social_media_profiles')
       .update(profileData)
@@ -227,12 +249,12 @@ async function connectSingleChannel(
       .single();
 
     if (updateError) {
-      console.error('Failed to update profile:', updateError);
+      console.error('[youtube-callback] Failed to update profile:', updateError);
       throw new Error('Failed to update YouTube profile');
     }
     savedProfile = data;
   } else {
-    console.log('Creating new YouTube profile for user:', userId);
+    console.log('[youtube-callback] Creating new YouTube profile for user:', userId);
     const { data, error: insertError } = await supabase
       .from('social_media_profiles')
       .insert(profileData)
@@ -240,13 +262,13 @@ async function connectSingleChannel(
       .single();
 
     if (insertError) {
-      console.error('Failed to insert profile:', insertError);
+      console.error('[youtube-callback] Failed to insert profile:', insertError);
       throw new Error('Failed to save YouTube profile');
     }
     savedProfile = data;
   }
 
-  console.log('Profile saved successfully:', savedProfile?.id);
+  console.log('[youtube-callback] Profile saved with encrypted tokens:', savedProfile?.id);
 
   // Trigger sync (fire and forget)
   try {
@@ -261,9 +283,9 @@ async function connectSingleChannel(
         profile_id: savedProfile?.id,
       }),
     });
-    console.log('Sync triggered, status:', syncResponse.status);
+    console.log('[youtube-callback] Sync triggered, status:', syncResponse.status);
   } catch (syncError) {
-    console.error('Failed to trigger sync (non-blocking):', syncError);
+    console.error('[youtube-callback] Failed to trigger sync (non-blocking):', syncError);
   }
 
   // Redirect to production URL with tab param
@@ -271,7 +293,7 @@ async function connectSingleChannel(
   redirectUrl.searchParams.set('connected', 'youtube');
   redirectUrl.searchParams.set('tab', 'youtube');
   
-  console.log('Redirecting to:', redirectUrl.toString());
+  console.log('[youtube-callback] Redirecting to:', redirectUrl.toString());
   return new Response(null, {
     status: 302,
     headers: {

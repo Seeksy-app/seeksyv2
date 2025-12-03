@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encryptToken } from "../_shared/token-encryption.ts";
 
 serve(async (req) => {
   try {
@@ -8,8 +9,10 @@ serve(async (req) => {
     const state = url.searchParams.get('state'); // user_id
     const error = url.searchParams.get('error');
 
+    console.log('[google-calendar-callback] Processing OAuth callback');
+
     if (error) {
-      console.error('OAuth error:', error);
+      console.error('[google-calendar-callback] OAuth error:', error);
       return new Response(null, {
         status: 302,
         headers: { Location: `https://seeksy.io/integrations?error=oauth_failed` }
@@ -17,7 +20,15 @@ serve(async (req) => {
     }
 
     if (!code || !state) {
+      console.error('[google-calendar-callback] Missing code or state');
       throw new Error('Missing code or state');
+    }
+
+    // Validate state is a valid UUID (user_id)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(state)) {
+      console.error('[google-calendar-callback] Invalid state format');
+      throw new Error('Invalid state parameter');
     }
 
     const clientId = Deno.env.get('GOOGLE_CALENDAR_CLIENT_ID');
@@ -39,12 +50,12 @@ serve(async (req) => {
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
-      console.error('Token exchange failed:', errorText);
+      console.error('[google-calendar-callback] Token exchange failed:', errorText);
       throw new Error('Failed to exchange token');
     }
 
     const tokens = await tokenResponse.json();
-    console.log('Received tokens for user:', state);
+    console.log('[google-calendar-callback] Received tokens for user:', state);
 
     // Get user's calendar email
     const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
@@ -62,6 +73,14 @@ serve(async (req) => {
 
     const expiryDate = new Date(Date.now() + (tokens.expires_in * 1000));
 
+    // Encrypt tokens before storing
+    const encryptedAccessToken = await encryptToken(tokens.access_token);
+    const encryptedRefreshToken = tokens.refresh_token 
+      ? await encryptToken(tokens.refresh_token) 
+      : null;
+    
+    console.log('[google-calendar-callback] Tokens encrypted successfully');
+
     // Check if connection already exists
     const { data: existing } = await supabaseAdmin
       .from('calendar_connections')
@@ -75,8 +94,8 @@ serve(async (req) => {
       const { error: updateError } = await supabaseAdmin
         .from('calendar_connections')
         .update({
-          access_token: tokens.access_token,
-          refresh_token: tokens.refresh_token,
+          access_token: encryptedAccessToken,
+          refresh_token: encryptedRefreshToken,
           token_expiry: expiryDate.toISOString(),
           calendar_email: calendarEmail,
           updated_at: new Date().toISOString(),
@@ -91,8 +110,8 @@ serve(async (req) => {
         .insert({
           user_id: state,
           provider: 'google',
-          access_token: tokens.access_token,
-          refresh_token: tokens.refresh_token,
+          access_token: encryptedAccessToken,
+          refresh_token: encryptedRefreshToken,
           token_expiry: expiryDate.toISOString(),
           calendar_email: calendarEmail,
         });
@@ -100,7 +119,7 @@ serve(async (req) => {
       if (insertError) throw insertError;
     }
 
-    console.log('Successfully stored calendar connection for user:', state);
+    console.log('[google-calendar-callback] Successfully stored encrypted calendar connection for user:', state);
 
     // Redirect back to integrations page on custom domain
     return new Response(null, {
@@ -108,7 +127,7 @@ serve(async (req) => {
       headers: { Location: `https://seeksy.io/integrations?google_success=true` }
     });
   } catch (error) {
-    console.error('Error in google-calendar-callback:', error);
+    console.error('[google-calendar-callback] Error:', error);
     return new Response(null, {
       status: 302,
       headers: { Location: `https://seeksy.io/integrations?error=google_connection_failed` }

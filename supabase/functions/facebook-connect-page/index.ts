@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encryptToken } from "../_shared/token-encryption.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,6 +13,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log('[facebook-connect-page] Processing page connection');
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
     
@@ -37,6 +40,8 @@ serve(async (req) => {
       );
     }
 
+    console.log('[facebook-connect-page] User authenticated:', user.id);
+
     const body = await req.json();
     const { session_id, page_id } = body;
 
@@ -47,7 +52,7 @@ serve(async (req) => {
       );
     }
 
-    console.log('Connecting Facebook Page:', page_id, 'for session:', session_id);
+    console.log('[facebook-connect-page] Connecting page:', page_id, 'for session:', session_id);
 
     // Fetch the session
     const { data: session, error: sessionError } = await supabase
@@ -58,7 +63,7 @@ serve(async (req) => {
       .single();
 
     if (sessionError || !session) {
-      console.error('Session not found:', sessionError);
+      console.error('[facebook-connect-page] Session not found:', sessionError);
       return new Response(
         JSON.stringify({ error: 'Session not found or expired' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -99,7 +104,11 @@ serve(async (req) => {
       );
     }
 
-    console.log('Selected page:', selectedPage.name);
+    console.log('[facebook-connect-page] Selected page:', selectedPage.name);
+
+    // Encrypt the page access token before storing
+    const encryptedAccessToken = await encryptToken(selectedPage.access_token);
+    console.log('[facebook-connect-page] Token encrypted');
 
     // Remove any existing Facebook profile for this user (different page)
     await supabase
@@ -108,7 +117,7 @@ serve(async (req) => {
       .eq('user_id', user.id)
       .eq('platform', 'facebook');
 
-    // Insert the new Facebook Page profile
+    // Insert the new Facebook Page profile with encrypted token
     const { data: savedProfile, error: insertError } = await supabase
       .from('social_media_profiles')
       .insert({
@@ -119,7 +128,7 @@ serve(async (req) => {
         profile_picture: selectedPage.picture,
         account_type: 'page',
         followers_count: selectedPage.fans,
-        access_token: selectedPage.access_token,
+        access_token: encryptedAccessToken,
         connected_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         sync_status: 'pending',
@@ -128,7 +137,7 @@ serve(async (req) => {
       .single();
 
     if (insertError) {
-      console.error('Failed to insert profile:', insertError);
+      console.error('[facebook-connect-page] Failed to insert profile:', insertError);
       return new Response(
         JSON.stringify({ error: 'Failed to save profile' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -141,7 +150,7 @@ serve(async (req) => {
       .update({ used_at: new Date().toISOString() })
       .eq('id', session_id);
 
-    console.log('Profile saved, triggering sync...');
+    console.log('[facebook-connect-page] Profile saved with encrypted token, triggering sync...');
 
     // Trigger sync
     try {
@@ -158,7 +167,7 @@ serve(async (req) => {
         }),
       });
     } catch (syncError) {
-      console.error('Sync trigger failed (non-blocking):', syncError);
+      console.error('[facebook-connect-page] Sync trigger failed (non-blocking):', syncError);
     }
 
     return new Response(
@@ -175,7 +184,7 @@ serve(async (req) => {
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error connecting page:', error);
+    console.error('[facebook-connect-page] Error:', error);
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

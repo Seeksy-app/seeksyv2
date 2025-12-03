@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { encryptToken } from "../_shared/token-encryption.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,26 +12,42 @@ Deno.serve(async (req) => {
   }
 
   try {
+    console.log('[microsoft-callback] Processing OAuth callback');
+    
     const url = new URL(req.url);
     const code = url.searchParams.get('code');
     const state = url.searchParams.get('state');
     const error = url.searchParams.get('error');
 
     if (error) {
-      console.error('OAuth error:', error);
-      return Response.redirect(`${url.origin}/integrations?error=microsoft_auth_failed`);
+      console.error('[microsoft-callback] OAuth error:', error);
+      return Response.redirect(`https://seeksy.io/integrations?error=microsoft_auth_failed`);
     }
 
     if (!code || !state) {
-      console.error('Missing code or state parameter');
-      return Response.redirect(`${url.origin}/integrations?error=missing_params`);
+      console.error('[microsoft-callback] Missing code or state parameter');
+      return Response.redirect(`https://seeksy.io/integrations?error=missing_params`);
     }
 
     // Decode state to get user ID
-    const stateData = JSON.parse(atob(state));
+    let stateData;
+    try {
+      stateData = JSON.parse(atob(state));
+    } catch (e) {
+      console.error('[microsoft-callback] Invalid state format');
+      return Response.redirect(`https://seeksy.io/integrations?error=invalid_state`);
+    }
+    
     const userId = stateData.userId;
 
-    console.log('Processing Microsoft OAuth callback for user:', userId);
+    // Validate userId is a valid UUID
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!userId || !uuidRegex.test(userId)) {
+      console.error('[microsoft-callback] Invalid userId in state');
+      return Response.redirect(`https://seeksy.io/integrations?error=invalid_state`);
+    }
+
+    console.log('[microsoft-callback] Processing for user:', userId);
 
     const clientId = Deno.env.get('MICROSOFT_CLIENT_ID');
     const clientSecret = Deno.env.get('MICROSOFT_CLIENT_SECRET');
@@ -55,12 +72,12 @@ Deno.serve(async (req) => {
 
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.text();
-      console.error('Token exchange failed:', errorData);
-      return Response.redirect(`${url.origin}/integrations?error=token_exchange_failed`);
+      console.error('[microsoft-callback] Token exchange failed:', errorData);
+      return Response.redirect(`https://seeksy.io/integrations?error=token_exchange_failed`);
     }
 
     const tokenData = await tokenResponse.json();
-    console.log('Successfully exchanged code for tokens');
+    console.log('[microsoft-callback] Successfully exchanged code for tokens');
 
     // Get user's email from Microsoft Graph API
     const graphResponse = await fetch('https://graph.microsoft.com/v1.0/me', {
@@ -73,8 +90,16 @@ Deno.serve(async (req) => {
     if (graphResponse.ok) {
       const userData = await graphResponse.json();
       microsoftEmail = userData.userPrincipalName || userData.mail;
-      console.log('Retrieved Microsoft email:', microsoftEmail);
+      console.log('[microsoft-callback] Retrieved Microsoft email:', microsoftEmail);
     }
+
+    // Encrypt tokens before storing
+    const encryptedAccessToken = await encryptToken(tokenData.access_token);
+    const encryptedRefreshToken = tokenData.refresh_token 
+      ? await encryptToken(tokenData.refresh_token) 
+      : null;
+    
+    console.log('[microsoft-callback] Tokens encrypted successfully');
 
     // Store tokens in database using service role key
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -93,8 +118,8 @@ Deno.serve(async (req) => {
       const { error: updateError } = await supabase
         .from('microsoft_connections')
         .update({
-          access_token: tokenData.access_token,
-          refresh_token: tokenData.refresh_token,
+          access_token: encryptedAccessToken,
+          refresh_token: encryptedRefreshToken,
           token_expiry: expiresAt,
           microsoft_email: microsoftEmail,
           updated_at: new Date().toISOString(),
@@ -102,8 +127,8 @@ Deno.serve(async (req) => {
         .eq('user_id', userId);
 
       if (updateError) {
-        console.error('Error updating Microsoft connection:', updateError);
-        return Response.redirect(`${url.origin}/integrations?error=database_error`);
+        console.error('[microsoft-callback] Error updating Microsoft connection:', updateError);
+        return Response.redirect(`https://seeksy.io/integrations?error=database_error`);
       }
     } else {
       // Insert new connection
@@ -111,23 +136,22 @@ Deno.serve(async (req) => {
         .from('microsoft_connections')
         .insert({
           user_id: userId,
-          access_token: tokenData.access_token,
-          refresh_token: tokenData.refresh_token,
+          access_token: encryptedAccessToken,
+          refresh_token: encryptedRefreshToken,
           token_expiry: expiresAt,
           microsoft_email: microsoftEmail,
         });
 
       if (insertError) {
-        console.error('Error storing Microsoft connection:', insertError);
-        return Response.redirect(`${url.origin}/integrations?error=database_error`);
+        console.error('[microsoft-callback] Error storing Microsoft connection:', insertError);
+        return Response.redirect(`https://seeksy.io/integrations?error=database_error`);
       }
     }
 
-    console.log('Successfully stored Microsoft connection');
-    return Response.redirect(`${url.origin}/integrations?microsoft_success=true`);
+    console.log('[microsoft-callback] Successfully stored encrypted Microsoft connection');
+    return Response.redirect(`https://seeksy.io/integrations?microsoft_success=true`);
   } catch (error) {
-    console.error('Error in microsoft-callback:', error);
-    const url = new URL(req.url);
-    return Response.redirect(`${url.origin}/integrations?error=callback_error`);
+    console.error('[microsoft-callback] Error:', error);
+    return Response.redirect(`https://seeksy.io/integrations?error=callback_error`);
   }
 });
