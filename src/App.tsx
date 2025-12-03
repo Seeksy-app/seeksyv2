@@ -8,7 +8,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { RoleBasedSidebar } from "@/components/navigation/RoleBasedSidebar";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { TopNavBar } from "@/components/TopNavBar";
-import { AskSparkDock } from "@/components/AskSparkDock";
+// AskSparkDock removed - using sidebar Ask Spark only
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -16,7 +16,7 @@ import { useTaskReminders } from "@/hooks/useTaskReminders";
 import { useAutoTheme } from "@/hooks/useAutoTheme";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { RouteTransition } from "@/components/RouteTransition";
-import { FloatingSparkButton } from "@/components/FloatingSparkButton";
+// FloatingSparkButton removed - using sidebar Ask Spark only
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -877,8 +877,7 @@ const AppContent = () => {
             </RouteTransition>
           </main>
         </div>
-        {user && !location.pathname.includes('/meeting-studio/') && !location.pathname.includes('/studio/') && <FloatingSparkButton />}
-        {user && !location.pathname.includes('/meeting-studio/') && !location.pathname.includes('/studio/') && <AskSparkDock />}
+        {/* Floating chatbot removed - Ask Spark available in sidebar navigation */}
         
         <HolidayFeatures />
         <CommandPalette />

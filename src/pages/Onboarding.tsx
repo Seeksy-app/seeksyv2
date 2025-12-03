@@ -118,12 +118,12 @@ export default function Onboarding() {
 
   const renderPersonaSelection = () => (
     <div className="space-y-6">
-      <div className="text-center mb-4">
-        <h2 className="text-2xl font-bold mb-2">Which best describes you?</h2>
-        <p className="text-muted-foreground">We'll customize your dashboard based on your needs.</p>
+      <div className="text-center mb-6">
+        <h2 className="text-2xl sm:text-3xl font-bold mb-2">What brings you to Seeksy?</h2>
+        <p className="text-muted-foreground">Select your primary focus — you can always change this later.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {PERSONA_OPTIONS.map((option, index) => {
           const Icon = option.icon;
           const isSelected = selectedPersona === option.id;
@@ -131,37 +131,43 @@ export default function Onboarding() {
           return (
             <motion.div
               key={option.id}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
+              transition={{ delay: index * 0.06 }}
             >
               <button
                 type="button"
                 onClick={() => setSelectedPersona(option.id as PersonaType)}
                 className={cn(
-                  "w-full p-4 rounded-xl border-2 transition-all text-left",
-                  "hover:shadow-md hover:border-primary/50",
+                  "w-full p-5 rounded-2xl border-2 transition-all text-left relative overflow-hidden group",
+                  "hover:shadow-lg hover:border-primary/50 hover:-translate-y-0.5",
                   isSelected
-                    ? "border-primary bg-primary/5 shadow-md"
-                    : "border-border bg-card"
+                    ? "border-primary bg-primary/5 shadow-lg ring-2 ring-primary/20"
+                    : "border-border bg-card hover:bg-accent/30"
                 )}
               >
-                <div className="flex items-center gap-4">
+                {/* Selected checkmark badge */}
+                {isSelected && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute top-3 right-3 p-1.5 rounded-full bg-primary shadow-sm"
+                  >
+                    <Check className="h-3.5 w-3.5 text-primary-foreground" />
+                  </motion.div>
+                )}
+                
+                <div className="flex flex-col items-start gap-3">
                   <div className={cn(
-                    "p-3 rounded-xl bg-gradient-to-br text-white",
+                    "p-3 rounded-xl bg-gradient-to-br text-white shadow-md",
                     option.gradient
                   )}>
-                    <Icon className="h-5 w-5" />
+                    <Icon className="h-6 w-6" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">{option.label}</p>
-                    <p className="text-sm text-muted-foreground">{option.description}</p>
+                  <div>
+                    <p className="font-semibold text-base">{option.label}</p>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{option.description}</p>
                   </div>
-                  {isSelected && (
-                    <div className="p-1.5 rounded-full bg-primary">
-                      <Check className="h-4 w-4 text-primary-foreground" />
-                    </div>
-                  )}
                 </div>
               </button>
             </motion.div>
@@ -309,15 +315,22 @@ export default function Onboarding() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-lg"
+        className="w-full max-w-2xl"
       >
+        {/* Progress indicator with step label */}
         {step > 1 && (
-          <div className="mb-6">
-            <Progress value={progress} className="h-1.5" />
+          <div className="mb-6 space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Step {step} of {TOTAL_STEPS}</span>
+              <span className="text-primary font-medium">
+                {step === 2 ? "Select your focus" : step === 3 ? "Review setup" : "Get started"}
+              </span>
+            </div>
+            <Progress value={progress} className="h-2" />
           </div>
         )}
 
-        <Card className="border-border/50 shadow-lg">
+        <Card className="border-border/50 shadow-xl">
           <CardContent className="p-6 sm:p-8">
             <AnimatePresence mode="wait">
               <motion.div

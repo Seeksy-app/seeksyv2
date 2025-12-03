@@ -132,8 +132,8 @@ export const PERSONA_CONFIGS: Record<PersonaType, PersonaConfig> = {
   },
   influencer: {
     id: "influencer",
-    label: "Social Media Influencer",
-    description: "Grow your audience and monetize your influence",
+    label: "Content Creator",
+    description: "Create content and grow your audience across platforms",
     icon: Camera,
     gradient: "from-pink-500 to-rose-500",
     defaultWidgets: ["social-analytics", "growth-insights", "media-library", "brand-campaigns", "media-kit"],
