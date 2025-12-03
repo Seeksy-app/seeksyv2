@@ -13,6 +13,47 @@ serve(async (req) => {
   }
 
   try {
+    // === AUTHENTICATION ===
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.log("🔒 Meeting Intelligence: Missing Authorization header");
+      return new Response(
+        JSON.stringify({ error: "Authentication required" }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // Verify the user's JWT
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    });
+
+    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
+    
+    if (userError || !user) {
+      console.log("🔒 Meeting Intelligence: Invalid token -", userError?.message);
+      return new Response(
+        JSON.stringify({ error: "Invalid or expired authentication token" }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Get user roles
+    const { data: userRoles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id);
+    
+    const roles = userRoles?.map(r => r.role) || [];
+    const isAdmin = roles.some(r => ["admin", "super_admin"].includes(r));
+
     const { meetingId, transcript } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
@@ -24,12 +65,31 @@ serve(async (req) => {
       throw new Error('Meeting ID and transcript are required');
     }
 
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // === AUTHORIZATION ===
+    // Verify the user owns the meeting
+    const { data: meeting, error: meetingError } = await supabase
+      .from('meetings')
+      .select('user_id')
+      .eq('id', meetingId)
+      .single();
 
-    console.log('Processing meeting intelligence for meeting:', meetingId);
+    if (meetingError || !meeting) {
+      console.log(`🔒 Meeting Intelligence: Meeting ${meetingId} not found`);
+      return new Response(
+        JSON.stringify({ error: "Meeting not found" }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!isAdmin && meeting.user_id !== user.id) {
+      console.log(`🔒 Meeting Intelligence: User ${user.id} denied access to meeting ${meetingId} owned by ${meeting.user_id}`);
+      return new Response(
+        JSON.stringify({ error: "Access denied. You can only process intelligence for your own meetings." }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`✅ Meeting Intelligence: Authorized - user=${user.id}, roles=[${roles.join(',')}], meeting=${meetingId}`);
 
     // Call Lovable AI to analyze the meeting transcript
     const systemPrompt = `You are an AI meeting assistant. Analyze the provided meeting transcript and extract:
@@ -121,9 +181,8 @@ Format your response as JSON with this structure:
     }
 
     const data = await response.json();
-    console.log('AI response:', JSON.stringify(data));
+    console.log('AI response received');
 
-    // Extract the tool call result
     const toolCall = data.choices[0].message.tool_calls?.[0];
     if (!toolCall) {
       throw new Error('No tool call in AI response');

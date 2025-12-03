@@ -13,21 +13,90 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
+    // === AUTHENTICATION ===
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.log("🔒 Automation Engine: Missing Authorization header");
+      return new Response(
+        JSON.stringify({ error: "Authentication required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+    // Verify the user's JWT
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    });
+
+    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
+    
+    if (userError || !user) {
+      console.log("🔒 Automation Engine: Invalid token -", userError?.message);
+      return new Response(
+        JSON.stringify({ error: "Invalid or expired authentication token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // Get user roles for logging
+    const { data: userRoles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id);
+    
+    const roles = userRoles?.map(r => r.role) || [];
+    const isAdmin = roles.some(r => ["admin", "super_admin"].includes(r));
 
     const { trigger, contactId, eventData } = await req.json();
 
-    console.log(`🤖 Automation trigger: ${trigger} for contact ${contactId}`);
+    // === AUTHORIZATION ===
+    // Verify the user owns the contact or is admin
+    if (!isAdmin && contactId) {
+      const { data: contact, error: contactCheckError } = await supabase
+        .from("contacts")
+        .select("user_id")
+        .eq("id", contactId)
+        .single();
+
+      if (contactCheckError || !contact) {
+        console.log(`🔒 Automation Engine: Contact ${contactId} not found`);
+        return new Response(
+          JSON.stringify({ error: "Contact not found" }),
+          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (contact.user_id !== user.id) {
+        console.log(`🔒 Automation Engine: User ${user.id} denied access to contact ${contactId} owned by ${contact.user_id}`);
+        return new Response(
+          JSON.stringify({ error: "Access denied. You can only trigger automations for your own contacts." }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    console.log(`✅ Automation Engine: Authorized - user=${user.id}, roles=[${roles.join(',')}], trigger=${trigger}, contact=${contactId}`);
 
     // Find active automations matching this trigger
-    const { data: automations, error: automationsError } = await supabase
+    // Only find automations owned by this user (unless admin)
+    let automationsQuery = supabase
       .from("automations")
       .select("*, automation_actions(*)")
       .eq("trigger_type", trigger)
       .eq("is_active", true);
+
+    if (!isAdmin) {
+      automationsQuery = automationsQuery.eq("user_id", user.id);
+    }
+
+    const { data: automations, error: automationsError } = await automationsQuery;
 
     if (automationsError) throw automationsError;
 
@@ -102,17 +171,13 @@ serve(async (req) => {
         actions.sort((a: any, b: any) => (a.action_order || 0) - (b.action_order || 0));
 
         for (const action of actions) {
-          // Apply delay if specified
           if (action.delay_minutes && action.delay_minutes > 0) {
             console.log(`⏰ Delaying ${action.delay_minutes} minutes...`);
-            // In production, this should be handled by a queue system
-            // For now, we'll just log it
           }
 
           if (action.action_type === "send_email") {
             const config = action.action_config as any;
             
-            // Get template if specified
             let htmlContent = config.html_content || "";
             let subject = config.subject || "Automated Email";
 
@@ -129,11 +194,9 @@ serve(async (req) => {
               }
             }
 
-            // Replace merge tags
             htmlContent = htmlContent.replace(/{{name}}/gi, contact.name || contact.email);
             htmlContent = htmlContent.replace(/{{email}}/gi, contact.email);
 
-            // Get from email
             let fromEmail = Deno.env.get("SENDER_EMAIL_HELLO") || "hello@seeksy.io";
             if (config.from_email_account_id) {
               const { data: emailAccount } = await supabase
@@ -147,7 +210,6 @@ serve(async (req) => {
               }
             }
 
-            // Send email
             const { data: emailData, error: sendError } = await resend.emails.send({
               from: fromEmail,
               to: [contact.email],
@@ -168,7 +230,6 @@ serve(async (req) => {
               break;
             }
 
-            // Track sent event
             await supabase.from("email_events").insert({
               event_type: "email.sent",
               to_email: contact.email,
@@ -184,7 +245,6 @@ serve(async (req) => {
           }
         }
 
-        // Mark run as completed
         await supabase
           .from("automation_runs")
           .update({
@@ -208,18 +268,13 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ success: true, results }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("❌ Automation engine error:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

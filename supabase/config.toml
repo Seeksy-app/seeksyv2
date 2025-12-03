@@ -34,7 +34,7 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.cfo-ai-assistant]
-verify_jwt = false
+verify_jwt = true
 
 [functions.detect-speakers]
 verify_jwt = true
@@ -106,7 +106,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.process-meeting-intelligence]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-meeting-followup]
 verify_jwt = false
@@ -146,7 +146,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.generate-master-blog-posts]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-blog-image]
 verify_jwt = true
@@ -206,7 +206,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.automation-engine]
-verify_jwt = false
+verify_jwt = true
 
 [functions.global-agent]
 verify_jwt = true

@@ -237,7 +237,7 @@ export const ScribeAssistant = ({
                       </Button>
                     </div>
                     <div className="p-4 bg-muted rounded-md prose prose-sm max-w-none">
-                      <div dangerouslySetInnerHTML={{ __html: result.body }} />
+                      <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(result.body) }} />
                     </div>
                   </div>
                 </div>
