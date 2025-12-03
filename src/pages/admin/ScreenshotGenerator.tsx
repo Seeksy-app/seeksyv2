@@ -36,22 +36,35 @@ const PRESET_PAGES = [
   { name: "Homepage", url: "https://seeksy.io", category: "external", description: "Landing page with hero section, features overview, call-to-action buttons, and navigation menu" },
   { name: "Pricing Page", url: "https://seeksy.io/pricing", category: "external", description: "Pricing tiers comparison with features list and purchase buttons" },
   { name: "Signup Page", url: "https://seeksy.io/auth", category: "external", description: "User registration form with email, password fields and social login options" },
+  { name: "Comparison Page", url: "https://seeksy.io/comparison", category: "external", description: "Feature comparison with competitors, benefits overview" },
   
   // Internal Pages
   { name: "Creator Dashboard", url: "https://seeksy.io/dashboard", category: "internal", description: "Analytics dashboard with charts showing views, revenue, engagement metrics, and recent activity" },
   { name: "Admin Console", url: "https://seeksy.io/admin", category: "internal", description: "Admin dashboard with user management, system status, and analytics overview" },
+  { name: "CFO Dashboard", url: "https://seeksy.io/cfo-dashboard", category: "internal", description: "Financial metrics, revenue insights, and business intelligence" },
+  { name: "Board Portal", url: "https://seeksy.io/board", category: "internal", description: "Board member view with business model, GTM strategy, and forecasts" },
   
   // Creator Tools
-  { name: "Media Library", url: "https://seeksy.io/media-vault", category: "creator-tools", description: "Grid of video thumbnails with upload button, search bar, and filtering options" },
+  { name: "Media Vault", url: "https://seeksy.io/media-vault", category: "creator-tools", description: "Grid of video thumbnails with upload button, search bar, and filtering options" },
   { name: "Podcast Manager", url: "https://seeksy.io/podcasts", category: "creator-tools", description: "List of podcast episodes with status badges, publish dates, and edit buttons" },
-  { name: "Studio Page", url: "https://seeksy.io/studio", category: "creator-tools", description: "Live streaming interface with video preview, broadcast controls, chat panel, and branding overlays" },
-  { name: "My Page Editor", url: "https://seeksy.io/my-page-settings", category: "creator-tools", description: "Customization interface with color pickers, module toggles, and live preview panel" },
+  { name: "Studio Hub", url: "https://seeksy.io/studio", category: "creator-tools", description: "Audio and video recording studio with AI production features" },
+  { name: "AI Clips Studio", url: "https://seeksy.io/studio/clips", category: "creator-tools", description: "AI clip generation with timeline, transcript, and export options" },
+  { name: "My Page Editor", url: "https://seeksy.io/profile/edit", category: "creator-tools", description: "Customization interface with section builder, module toggles, and live preview" },
+  { name: "Voice Identity", url: "https://seeksy.io/my-voice-identity", category: "creator-tools", description: "Voice certification, fingerprint verification, and blockchain credentials" },
+  { name: "Identity Hub", url: "https://seeksy.io/identity", category: "creator-tools", description: "Face and voice verification status, rights management" },
+  { name: "Social Analytics", url: "https://seeksy.io/social-analytics", category: "creator-tools", description: "Instagram, YouTube, Facebook metrics and creator valuation" },
   
   // Advertiser Tools
   { name: "Advertiser Dashboard", url: "https://seeksy.io/advertiser", category: "advertiser-tools", description: "Campaign performance dashboard with impression stats, budget tracking, and active campaigns list" },
+  { name: "Ad Library", url: "https://seeksy.io/advertiser/creatives", category: "advertiser-tools", description: "Audio ads, scripts, and creative management" },
+  
+  // Events & Awards
+  { name: "Events", url: "https://seeksy.io/events", category: "internal", description: "Event list with registration, check-in, and analytics" },
+  { name: "Awards Programs", url: "https://seeksy.io/awards", category: "internal", description: "Awards programs with categories, nominees, and voting" },
+  { name: "Meetings", url: "https://seeksy.io/meetings", category: "internal", description: "Meeting types, booking links, and scheduling" },
   
   // Onboarding
-  { name: "Onboarding Step 1", url: "https://seeksy.io/onboarding", category: "onboarding", description: "Welcome screen with user type selection and getting started guide" },
+  { name: "Onboarding Wizard", url: "https://seeksy.io/onboarding", category: "onboarding", description: "Welcome screen with user type selection and getting started guide" },
 ];
 
 export default function ScreenshotGenerator() {

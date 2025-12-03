@@ -2,6 +2,8 @@ import { useState, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+export type CaptureStatus = 'idle' | 'recording' | 'encoding' | 'uploading' | 'saved' | 'failed';
+
 export interface ScreenCapturePreset {
   id: string;
   name: string;
@@ -39,8 +41,10 @@ export function useScreenCapture() {
   const { toast } = useToast();
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [captureStatus, setCaptureStatus] = useState<CaptureStatus>('idle');
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [currentPresetId, setCurrentPresetId] = useState<string | null>(null);
+  const [lastError, setLastError] = useState<string | null>(null);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -101,9 +105,16 @@ export function useScreenCapture() {
     setRecordingDuration(0);
   }, []);
 
+  const resetStatus = useCallback(() => {
+    setCaptureStatus('idle');
+    setLastError(null);
+  }, []);
+
   const startCapture = useCallback(async (preset: ScreenCapturePreset): Promise<void> => {
     console.log('[ScreenCapture] Starting capture for preset:', preset.name);
     const captureStartTime = Date.now();
+    setCaptureStatus('idle');
+    setLastError(null);
     
     try {
       // Request screen capture - user will pick which tab/window
@@ -171,6 +182,7 @@ export function useScreenCapture() {
       startTimeRef.current = captureStartTime;
       mediaRecorder.start(1000); // Capture every 1 second
       setIsRecording(true);
+      setCaptureStatus('recording');
       setRecordingDuration(0);
 
       // Update duration every second
@@ -258,6 +270,7 @@ export function useScreenCapture() {
       mediaRecorderRef.current.onstop = async () => {
         console.log('[ScreenCapture] MediaRecorder stopped, processing chunks');
         const encodingStart = Date.now();
+        setCaptureStatus('encoding');
         
         try {
           // Stop all tracks
@@ -288,6 +301,7 @@ export function useScreenCapture() {
           console.log('[ScreenCapture] Uploading to:', storagePath);
 
           const uploadStart = Date.now();
+          setCaptureStatus('uploading');
 
           // Get current user
           const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -370,6 +384,7 @@ export function useScreenCapture() {
             processingTimeoutRef.current = null;
           }
 
+          setCaptureStatus('saved');
           cleanup();
           resolve(recording);
         } catch (error) {
@@ -392,6 +407,8 @@ export function useScreenCapture() {
             processingTimeoutRef.current = null;
           }
           
+          setCaptureStatus('failed');
+          setLastError(errorMessage);
           cleanup();
           resolve(null);
         }
@@ -413,6 +430,7 @@ export function useScreenCapture() {
 
   const cancelCapture = useCallback(() => {
     console.log('[ScreenCapture] Cancelling capture');
+    setCaptureStatus('idle');
     cleanup();
     toast({
       title: "Recording Cancelled",
@@ -423,10 +441,13 @@ export function useScreenCapture() {
   return {
     isRecording,
     isProcessing,
+    captureStatus,
     recordingDuration,
     currentPresetId,
+    lastError,
     startCapture,
     stopCapture,
     cancelCapture,
+    resetStatus,
   };
 }

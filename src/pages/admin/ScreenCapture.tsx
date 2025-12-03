@@ -14,13 +14,16 @@ import {
   Loader2,
   CheckCircle,
   Monitor,
-  RefreshCw
+  RefreshCw,
+  CloudUpload,
+  AlertCircle
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useScreenCapture, ScreenCapturePreset, CapturedRecording } from "@/hooks/useScreenCapture";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { DemoRecorderSettings, defaultDemoRecorderSettings, type DemoRecorderSettingsData } from "@/components/studio/DemoRecorderSettings";
 
 const CAPTURE_PRESETS: ScreenCapturePreset[] = [
   {
@@ -95,16 +98,20 @@ export default function ScreenCapture() {
   const {
     isRecording,
     isProcessing,
+    captureStatus,
     recordingDuration,
     currentPresetId,
+    lastError,
     startCapture,
     stopCapture,
     cancelCapture,
+    resetStatus,
   } = useScreenCapture();
 
   const [sessionRecordings, setSessionRecordings] = useState<CapturedRecording[]>([]);
   const [activePreset, setActivePreset] = useState<ScreenCapturePreset | null>(null);
   const activePresetRef = useRef<ScreenCapturePreset | null>(null);
+  const [settings, setSettings] = useState<DemoRecorderSettingsData>(defaultDemoRecorderSettings);
 
   // Query recent demo video recordings from database
   const { data: dbRecordings, refetch: refetchRecordings } = useQuery({
@@ -224,55 +231,119 @@ export default function ScreenCapture() {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-3">
             <Monitor className="h-8 w-8 text-primary" />
-            Screen Capture for Demo Videos
+            Demo Video Recorder
           </h1>
           <p className="text-muted-foreground mt-2">
             Record silent screen captures of Seeksy pages for HeyGen investor videos
           </p>
         </div>
-        <Button variant="outline" onClick={() => navigate('/media/library')}>
-          <FolderOpen className="mr-2 h-4 w-4" />
-          Open Media Library
-        </Button>
+        <div className="flex items-center gap-2">
+          <DemoRecorderSettings settings={settings} onSettingsChange={setSettings} />
+          <Button variant="outline" onClick={() => navigate('/media/library')}>
+            <FolderOpen className="mr-2 h-4 w-4" />
+            Open Media Library
+          </Button>
+        </div>
       </div>
 
-      {/* Recording Status */}
-      {(isRecording || isProcessing) && (
-        <Card className="border-primary bg-primary/5">
+      {/* Recording Status Bar - Enhanced with visual progress */}
+      {(isRecording || isProcessing || captureStatus === 'saved' || captureStatus === 'failed') && (
+        <Card className={`border-2 ${
+          captureStatus === 'recording' ? 'border-destructive bg-destructive/5' : 
+          captureStatus === 'saved' ? 'border-green-500 bg-green-500/5' :
+          captureStatus === 'failed' ? 'border-destructive bg-destructive/5' :
+          'border-primary bg-primary/5'
+        }`}>
           <CardContent className="py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                {isRecording && (
+                {captureStatus === 'recording' && (
                   <>
                     <div className="flex items-center gap-2">
-                      <span className="relative flex h-3 w-3">
+                      <span className="relative flex h-4 w-4">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-destructive"></span>
+                        <span className="relative inline-flex rounded-full h-4 w-4 bg-destructive"></span>
                       </span>
-                      <span className="font-semibold text-destructive">Recording</span>
+                      <span className="font-bold text-destructive text-lg">⏺ Recording</span>
                     </div>
-                    <Badge variant="secondary" className="text-lg px-3 py-1">
+                    <Badge variant="outline" className="text-lg px-4 py-1 font-mono border-2">
                       <Clock className="mr-2 h-4 w-4" />
                       {formatDuration(recordingDuration)}
                     </Badge>
-                    <span className="text-muted-foreground">
+                    <span className="text-muted-foreground font-medium">
                       {activePreset?.name}
                     </span>
                   </>
                 )}
-                {isProcessing && (
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Processing and saving recording...</span>
+                {captureStatus === 'encoding' && (
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-5 w-5 animate-spin text-amber-500" />
+                      <span className="font-bold text-amber-600">⏳ Encoding video...</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1 animate-pulse">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Encoding
+                      </span>
+                      <span>→</span>
+                      <span className="opacity-50">Uploading</span>
+                      <span>→</span>
+                      <span className="opacity-50">Saved</span>
+                    </div>
+                  </div>
+                )}
+                {captureStatus === 'uploading' && (
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <CloudUpload className="h-5 w-5 animate-pulse text-blue-500" />
+                      <span className="font-bold text-blue-600">☁️ Uploading to Seeksy...</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1 text-green-500">
+                        <CheckCircle className="h-3 w-3" />
+                        Encoded
+                      </span>
+                      <span>→</span>
+                      <span className="flex items-center gap-1 animate-pulse">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Uploading
+                      </span>
+                      <span>→</span>
+                      <span className="opacity-50">Saved</span>
+                    </div>
+                  </div>
+                )}
+                {captureStatus === 'saved' && (
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                      <span className="font-bold text-green-600">✅ Saved to Library</span>
+                    </div>
+                    <Button size="sm" variant="ghost" onClick={resetStatus}>
+                      Dismiss
+                    </Button>
+                  </div>
+                )}
+                {captureStatus === 'failed' && (
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="h-5 w-5 text-destructive" />
+                      <span className="font-bold text-destructive">❌ Failed</span>
+                    </div>
+                    <span className="text-sm text-muted-foreground">{lastError}</span>
+                    <Button size="sm" variant="ghost" onClick={resetStatus}>
+                      Dismiss
+                    </Button>
                   </div>
                 )}
               </div>
-              {isRecording && (
+              {captureStatus === 'recording' && (
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={cancelCapture}>
                     Cancel
                   </Button>
-                  <Button variant="destructive" onClick={handleStopCapture}>
+                  <Button variant="destructive" size="lg" onClick={handleStopCapture}>
                     <Square className="mr-2 h-4 w-4" />
                     Stop Recording
                   </Button>
