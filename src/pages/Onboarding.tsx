@@ -123,7 +123,7 @@ export default function Onboarding() {
         <p className="text-muted-foreground">Select your primary focus — you can always change this later.</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {PERSONA_OPTIONS.map((option, index) => {
           const Icon = option.icon;
           const isSelected = selectedPersona === option.id;
@@ -133,42 +133,37 @@ export default function Onboarding() {
               key={option.id}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.06 }}
+              transition={{ delay: index * 0.05 }}
             >
               <button
                 type="button"
                 onClick={() => setSelectedPersona(option.id as PersonaType)}
                 className={cn(
-                  "w-full p-5 rounded-2xl border-2 transition-all text-left relative overflow-hidden group",
+                  "w-full p-4 rounded-xl border-2 transition-all text-center relative overflow-hidden group h-[130px] flex flex-col items-center justify-center",
                   "hover:shadow-lg hover:border-primary/50 hover:-translate-y-0.5",
                   isSelected
                     ? "border-primary bg-primary/5 shadow-lg ring-2 ring-primary/20"
                     : "border-border bg-card hover:bg-accent/30"
                 )}
               >
-                {/* Selected checkmark badge */}
                 {isSelected && (
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute top-3 right-3 p-1.5 rounded-full bg-primary shadow-sm"
+                    className="absolute top-2 right-2 p-1 rounded-full bg-primary shadow-sm"
                   >
-                    <Check className="h-3.5 w-3.5 text-primary-foreground" />
+                    <Check className="h-3 w-3 text-primary-foreground" />
                   </motion.div>
                 )}
                 
-                <div className="flex flex-col items-start gap-3">
-                  <div className={cn(
-                    "p-3 rounded-xl bg-gradient-to-br text-white shadow-md",
-                    option.gradient
-                  )}>
-                    <Icon className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-base">{option.label}</p>
-                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{option.description}</p>
-                  </div>
+                <div className={cn(
+                  "p-2.5 rounded-xl bg-gradient-to-br text-white shadow-md mb-2",
+                  option.gradient
+                )}>
+                  <Icon className="h-5 w-5" />
                 </div>
+                <p className="font-semibold text-sm">{option.label}</p>
+                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 px-1">{option.description}</p>
               </button>
             </motion.div>
           );
@@ -315,7 +310,7 @@ export default function Onboarding() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-2xl"
+        className="w-full max-w-4xl"
       >
         {/* Progress indicator with step label */}
         {step > 1 && (

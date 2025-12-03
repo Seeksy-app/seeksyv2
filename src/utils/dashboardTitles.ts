@@ -8,6 +8,7 @@ export const DASHBOARD_TITLES: Record<PersonaType | "default", string> = {
   entrepreneur: "Brand Content Dashboard",
   agency: "Agency Command Center",
   brand: "Brand & Venue Dashboard",
+  communityLeader: "Influencer Dashboard",
   default: "Your Creator Dashboard",
 };
 
@@ -25,6 +26,7 @@ export function getDashboardSubtitle(personaType?: PersonaType | null): string {
     entrepreneur: "Manage your business content",
     agency: "Manage creators at scale",
     brand: "Discover and partner with creators",
+    communityLeader: "Grow your audience and monetize your influence",
     default: "Your personalized workspace",
   };
   return subtitles[personaType || "default"] || subtitles.default;

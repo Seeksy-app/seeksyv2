@@ -27,6 +27,7 @@ const getRoleLabel = (personaType?: PersonaType | null): string => {
     entrepreneur: "Business Pro",
     agency: "Agency",
     brand: "Brand",
+    communityLeader: "Influencer",
   };
   return personaType ? labels[personaType] || "Creator" : "Creator";
 };

@@ -11,7 +11,8 @@ export type PersonaType =
   | "eventHost" 
   | "entrepreneur" 
   | "agency" 
-  | "brand";
+  | "brand"
+  | "communityLeader";
 
 export interface WidgetConfig {
   id: string;
@@ -292,6 +293,33 @@ export const PERSONA_CONFIGS: Record<PersonaType, PersonaConfig> = {
       { id: "campaigns", label: "Campaigns", route: "/advertiser/campaigns", icon: Star },
       { id: "events", label: "Events", route: "/events", icon: Calendar },
       { id: "media", label: "Media", route: "/media-library", icon: Film },
+    ],
+  },
+  communityLeader: {
+    id: "communityLeader",
+    label: "Influencer",
+    description: "Grow your audience and monetize your influence",
+    icon: Star,
+    gradient: "from-amber-500 to-yellow-500",
+    defaultWidgets: ["social-analytics", "growth-insights", "brand-campaigns", "media-kit", "revenue-tracking"],
+    allWidgets: ["social-analytics", "growth-insights", "brand-campaigns", "media-kit", "revenue-tracking", "content-calendar", "audience-demographics", "media-library"],
+    checklist: [
+      { id: "connect-socials", label: "Connect Social Accounts", description: "Sync Instagram, TikTok, YouTube", route: "/social-analytics" },
+      { id: "build-media-kit", label: "Build Your Media Kit", description: "Showcase your value", route: "/media-kit" },
+      { id: "verify-identity", label: "Verify Your Identity", description: "Unlock premium features", route: "/identity" },
+      { id: "enable-monetization", label: "Enable Monetization", description: "Start earning from brands", route: "/revenue" },
+    ],
+    kpis: [
+      { id: "followers", label: "Total Followers", value: "0", trend: "neutral" },
+      { id: "engagement", label: "Engagement Rate", value: "0%", trend: "neutral" },
+      { id: "reach", label: "Monthly Reach", value: "0", trend: "neutral" },
+      { id: "earnings", label: "Earnings", value: "$0", trend: "neutral" },
+    ],
+    navHighlights: [
+      { id: "social-analytics", label: "Social Analytics", route: "/social-analytics", icon: BarChart3 },
+      { id: "media-kit", label: "Media Kit", route: "/media-kit", icon: Briefcase },
+      { id: "brand-campaigns", label: "Brand Campaigns", route: "/campaigns", icon: Star },
+      { id: "revenue", label: "Revenue", route: "/revenue", icon: DollarSign },
     ],
   },
 };
