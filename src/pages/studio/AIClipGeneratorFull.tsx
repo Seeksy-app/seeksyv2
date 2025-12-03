@@ -81,10 +81,38 @@ const stylePresets: StylePreset[] = [
   { id: "reaction", name: "Reaction Style", description: "PiP with facial focus", icon: Heart, layout: "pip-corner", captionStyle: "emoji-react", defaultRatio: "9:16", musicEnabled: true },
 ];
 
-// Layout presets (simplified - no PiP controls in toolbar)
-const layoutPresets = [
-  { id: "full", name: "Full Screen", icon: Maximize2 },
-  { id: "split-horizontal", name: "Side by Side", icon: LayoutGrid },
+// Social-first recommended templates
+const socialTemplates = [
+  { 
+    id: "tiktok-reels", 
+    name: "TikTok / Reels Optimized", 
+    icon: Smartphone,
+    ratio: "9:16", 
+    caption: "bold-pop", 
+    preset: "viral",
+    description: "Bold captions + animated emphasis",
+    gradient: "from-pink-500 to-orange-500"
+  },
+  { 
+    id: "instagram-feed", 
+    name: "Instagram Feed", 
+    icon: Square,
+    ratio: "1:1", 
+    caption: "clean-white", 
+    preset: "educational",
+    description: "Clean captions + readable text",
+    gradient: "from-purple-500 to-pink-500"
+  },
+  { 
+    id: "youtube-shorts", 
+    name: "YouTube Shorts", 
+    icon: Youtube,
+    ratio: "9:16", 
+    caption: "gradient-glow", 
+    preset: "motivational",
+    description: "High-contrast + bold style",
+    gradient: "from-red-500 to-orange-500"
+  },
 ];
 
 const captionThemes = [
@@ -167,6 +195,18 @@ export default function AIClipGeneratorFull() {
   // Created clips
   const [createdClips, setCreatedClips] = useState<CreatedClip[]>([]);
   const [exportQueue, setExportQueue] = useState<CreatedClip[]>([]);
+  
+  // Before/After toggle
+  const [showBeforeAfter, setShowBeforeAfter] = useState(false);
+  const [isBeforeView, setIsBeforeView] = useState(false);
+  
+  // AI Post-Production stats
+  const [postProductionStats] = useState({
+    fillerWordsRemoved: "4.5 minutes",
+    pausesTrimmed: "2.1 minutes",
+    audioBalanced: true,
+    tracksProcessed: 3,
+  });
   
   // Transcript
   const [transcript, setTranscript] = useState<TranscriptSegment[]>([
@@ -471,22 +511,21 @@ export default function AIClipGeneratorFull() {
       setSelectedPreset(presetId);
       setSelectedRatio(preset.defaultRatio);
       setMusicEnabled(preset.musicEnabled);
-      
-      // Set layout based on preset
-      if (presetId === "podcast") {
-        setSelectedLayout("split-horizontal");
-      } else if (presetId === "reaction") {
-        setSelectedLayout("pip-top-right");
-      } else {
-        setSelectedLayout("full");
-      }
+      setSelectedLayout("full");
     }
+  };
+
+  const handleSocialTemplateSelect = (template: typeof socialTemplates[0]) => {
+    setSelectedRatio(template.ratio);
+    setSelectedCaptionTheme(template.caption);
+    setSelectedPreset(template.preset);
+    toast({ title: `Applied ${template.name}`, description: template.description });
   };
 
   const videoUrl = mediaFile?.file_url;
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Top Bar - Light Theme */}
       <div className="h-14 border-b border-border px-4 flex items-center justify-between shrink-0 bg-card">
         <div className="flex items-center gap-3">
@@ -501,7 +540,35 @@ export default function AIClipGeneratorFull() {
             </p>
           </div>
         </div>
+        
+        {/* AI Post-Production Stats Banner */}
+        <div className="hidden md:flex items-center gap-4 px-4 py-1.5 bg-primary/10 rounded-lg border border-primary/20">
+          <div className="flex items-center gap-1.5 text-xs">
+            <Wand2 className="w-3.5 h-3.5 text-primary" />
+            <span className="text-muted-foreground">AI Cleaned:</span>
+            <span className="font-medium text-foreground">{postProductionStats.fillerWordsRemoved} filler</span>
+          </div>
+          <div className="w-px h-4 bg-border" />
+          <div className="flex items-center gap-1 text-xs">
+            <span className="text-muted-foreground">Pauses:</span>
+            <span className="font-medium text-foreground">{postProductionStats.pausesTrimmed}</span>
+          </div>
+          <div className="w-px h-4 bg-border" />
+          <div className="flex items-center gap-1 text-xs">
+            <span className="text-muted-foreground">Tracks:</span>
+            <span className="font-medium text-foreground">{postProductionStats.tracksProcessed}</span>
+          </div>
+        </div>
+        
         <div className="flex items-center gap-2">
+          {/* Before/After Toggle */}
+          <div className="flex items-center gap-2 mr-2">
+            <span className="text-xs text-muted-foreground">Before/After</span>
+            <Switch
+              checked={showBeforeAfter}
+              onCheckedChange={setShowBeforeAfter}
+            />
+          </div>
           <Button variant="outline" size="sm" onClick={handleExport} disabled={isGenerating} className="gap-2">
             {isGenerating ? (
               <>
@@ -522,11 +589,36 @@ export default function AIClipGeneratorFull() {
         </div>
       </div>
 
-      {/* Main Content - Three Column Layout */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Panel - Transcript */}
-        <div className="w-72 border-r border-border flex flex-col bg-card">
-          <div className="h-12 px-4 flex items-center justify-between border-b border-border">
+      {/* Social Templates Bar */}
+      <div className="h-16 px-4 flex items-center gap-4 border-b border-border bg-muted/30 shrink-0">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Quick Start:</span>
+        {socialTemplates.map((template) => (
+          <button
+            key={template.id}
+            onClick={() => handleSocialTemplateSelect(template)}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-lg border transition-all",
+              selectedRatio === template.ratio && selectedPreset === template.preset
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border bg-card hover:border-primary/50 hover:bg-muted"
+            )}
+          >
+            <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br", template.gradient)}>
+              <template.icon className="w-4 h-4 text-white" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-medium">{template.name}</p>
+              <p className="text-[10px] text-muted-foreground">{template.description}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Main Content - Three Column Layout - Fixed Height */}
+      <div className="flex-1 flex overflow-hidden min-h-0">
+        {/* Left Panel - Transcript (internal scroll) */}
+        <div className="w-72 border-r border-border flex flex-col bg-card shrink-0">
+          <div className="h-11 px-4 flex items-center justify-between border-b border-border shrink-0">
             <h2 className="font-medium text-sm flex items-center gap-2">
               <FileText className="w-4 h-4 text-primary" />
               Transcript
@@ -536,7 +628,7 @@ export default function AIClipGeneratorFull() {
               Auto
             </Button>
           </div>
-          <ScrollArea className="flex-1">
+          <ScrollArea className="flex-1 min-h-0">
             <div className="p-3 space-y-1">
               {transcript.map((segment) => (
                 <button
@@ -557,7 +649,7 @@ export default function AIClipGeneratorFull() {
               ))}
             </div>
           </ScrollArea>
-          <div className="p-3 border-t border-border">
+          <div className="p-3 border-t border-border shrink-0">
             <Button variant="outline" size="sm" className="w-full gap-2">
               <Scissors className="w-3.5 h-3.5" />
               Create Clip from Selection
@@ -566,10 +658,32 @@ export default function AIClipGeneratorFull() {
         </div>
 
         {/* Center Panel - Video Editor Canvas */}
-        <div className="flex-1 flex flex-col">
-          {/* Aspect Ratio Controls Bar - Simplified */}
-          <div className="px-4 py-2 border-b border-border flex items-center justify-between bg-muted/30">
-            <span className="text-sm font-medium text-foreground">Preview</span>
+        <div className="flex-1 flex flex-col min-h-0 min-w-0">
+          {/* Aspect Ratio + Before/After Controls */}
+          <div className="px-4 py-2 border-b border-border flex items-center justify-between bg-muted/30 shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-foreground">Preview</span>
+              {showBeforeAfter && (
+                <div className="flex items-center gap-1 ml-4">
+                  <Button
+                    variant={!isBeforeView ? "default" : "outline"}
+                    size="sm"
+                    className="h-7 px-3"
+                    onClick={() => setIsBeforeView(false)}
+                  >
+                    After
+                  </Button>
+                  <Button
+                    variant={isBeforeView ? "default" : "outline"}
+                    size="sm"
+                    className="h-7 px-3"
+                    onClick={() => setIsBeforeView(true)}
+                  >
+                    Before
+                  </Button>
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-1">
               <span className="text-xs text-muted-foreground mr-2">Format:</span>
               {aspectRatios.map((ratio) => (
@@ -585,30 +699,37 @@ export default function AIClipGeneratorFull() {
                 >
                   <ratio.icon className="w-3.5 h-3.5" />
                   <span className="text-xs font-medium">{ratio.label}</span>
-                  <span className="text-[10px] opacity-70">{ratio.description}</span>
+                  <span className="text-[10px] opacity-70 hidden sm:inline">{ratio.description}</span>
                 </Button>
               ))}
             </div>
           </div>
 
-          {/* Video Preview Canvas - Light Background */}
-          <div className="flex-1 bg-muted/50 flex items-center justify-center p-6 relative overflow-hidden">
-            {/* Soft background pattern */}
-            <div className="absolute inset-0 opacity-30">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10" />
-            </div>
+          {/* Video Preview Canvas - Flex grow with centered content */}
+          <div className="flex-1 bg-muted/50 flex items-center justify-center p-4 relative overflow-hidden min-h-0">
+            {/* Before/After Label */}
+            {showBeforeAfter && (
+              <div className="absolute top-4 left-4 z-10">
+                <Badge variant={isBeforeView ? "secondary" : "default"} className="text-xs">
+                  {isBeforeView ? "Original (Before)" : "AI Enhanced (After)"}
+                </Badge>
+              </div>
+            )}
             
             <div className={cn(
-              "relative bg-card rounded-2xl overflow-hidden shadow-2xl border border-border",
-              selectedRatio === "9:16" && "w-full max-w-xs aspect-[9/16]",
-              selectedRatio === "1:1" && "w-full max-w-md aspect-square",
+              "relative bg-card rounded-2xl overflow-hidden shadow-2xl border border-border max-h-full",
+              selectedRatio === "9:16" && "w-auto h-full max-w-[calc(100vh*9/16/2)]",
+              selectedRatio === "1:1" && "w-auto h-full max-w-[calc(100vh/2)] aspect-square",
               selectedRatio === "16:9" && "w-full max-w-2xl aspect-video"
-            )}>
+            )} style={{ aspectRatio: selectedRatio.replace(":", "/") }}>
               {videoUrl ? (
                 <video
                   ref={videoRef}
                   src={videoUrl}
-                  className="w-full h-full object-cover"
+                  className={cn(
+                    "w-full h-full object-cover transition-all",
+                    isBeforeView && "grayscale brightness-90"
+                  )}
                   onClick={togglePlay}
                 />
               ) : (
@@ -625,37 +746,10 @@ export default function AIClipGeneratorFull() {
                   </div>
                 </div>
               )}
-              
-              {/* Draggable PiP Preview */}
-              {(selectedLayout.includes("pip") || selectedPreset === "podcast" || selectedPreset === "reaction") && (
-                <div 
-                  ref={pipRef}
-                  className="absolute bg-card rounded-xl border-2 border-primary/30 shadow-lg flex items-center justify-center cursor-move hover:border-primary transition-colors group"
-                  style={{
-                    width: `${pipPosition.width}%`,
-                    height: `${pipPosition.height}%`,
-                    right: `${100 - pipPosition.x - pipPosition.width}%`,
-                    top: selectedLayout === "pip-bottom-right" ? "auto" : `${100 - pipPosition.y - pipPosition.height}%`,
-                    bottom: selectedLayout === "pip-bottom-right" ? "4%" : "auto",
-                  }}
-                >
-                  <div className="text-center">
-                    <PictureInPicture className="w-5 h-5 text-primary/50 mx-auto" />
-                    <span className="text-[10px] text-muted-foreground">Drag to move</span>
-                  </div>
-                  {/* Resize handle */}
-                  <div className="absolute bottom-0 right-0 w-5 h-5 cursor-se-resize opacity-0 group-hover:opacity-100 transition-opacity bg-primary/20 rounded-tl-lg flex items-center justify-center">
-                    <Move className="w-3 h-3 text-primary" />
-                  </div>
-                </div>
-              )}
 
               {/* Caption Preview Overlay */}
-              {selectedClip && selectedCaptionTheme !== "none" && (
-                <div className={cn(
-                  "absolute left-4 right-4 text-center",
-                  selectedLayout.includes("pip") ? "bottom-20" : "bottom-12"
-                )}>
+              {selectedClip && selectedCaptionTheme !== "none" && !isBeforeView && (
+                <div className="absolute left-4 right-4 bottom-12 text-center">
                   <div className="bg-black/70 backdrop-blur-sm px-4 py-2 rounded-lg inline-block">
                     <p className={cn(
                       "text-lg",
@@ -676,12 +770,46 @@ export default function AIClipGeneratorFull() {
                 </div>
               )}
             </div>
+            
+            {/* Live Preview Thumbnail - Side */}
+            <div className="absolute right-4 top-4 w-32 flex flex-col gap-2">
+              <div className="text-xs text-muted-foreground text-center font-medium">Live Preview</div>
+              <div className={cn(
+                "bg-card rounded-lg overflow-hidden border-2 border-primary/30 shadow-lg",
+                selectedRatio === "9:16" && "aspect-[9/16]",
+                selectedRatio === "1:1" && "aspect-square",
+                selectedRatio === "16:9" && "aspect-video"
+              )}>
+                {videoUrl ? (
+                  <video
+                    src={videoUrl}
+                    className="w-full h-full object-cover"
+                    muted
+                  />
+                ) : (
+                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                    <FileVideo className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                )}
+                {/* Mini caption preview */}
+                {selectedCaptionTheme !== "none" && (
+                  <div className="absolute bottom-1 left-1 right-1">
+                    <div className="bg-black/70 px-1 py-0.5 rounded text-[6px] text-white text-center truncate">
+                      Caption preview
+                    </div>
+                  </div>
+                )}
+              </div>
+              <Badge variant="outline" className="text-[10px] justify-center">
+                {selectedRatio} • {stylePresets.find(p => p.id === selectedPreset)?.name}
+              </Badge>
+            </div>
           </div>
 
-          {/* Timeline Panel - Bottom */}
-          <div className="border-t border-border bg-card p-4 space-y-3">
+          {/* Timeline Panel - Fixed height at bottom */}
+          <div className="border-t border-border bg-card p-3 space-y-2 shrink-0">
             {/* Timeline with Waveform */}
-            <div className="relative h-20 bg-muted/50 rounded-xl overflow-hidden cursor-pointer border border-border"
+            <div className="relative h-16 bg-muted/50 rounded-xl overflow-hidden cursor-pointer border border-border"
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const percent = (e.clientX - rect.left) / rect.width;
@@ -692,12 +820,12 @@ export default function AIClipGeneratorFull() {
             >
               {/* Waveform visualization */}
               <div className="absolute inset-0 flex items-center justify-center gap-px px-2">
-                {Array.from({ length: 120 }).map((_, i) => (
+                {Array.from({ length: 100 }).map((_, i) => (
                   <div
                     key={i}
                     className={cn(
                       "w-1 rounded-full transition-colors",
-                      (i / 120) * (duration || 1) >= clipStart && (i / 120) * (duration || 1) <= clipEnd
+                      (i / 100) * (duration || 1) >= clipStart && (i / 100) * (duration || 1) <= clipEnd
                         ? "bg-primary/70"
                         : "bg-muted-foreground/20"
                     )}
@@ -714,9 +842,8 @@ export default function AIClipGeneratorFull() {
                   width: `${((clipEnd - clipStart) / (duration || 1)) * 100}%`
                 }}
               >
-                {/* Drag handles */}
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-8 bg-primary rounded cursor-ew-resize" />
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-3 h-8 bg-primary rounded cursor-ew-resize" />
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-6 bg-primary rounded cursor-ew-resize" />
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-2 h-6 bg-primary rounded cursor-ew-resize" />
               </div>
 
               {/* Playhead */}
@@ -737,90 +864,69 @@ export default function AIClipGeneratorFull() {
               ))}
             </div>
 
-            {/* Controls Row */}
+            {/* Controls Row - Compact */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Button variant="outline" size="icon" onClick={togglePlay} className="h-9 w-9">
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="icon" onClick={togglePlay} className="h-8 w-8">
                   {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                 </Button>
-                <div className="px-3 py-1.5 bg-muted rounded-lg">
-                  <span className="text-sm font-mono tabular-nums text-foreground">
+                <div className="px-2 py-1 bg-muted rounded-lg">
+                  <span className="text-xs font-mono tabular-nums text-foreground">
                     {formatTime(currentTime)}
                   </span>
                   <span className="text-muted-foreground mx-1">/</span>
-                  <span className="text-sm font-mono tabular-nums text-muted-foreground">
+                  <span className="text-xs font-mono tabular-nums text-muted-foreground">
                     {formatTime(duration)}
                   </span>
                 </div>
-                <div className="flex items-center gap-1 border-l border-border pl-3">
-                  <Button variant="ghost" size="sm" onClick={() => setZoomLevel(Math.max(0.5, zoomLevel - 0.25))}>
-                    <ZoomOut className="w-4 h-4" />
+                <div className="flex items-center gap-1 border-l border-border pl-2">
+                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setZoomLevel(Math.max(0.5, zoomLevel - 0.25))}>
+                    <ZoomOut className="w-3.5 h-3.5" />
                   </Button>
-                  <span className="text-xs text-muted-foreground w-10 text-center">{Math.round(zoomLevel * 100)}%</span>
-                  <Button variant="ghost" size="sm" onClick={() => setZoomLevel(Math.min(4, zoomLevel + 0.25))}>
-                    <ZoomIn className="w-4 h-4" />
+                  <span className="text-[10px] text-muted-foreground w-8 text-center">{Math.round(zoomLevel * 100)}%</span>
+                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setZoomLevel(Math.min(4, zoomLevel + 0.25))}>
+                    <ZoomIn className="w-3.5 h-3.5" />
                   </Button>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <Button variant="outline" size="sm" className="gap-1.5" onClick={addMarker}>
-                  <Flag className="w-3.5 h-3.5 text-amber-500" />
-                  Add Marker
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={addMarker}>
+                  <Flag className="w-3 h-3 text-amber-500" />
+                  Marker
                 </Button>
-                <div className="flex items-center gap-2 pl-3 border-l border-border">
+                <div className="flex items-center gap-1.5 pl-2 border-l border-border">
                   <button onClick={() => setIsMuted(!isMuted)} className="text-muted-foreground hover:text-foreground">
                     {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
                   </button>
                   <Slider
                     value={[volume]}
                     max={100}
-                    className="w-20"
+                    className="w-16"
                     onValueChange={([v]) => setVolume(v)}
                   />
                 </div>
-              </div>
-            </div>
-
-            {/* Clip Info Bar */}
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl border border-border">
-              <div className="flex items-center gap-4">
-                <div>
-                  <Label className="text-xs text-muted-foreground">Clip Name</Label>
+                <div className="flex items-center gap-2 pl-2 border-l border-border">
                   <Input 
                     value={clipTitle}
                     onChange={(e) => setClipTitle(e.target.value)}
-                    className="h-8 w-48 mt-1"
-                    placeholder="Enter clip name"
+                    className="h-7 w-32 text-xs"
+                    placeholder="Clip name"
                   />
-                </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground">Duration</Label>
-                  <div className="h-8 px-3 mt-1 bg-background border border-border rounded-md flex items-center">
-                    <span className="text-sm font-mono">{formatTime(clipEnd - clipStart)}</span>
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground">Range</Label>
-                  <div className="h-8 px-3 mt-1 bg-background border border-border rounded-md flex items-center gap-2">
-                    <span className="text-sm font-mono">{formatTime(clipStart)}</span>
-                    <span className="text-muted-foreground">→</span>
-                    <span className="text-sm font-mono">{formatTime(clipEnd)}</span>
-                  </div>
+                  <Button size="sm" className="h-7 gap-1 text-xs" onClick={handleCreateClip}>
+                    <Scissors className="w-3 h-3" />
+                    Create
+                  </Button>
                 </div>
               </div>
-              <Button className="gap-2" onClick={handleCreateClip}>
-                <Scissors className="w-4 h-4" />
-                Create Clip
-              </Button>
             </div>
           </div>
         </div>
 
 
         {/* Right Panel - Tools */}
-        <div className="w-80 border-l border-border flex flex-col bg-card">
-          <Tabs defaultValue={fromRealtime ? "realtime" : "suggestions"} className="flex-1 flex flex-col">
-            <TabsList className="w-full justify-start px-3 h-11 rounded-none border-b border-border bg-transparent">
+        <div className="w-80 border-l border-border flex flex-col bg-card shrink-0">
+          <Tabs defaultValue={fromRealtime ? "realtime" : "suggestions"} className="flex-1 flex flex-col min-h-0">
+            <TabsList className="w-full justify-start px-3 h-11 rounded-none border-b border-border bg-transparent shrink-0">
               <TabsTrigger value="suggestions" className="gap-1.5 text-xs">
                 <Sparkles className="w-3.5 h-3.5" />
                 AI

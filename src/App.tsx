@@ -446,11 +446,15 @@ const AppContent = () => {
     }
   };
 
-  // Always show unified sidebar except for special routes (studio, broadcast)
-  const shouldShowSidebar = user && 
-                             !location.pathname.includes('/broadcast/session/') &&
-                             !location.pathname.startsWith('/studio/video') &&
-                             !location.pathname.startsWith('/studio/audio');
+  // Always show unified sidebar except for special routes (studio, broadcast, clips)
+  const isStudioRoute = location.pathname.includes('/broadcast/session/') ||
+                        location.pathname.startsWith('/studio/video') ||
+                        location.pathname.startsWith('/studio/audio') ||
+                        location.pathname.startsWith('/studio/clips') ||
+                        location.pathname.includes('/ai-production') ||
+                        location.pathname.includes('/clip-generator');
+  
+  const shouldShowSidebar = user && !isStudioRoute;
 
   return (
     <RoleProvider>
@@ -462,8 +466,8 @@ const AppContent = () => {
           {shouldShowSidebar && <RoleBasedSidebar user={user} />}
         
         <div className="flex-1 flex flex-col">
-          {/* TopNavBar on all authenticated pages except studio */}
-          {user && !location.pathname.startsWith('/studio/video') && !location.pathname.startsWith('/studio/audio') && <TopNavBar />}
+          {/* TopNavBar on all authenticated pages except studio routes */}
+          {user && !isStudioRoute && <TopNavBar />}
           
           {/* Board View Banner for super admins in preview mode */}
           <BoardViewBanner />
