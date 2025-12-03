@@ -115,8 +115,8 @@ export function TopNavigation() {
               </button>
               
               {activeMenu === "features" && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 pt-4 w-[900px]">
-                  <div className="bg-[#0D1117] border border-white/10 rounded-2xl shadow-2xl shadow-black/50 p-6 grid grid-cols-5 gap-6">
+                <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-[900px] z-[100]">
+                  <div className="bg-slate-900 border border-white/10 rounded-2xl shadow-2xl shadow-black/50 p-6 grid grid-cols-5 gap-6 backdrop-blur-none">
                     {megaMenuData.features.sections.map((section) => (
                       <div key={section.title}>
                         <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">
@@ -171,8 +171,8 @@ export function TopNavigation() {
               </button>
               
               {activeMenu === "resources" && (
-                <div className="absolute top-full right-0 pt-4 w-[220px]">
-                  <div className="bg-[#0D1117] border border-white/10 rounded-xl shadow-2xl shadow-black/50 p-2">
+                <div className="absolute top-full right-0 pt-2 w-[220px] z-[100]">
+                  <div className="bg-slate-900 border border-white/10 rounded-xl shadow-2xl shadow-black/50 p-2 backdrop-blur-none">
                     {megaMenuData.resources.items.map((item) => (
                       <button
                         key={item.label}
