@@ -1,10 +1,11 @@
 /**
  * Simplified role-based sidebar using navigation config as source of truth
  * 
- * This is a cleaner alternative to AppSidebar that uses the centralized
- * navigation config and filters by user roles from the database.
+ * This component filters navigation by:
+ * 1. User roles from database
+ * 2. Activated modules (user_modules table)
  * 
- * To use: Replace AppSidebar import with this component in your layout.
+ * Modules only appear in navigation if explicitly activated.
  */
 
 import { User } from "@supabase/supabase-js";
@@ -99,10 +100,28 @@ import { useUserRoles } from "@/hooks/useUserRoles";
 import { useAccountType } from "@/hooks/useAccountType";
 import { SparkIcon } from "@/components/spark/SparkIcon";
 import { useSidebarState } from "@/hooks/useSidebarState";
+import { useModuleActivation } from "@/hooks/useModuleActivation";
 
 interface RoleBasedSidebarProps {
   user?: User | null;
 }
+
+// Mapping of nav item IDs to module IDs that must be activated
+const MODULE_ACTIVATION_MAP: Record<string, string> = {
+  // Media modules
+  'studio_hub': 'studio',
+  'audio_studio': 'studio',
+  'video_studio': 'studio',
+  'studio_clips': 'studio',
+  'media_library': 'content-library',
+  'studio_templates': 'studio',
+  'media_podcasts': 'podcasts',
+  // Marketing modules
+  'social_analytics': 'social-analytics',
+  'marketing_monetization': 'revenue-tracking',
+  // Meetings (in Business Operations or could be custom group)
+  'meetings': 'meetings',
+};
 
 // Icon mapping
 const ICON_MAP: Record<string, any> = {
@@ -181,23 +200,41 @@ const ICON_MAP: Record<string, any> = {
 };
 
 export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
-  const { roles, isLoading } = useUserRoles();
+  const { roles, isLoading: rolesLoading } = useUserRoles();
   const { activeAccountType } = useAccountType();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const { activatedModuleIds, isLoading: modulesLoading } = useModuleActivation();
   
   // Use persisted sidebar state with localStorage
   const { openGroups, toggleGroup, isGroupOpen } = useSidebarState();
 
-  if (!user || isLoading) {
+  if (!user || rolesLoading) {
     return null;
   }
+
+  // Check if a nav item should be visible based on module activation
+  const isNavItemVisible = (itemId: string): boolean => {
+    const requiredModule = MODULE_ACTIVATION_MAP[itemId];
+    // If no module requirement, always show
+    if (!requiredModule) return true;
+    // Admin roles see everything
+    if (roles.includes('admin') || roles.includes('super_admin')) return true;
+    // Check if module is activated
+    return activatedModuleIds.includes(requiredModule);
+  };
 
   // Filter navigation based on user's roles and account type
   let filteredNavigation = filterNavigationByRoles(
     NAVIGATION_CONFIG.navigation,
     roles
   );
+
+  // Filter by activated modules (for non-admin users)
+  filteredNavigation = filteredNavigation.map(group => ({
+    ...group,
+    items: group.items.filter(item => isNavItemVisible(item.id))
+  })).filter(group => group.items.length > 0);
 
   // Additional filtering based on active account type
   if (activeAccountType === 'advertiser') {

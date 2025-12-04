@@ -20,6 +20,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { useModuleActivation } from "@/hooks/useModuleActivation";
 
 type ModuleStatus = "active" | "available" | "coming_soon";
 
@@ -502,12 +503,20 @@ const modules: Module[] = [
 
 export default function Apps() {
   const navigate = useNavigate();
+  const { activatedModuleIds, isModuleActivated } = useModuleActivation();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [isCompact, setIsCompact] = useState(false);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const [showPackageBuilder, setShowPackageBuilder] = useState(false);
   const [previewModule, setPreviewModule] = useState<Module | null>(null);
+
+  // Compute module status based on activation
+  const getModuleStatus = (module: Module): "active" | "available" | "coming_soon" | "activated" => {
+    if (module.status === "coming_soon") return "coming_soon";
+    if (isModuleActivated(module.id)) return "activated";
+    return "available";
+  };
 
   const filteredModules = useMemo(() => {
     return modules.filter((module) => {
@@ -717,6 +726,7 @@ export default function Apps() {
                         <ModuleCard
                           key={module.id}
                           {...module}
+                          status={getModuleStatus(module)}
                           compact={isCompact}
                           onClick={() => handleModuleClick(module)}
                           onPreview={() => setPreviewModule(module)}

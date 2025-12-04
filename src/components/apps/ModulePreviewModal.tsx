@@ -3,13 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Zap, Check, ExternalLink, Image as ImageIcon, LucideIcon, Users, Unlock, Sparkles, Plus } from "lucide-react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { getModuleTooltip } from "@/config/moduleTooltips";
 import { motion, AnimatePresence } from "framer-motion";
-import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useModuleActivation } from "@/hooks/useModuleActivation";
 
 interface ModulePreviewModalProps {
   open: boolean;
@@ -36,9 +35,7 @@ const CREDIT_PACKAGES = [
 
 export function ModulePreviewModal({ open, onOpenChange, module }: ModulePreviewModalProps) {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [isAdding, setIsAdding] = useState(false);
+  const { isModuleActivated, activateModule, isActivating } = useModuleActivation();
 
   const { data: dbTooltip } = useQuery({
     queryKey: ['module-tooltip', module?.id],
@@ -55,94 +52,23 @@ export function ModulePreviewModal({ open, onOpenChange, module }: ModulePreview
     enabled: !!module?.id,
   });
 
-  // Check if module is already pinned
-  const { data: userPrefs } = useQuery({
-    queryKey: ['user-preferences-pinned'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null;
-      const { data } = await supabase
-        .from('user_preferences')
-        .select('pinned_modules')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      return data;
-    },
-  });
+  const isAlreadyActivated = module ? isModuleActivated(module.id) : false;
 
-  const pinnedModules = Array.isArray(userPrefs?.pinned_modules) ? userPrefs.pinned_modules : [];
-  const isAlreadyPinned = module && pinnedModules.includes(module.id);
-
-  const addToWorkspace = async () => {
+  const handleAddToWorkspace = () => {
     if (!module) return;
     
-    setIsAdding(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: "Please sign in",
-          description: "You need to be signed in to add modules.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Get current pinned modules
-      const { data: currentPrefs } = await supabase
-        .from('user_preferences')
-        .select('pinned_modules')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      const currentPinned = (currentPrefs?.pinned_modules as string[]) || [];
-      
-      // Check if already added
-      if (currentPinned.includes(module.id)) {
-        toast({
-          title: "Already added",
-          description: `${module.name} is already in your workspace.`,
-        });
-        onOpenChange(false);
-        if (module.route) navigate(module.route);
-        return;
-      }
-
-      // Add to pinned modules
-      const updatedPinned = [...currentPinned, module.id];
-
-      const { error } = await supabase
-        .from('user_preferences')
-        .upsert({
-          user_id: user.id,
-          pinned_modules: updatedPinned,
-          updated_at: new Date().toISOString(),
-        }, {
-          onConflict: 'user_id'
-        });
-
-      if (error) throw error;
-
-      // Invalidate queries to refresh nav
-      queryClient.invalidateQueries({ queryKey: ['user-preferences'] });
-      queryClient.invalidateQueries({ queryKey: ['user-preferences-pinned'] });
-
-      toast({
-        title: "Added to workspace!",
-        description: `${module.name} has been added to your navigation.`,
-      });
-
+    if (isAlreadyActivated) {
+      // Already activated, just navigate
       onOpenChange(false);
       if (module.route) navigate(module.route);
-    } catch (error) {
-      console.error('Error adding module:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add module. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsAdding(false);
+      return;
+    }
+
+    // Activate the module
+    activateModule(module.id);
+    onOpenChange(false);
+    if (module.route) {
+      setTimeout(() => navigate(module.route!), 300);
     }
   };
 
@@ -183,16 +109,15 @@ export function ModulePreviewModal({ open, onOpenChange, module }: ModulePreview
                   <div>
                     <DialogTitle className="text-xl">{module.name}</DialogTitle>
                     <div className="flex items-center gap-2 mt-1.5">
-                      <Badge 
-                        variant={module.status === 'coming_soon' ? 'secondary' : 'outline'} 
-                      >
-                        {module.status === 'coming_soon' ? 'Coming Soon' : 'Available'}
-                      </Badge>
-                      {isAlreadyPinned && (
-                        <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
+                      {isAlreadyActivated ? (
+                        <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
                           <Check className="h-3 w-3 mr-1" />
-                          Added
+                          Activated
                         </Badge>
+                      ) : module.status === 'coming_soon' ? (
+                        <Badge variant="secondary">Coming Soon</Badge>
+                      ) : (
+                        <Badge variant="outline">Available</Badge>
                       )}
                     </div>
                   </div>
@@ -292,10 +217,10 @@ export function ModulePreviewModal({ open, onOpenChange, module }: ModulePreview
                   Close
                 </Button>
                 {module.status !== 'coming_soon' && (
-                  <Button onClick={addToWorkspace} disabled={isAdding}>
-                    {isAdding ? (
+                  <Button onClick={handleAddToWorkspace} disabled={isActivating}>
+                    {isActivating ? (
                       "Adding..."
-                    ) : isAlreadyPinned ? (
+                    ) : isAlreadyActivated ? (
                       <>
                         Open Module
                         <ExternalLink className="h-4 w-4 ml-2" />
