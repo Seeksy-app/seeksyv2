@@ -59,16 +59,21 @@ export function ProductTourProvider({ children }: ProductTourProviderProps) {
     getCompletionStatus,
   } = useProductTour();
 
-  const pageTour = pageKey ? getPageTour(pageKey) : null;
-  const isLastBasicStep = !isShowingAdvanced && currentStep === (pageTour?.basic.length || 0) - 1;
-  const isLastStep = currentStep === totalSteps - 1;
+  // Tours are temporarily disabled - context still available but overlays don't render
+  const disabledStartBasicTour = () => {
+    // No-op - tours disabled
+  };
+  
+  const disabledStartAdvancedTour = () => {
+    // No-op - tours disabled
+  };
 
   return (
     <ProductTourContext.Provider
       value={{
-        startBasicTour,
-        startAdvancedTour,
-        isActive,
+        startBasicTour: disabledStartBasicTour,
+        startAdvancedTour: disabledStartAdvancedTour,
+        isActive: false, // Always false while disabled
         tourState,
         isLoading,
         getCompletionStatus,
@@ -76,31 +81,7 @@ export function ProductTourProvider({ children }: ProductTourProviderProps) {
       }}
     >
       {children}
-
-      <AnimatePresence>
-        {isActive && currentTip && !showMorePrompt && (
-          <ProductTourOverlay
-            tip={currentTip}
-            stepIndex={currentStep}
-            totalSteps={totalSteps}
-            isAdvanced={isShowingAdvanced}
-            onNext={goNext}
-            onPrev={goPrev}
-            onSkip={skip}
-            onComplete={complete}
-            isLastStep={isLastStep}
-            isLastBasicStep={isLastBasicStep}
-          />
-        )}
-
-        {showMorePrompt && pageTour && (
-          <SeeMoreTipsModal
-            advancedCount={pageTour.advanced.length}
-            onAccept={acceptAdvanced}
-            onDecline={declineAdvanced}
-          />
-        )}
-      </AnimatePresence>
+      {/* Tour overlays disabled - remove AnimatePresence and tour UI */}
     </ProductTourContext.Provider>
   );
 }

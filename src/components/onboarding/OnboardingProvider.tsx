@@ -47,24 +47,8 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
   const [activePageKey, setActivePageKey] = useState<PageKey | null>(null);
   const [hasAutoTriggered, setHasAutoTriggered] = useState<Set<string>>(new Set());
 
-  // Auto-trigger onboarding on first visit to a page
-  useEffect(() => {
-    if (
-      shouldAutoTrigger && 
-      currentPageKey && 
-      !hasAutoTriggered.has(currentPageKey) &&
-      getPageTips(currentPageKey)
-    ) {
-      // Small delay to let the page render first
-      const timer = setTimeout(() => {
-        setActivePageKey(currentPageKey);
-        setShowTour(true);
-        setHasAutoTriggered(prev => new Set(prev).add(currentPageKey));
-      }, 1000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [shouldAutoTrigger, currentPageKey, hasAutoTriggered]);
+  // Auto-trigger onboarding DISABLED - tours temporarily off
+  // useEffect removed to prevent any auto-triggering
 
   // Reset when navigating to different page
   useEffect(() => {
@@ -74,15 +58,10 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
     }
   }, [location.pathname, showTour, activePageKey, currentPageKey]);
 
+  // startTour is now a no-op while tours are disabled
   const startTour = useCallback(async (pageKey?: PageKey) => {
-    const key = pageKey || currentPageKey;
-    if (key && getPageTips(key)) {
-      // Reset progress first so we replay from beginning
-      await resetOnboarding(key);
-      setActivePageKey(key);
-      setShowTour(true);
-    }
-  }, [currentPageKey, resetOnboarding]);
+    // Tours temporarily disabled - no-op
+  }, []);
 
   const handleComplete = useCallback(() => {
     setShowTour(false);
@@ -98,22 +77,13 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
     <OnboardingContext.Provider 
       value={{ 
         startTour, 
-        isActive: showTour,
+        isActive: false, // Always false while disabled
         currentPageKey,
         pageProgress,
       }}
     >
       {children}
-      
-      <AnimatePresence>
-        {showTour && activePageKey && (
-          <OnboardingTour
-            pageKey={activePageKey}
-            onComplete={handleComplete}
-            onSkip={handleSkip}
-          />
-        )}
-      </AnimatePresence>
+      {/* Tour UI disabled - AnimatePresence and OnboardingTour removed */}
     </OnboardingContext.Provider>
   );
 }

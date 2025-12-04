@@ -136,6 +136,18 @@ export function useNavPreferences() {
     loadPreferences();
   }, []);
 
+  // Listen for nav preference updates from other components
+  useEffect(() => {
+    const handleNavUpdate = (event: CustomEvent<{ config: NavConfig; landingRoute: string }>) => {
+      if (event.detail) {
+        setNavConfig(event.detail.config);
+        setDefaultLandingRoute(event.detail.landingRoute);
+      }
+    };
+    window.addEventListener('navPreferencesUpdated', handleNavUpdate as EventListener);
+    return () => window.removeEventListener('navPreferencesUpdated', handleNavUpdate as EventListener);
+  }, []);
+
   const loadPreferences = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -208,6 +220,11 @@ export function useNavPreferences() {
       setNavConfig(config);
       setDefaultLandingRoute(landingRoute);
       queryClient.invalidateQueries({ queryKey: ['user-preferences'] });
+      
+      // Dispatch event to notify sidebar to refresh immediately
+      window.dispatchEvent(new CustomEvent('navPreferencesUpdated', { 
+        detail: { config, landingRoute } 
+      }));
     } catch (err) {
       console.error('Error saving preferences:', err);
       throw err;
