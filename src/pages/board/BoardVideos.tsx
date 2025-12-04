@@ -55,9 +55,9 @@ interface DemoVideo {
 const placeholderVideos: DemoVideo[] = [
   {
     id: 'placeholder-1',
-    title: 'Seeksy Overview',
-    description: 'Introduction to the Seeksy platform and mission',
-    video_url: 'https://taxqcioheqdqtlmjeaht.supabase.co/storage/v1/object/public/demo-videos/Seeksy_%20Creator\'s%20Engine.mp4',
+    title: 'Seeksy Overview — Creator\'s Engine',
+    description: 'Overview of the platform, business model, and growth strategy.',
+    video_url: 'https://taxqcioheqdqtlmjeaht.supabase.co/storage/v1/object/public/demo-videos/Seeksy_%20Creator%27s%20Engine.mp4',
     thumbnail_url: null,
     duration_seconds: 192,
     category: 'Overview',
