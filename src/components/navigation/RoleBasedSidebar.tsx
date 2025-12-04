@@ -341,17 +341,17 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                 const isPinned = navConfig.pinned.includes(item.id);
                 return (
                   <SidebarMenuItem key={item.id}>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton asChild tooltip={collapsed ? item.label : undefined}>
                       <NavLink
                         to={item.path}
-                        className="hover:bg-muted/50"
-                        activeClassName="bg-muted text-primary font-medium"
+                        className="flex items-center gap-3 transition-all duration-150"
+                        activeClassName="nav-active"
                       >
-                        <Icon className="h-4 w-4" />
+                        <Icon className="h-4 w-4 shrink-0" />
                         {!collapsed && (
-                          <span className="flex items-center gap-2">
-                            {item.label}
-                            {isPinned && <span className="text-amber-500 text-xs">★</span>}
+                          <span className="flex items-center gap-2 flex-1">
+                            <span className="truncate">{item.label}</span>
+                            {isPinned && <span className="pinned-star text-amber-400 text-xs">★</span>}
                           </span>
                         )}
                       </NavLink>
@@ -394,14 +394,14 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                         const Icon = ICON_MAP[item.icon] || Grid3x3;
                         return (
                           <SidebarMenuItem key={item.id}>
-                            <SidebarMenuButton asChild>
+                            <SidebarMenuButton asChild tooltip={collapsed ? item.label : undefined}>
                               <NavLink
                                 to={item.path}
-                                className="hover:bg-muted/50"
-                                activeClassName="bg-muted text-primary font-medium"
+                                className="flex items-center gap-3 transition-all duration-150"
+                                activeClassName="nav-active"
                               >
-                                <Icon className="h-4 w-4" />
-                                {!collapsed && <span>{item.label}</span>}
+                                <Icon className="h-4 w-4 shrink-0" />
+                                {!collapsed && <span className="truncate">{item.label}</span>}
                               </NavLink>
                             </SidebarMenuButton>
                           </SidebarMenuItem>
