@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { BoardLayout } from '@/components/board/BoardLayout';
+import { WelcomeBanner } from '@/components/board/WelcomeBanner';
 import { MarkdownRenderer } from '@/components/board/MarkdownRenderer';
 import { useBoardContent, useBoardMetrics } from '@/hooks/useBoardContent';
 import { useBoardDataMode } from '@/contexts/BoardDataModeContext';
@@ -121,44 +122,41 @@ export default function BoardDashboard() {
   return (
     <BoardLayout>
       <div className="space-y-6">
-        {/* Welcome Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">
-              Welcome back{firstName ? `, ${firstName}` : ''}
-            </h1>
-            <p className="text-slate-500 mt-0.5">Here's your board overview</p>
-          </div>
+        {/* Welcome Banner */}
+        <WelcomeBanner firstName={firstName} />
+
+        {/* Data Mode Label - Right aligned */}
+        <div className="flex justify-end">
           <DataModeLabel />
         </div>
 
         {/* Hero Section - Larger with diagonal gradient */}
-        <div className="relative overflow-hidden rounded-2xl border border-slate-200 shadow-sm px-8 py-7 md:px-10 md:py-8">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200 shadow-sm px-8 py-8 md:px-12 md:py-10">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50" />
           <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_40%,hsl(210,40%,96%)_40%,hsl(210,40%,96%)_60%,transparent_60%)] opacity-50" />
           <div className="relative z-10 text-center">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2 leading-tight">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 mb-3 leading-tight">
               A Clear Window Into the Creator & Podcast Business.
             </h2>
-            <p className="text-base text-slate-600 mb-4 max-w-2xl mx-auto">
+            <p className="text-base md:text-lg text-slate-600 mb-5 max-w-2xl mx-auto">
               Real-time view into our model, go-to-market, and forecasts—powered by internal R&D insights.
             </p>
             <div className="flex flex-wrap gap-3 justify-center">
               <Button 
-                size="default" 
+                size="lg" 
                 onClick={handleStartVideo}
-                className="bg-blue-600 text-white hover:bg-blue-700 gap-2 shadow-md h-11 px-5"
+                className="bg-blue-600 text-white hover:bg-blue-700 gap-2 shadow-md h-12 px-6"
               >
-                <Play className="w-4 h-4" />
+                <Play className="w-5 h-5" />
                 Start with Overview Video
               </Button>
               <Button 
-                size="default" 
+                size="lg" 
                 variant="outline" 
                 onClick={() => navigate('/board/gtm')}
-                className="border-slate-300 text-slate-700 hover:bg-slate-50 gap-2 h-11 px-5"
+                className="border-slate-300 text-slate-700 hover:bg-slate-50 gap-2 h-12 px-6"
               >
-                <Wrench className="w-4 h-4" />
+                <Wrench className="w-5 h-5" />
                 Open Demo & Tools
               </Button>
             </div>
@@ -167,8 +165,8 @@ export default function BoardDashboard() {
 
         {/* Quick Links Grid */}
         <div>
-          <h2 className="text-lg font-semibold text-slate-900 mb-3">Quick Access</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">Quick Access</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             {quickLinks.map((link) => {
               const Icon = link.icon;
               return (
@@ -177,14 +175,14 @@ export default function BoardDashboard() {
                   className="bg-white border-slate-100 hover:border-slate-200 hover:shadow-md transition-all cursor-pointer group rounded-xl"
                   onClick={() => navigate(link.path)}
                 >
-                  <CardContent className="p-4">
-                    <div className={`w-11 h-11 rounded-lg bg-gradient-to-br ${link.gradient} flex items-center justify-center mb-3`}>
-                      <Icon className="w-5 h-5 text-white" />
+                  <CardContent className="p-5">
+                    <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${link.gradient} flex items-center justify-center mb-3 shadow-sm`}>
+                      <Icon className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="text-sm font-semibold text-slate-900 mb-1">{link.title}</h3>
-                    <p className="text-xs text-slate-500 mb-2 line-clamp-2">{link.description}</p>
-                    <span className="text-xs text-blue-600 group-hover:translate-x-1 transition-transform inline-flex items-center font-medium">
-                      View <ArrowRight className="w-3 h-3 ml-1" />
+                    <h3 className="text-base font-semibold text-slate-900 mb-1">{link.title}</h3>
+                    <p className="text-sm text-slate-500 mb-3 line-clamp-2">{link.description}</p>
+                    <span className="text-sm text-blue-600 group-hover:translate-x-1 transition-transform inline-flex items-center font-medium">
+                      View <ArrowRight className="w-4 h-4 ml-1" />
                     </span>
                   </CardContent>
                 </Card>
@@ -194,15 +192,15 @@ export default function BoardDashboard() {
         </div>
 
         {/* Metrics Grid with diagonal gradient backdrop - Larger */}
-        <div className="bg-gradient-to-br from-slate-100/80 via-white to-blue-50/50 border border-slate-100 rounded-2xl p-5 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)]">
+        <div className="bg-gradient-to-br from-slate-100/80 via-white to-blue-50/50 border border-slate-100 rounded-2xl p-6 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)]">
           <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_30%,hsl(210,40%,96%)_30%,hsl(210,40%,96%)_70%,transparent_70%)] opacity-30 rounded-2xl pointer-events-none" />
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 relative">
+          <div data-tour="kpi-cards" className="grid grid-cols-2 lg:grid-cols-4 gap-5 relative">
             {metricsLoading ? (
               Array(4).fill(0).map((_, i) => (
                 <Card key={i} className="bg-white border-slate-100 shadow-sm rounded-xl">
-                  <CardContent className="p-5">
+                  <CardContent className="p-6">
                     <Skeleton className="h-4 w-24 mb-3" />
-                    <Skeleton className="h-8 w-28" />
+                    <Skeleton className="h-9 w-28" />
                   </CardContent>
                 </Card>
               ))
@@ -211,13 +209,13 @@ export default function BoardDashboard() {
                 const Icon = metricIcons[metric.metric_key] || Activity;
                 return (
                   <Card key={metric.id} className="bg-white border-slate-100 shadow-sm hover:shadow-md transition-shadow rounded-xl relative">
-                    <CardContent className="p-5">
-                      <DataModeBadge className="absolute top-2.5 right-2.5" />
+                    <CardContent className="p-6">
+                      <DataModeBadge className="absolute top-3 right-3" />
                       <div className="flex items-center gap-2 text-slate-500 mb-2">
-                        <Icon className="w-4 h-4" />
+                        <Icon className="w-5 h-5" />
                         <span className="text-sm font-medium">{metric.metric_label}</span>
                       </div>
-                      <p className="text-2xl font-bold text-slate-900">{metric.metric_value}</p>
+                      <p className="text-3xl font-bold text-slate-900">{metric.metric_value}</p>
                     </CardContent>
                   </Card>
                 );
@@ -228,7 +226,7 @@ export default function BoardDashboard() {
 
         {/* State of the Company */}
         <Card className="bg-white border-slate-100 shadow-sm rounded-xl">
-          <CardHeader className="border-b border-slate-100 py-4 px-6">
+          <CardHeader className="border-b border-slate-100 py-5 px-6">
             <CardTitle className="text-slate-900 flex items-center gap-2 text-lg">
               <Activity className="w-5 h-5 text-blue-500" />
               State of the Company
@@ -249,9 +247,9 @@ export default function BoardDashboard() {
                 <MarkdownRenderer content={content.content} />
               </div>
             ) : (
-              <div className="space-y-4 text-slate-700 text-sm leading-relaxed">
+              <div className="space-y-5 text-slate-700 text-sm leading-relaxed">
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900 mb-1.5">Current Status</h3>
+                  <h3 className="text-sm font-semibold text-slate-900 mb-2">Current Status</h3>
                   <p>
                     Seeksy is in active development with a strong foundation across creator tools, 
                     podcast hosting, and monetization systems. The platform has onboarded early 
@@ -259,8 +257,8 @@ export default function BoardDashboard() {
                   </p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900 mb-1.5">Key Highlights</h3>
-                  <ul className="list-disc list-inside space-y-0.5 text-slate-600">
+                  <h3 className="text-sm font-semibold text-slate-900 mb-2">Key Highlights</h3>
+                  <ul className="list-disc list-inside space-y-1 text-slate-600">
                     <li>Voice and Face Identity verification system live on Polygon mainnet</li>
                     <li>AI-powered clip generation and content certification operational</li>
                     <li>Podcast RSS hosting with migration support from major platforms</li>
@@ -269,7 +267,7 @@ export default function BoardDashboard() {
                   </ul>
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900 mb-1.5">Next Quarter Focus</h3>
+                  <h3 className="text-sm font-semibold text-slate-900 mb-2">Next Quarter Focus</h3>
                   <p>
                     Accelerate creator acquisition, launch advertising marketplace, and expand 
                     monetization tools including digital products and paid DMs.
