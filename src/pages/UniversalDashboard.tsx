@@ -11,6 +11,7 @@ import { AddWidgetsDrawer } from "@/components/dashboard/universal/AddWidgetsDra
 import { DashboardWidget } from "@/components/dashboard/universal/types";
 import { defaultWidgets, allAvailableWidgets } from "@/components/dashboard/universal/defaultWidgets";
 import { PersonaType } from "@/config/personaConfig";
+import { useIdentityStatus } from "@/hooks/useIdentityStatus";
 
 const STORAGE_KEY = "seeksy-dashboard-widgets-v3";
 
@@ -23,9 +24,10 @@ export default function UniversalDashboard() {
   const [loading, setLoading] = useState(true);
   const [addWidgetsOpen, setAddWidgetsOpen] = useState(false);
   
-  // Identity verification status
-  const [faceVerified, setFaceVerified] = useState(false);
-  const [voiceVerified, setVoiceVerified] = useState(false);
+  // Use the shared identity status hook - single source of truth
+  const { data: identityStatus } = useIdentityStatus();
+  const faceVerified = identityStatus?.faceVerified ?? false;
+  const voiceVerified = identityStatus?.voiceVerified ?? false;
 
   // Widget state
   const [widgets, setWidgets] = useState<DashboardWidget[]>(() => {
@@ -60,7 +62,6 @@ export default function UniversalDashboard() {
   useEffect(() => {
     if (user) {
       loadUserData();
-      loadIdentityStatus();
     }
   }, [user]);
 
@@ -107,32 +108,6 @@ export default function UniversalDashboard() {
     }
 
     setLoading(false);
-  };
-
-  const loadIdentityStatus = async () => {
-    if (!user) return;
-
-    try {
-      // Check face verification
-      const { data: faceAssets } = await supabase
-        .from("identity_assets")
-        .select("cert_status")
-        .eq("user_id", user.id);
-      
-      const faceAsset = faceAssets?.find((a: any) => a.cert_status === "minted");
-      setFaceVerified(!!faceAsset);
-
-      // Check voice verification
-      const { data: voiceProfile } = await supabase
-        .from("creator_voice_profiles")
-        .select("is_verified")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      
-      setVoiceVerified(voiceProfile?.is_verified === true);
-    } catch (error) {
-      console.error("Error loading identity status:", error);
-    }
   };
 
   const handleWidgetsChange = (newWidgets: DashboardWidget[]) => {

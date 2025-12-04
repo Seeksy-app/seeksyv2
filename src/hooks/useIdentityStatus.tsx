@@ -50,7 +50,7 @@ export const useIdentityStatus = () => {
 
       console.log('[useIdentityStatus] Face asset:', faceAsset, 'Error:', faceError);
 
-      // Check voice blockchain certificate (source of truth for voice verification)
+      // Check voice blockchain certificate (primary source for voice verification)
       const { data: voiceCert, error: certError } = await supabase
         .from('voice_blockchain_certificates')
         .select('id, certification_status, is_active, cert_explorer_url, voice_profile_id')
@@ -61,9 +61,19 @@ export const useIdentityStatus = () => {
 
       console.log('[useIdentityStatus] Voice cert:', voiceCert, 'Error:', certError);
 
+      // Also check creator_voice_profiles as fallback
+      const { data: voiceProfile, error: profileError } = await supabase
+        .from('creator_voice_profiles')
+        .select('id, is_verified')
+        .eq('user_id', user.id)
+        .eq('is_verified', true)
+        .maybeSingle();
+
+      console.log('[useIdentityStatus] Voice profile:', voiceProfile, 'Error:', profileError);
+
       const faceVerified = !!faceAsset;
-      // Voice is verified if blockchain certificate exists (most reliable source)
-      const voiceVerified = !!voiceCert;
+      // Voice is verified if either blockchain certificate OR voice profile is verified
+      const voiceVerified = !!voiceCert || !!voiceProfile;
 
       console.log('[useIdentityStatus] Final status:', { faceVerified, voiceVerified });
 
