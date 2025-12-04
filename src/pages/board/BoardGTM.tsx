@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { BoardLayout } from '@/components/board/BoardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -11,9 +12,17 @@ import { ChannelsTab } from '@/components/board/gtm/ChannelsTab';
 import { ROICalculatorTab } from '@/components/board/gtm/ROICalculatorTab';
 import { SWOTAnalysisTab } from '@/components/board/gtm/SWOTAnalysisTab';
 import { ShareWithInvestorTab } from '@/components/board/gtm/ShareWithInvestorTab';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const tabContentVariants = {
+  initial: { opacity: 0, y: 4 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -4 }
+};
 
 export default function BoardGTM() {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("market-overview");
 
   return (
     <BoardLayout>
@@ -41,7 +50,7 @@ export default function BoardGTM() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="market-overview" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="bg-slate-100 p-1 rounded-xl h-auto flex-wrap gap-1">
             <TabsTrigger value="market-overview" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 py-2">
               Market Overview
@@ -70,30 +79,25 @@ export default function BoardGTM() {
           </TabsList>
 
           <div className="mt-6">
-            <TabsContent value="market-overview" className="mt-0">
-              <MarketOverviewTab />
-            </TabsContent>
-            <TabsContent value="gtm-strategy" className="mt-0">
-              <GTMStrategyTab />
-            </TabsContent>
-            <TabsContent value="competitive" className="mt-0">
-              <CompetitiveLandscapeTab />
-            </TabsContent>
-            <TabsContent value="metrics" className="mt-0">
-              <KeyMetricsTab />
-            </TabsContent>
-            <TabsContent value="channels" className="mt-0">
-              <ChannelsTab />
-            </TabsContent>
-            <TabsContent value="roi" className="mt-0">
-              <ROICalculatorTab />
-            </TabsContent>
-            <TabsContent value="swot" className="mt-0">
-              <SWOTAnalysisTab />
-            </TabsContent>
-            <TabsContent value="share" className="mt-0">
-              <ShareWithInvestorTab />
-            </TabsContent>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                variants={tabContentVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: 0.15, ease: "easeOut" }}
+              >
+                {activeTab === "market-overview" && <MarketOverviewTab />}
+                {activeTab === "gtm-strategy" && <GTMStrategyTab />}
+                {activeTab === "competitive" && <CompetitiveLandscapeTab />}
+                {activeTab === "metrics" && <KeyMetricsTab />}
+                {activeTab === "channels" && <ChannelsTab />}
+                {activeTab === "roi" && <ROICalculatorTab />}
+                {activeTab === "swot" && <SWOTAnalysisTab />}
+                {activeTab === "share" && <ShareWithInvestorTab />}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </Tabs>
       </div>

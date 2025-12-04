@@ -59,6 +59,24 @@ export function BoardAIChat() {
     return () => window.removeEventListener('openBoardAIChat', handleOpenChat);
   }, []);
 
+  // Listen for "Ask Board AI Analyst" with pre-filled prompt (from SWOT, etc.)
+  useEffect(() => {
+    const handleOpenWithPrompt = (e: CustomEvent<{ prompt: string; context?: Record<string, unknown> }>) => {
+      setIsOpen(true);
+      setIsMinimized(false);
+      // Set the input and auto-submit after a brief delay
+      const { prompt } = e.detail;
+      setInput(prompt);
+      // Auto-submit after opening
+      setTimeout(() => {
+        sendMessage(prompt);
+        setInput("");
+      }, 100);
+    };
+    window.addEventListener('openBoardAIChatWithPrompt', handleOpenWithPrompt as EventListener);
+    return () => window.removeEventListener('openBoardAIChatWithPrompt', handleOpenWithPrompt as EventListener);
+  }, [messages]);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
