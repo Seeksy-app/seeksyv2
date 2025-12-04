@@ -11,7 +11,8 @@ import { useUserRoles } from './useUserRoles';
 export type PermissionCategory = 
   | 'core' | 'studio' | 'clips' | 'media' | 'meetings' 
   | 'creatorhub' | 'ads' | 'supportdesk' | 'settings' 
-  | 'billing' | 'rnd' | 'admin' | 'board' | 'events' | 'crm' | 'marketing';
+  | 'billing' | 'rnd' | 'admin' | 'board' | 'events' | 'crm' | 'marketing'
+  | 'podcasts' | 'monetization' | 'identity';
 
 export type Permission =
   | 'core.read' | 'core.write'
@@ -29,7 +30,10 @@ export type Permission =
   | 'board.view' | 'board.analytics'
   | 'events.view' | 'events.manage'
   | 'crm.view' | 'crm.manage'
-  | 'marketing.view' | 'marketing.manage';
+  | 'marketing.view' | 'marketing.manage'
+  | 'podcasts.view' | 'podcasts.manage' | 'podcasts.publish'
+  | 'monetization.view' | 'monetization.manage'
+  | 'identity.view' | 'identity.manage' | 'identity.certify';
 
 export interface UsePermissionsReturn {
   permissions: string[];

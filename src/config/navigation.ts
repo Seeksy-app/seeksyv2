@@ -5,7 +5,7 @@
  * Creator navigation is handled by useNavPreferences hook.
  */
 
-export type UserRole = 'creator' | 'subscriber' | 'advertiser' | 'influencer' | 'agency' | 'admin' | 'super_admin' | 'board_member';
+export type UserRole = 'creator' | 'subscriber' | 'advertiser' | 'influencer' | 'agency' | 'admin' | 'super_admin' | 'board_member' | 'platform_owner' | 'support_admin' | 'support_agent' | 'team_manager' | 'read_only_analyst';
 
 export interface NavigationItem {
   id: string;
@@ -82,9 +82,17 @@ export const NAVIGATION_CONFIG: {
       "collapsible": true,
       "items": [
         {
-          "id": "admin_support_desk",
-          "label": "Support Desk",
+          "id": "admin_help_desk",
+          "label": "Help Desk",
           "icon": "headphones",
+          "path": "/helpdesk",
+          "roles": ["admin", "super_admin", "support_admin", "support_agent"],
+          "description": "Customer support ticket management"
+        },
+        {
+          "id": "admin_support_desk",
+          "label": "Support Desk (Legacy)",
+          "icon": "inbox",
           "path": "/admin/support",
           "roles": ["admin", "super_admin"]
         },

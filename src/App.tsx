@@ -212,6 +212,16 @@ import MetaOAuthCallback from "./pages/MetaOAuthCallback";
 import SeeksyArchitecture from "./pages/SeeksyArchitecture";
 import SupportDesk from "./pages/admin/SupportDesk";
 import SupportDeskCRM from "./pages/admin/support/SupportDeskCRM";
+// Help Desk (Zendesk-style support system)
+import HelpDeskLayout from "./pages/helpdesk/HelpDeskLayout";
+import TicketsInbox from "./pages/helpdesk/TicketsInbox";
+import TicketDetail from "./pages/helpdesk/TicketDetail";
+import HelpDeskAutomations from "./pages/helpdesk/Automations";
+import HelpDeskTemplates from "./pages/helpdesk/Templates";
+import HelpDeskUserProfiles from "./pages/helpdesk/UserProfiles";
+import HelpDeskAnalytics from "./pages/helpdesk/Analytics";
+import HelpDeskIntegrations from "./pages/helpdesk/Integrations";
+import HelpDeskSettings from "./pages/helpdesk/Settings";
 import CMOCommandCenter from "./pages/admin/cmo/CMOCommandCenter";
 import CCOCommunications from "./pages/admin/cco/CCOCommunications";
 import SalesLeads from "./pages/admin/SalesLeads";
@@ -909,6 +919,18 @@ const AppContent = () => {
           
           {/* Support Desk CRM */}
           <Route path="/admin/support-desk" element={<SupportDeskCRM />} />
+          
+          {/* Help Desk (Zendesk-style) */}
+          <Route path="/helpdesk" element={<HelpDeskLayout />}>
+            <Route index element={<TicketsInbox />} />
+            <Route path="ticket/:id" element={<TicketDetail />} />
+            <Route path="automations" element={<HelpDeskAutomations />} />
+            <Route path="templates" element={<HelpDeskTemplates />} />
+            <Route path="users" element={<HelpDeskUserProfiles />} />
+            <Route path="analytics" element={<HelpDeskAnalytics />} />
+            <Route path="integrations" element={<HelpDeskIntegrations />} />
+            <Route path="settings" element={<HelpDeskSettings />} />
+          </Route>
           
           {/* CMO Command Center */}
           <Route path="/admin/cmo" element={<CMOCommandCenter />} />
