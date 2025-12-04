@@ -33,9 +33,9 @@ export function BoardLayout({ children }: BoardLayoutProps) {
           <BoardSidebar />
           
           {/* Light content area - no left margin or gap */}
-          <div className="flex-1 flex flex-col overflow-auto min-w-0 bg-white">
+          <div className="flex-1 flex flex-col min-w-0 bg-white h-screen overflow-hidden">
             <BoardTopNav />
-            <main className="flex-1 bg-slate-50">
+            <main className="flex-1 bg-slate-50 overflow-auto">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={location.pathname}
@@ -48,8 +48,8 @@ export function BoardLayout({ children }: BoardLayoutProps) {
                   {children}
                 </motion.div>
               </AnimatePresence>
+              <BoardFooter />
             </main>
-            <BoardFooter />
           </div>
         </div>
         
