@@ -8921,14 +8921,73 @@ export type Database = {
         }
         Relationships: []
       }
+      investor_emails: {
+        Row: {
+          body: string | null
+          clicked_at: string | null
+          created_at: string
+          created_by: string | null
+          delivered_at: string | null
+          id: string
+          investor_email: string
+          investor_name: string | null
+          link_id: string | null
+          opened_at: string | null
+          sent_at: string | null
+          status: string
+          subject: string
+        }
+        Insert: {
+          body?: string | null
+          clicked_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          delivered_at?: string | null
+          id?: string
+          investor_email: string
+          investor_name?: string | null
+          link_id?: string | null
+          opened_at?: string | null
+          sent_at?: string | null
+          status?: string
+          subject: string
+        }
+        Update: {
+          body?: string | null
+          clicked_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          delivered_at?: string | null
+          id?: string
+          investor_email?: string
+          investor_name?: string | null
+          link_id?: string | null
+          opened_at?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investor_emails_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "investor_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       investor_link_activity: {
         Row: {
           created_at: string | null
           event_type: string
           id: string
           ip_address: string | null
+          ip_region: string | null
           link_id: string | null
+          referrer: string | null
           tab_viewed: string | null
+          time_on_page_seconds: number | null
           user_agent: string | null
         }
         Insert: {
@@ -8936,8 +8995,11 @@ export type Database = {
           event_type: string
           id?: string
           ip_address?: string | null
+          ip_region?: string | null
           link_id?: string | null
+          referrer?: string | null
           tab_viewed?: string | null
+          time_on_page_seconds?: number | null
           user_agent?: string | null
         }
         Update: {
@@ -8945,8 +9007,11 @@ export type Database = {
           event_type?: string
           id?: string
           ip_address?: string | null
+          ip_region?: string | null
           link_id?: string | null
+          referrer?: string | null
           tab_viewed?: string | null
+          time_on_page_seconds?: number | null
           user_agent?: string | null
         }
         Relationships: [
@@ -8970,12 +9035,14 @@ export type Database = {
           id: string
           investor_name: string | null
           last_viewed_at: string | null
+          mask_financials: boolean | null
           passcode: string
           scope: string[]
           status: string
           tabs_viewed: string[] | null
           token: string
           total_views: number | null
+          what_was_shared: string[] | null
         }
         Insert: {
           allow_ai?: boolean | null
@@ -8987,12 +9054,14 @@ export type Database = {
           id?: string
           investor_name?: string | null
           last_viewed_at?: string | null
+          mask_financials?: boolean | null
           passcode: string
           scope?: string[]
           status?: string
           tabs_viewed?: string[] | null
           token: string
           total_views?: number | null
+          what_was_shared?: string[] | null
         }
         Update: {
           allow_ai?: boolean | null
@@ -9004,12 +9073,14 @@ export type Database = {
           id?: string
           investor_name?: string | null
           last_viewed_at?: string | null
+          mask_financials?: boolean | null
           passcode?: string
           scope?: string[]
           status?: string
           tabs_viewed?: string[] | null
           token?: string
           total_views?: number | null
+          what_was_shared?: string[] | null
         }
         Relationships: []
       }
