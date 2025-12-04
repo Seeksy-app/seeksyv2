@@ -89,7 +89,9 @@ export default function HelpDeskLayout() {
           </SidebarContent>
         </Sidebar>
         <main className="flex-1 overflow-auto">
-          <Outlet />
+          <div className="max-w-7xl px-6 py-6">
+            <Outlet />
+          </div>
         </main>
       </div>
     </SidebarProvider>

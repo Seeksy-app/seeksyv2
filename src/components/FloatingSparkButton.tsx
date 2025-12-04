@@ -1,131 +1,39 @@
-import { useState, useEffect } from "react";
-import { useHolidaySettings } from "@/hooks/useHolidaySettings";
-import { useSparkAnimations } from "@/hooks/useSparkAnimations";
+import { useAIAssistant } from "@/components/ai/AIAssistantProvider";
 import { cn } from "@/lib/utils";
 
 export const FloatingSparkButton = () => {
-  const { data: settings } = useHolidaySettings();
-  const [sparkImage, setSparkImage] = useState<string>("");
-  const { animations, handleHoverEnter, handleHoverLeave } = useSparkAnimations();
-
-  useEffect(() => {
-    // Always use Santa-themed Spark avatar for friendly assistant appearance
-    const imagePath = "/spark/holiday/spark-santa-waving.png";
-    
-    setSparkImage(imagePath);
-  }, [settings?.holidayMode]);
-
-  if (!sparkImage) return null;
+  const { open } = useAIAssistant();
 
   return (
     <>
       <div
         id="seeksy-chat-trigger"
-        onClick={() => window.dispatchEvent(new Event('openSparkChat'))}
-        onMouseEnter={handleHoverEnter}
-        onMouseLeave={handleHoverLeave}
+        onClick={open}
         className={cn(
-          "fixed cursor-pointer transition-transform duration-200",
-          "hover:scale-105"
+          "fixed cursor-pointer transition-all duration-200",
+          "hover:scale-110 hover:drop-shadow-xl"
         )}
         style={{ 
           zIndex: 99999,
-          bottom: '20px',
-          right: '20px'
+          bottom: '24px',
+          right: '24px'
         }}
         aria-label="Ask Spark"
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
-            window.dispatchEvent(new Event('openSparkChat'));
+            open();
           }
         }}
       >
-        <img 
-          src={sparkImage} 
-          alt="Spark assistant" 
-          className={cn(
-            "block drop-shadow-lg",
-            animations.welcomeBounce && "animate-spark-welcome-bounce",
-            animations.hatWiggle && "animate-spark-hat-wiggle",
-            animations.idleFloat && "animate-spark-idle-float"
-          )}
-          style={{ 
-            width: '72px',
-            height: 'auto',
-            display: 'block',
-            willChange: animations.welcomeBounce || animations.hatWiggle || animations.idleFloat ? 'transform' : 'auto'
-          }}
-        />
-        
-        {/* Blink + Sparkle effect */}
-        {animations.blinkSparkle && (
-          <div 
-            className="absolute top-2 left-2 w-3 h-3 bg-yellow-300 rounded-full animate-spark-sparkle pointer-events-none"
-            style={{
-              boxShadow: '0 0 12px 4px rgba(253, 224, 71, 0.6)',
-            }}
-          />
-        )}
+        <div className="relative">
+          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[hsl(45,90%,55%)] to-[hsl(45,90%,45%)] shadow-lg flex items-center justify-center animate-pulse">
+            <span className="text-2xl">✨</span>
+          </div>
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-background animate-bounce" />
+        </div>
       </div>
-
-      {/* Keyframe animations */}
-      <style>{`
-        @keyframes spark-welcome-bounce {
-          0% { transform: translateY(0px); }
-          30% { transform: translateY(-20px); }
-          50% { transform: translateY(-18px); }
-          65% { transform: translateY(-20px); }
-          80% { transform: translateY(-2px); }
-          90% { transform: translateY(-4px); }
-          100% { transform: translateY(0px); }
-        }
-
-        @keyframes spark-hat-wiggle {
-          0% { transform: rotate(0deg); }
-          25% { transform: rotate(-4deg); }
-          75% { transform: rotate(4deg); }
-          100% { transform: rotate(0deg); }
-        }
-
-        @keyframes spark-idle-float {
-          0% { transform: translateY(0px); }
-          50% { transform: translateY(-6px); }
-          100% { transform: translateY(0px); }
-        }
-
-        @keyframes spark-sparkle {
-          0% { 
-            opacity: 0;
-            transform: scale(0) translate(0, 0);
-          }
-          20% { 
-            opacity: 1;
-            transform: scale(1.2) translate(-2px, -2px);
-          }
-          100% { 
-            opacity: 0;
-            transform: scale(0.5) translate(-6px, -6px);
-          }
-        }
-
-        .animate-spark-welcome-bounce {
-          animation: spark-welcome-bounce 1.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        }
-
-        .animate-spark-hat-wiggle {
-          animation: spark-hat-wiggle 0.3s ease-in-out forwards;
-        }
-
-        .animate-spark-idle-float {
-          animation: spark-idle-float 1.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
-        }
-
-        .animate-spark-sparkle {
-          animation: spark-sparkle 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        }
-      `}</style>
     </>
   );
 };

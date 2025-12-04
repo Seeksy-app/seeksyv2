@@ -207,7 +207,7 @@ export default function AdvertiserCampaigns() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={() => navigate("/advertiser/campaigns/create")}>
+            <Button onClick={() => navigate("/advertiser/campaigns/create-type")}>
               <Plus className="h-4 w-4 mr-2" />
               Create Campaign
             </Button>
@@ -444,7 +444,7 @@ export default function AdvertiserCampaigns() {
                 <p className="text-muted-foreground mb-4">
                   Create your first campaign to start advertising
                 </p>
-                <Button onClick={() => navigate("/advertiser/campaigns/create")}>
+                <Button onClick={() => navigate("/advertiser/campaigns/create-type")}>
                   <Plus className="h-4 w-4 mr-2" />
                   Create Campaign
                 </Button>

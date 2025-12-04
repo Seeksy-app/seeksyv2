@@ -28,7 +28,7 @@ interface TicketMessage {
 }
 
 export default function TicketDetail() {
-  const { ticketId } = useParams();
+  const { id: ticketId } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null);

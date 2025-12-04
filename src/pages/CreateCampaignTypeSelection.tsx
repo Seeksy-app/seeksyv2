@@ -27,43 +27,43 @@ export default function CreateCampaignTypeSelection() {
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
         {/* Standard Audio Ad */}
         <Card 
-          className="group cursor-pointer hover:shadow-md hover:border-primary/50 transition-all duration-300 bg-gradient-to-br from-background to-muted/20 flex flex-col" 
+          className="group cursor-pointer hover:shadow-lg hover:border-primary/50 hover:scale-[1.02] transition-all duration-300 bg-gradient-to-br from-background to-muted/20 flex flex-col min-h-[280px]" 
           onClick={() => navigate("/advertiser/create-ad-wizard")}
         >
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500/10 to-blue-600/10">
-                <Volume2 className="h-5 w-5 text-blue-600" />
+          <CardHeader className="pb-3 pt-6 px-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-600/10">
+                <Volume2 className="h-6 w-6 text-blue-600" />
               </div>
-              <CardTitle className="text-lg">Audio Ads</CardTitle>
+              <CardTitle className="text-xl">Audio Ads</CardTitle>
             </div>
-            <CardDescription className="text-xs">
+            <CardDescription className="text-sm">
               Create audio ads with AI - standard or conversational
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col flex-1 pt-2">
-            <ul className="space-y-1 text-xs text-muted-foreground mb-3 flex-1">
-              <li className="flex items-center gap-1.5">
+          <CardContent className="flex flex-col flex-1 pt-2 px-6 pb-6">
+            <ul className="space-y-2 text-sm text-muted-foreground mb-4 flex-1">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Standard audio ads</span>
               </li>
-              <li className="flex items-center gap-1.5">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Conversational AI ads</span>
               </li>
-              <li className="flex items-center gap-1.5">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>AI voice generation</span>
               </li>
-              <li className="flex items-center gap-1.5">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Step-by-step wizard</span>
               </li>
             </ul>
-            <Button className="w-full" size="sm">
+            <Button className="w-full" size="default">
               Create Audio Ad
             </Button>
           </CardContent>
@@ -71,40 +71,40 @@ export default function CreateCampaignTypeSelection() {
 
         {/* Upload Ready Ad */}
         <Card 
-          className="group cursor-pointer hover:shadow-md hover:border-primary/50 transition-all duration-300 bg-gradient-to-br from-background to-muted/20 flex flex-col" 
+          className="group cursor-pointer hover:shadow-lg hover:border-primary/50 hover:scale-[1.02] transition-all duration-300 bg-gradient-to-br from-background to-muted/20 flex flex-col min-h-[280px]" 
           onClick={() => navigate("/advertiser/upload-ad")}
         >
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-green-500/10 to-green-600/10">
-                <Upload className="h-5 w-5 text-green-600" />
+          <CardHeader className="pb-3 pt-6 px-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-green-500/10 to-green-600/10">
+                <Upload className="h-6 w-6 text-green-600" />
               </div>
-              <CardTitle className="text-lg">Upload Ready Ad</CardTitle>
+              <CardTitle className="text-xl">Upload Ready Ad</CardTitle>
             </div>
-            <CardDescription className="text-xs">
+            <CardDescription className="text-sm">
               Upload your pre-made audio or video advertisement
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col flex-1 pt-2">
-            <ul className="space-y-1 text-xs text-muted-foreground mb-3 flex-1">
-              <li className="flex items-center gap-1.5">
+          <CardContent className="flex flex-col flex-1 pt-2 px-6 pb-6">
+            <ul className="space-y-2 text-sm text-muted-foreground mb-4 flex-1">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Upload audio/video files</span>
               </li>
-              <li className="flex items-center gap-1.5">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Ready-to-use ads</span>
               </li>
-              <li className="flex items-center gap-1.5">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Multiple format support</span>
               </li>
-              <li className="flex items-center gap-1.5">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Quick deployment</span>
               </li>
             </ul>
-            <Button className="w-full" size="sm">
+            <Button className="w-full" size="default">
               Upload Ad
             </Button>
           </CardContent>
@@ -112,40 +112,40 @@ export default function CreateCampaignTypeSelection() {
 
         {/* Digital Ad Card */}
         <Card 
-          className="group cursor-pointer hover:shadow-md hover:border-primary/50 transition-all duration-300 bg-gradient-to-br from-background to-muted/20 flex flex-col" 
+          className="group cursor-pointer hover:shadow-lg hover:border-primary/50 hover:scale-[1.02] transition-all duration-300 bg-gradient-to-br from-background to-muted/20 flex flex-col min-h-[280px]" 
           onClick={() => navigate("/advertiser/ads/create-digital")}
         >
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-orange-500/10 to-orange-600/10">
-                <Monitor className="h-5 w-5 text-orange-600" />
+          <CardHeader className="pb-3 pt-6 px-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500/10 to-orange-600/10">
+                <Monitor className="h-6 w-6 text-orange-600" />
               </div>
-              <CardTitle className="text-lg">Digital Ad</CardTitle>
+              <CardTitle className="text-xl">Digital Ad</CardTitle>
             </div>
-            <CardDescription className="text-xs">
+            <CardDescription className="text-sm">
               Create display ads for websites and social media
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col flex-1 pt-2">
-            <ul className="space-y-1 text-xs text-muted-foreground mb-3 flex-1">
-              <li className="flex items-center gap-1.5">
+          <CardContent className="flex flex-col flex-1 pt-2 px-6 pb-6">
+            <ul className="space-y-2 text-sm text-muted-foreground mb-4 flex-1">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Multiple ad sizes</span>
               </li>
-              <li className="flex items-center gap-1.5">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Social media formats</span>
               </li>
-              <li className="flex items-center gap-1.5">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Website banners</span>
               </li>
-              <li className="flex items-center gap-1.5">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Canva integration</span>
               </li>
             </ul>
-            <Button className="w-full" size="sm">
+            <Button className="w-full" size="default">
               Create Digital Ad
             </Button>
           </CardContent>
@@ -153,40 +153,40 @@ export default function CreateCampaignTypeSelection() {
 
         {/* Host Read Script */}
         <Card 
-          className="group cursor-pointer hover:shadow-md hover:border-primary/50 transition-all duration-300 bg-gradient-to-br from-background to-muted/20 flex flex-col" 
+          className="group cursor-pointer hover:shadow-lg hover:border-primary/50 hover:scale-[1.02] transition-all duration-300 bg-gradient-to-br from-background to-muted/20 flex flex-col min-h-[280px]" 
           onClick={() => navigate("/advertiser/create-host-script")}
         >
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500/10 to-purple-600/10">
-                <FileText className="h-5 w-5 text-purple-600" />
+          <CardHeader className="pb-3 pt-6 px-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500/10 to-purple-600/10">
+                <FileText className="h-6 w-6 text-purple-600" />
               </div>
-              <CardTitle className="text-lg">Host Read Script</CardTitle>
+              <CardTitle className="text-xl">Host Read Script</CardTitle>
             </div>
-            <CardDescription className="text-xs">
+            <CardDescription className="text-sm">
               Create scripts for hosts to read during shows
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col flex-1 pt-2">
-            <ul className="space-y-1 text-xs text-muted-foreground mb-3 flex-1">
-              <li className="flex items-center gap-1.5">
+          <CardContent className="flex flex-col flex-1 pt-2 px-6 pb-6">
+            <ul className="space-y-2 text-sm text-muted-foreground mb-4 flex-1">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Custom ad scripts</span>
               </li>
-              <li className="flex items-center gap-1.5">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Host reads live</span>
               </li>
-              <li className="flex items-center gap-1.5">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Authentic integration</span>
               </li>
-              <li className="flex items-center gap-1.5">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Campaign tracking</span>
               </li>
             </ul>
-            <Button className="w-full" size="sm">
+            <Button className="w-full" size="default">
               Create Script
             </Button>
           </CardContent>
@@ -194,40 +194,40 @@ export default function CreateCampaignTypeSelection() {
 
         {/* Create Sponsorship */}
         <Card 
-          className="group cursor-pointer hover:shadow-md hover:border-primary/50 transition-all duration-300 bg-gradient-to-br from-background to-muted/20 flex flex-col" 
+          className="group cursor-pointer hover:shadow-lg hover:border-primary/50 hover:scale-[1.02] transition-all duration-300 bg-gradient-to-br from-background to-muted/20 flex flex-col min-h-[280px]" 
           onClick={() => navigate("/advertiser/create-sponsorship")}
         >
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-teal-500/10 to-teal-600/10">
-                <Handshake className="h-5 w-5 text-teal-600" />
+          <CardHeader className="pb-3 pt-6 px-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-teal-500/10 to-teal-600/10">
+                <Handshake className="h-6 w-6 text-teal-600" />
               </div>
-              <CardTitle className="text-lg">Create Sponsorship</CardTitle>
+              <CardTitle className="text-xl">Create Sponsorship</CardTitle>
             </div>
-            <CardDescription className="text-xs">
+            <CardDescription className="text-sm">
               Sponsor creators, events, and content directly
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col flex-1 pt-2">
-            <ul className="space-y-1 text-xs text-muted-foreground mb-3 flex-1">
-              <li className="flex items-center gap-1.5">
+          <CardContent className="flex flex-col flex-1 pt-2 px-6 pb-6">
+            <ul className="space-y-2 text-sm text-muted-foreground mb-4 flex-1">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Direct partnerships</span>
               </li>
-              <li className="flex items-center gap-1.5">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Creator collaborations</span>
               </li>
-              <li className="flex items-center gap-1.5">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Custom packages</span>
               </li>
-              <li className="flex items-center gap-1.5">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Flexible terms</span>
               </li>
             </ul>
-            <Button className="w-full" size="sm">
+            <Button className="w-full" size="default">
               Create Sponsorship
             </Button>
           </CardContent>
@@ -235,40 +235,40 @@ export default function CreateCampaignTypeSelection() {
 
         {/* Browse Sponsorships */}
         <Card 
-          className="group cursor-pointer hover:shadow-md hover:border-primary/50 transition-all duration-300 bg-gradient-to-br from-background to-muted/20 flex flex-col" 
+          className="group cursor-pointer hover:shadow-lg hover:border-primary/50 hover:scale-[1.02] transition-all duration-300 bg-gradient-to-br from-background to-muted/20 flex flex-col min-h-[280px]" 
           onClick={() => navigate("/advertiser/sponsorships")}
         >
-          <CardHeader className="pb-2">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-pink-500/10 to-pink-600/10">
-                <Calendar className="h-5 w-5 text-pink-600" />
+          <CardHeader className="pb-3 pt-6 px-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-pink-500/10 to-pink-600/10">
+                <Calendar className="h-6 w-6 text-pink-600" />
               </div>
-              <CardTitle className="text-lg">Browse Sponsorships</CardTitle>
+              <CardTitle className="text-xl">Browse Sponsorships</CardTitle>
             </div>
-            <CardDescription className="text-xs">
+            <CardDescription className="text-sm">
               Sponsor creator events, awards, and experiences
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col flex-1 pt-2">
-            <ul className="space-y-1 text-xs text-muted-foreground mb-3 flex-1">
-              <li className="flex items-center gap-1.5">
+          <CardContent className="flex flex-col flex-1 pt-2 px-6 pb-6">
+            <ul className="space-y-2 text-sm text-muted-foreground mb-4 flex-1">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Event sponsorships</span>
               </li>
-              <li className="flex items-center gap-1.5">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Awards program sponsors</span>
               </li>
-              <li className="flex items-center gap-1.5">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Brand placement</span>
               </li>
-              <li className="flex items-center gap-1.5">
+              <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
                 <span>Live audience reach</span>
               </li>
             </ul>
-            <Button className="w-full" size="sm">
+            <Button className="w-full" size="default">
               Browse Opportunities
             </Button>
           </CardContent>
