@@ -43,17 +43,15 @@ export default function AdFinancialModels() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <DollarSign className="h-8 w-8 text-primary" />
-            Ad Revenue Financial Model
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            12-36 month projections, scenario planning, and investor reporting
-          </p>
-        </div>
+    <div className="px-10 py-6 space-y-8">
+      <div className="flex flex-col items-start">
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          <DollarSign className="h-8 w-8 text-primary" />
+          Ad Revenue Financial Model
+        </h1>
+        <p className="text-muted-foreground mt-1">
+          12-36 month projections, scenario planning, and investor reporting
+        </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">

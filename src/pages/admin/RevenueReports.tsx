@@ -61,8 +61,8 @@ export default function RevenueReports() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="px-10 py-6 space-y-8">
+      <div className="flex flex-col items-start gap-4">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <DollarSign className="h-8 w-8 text-primary" />
@@ -78,7 +78,7 @@ export default function RevenueReports() {
         </Button>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex gap-4 items-start justify-start">
         <Select value={granularity} onValueChange={setGranularity}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Granularity" />
@@ -104,7 +104,7 @@ export default function RevenueReports() {
         </Select>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-6 justify-start">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Revenue</CardTitle>

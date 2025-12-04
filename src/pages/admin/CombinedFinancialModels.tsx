@@ -2,21 +2,17 @@ import { useState } from "react";
 import { useCombinedFinancialData } from "@/hooks/useCombinedFinancialData";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   DollarSign, 
   TrendingUp, 
   Download, 
   Loader2,
   BarChart3,
-  PieChart as PieChartIcon,
   Target
 } from "lucide-react";
 import { 
   LineChart, 
   Line, 
-  BarChart,
-  Bar,
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -32,18 +28,13 @@ import jsPDF from "jspdf";
 
 export default function CombinedFinancialModels() {
   const { toast } = useToast();
-  const [selectedScenario, setSelectedScenario] = useState<string>("base");
   const [aiScenario, setAiScenario] = useState<"conservative" | "base" | "aggressive">("base");
   
-  // Get scenario ID based on selection
   const getScenarioId = () => {
-    // This will be populated from scenarios query
-    return undefined; // Will use base scenario by default
+    return undefined;
   };
 
   const {
-    financialOverview,
-    scenarios,
     monthlyProjections,
     yearlySummaries,
     isLoading,
@@ -62,7 +53,6 @@ export default function CombinedFinancialModels() {
     return `${value.toFixed(1)}%`;
   };
 
-  // Calculate scenario multipliers
   const getScenarioMultiplier = (scenario: "conservative" | "base" | "aggressive") => {
     switch (scenario) {
       case "conservative": return 0.75;
@@ -71,7 +61,6 @@ export default function CombinedFinancialModels() {
     }
   };
 
-  // Apply AI scenario multipliers to yearly data
   const getAIScenarioData = () => {
     const multiplier = getScenarioMultiplier(aiScenario);
     return yearlySummaries.map(year => ({
@@ -86,7 +75,6 @@ export default function CombinedFinancialModels() {
   const handleExportPDF = () => {
     const doc = new jsPDF();
     
-    // Header
     doc.setFillColor(59, 130, 246);
     doc.rect(0, 0, 210, 40, "F");
     doc.setFontSize(24);
@@ -96,7 +84,6 @@ export default function CombinedFinancialModels() {
     doc.setFontSize(12);
     doc.text("Subscriptions + Advertising Revenue", 20, 30);
     
-    // Summary section
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
@@ -116,7 +103,6 @@ export default function CombinedFinancialModels() {
       yPos += 50;
     });
     
-    // Footer
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
     doc.text(
@@ -130,7 +116,6 @@ export default function CombinedFinancialModels() {
   };
 
   const handleExportExcel = () => {
-    // CSV format for simplicity (can be opened in Excel)
     const headers = ["Year", "Subscription Revenue", "Ad Revenue", "Total Revenue", "Total Payouts", "Net Profit", "Gross Margin %"];
     const rows = yearlySummaries.map(year => [
       year.year,
@@ -155,322 +140,274 @@ export default function CombinedFinancialModels() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6 flex items-center justify-center min-h-[400px]">
+      <div className="px-10 py-6 flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
-  const year3Data = yearlySummaries.find(y => y.year === 3) || yearlySummaries[yearlySummaries.length - 1];
-  const aiYear3 = getAIScenarioData().find(y => y.year === 3);
-
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="px-10 py-6 space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <BarChart3 className="h-8 w-8 text-primary" />
-            Combined Revenue Model
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            3-Year projections combining subscription + ad revenue
-          </p>
+      <div className="flex flex-col items-start">
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          <BarChart3 className="h-8 w-8 text-primary" />
+          Combined Revenue Model
+        </h1>
+        <p className="text-muted-foreground mt-1">
+          3-Year projections combining subscription + ad revenue
+        </p>
+      </div>
+
+      {/* Scenario Toggle Pills */}
+      <div className="flex gap-2">
+        <Button
+          variant={aiScenario === "conservative" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setAiScenario("conservative")}
+        >
+          Conservative
+        </Button>
+        <Button
+          variant={aiScenario === "base" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setAiScenario("base")}
+        >
+          Base
+        </Button>
+        <Button
+          variant={aiScenario === "aggressive" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setAiScenario("aggressive")}
+        >
+          Aggressive
+        </Button>
+      </div>
+
+      {/* Main Layout: Content + Sticky Spark */}
+      <div className="flex gap-8">
+        {/* Left Content */}
+        <div className="flex-1 space-y-8">
+          {/* Two Column Pro Forma Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* AI-Generated Combined Pro Forma */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  AI-Generated Combined Pro Forma
+                </CardTitle>
+                <CardDescription>
+                  Market-based projections ({aiScenario} scenario)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-4">
+                  {getAIScenarioData().map((year) => (
+                    <div key={year.year} className="p-4 border rounded-lg">
+                      <div className="font-bold text-lg mb-2">Year {year.year}</div>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Total Revenue:</span>
+                          <span className="font-medium">{formatCurrency(year.totalRevenue)}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground pl-4">Subs:</span>
+                          <span>{formatCurrency(year.subscriptionRevenue)}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground pl-4">Ads:</span>
+                          <span>{formatCurrency(year.adRevenue)}</span>
+                        </div>
+                        <div className="flex justify-between pt-2 border-t">
+                          <span className="text-muted-foreground">Net Profit:</span>
+                          <span className="font-medium">{formatCurrency(year.netProfit)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-4 space-y-2">
+                  <Button variant="outline" size="sm" className="w-full" onClick={handleExportPDF}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download PDF
+                  </Button>
+                  <Button variant="outline" size="sm" className="w-full" onClick={handleExportExcel}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Excel
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Custom 3-Year Combined Pro Forma */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  Custom 3-Year Combined Pro Forma
+                </CardTitle>
+                <CardDescription>
+                  Based on your custom subscription + ad assumptions
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-4">
+                  {yearlySummaries.map((year) => (
+                    <div key={year.year} className="p-4 border rounded-lg bg-accent/20">
+                      <div className="font-bold text-lg mb-2">Year {year.year}</div>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Total Revenue:</span>
+                          <span className="font-medium">{formatCurrency(year.totalRevenue)}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground pl-4">Subs:</span>
+                          <span>{formatCurrency(year.subscriptionRevenue)}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground pl-4">Ads:</span>
+                          <span>{formatCurrency(year.adRevenue)}</span>
+                        </div>
+                        <div className="flex justify-between pt-2 border-t">
+                          <span className="text-muted-foreground">Net Profit:</span>
+                          <span className="font-medium">{formatCurrency(year.netProfit)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Gross Margin:</span>
+                          <span className="font-medium">{formatPercentage(year.grossMargin)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Chart */}
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={yearlySummaries}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="year" label={{ value: "Year", position: "insideBottom", offset: -5 }} />
+                      <YAxis />
+                      <Tooltip 
+                        formatter={(value: number) => formatCurrency(value)}
+                        labelFormatter={(label) => `Year ${label}`}
+                      />
+                      <Legend />
+                      <Area 
+                        type="monotone" 
+                        dataKey="subscriptionRevenue" 
+                        stackId="1"
+                        stroke="#8884d8" 
+                        fill="#8884d8" 
+                        name="Subscriptions"
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="adRevenue" 
+                        stackId="1"
+                        stroke="#82ca9d" 
+                        fill="#82ca9d" 
+                        name="Ads"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="pt-4 space-y-2">
+                  <Button variant="outline" size="sm" className="w-full" onClick={handleExportPDF}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download PDF
+                  </Button>
+                  <Button variant="outline" size="sm" className="w-full" onClick={handleExportExcel}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Excel
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Detailed Charts Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Monthly Revenue Breakdown</CardTitle>
+              <CardDescription>
+                36-month detailed projection combining subscription and ad revenue streams
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-96">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={monthlyProjections}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="periodLabel" 
+                      label={{ value: "Month", position: "insideBottom", offset: -5 }}
+                    />
+                    <YAxis />
+                    <Tooltip 
+                      formatter={(value: number) => formatCurrency(value)}
+                    />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="subscriptionRevenue" 
+                      stroke="#8884d8" 
+                      name="Subscription Revenue"
+                      dot={false}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="adRevenue" 
+                      stroke="#82ca9d" 
+                      name="Ad Revenue"
+                      dot={false}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="totalRevenue" 
+                      stroke="#ffc658" 
+                      strokeWidth={2}
+                      name="Total Revenue"
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right: Sticky Ask Spark */}
+        <div className="w-[340px] flex-shrink-0">
+          <div className="sticky top-20">
+            <Card className="flex flex-col h-[calc(100vh-120px)]">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5" />
+                  Ask Spark (Combined)
+                </CardTitle>
+                <CardDescription>
+                  Ask about combined revenue, margins, and growth projections
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex-1 overflow-hidden">
+                <div className="mb-4 p-3 bg-muted rounded-lg text-sm text-muted-foreground">
+                  <p className="mb-2 font-medium">Example questions:</p>
+                  <ul className="space-y-1 text-xs">
+                    <li>• "What's our total revenue in Year 2?"</li>
+                    <li>• "How much comes from advertising vs subs?"</li>
+                    <li>• "What's our net profit growth YoY?"</li>
+                  </ul>
+                </div>
+                <CFOAIChat />
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
-
-      {/* Top Metrics Strip */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Revenue (Year 3)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(year3Data?.totalRevenue || 0)}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              % Revenue from Ads (Year 3)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {year3Data 
-                ? formatPercentage((year3Data.adRevenue / year3Data.totalRevenue) * 100)
-                : "0%"}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Creator Payouts (Year 3)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(year3Data?.totalPayouts || 0)}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Net Margin (Year 3)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatPercentage(year3Data?.grossMargin || 0)}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Three Column Layout */}
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Left: AI-Generated Combined Pro Forma */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              AI-Generated Combined Pro Forma
-            </CardTitle>
-            <CardDescription>
-              Market-based projections combining subscription + ad growth
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Scenario Selector */}
-            <div className="flex gap-2">
-              <Button
-                variant={aiScenario === "conservative" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setAiScenario("conservative")}
-                className="flex-1"
-              >
-                Conservative
-              </Button>
-              <Button
-                variant={aiScenario === "base" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setAiScenario("base")}
-                className="flex-1"
-              >
-                Base
-              </Button>
-              <Button
-                variant={aiScenario === "aggressive" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setAiScenario("aggressive")}
-                className="flex-1"
-              >
-                Aggressive
-              </Button>
-            </div>
-
-            {/* AI Scenario Projections */}
-            <div className="space-y-4">
-              {getAIScenarioData().map((year) => (
-                <div key={year.year} className="p-4 border rounded-lg">
-                  <div className="font-bold text-lg mb-2">Year {year.year}</div>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Total Revenue:</span>
-                      <span className="font-medium">{formatCurrency(year.totalRevenue)}</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground pl-4">Subs:</span>
-                      <span>{formatCurrency(year.subscriptionRevenue)}</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground pl-4">Ads:</span>
-                      <span>{formatCurrency(year.adRevenue)}</span>
-                    </div>
-                    <div className="flex justify-between pt-2 border-t">
-                      <span className="text-muted-foreground">Net Profit:</span>
-                      <span className="font-medium">{formatCurrency(year.netProfit)}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="pt-4 space-y-2">
-              <Button variant="outline" size="sm" className="w-full" onClick={handleExportPDF}>
-                <Download className="h-4 w-4 mr-2" />
-                Download PDF
-              </Button>
-              <Button variant="outline" size="sm" className="w-full" onClick={handleExportExcel}>
-                <Download className="h-4 w-4 mr-2" />
-                Download Excel
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Middle: Custom 3-Year Combined Pro Forma */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5" />
-              Custom 3-Year Combined Pro Forma
-            </CardTitle>
-            <CardDescription>
-              Based on your custom subscription + ad assumptions
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Yearly Breakdown */}
-            <div className="space-y-4">
-              {yearlySummaries.map((year) => (
-                <div key={year.year} className="p-4 border rounded-lg bg-accent/20">
-                  <div className="font-bold text-lg mb-2">Year {year.year}</div>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Total Revenue:</span>
-                      <span className="font-medium">{formatCurrency(year.totalRevenue)}</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground pl-4">Subs:</span>
-                      <span>{formatCurrency(year.subscriptionRevenue)}</span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground pl-4">Ads:</span>
-                      <span>{formatCurrency(year.adRevenue)}</span>
-                    </div>
-                    <div className="flex justify-between pt-2 border-t">
-                      <span className="text-muted-foreground">Net Profit:</span>
-                      <span className="font-medium">{formatCurrency(year.netProfit)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Gross Margin:</span>
-                      <span className="font-medium">{formatPercentage(year.grossMargin)}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Chart */}
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={yearlySummaries}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="year" label={{ value: "Year", position: "insideBottom", offset: -5 }} />
-                  <YAxis />
-                  <Tooltip 
-                    formatter={(value: number) => formatCurrency(value)}
-                    labelFormatter={(label) => `Year ${label}`}
-                  />
-                  <Legend />
-                  <Area 
-                    type="monotone" 
-                    dataKey="subscriptionRevenue" 
-                    stackId="1"
-                    stroke="#8884d8" 
-                    fill="#8884d8" 
-                    name="Subscriptions"
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="adRevenue" 
-                    stackId="1"
-                    stroke="#82ca9d" 
-                    fill="#82ca9d" 
-                    name="Ads"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="pt-4 space-y-2">
-              <Button variant="outline" size="sm" className="w-full" onClick={handleExportPDF}>
-                <Download className="h-4 w-4 mr-2" />
-                Download PDF
-              </Button>
-              <Button variant="outline" size="sm" className="w-full" onClick={handleExportExcel}>
-                <Download className="h-4 w-4 mr-2" />
-                Download Excel
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Right: Ask CFO AI */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5" />
-              Ask CFO AI (Combined)
-            </CardTitle>
-            <CardDescription>
-              Ask about combined revenue, margins, and growth projections
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-4 p-3 bg-muted rounded-lg text-sm text-muted-foreground">
-              <p className="mb-2 font-medium">Example questions:</p>
-              <ul className="space-y-1 text-xs">
-                <li>• "What's our total revenue in Year 2 if we use the Aggressive ad scenario?"</li>
-                <li>• "How much of our Year 3 revenue comes from advertising vs subscriptions?"</li>
-                <li>• "What's our projected net profit growth year over year?"</li>
-              </ul>
-            </div>
-            <CFOAIChat />
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Detailed Charts Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Monthly Revenue Breakdown</CardTitle>
-          <CardDescription>
-            36-month detailed projection combining subscription and ad revenue streams
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="h-96">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthlyProjections}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="periodLabel" 
-                  label={{ value: "Month", position: "insideBottom", offset: -5 }}
-                />
-                <YAxis />
-                <Tooltip 
-                  formatter={(value: number) => formatCurrency(value)}
-                />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="subscriptionRevenue" 
-                  stroke="#8884d8" 
-                  name="Subscription Revenue"
-                  dot={false}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="adRevenue" 
-                  stroke="#82ca9d" 
-                  name="Ad Revenue"
-                  dot={false}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="totalRevenue" 
-                  stroke="#ffc658" 
-                  strokeWidth={2}
-                  name="Total Revenue"
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
