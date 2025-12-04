@@ -235,6 +235,8 @@ import CMOCommandCenter from "./pages/admin/cmo/CMOCommandCenter";
 import CCOCommunications from "./pages/admin/cco/CCOCommunications";
 import SalesLeads from "./pages/admin/SalesLeads";
 import SalesDesk from "./pages/admin/SalesDesk";
+import SWOTAnalysis from "./pages/admin/SWOTAnalysis";
+import TeamMembers from "./pages/admin/TeamMembers";
 import AdvertisingManagement from "./pages/admin/AdvertisingManagement";
 import ImpersonateUser from "./pages/admin/ImpersonateUser";
 import CreditManagement from "./pages/admin/CreditManagement";
@@ -834,6 +836,8 @@ const AppContent = () => {
               <Route path="/admin/payments" element={<Payments />} />
               <Route path="/admin/financial-models/ads/*" element={<AdFinancialModels />} />
               <Route path="/admin/financial-models/combined" element={<CombinedFinancialModels />} />
+              <Route path="/admin/financials/swot" element={<SWOTAnalysis />} />
+              <Route path="/admin/team-members" element={<TeamMembers />} />
               <Route path="/admin/advertising/rate-desk" element={<AdminRateDesk />} />
               <Route path="/admin/advertising/advertisers" element={<AdminAdvertisersList />} />
               <Route path="/admin/advertising/campaigns/create" element={<AdminCreateCampaign />} />

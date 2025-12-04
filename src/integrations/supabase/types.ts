@@ -20330,6 +20330,9 @@ export type Database = {
         | "support_agent"
         | "team_manager"
         | "read_only_analyst"
+        | "cfo"
+        | "cmo"
+        | "cco"
       award_program_status:
         | "draft"
         | "nominations_open"
@@ -20513,6 +20516,9 @@ export const Constants = {
         "support_agent",
         "team_manager",
         "read_only_analyst",
+        "cfo",
+        "cmo",
+        "cco",
       ],
       award_program_status: [
         "draft",

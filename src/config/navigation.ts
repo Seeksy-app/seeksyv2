@@ -180,6 +180,13 @@ export const NAVIGATION_CONFIG: {
           "icon": "file-spreadsheet",
           "path": "/admin/investor-spreadsheets",
           "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_swot",
+          "label": "SWOT Analysis",
+          "icon": "target",
+          "path": "/admin/financials/swot",
+          "roles": ["admin", "super_admin"]
         }
       ]
     },
@@ -226,9 +233,16 @@ export const NAVIGATION_CONFIG: {
         },
         {
           "id": "admin_permissions",
-          "label": "Permissions",
+          "label": "Roles & Permissions",
           "icon": "shield-check",
           "path": "/admin/permissions",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_team_members",
+          "label": "Team Members",
+          "icon": "users",
+          "path": "/admin/team-members",
           "roles": ["admin", "super_admin"]
         }
       ]
