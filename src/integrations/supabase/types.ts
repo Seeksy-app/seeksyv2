@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_denied_log: {
+        Row: {
+          attempted_permission: string
+          attempted_resource: string | null
+          created_at: string | null
+          denied_reason: string | null
+          id: string
+          resource_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          attempted_permission: string
+          attempted_resource?: string | null
+          created_at?: string | null
+          denied_reason?: string | null
+          id?: string
+          resource_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          attempted_permission?: string
+          attempted_resource?: string | null
+          created_at?: string | null
+          denied_reason?: string | null
+          id?: string
+          resource_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       activity_logs: {
         Row: {
           action_description: string
@@ -13533,6 +13563,75 @@ export type Database = {
         }
         Relationships: []
       }
+      permission_audit_log: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          new_value: Json | null
+          old_value: Json | null
+          resource_id: string | null
+          resource_type: string | null
+          target_user_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          new_value?: Json | null
+          old_value?: Json | null
+          resource_id?: string | null
+          resource_type?: string | null
+          target_user_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          new_value?: Json | null
+          old_value?: Json | null
+          resource_id?: string | null
+          resource_type?: string | null
+          target_user_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      permissions: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          key: string
+          name: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key: string
+          name: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key?: string
+          name?: string
+        }
+        Relationships: []
+      }
       pipeline_stages: {
         Row: {
           color: string | null
@@ -14899,6 +14998,42 @@ export type Database = {
           projected_ad_reads?: number | null
           projected_impressions?: number | null
           projected_revenue?: number
+        }
+        Relationships: []
+      }
+      role_definitions: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_name: string
+          id: string
+          is_active: boolean | null
+          is_system_role: boolean | null
+          priority: number | null
+          role_key: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_name: string
+          id?: string
+          is_active?: boolean | null
+          is_system_role?: boolean | null
+          priority?: number | null
+          role_key: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_name?: string
+          id?: string
+          is_active?: boolean | null
+          is_system_role?: boolean | null
+          priority?: number | null
+          role_key?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -19914,6 +20049,36 @@ export type Database = {
         }
         Relationships: []
       }
+      workspace_members: {
+        Row: {
+          created_at: string | null
+          id: string
+          permissions_override: Json | null
+          role: string
+          updated_at: string | null
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          permissions_override?: Json | null
+          role?: string
+          updated_at?: string | null
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          permissions_override?: Json | null
+          role?: string
+          updated_at?: string | null
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
       youtube_oauth_sessions: {
         Row: {
           access_token: string
@@ -20160,6 +20325,11 @@ export type Database = {
         | "influencer"
         | "agency"
         | "board_member"
+        | "platform_owner"
+        | "support_admin"
+        | "support_agent"
+        | "team_manager"
+        | "read_only_analyst"
       award_program_status:
         | "draft"
         | "nominations_open"
@@ -20338,6 +20508,11 @@ export const Constants = {
         "influencer",
         "agency",
         "board_member",
+        "platform_owner",
+        "support_admin",
+        "support_agent",
+        "team_manager",
+        "read_only_analyst",
       ],
       award_program_status: [
         "draft",
