@@ -10,6 +10,8 @@ import {
   MessageSquare,
   FolderOpen,
   RotateCcw,
+  PlusCircle,
+  Sparkles,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -70,8 +72,9 @@ const advertiserNavSections: NavSection[] = [
     ],
   },
   {
-    title: 'Ad Library',
+    title: 'Ads',
     items: [
+      { title: 'Create Ads', href: '/advertiser/create-ad', icon: PlusCircle },
       { title: 'My Ads', href: '/advertiser/ad-library-v2', icon: FolderOpen },
     ],
   },
@@ -92,7 +95,13 @@ const advertiserNavSections: NavSection[] = [
     title: 'Settings',
     items: [
       { title: 'Integrations', href: '/advertiser/integrations', icon: Plug },
-      { title: 'Support', href: '/contact', icon: MessageSquare },
+    ],
+  },
+  {
+    title: 'Support',
+    items: [
+      { title: 'Ask Spark', href: '/advertiser/ask-spark', icon: Sparkles },
+      { title: 'Help Center', href: '/contact', icon: MessageSquare },
     ],
   },
 ];

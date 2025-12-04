@@ -183,12 +183,14 @@ const MarketplaceV2 = () => {
             >
               <div className="flex flex-col items-center text-center space-y-4">
                 <div className="relative">
-                  <Avatar className="h-20 w-20">
-                    <AvatarImage src={creator.avatarUrl} />
-                    <AvatarFallback className="bg-[#2C6BED]/10 text-[#2C6BED] text-xl">
-                      {creator.name.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="w-20 h-20 rounded-full overflow-hidden flex-shrink-0">
+                    <Avatar className="h-full w-full">
+                      <AvatarImage src={creator.avatarUrl} className="object-cover w-full h-full" />
+                      <AvatarFallback className="bg-[#2C6BED]/10 text-[#2C6BED] text-xl w-full h-full flex items-center justify-center">
+                        {creator.name.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
                   {creator.verified && (
                     <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-1">
                       <Check className="w-3 h-3 text-white" />

@@ -206,12 +206,14 @@ const AdvertiserDashboardV2 = () => {
                   onClick={() => navigate(`/advertiser/creators/${creator.id}`)}
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    <Avatar className="h-12 w-12 flex-shrink-0">
-                      <AvatarImage src={creator.avatarUrl} className="object-cover" />
-                      <AvatarFallback className="bg-[#2C6BED]/10 text-[#2C6BED]">
-                        {creator.name.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+                      <Avatar className="h-full w-full">
+                        <AvatarImage src={creator.avatarUrl} className="object-cover w-full h-full" />
+                        <AvatarFallback className="bg-[#2C6BED]/10 text-[#2C6BED] w-full h-full flex items-center justify-center">
+                          {creator.name.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm truncate">{creator.name}</p>
                       <p className="text-xs text-muted-foreground truncate">{creator.niche}</p>
@@ -318,12 +320,14 @@ const AdvertiserDashboardV2 = () => {
                   onClick={() => navigate(`/advertiser/creators/${creator.id}`)}
                 >
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10 flex-shrink-0">
-                      <AvatarImage src={creator.avatarUrl} className="object-cover" />
-                      <AvatarFallback className="bg-[#2C6BED]/10 text-[#2C6BED] text-sm">
-                        {creator.name.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                      <Avatar className="h-full w-full">
+                        <AvatarImage src={creator.avatarUrl} className="object-cover w-full h-full" />
+                        <AvatarFallback className="bg-[#2C6BED]/10 text-[#2C6BED] text-sm w-full h-full flex items-center justify-center">
+                          {creator.name.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
                     <div>
                       <p className="text-sm font-medium">{creator.name}</p>
                       <p className="text-xs text-muted-foreground">{creator.niche}</p>
