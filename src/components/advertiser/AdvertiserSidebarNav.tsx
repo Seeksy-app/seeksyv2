@@ -51,26 +51,42 @@ interface NavSection {
 
 const advertiserNavSections: NavSection[] = [
   {
-    title: 'Main',
+    title: 'Dashboard',
     items: [
-      { title: 'Dashboard', href: '/advertiser', icon: LayoutDashboard },
-      { title: 'My Campaigns', href: '/advertiser/campaigns', icon: Megaphone },
-      { title: 'Ad Library', href: '/advertiser/ads', icon: FolderOpen },
-      { title: 'Creators & Shows', href: '/advertiser/creators', icon: Users },
-      { title: 'Performance & Reports', href: '/advertiser/reports', icon: BarChart3 },
+      { title: 'Dashboard', href: '/advertiser/dashboard-v2', icon: LayoutDashboard },
     ],
   },
   {
-    title: 'Tools',
+    title: 'Marketplace',
     items: [
-      { title: 'Budgets & Billing', href: '/advertiser/billing', icon: CreditCard },
+      { title: 'Browse Creators', href: '/advertiser/marketplace-v2', icon: Users },
+    ],
+  },
+  {
+    title: 'Campaigns',
+    items: [
+      { title: 'All Campaigns', href: '/advertiser/campaigns', icon: Megaphone },
+      { title: 'Create Campaign', href: '/advertiser/campaign-builder-v2', icon: Megaphone },
+    ],
+  },
+  {
+    title: 'Ad Library',
+    items: [
+      { title: 'My Ads', href: '/advertiser/ad-library-v2', icon: FolderOpen },
+    ],
+  },
+  {
+    title: 'Payments & Billing',
+    items: [
+      { title: 'Billing', href: '/advertiser/billing', icon: CreditCard },
+      { title: 'Reports', href: '/advertiser/reports', icon: BarChart3 },
+    ],
+  },
+  {
+    title: 'Settings',
+    items: [
       { title: 'Integrations', href: '/advertiser/integrations', icon: Plug },
-    ],
-  },
-  {
-    title: 'Support',
-    items: [
-      { title: 'Contact Support', href: '/contact', icon: MessageSquare },
+      { title: 'Support', href: '/contact', icon: MessageSquare },
     ],
   },
 ];

@@ -3,32 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
-import { Check, X, Instagram, Youtube, Twitter, Linkedin, Users, TrendingUp, DollarSign, Target } from "lucide-react";
+import { Check, Instagram, Youtube, Users, TrendingUp, DollarSign, Target } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-
-interface Creator {
-  id: string;
-  name: string;
-  handle: string;
-  avatarUrl?: string;
-  niche: string;
-  bio: string;
-  followers: number;
-  engagementRate: number;
-  performanceScore: number;
-  platforms: string[];
-  audienceDemo: { female: number; male: number; age18_24: number; age25_34: number; age35_plus: number };
-  avgCPM: number;
-  avgCTR: number;
-  verified: boolean;
-  voiceVerified: boolean;
-  topContent: string[];
-  recommendedFormats: string[];
-  reachTrend: number[];
-}
+import type { DemoCreatorV2 } from "@/data/advertiserDemoDataV2";
 
 interface CreatorAnalyticsModalProps {
-  creator: Creator | null;
+  creator: DemoCreatorV2 | null;
   open: boolean;
   onClose: () => void;
   onInvite?: (creatorId: string) => void;
@@ -52,9 +32,10 @@ const platformIcons: Record<string, React.ReactNode> = {
 export function CreatorAnalyticsModal({ creator, open, onClose, onInvite }: CreatorAnalyticsModalProps) {
   if (!creator) return null;
 
-  const reachChartData = creator.reachTrend.map((value, index) => ({
+  // Generate mock reach trend data
+  const reachChartData = Array.from({ length: 7 }, (_, index) => ({
     week: `W${index + 1}`,
-    reach: value,
+    reach: Math.floor(creator.followers * (0.05 + Math.random() * 0.03)),
   }));
 
   return (
