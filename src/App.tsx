@@ -122,6 +122,7 @@ import AdvertiserSignup from "./pages/AdvertiserSignup";
 import AdvertiserServices from "./pages/AdvertiserServices";
 import AdminAdvertisers from "./pages/AdminAdvertisers";
 import AdvertiserDashboard from "./pages/AdvertiserDashboard";
+import AdvertiserDashboardV2 from "./pages/AdvertiserDashboardV2";
 import AdvertiserCampaigns from "./pages/AdvertiserCampaigns";
 import AdvertiserAdLibrary from "./pages/AdvertiserAdLibrary";
 import CreateCampaignTypeSelection from "./pages/CreateCampaignTypeSelection";
@@ -612,7 +613,7 @@ const AppContent = () => {
               <Route path="/podcast-studio/success" element={<StudioSuccess />} />
               
               {/* Advertiser Ad-Read Marketplace Routes */}
-            <Route path="/advertiser" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserDashboardNew /></ProtectedRoute>} />
+            <Route path="/advertiser" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserDashboardV2 /></ProtectedRoute>} />
             <Route path="/advertiser/campaigns" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserCampaignsList /></ProtectedRoute>} />
             <Route path="/advertiser/campaigns/:id" element={<ProtectedRoute requiredRole="advertiser"><CampaignDetails /></ProtectedRoute>} />
             <Route path="/advertiser/creatives" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserCreatives /></ProtectedRoute>} />
@@ -828,7 +829,7 @@ const AppContent = () => {
               <Route path="/admin/sales-leads" element={<SalesLeads />} />
           <Route path="/advertiser" element={<AdvertiserServices />} />
           <Route path="/advertiser/signup" element={<AdvertiserSignup />} />
-          <Route path="/advertiser/dashboard" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserDashboard /></ProtectedRoute>} />
+          <Route path="/advertiser/dashboard" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserDashboardV2 /></ProtectedRoute>} />
           <Route path="/advertiser/campaigns" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserCampaigns /></ProtectedRoute>} />
           <Route path="/advertiser/ads" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserAdLibrary /></ProtectedRoute>} />
           <Route path="/advertiser/campaigns/create" element={<ProtectedRoute requiredRole="advertiser"><CreateCampaign /></ProtectedRoute>} />
