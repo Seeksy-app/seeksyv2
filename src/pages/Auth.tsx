@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
@@ -23,7 +23,6 @@ const Auth = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -77,10 +76,7 @@ const Auth = () => {
 
         if (error) throw error;
         
-        toast({
-          title: "Welcome back!",
-          description: "You've successfully logged in.",
-        });
+        toast.success("Welcome back! You've successfully logged in.");
         
         // Get user from session
         const { data: { session } } = await supabase.auth.getSession();
@@ -175,10 +171,7 @@ const Auth = () => {
           }
         }
 
-        toast({
-          title: "Account created!",
-          description: "Check your email to confirm your account.",
-        });
+        toast.success("Account created! Check your email to confirm your account.");
         
         // Mark that user just signed up to show welcome modal on first login
         localStorage.setItem("justSignedUp", "true");
@@ -195,11 +188,7 @@ const Auth = () => {
         }
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -216,17 +205,10 @@ const Auth = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Password reset email sent!",
-        description: "Check your email for the password reset link.",
-      });
+      toast.success("Password reset email sent! Check your email for the password reset link.");
       setShowForgotPassword(false);
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -253,19 +235,12 @@ const Auth = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Password updated!",
-        description: "Your password has been successfully reset.",
-      });
+      toast.success("Password updated! Your password has been successfully reset.");
       
       setShowResetPassword(false);
       navigate("/dashboard");
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -468,11 +443,7 @@ const Auth = () => {
                       },
                     });
                     if (error) {
-                      toast({
-                        title: "Error",
-                        description: error.message,
-                        variant: "destructive",
-                      });
+                      toast.error(error.message);
                     }
                   }}
                 >

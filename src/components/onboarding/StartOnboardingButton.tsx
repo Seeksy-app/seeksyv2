@@ -1,12 +1,13 @@
 /**
  * StartOnboardingButton Component
  * Compact pill button to start product tours
+ * Navigates to page and triggers tour
  */
 
 import { Button } from '@/components/ui/button';
 import { Sparkles, HelpCircle, ChevronDown, Play } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
-import { getPageTourKeyFromRoute, getPageTour, PageTourKey, pageTours } from '@/onboarding/tourConfig';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { getPageTourKeyFromRoute, getPageTour, PageTourKey } from '@/onboarding/tourConfig';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,22 +16,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import { useProductTourContext } from './ProductTourProvider';
 
-// Import the provider context - fallback to try/catch for backward compat
-let useProductTourContext: () => {
-  startBasicTour: (pageKey?: PageTourKey) => void;
-  isActive: boolean;
+// Page routes for navigation
+const PAGE_ROUTES: Record<PageTourKey, string> = {
+  dashboard: '/dashboard',
+  myDay: '/my-day',
+  creatorHub: '/creator-hub',
+  meetings: '/meetings',
+  appsTools: '/apps-and-tools',
 };
-
-try {
-  useProductTourContext = require('./ProductTourProvider').useProductTourContext;
-} catch {
-  // Fallback if provider not available yet
-  useProductTourContext = () => ({
-    startBasicTour: () => {},
-    isActive: false,
-  });
-}
 
 const tourPages: { key: PageTourKey; label: string }[] = [
   { key: 'dashboard', label: 'Dashboard' },
@@ -47,6 +42,7 @@ interface StartOnboardingButtonProps {
 
 export function StartOnboardingButton({ className, variant = 'default' }: StartOnboardingButtonProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   
   let startBasicTour: (pageKey?: PageTourKey) => void = () => {};
   let isActive = false;
@@ -61,6 +57,25 @@ export function StartOnboardingButton({ className, variant = 'default' }: StartO
   
   const currentPageKey = getPageTourKeyFromRoute(location.pathname);
   const hasTipsForCurrentPage = currentPageKey && getPageTour(currentPageKey);
+
+  // Handle tour selection - navigate if needed, then start tour
+  const handleStartTour = (pageKey: PageTourKey) => {
+    const targetRoute = PAGE_ROUTES[pageKey];
+    const isOnTargetPage = location.pathname === targetRoute || 
+      location.pathname.startsWith(targetRoute);
+    
+    if (isOnTargetPage) {
+      // Already on the page, start tour immediately
+      startBasicTour(pageKey);
+    } else {
+      // Navigate to the page, then start tour after a short delay
+      navigate(targetRoute);
+      // Use timeout to allow page to render before starting tour
+      setTimeout(() => {
+        startBasicTour(pageKey);
+      }, 500);
+    }
+  };
 
   // Don't show if tour is active
   if (isActive) {
@@ -81,7 +96,7 @@ export function StartOnboardingButton({ className, variant = 'default' }: StartO
             <span className="hidden sm:inline">Tour</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuContent align="end" className="w-48 bg-popover">
           <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
             Start a guided tour
           </DropdownMenuLabel>
@@ -90,8 +105,8 @@ export function StartOnboardingButton({ className, variant = 'default' }: StartO
           {currentPageKey && hasTipsForCurrentPage && (
             <>
               <DropdownMenuItem 
-                onClick={() => startBasicTour(currentPageKey)} 
-                className="gap-2"
+                onClick={() => handleStartTour(currentPageKey)} 
+                className="gap-2 cursor-pointer"
               >
                 <Play className="h-3.5 w-3.5" />
                 <span>This page</span>
@@ -103,9 +118,8 @@ export function StartOnboardingButton({ className, variant = 'default' }: StartO
           {tourPages.map((page) => (
             <DropdownMenuItem
               key={page.key}
-              onClick={() => startBasicTour(page.key)}
-              className="gap-2"
-              disabled={page.key === currentPageKey}
+              onClick={() => handleStartTour(page.key)}
+              className="gap-2 cursor-pointer"
             >
               <Sparkles className="h-3.5 w-3.5" />
               <span>{page.label}</span>
@@ -133,14 +147,14 @@ export function StartOnboardingButton({ className, variant = 'default' }: StartO
             <ChevronDown className="h-3 w-3 opacity-60" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuContent align="end" className="w-52 bg-popover">
           <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
             Choose a page to explore
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem 
-            onClick={() => startBasicTour(currentPageKey)}
-            className="gap-2"
+            onClick={() => handleStartTour(currentPageKey)}
+            className="gap-2 cursor-pointer"
           >
             <Play className="h-3.5 w-3.5 text-primary" />
             <span className="font-medium">Tour this page</span>
@@ -149,8 +163,8 @@ export function StartOnboardingButton({ className, variant = 'default' }: StartO
           {tourPages.filter(p => p.key !== currentPageKey).map((page) => (
             <DropdownMenuItem 
               key={page.key}
-              onClick={() => startBasicTour(page.key)}
-              className="gap-2"
+              onClick={() => handleStartTour(page.key)}
+              className="gap-2 cursor-pointer"
             >
               <Sparkles className="h-3.5 w-3.5" />
               <span>{page.label}</span>
@@ -175,7 +189,7 @@ export function StartOnboardingButton({ className, variant = 'default' }: StartO
           <ChevronDown className="h-3 w-3 opacity-60" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-52">
+      <DropdownMenuContent align="end" className="w-52 bg-popover">
         <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
           Choose a page to explore
         </DropdownMenuLabel>
@@ -183,8 +197,8 @@ export function StartOnboardingButton({ className, variant = 'default' }: StartO
         {tourPages.map((page) => (
           <DropdownMenuItem 
             key={page.key}
-            onClick={() => startBasicTour(page.key)}
-            className="gap-2"
+            onClick={() => handleStartTour(page.key)}
+            className="gap-2 cursor-pointer"
           >
             <Sparkles className="h-3.5 w-3.5" />
             <span>{page.label}</span>
