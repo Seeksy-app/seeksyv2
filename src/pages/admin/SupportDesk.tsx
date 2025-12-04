@@ -28,9 +28,9 @@ export default function SupportDesk() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <div>
+        <div className="text-left">
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Headphones className="h-8 w-8 text-primary" />
             Support Desk
@@ -64,10 +64,10 @@ export default function SupportDesk() {
 
         <TabsContent value="all" className="space-y-4">
           {tickets.map((ticket) => (
-            <Card key={ticket.id} className="cursor-pointer hover:shadow-md transition-shadow">
+            <Card key={ticket.id} className="cursor-pointer hover:shadow-md transition-shadow text-left">
               <CardHeader>
                 <div className="flex items-start justify-between">
-                  <div className="space-y-1">
+                  <div className="space-y-1 text-left">
                     <div className="flex items-center gap-2">
                       <CardTitle className="text-lg">{ticket.subject}</CardTitle>
                       <Badge variant={getPriorityColor(ticket.priority)}>
@@ -98,15 +98,15 @@ export default function SupportDesk() {
         </TabsContent>
 
         <TabsContent value="open">
-          <p className="text-muted-foreground text-center py-8">Open tickets will appear here</p>
+          <p className="text-muted-foreground text-left py-8">Open tickets will appear here</p>
         </TabsContent>
 
         <TabsContent value="in-progress">
-          <p className="text-muted-foreground text-center py-8">In-progress tickets will appear here</p>
+          <p className="text-muted-foreground text-left py-8">In-progress tickets will appear here</p>
         </TabsContent>
 
         <TabsContent value="resolved">
-          <p className="text-muted-foreground text-center py-8">Resolved tickets will appear here</p>
+          <p className="text-muted-foreground text-left py-8">Resolved tickets will appear here</p>
         </TabsContent>
       </Tabs>
     </div>

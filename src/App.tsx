@@ -247,6 +247,9 @@ import AdminCreators from "./pages/admin/AdminCreators";
 import AdminIdentity from "./pages/admin/Identity";
 import AppAudioAdmin from "./pages/admin/AppAudioAdmin";
 import PersonaManagement from "./pages/admin/PersonaManagement";
+import OutboundCampaigns from "./pages/admin/marketing/OutboundCampaigns";
+import FunnelsAttribution from "./pages/admin/marketing/FunnelsAttribution";
+import SeoBranding from "./pages/admin/marketing/SeoBranding";
 import KeysVault from "./pages/KeysVault";
 import ManageInvestorSpreadsheets from "./pages/ManageInvestorSpreadsheets";
 import ModuleSelector from "./pages/ModuleSelector";
@@ -859,6 +862,10 @@ const AppContent = () => {
               <Route path="/admin/marketing-gtm" element={<MarketingGTM />} />
               <Route path="/admin/investor-spreadsheets-v2" element={<InvestorSpreadsheets />} />
               <Route path="/admin/sales-leads" element={<SalesLeads />} />
+              {/* Marketing CMO Routes */}
+              <Route path="/admin/marketing/campaigns" element={<OutboundCampaigns />} />
+              <Route path="/admin/marketing/funnels" element={<FunnelsAttribution />} />
+              <Route path="/admin/marketing/seo" element={<SeoBranding />} />
           <Route path="/advertiser" element={<AdvertiserServices />} />
           <Route path="/advertiser/signup" element={<AdvertiserSignup />} />
           <Route path="/advertiser/dashboard" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserDashboardV2 /></ProtectedRoute>} />

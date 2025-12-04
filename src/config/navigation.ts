@@ -94,6 +94,13 @@ export const NAVIGATION_CONFIG: {
           "description": "Customer support ticket management"
         },
         {
+          "id": "admin_users",
+          "label": "All Users",
+          "icon": "users",
+          "path": "/admin/creators",
+          "roles": ["admin", "super_admin", "cfo"]
+        },
+        {
           "id": "admin_lead_manager",
           "label": "Lead Manager",
           "icon": "user-plus",
@@ -221,6 +228,27 @@ export const NAVIGATION_CONFIG: {
           "icon": "search",
           "path": "/admin/marketing/seo",
           "roles": ["admin", "super_admin", "cmo"]
+        },
+        {
+          "id": "admin_logo_manager",
+          "label": "Logo Manager",
+          "icon": "image",
+          "path": "/admin/logo-manager",
+          "roles": ["admin", "super_admin", "cmo"]
+        },
+        {
+          "id": "admin_hero_manager",
+          "label": "Hero Manager",
+          "icon": "layout",
+          "path": "/admin/hero-manager",
+          "roles": ["admin", "super_admin", "cmo"]
+        },
+        {
+          "id": "admin_brand_settings",
+          "label": "Brand Settings",
+          "icon": "palette",
+          "path": "/admin/brand-settings",
+          "roles": ["admin", "super_admin", "cmo"]
         }
       ]
     },
@@ -238,45 +266,10 @@ export const NAVIGATION_CONFIG: {
           "roles": ["admin", "super_admin", "cco"]
         },
         {
-          "id": "admin_podcasts",
-          "label": "Podcasts",
-          "icon": "mic",
-          "path": "/admin/content/podcasts",
-          "roles": ["admin", "super_admin", "cco"]
-        },
-        {
-          "id": "admin_videos",
-          "label": "Videos",
-          "icon": "video",
-          "path": "/admin/content/videos",
-          "roles": ["admin", "super_admin", "cco"]
-        },
-        {
           "id": "admin_media_library",
-          "label": "Creator Media Library",
+          "label": "Media Library",
           "icon": "folder",
           "path": "/admin/content/media-library",
-          "roles": ["admin", "super_admin", "cco"]
-        },
-        {
-          "id": "admin_logo_manager",
-          "label": "Logo Manager",
-          "icon": "image",
-          "path": "/admin/logo-manager",
-          "roles": ["admin", "super_admin", "cco"]
-        },
-        {
-          "id": "admin_hero_manager",
-          "label": "Hero Manager",
-          "icon": "layout",
-          "path": "/admin/hero-manager",
-          "roles": ["admin", "super_admin", "cco"]
-        },
-        {
-          "id": "admin_brand_settings",
-          "label": "Brand Settings",
-          "icon": "palette",
-          "path": "/admin/brand-settings",
           "roles": ["admin", "super_admin", "cco"]
         }
       ]
@@ -302,13 +295,6 @@ export const NAVIGATION_CONFIG: {
           "roles": ["admin", "super_admin"]
         },
         {
-          "id": "admin_users",
-          "label": "All Users",
-          "icon": "users",
-          "path": "/admin/creators",
-          "roles": ["admin", "super_admin", "cfo"]
-        },
-        {
           "id": "admin_identity",
           "label": "Identity & Certification",
           "icon": "fingerprint",
@@ -316,24 +302,10 @@ export const NAVIGATION_CONFIG: {
           "roles": ["admin", "super_admin"]
         },
         {
-          "id": "admin_board_members",
-          "label": "Board Members",
-          "icon": "briefcase",
-          "path": "/admin/board-members",
-          "roles": ["admin", "super_admin"]
-        },
-        {
           "id": "admin_impersonate",
           "label": "Impersonate User",
           "icon": "user-cog",
           "path": "/admin/impersonate",
-          "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_credits",
-          "label": "Credit Management",
-          "icon": "coins",
-          "path": "/admin/credits",
           "roles": ["admin", "super_admin"]
         }
       ]
