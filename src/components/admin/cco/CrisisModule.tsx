@@ -18,14 +18,15 @@ interface CrisisEvent {
   id: string;
   title: string;
   crisis_type: string;
-  severity: string;
-  status: string;
+  severity: string | null;
+  status: string | null;
   description: string | null;
-  affected_users_count?: number;
-  affected_segments?: string[];
-  ai_generated_response?: string | null;
-  channels_notified?: string[];
-  created_at: string;
+  affected_users_count: number | null;
+  affected_segments: string[] | null;
+  ai_generated_response: string | null;
+  official_response: string | null;
+  channels_notified: string[] | null;
+  created_at: string | null;
   resolved_at: string | null;
 }
 
@@ -51,8 +52,8 @@ export function CrisisModule() {
     crisis_type: "outage",
     severity: "medium",
     description: "",
-    affected_users: 0,
-    affected_systems: ""
+    affected_users_count: 0,
+    affected_segments: ""
   });
 
   useEffect(() => {
@@ -64,7 +65,7 @@ export function CrisisModule() {
     const { data, error } = await supabase
       .from("cco_crisis_events")
       .select("*")
-      .order("detected_at", { ascending: false });
+      .order("created_at", { ascending: false });
 
     if (data) setCrises(data);
     setLoading(false);
@@ -81,8 +82,8 @@ export function CrisisModule() {
       crisis_type: newCrisis.crisis_type,
       severity: newCrisis.severity,
       description: newCrisis.description || null,
-      affected_users: newCrisis.affected_users,
-      affected_systems: newCrisis.affected_systems.split(",").map(s => s.trim()).filter(Boolean)
+      affected_users_count: newCrisis.affected_users_count,
+      affected_segments: newCrisis.affected_segments.split(",").map(s => s.trim()).filter(Boolean)
     });
 
     if (error) {
@@ -92,7 +93,7 @@ export function CrisisModule() {
 
     toast.success("Crisis event created");
     setIsCreateOpen(false);
-    setNewCrisis({ title: "", crisis_type: "outage", severity: "medium", description: "", affected_users: 0, affected_systems: "" });
+    setNewCrisis({ title: "", crisis_type: "outage", severity: "medium", description: "", affected_users_count: 0, affected_segments: "" });
     fetchCrises();
   };
 
@@ -119,12 +120,16 @@ export function CrisisModule() {
     // Simulate AI generation
     await new Promise(resolve => setTimeout(resolve, 2000));
     
+    const affectedSystems = crisis.affected_segments?.join(", ") || "Unknown";
+    const affectedCount = crisis.affected_users_count || 0;
+    const detectedTime = crisis.created_at ? new Date(crisis.created_at).toLocaleTimeString() : "Unknown";
+    
     const responses = {
       internal: `INTERNAL CRISIS RESPONSE - ${crisis.title}
 
-SEVERITY: ${crisis.severity.toUpperCase()}
-AFFECTED USERS: ${crisis.affected_users}
-SYSTEMS: ${crisis.affected_systems.join(", ")}
+SEVERITY: ${(crisis.severity || "medium").toUpperCase()}
+AFFECTED USERS: ${affectedCount}
+SYSTEMS: ${affectedSystems}
 
 IMMEDIATE ACTIONS:
 1. Engineering team to investigate root cause
@@ -145,8 +150,8 @@ POST-INCIDENT:
       public: `We're aware that some users are experiencing ${crisis.title.toLowerCase()}. Our team is actively investigating and working to resolve this as quickly as possible.
 
 What we know:
-- The issue was first detected at ${new Date(crisis.detected_at).toLocaleTimeString()}
-- Approximately ${crisis.affected_users} users may be affected
+- The issue was first detected at ${detectedTime}
+- Approximately ${affectedCount} users may be affected
 - Our engineering team is actively working on a fix
 
 What you can do:
@@ -159,7 +164,7 @@ Thank you for your patience.
 The Seeksy Team`
     };
 
-    const field = type === "internal" ? "internal_response" : "public_statement";
+    const field = type === "internal" ? "ai_generated_response" : "official_response";
     await supabase
       .from("cco_crisis_events")
       .update({ [field]: responses[type] })
@@ -170,24 +175,24 @@ The Seeksy Team`
     fetchCrises();
   };
 
-  const getSeverityColor = (severity: string) => {
+  const getSeverityColor = (severity: string | null) => {
     const colors: Record<string, string> = {
       critical: "bg-red-500 text-white",
       high: "bg-orange-500 text-white",
       medium: "bg-yellow-500 text-black",
       low: "bg-green-500 text-white"
     };
-    return colors[severity] || "bg-gray-500 text-white";
+    return colors[severity || "medium"] || "bg-gray-500 text-white";
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | null) => {
     const colors: Record<string, string> = {
       active: "bg-red-100 text-red-800",
       monitoring: "bg-yellow-100 text-yellow-800",
       resolved: "bg-green-100 text-green-800",
       post_mortem: "bg-blue-100 text-blue-800"
     };
-    return colors[status] || "bg-gray-100 text-gray-800";
+    return colors[status || "active"] || "bg-gray-100 text-gray-800";
   };
 
   const activeCrises = crises.filter(c => c.status === "active" || c.status === "monitoring");
@@ -283,15 +288,15 @@ The Seeksy Team`
                 <Label>Affected Users (estimate)</Label>
                 <Input 
                   type="number"
-                  value={newCrisis.affected_users}
-                  onChange={(e) => setNewCrisis({ ...newCrisis, affected_users: parseInt(e.target.value) || 0 })}
+                  value={newCrisis.affected_users_count}
+                  onChange={(e) => setNewCrisis({ ...newCrisis, affected_users_count: parseInt(e.target.value) || 0 })}
                 />
               </div>
               <div>
                 <Label>Affected Systems (comma-separated)</Label>
                 <Input 
-                  value={newCrisis.affected_systems}
-                  onChange={(e) => setNewCrisis({ ...newCrisis, affected_systems: e.target.value })}
+                  value={newCrisis.affected_segments}
+                  onChange={(e) => setNewCrisis({ ...newCrisis, affected_segments: e.target.value })}
                   placeholder="e.g., Studio, API, Database"
                 />
               </div>
@@ -331,24 +336,24 @@ The Seeksy Team`
                   <div>
                     <div className="flex items-center gap-2">
                       <CardTitle className="text-lg">{crisis.title}</CardTitle>
-                      <Badge className={getSeverityColor(crisis.severity)}>{crisis.severity}</Badge>
-                      <Badge className={getStatusColor(crisis.status)}>{crisis.status}</Badge>
+                      <Badge className={getSeverityColor(crisis.severity)}>{crisis.severity || "medium"}</Badge>
+                      <Badge className={getStatusColor(crisis.status)}>{crisis.status || "active"}</Badge>
                     </div>
                     <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Users className="h-4 w-4" />
-                        {crisis.affected_users} affected
+                        {crisis.affected_users_count || 0} affected
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
-                        {new Date(crisis.detected_at).toLocaleString()}
+                        {crisis.created_at ? new Date(crisis.created_at).toLocaleString() : "Unknown"}
                       </span>
                       <Badge variant="outline">
                         {crisisTypes.find(t => t.value === crisis.crisis_type)?.label}
                       </Badge>
                     </div>
                   </div>
-                  <Select value={crisis.status} onValueChange={(v) => handleStatusChange(crisis.id, v)}>
+                  <Select value={crisis.status || "active"} onValueChange={(v) => handleStatusChange(crisis.id, v)}>
                     <SelectTrigger className="w-[150px]">
                       <SelectValue />
                     </SelectTrigger>
@@ -366,10 +371,10 @@ The Seeksy Team`
                   <p className="text-sm text-muted-foreground mb-4">{crisis.description}</p>
                 )}
                 
-                {crisis.affected_systems && crisis.affected_systems.length > 0 && (
+                {crisis.affected_segments && crisis.affected_segments.length > 0 && (
                   <div className="flex gap-2 mb-4">
                     <span className="text-sm font-medium">Systems:</span>
-                    {crisis.affected_systems.map(sys => (
+                    {crisis.affected_segments.map(sys => (
                       <Badge key={sys} variant="secondary">{sys}</Badge>
                     ))}
                   </div>
@@ -394,7 +399,7 @@ The Seeksy Team`
                     {generatingResponse ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Sparkles className="h-4 w-4 mr-1" />}
                     Generate Public Statement
                   </Button>
-                  {crisis.public_statement && (
+                  {crisis.official_response && (
                     <Button size="sm">
                       <Send className="h-4 w-4 mr-1" />
                       Publish Statement
@@ -402,18 +407,18 @@ The Seeksy Team`
                   )}
                 </div>
 
-                {(crisis.internal_response || crisis.public_statement) && (
+                {(crisis.ai_generated_response || crisis.official_response) && (
                   <div className="grid md:grid-cols-2 gap-4 mt-4">
-                    {crisis.internal_response && (
+                    {crisis.ai_generated_response && (
                       <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                         <p className="text-xs font-medium text-yellow-800 mb-2">Internal Response</p>
-                        <p className="text-xs whitespace-pre-wrap">{crisis.internal_response}</p>
+                        <p className="text-xs whitespace-pre-wrap">{crisis.ai_generated_response}</p>
                       </div>
                     )}
-                    {crisis.public_statement && (
+                    {crisis.official_response && (
                       <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
                         <p className="text-xs font-medium text-blue-800 mb-2">Public Statement</p>
-                        <p className="text-xs whitespace-pre-wrap">{crisis.public_statement}</p>
+                        <p className="text-xs whitespace-pre-wrap">{crisis.official_response}</p>
                       </div>
                     )}
                   </div>
