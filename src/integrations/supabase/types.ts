@@ -3676,6 +3676,57 @@ export type Database = {
         }
         Relationships: []
       }
+      board_members: {
+        Row: {
+          bio: string | null
+          company: string | null
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean | null
+          joined_at: string | null
+          linkedin_url: string | null
+          phone: string | null
+          photo_url: string | null
+          role: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          bio?: string | null
+          company?: string | null
+          created_at?: string | null
+          email: string
+          full_name: string
+          id?: string
+          is_active?: boolean | null
+          joined_at?: string | null
+          linkedin_url?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          role: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          bio?: string | null
+          company?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean | null
+          joined_at?: string | null
+          linkedin_url?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          role?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       board_metrics: {
         Row: {
           created_at: string
@@ -3705,6 +3756,44 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      board_notes: {
+        Row: {
+          board_member_id: string
+          content: string
+          created_at: string | null
+          created_by: string
+          id: string
+          is_private: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          board_member_id: string
+          content: string
+          created_at?: string | null
+          created_by: string
+          id?: string
+          is_private?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          board_member_id?: string
+          content?: string
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          is_private?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "board_notes_board_member_id_fkey"
+            columns: ["board_member_id"]
+            isOneToOne: false
+            referencedRelation: "board_members"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       calendar_connections: {
         Row: {
