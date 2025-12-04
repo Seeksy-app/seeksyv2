@@ -19,13 +19,15 @@ import {
   FileText,
   LogOut,
   BarChart3,
-  Database,
-  Settings,
-  Users,
-  Wallet,
-  HeartPulse,
+  Calculator,
+  DollarSign,
+  Sword,
+  ChartPie,
+  Globe,
+  Share2,
+  LineChart,
   Sparkles,
-  Shield,
+  ClipboardList,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useBoardViewMode } from '@/hooks/useBoardViewMode';
@@ -64,16 +66,16 @@ const businessItems = [
     path: '/board/gtm',
   },
   {
-    id: 'ceo-plan',
-    label: 'CEO Operating Plan',
-    icon: FileText,
-    path: '/board/ceo-plan',
-  },
-  {
     id: 'forecasts',
     label: '3-Year Forecasts',
     icon: TrendingUp,
     path: '/board/forecasts',
+  },
+  {
+    id: 'ceo-vto',
+    label: 'CEO VTO',
+    icon: ClipboardList,
+    path: '/board/ceo-vto',
   },
   {
     id: 'docs',
@@ -81,56 +83,65 @@ const businessItems = [
     icon: FileText,
     path: '/board/docs',
   },
-  {
-    id: 'investor-links',
-    label: 'Shared Links',
-    icon: Users,
-    path: '/board/investor-links',
-  },
 ];
 
-// R&D & Intelligence section
-const rdItems = [
+// Financials section
+const financialItems = [
   {
-    id: 'rd-research',
-    label: 'R&D Research',
-    icon: Database,
-    path: '/board/research',
-  },
-  {
-    id: 'cfo-assumptions',
-    label: 'CFO Assumptions',
-    icon: Settings,
-    path: '/board/cfo-assumptions',
-    disabled: true,
-  },
-];
-
-// Coming Soon section
-const comingSoonItems = [
-  {
-    id: 'cohort-reports',
-    label: 'Creator Cohort Reports',
-    icon: Users,
-    disabled: true,
-  },
-  {
-    id: 'acquisition-channels',
-    label: 'Acquisition Channels',
+    id: 'key-metrics',
+    label: 'Key Metrics',
     icon: BarChart3,
-    disabled: true,
+    path: '/board/gtm?tab=key-metrics',
   },
   {
-    id: 'revenue-explorer',
-    label: 'Revenue Explorer',
-    icon: Wallet,
-    disabled: true,
+    id: 'roi-calculator',
+    label: 'ROI Calculator',
+    icon: Calculator,
+    path: '/board/gtm?tab=roi-calculator',
   },
   {
-    id: 'customer-health',
-    label: 'Customer Health Panel',
-    icon: HeartPulse,
+    id: 'revenue-insights',
+    label: 'Revenue Insights',
+    icon: DollarSign,
     disabled: true,
+  },
+];
+
+// Competitive & Strategy section
+const strategyItems = [
+  {
+    id: 'competitive',
+    label: 'Competitive Landscape',
+    icon: Sword,
+    path: '/board/gtm?tab=competitive-landscape',
+  },
+  {
+    id: 'swot',
+    label: 'SWOT Analysis',
+    icon: ChartPie,
+    path: '/board/gtm?tab=swot-analysis',
+  },
+  {
+    id: 'market-intel',
+    label: 'Market Intelligence',
+    icon: Globe,
+    disabled: true,
+  },
+];
+
+// Sharing & Access section
+const sharingItems = [
+  {
+    id: 'share-investor',
+    label: 'Share With Investor',
+    icon: Share2,
+    path: '/board/gtm?tab=share-with-investor',
+  },
+  {
+    id: 'investor-analytics',
+    label: 'Investor Analytics',
+    icon: LineChart,
+    path: '/board/investor-links',
   },
 ];
 
@@ -157,30 +168,49 @@ export function BoardSidebar() {
     navigate('/admin');
   };
 
+  const handleNavigation = (item: NavItem) => {
+    if (item.disabled || !item.path) return;
+    navigate(item.path);
+  };
+
+  const isItemActive = (item: NavItem) => {
+    if (!item.path) return false;
+    
+    // Handle query string paths
+    if (item.path.includes('?')) {
+      const [basePath, query] = item.path.split('?');
+      const currentUrl = location.pathname + location.search;
+      return currentUrl === item.path || 
+             (location.pathname === basePath && location.search.includes(query));
+    }
+    
+    return location.pathname === item.path;
+  };
+
   const renderNavItem = (item: NavItem) => {
-    const isActive = item.path && location.pathname === item.path;
+    const isActive = isItemActive(item);
     const Icon = item.icon;
     const isDisabled = item.disabled;
 
     return (
       <SidebarMenuItem key={item.id}>
         <SidebarMenuButton
-          onClick={() => !isDisabled && item.path && navigate(item.path)}
+          onClick={() => handleNavigation(item)}
           className={cn(
-            'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all',
+            'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm',
             isDisabled 
-              ? 'text-slate-500 cursor-not-allowed'
-              : 'text-white hover:bg-slate-800 hover:text-white',
-            isActive && !isDisabled && 'bg-slate-800 text-blue-400 font-medium'
+              ? 'text-muted-foreground/50 cursor-not-allowed'
+              : 'text-foreground/80 hover:bg-muted hover:text-foreground',
+            isActive && !isDisabled && 'bg-primary/10 text-primary font-medium'
           )}
         >
           <Icon className={cn(
             "w-4 h-4 flex-shrink-0",
-            isDisabled ? "text-slate-500" : isActive ? "text-blue-400" : "text-slate-300"
+            isDisabled ? "text-muted-foreground/50" : isActive ? "text-primary" : "text-muted-foreground"
           )} />
           <span className="flex-1 truncate">{item.label}</span>
           {isDisabled && (
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-slate-700 text-slate-300 border-slate-600">
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-muted text-muted-foreground border-border">
               Soon
             </Badge>
           )}
@@ -189,71 +219,48 @@ export function BoardSidebar() {
     );
   };
 
+  const renderSection = (title: string, items: NavItem[], className?: string) => (
+    <SidebarGroup className={className}>
+      <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-1">
+        {title}
+      </SidebarGroupLabel>
+      <SidebarMenu>
+        {items.map(renderNavItem)}
+      </SidebarMenu>
+    </SidebarGroup>
+  );
+
   return (
-    <Sidebar className="border-r border-slate-700 bg-slate-900">
-      <SidebarHeader className="p-4 border-b border-slate-700">
+    <Sidebar className="border-r border-border bg-background">
+      <SidebarHeader className="p-4 border-b border-border">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-            <span className="text-white font-bold">S</span>
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+            <span className="text-primary-foreground font-bold text-sm">S</span>
           </div>
           <div>
-            <h2 className="text-base font-semibold text-white">Seeksy</h2>
-            <p className="text-xs text-slate-400">Board Portal</p>
+            <h2 className="text-base font-semibold text-foreground">Seeksy</h2>
+            <p className="text-xs text-muted-foreground">Board Portal</p>
           </div>
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-4">
-        {/* Overview Section */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-3 mb-1">
-            Overview
-          </SidebarGroupLabel>
-          <SidebarMenu>
-            {overviewItems.map(renderNavItem)}
-          </SidebarMenu>
-        </SidebarGroup>
-
-        {/* Business Section */}
-        <SidebarGroup className="mt-5">
-          <SidebarGroupLabel className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-3 mb-1">
-            Business
-          </SidebarGroupLabel>
-          <SidebarMenu>
-            {businessItems.map(renderNavItem)}
-          </SidebarMenu>
-        </SidebarGroup>
-
-        {/* R&D & Intelligence Section */}
-        <SidebarGroup className="mt-5">
-          <SidebarGroupLabel className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-3 mb-1">
-            R&D & Intelligence
-          </SidebarGroupLabel>
-          <SidebarMenu>
-            {rdItems.map(renderNavItem)}
-          </SidebarMenu>
-        </SidebarGroup>
-
-        {/* Coming Soon Section */}
-        <SidebarGroup className="mt-5">
-          <SidebarGroupLabel className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-3 mb-1">
-            Coming Soon
-          </SidebarGroupLabel>
-          <SidebarMenu>
-            {comingSoonItems.map(renderNavItem)}
-          </SidebarMenu>
-        </SidebarGroup>
+      <SidebarContent className="px-3 py-4 overflow-y-auto">
+        {renderSection('Overview', overviewItems)}
+        {renderSection('Business', businessItems, 'mt-4')}
+        {renderSection('Financials', financialItems, 'mt-4')}
+        {renderSection('Competitive & Strategy', strategyItems, 'mt-4')}
+        {renderSection('Sharing & Access', sharingItems, 'mt-4')}
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-slate-700 space-y-2">
+      <SidebarFooter className="p-3 border-t border-border space-y-2">
         {/* Board AI Analyst Entry */}
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start gap-2 text-blue-400 hover:text-blue-300 hover:bg-slate-800"
+          className="w-full justify-start gap-2 text-primary hover:text-primary hover:bg-primary/10"
           onClick={() => window.dispatchEvent(new CustomEvent('openBoardAIChat'))}
         >
-          <Shield className="w-4 h-4" />
+          <Sparkles className="w-4 h-4" />
           Board AI Analyst
         </Button>
 
@@ -261,7 +268,7 @@ export function BoardSidebar() {
           <Button
             variant="outline"
             size="sm"
-            className="w-full justify-start gap-2 text-slate-300 border-slate-600 bg-slate-800 hover:bg-slate-700 hover:text-white"
+            className="w-full justify-start gap-2"
             onClick={handleExitBoardView}
           >
             <LayoutDashboard className="w-4 h-4" />
@@ -271,7 +278,7 @@ export function BoardSidebar() {
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start gap-2 text-slate-400 hover:text-white hover:bg-slate-800"
+          className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground hover:bg-muted"
           onClick={handleLogout}
         >
           <LogOut className="w-4 h-4" />

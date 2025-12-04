@@ -379,6 +379,7 @@ import BoardDocs from "./pages/board/BoardDocs";
 import BoardInvestorLinks from "./pages/board/BoardInvestorLinks";
 import BoardShare from "./pages/board/BoardShare";
 import BoardCEOPlan from "./pages/board/BoardCEOPlan";
+import BoardCEOVTO from "./pages/board/BoardCEOVTO";
 import BoardResearch from "./pages/board/BoardResearch";
 import BoardInvestorPortal from "./pages/investor/InvestorPortal";
 import BoardMemberManagement from "./pages/admin/BoardMemberManagement";
@@ -813,6 +814,7 @@ const AppContent = () => {
           <Route path="/board/business-model" element={<BoardBusinessModel />} />
           <Route path="/board/gtm" element={<BoardGTM />} />
           <Route path="/board/ceo-plan" element={<BoardCEOPlan />} />
+          <Route path="/board/ceo-vto" element={<BoardCEOVTO />} />
           <Route path="/board/forecasts" element={<BoardForecasts />} />
           <Route path="/board/videos" element={<BoardVideos />} />
           <Route path="/board/docs" element={<BoardDocs />} />
