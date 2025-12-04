@@ -202,6 +202,8 @@ import AdDetailPage from "./pages/advertiser/AdDetailPage";
 import CreatorDetailPage from "./pages/advertiser/CreatorDetailPage";
 import OffersListPage from "./pages/advertiser/OffersListPage";
 import OfferDetailPage from "./pages/advertiser/OfferDetailPage";
+import SponsorshipOpportunities from "./pages/advertiser/SponsorshipOpportunities";
+import SponsorshipDetailPage from "./pages/advertiser/SponsorshipDetailPage";
 import CFODashboard from "./pages/CFODashboard";
 import CFOCalculators from "./pages/CFOCalculators";
 import ProForma from "./pages/ProForma";
@@ -883,6 +885,8 @@ const AppContent = () => {
               <Route path="/advertiser/offers" element={<ProtectedRoute requiredRole="advertiser"><OffersListPage /></ProtectedRoute>} />
               <Route path="/advertiser/offers/:id" element={<ProtectedRoute requiredRole="advertiser"><OfferDetailPage /></ProtectedRoute>} />
               <Route path="/advertiser/ads" element={<ProtectedRoute requiredRole="advertiser"><AdLibraryV2 /></ProtectedRoute>} />
+              <Route path="/advertiser/sponsorships" element={<ProtectedRoute requiredRole="advertiser"><SponsorshipOpportunities /></ProtectedRoute>} />
+              <Route path="/advertiser/sponsorships/:id" element={<ProtectedRoute requiredRole="advertiser"><SponsorshipDetailPage /></ProtectedRoute>} />
           <Route path="/admin/system-architecture" element={<SystemArchitecture />} />
           <Route path="/podcast-ads" element={<PodcastAds />} />
           <Route path="/podcast-revenue" element={<PodcastRevenue />} />

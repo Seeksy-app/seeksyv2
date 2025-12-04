@@ -236,7 +236,7 @@ export default function CreateCampaignTypeSelection() {
         {/* Browse Sponsorships */}
         <Card 
           className="group cursor-pointer hover:shadow-md hover:border-primary/50 transition-all duration-300 bg-gradient-to-br from-background to-muted/20 flex flex-col" 
-          onClick={() => navigate("/sponsorship-marketplace")}
+          onClick={() => navigate("/advertiser/sponsorships")}
         >
           <CardHeader className="pb-2">
             <div className="flex items-center gap-3 mb-2">
