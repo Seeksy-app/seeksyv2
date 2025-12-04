@@ -66,6 +66,18 @@ import {
   Calendar,
   Send,
   Zap,
+  Rocket,
+  Briefcase,
+  Sliders,
+  Rss,
+  Wrench,
+  Globe,
+  UserPlus,
+  BarChart2,
+  ScrollText,
+  Webhook,
+  Mail,
+  Instagram,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -154,6 +166,18 @@ const ICON_MAP: Record<string, any> = {
   calendar: Calendar,
   send: Send,
   zap: Zap,
+  rocket: Rocket,
+  briefcase: Briefcase,
+  sliders: Sliders,
+  rss: Rss,
+  wrench: Wrench,
+  globe: Globe,
+  'user-plus': UserPlus,
+  'bar-chart-2': BarChart2,
+  'scroll-text': ScrollText,
+  webhook: Webhook,
+  mail: Mail,
+  instagram: Instagram,
 };
 
 export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
@@ -167,13 +191,14 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
     "Email": true,
     "Marketing": true,
     "Media": true,
-    "Admin": false,
-    "Content Management": false,
     "User Management": false,
-    "Identity & Certification": false,
     "Advertising & Revenue": false,
     "Business Operations": false,
+    "Business Tools": false,
+    "R&D & Intelligence": false,
+    "Content Management": false,
     "Developer Tools": false,
+    "Support": false,
   });
 
   const toggleGroup = (groupName: string) => {
