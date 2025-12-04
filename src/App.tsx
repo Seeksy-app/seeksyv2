@@ -9,6 +9,7 @@ import { RoleBasedSidebar } from "@/components/navigation/RoleBasedSidebar";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { TopNavBar } from "@/components/TopNavBar";
 import { TourModeWrapper } from "@/components/layout/TourModeWrapper";
+import { NavCustomizationModal } from "@/components/dashboard/NavCustomizationModal";
 // AskSparkDock removed - using sidebar Ask Spark only
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -424,6 +425,7 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [navModalOpen, setNavModalOpen] = useState(false);
   const location = useLocation();
   
   // Enable task reminders for logged-in users
@@ -434,6 +436,13 @@ const AppContent = () => {
   
   // Restore scroll position on navigation
   useScrollRestoration();
+
+  // Listen for nav customization event from sidebar
+  useEffect(() => {
+    const handleOpenNavCustomization = () => setNavModalOpen(true);
+    window.addEventListener('openNavCustomization', handleOpenNavCustomization);
+    return () => window.removeEventListener('openNavCustomization', handleOpenNavCustomization);
+  }, []);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -988,6 +997,7 @@ const AppContent = () => {
         
         <CommandPalette />
         <AIAssistantPanel />
+        <NavCustomizationModal open={navModalOpen} onOpenChange={setNavModalOpen} />
         </div>
       </SidebarProvider>
       </OnboardingGuard>

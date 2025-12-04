@@ -348,10 +348,24 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
           );
         })}
 
-        {/* Ask Spark at bottom - Enhanced visibility */}
-        <SidebarGroup className="mt-auto mb-4">
+        {/* Bottom Section - Ask Spark & Customize */}
+        <SidebarGroup className="mt-auto mb-4 space-y-2">
           <SidebarGroupContent>
             <SidebarMenu>
+              {/* Customize Navigation Button */}
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  onClick={() => window.dispatchEvent(new Event('openNavCustomization'))}
+                  className="hover:bg-muted/50 cursor-pointer transition-all duration-200 py-2 px-3 rounded-lg text-muted-foreground hover:text-foreground"
+                >
+                  <div className="flex items-center gap-3 w-full">
+                    <Sliders className="h-4 w-4" />
+                    {!collapsed && <span className="text-sm">Customize Nav</span>}
+                  </div>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              {/* Ask Spark */}
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   onClick={() => window.dispatchEvent(new Event('openSparkChat'))}
@@ -363,7 +377,7 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                 >
                   <div className="flex items-center gap-3 w-full">
                     <SparkIcon variant="holiday" size={24} animated />
-                    <span className="text-base font-semibold text-white flex-1">Ask Spark</span>
+                    {!collapsed && <span className="text-base font-semibold text-white flex-1">Ask Spark</span>}
                   </div>
                   <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-yellow-400/10 to-blue-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                 </SidebarMenuButton>

@@ -1,190 +1,320 @@
 import { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { User } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
-  Mail, 
   Calendar, 
   CheckSquare, 
-  Bell,
-  ArrowRight,
+  Mail, 
+  Bell, 
+  ArrowRight, 
+  Sun,
+  Sunrise,
+  Sunset,
+  Moon,
   Clock,
-  AlertCircle
+  Sparkles,
+  BarChart3
 } from "lucide-react";
-import { SparkIcon } from "@/components/spark/SparkIcon";
-import { Link } from "react-router-dom";
-import { FloatingEmailComposer } from "@/components/email/client/FloatingEmailComposer";
-import { usePageTitle } from "@/hooks/usePageTitle";
-import { useFaviconManager } from "@/hooks/useFaviconManager";
-import { TodaysKeyTasks } from "@/components/my-day/TodaysKeyTasks";
-import { UpcomingMeetings } from "@/components/my-day/UpcomingMeetings";
-import { format } from "date-fns";
 
 /**
  * MY DAY - Daily Control Center
  * 
  * Purpose: "What do I need to do today?"
- * Content: Today's meetings, tasks, deadlines, reminders, notifications
+ * Content: Today's meetings, tasks, content deadlines, reminders, notifications
  * 
  * This is distinct from:
- * - Dashboard (metrics/performance snapshot)
+ * - Dashboard (metrics & trends)
  * - Creator Hub (tools & opportunities)
  */
+
+interface DailyStats {
+  unreadEmails: number;
+  meetingsToday: number;
+  tasksDue: number;
+  alerts: number;
+}
+
+function getGreeting(): { text: string; icon: React.ReactNode } {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return { text: "Good morning", icon: <Sunrise className="h-5 w-5 text-amber-500" /> };
+  if (hour >= 12 && hour < 17) return { text: "Good afternoon", icon: <Sun className="h-5 w-5 text-yellow-500" /> };
+  if (hour >= 17 && hour < 21) return { text: "Good evening", icon: <Sunset className="h-5 w-5 text-orange-500" /> };
+  return { text: "Good night", icon: <Moon className="h-5 w-5 text-indigo-400" /> };
+}
+
 export default function MyDay() {
-  const [user, setUser] = useState<any>(null);
-  const [isComposerOpen, setIsComposerOpen] = useState(false);
-  const [stats, setStats] = useState({
+  const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
+  const [firstName, setFirstName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<DailyStats>({
     unreadEmails: 0,
     meetingsToday: 0,
-    pendingTasks: 0,
-    alerts: 0
+    tasksDue: 0,
+    alerts: 0,
   });
-  const [greeting, setGreeting] = useState("Hello");
-
-  usePageTitle("My Day");
-  useFaviconManager();
+  const greeting = getGreeting();
+  const today = new Date().toLocaleDateString('en-US', { 
+    weekday: 'long', 
+    month: 'long', 
+    day: 'numeric' 
+  });
 
   useEffect(() => {
-    loadUser();
-    loadStats();
-    setTimeBasedGreeting();
-  }, []);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        navigate("/auth");
+      } else {
+        setUser(session.user);
+      }
+    });
 
-  const setTimeBasedGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) setGreeting("Good morning");
-    else if (hour < 17) setGreeting("Good afternoon");
-    else if (hour < 21) setGreeting("Good evening");
-    else setGreeting("Good night");
-  };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ?? null);
+      if (!session) navigate("/auth");
+    });
 
-  const loadUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
+  useEffect(() => {
     if (user) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, username")
-        .eq("id", user.id)
-        .single();
-      setUser({ ...user, ...profile });
+      loadUserData();
+      loadDailyStats();
+    }
+  }, [user]);
+
+  const loadUserData = async () => {
+    if (!user) return;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("account_full_name")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.account_full_name) {
+      setFirstName(profile.account_full_name.split(" ")[0]);
     }
   };
 
-  const loadStats = async () => {
-    // Stats loaded via individual components
-    setStats({
-      unreadEmails: 0,
-      meetingsToday: 0,
-      pendingTasks: 0,
-      alerts: 0
-    });
+  const loadDailyStats = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const todayEnd = new Date();
+      todayEnd.setHours(23, 59, 59, 999);
+
+      // Break type chain for deep queries
+      let meetingsCount = 0;
+      let tasksCount = 0;
+
+      try {
+        const { count } = await (supabase.from("meetings") as any)
+          .select("id", { count: "exact", head: true })
+          .eq("host_id", user.id)
+          .gte("scheduled_at", todayStart.toISOString())
+          .lte("scheduled_at", todayEnd.toISOString());
+        meetingsCount = count || 0;
+      } catch {}
+
+      try {
+        const { count } = await (supabase.from("tasks") as any)
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .eq("status", "pending");
+        tasksCount = count || 0;
+      } catch {}
+
+      setStats({
+        unreadEmails: 0,
+        meetingsToday: meetingsCount,
+        tasksDue: tasksCount,
+        alerts: 0,
+      });
+    } catch (error) {
+      console.error("Error loading daily stats:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const firstName = user?.full_name?.split(' ')[0] || 'there';
-  const today = format(new Date(), "EEEE, MMMM d");
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container max-w-5xl mx-auto p-6 space-y-6">
-        {/* Header - Time-focused */}
-        <div className="rounded-2xl bg-gradient-to-r from-primary/5 to-primary/10 p-6">
-          <div className="flex items-start gap-4">
-            <SparkIcon size={48} />
-            <div className="flex-1">
-              <p className="text-sm text-muted-foreground">{today}</p>
-              <h1 className="text-2xl font-bold text-foreground">{greeting}, {firstName}!</h1>
-              <p className="text-muted-foreground mt-1">
-                Your schedule and action items for today.
+    <div className="min-h-screen bg-background flex flex-col">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6 flex-1">
+        {/* Header - matches Dashboard */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {greeting.icon}
+            <div>
+              <h1 className="text-2xl font-bold">
+                {greeting.text}, {firstName || "Creator"}
+              </h1>
+              <p className="text-muted-foreground">
+                {today} — Your schedule and action items for today.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Today's Quick Stats - Action-oriented */}
+        {/* Quick Stats Grid - matches Dashboard metric cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Link to="/email">
-            <Card className="cursor-pointer hover:shadow-md transition-all hover:scale-[1.02]">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                    <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.unreadEmails}</p>
-                    <p className="text-xs text-muted-foreground">Unread</p>
-                  </div>
-                </div>
+          <div 
+            className="cursor-pointer"
+            onClick={() => navigate("/inbox")}
+          >
+            <Card className="hover:shadow-md transition-shadow h-full">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Emails
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">{stats.unreadEmails}</p>
+                <p className="text-xs text-muted-foreground">Unread messages</p>
               </CardContent>
             </Card>
-          </Link>
+          </div>
 
-          <Link to="/meetings">
-            <Card className="cursor-pointer hover:shadow-md transition-all hover:scale-[1.02]">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-teal-100 dark:bg-teal-900/30">
-                    <Calendar className="h-5 w-5 text-teal-600 dark:text-teal-400" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.meetingsToday}</p>
-                    <p className="text-xs text-muted-foreground">Meetings</p>
-                  </div>
-                </div>
+          <div 
+            className="cursor-pointer"
+            onClick={() => navigate("/meetings")}
+          >
+            <Card className="hover:shadow-md transition-shadow h-full">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Meetings
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">{stats.meetingsToday}</p>
+                <p className="text-xs text-muted-foreground">Scheduled today</p>
               </CardContent>
             </Card>
-          </Link>
+          </div>
 
-          <Link to="/tasks">
-            <Card className="cursor-pointer hover:shadow-md transition-all hover:scale-[1.02]">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
-                    <CheckSquare className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stats.pendingTasks}</p>
-                    <p className="text-xs text-muted-foreground">Tasks</p>
-                  </div>
-                </div>
+          <div 
+            className="cursor-pointer"
+            onClick={() => navigate("/tasks")}
+          >
+            <Card className="hover:shadow-md transition-shadow h-full">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <CheckSquare className="h-4 w-4" />
+                  Tasks
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">{stats.tasksDue}</p>
+                <p className="text-xs text-muted-foreground">Due today</p>
               </CardContent>
             </Card>
-          </Link>
+          </div>
 
-          <Card className="cursor-pointer hover:shadow-md transition-all hover:scale-[1.02]">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30">
-                  <Bell className="h-5 w-5 text-red-600 dark:text-red-400" />
+          <div 
+            className="cursor-pointer"
+            onClick={() => navigate("/notifications")}
+          >
+            <Card className="hover:shadow-md transition-shadow h-full">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Bell className="h-4 w-4" />
+                  Alerts
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">{stats.alerts}</p>
+                <p className="text-xs text-muted-foreground">Notifications</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Content Sections - matches Dashboard chart cards height */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Upcoming Meetings
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="h-64 flex items-center justify-center text-muted-foreground">
+              {stats.meetingsToday > 0 ? (
+                <div className="text-center">
+                  <p className="text-sm">You have {stats.meetingsToday} meeting(s) today</p>
+                  <Button variant="link" onClick={() => navigate("/meetings")}>
+                    View all meetings <ArrowRight className="h-3 w-3 ml-1" />
+                  </Button>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{stats.alerts}</p>
-                  <p className="text-xs text-muted-foreground">Alerts</p>
+              ) : (
+                <div className="text-center">
+                  <Clock className="h-12 w-12 mx-auto mb-2 opacity-20" />
+                  <p className="text-sm">No meetings scheduled today</p>
+                  <Button variant="link" onClick={() => navigate("/meetings")}>
+                    Schedule a meeting <ArrowRight className="h-3 w-3 ml-1" />
+                  </Button>
                 </div>
-              </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckSquare className="h-5 w-5" />
+                Today's Key Tasks
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="h-64 flex items-center justify-center text-muted-foreground">
+              {stats.tasksDue > 0 ? (
+                <div className="text-center">
+                  <p className="text-sm">You have {stats.tasksDue} pending task(s)</p>
+                  <Button variant="link" onClick={() => navigate("/tasks")}>
+                    View all tasks <ArrowRight className="h-3 w-3 ml-1" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <CheckSquare className="h-12 w-12 mx-auto mb-2 opacity-20" />
+                  <p className="text-sm">No pending tasks</p>
+                  <Button variant="link" onClick={() => navigate("/tasks")}>
+                    Create a task <ArrowRight className="h-3 w-3 ml-1" />
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Main Content - Today's Focus */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Today's Meetings */}
-          <UpcomingMeetings />
-
-          {/* Today's Tasks */}
-          <TodaysKeyTasks />
-        </div>
-
-        {/* Cross-links to other views */}
+        {/* Cross-links - matches Dashboard */}
         <Card className="bg-muted/30">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4" />
-                <span>Need a bigger picture?</span>
+                <Sparkles className="h-4 w-4" />
+                <span>Check your performance or explore tools</span>
               </div>
               <div className="flex gap-2">
                 <Button variant="ghost" size="sm" asChild>
                   <Link to="/dashboard">
+                    <BarChart3 className="h-3 w-3 mr-1" />
                     View Dashboard <ArrowRight className="h-3 w-3 ml-1" />
                   </Link>
                 </Button>
@@ -198,11 +328,6 @@ export default function MyDay() {
           </CardContent>
         </Card>
       </div>
-
-      <FloatingEmailComposer 
-        open={isComposerOpen}
-        onClose={() => setIsComposerOpen(false)}
-      />
     </div>
   );
 }
