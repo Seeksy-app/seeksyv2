@@ -26,6 +26,7 @@ import {
   Globe,
   Sparkles,
   Briefcase,
+  Users,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useBoardViewMode } from '@/hooks/useBoardViewMode';
@@ -45,6 +46,12 @@ const overviewItems = [
     label: 'Investor Videos',
     icon: Video,
     path: '/board/videos',
+  },
+  {
+    id: 'contacts',
+    label: 'Board Contacts',
+    icon: Users,
+    path: '/board/contacts',
   },
 ];
 
