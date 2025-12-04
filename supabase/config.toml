@@ -246,3 +246,9 @@ verify_jwt = true
 
 [functions.sync-gmail-replies]
 verify_jwt = true
+
+[functions.send-investor-email]
+verify_jwt = true
+
+[functions.board-ai-analyst]
+verify_jwt = false

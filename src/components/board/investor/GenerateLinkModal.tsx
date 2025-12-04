@@ -1,0 +1,409 @@
+import { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { 
+  Link2, Shield, Copy, Check, AlertTriangle, ArrowRight, ArrowLeft, 
+  Mail, Eye, Clock, Calendar
+} from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { SendInvestorEmailModal } from './SendInvestorEmailModal';
+
+interface GenerateLinkModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
+}
+
+const scopeOptions = [
+  { id: 'dashboard', label: 'Dashboard KPIs' },
+  { id: 'business-model', label: 'Business Model' },
+  { id: 'gtm', label: 'GTM Strategy' },
+  { id: 'forecasts', label: '3-Year Forecasts' },
+  { id: 'videos', label: 'Investor Videos' },
+  { id: 'documents', label: 'Documents' },
+];
+
+const durationOptions = [
+  { value: '24h', label: '24 hours' },
+  { value: '3d', label: '3 days' },
+  { value: '7d', label: '7 days' },
+  { value: 'custom', label: 'Custom' },
+  { value: 'never', label: 'No expiration' },
+];
+
+export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLinkModalProps) {
+  const [step, setStep] = useState<'configure' | 'confirm' | 'success'>('configure');
+  const [isCreating, setIsCreating] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [sendEmailOpen, setSendEmailOpen] = useState(false);
+
+  // Form state
+  const [investorName, setInvestorName] = useState('');
+  const [scope, setScope] = useState<string[]>(['dashboard', 'gtm', 'forecasts']);
+  const [dataMode, setDataMode] = useState<'demo' | 'real'>('demo');
+  const [duration, setDuration] = useState('7d');
+  const [customDays, setCustomDays] = useState('14');
+  const [allowAI, setAllowAI] = useState(true);
+  const [allowPDF, setAllowPDF] = useState(false);
+  const [maskFinancials, setMaskFinancials] = useState(false);
+  const [acknowledged, setAcknowledged] = useState(false);
+
+  // Generated link
+  const [generatedData, setGeneratedData] = useState<{
+    id: string;
+    url: string;
+    passcode: string;
+    token: string;
+  } | null>(null);
+
+  const resetForm = () => {
+    setStep('configure');
+    setInvestorName('');
+    setScope(['dashboard', 'gtm', 'forecasts']);
+    setDataMode('demo');
+    setDuration('7d');
+    setCustomDays('14');
+    setAllowAI(true);
+    setAllowPDF(false);
+    setMaskFinancials(false);
+    setAcknowledged(false);
+    setGeneratedData(null);
+    setCopied(false);
+  };
+
+  const handleClose = () => {
+    onOpenChange(false);
+    setTimeout(resetForm, 300);
+  };
+
+  const toggleScope = (id: string) => {
+    setScope(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]);
+  };
+
+  const calculateExpiration = () => {
+    if (duration === 'never') return null;
+    const now = new Date();
+    switch (duration) {
+      case '24h': return new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      case '3d': return new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+      case '7d': return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      case 'custom': return new Date(now.getTime() + parseInt(customDays) * 24 * 60 * 60 * 1000);
+      default: return null;
+    }
+  };
+
+  const generateToken = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    let token = '';
+    for (let i = 0; i < 12; i++) {
+      token += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return token;
+  };
+
+  const generatePasscode = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+  const handleCreate = async () => {
+    setIsCreating(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const token = generateToken();
+      const passcode = generatePasscode();
+      const expiresAt = calculateExpiration();
+
+      const { data, error } = await supabase.from('investor_links').insert({
+        token,
+        passcode,
+        investor_name: investorName || null,
+        created_by: user.id,
+        expires_at: expiresAt?.toISOString(),
+        data_mode: dataMode,
+        scope,
+        allow_ai: allowAI,
+        allow_pdf_export: allowPDF,
+        mask_financials: maskFinancials,
+        what_was_shared: scope,
+        status: 'active',
+      }).select().single();
+
+      if (error) throw error;
+
+      const url = `${window.location.origin}/investor/${token}`;
+      setGeneratedData({ id: data.id, url, passcode, token });
+      setStep('success');
+      toast.success('Investor link created');
+      onSuccess?.();
+    } catch (error) {
+      console.error('Error creating link:', error);
+      toast.error('Failed to create link');
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const copyToClipboard = (text: string, label?: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    toast.success(label || 'Copied!');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <>
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-lg">
+          {step === 'configure' && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Link2 className="w-5 h-5 text-blue-600" />
+                  Generate New Investor Link
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-5 py-4 max-h-[60vh] overflow-y-auto">
+                <div>
+                  <Label>Investor Name (optional)</Label>
+                  <Input
+                    value={investorName}
+                    onChange={(e) => setInvestorName(e.target.value)}
+                    placeholder="e.g., Sequoia Capital"
+                    className="mt-1.5"
+                  />
+                </div>
+
+                <div>
+                  <Label className="mb-3 block">What can they see?</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {scopeOptions.map((opt) => (
+                      <div key={opt.id} className="flex items-center gap-2">
+                        <Checkbox
+                          id={opt.id}
+                          checked={scope.includes(opt.id)}
+                          onCheckedChange={() => toggleScope(opt.id)}
+                        />
+                        <label htmlFor={opt.id} className="text-sm cursor-pointer">{opt.label}</label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="mb-3 block">Data Mode</Label>
+                  <RadioGroup value={dataMode} onValueChange={(v) => setDataMode(v as 'demo' | 'real')}>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="demo" id="demo" />
+                      <label htmlFor="demo" className="text-sm cursor-pointer">
+                        Demo Data Only <span className="text-emerald-600">(Recommended)</span>
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="real" id="real" />
+                      <label htmlFor="real" className="text-sm cursor-pointer">
+                        Real Data <span className="text-amber-600">(Restricted)</span>
+                      </label>
+                    </div>
+                  </RadioGroup>
+                  {dataMode === 'real' && (
+                    <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" />
+                      Real data exposes live platform metrics
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="mb-3 block">Access Duration</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {durationOptions.map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => setDuration(opt.value)}
+                        className={`px-3 py-1.5 rounded-lg text-sm transition-all ${
+                          duration === opt.value
+                            ? 'bg-blue-100 text-blue-700 font-medium'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  {duration === 'custom' && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <Input
+                        type="number"
+                        value={customDays}
+                        onChange={(e) => setCustomDays(e.target.value)}
+                        className="w-20"
+                        min="1"
+                        max="90"
+                      />
+                      <span className="text-sm text-slate-600">days</span>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="mb-3 block">Permissions</Label>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Checkbox id="ai" checked={allowAI} onCheckedChange={(c) => setAllowAI(!!c)} />
+                      <label htmlFor="ai" className="text-sm cursor-pointer">Allow AI Q&A</label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox id="pdf" checked={allowPDF} onCheckedChange={(c) => setAllowPDF(!!c)} />
+                      <label htmlFor="pdf" className="text-sm cursor-pointer">Allow PDF export</label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox id="mask" checked={maskFinancials} onCheckedChange={(c) => setMaskFinancials(!!c)} />
+                      <label htmlFor="mask" className="text-sm cursor-pointer">Mask financial details</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={handleClose}>Cancel</Button>
+                <Button onClick={() => setStep('confirm')} disabled={scope.length === 0}>
+                  Continue <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+
+          {step === 'confirm' && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-blue-600" />
+                  Confidentiality & Sharing Acknowledgment
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="py-4">
+                <div className="p-4 bg-slate-50 rounded-lg text-sm space-y-3">
+                  <p className="font-semibold text-slate-900">Confidential Information Notice</p>
+                  <p className="text-slate-600">
+                    By creating this investor view, you acknowledge that the information shared is 
+                    <b> confidential</b> and intended for a limited audience.
+                  </p>
+                  <p className="text-slate-700">I understand that:</p>
+                  <ul className="list-disc list-inside space-y-1 text-slate-600">
+                    <li>This link is for <b>one investor or firm only</b>.</li>
+                    <li>I am <b>responsible</b> for how this link is forwarded or used.</li>
+                    <li>Seeksy may <b>revoke access</b> at any time if misuse is detected.</li>
+                  </ul>
+                </div>
+
+                <div className="flex items-start gap-2 mt-4">
+                  <Checkbox
+                    id="ack"
+                    checked={acknowledged}
+                    onCheckedChange={(c) => setAcknowledged(!!c)}
+                  />
+                  <label htmlFor="ack" className="text-sm text-slate-600 cursor-pointer">
+                    I confirm that I understand and accept these responsibilities.
+                  </label>
+                </div>
+              </div>
+
+              <DialogFooter className="flex justify-between">
+                <Button variant="outline" onClick={() => setStep('configure')}>
+                  <ArrowLeft className="w-4 h-4 mr-2" /> Back
+                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={handleClose}>Cancel</Button>
+                  <Button onClick={handleCreate} disabled={!acknowledged || isCreating}>
+                    {isCreating ? 'Creating...' : 'I Agree & Create Link'}
+                  </Button>
+                </div>
+              </DialogFooter>
+            </>
+          )}
+
+          {step === 'success' && generatedData && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-emerald-600">
+                  <Check className="w-5 h-5" />
+                  Link Created Successfully
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="py-4 space-y-4">
+                <div>
+                  <Label className="text-xs text-slate-500">Investor Link</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input value={generatedData.url} readOnly className="font-mono text-sm" />
+                    <Button variant="outline" size="icon" onClick={() => copyToClipboard(generatedData.url, 'Link copied')}>
+                      {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-xs text-slate-500">Access Code</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input value={generatedData.passcode} readOnly className="font-mono text-xl tracking-widest text-center" />
+                    <Button variant="outline" size="icon" onClick={() => copyToClipboard(generatedData.passcode, 'Code copied')}>
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button 
+                    className="flex-1" 
+                    onClick={() => copyToClipboard(
+                      `Seeksy Investor View\n\nLink: ${generatedData.url}\nAccess Code: ${generatedData.passcode}`,
+                      'Link + code copied'
+                    )}
+                  >
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy Link + Code
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => setSendEmailOpen(true)}
+                  >
+                    <Mail className="w-4 h-4 mr-2" />
+                    Send Email
+                  </Button>
+                </div>
+
+                <div className="p-3 bg-blue-50 rounded-lg text-xs text-blue-700">
+                  <b>Quick Actions:</b> Copy the link to share manually, or send an email invitation directly.
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={handleClose}>Done</Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {generatedData && (
+        <SendInvestorEmailModal
+          open={sendEmailOpen}
+          onOpenChange={setSendEmailOpen}
+          linkId={generatedData.id}
+          linkToken={generatedData.token}
+          passcode={generatedData.passcode}
+          defaultInvestorName={investorName}
+          scope={scope}
+        />
+      )}
+    </>
+  );
+}
