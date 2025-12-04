@@ -289,87 +289,89 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
       </SidebarHeader>
 
       <SidebarContent className="pb-6">
-        {/* Creator nav items from useNavPreferences */}
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {userNavItems.map((item) => {
-                const Icon = ICON_MAP[item.id] || LayoutDashboard;
-                const isPinned = navConfig.pinned.includes(item.id);
-                const hasSubItems = item.subItems && item.subItems.length > 0;
-                
-                // Items with sub-items render as collapsible
-                if (hasSubItems && !collapsed) {
-                  const isOpen = openGroups[item.id] ?? false;
-                  const subItemConfigs = navConfig.subItems?.[item.id] || [];
-                  const visibleSubItems = item.subItems.filter(sub => {
-                    const config = subItemConfigs.find(c => c.id === sub.id);
-                    return !config || config.visible !== false;
-                  });
+        {/* Creator nav items - ONLY for non-admin users */}
+        {!isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {userNavItems.map((item) => {
+                  const Icon = ICON_MAP[item.id] || LayoutDashboard;
+                  const isPinned = navConfig.pinned.includes(item.id);
+                  const hasSubItems = item.subItems && item.subItems.length > 0;
                   
+                  // Items with sub-items render as collapsible
+                  if (hasSubItems && !collapsed) {
+                    const isOpen = openGroups[item.id] ?? false;
+                    const subItemConfigs = navConfig.subItems?.[item.id] || [];
+                    const visibleSubItems = item.subItems.filter(sub => {
+                      const config = subItemConfigs.find(c => c.id === sub.id);
+                      return !config || config.visible !== false;
+                    });
+                    
+                    return (
+                      <Collapsible
+                        key={item.id}
+                        open={isOpen}
+                        onOpenChange={() => toggleGroup(item.id)}
+                      >
+                        <SidebarMenuItem>
+                          <CollapsibleTrigger asChild>
+                            <SidebarMenuButton className="w-full flex items-center gap-3 transition-all duration-150 cursor-pointer hover:bg-white/10 text-white">
+                              <Icon className="h-4 w-4 shrink-0 text-white" />
+                              <span className="flex items-center gap-2 flex-1 text-white">
+                                <span className="truncate">{item.label}</span>
+                                {isPinned && <span className="pinned-star text-amber-400 text-xs">★</span>}
+                              </span>
+                              <ChevronDown className={`h-4 w-4 text-white transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`} />
+                            </SidebarMenuButton>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <SidebarMenu className="ml-4 mt-1 space-y-0.5 border-l border-white/20 pl-2">
+                              {visibleSubItems.map((subItem) => (
+                                <SidebarMenuItem key={subItem.id}>
+                                  <SidebarMenuButton asChild>
+                                    <NavLink
+                                      to={subItem.path}
+                                      className="flex items-center gap-2 transition-all duration-150 text-sm py-1.5 text-white/80 hover:text-white"
+                                      activeClassName="nav-active text-white"
+                                    >
+                                      <span className="truncate">{subItem.label}</span>
+                                    </NavLink>
+                                  </SidebarMenuButton>
+                                </SidebarMenuItem>
+                              ))}
+                            </SidebarMenu>
+                          </CollapsibleContent>
+                        </SidebarMenuItem>
+                      </Collapsible>
+                    );
+                  }
+                  
+                  // Regular items without sub-items
                   return (
-                    <Collapsible
-                      key={item.id}
-                      open={isOpen}
-                      onOpenChange={() => toggleGroup(item.id)}
-                    >
-                      <SidebarMenuItem>
-                        <CollapsibleTrigger asChild>
-                          <SidebarMenuButton className="w-full flex items-center gap-3 transition-all duration-150 cursor-pointer hover:bg-white/10 text-white">
-                            <Icon className="h-4 w-4 shrink-0 text-white" />
+                    <SidebarMenuItem key={item.id}>
+                      <SidebarMenuButton asChild tooltip={collapsed ? item.label : undefined}>
+                        <NavLink
+                          to={item.path}
+                          className="flex items-center gap-3 transition-all duration-150 text-white hover:bg-white/10"
+                          activeClassName="nav-active"
+                        >
+                          <Icon className="h-4 w-4 shrink-0 text-white" />
+                          {!collapsed && (
                             <span className="flex items-center gap-2 flex-1 text-white">
                               <span className="truncate">{item.label}</span>
                               {isPinned && <span className="pinned-star text-amber-400 text-xs">★</span>}
                             </span>
-                            <ChevronDown className={`h-4 w-4 text-white transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`} />
-                          </SidebarMenuButton>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                          <SidebarMenu className="ml-4 mt-1 space-y-0.5 border-l border-white/20 pl-2">
-                            {visibleSubItems.map((subItem) => (
-                              <SidebarMenuItem key={subItem.id}>
-                                <SidebarMenuButton asChild>
-                                  <NavLink
-                                    to={subItem.path}
-                                    className="flex items-center gap-2 transition-all duration-150 text-sm py-1.5 text-white/80 hover:text-white"
-                                    activeClassName="nav-active text-white"
-                                  >
-                                    <span className="truncate">{subItem.label}</span>
-                                  </NavLink>
-                                </SidebarMenuButton>
-                              </SidebarMenuItem>
-                            ))}
-                          </SidebarMenu>
-                        </CollapsibleContent>
-                      </SidebarMenuItem>
-                    </Collapsible>
+                          )}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
                   );
-                }
-                
-                // Regular items without sub-items
-                return (
-                  <SidebarMenuItem key={item.id}>
-                    <SidebarMenuButton asChild tooltip={collapsed ? item.label : undefined}>
-                      <NavLink
-                        to={item.path}
-                        className="flex items-center gap-3 transition-all duration-150 text-white hover:bg-white/10"
-                        activeClassName="nav-active"
-                      >
-                        <Icon className="h-4 w-4 shrink-0 text-white" />
-                        {!collapsed && (
-                          <span className="flex items-center gap-2 flex-1 text-white">
-                            <span className="truncate">{item.label}</span>
-                            {isPinned && <span className="pinned-star text-amber-400 text-xs">★</span>}
-                          </span>
-                        )}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {/* Admin-only collapsible sections */}
         {filteredNavigation.filter(g => g.collapsible).map((group) => {
