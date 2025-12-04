@@ -6,7 +6,7 @@ import { clearRecoveryFlag } from '@/utils/bootRecovery';
 
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {
   const { onboardingCompleted, isLoading, accountType, error: accountError } = useAccountType();
-  const { isAdmin, isLoading: rolesLoading, error: rolesError } = useUserRoles();
+  const { isAdmin, isBoardMember, isLoading: rolesLoading, error: rolesError } = useUserRoles();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -45,6 +45,9 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
     // Admin users never see onboarding - they go straight to admin/CFO views
     if (isAdmin) return;
     
+    // Board members bypass onboarding - they go straight to /board via BoardGuard
+    if (isBoardMember) return;
+    
     // Skip onboarding for admin-specific paths even if somehow accessed
     if (isAdminPath) return;
 
@@ -52,7 +55,7 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
     if (!onboardingCompleted || !accountType) {
       navigate('/onboarding');
     }
-  }, [onboardingCompleted, accountType, isLoading, rolesLoading, isAdmin, navigate, location.pathname]);
+  }, [onboardingCompleted, accountType, isLoading, rolesLoading, isAdmin, isBoardMember, navigate, location.pathname]);
 
   // Show loading spinner only while actively loading (with timeout protection)
   if (isLoading || rolesLoading) {
