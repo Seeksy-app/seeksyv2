@@ -246,7 +246,25 @@ export default function Onboarding() {
     }
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Mark onboarding as complete even when skipping
+        await supabase.from("profiles").update({
+          onboarding_completed: true,
+        }).eq("id", user.id);
+        
+        // Also create minimal user_preferences record
+        await supabase.from("user_preferences").upsert({
+          user_id: user.id,
+          onboarding_completed: true,
+        }, { onConflict: "user_id" });
+      }
+    } catch (error) {
+      console.error("Error marking onboarding as skipped:", error);
+    }
+    
     localStorage.removeItem(ONBOARDING_STORAGE_KEY);
     navigate("/dashboard");
   };

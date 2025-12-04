@@ -26,6 +26,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { SparkIcon } from "@/components/spark/SparkIcon";
 
 interface NavItem {
   title: string;
@@ -107,6 +119,9 @@ export function AdvertiserSidebarNav() {
     }
   };
 
+  const { state } = useSidebar();
+  const collapsed = state === "collapsed";
+
   return (
     <>
       <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
@@ -127,51 +142,76 @@ export function AdvertiserSidebarNav() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="flex flex-col gap-6 py-4">
-        {advertiserNavSections.map((section) => (
-        <div key={section.title} className="px-3">
-          <h3 className="mb-2 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            {section.title}
-          </h3>
-          <nav className="flex flex-col gap-1">
-            {section.items.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.href || 
-                (item.href !== '/advertiser' && location.pathname.startsWith(item.href));
-              
-              return (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.title}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-      ))}
+      <Sidebar collapsible="icon">
+        <SidebarHeader className="border-b border-border/50 px-4 py-3">
+          <div className="flex items-center justify-between w-full">
+            {!collapsed && (
+              <div className="flex items-center gap-3">
+                <SparkIcon variant="holiday" size={48} animated pose="waving" />
+                <span className="text-white text-2xl font-bold">Seeksy</span>
+              </div>
+            )}
+            {collapsed && (
+              <div className="flex items-center justify-center flex-1">
+                <SparkIcon variant="holiday" size={32} animated pose="idle" />
+              </div>
+            )}
+          </div>
+        </SidebarHeader>
 
-      <div className="px-3 mt-4 pt-4 border-t border-border">
-        <button
-          onClick={() => setShowResetDialog(true)}
-          className={cn(
-            'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors w-full',
-            'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-          )}
-        >
-          <RotateCcw className="h-4 w-4" />
-          Experience Onboarding
-        </button>
-      </div>
-    </div>
+        <SidebarContent className="pb-6">
+          {advertiserNavSections.map((section) => (
+            <SidebarGroup key={section.title}>
+              {!collapsed && (
+                <h3 className="mb-2 px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  {section.title}
+                </h3>
+              )}
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = location.pathname === item.href || 
+                      (item.href !== '/advertiser' && location.pathname.startsWith(item.href));
+                    
+                    return (
+                      <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={isActive}
+                          tooltip={item.title}
+                        >
+                          <Link to={item.href}>
+                            <Icon className="h-4 w-4" />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))}
+
+          {/* Reset Onboarding Button */}
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setShowResetDialog(true)}
+                    tooltip="Experience Onboarding"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    <span>Experience Onboarding</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
     </>
   );
 }

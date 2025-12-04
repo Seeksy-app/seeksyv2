@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { ThemeProvider } from "next-themes";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { RoleBasedSidebar } from "@/components/navigation/RoleBasedSidebar";
+import { AdvertiserSidebarNav } from "@/components/advertiser/AdvertiserSidebarNav";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { TopNavBar } from "@/components/TopNavBar";
 import { TourModeWrapper } from "@/components/layout/TourModeWrapper";
@@ -504,6 +505,9 @@ const AppContent = () => {
                         location.pathname.includes('/ai-production') ||
                         location.pathname.includes('/clip-generator');
   
+  // Check if on advertiser routes
+  const isAdvertiserRoute = location.pathname.startsWith('/advertiser');
+  
   // Check if we're in tour mode (post-onboarding guided experience)
   const isTourMode = sessionStorage.getItem("tourMode") === "true";
   const isOnboardingComplete = location.pathname === '/onboarding/complete';
@@ -519,8 +523,10 @@ const AppContent = () => {
       <OnboardingProvider>
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-background">
-          {/* Unified Seeksy / My Day OS Sidebar for all routes */}
-          {shouldShowSidebar && <RoleBasedSidebar user={user} />}
+          {/* Sidebar: Show advertiser sidebar for /advertiser routes, otherwise role-based sidebar */}
+          {shouldShowSidebar && (
+            isAdvertiserRoute ? <AdvertiserSidebarNav /> : <RoleBasedSidebar user={user} />
+          )}
         
         <div className="flex-1 flex flex-col min-h-screen overflow-auto">
           {/* TopNavBar on all authenticated pages except studio routes and tour mode */}
