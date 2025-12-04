@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -41,6 +41,12 @@ export default function UniversalDashboard() {
     }
     return defaultWidgets;
   });
+
+  // Helper to check if a widget is enabled
+  const isWidgetEnabled = useMemo(() => {
+    const enabledIds = new Set(widgets.filter(w => w.enabled).map(w => w.id));
+    return (id: string) => enabledIds.has(id);
+  }, [widgets]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -119,13 +125,13 @@ export default function UniversalDashboard() {
     const existingWidget = widgets.find(w => w.id === widgetId);
     
     if (existingWidget) {
-      handleWidgetsChange(
-        widgets.map(w => w.id === widgetId ? { ...w, enabled: !w.enabled } : w)
-      );
+      const newWidgets = widgets.map(w => w.id === widgetId ? { ...w, enabled: !w.enabled } : w);
+      handleWidgetsChange(newWidgets);
     } else {
       const widgetToAdd = allAvailableWidgets.find(w => w.id === widgetId);
       if (widgetToAdd) {
-        handleWidgetsChange([...widgets, { ...widgetToAdd, enabled: true, order: widgets.length }]);
+        const newWidgets = [...widgets, { ...widgetToAdd, enabled: true, order: widgets.length }];
+        handleWidgetsChange(newWidgets);
       }
     }
   };
@@ -137,6 +143,18 @@ export default function UniversalDashboard() {
       </div>
     );
   }
+
+  // Check which widgets are enabled for conditional rendering
+  const showRoleBasedWidgets = isWidgetEnabled("studio-tools") || 
+    isWidgetEnabled("upcoming-meetings") || 
+    isWidgetEnabled("latest-recordings") ||
+    isWidgetEnabled("ai-quick-actions") ||
+    isWidgetEnabled("performance-overview") ||
+    isWidgetEnabled("tasks-notes") ||
+    isWidgetEnabled("marketing-publishing") ||
+    isWidgetEnabled("recommended-actions");
+
+  const showIdentityWidget = isWidgetEnabled("identity-verification");
 
   return (
     <div className="min-h-screen bg-background">
@@ -151,18 +169,25 @@ export default function UniversalDashboard() {
         {/* Quick Actions */}
         <QuickActionsRow />
 
-        {/* Role-Based Widgets */}
-        <RoleBasedWidgets personaType={personaType} selectedModules={selectedModules} />
+        {/* Role-Based Widgets - only show if any related widgets are enabled */}
+        {showRoleBasedWidgets && (
+          <RoleBasedWidgets 
+            personaType={personaType} 
+            selectedModules={selectedModules} 
+          />
+        )}
 
         {/* Identity & Additional Widgets */}
         <div className="grid md:grid-cols-3 gap-5 mt-6">
-          <IdentityWidget 
-            faceVerified={faceVerified} 
-            voiceVerified={voiceVerified} 
-          />
+          {showIdentityWidget && (
+            <IdentityWidget 
+              faceVerified={faceVerified} 
+              voiceVerified={voiceVerified} 
+            />
+          )}
           
-          {/* Recent Activity Card */}
-          <div className="md:col-span-2 rounded-2xl border-2 border-border/50 bg-gradient-to-br from-emerald-50/50 to-teal-50/50 shadow-md hover:shadow-lg transition-all duration-300 p-5 sm:p-6">
+          {/* Recent Activity Card - always show if identity widget is hidden to fill space */}
+          <div className={`${showIdentityWidget ? 'md:col-span-2' : 'md:col-span-3'} rounded-2xl border-2 border-border/50 bg-gradient-to-br from-emerald-50/50 to-teal-50/50 shadow-md hover:shadow-lg transition-all duration-300 p-5 sm:p-6`}>
             <h3 className="font-bold text-base mb-4 flex items-center gap-3">
               <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md">
                 <div className="w-4 h-4 rounded-full bg-white/90" />
