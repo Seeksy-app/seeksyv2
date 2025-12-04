@@ -1,11 +1,10 @@
 /**
- * Simplified role-based sidebar using navigation config as source of truth
+ * Role-based sidebar using user nav_config as primary source of truth
  * 
- * This component filters navigation by:
- * 1. User roles from database
- * 2. Activated modules (user_modules table)
- * 
- * Modules only appear in navigation if explicitly activated.
+ * Hierarchy:
+ * 1. User nav_config (order, visibility, pinned) - from useNavPreferences
+ * 2. Module activation state (user_modules table)
+ * 3. Role permissions
  */
 
 import { User } from "@supabase/supabase-js";
@@ -101,14 +100,25 @@ import { useAccountType } from "@/hooks/useAccountType";
 import { SparkIcon } from "@/components/spark/SparkIcon";
 import { useSidebarState } from "@/hooks/useSidebarState";
 import { useModuleActivation } from "@/hooks/useModuleActivation";
+import { useNavPreferences, NAV_ITEMS } from "@/hooks/useNavPreferences";
 
 interface RoleBasedSidebarProps {
   user?: User | null;
 }
 
-// Mapping of nav item IDs to module IDs that must be activated
+// Mapping of nav item IDs (from useNavPreferences) to module IDs that must be activated
+const NAV_TO_MODULE_MAP: Record<string, string> = {
+  'meetings': 'meetings',
+  'studio': 'studio',
+  'podcasts': 'podcasts',
+  'media': 'content-library',
+  'brand_campaigns': 'brand-campaigns',
+  'revenue_tracking': 'revenue-tracking',
+  'social_analytics': 'social-analytics',
+};
+
+// Legacy mapping from old navigation config
 const MODULE_ACTIVATION_MAP: Record<string, string> = {
-  // Media modules
   'studio_hub': 'studio',
   'audio_studio': 'studio',
   'video_studio': 'studio',
@@ -116,24 +126,34 @@ const MODULE_ACTIVATION_MAP: Record<string, string> = {
   'media_library': 'content-library',
   'studio_templates': 'studio',
   'media_podcasts': 'podcasts',
-  // Marketing modules - Social Analytics is HIDDEN from nav, only accessible via Creator Hub
-  // 'social_analytics': 'social-analytics', // Intentionally removed - only in Creator Hub
   'marketing_monetization': 'revenue-tracking',
-  // Meetings
   'meetings': 'meetings',
 };
 
-// Nav items to completely hide (they live elsewhere, e.g., Creator Hub only)
+// Nav items to completely hide
 const HIDDEN_NAV_ITEMS = [
-  'social_analytics', // Social Analytics only appears in Creator Hub, not Marketing nav
+  'social_analytics',
 ];
 
-// Icon mapping
+// Icon mapping - includes both nav item IDs and icon names
 const ICON_MAP: Record<string, any> = {
+  // Nav item IDs from useNavPreferences
+  'my_day': Calendar,
+  'dashboard': LayoutDashboard,
+  'creator_hub': Rocket,
+  'meetings': Calendar,
+  'studio': Video,
+  'podcasts': Podcast,
+  'media': FolderOpen,
+  'brand_campaigns': Megaphone,
+  'revenue_tracking': DollarSign,
+  'content_library': Library,
+  'social_analytics': BarChart2,
+  'settings': Settings,
+  // Legacy icon names
   home: LayoutDashboard,
   'layout-dashboard': LayoutDashboard,
   user: UserIcon,
-  settings: Settings,
   link: Network,
   apps: Grid3x3,
   'grid-3x3': Grid3x3,
@@ -210,49 +230,76 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { activatedModuleIds, isLoading: modulesLoading } = useModuleActivation();
+  const { navConfig, isLoading: navLoading } = useNavPreferences();
   
   // Use persisted sidebar state with localStorage
   const { openGroups, toggleGroup, isGroupOpen } = useSidebarState();
 
-  if (!user || rolesLoading) {
+  if (!user || rolesLoading || navLoading) {
     return null;
   }
 
-  // Check if a nav item should be visible based on module activation
+  // Check if a nav item should be visible based on:
+  // 1. nav_config.hidden (user preference)
+  // 2. Module activation state
+  // 3. Role permissions
+  const isNavItemVisibleByNavConfig = (itemId: string): boolean => {
+    // Check if hidden in nav_config
+    if (navConfig.hidden.includes(itemId)) {
+      return false;
+    }
+    
+    // Check module activation requirement
+    const requiredModule = NAV_TO_MODULE_MAP[itemId];
+    if (requiredModule) {
+      // Admin roles see everything
+      if (roles.includes('admin') || roles.includes('super_admin')) return true;
+      // Check if module is activated
+      if (!activatedModuleIds.includes(requiredModule)) return false;
+    }
+    
+    return true;
+  };
+
+  // Legacy check for old navigation config items
   const isNavItemVisible = (itemId: string): boolean => {
-    // Some items are intentionally hidden from nav (they live in Creator Hub only)
     if (HIDDEN_NAV_ITEMS.includes(itemId)) return false;
     
     const requiredModule = MODULE_ACTIVATION_MAP[itemId];
-    // If no module requirement, always show
     if (!requiredModule) return true;
-    // Admin roles see everything
     if (roles.includes('admin') || roles.includes('super_admin')) return true;
-    // Check if module is activated
     return activatedModuleIds.includes(requiredModule);
   };
 
-  // Filter navigation based on user's roles and account type
+  // Build nav items from NAV_ITEMS (useNavPreferences) respecting user config
+  const userNavItems = NAV_ITEMS
+    .filter(item => isNavItemVisibleByNavConfig(item.id))
+    .sort((a, b) => {
+      const aIndex = navConfig.order.indexOf(a.id);
+      const bIndex = navConfig.order.indexOf(b.id);
+      if (aIndex === -1 && bIndex === -1) return 0;
+      if (aIndex === -1) return 1;
+      if (bIndex === -1) return -1;
+      return aIndex - bIndex;
+    });
+
+  // Filter original navigation config for collapsible sections (Email, Marketing, Admin)
   let filteredNavigation = filterNavigationByRoles(
     NAVIGATION_CONFIG.navigation,
     roles
   );
 
-  // Filter by activated modules (for non-admin users)
   filteredNavigation = filteredNavigation.map(group => ({
     ...group,
     items: group.items.filter(item => isNavItemVisible(item.id))
   })).filter(group => group.items.length > 0);
 
-  // Additional filtering based on active account type
   if (activeAccountType === 'advertiser') {
-    // Advertisers only see advertiser-specific sections
     filteredNavigation = filteredNavigation.filter(group => 
       ['Seeksy OS', 'Admin'].includes(group.group) || 
       group.items.some(item => item.path.includes('advertiser'))
     );
   } else if (activeAccountType === 'podcaster') {
-    // Podcasters see creator tools focused on podcasting
     filteredNavigation = filteredNavigation.filter(group => 
       !group.group.includes('Advertiser')
     );
@@ -285,37 +332,39 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
       </SidebarHeader>
 
       <SidebarContent className="pb-6">
-        {filteredNavigation.map((group) => {
-          // Main navigation items are not collapsible
-          if (!group.collapsible) {
-            return (
-              <SidebarGroup key={group.group}>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {group.items.map((item) => {
-                      const Icon = ICON_MAP[item.icon] || Grid3x3;
-                      return (
-                        <SidebarMenuItem key={item.id}>
-                          <SidebarMenuButton asChild>
-                            <NavLink
-                              to={item.path}
-                              className="hover:bg-muted/50"
-                              activeClassName="bg-muted text-primary font-medium"
-                            >
-                              <Icon className="h-4 w-4" />
-                              {!collapsed && <span>{item.label}</span>}
-                            </NavLink>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            );
-          }
+        {/* User-configured nav items from useNavPreferences */}
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {userNavItems.map((item) => {
+                const Icon = ICON_MAP[item.id] || ICON_MAP[item.path?.replace('/', '')] || LayoutDashboard;
+                const isPinned = navConfig.pinned.includes(item.id);
+                return (
+                  <SidebarMenuItem key={item.id}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.path}
+                        className="hover:bg-muted/50"
+                        activeClassName="bg-muted text-primary font-medium"
+                      >
+                        <Icon className="h-4 w-4" />
+                        {!collapsed && (
+                          <span className="flex items-center gap-2">
+                            {item.label}
+                            {isPinned && <span className="text-amber-500 text-xs">★</span>}
+                          </span>
+                        )}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
-          // Collapsible sections (Email, Marketing, Admin groups)
+        {/* Legacy collapsible sections from navigation config */}
+        {filteredNavigation.filter(g => g.collapsible).map((group) => {
           const isOpen = openGroups[group.group] ?? true;
           
           return (

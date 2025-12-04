@@ -88,7 +88,7 @@ const Auth = () => {
         // Check if onboarding is completed
         const { data: prefs } = await supabase
           .from('user_preferences')
-          .select('onboarding_completed')
+          .select('onboarding_completed, default_landing_route')
           .eq('user_id', session.user.id)
           .maybeSingle();
         
@@ -97,6 +97,9 @@ const Auth = () => {
           navigate("/onboarding");
           return;
         }
+        
+        // Get user's preferred landing route
+        const landingRoute = prefs?.default_landing_route || '/dashboard';
         
         // Check user role
         const { data: roles } = await supabase
@@ -128,8 +131,8 @@ const Auth = () => {
             navigate("/advertiser/signup");
           }
         } else {
-          // Default creator flow
-          navigate("/dashboard");
+          // Default creator flow - use user's preferred landing route
+          navigate(landingRoute);
         }
       } else {
         // Validate password
