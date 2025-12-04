@@ -4,6 +4,7 @@ import { BoardSidebar } from './BoardSidebar';
 import { BoardTopNav } from './BoardTopNav';
 import { BoardFooter } from './BoardFooter';
 import { BoardAIChat } from './BoardAIChat';
+import { BoardOnboardingTour } from './BoardOnboardingTour';
 import { BoardDataModeProvider } from '@/contexts/BoardDataModeContext';
 import { useTheme } from 'next-themes';
 import { useLocation } from 'react-router-dom';
@@ -54,6 +55,9 @@ export function BoardLayout({ children }: BoardLayoutProps) {
         
         {/* Board AI Chat Widget */}
         <BoardAIChat />
+        
+        {/* Onboarding Tour */}
+        <BoardOnboardingTour />
       </SidebarProvider>
     </BoardDataModeProvider>
   );
