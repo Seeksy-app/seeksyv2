@@ -133,19 +133,19 @@ function CategorySection({ category }: { category: Category }) {
   const getStatusBadge = (status?: string) => {
     switch (status) {
       case 'active':
-        return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-xs">Active</Badge>;
+        return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 text-xs">Active</Badge>;
       case 'coming-soon':
-        return <Badge className="bg-slate-500/20 text-slate-400 border-slate-500/30 text-xs">Coming Soon</Badge>;
+        return <Badge className="bg-slate-100 text-slate-600 border-slate-200 text-xs">Coming Soon</Badge>;
       default:
-        return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs">Available</Badge>;
+        return <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs">Available</Badge>;
     }
   };
 
   return (
-    <div className="bg-slate-800/30 rounded-2xl border border-white/5 overflow-hidden">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-5 hover:bg-white/5 transition-colors"
+        className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors"
       >
         <div className="flex items-center gap-4">
           <div className={cn("w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center", category.color)}>
@@ -153,18 +153,18 @@ function CategorySection({ category }: { category: Category }) {
           </div>
           <div className="text-left">
             <div className="flex items-center gap-3">
-              <h2 className="text-lg font-bold text-white">{category.title}</h2>
-              <Badge variant="secondary" className="bg-amber-500/20 text-amber-400 border-amber-500/30">
+              <h2 className="text-lg font-bold text-slate-900">{category.title}</h2>
+              <Badge variant="secondary" className="bg-amber-100 text-amber-700 border-amber-200">
                 {category.tools.length} modules
               </Badge>
             </div>
-            <p className="text-sm text-white/50">{category.description}</p>
+            <p className="text-sm text-slate-500">{category.description}</p>
           </div>
         </div>
         {isExpanded ? (
-          <ChevronUp className="w-5 h-5 text-white/50" />
+          <ChevronUp className="w-5 h-5 text-slate-400" />
         ) : (
-          <ChevronDown className="w-5 h-5 text-white/50" />
+          <ChevronDown className="w-5 h-5 text-slate-400" />
         )}
       </button>
       
@@ -177,27 +177,27 @@ function CategorySection({ category }: { category: Category }) {
                 onClick={() => tool.status !== 'coming-soon' && navigate(tool.href)}
                 disabled={tool.status === 'coming-soon'}
                 className={cn(
-                  "group relative bg-slate-800/50 hover:bg-slate-700/50 rounded-xl p-4 border border-white/5 hover:border-white/10 transition-all text-left",
+                  "group relative bg-slate-50 hover:bg-slate-100 rounded-xl p-4 border border-slate-200 hover:border-slate-300 transition-all text-left",
                   tool.status === 'coming-soon' && "opacity-60 cursor-not-allowed"
                 )}
               >
                 <div className="flex items-start justify-between mb-3">
-                  <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-                    <tool.icon className="w-5 h-5 text-white/70" />
+                  <div className="w-10 h-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center group-hover:border-slate-300 transition-colors">
+                    <tool.icon className="w-5 h-5 text-slate-600" />
                   </div>
                   {getStatusBadge(tool.status)}
                 </div>
                 
-                <h3 className="font-semibold text-white mb-1 group-hover:text-amber-400 transition-colors text-sm">
+                <h3 className="font-semibold text-slate-900 mb-1 group-hover:text-amber-600 transition-colors text-sm">
                   {tool.title}
                 </h3>
                 
-                <p className="text-xs text-white/50 leading-relaxed mb-2">
+                <p className="text-xs text-slate-500 leading-relaxed mb-2">
                   {tool.description}
                 </p>
                 
                 {tool.bestWith && tool.bestWith.length > 0 && (
-                  <div className="flex items-center gap-1 text-xs text-emerald-400">
+                  <div className="flex items-center gap-1 text-xs text-emerald-600">
                     <span>Best with:</span>
                     {tool.bestWith.map((item, i) => (
                       <span key={item}>{item}{i < tool.bestWith!.length - 1 ? ', ' : ''}</span>
@@ -207,7 +207,7 @@ function CategorySection({ category }: { category: Category }) {
                 
                 {tool.status !== 'coming-soon' && (
                   <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <ArrowRight className="w-4 h-4 text-amber-400" />
+                    <ArrowRight className="w-4 h-4 text-amber-500" />
                   </div>
                 )}
               </button>
@@ -228,7 +228,7 @@ export default function AppsAndTools() {
   const comingSoonModules = categories.reduce((acc, cat) => acc + cat.tools.filter(t => t.status === 'coming-soon').length, 0);
 
   return (
-    <div className="min-h-screen bg-[#0A0F1A] text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <TopNavigation />
       
       <main className="pt-24">
@@ -237,7 +237,7 @@ export default function AppsAndTools() {
           <Button
             variant="ghost"
             onClick={() => navigate("/")}
-            className="mb-8 text-white/60 hover:text-white hover:bg-white/5"
+            className="mb-8 text-slate-500 hover:text-slate-900 hover:bg-slate-100"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Homepage
@@ -245,39 +245,39 @@ export default function AppsAndTools() {
           
           <div className="max-w-3xl mx-auto">
             <div className="flex items-center justify-center gap-2 mb-6">
-              <Sparkles className="w-8 h-8 text-amber-400" />
-              <span className="text-amber-400 font-semibold">Seeksy App Directory</span>
+              <Sparkles className="w-8 h-8 text-amber-500" />
+              <span className="text-amber-600 font-semibold">Seeksy App Directory</span>
             </div>
             
-            <h1 className="text-4xl md:text-5xl font-black mb-6 bg-gradient-to-r from-white via-white to-white/60 bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-5xl font-black mb-6 text-slate-900">
               All modules, tools, and integrations available in your workspace
             </h1>
             
-            <p className="text-lg text-white/70 mb-8">
+            <p className="text-lg text-slate-600 mb-8">
               Discover the complete suite of Seeksy tools designed to help creators 
               build their brand, engage their audience, and turn passion into profit.
             </p>
             
             {/* Stats Bar */}
-            <div className="flex items-center justify-center gap-6 text-sm">
+            <div className="flex items-center justify-center gap-6 text-sm bg-white rounded-full px-6 py-3 border border-slate-200 shadow-sm inline-flex">
               <div className="flex items-center gap-2">
-                <span className="text-white/50">Total:</span>
-                <span className="font-semibold text-white">{totalModules}</span>
+                <span className="text-slate-400">Total:</span>
+                <span className="font-semibold text-slate-900">{totalModules}</span>
               </div>
-              <div className="w-px h-4 bg-white/20" />
+              <div className="w-px h-4 bg-slate-200" />
               <div className="flex items-center gap-2">
-                <span className="text-emerald-400/50">Active:</span>
-                <span className="font-semibold text-emerald-400">{activeModules}</span>
+                <span className="text-emerald-500">Active:</span>
+                <span className="font-semibold text-emerald-600">{activeModules}</span>
               </div>
-              <div className="w-px h-4 bg-white/20" />
+              <div className="w-px h-4 bg-slate-200" />
               <div className="flex items-center gap-2">
-                <span className="text-blue-400/50">Available:</span>
-                <span className="font-semibold text-blue-400">{availableModules}</span>
+                <span className="text-blue-500">Available:</span>
+                <span className="font-semibold text-blue-600">{availableModules}</span>
               </div>
-              <div className="w-px h-4 bg-white/20" />
+              <div className="w-px h-4 bg-slate-200" />
               <div className="flex items-center gap-2">
-                <span className="text-slate-400/50">Coming Soon:</span>
-                <span className="font-semibold text-slate-400">{comingSoonModules}</span>
+                <span className="text-slate-400">Coming Soon:</span>
+                <span className="font-semibold text-slate-500">{comingSoonModules}</span>
               </div>
             </div>
           </div>
@@ -294,15 +294,15 @@ export default function AppsAndTools() {
 
         {/* CTA Section */}
         <section className="container mx-auto px-4 py-16 text-center">
-          <div className="max-w-xl mx-auto bg-gradient-to-br from-amber-400/10 to-orange-500/10 rounded-3xl p-8 border border-amber-400/20">
-            <h2 className="text-2xl font-bold mb-4">Ready to Get Started?</h2>
-            <p className="text-white/60 mb-6">
+          <div className="max-w-xl mx-auto bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl p-8 border border-amber-200">
+            <h2 className="text-2xl font-bold mb-4 text-slate-900">Ready to Get Started?</h2>
+            <p className="text-slate-600 mb-6">
               Sign up free and unlock the full power of Seeksy's creator toolkit.
             </p>
             <Button
               onClick={() => navigate("/auth?mode=signup")}
               size="lg"
-              className="bg-gradient-to-r from-amber-400 to-orange-500 text-slate-900 font-semibold hover:opacity-90"
+              className="bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold hover:opacity-90"
             >
               Start Free Today
             </Button>

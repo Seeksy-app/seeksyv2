@@ -1,8 +1,76 @@
 import { TopNavigation } from "@/components/homepage/TopNavigation";
 import { FooterSection } from "@/components/homepage/FooterSection";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Users, Target, Sparkles, Heart, Globe, Award } from "lucide-react";
+import { ArrowLeft, Target, Sparkles, Heart, Globe, Award } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+
+// Animated counter hook
+function useCountUp(end: number, duration: number = 2000, startOnView: boolean = true) {
+  const [count, setCount] = useState(0);
+  const [hasStarted, setHasStarted] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!startOnView) {
+      animateCount();
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !hasStarted) {
+          setHasStarted(true);
+          animateCount();
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, [end, duration, hasStarted, startOnView]);
+
+  const animateCount = () => {
+    const startTime = Date.now();
+    const startValue = 0;
+
+    const updateCount = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Easing function for smooth animation
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      const currentValue = Math.floor(startValue + (end - startValue) * easeOutQuart);
+      
+      setCount(currentValue);
+
+      if (progress < 1) {
+        requestAnimationFrame(updateCount);
+      }
+    };
+
+    requestAnimationFrame(updateCount);
+  };
+
+  return { count, ref };
+}
+
+function AnimatedStat({ value, suffix, label }: { value: number; suffix: string; label: string }) {
+  const { count, ref } = useCountUp(value, 2000);
+  
+  return (
+    <div ref={ref}>
+      <div className="text-4xl md:text-5xl font-black text-amber-400 mb-2">
+        {count.toLocaleString()}{suffix}
+      </div>
+      <div className="text-white/60">{label}</div>
+    </div>
+  );
+}
 
 export default function About() {
   const navigate = useNavigate();
@@ -30,11 +98,12 @@ export default function About() {
     }
   ];
 
-  const team = [
-    { name: "Alex Chen", role: "Founder & CEO", image: "/placeholder.svg" },
-    { name: "Sarah Kim", role: "CTO", image: "/placeholder.svg" },
-    { name: "Marcus Johnson", role: "Head of Product", image: "/placeholder.svg" },
-    { name: "Priya Patel", role: "Head of Creator Success", image: "/placeholder.svg" },
+  // Current industry statistics (2024 data)
+  const stats = [
+    { value: 250, suffix: "B+", label: "Creator Economy Size" },
+    { value: 5, suffix: "M+", label: "Active Podcasts Worldwide" },
+    { value: 464, suffix: "M", label: "Global Podcast Listeners" },
+    { value: 95, suffix: "B", label: "Projected Podcast Market by 2028" },
   ];
 
   return (
@@ -103,45 +172,22 @@ export default function About() {
           </div>
         </section>
 
-        {/* Stats Section */}
+        {/* Stats Section with Animated Counters */}
         <section className="container mx-auto px-4 py-16">
-          <div className="grid md:grid-cols-4 gap-8 max-w-4xl mx-auto text-center">
-            <div>
-              <div className="text-4xl md:text-5xl font-black text-amber-400 mb-2">50K+</div>
-              <div className="text-white/60">Active Creators</div>
-            </div>
-            <div>
-              <div className="text-4xl md:text-5xl font-black text-amber-400 mb-2">1M+</div>
-              <div className="text-white/60">Episodes Hosted</div>
-            </div>
-            <div>
-              <div className="text-4xl md:text-5xl font-black text-amber-400 mb-2">500K+</div>
-              <div className="text-white/60">AI Clips Generated</div>
-            </div>
-            <div>
-              <div className="text-4xl md:text-5xl font-black text-amber-400 mb-2">99.9%</div>
-              <div className="text-white/60">Uptime</div>
-            </div>
-          </div>
-        </section>
-
-        {/* Team Section */}
-        <section className="container mx-auto px-4 py-16">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4 text-center">Meet the Team</h2>
-          <p className="text-white/60 text-center mb-12 max-w-xl mx-auto">
-            A passionate group of creators, engineers, and dreamers building the future of content creation.
-          </p>
-          <div className="grid md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-            {team.map((member) => (
-              <div key={member.name} className="text-center">
-                <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-400/20 to-orange-500/20 flex items-center justify-center">
-                  <Users className="w-10 h-10 text-amber-400/60" />
-                </div>
-                <h3 className="font-semibold">{member.name}</h3>
-                <p className="text-white/60 text-sm">{member.role}</p>
-              </div>
+          <h2 className="text-2xl md:text-3xl font-bold mb-12 text-center">The Creator Economy by the Numbers</h2>
+          <div className="grid md:grid-cols-4 gap-8 max-w-5xl mx-auto text-center">
+            {stats.map((stat) => (
+              <AnimatedStat 
+                key={stat.label}
+                value={stat.value}
+                suffix={stat.suffix}
+                label={stat.label}
+              />
             ))}
           </div>
+          <p className="text-center text-white/40 text-sm mt-8">
+            Source: Industry reports 2024 — Goldman Sachs, Edison Research, Statista
+          </p>
         </section>
 
         {/* CTA Section */}
