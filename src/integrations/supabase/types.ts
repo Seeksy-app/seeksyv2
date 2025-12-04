@@ -721,6 +721,72 @@ export type Database = {
           },
         ]
       }
+      ad_inventory_items: {
+        Row: {
+          capacity: number | null
+          channel: string
+          created_at: string
+          currency: string
+          expected_cost: number
+          expected_profit: number | null
+          id: string
+          inventory_date: string | null
+          linked_ad_id: string | null
+          linked_campaign_id: string | null
+          linked_creator_id: string | null
+          list_price: number
+          name: string
+          notes: string | null
+          owner_id: string | null
+          owner_type: string
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number | null
+          channel: string
+          created_at?: string
+          currency?: string
+          expected_cost?: number
+          expected_profit?: number | null
+          id?: string
+          inventory_date?: string | null
+          linked_ad_id?: string | null
+          linked_campaign_id?: string | null
+          linked_creator_id?: string | null
+          list_price?: number
+          name: string
+          notes?: string | null
+          owner_id?: string | null
+          owner_type: string
+          status?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number | null
+          channel?: string
+          created_at?: string
+          currency?: string
+          expected_cost?: number
+          expected_profit?: number | null
+          id?: string
+          inventory_date?: string | null
+          linked_ad_id?: string | null
+          linked_campaign_id?: string | null
+          linked_creator_id?: string | null
+          list_price?: number
+          name?: string
+          notes?: string | null
+          owner_id?: string | null
+          owner_type?: string
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ad_inventory_units: {
         Row: {
           ceiling_cpm: number

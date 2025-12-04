@@ -237,6 +237,8 @@ import SalesLeads from "./pages/admin/SalesLeads";
 import SalesDesk from "./pages/admin/SalesDesk";
 import SWOTAnalysis from "./pages/admin/SWOTAnalysis";
 import TeamMembers from "./pages/admin/TeamMembers";
+import AdInventory from "./pages/admin/AdInventory";
+import BoardInventory from "./pages/board/BoardInventory";
 import AdvertisingManagement from "./pages/admin/AdvertisingManagement";
 import ImpersonateUser from "./pages/admin/ImpersonateUser";
 import CreditManagement from "./pages/admin/CreditManagement";
@@ -938,12 +940,14 @@ const AppContent = () => {
           <Route path="/board/competitive-landscape" element={<BoardCompetitiveLandscape />} />
           <Route path="/board/swot" element={<BoardSWOT />} />
           <Route path="/board/market-intel" element={<BoardMarketIntel />} />
+          <Route path="/board/inventory" element={<BoardInventory />} />
           <Route path="/investor/:token" element={<BoardInvestorPortal />} />
           
           {/* Admin Financials Routes (reuse Board components) */}
           <Route path="/admin/financials/key-metrics" element={<BoardKeyMetrics />} />
           <Route path="/admin/financials/roi-calculator" element={<BoardROICalculator />} />
           <Route path="/admin/financials/revenue-insights" element={<BoardRevenueInsights />} />
+          <Route path="/admin/ad-inventory" element={<AdInventory />} />
           
           {/* R&D Intelligence */}
           <Route path="/admin/rd-feeds" element={<RDIntelligenceFeeds />} />
