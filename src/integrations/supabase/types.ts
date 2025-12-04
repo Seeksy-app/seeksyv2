@@ -6184,17 +6184,22 @@ export type Database = {
           company: string | null
           country: string | null
           created_at: string
+          download_url: string | null
           email: string
           id: string
           last_clicked_at: string | null
           last_opened_at: string | null
+          lead_magnet_sent_at: string | null
           lead_source: string | null
           lead_status: string | null
           name: string
           notes: string | null
+          persona_segment: string | null
           phone: string | null
           pipeline_stage_id: string | null
           sales_rep_id: string | null
+          selected_offer_id: string | null
+          selected_offer_title: string | null
           state: string | null
           street: string | null
           title: string | null
@@ -6208,17 +6213,22 @@ export type Database = {
           company?: string | null
           country?: string | null
           created_at?: string
+          download_url?: string | null
           email: string
           id?: string
           last_clicked_at?: string | null
           last_opened_at?: string | null
+          lead_magnet_sent_at?: string | null
           lead_source?: string | null
           lead_status?: string | null
           name: string
           notes?: string | null
+          persona_segment?: string | null
           phone?: string | null
           pipeline_stage_id?: string | null
           sales_rep_id?: string | null
+          selected_offer_id?: string | null
+          selected_offer_title?: string | null
           state?: string | null
           street?: string | null
           title?: string | null
@@ -6232,17 +6242,22 @@ export type Database = {
           company?: string | null
           country?: string | null
           created_at?: string
+          download_url?: string | null
           email?: string
           id?: string
           last_clicked_at?: string | null
           last_opened_at?: string | null
+          lead_magnet_sent_at?: string | null
           lead_source?: string | null
           lead_status?: string | null
           name?: string
           notes?: string | null
+          persona_segment?: string | null
           phone?: string | null
           pipeline_stage_id?: string | null
           sales_rep_id?: string | null
+          selected_offer_id?: string | null
+          selected_offer_title?: string | null
           state?: string | null
           street?: string | null
           title?: string | null
@@ -11533,6 +11548,71 @@ export type Database = {
             columns: ["landing_page_id"]
             isOneToOne: false
             referencedRelation: "landing_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_magnet_downloads: {
+        Row: {
+          company: string | null
+          contact_id: string | null
+          created_at: string | null
+          download_url: string | null
+          downloaded_at: string | null
+          email: string
+          id: string
+          ip_address: string | null
+          name: string | null
+          offer_id: string
+          offer_title: string
+          pdf_path: string
+          persona_segment: string
+          purpose: string | null
+          source: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          company?: string | null
+          contact_id?: string | null
+          created_at?: string | null
+          download_url?: string | null
+          downloaded_at?: string | null
+          email: string
+          id?: string
+          ip_address?: string | null
+          name?: string | null
+          offer_id: string
+          offer_title: string
+          pdf_path: string
+          persona_segment: string
+          purpose?: string | null
+          source?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          company?: string | null
+          contact_id?: string | null
+          created_at?: string | null
+          download_url?: string | null
+          downloaded_at?: string | null
+          email?: string
+          id?: string
+          ip_address?: string | null
+          name?: string | null
+          offer_id?: string
+          offer_title?: string
+          pdf_path?: string
+          persona_segment?: string
+          purpose?: string | null
+          source?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_magnet_downloads_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
         ]
