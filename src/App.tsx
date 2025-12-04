@@ -385,6 +385,13 @@ import BoardCEOPlan from "./pages/board/BoardCEOPlan";
 import BoardCEOVTO from "./pages/board/BoardCEOVTO";
 import BoardResearch from "./pages/board/BoardResearch";
 import BoardRevenueInsights from "./pages/board/BoardRevenueInsights";
+import BoardKeyMetrics from "./pages/board/BoardKeyMetrics";
+import BoardROICalculator from "./pages/board/BoardROICalculator";
+import BoardAIAnalyst from "./pages/board/BoardAIAnalyst";
+import BoardContacts from "./pages/board/BoardContacts";
+import BoardCompetitiveLandscape from "./pages/board/BoardCompetitiveLandscape";
+import BoardSWOT from "./pages/board/BoardSWOT";
+import BoardMarketIntel from "./pages/board/BoardMarketIntel";
 import BoardMarketIntelligence from "./pages/board/BoardMarketIntelligence";
 import BoardInvestorPortal from "./pages/investor/InvestorPortal";
 import BoardMemberManagement from "./pages/admin/BoardMemberManagement";
@@ -844,7 +851,19 @@ const AppContent = () => {
           <Route path="/board/research" element={<BoardResearch />} />
           <Route path="/board/revenue-insights" element={<BoardRevenueInsights />} />
           <Route path="/board/market-intelligence" element={<BoardMarketIntelligence />} />
+          <Route path="/board/key-metrics" element={<BoardKeyMetrics />} />
+          <Route path="/board/roi-calculator" element={<BoardROICalculator />} />
+          <Route path="/board/ai-analyst" element={<BoardAIAnalyst />} />
+          <Route path="/board/contacts" element={<BoardContacts />} />
+          <Route path="/board/competitive-landscape" element={<BoardCompetitiveLandscape />} />
+          <Route path="/board/swot" element={<BoardSWOT />} />
+          <Route path="/board/market-intel" element={<BoardMarketIntel />} />
           <Route path="/investor/:token" element={<BoardInvestorPortal />} />
+          
+          {/* Admin Financials Routes (reuse Board components) */}
+          <Route path="/admin/financials/key-metrics" element={<BoardKeyMetrics />} />
+          <Route path="/admin/financials/roi-calculator" element={<BoardROICalculator />} />
+          <Route path="/admin/financials/revenue-insights" element={<BoardRevenueInsights />} />
           
           {/* R&D Intelligence */}
           <Route path="/admin/rd-feeds" element={<RDIntelligenceFeeds />} />

@@ -187,15 +187,15 @@ export function BoardSidebar() {
           onClick={() => handleNavigation(item)}
           data-tour={item.id === 'dashboard' ? 'nav-dashboard' : item.id === 'swot' ? 'nav-swot' : undefined}
           className={cn(
-            'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
+            'w-full flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200',
             'text-slate-200 hover:bg-slate-800/40 hover:text-white',
-            'text-base font-semibold tracking-wide',
+            'text-sm font-medium',
             item.isAI && 'text-blue-400 hover:text-blue-300 hover:bg-blue-500/20',
-            isActive && 'bg-blue-500/30 text-blue-200 font-bold hover:bg-blue-500/40 hover:text-blue-100 shadow-sm'
+            isActive && 'bg-blue-500/30 text-blue-200 font-semibold hover:bg-blue-500/40 hover:text-blue-100 shadow-sm'
           )}
         >
           <Icon className={cn(
-            "w-5 h-5 flex-shrink-0 transition-all duration-200",
+            "w-4 h-4 flex-shrink-0 transition-all duration-200",
             isActive ? "text-blue-300" : item.isAI ? "text-blue-400" : "text-slate-400"
           )} />
           <span className="flex-1 truncate">{item.label}</span>
@@ -206,10 +206,10 @@ export function BoardSidebar() {
 
   const renderSection = (title: string, items: NavItem[], className?: string) => (
     <SidebarGroup className={className}>
-      <SidebarGroupLabel className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.12em] px-3 mb-1.5">
+      <SidebarGroupLabel className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.12em] px-3 mb-0.5">
         {title}
       </SidebarGroupLabel>
-      <SidebarMenu className="space-y-0.5">
+      <SidebarMenu className="space-y-0">
         {items.map(renderNavItem)}
       </SidebarMenu>
     </SidebarGroup>
@@ -229,33 +229,33 @@ export function BoardSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-2 py-4 overflow-y-auto">
+      <SidebarContent className="px-2 py-3 overflow-y-auto">
         {renderSection('Overview', overviewItems)}
-        {renderSection('Business', businessItems, 'mt-4')}
-        {renderSection('Financials', financialItems, 'mt-4')}
-        {renderSection('Competitive & Strategy', strategyItems, 'mt-4')}
-        {renderSection('Tools', toolsItems, 'mt-4')}
+        {renderSection('Business', businessItems, 'mt-2')}
+        {renderSection('Financials', financialItems, 'mt-2')}
+        {renderSection('Competitive & Strategy', strategyItems, 'mt-2')}
+        {renderSection('Tools', toolsItems, 'mt-2')}
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-slate-700/50 space-y-1.5">
+      <SidebarFooter className="p-2 border-t border-slate-700/50 space-y-1">
         {canToggleBoardView && isViewingAsBoard && (
           <Button
             variant="outline"
             size="sm"
-            className="w-full justify-start gap-2.5 border-slate-600 text-slate-300 hover:bg-slate-700/50 hover:text-white text-base font-semibold py-2.5"
+            className="w-full justify-start gap-2 border-slate-600 text-slate-300 hover:bg-slate-700/50 hover:text-white text-sm font-medium py-2"
             onClick={handleExitBoardView}
           >
-            <LayoutDashboard className="w-5 h-5" />
+            <LayoutDashboard className="w-4 h-4" />
             Exit Board View
           </Button>
         )}
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start gap-2.5 text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 text-base font-semibold py-2.5"
+          className="w-full justify-start gap-2 text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 text-sm font-medium py-2"
           onClick={handleLogout}
         >
-          <LogOut className="w-5 h-5" />
+          <LogOut className="w-4 h-4" />
           Logout
         </Button>
       </SidebarFooter>

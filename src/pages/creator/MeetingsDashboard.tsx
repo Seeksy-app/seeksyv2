@@ -25,7 +25,7 @@ export default function MeetingsDashboard() {
     name: '',
     description: '',
     duration: 30,
-    location_type: 'zoom' as const,
+    location_type: 'zoom' as 'zoom' | 'meet' | 'phone' | 'in-person' | 'custom' | 'seeksy_studio' | 'teams',
     custom_location_url: '',
     buffer_time_before: 0,
     buffer_time_after: 0,
@@ -106,7 +106,7 @@ export default function MeetingsDashboard() {
 
       const { data, error } = await supabase
         .from('meeting_types')
-        .insert({
+        .insert([{
           user_id: user.id,
           name: newMeetingType.name,
           description: newMeetingType.description,
@@ -116,7 +116,7 @@ export default function MeetingsDashboard() {
           buffer_time_before: newMeetingType.buffer_time_before,
           buffer_time_after: newMeetingType.buffer_time_after,
           is_active: newMeetingType.is_active
-        })
+        }])
         .select()
         .single();
 
@@ -231,15 +231,15 @@ export default function MeetingsDashboard() {
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="zoom">Zoom</SelectItem>
-                        <SelectItem value="google_meet">Google Meet</SelectItem>
+                        <SelectItem value="meet">Google Meet</SelectItem>
                         <SelectItem value="phone">Phone</SelectItem>
-                        <SelectItem value="in_person">In-Person</SelectItem>
+                        <SelectItem value="in-person">In-Person</SelectItem>
                         <SelectItem value="custom">Custom Link</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
-                {(newMeetingType.location_type === 'custom' || newMeetingType.location_type === 'in_person') && (
+                {(newMeetingType.location_type === 'custom' || newMeetingType.location_type === 'in-person') && (
                   <div>
                     <Label>Meeting Link / Location Details</Label>
                     <Input 

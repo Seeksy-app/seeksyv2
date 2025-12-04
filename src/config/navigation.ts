@@ -336,6 +336,27 @@ export const NAVIGATION_CONFIG: {
       "collapsible": true,
       "items": [
         {
+          "id": "admin_key_metrics",
+          "label": "Key Metrics",
+          "icon": "bar-chart-2",
+          "path": "/admin/financials/key-metrics",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_roi_calculator",
+          "label": "ROI Calculator",
+          "icon": "calculator",
+          "path": "/admin/financials/roi-calculator",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_revenue_insights_cfo",
+          "label": "Revenue Insights",
+          "icon": "dollar-sign",
+          "path": "/admin/financials/revenue-insights",
+          "roles": ["admin", "super_admin"]
+        },
+        {
           "id": "admin_cfo_assumptions",
           "label": "CFO Assumptions",
           "icon": "sliders",

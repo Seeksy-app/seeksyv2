@@ -209,7 +209,7 @@ export default function PublicBookingPage() {
     );
   }
 
-  const profile = meetingType.profiles as any;
+  const profile = meetingType.profile as any;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 py-8 px-4">
