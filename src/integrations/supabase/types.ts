@@ -787,6 +787,62 @@ export type Database = {
           },
         ]
       }
+      ad_opportunities: {
+        Row: {
+          campaign_id: string | null
+          created_at: string | null
+          description: string | null
+          eligibility_tags: string[] | null
+          format: string
+          id: string
+          max_creators: number | null
+          payout_amount: number | null
+          payout_type: string
+          revshare_percent: number | null
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          eligibility_tags?: string[] | null
+          format?: string
+          id?: string
+          max_creators?: number | null
+          payout_amount?: number | null
+          payout_type?: string
+          revshare_percent?: number | null
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          eligibility_tags?: string[] | null
+          format?: string
+          id?: string
+          max_creators?: number | null
+          payout_amount?: number | null
+          payout_type?: string
+          revshare_percent?: number | null
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_opportunities_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ad_rate_cards: {
         Row: {
           bulk_discount_cpm: number | null

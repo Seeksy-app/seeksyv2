@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +46,7 @@ type SortField = "name" | "budget" | "spent" | "impressions" | "status";
 type SortOrder = "asc" | "desc";
 
 export default function AdminCampaigns() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [campaigns, setCampaigns] = useState<CampaignWithAdvertiser[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -195,11 +197,11 @@ export default function AdminCampaigns() {
         </div>
         
         <div className="flex gap-3">
-          <Button onClick={() => window.location.href = "/admin/advertising/campaigns/create"}>
+          <Button onClick={() => navigate("/admin/advertising/campaigns/create")}>
             <Target className="h-4 w-4 mr-2" />
             Create Campaign
           </Button>
-          <Button variant="outline" onClick={() => window.location.href = "/admin/advertising/ads/create"}>
+          <Button variant="outline" onClick={() => navigate("/admin/advertising/ads/create")}>
             <Activity className="h-4 w-4 mr-2" />
             Create Ad
           </Button>
@@ -401,7 +403,7 @@ export default function AdminCampaigns() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => window.location.href = `/admin/advertising/campaigns/${campaign.id}`}
+                            onClick={() => navigate(`/admin/advertising/campaigns/${campaign.id}`)}
                             className="gap-2"
                           >
                             <Eye className="h-4 w-4" />

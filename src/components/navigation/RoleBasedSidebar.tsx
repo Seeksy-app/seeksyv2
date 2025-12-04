@@ -78,6 +78,7 @@ import {
   Webhook,
   Mail,
   Instagram,
+  ChevronDown,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -97,8 +98,7 @@ import { NAVIGATION_CONFIG, filterNavigationByRoles } from "@/config/navigation"
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { useAccountType } from "@/hooks/useAccountType";
 import { SparkIcon } from "@/components/spark/SparkIcon";
-import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useSidebarState } from "@/hooks/useSidebarState";
 
 interface RoleBasedSidebarProps {
   user?: User | null;
@@ -186,27 +186,8 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   
-  // Track which collapsible groups are open - collapsed by default for admin sections
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
-    "Email": true,
-    "Marketing": true,
-    "Media": true,
-    "User Management": false,
-    "Advertising & Revenue": false,
-    "Business Operations": false,
-    "Business Tools": false,
-    "R&D & Intelligence": false,
-    "Content Management": false,
-    "Developer Tools": false,
-    "Support": false,
-  });
-
-  const toggleGroup = (groupName: string) => {
-    setOpenGroups(prev => ({
-      ...prev,
-      [groupName]: !prev[groupName]
-    }));
-  };
+  // Use persisted sidebar state with localStorage
+  const { openGroups, toggleGroup, isGroupOpen } = useSidebarState();
 
   if (!user || isLoading) {
     return null;
