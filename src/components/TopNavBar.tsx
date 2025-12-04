@@ -17,8 +17,8 @@ export function TopNavBar() {
   const location = useLocation();
   const { toast } = useToast();
   
-  // Hide credits badge on admin and board routes
-  const hideCredits = location.pathname.startsWith('/admin') || location.pathname.startsWith('/board');
+  // Hide credits badge on admin, board, and advertiser routes
+  const hideCredits = location.pathname.startsWith('/admin') || location.pathname.startsWith('/board') || location.pathname.startsWith('/advertiser');
 
   const handleLogout = async () => {
     try {
