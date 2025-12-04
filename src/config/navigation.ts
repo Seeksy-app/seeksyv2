@@ -245,43 +245,189 @@ export const NAVIGATION_CONFIG: {
     },
 
     {
-      "group": "Admin",
-      "description": "System administration",
+      "group": "Identity & Certification",
+      "description": "Voice, identity verification, and media tools",
       "collapsible": true,
       "items": [
         {
-          "id": "admin_dashboard",
-          "label": "Admin Dashboard",
-          "icon": "shield",
-          "path": "/admin",
+          "id": "admin_identity",
+          "label": "Identity & Rights",
+          "icon": "fingerprint",
+          "path": "/admin/identity",
           "roles": ["admin", "super_admin"]
         },
         {
-          "id": "admin_settings",
-          "label": "Global Settings",
-          "icon": "settings",
-          "path": "/admin/settings",
+          "id": "admin_background_remover",
+          "label": "Background Remover",
+          "icon": "scissors",
+          "path": "/background-remover",
+          "roles": ["admin", "super_admin"]
+        }
+      ]
+    },
+
+    {
+      "group": "Users & Access",
+      "description": "User and team management",
+      "collapsible": true,
+      "items": [
+        {
+          "id": "admin_creators",
+          "label": "User Management",
+          "icon": "users",
+          "path": "/admin/creators",
           "roles": ["admin", "super_admin"]
         },
         {
-          "id": "admin_system_status",
-          "label": "System Status",
-          "icon": "activity",
-          "path": "/admin/system-status",
+          "id": "admin_board_members",
+          "label": "Board Members",
+          "icon": "briefcase",
+          "path": "/admin/board-members",
           "roles": ["admin", "super_admin"]
         },
         {
-          "id": "admin_security",
-          "label": "Security",
-          "icon": "shield-check",
-          "path": "/admin/security",
+          "id": "admin_impersonate",
+          "label": "Impersonate User",
+          "icon": "user-cog",
+          "path": "/admin/impersonate",
           "roles": ["admin", "super_admin"]
         },
         {
-          "id": "admin_system_tools",
-          "label": "System Tools",
-          "icon": "wrench",
-          "path": "/admin/system-tools",
+          "id": "admin_credits",
+          "label": "Credit Management",
+          "icon": "coins",
+          "path": "/admin/credits",
+          "roles": ["admin", "super_admin"]
+        }
+      ]
+    },
+
+    {
+      "group": "Advertising & Sales",
+      "description": "Advertising, campaigns, and sales management",
+      "collapsible": true,
+      "items": [
+        {
+          "id": "admin_advertising",
+          "label": "Advertising Management",
+          "icon": "megaphone",
+          "path": "/admin/advertising",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_rate_desk",
+          "label": "Rate Desk",
+          "icon": "dollar-sign",
+          "path": "/admin/advertising/rate-desk",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_ad_campaigns",
+          "label": "Ad Campaigns",
+          "icon": "radio",
+          "path": "/admin/ad-campaigns",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_ad_analytics",
+          "label": "Ad Analytics",
+          "icon": "trending-up",
+          "path": "/admin/ad-analytics",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_sponsorships",
+          "label": "Sponsorships & Proposals",
+          "icon": "handshake",
+          "path": "/admin/sponsorships",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_sales_desk",
+          "label": "Sales Desk",
+          "icon": "headphones",
+          "path": "/admin/sales-desk",
+          "roles": ["admin", "super_admin"]
+        }
+      ]
+    },
+
+    {
+      "group": "Finance & Insights",
+      "description": "Financial reports and intelligence",
+      "collapsible": true,
+      "items": [
+        {
+          "id": "admin_revenue_reports",
+          "label": "Revenue Reports",
+          "icon": "file-bar-chart",
+          "path": "/admin/revenue-reports",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_financial_models",
+          "label": "Financial Models",
+          "icon": "calculator",
+          "path": "/admin/financial-models/combined",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_cfo_assumptions",
+          "label": "CFO Assumptions",
+          "icon": "sliders",
+          "path": "/cfo-dashboard#assumptions",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_rd_feeds",
+          "label": "R&D Intelligence Feeds",
+          "icon": "rss",
+          "path": "/admin/rd-feeds",
+          "roles": ["admin", "super_admin"],
+          "description": "Internal research feeds for AI insights and CFO forecasts"
+        }
+      ]
+    },
+
+    {
+      "group": "Business Tools",
+      "description": "Strategic planning and business intelligence",
+      "collapsible": true,
+      "items": [
+        {
+          "id": "business_tools_landing",
+          "label": "Business Tools",
+          "icon": "briefcase",
+          "path": "/business-tools",
+          "roles": ["admin", "super_admin", "creator", "agency"]
+        },
+        {
+          "id": "gtm_engine_admin",
+          "label": "GTM Engine (Admin)",
+          "icon": "target",
+          "path": "/business-tools/gtm",
+          "roles": ["admin", "super_admin"]
+        }
+      ]
+    },
+
+    {
+      "group": "GTM & Strategy",
+      "description": "Go-to-market planning and strategy",
+      "collapsible": true,
+      "items": [
+        {
+          "id": "creator_gtm_builder",
+          "label": "Creator GTM Builder",
+          "icon": "rocket",
+          "path": "/business-tools/gtm/new",
+          "roles": ["admin", "super_admin", "creator", "agency"]
+        },
+        {
+          "id": "internal_gtm",
+          "label": "Internal GTM (CFO/CEO)",
+          "icon": "building",
+          "path": "/board/gtm",
           "roles": ["admin", "super_admin"]
         }
       ]
@@ -368,258 +514,13 @@ export const NAVIGATION_CONFIG: {
           "icon": "video",
           "path": "/admin/screen-capture",
           "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_background_remover",
-          "label": "Background Remover",
-          "icon": "scissors",
-          "path": "/background-remover",
-          "roles": ["admin", "super_admin"]
         }
       ]
     },
 
     {
-      "group": "User Management",
-      "description": "Manage users and creators",
-      "collapsible": true,
-      "items": [
-        {
-          "id": "admin_creators",
-          "label": "Creators",
-          "icon": "users",
-          "path": "/admin/creators",
-          "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_advertisers",
-          "label": "Advertisers",
-          "icon": "megaphone",
-          "path": "/admin/advertisers",
-          "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_board_members",
-          "label": "Board Members",
-          "icon": "briefcase",
-          "path": "/admin/board-members",
-          "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_impersonate",
-          "label": "Impersonate User",
-          "icon": "user-cog",
-          "path": "/admin/impersonate",
-          "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_credits",
-          "label": "Credit Management",
-          "icon": "coins",
-          "path": "/admin/credits",
-          "roles": ["admin", "super_admin"]
-        }
-      ]
-    },
-
-    {
-      "group": "Identity & Certification",
-      "description": "Voice and identity verification",
-      "collapsible": true,
-      "items": [
-        {
-          "id": "admin_identity",
-          "label": "Identity Dashboard",
-          "icon": "fingerprint",
-          "path": "/admin/identity",
-          "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_certification",
-          "label": "Certification Console",
-          "icon": "shield-check",
-          "path": "/admin/certification",
-          "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_voice_credentials",
-          "label": "Voice Credentials",
-          "icon": "mic",
-          "path": "/admin/voice-credentials",
-          "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_voice_tag",
-          "label": "Voice Tag",
-          "icon": "tag",
-          "path": "/admin/voice-tag",
-          "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_voice_certification",
-          "label": "Voice Certification",
-          "icon": "award",
-          "path": "/admin/voice-certification",
-          "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_voice_nft",
-          "label": "Voice NFT Certificates",
-          "icon": "hexagon",
-          "path": "/admin/voice-nft-certificates",
-          "roles": ["admin", "super_admin"]
-        }
-      ]
-    },
-
-    {
-      "group": "Advertising & Revenue",
-      "description": "Manage advertising and monetization",
-      "collapsible": true,
-      "items": [
-        {
-          "id": "admin_advertising",
-          "label": "Advertising Management",
-          "icon": "megaphone",
-          "path": "/admin/advertising",
-          "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_rate_desk",
-          "label": "Rate Desk",
-          "icon": "dollar-sign",
-          "path": "/admin/advertising/rate-desk",
-          "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_ad_campaigns",
-          "label": "Ad Campaigns",
-          "icon": "radio",
-          "path": "/admin/ad-campaigns",
-          "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_ad_analytics",
-          "label": "Ad Analytics",
-          "icon": "trending-up",
-          "path": "/admin/ad-analytics",
-          "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_revenue_reports",
-          "label": "Revenue Reports",
-          "icon": "file-bar-chart",
-          "path": "/admin/revenue-reports",
-          "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_financial_models",
-          "label": "Financial Models",
-          "icon": "calculator",
-          "path": "/admin/financial-models/combined",
-          "roles": ["admin", "super_admin"]
-        }
-      ]
-    },
-
-    {
-      "group": "Business Operations",
-      "description": "Sales, support, and business tools",
-      "collapsible": true,
-      "items": [
-        {
-          "id": "admin_support",
-          "label": "Support Desk",
-          "icon": "headphones",
-          "path": "/admin/support",
-          "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_sales",
-          "label": "Sales Leads",
-          "icon": "target",
-          "path": "/admin/sales",
-          "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_billing",
-          "label": "Billing",
-          "icon": "credit-card",
-          "path": "/admin/billing",
-          "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_payments",
-          "label": "Payments",
-          "icon": "banknote",
-          "path": "/admin/payments",
-          "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_investor_spreadsheets",
-          "label": "Investor Spreadsheets",
-          "icon": "file-spreadsheet",
-          "path": "/admin/investor-spreadsheets",
-          "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_marketing_gtm",
-          "label": "Marketing & GTM Plan",
-          "icon": "target",
-          "path": "/marketing-gtm",
-          "roles": ["admin", "super_admin"]
-        }
-      ]
-    },
-
-    {
-      "group": "Business Tools",
-      "description": "Strategic planning and business intelligence",
-      "collapsible": true,
-      "items": [
-        {
-          "id": "business_tools_landing",
-          "label": "Business Tools",
-          "icon": "briefcase",
-          "path": "/business-tools",
-          "roles": ["admin", "super_admin", "creator", "agency"]
-        },
-        {
-          "id": "gtm_engine",
-          "label": "GTM Engine",
-          "icon": "target",
-          "path": "/business-tools/gtm",
-          "roles": ["admin", "super_admin"]
-        }
-      ]
-    },
-
-    {
-      "group": "R&D & Intelligence",
-      "description": "Research and market intelligence",
-      "collapsible": true,
-      "items": [
-        {
-          "id": "admin_rd_feeds",
-          "label": "R&D Intelligence Feeds",
-          "icon": "rss",
-          "path": "/admin/rd-feeds",
-          "roles": ["admin", "super_admin"],
-          "description": "Internal research feeds for AI insights and CFO forecasts"
-        },
-        {
-          "id": "admin_cfo_assumptions",
-          "label": "CFO Assumptions",
-          "icon": "calculator",
-          "path": "/cfo-dashboard#assumptions",
-          "roles": ["admin", "super_admin"]
-        }
-      ]
-    },
-
-    {
-      "group": "Developer Tools",
-      "description": "Technical administration and AI tools",
+      "group": "System",
+      "description": "Developer tools and system settings",
       "collapsible": true,
       "items": [
         {
@@ -648,6 +549,34 @@ export const NAVIGATION_CONFIG: {
           "label": "Conversational Demo",
           "icon": "message-circle",
           "path": "/admin/conversational-demo",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_system_tools",
+          "label": "System Tools",
+          "icon": "wrench",
+          "path": "/admin/system-tools",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_system_status",
+          "label": "System Status",
+          "icon": "activity",
+          "path": "/admin/system-status",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_security",
+          "label": "Security",
+          "icon": "shield-check",
+          "path": "/admin/security",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_settings",
+          "label": "Settings",
+          "icon": "settings",
+          "path": "/admin/settings",
           "roles": ["admin", "super_admin"]
         }
       ]

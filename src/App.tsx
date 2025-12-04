@@ -200,6 +200,7 @@ import MetaOAuthCallback from "./pages/MetaOAuthCallback";
 import SeeksyArchitecture from "./pages/SeeksyArchitecture";
 import SupportDesk from "./pages/admin/SupportDesk";
 import SalesLeads from "./pages/admin/SalesLeads";
+import SalesDesk from "./pages/admin/SalesDesk";
 import AdvertisingManagement from "./pages/admin/AdvertisingManagement";
 import ImpersonateUser from "./pages/admin/ImpersonateUser";
 import CreditManagement from "./pages/admin/CreditManagement";
@@ -725,6 +726,7 @@ const AppContent = () => {
             <Route path="/admin/ad-analytics-import" element={<AdAnalyticsImport />} />
               <Route path="/admin/support" element={<SupportDesk />} />
               <Route path="/admin/sales" element={<SalesLeads />} />
+              <Route path="/admin/sales-desk" element={<SalesDesk />} />
               <Route path="/admin/advertising" element={<AdvertisingManagement />} />
               <Route path="/admin/impersonate" element={<ImpersonateUser />} />
               <Route path="/admin/credits" element={<CreditManagement />} />
