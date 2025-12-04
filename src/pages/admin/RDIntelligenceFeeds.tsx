@@ -434,9 +434,15 @@ export default function RDIntelligenceFeeds() {
       </div>
 
       {/* Main Tabs */}
-      <Tabs defaultValue="articles">
+      <Tabs defaultValue="articles" onValueChange={(value) => {
+        if (value === 'youtube') setFilterType('youtube');
+        else if (value === 'pdfs') setFilterType('pdf');
+        else if (value === 'articles') setFilterType('all');
+      }}>
         <TabsList>
-          <TabsTrigger value="articles">Articles ({filteredItems.length})</TabsTrigger>
+          <TabsTrigger value="articles">Articles ({feedItems?.length || 0})</TabsTrigger>
+          <TabsTrigger value="youtube">YouTube ({feedItems?.filter(i => i.content_type === 'youtube').length || 0})</TabsTrigger>
+          <TabsTrigger value="pdfs">PDFs ({feedItems?.filter(i => i.content_type === 'pdf').length || 0})</TabsTrigger>
           <TabsTrigger value="feeds">Feeds ({feeds?.length || 0})</TabsTrigger>
         </TabsList>
 
@@ -558,6 +564,175 @@ export default function RDIntelligenceFeeds() {
                                   <ExternalLink className="w-4 h-4" />
                                 </Button>
                               )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* YouTube Tab */}
+        <TabsContent value="youtube" className="space-y-4">
+          <Card>
+            <CardContent className="p-0">
+              {feedItemsLoading ? (
+                <div className="p-6 space-y-3">
+                  {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full" />)}
+                </div>
+              ) : filteredItems.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Youtube className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-medium mb-2">No YouTube videos ingested yet</h3>
+                  <p className="text-sm mb-4">Click "Add YouTube Link" to ingest video transcripts and metadata.</p>
+                </div>
+              ) : (
+                <ScrollArea className="h-[600px]">
+                  <div className="divide-y">
+                    {filteredItems.map(item => {
+                      const insight = insights?.find(i => i.feed_item_id === item.id);
+                      return (
+                        <div 
+                          key={item.id} 
+                          className="p-4 hover:bg-muted/50 transition-colors cursor-pointer"
+                          onClick={() => handleViewItem(item)}
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Youtube className="w-4 h-4 text-red-500" />
+                                <span className="font-medium truncate">{item.title}</span>
+                              </div>
+                              
+                              <div className="flex items-center gap-2 mb-2">
+                                <Badge variant="outline" className="text-xs">YouTube</Badge>
+                                {item.processed ? (
+                                  <Badge className="bg-green-500/20 text-green-600 text-xs">Processed</Badge>
+                                ) : (
+                                  <Badge variant="secondary" className="text-xs">Pending</Badge>
+                                )}
+                                <span className="text-xs text-muted-foreground">
+                                  {item.published_at ? new Date(item.published_at).toLocaleDateString() : 'No date'}
+                                </span>
+                              </div>
+
+                              {insight?.summary && (
+                                <p className="text-sm text-muted-foreground line-clamp-2">{insight.summary}</p>
+                              )}
+
+                              {insight?.tags && insight.tags.length > 0 && (
+                                <div className="flex gap-1 mt-2 flex-wrap">
+                                  {insight.tags.slice(0, 5).map((tag, idx) => (
+                                    <Badge key={idx} variant="secondary" className="text-xs">{tag}</Badge>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={(e) => { e.stopPropagation(); reprocessItemMutation.mutate(item.id); }}
+                                disabled={reprocessItemMutation.isPending}
+                                title="Reprocess with AI"
+                              >
+                                {reprocessItemMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleViewItem(item); }}>
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              {item.url && (
+                                <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); window.open(item.url!, '_blank'); }}>
+                                  <ExternalLink className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* PDFs Tab */}
+        <TabsContent value="pdfs" className="space-y-4">
+          <Card>
+            <CardContent className="p-0">
+              {feedItemsLoading ? (
+                <div className="p-6 space-y-3">
+                  {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full" />)}
+                </div>
+              ) : filteredItems.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-medium mb-2">No PDFs uploaded yet</h3>
+                  <p className="text-sm mb-4">Click "Upload PDF" to extract text and generate insights.</p>
+                </div>
+              ) : (
+                <ScrollArea className="h-[600px]">
+                  <div className="divide-y">
+                    {filteredItems.map(item => {
+                      const insight = insights?.find(i => i.feed_item_id === item.id);
+                      return (
+                        <div 
+                          key={item.id} 
+                          className="p-4 hover:bg-muted/50 transition-colors cursor-pointer"
+                          onClick={() => handleViewItem(item)}
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <FileText className="w-4 h-4 text-orange-500" />
+                                <span className="font-medium truncate">{item.title}</span>
+                              </div>
+                              
+                              <div className="flex items-center gap-2 mb-2">
+                                <Badge variant="outline" className="text-xs">PDF Upload</Badge>
+                                {item.processed ? (
+                                  <Badge className="bg-green-500/20 text-green-600 text-xs">Processed</Badge>
+                                ) : (
+                                  <Badge variant="secondary" className="text-xs">Pending</Badge>
+                                )}
+                                <span className="text-xs text-muted-foreground">
+                                  {item.published_at ? new Date(item.published_at).toLocaleDateString() : 'No date'}
+                                </span>
+                              </div>
+
+                              {insight?.summary && (
+                                <p className="text-sm text-muted-foreground line-clamp-2">{insight.summary}</p>
+                              )}
+
+                              {insight?.tags && insight.tags.length > 0 && (
+                                <div className="flex gap-1 mt-2 flex-wrap">
+                                  {insight.tags.slice(0, 5).map((tag, idx) => (
+                                    <Badge key={idx} variant="secondary" className="text-xs">{tag}</Badge>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={(e) => { e.stopPropagation(); reprocessItemMutation.mutate(item.id); }}
+                                disabled={reprocessItemMutation.isPending}
+                                title="Reprocess with AI"
+                              >
+                                {reprocessItemMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleViewItem(item); }}>
+                                <Eye className="w-4 h-4" />
+                              </Button>
                             </div>
                           </div>
                         </div>
