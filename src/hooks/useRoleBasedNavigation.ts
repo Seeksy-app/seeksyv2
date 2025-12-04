@@ -71,6 +71,10 @@ const ROLE_PATH_ACCESS: Record<UserRole, string[]> = {
   agency: ['/dashboard', '/agency', '/creators', '/campaigns'],
   subscriber: ['/dashboard', '/profile'],
   read_only_analyst: ['/board', '/admin/analytics', '/admin/rd-feeds'],
+  cfo: ['/admin/financials', '/cfo-dashboard', '/admin/billing', '/admin/revenue', '/board'],
+  cmo: ['/admin/marketing', '/admin/lead-magnets', '/admin/advertising', '/admin/cmo', '/admin/rd-feeds'],
+  cco: ['/admin/content', '/admin/master-blog', '/admin/cco', '/admin/logo-manager', '/admin/hero-manager'],
+  manager: ['/helpdesk', '/admin/billing', '/admin/crm', '/meetings'],
 };
 
 export function useRoleBasedNavigation(): UseRoleBasedNavigationReturn {

@@ -4750,6 +4750,51 @@ export type Database = {
         }
         Relationships: []
       }
+      cfo_swot: {
+        Row: {
+          ai_last_summary: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          opportunities: string | null
+          strengths: string | null
+          threats: string | null
+          updated_at: string | null
+          updated_by: string | null
+          user_id: string | null
+          weaknesses: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          ai_last_summary?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          opportunities?: string | null
+          strengths?: string | null
+          threats?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          user_id?: string | null
+          weaknesses?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          ai_last_summary?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          opportunities?: string | null
+          strengths?: string | null
+          threats?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          user_id?: string | null
+          weaknesses?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
       checklist_instances: {
         Row: {
           assigned_to: string | null
@@ -17789,6 +17834,38 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "support_ticket_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swot_change_history: {
+        Row: {
+          changed_at: string | null
+          changed_by: string | null
+          changed_field: string
+          id: string
+          swot_id: string | null
+        }
+        Insert: {
+          changed_at?: string | null
+          changed_by?: string | null
+          changed_field: string
+          id?: string
+          swot_id?: string | null
+        }
+        Update: {
+          changed_at?: string | null
+          changed_by?: string | null
+          changed_field?: string
+          id?: string
+          swot_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swot_change_history_swot_id_fkey"
+            columns: ["swot_id"]
+            isOneToOne: false
+            referencedRelation: "cfo_swot"
             referencedColumns: ["id"]
           },
         ]
