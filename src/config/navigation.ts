@@ -319,6 +319,13 @@ export const NAVIGATION_CONFIG: {
           "icon": "message-circle",
           "path": "/admin/cco",
           "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_lead_magnets",
+          "label": "Lead Magnets",
+          "icon": "file-text",
+          "path": "/admin/lead-magnets",
+          "roles": ["admin", "super_admin"]
         }
       ]
     },

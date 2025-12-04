@@ -11617,6 +11617,48 @@ export type Database = {
           },
         ]
       }
+      lead_magnets: {
+        Row: {
+          audience_roles: string[] | null
+          bullets: string[] | null
+          created_at: string
+          description: string | null
+          download_count: number | null
+          id: string
+          is_active: boolean | null
+          slug: string
+          storage_path: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          audience_roles?: string[] | null
+          bullets?: string[] | null
+          created_at?: string
+          description?: string | null
+          download_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          slug: string
+          storage_path: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          audience_roles?: string[] | null
+          bullets?: string[] | null
+          created_at?: string
+          description?: string | null
+          download_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          slug?: string
+          storage_path?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lead_photos: {
         Row: {
           caption: string | null
