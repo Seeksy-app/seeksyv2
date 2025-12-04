@@ -1,86 +1,78 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Link2, Copy, Shield, Clock, Eye, Trash2, Check, AlertTriangle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Link2, Copy, Eye, Trash2, AlertTriangle, Plus, Send } from 'lucide-react';
 import { toast } from 'sonner';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
+import { GenerateLinkModal } from '@/components/board/investor/GenerateLinkModal';
+import { SendInvestorEmailModal } from '@/components/board/investor/SendInvestorEmailModal';
+import { ActivityLogModal } from '@/components/board/investor/ActivityLogModal';
 
 interface InvestorLink {
   id: string;
+  token: string;
   passcode: string;
-  expiration: string;
-  createdAt: Date;
-  viewed: boolean;
-  timeSpent: string;
-  tabsOpened: string[];
+  investor_name: string | null;
+  created_by: string;
+  created_at: string;
+  expires_at: string | null;
+  data_mode: string;
+  scope: string[];
+  status: string;
+  last_viewed_at: string | null;
+  total_views: number;
 }
 
 export function ShareWithInvestorTab() {
-  const [showDisclaimer, setShowDisclaimer] = useState(false);
-  const [acknowledged, setAcknowledged] = useState(false);
-  const [boardMemberName, setBoardMemberName] = useState('');
-  const [expiration, setExpiration] = useState('24h');
-  const [generatedLinks, setGeneratedLinks] = useState<InvestorLink[]>([
-    {
-      id: 'inv-001',
-      passcode: '847291',
-      expiration: '24 hours',
-      createdAt: new Date(Date.now() - 3600000),
-      viewed: true,
-      timeSpent: '12 min',
-      tabsOpened: ['Market Overview', 'GTM Strategy', 'Key Metrics'],
+  const queryClient = useQueryClient();
+  const [generateModalOpen, setGenerateModalOpen] = useState(false);
+  const [sendEmailModal, setSendEmailModal] = useState<{ open: boolean; link: InvestorLink | null }>({ open: false, link: null });
+  const [activityModal, setActivityModal] = useState<{ open: boolean; link: InvestorLink | null }>({ open: false, link: null });
+
+  const { data: links, isLoading } = useQuery({
+    queryKey: ['investorLinks'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('investor_links')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      if (error) throw error;
+      return data as InvestorLink[];
     },
-    {
-      id: 'inv-002',
-      passcode: '392847',
-      expiration: '7 days',
-      createdAt: new Date(Date.now() - 86400000),
-      viewed: false,
-      timeSpent: '0 min',
-      tabsOpened: [],
+  });
+
+  const revokeMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('investor_links')
+        .update({ status: 'revoked' })
+        .eq('id', id);
+      if (error) throw error;
     },
-  ]);
-
-  const generateLink = () => {
-    if (!boardMemberName.trim()) {
-      toast.error('Please enter your name');
-      return;
-    }
-    if (!acknowledged) {
-      toast.error('Please acknowledge the confidentiality agreement');
-      return;
-    }
-
-    const newLink: InvestorLink = {
-      id: `inv-${Date.now()}`,
-      passcode: Math.floor(100000 + Math.random() * 900000).toString(),
-      expiration: expiration === '24h' ? '24 hours' : expiration === '3d' ? '3 days' : expiration === '7d' ? '7 days' : 'Never',
-      createdAt: new Date(),
-      viewed: false,
-      timeSpent: '0 min',
-      tabsOpened: [],
-    };
-
-    setGeneratedLinks([newLink, ...generatedLinks]);
-    setShowDisclaimer(false);
-    setBoardMemberName('');
-    setAcknowledged(false);
-    toast.success('Investor link generated successfully');
-  };
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['investorLinks'] });
+      toast.success('Link revoked');
+    },
+  });
 
   const copyLink = (link: InvestorLink) => {
-    const url = `${window.location.origin}/investor-portal/${link.id}?code=${link.passcode}`;
-    navigator.clipboard.writeText(url);
-    toast.success('Link copied to clipboard');
+    const url = `${window.location.origin}/investor/${link.token}`;
+    navigator.clipboard.writeText(`${url}\n\nAccess Code: ${link.passcode}`);
+    toast.success('Link and code copied');
   };
 
-  const revokeLink = (id: string) => {
-    setGeneratedLinks(generatedLinks.filter(l => l.id !== id));
-    toast.success('Link revoked');
+  const getStatusBadge = (link: InvestorLink) => {
+    if (link.status === 'revoked') {
+      return <Badge variant="destructive" className="text-xs">Revoked</Badge>;
+    }
+    if (link.expires_at && new Date(link.expires_at) < new Date()) {
+      return <Badge variant="secondary" className="text-xs">Expired</Badge>;
+    }
+    return <Badge className="bg-emerald-100 text-emerald-700 text-xs">Active</Badge>;
   };
 
   return (
@@ -97,55 +89,66 @@ export function ShareWithInvestorTab() {
           <p className="text-sm text-slate-600 mb-4">
             Create a secure, time-limited link to share the GTM Strategy with potential investors.
           </p>
-          <Button onClick={() => setShowDisclaimer(true)} className="bg-blue-600 hover:bg-blue-700">
+          <Button onClick={() => setGenerateModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="w-4 h-4 mr-2" />
             Generate New Link
           </Button>
         </CardContent>
       </Card>
 
-      {/* Active Links */}
+      {/* Recent Links */}
       <Card className="bg-white border-slate-200 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-base text-slate-900">Active Investor Links</CardTitle>
+          <CardTitle className="text-base text-slate-900">Recent Investor Links</CardTitle>
         </CardHeader>
         <CardContent>
-          {generatedLinks.length === 0 ? (
-            <p className="text-sm text-slate-500 text-center py-6">No active links. Generate one above.</p>
+          {isLoading ? (
+            <p className="text-sm text-slate-500 text-center py-6">Loading...</p>
+          ) : !links || links.length === 0 ? (
+            <div className="text-center py-8">
+              <Link2 className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500 text-sm">No investor links created yet.</p>
+              <Button className="mt-4" variant="outline" onClick={() => setGenerateModalOpen(true)}>
+                Create Your First Link
+              </Button>
+            </div>
           ) : (
             <div className="space-y-3">
-              {generatedLinks.map((link) => (
+              {links.map((link) => (
                 <div key={link.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
-                      <span className="font-mono text-sm bg-white px-2 py-1 rounded border border-slate-200">
-                        {link.passcode}
+                      <span className="font-medium text-sm text-slate-900">
+                        {link.investor_name || 'Unnamed Investor'}
                       </span>
-                      <span className="flex items-center gap-1 text-xs text-slate-500">
-                        <Clock className="w-3 h-3" />
-                        Expires: {link.expiration}
-                      </span>
+                      {getStatusBadge(link)}
                     </div>
                     <div className="flex items-center gap-4 text-xs text-slate-500">
-                      <span className="flex items-center gap-1">
-                        <Eye className="w-3 h-3" />
-                        {link.viewed ? (
-                          <span className="text-emerald-600 font-medium">Viewed ({link.timeSpent})</span>
-                        ) : (
-                          'Not viewed'
-                        )}
-                      </span>
-                      {link.tabsOpened.length > 0 && (
-                        <span>Tabs: {link.tabsOpened.join(', ')}</span>
-                      )}
+                      <span>{format(new Date(link.created_at), 'MMM d, yyyy')}</span>
+                      <span>{link.total_views || 0} views</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => copyLink(link)}>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="sm" title="Copy link" onClick={() => copyLink(link)}>
                       <Copy className="w-4 h-4" />
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => revokeLink(link.id)} className="text-red-600 hover:text-red-700">
-                      <Trash2 className="w-4 h-4" />
+                    <Button variant="ghost" size="sm" title="Send email" onClick={() => setSendEmailModal({ open: true, link })}>
+                      <Send className="w-4 h-4" />
                     </Button>
+                    <Button variant="ghost" size="sm" title="View activity" onClick={() => setActivityModal({ open: true, link })}>
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                    {link.status === 'active' && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-red-600 hover:text-red-700"
+                        title="Revoke"
+                        onClick={() => revokeMutation.mutate(link.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -173,67 +176,33 @@ export function ShareWithInvestorTab() {
         </CardContent>
       </Card>
 
-      {/* Disclaimer Dialog */}
-      <Dialog open={showDisclaimer} onOpenChange={setShowDisclaimer}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Shield className="w-5 h-5 text-blue-600" />
-              Confidentiality Agreement
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="p-4 bg-slate-50 rounded-lg text-sm text-slate-600 leading-relaxed">
-              I, <strong>{boardMemberName || '[Board Member Name]'}</strong>, acknowledge that this link is 
-              <strong> confidential</strong> and may only be shared with <strong>one investor</strong>. 
-              I assume responsibility for unauthorized disclosure and understand that link activity is tracked.
-            </div>
-            
-            <div>
-              <Label className="text-sm text-slate-600">Your Name</Label>
-              <Input
-                value={boardMemberName}
-                onChange={(e) => setBoardMemberName(e.target.value)}
-                placeholder="Enter your full name"
-                className="mt-1.5"
-              />
-            </div>
+      {/* Modals */}
+      <GenerateLinkModal 
+        open={generateModalOpen} 
+        onOpenChange={setGenerateModalOpen}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['investorLinks'] })}
+      />
 
-            <div>
-              <Label className="text-sm text-slate-600">Link Expiration</Label>
-              <Select value={expiration} onValueChange={setExpiration}>
-                <SelectTrigger className="mt-1.5">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="24h">24 hours</SelectItem>
-                  <SelectItem value="3d">3 days</SelectItem>
-                  <SelectItem value="7d">7 days</SelectItem>
-                  <SelectItem value="never">Never expire</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      {sendEmailModal.link && (
+        <SendInvestorEmailModal
+          open={sendEmailModal.open}
+          onOpenChange={(open) => setSendEmailModal({ open, link: open ? sendEmailModal.link : null })}
+          linkId={sendEmailModal.link.id}
+          linkToken={sendEmailModal.link.token}
+          passcode={sendEmailModal.link.passcode}
+          defaultInvestorName={sendEmailModal.link.investor_name || ''}
+          scope={sendEmailModal.link.scope}
+        />
+      )}
 
-            <div className="flex items-start gap-2">
-              <Checkbox
-                id="acknowledge"
-                checked={acknowledged}
-                onCheckedChange={(checked) => setAcknowledged(checked as boolean)}
-              />
-              <label htmlFor="acknowledge" className="text-sm text-slate-600 leading-tight cursor-pointer">
-                I acknowledge the confidentiality requirements and accept responsibility for this link.
-              </label>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDisclaimer(false)}>Cancel</Button>
-            <Button onClick={generateLink} disabled={!acknowledged || !boardMemberName.trim()}>
-              <Check className="w-4 h-4 mr-2" />
-              Generate Link
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {activityModal.link && (
+        <ActivityLogModal
+          open={activityModal.open}
+          onOpenChange={(open) => setActivityModal({ open, link: open ? activityModal.link : null })}
+          linkId={activityModal.link.id}
+          investorName={activityModal.link.investor_name || undefined}
+        />
+      )}
     </div>
   );
 }

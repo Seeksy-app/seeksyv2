@@ -10,10 +10,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { DataModeToggle } from './DataModeToggle';
 import { InvestorShareModal } from './InvestorShareModal';
+import { GenerateLinkModal } from './investor/GenerateLinkModal';
 
 export function BoardTopNav() {
   const navigate = useNavigate();
@@ -25,7 +27,7 @@ export function BoardTopNav() {
   };
 
   return (
-    <>
+    <TooltipProvider>
       <header className="sticky top-0 z-20 bg-white border-b border-slate-200">
         <div className="flex items-center justify-between h-16 px-4 md:px-6">
           {/* Left side */}
@@ -94,7 +96,7 @@ export function BoardTopNav() {
         </div>
       </header>
 
-      <InvestorShareModal open={shareModalOpen} onOpenChange={setShareModalOpen} />
-    </>
+      <GenerateLinkModal open={shareModalOpen} onOpenChange={setShareModalOpen} />
+    </TooltipProvider>
   );
 }

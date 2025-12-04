@@ -6,6 +6,8 @@ import { BoardFooter } from './BoardFooter';
 import { BoardAIChat } from './BoardAIChat';
 import { BoardDataModeProvider } from '@/contexts/BoardDataModeContext';
 import { useTheme } from 'next-themes';
+import { useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface BoardLayoutProps {
   children: ReactNode;
@@ -13,6 +15,7 @@ interface BoardLayoutProps {
 
 export function BoardLayout({ children }: BoardLayoutProps) {
   const { setTheme, theme } = useTheme();
+  const location = useLocation();
 
   // Force light theme for board portal main content
   useEffect(() => {
@@ -32,9 +35,18 @@ export function BoardLayout({ children }: BoardLayoutProps) {
           <div className="flex-1 flex flex-col overflow-auto min-w-0 bg-white">
             <BoardTopNav />
             <main className="flex-1 bg-slate-50">
-              <div className="max-w-7xl mx-auto px-6 lg:px-8 py-6 pb-16">
-                {children}
-              </div>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={location.pathname}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  className="max-w-7xl mx-auto px-6 lg:px-8 py-6 pb-16"
+                >
+                  {children}
+                </motion.div>
+              </AnimatePresence>
             </main>
             <BoardFooter />
           </div>

@@ -54,12 +54,12 @@ export function HeroSectionNew() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 leading-[1.1] tracking-tight"
           >
-            <span className="text-foreground">Build Meaningful</span>
+            <span className="text-foreground">Powering How People</span>
             <br />
             <span className="bg-gradient-to-r from-primary via-primary/80 to-purple-500 bg-clip-text text-transparent">
-              Connections
+              Work and Share
             </span>
-            <span className="text-foreground"> With Seeksy</span>
+            <span className="text-foreground"> Online.</span>
           </motion.h1>
 
           {/* Subheadline */}

@@ -52,6 +52,13 @@ export function BoardAIChat() {
     }
   }, [hasAutoOpened]);
 
+  // Listen for sidebar "Board AI Analyst" click
+  useEffect(() => {
+    const handleOpenChat = () => setIsOpen(true);
+    window.addEventListener('openBoardAIChat', handleOpenChat);
+    return () => window.removeEventListener('openBoardAIChat', handleOpenChat);
+  }, []);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;

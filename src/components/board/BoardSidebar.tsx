@@ -25,6 +25,7 @@ import {
   Wallet,
   HeartPulse,
   Sparkles,
+  Shield,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useBoardViewMode } from '@/hooks/useBoardViewMode';
@@ -247,6 +248,17 @@ export function BoardSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-3 border-t border-slate-700 space-y-2">
+        {/* Board AI Analyst Entry */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start gap-2 text-blue-400 hover:text-blue-300 hover:bg-slate-800"
+          onClick={() => window.dispatchEvent(new CustomEvent('openBoardAIChat'))}
+        >
+          <Shield className="w-4 h-4" />
+          Board AI Analyst
+        </Button>
+
         {canToggleBoardView && isViewingAsBoard && (
           <Button
             variant="outline"

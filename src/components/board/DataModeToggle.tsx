@@ -1,13 +1,14 @@
 import { useBoardDataMode } from '@/contexts/BoardDataModeContext';
 import { cn } from '@/lib/utils';
-import { Database, Activity } from 'lucide-react';
+import { Database, Activity, Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function DataModeToggle() {
-  const { dataMode, setDataMode } = useBoardDataMode();
+  const { dataMode, setDataMode, isDemo } = useBoardDataMode();
 
   return (
     <div className="flex items-center gap-3">
-      <span className="text-sm text-slate-500 font-medium">Data Mode:</span>
+      <span className="text-sm text-slate-500 font-medium hidden sm:inline">Data Mode:</span>
       <div className="flex bg-slate-100 rounded-lg p-1">
         <button
           onClick={() => setDataMode('demo')}
@@ -34,16 +35,26 @@ export function DataModeToggle() {
           Real
         </button>
       </div>
+      {isDemo && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Info className="w-4 h-4 text-amber-500 cursor-help" />
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            <p className="text-xs">Demo data for illustration purposes</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
     </div>
   );
 }
 
 export function DataModeLabel() {
-  const { dataMode } = useBoardDataMode();
+  const { dataMode, isDemo } = useBoardDataMode();
 
   return (
     <p className="text-sm text-slate-500">
-      {dataMode === 'demo' 
+      {isDemo 
         ? 'Viewing: Demo Data – sample metrics for illustration'
         : 'Viewing: Real Data – based on current Seeksy performance'}
     </p>
@@ -51,19 +62,19 @@ export function DataModeLabel() {
 }
 
 export function DataModeBadge({ className }: { className?: string }) {
-  const { dataMode } = useBoardDataMode();
+  const { dataMode, isDemo } = useBoardDataMode();
 
   return (
     <span
       className={cn(
         'px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide',
-        dataMode === 'demo'
+        isDemo
           ? 'bg-amber-100 text-amber-700'
           : 'bg-emerald-100 text-emerald-700',
         className
       )}
     >
-      {dataMode === 'demo' ? 'Demo' : 'Live'}
+      {isDemo ? 'Demo' : 'Live'}
     </span>
   );
 }
