@@ -28,10 +28,29 @@ export function BoardDataModeProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useBoardDataMode() {
+// Safe default values for when hook is used outside provider
+const defaultContextValue: BoardDataModeContextType = {
+  dataMode: 'demo',
+  setDataMode: () => {
+    if (import.meta.env.DEV) {
+      console.warn('useBoardDataMode: setDataMode called outside provider - no effect');
+    }
+  },
+  isDemo: true,
+  isReal: false,
+};
+
+export function useBoardDataMode(): BoardDataModeContextType {
   const context = useContext(BoardDataModeContext);
+  
   if (!context) {
-    throw new Error('useBoardDataMode must be used within BoardDataModeProvider');
+    // Log warning in development only
+    if (import.meta.env.DEV) {
+      console.warn('useBoardDataMode: used outside BoardDataModeProvider - falling back to demo mode');
+    }
+    // Return safe defaults instead of throwing
+    return defaultContextValue;
   }
+  
   return context;
 }
