@@ -125,6 +125,7 @@ import AdvertiserDashboardV2 from "./pages/AdvertiserDashboardV2";
 import AdLibraryV2 from "./pages/advertiser/AdLibraryV2";
 import MarketplaceV2 from "./pages/advertiser/MarketplaceV2";
 import CampaignBuilderV2 from "./pages/advertiser/CampaignBuilderV2";
+import AdvertiserAskSpark from "./pages/advertiser/AdvertiserAskSpark";
 import SystemArchitecture from "./pages/admin/SystemArchitecture";
 import AdvertiserCampaigns from "./pages/AdvertiserCampaigns";
 import AdvertiserAdLibrary from "./pages/AdvertiserAdLibrary";
@@ -899,6 +900,8 @@ const AppContent = () => {
               <Route path="/advertiser/ads" element={<ProtectedRoute requiredRole="advertiser"><AdLibraryV2 /></ProtectedRoute>} />
               <Route path="/advertiser/sponsorships" element={<ProtectedRoute requiredRole="advertiser"><SponsorshipOpportunities /></ProtectedRoute>} />
               <Route path="/advertiser/sponsorships/:id" element={<ProtectedRoute requiredRole="advertiser"><SponsorshipDetailPage /></ProtectedRoute>} />
+              <Route path="/advertiser/ask-spark" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserAskSpark /></ProtectedRoute>} />
+              <Route path="/advertiser/create-ad" element={<ProtectedRoute requiredRole="advertiser"><CreateCampaignTypeSelection /></ProtectedRoute>} />
           <Route path="/admin/system-architecture" element={<SystemArchitecture />} />
           <Route path="/podcast-ads" element={<PodcastAds />} />
           <Route path="/podcast-revenue" element={<PodcastRevenue />} />
