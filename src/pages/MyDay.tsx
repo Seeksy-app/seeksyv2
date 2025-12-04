@@ -157,7 +157,7 @@ export default function MyDay() {
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Header - matches Dashboard */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between" data-onboarding="my-day-header">
           <div className="flex items-center gap-3">
             {greeting.icon}
             <div>
@@ -169,14 +169,14 @@ export default function MyDay() {
               </p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={() => navigate("/meetings/create")}>
+          <Button variant="outline" size="sm" onClick={() => navigate("/meetings/create")} data-onboarding="quick-actions">
             <Calendar className="h-4 w-4 mr-2" />
             Schedule Meeting
           </Button>
         </div>
 
         {/* Quick Stats Grid - matches Dashboard metric cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4" data-onboarding="kpi-cards">
           <div 
             className="cursor-pointer"
             onClick={() => navigate("/inbox")}
@@ -252,7 +252,7 @@ export default function MyDay() {
 
         {/* Content Sections - matches Dashboard chart cards height */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
+          <Card data-onboarding="upcoming-meetings">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
@@ -279,7 +279,7 @@ export default function MyDay() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card data-onboarding="todays-tasks">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CheckSquare className="h-5 w-5" />
@@ -308,7 +308,7 @@ export default function MyDay() {
         </div>
 
         {/* Cross-links - matches Dashboard */}
-        <Card className="bg-muted/30">
+        <Card className="bg-muted/30" data-onboarding="cross-links">
           <CardContent className="p-4">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">

@@ -136,7 +136,7 @@ export default function CreatorHub() {
     <div className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3" data-onboarding="creator-hub-header">
           <div className="p-2 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500">
             <Sparkles className="h-6 w-6 text-white" />
           </div>
@@ -148,7 +148,7 @@ export default function CreatorHub() {
 
         {/* Your Active Tools */}
         {activatedTools.length > 0 && (
-          <Card>
+          <Card data-onboarding="active-modules">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Check className="h-5 w-5 text-emerald-600" />
@@ -240,7 +240,7 @@ export default function CreatorHub() {
 
         {/* Empty State - No activated modules */}
         {!hasAnyActivatedModules && (
-          <Card className="bg-muted/30">
+          <Card className="bg-muted/30" data-onboarding="discover-modules">
             <CardContent className="p-8 text-center">
               <Grid3x3 className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
               <h3 className="font-semibold text-lg mb-2">No tools activated yet</h3>
@@ -258,7 +258,7 @@ export default function CreatorHub() {
 
         {/* Browse More Tools CTA */}
         {hasAnyActivatedModules && (
-          <Card className="bg-primary/5 border-primary/20">
+          <Card className="bg-primary/5 border-primary/20" data-onboarding="discover-modules">
             <CardContent className="p-4">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2 text-sm">

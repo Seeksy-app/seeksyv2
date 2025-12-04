@@ -571,7 +571,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       <WelcomeModal />
       <main className="container mx-auto py-8 px-4">
-        <div className="mb-8 flex items-start justify-between">
+        <div className="mb-8 flex items-start justify-between" data-onboarding="dashboard-header">
           <div className="flex items-center gap-4">
             {profileData.avatar_url && (
               <Avatar className="h-16 w-16 ring-2 ring-primary/20">
@@ -588,7 +588,7 @@ const Dashboard = () => {
               <p className="text-muted-foreground">Here's what's happening with your account.</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4" data-onboarding="add-widgets">
             <DashboardCustomizer widgets={widgets} onSave={handleWidgetsSave} />
           </div>
         </div>
@@ -603,17 +603,17 @@ const Dashboard = () => {
         )}
 
         {/* New Identity & Content Dashboard Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-8">
-          <IdentityStatusCard />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-8" data-onboarding="dashboard-widgets">
+          <div data-onboarding="identity-widget"><IdentityStatusCard /></div>
           <CertifiedClipsCard />
           <MediaVaultCard />
           <AdvertiserAccessCard />
-          <QuickCreateCard />
+          <div data-onboarding="quick-actions-row"><QuickCreateCard /></div>
         </div>
 
         {/* Customizable Widgets */}
         {stats && (
-          <div className="space-y-6 mb-8">
+          <div className="space-y-6 mb-8" data-onboarding="performance-stats">
             {/* MY PAGE SECTION - Only show if My Page integration is enabled */}
             {myPageEnabled && (
               <div className="space-y-4">
