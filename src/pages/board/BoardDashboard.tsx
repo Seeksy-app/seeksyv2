@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { BoardLayout } from '@/components/board/BoardLayout';
 import { MarkdownRenderer } from '@/components/board/MarkdownRenderer';
 import { useBoardContent, useBoardMetrics } from '@/hooks/useBoardContent';
+import { useBoardDataMode } from '@/contexts/BoardDataModeContext';
+import { DataModeLabel, DataModeBadge } from '@/components/board/DataModeToggle';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -65,23 +67,30 @@ const metricIcons: Record<string, any> = {
   growth_rate: Percent,
 };
 
-// Fallback metrics if none exist in database
-const defaultMetrics = [
+// Demo metrics
+const demoMetrics = [
   { id: '1', metric_key: 'total_creators', metric_label: 'Total Creators', metric_value: '2,450' },
   { id: '2', metric_key: 'monthly_active', metric_label: 'Monthly Active Users', metric_value: '1,200' },
   { id: '3', metric_key: 'revenue_mtd', metric_label: 'Revenue MTD', metric_value: '$45,000' },
   { id: '4', metric_key: 'growth_rate', metric_label: 'MoM Growth', metric_value: '+18%' },
 ];
 
-const VIDEO_URL = "https://taxqcioheqdqtlmjeaht.supabase.co/storage/v1/object/public/demo-videos/Seeksy_%20Creator's%20Engine.mp4";
+// Real metrics placeholders
+const realMetrics = [
+  { id: '1', metric_key: 'total_creators', metric_label: 'Total Creators', metric_value: '—' },
+  { id: '2', metric_key: 'monthly_active', metric_label: 'Monthly Active Users', metric_value: '—' },
+  { id: '3', metric_key: 'revenue_mtd', metric_label: 'Revenue MTD', metric_value: '—' },
+  { id: '4', metric_key: 'growth_rate', metric_label: 'MoM Growth', metric_value: '—' },
+];
 
 export default function BoardDashboard() {
   const navigate = useNavigate();
   const { content, isLoading: contentLoading } = useBoardContent('state-of-company');
   const { metrics: dbMetrics, isLoading: metricsLoading } = useBoardMetrics();
+  const { isDemo, isReal } = useBoardDataMode();
 
-  // Use database metrics if available, otherwise fallback to defaults
-  const metrics = dbMetrics && dbMetrics.length > 0 ? dbMetrics : defaultMetrics;
+  // Use demo or real metrics based on mode
+  const metrics = isDemo ? demoMetrics : (dbMetrics && dbMetrics.length > 0 ? dbMetrics : realMetrics);
 
   const handleStartVideo = () => {
     navigate('/board/videos');
@@ -90,9 +99,13 @@ export default function BoardDashboard() {
   return (
     <BoardLayout>
       <div className="space-y-5">
-        {/* Hero Section - Compact */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 via-white to-blue-50 border border-slate-200 shadow-sm px-6 py-4 md:px-8 md:py-5">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent" />
+        {/* Data Mode Label */}
+        <DataModeLabel />
+
+        {/* Hero Section - Compact with diagonal gradient */}
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200 shadow-sm px-6 py-4 md:px-8 md:py-5">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50" />
+          <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_40%,hsl(210,40%,96%)_40%,hsl(210,40%,96%)_60%,transparent_60%)] opacity-50" />
           <div className="relative z-10 text-center">
             <h1 className="text-xl md:text-2xl font-bold text-slate-900 mb-1.5 leading-tight">
               A Clear Window Into the Creator & Podcast Business.
@@ -112,7 +125,7 @@ export default function BoardDashboard() {
               <Button 
                 size="sm" 
                 variant="outline" 
-                onClick={() => navigate('/board/videos')}
+                onClick={() => navigate('/board/gtm')}
                 className="border-slate-300 text-slate-700 hover:bg-slate-50 gap-2"
               >
                 <Wrench className="w-3.5 h-3.5" />
@@ -122,39 +135,8 @@ export default function BoardDashboard() {
           </div>
         </div>
 
-        {/* Metrics Grid with diagonal gradient backdrop */}
-        <div className="bg-gradient-to-br from-slate-100/80 via-white to-blue-50/50 border border-slate-100 rounded-2xl p-4 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)]">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {metricsLoading ? (
-              Array(4).fill(0).map((_, i) => (
-                <Card key={i} className="bg-white border-slate-100 shadow-sm rounded-xl">
-                  <CardContent className="p-4">
-                    <Skeleton className="h-4 w-20 mb-2" />
-                    <Skeleton className="h-7 w-24" />
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              metrics?.map((metric) => {
-                const Icon = metricIcons[metric.metric_key] || Activity;
-                return (
-                  <Card key={metric.id} className="bg-white border-slate-100 shadow-sm hover:shadow-md transition-shadow rounded-xl">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2 text-slate-500 mb-1">
-                        <Icon className="w-4 h-4" />
-                        <span className="text-xs font-medium">{metric.metric_label}</span>
-                      </div>
-                      <p className="text-xl font-bold text-slate-900">{metric.metric_value}</p>
-                    </CardContent>
-                  </Card>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        {/* Quick Links Grid */}
-        <div className="pt-1">
+        {/* Quick Links Grid - Moved up */}
+        <div>
           <h2 className="text-base font-semibold text-slate-900 mb-2.5">Quick Access</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2.5">
             {quickLinks.map((link) => {
@@ -178,6 +160,39 @@ export default function BoardDashboard() {
                 </Card>
               );
             })}
+          </div>
+        </div>
+
+        {/* Metrics Grid with diagonal gradient backdrop */}
+        <div className="bg-gradient-to-br from-slate-100/80 via-white to-blue-50/50 border border-slate-100 rounded-2xl p-4 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)]">
+          <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_30%,hsl(210,40%,96%)_30%,hsl(210,40%,96%)_70%,transparent_70%)] opacity-30 rounded-2xl pointer-events-none" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 relative">
+            {metricsLoading ? (
+              Array(4).fill(0).map((_, i) => (
+                <Card key={i} className="bg-white border-slate-100 shadow-sm rounded-xl">
+                  <CardContent className="p-4">
+                    <Skeleton className="h-4 w-20 mb-2" />
+                    <Skeleton className="h-7 w-24" />
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              metrics?.map((metric) => {
+                const Icon = metricIcons[metric.metric_key] || Activity;
+                return (
+                  <Card key={metric.id} className="bg-white border-slate-100 shadow-sm hover:shadow-md transition-shadow rounded-xl relative">
+                    <CardContent className="p-4">
+                      <DataModeBadge className="absolute top-2 right-2" />
+                      <div className="flex items-center gap-2 text-slate-500 mb-1">
+                        <Icon className="w-4 h-4" />
+                        <span className="text-xs font-medium">{metric.metric_label}</span>
+                      </div>
+                      <p className="text-xl font-bold text-slate-900">{metric.metric_value}</p>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
           </div>
         </div>
 

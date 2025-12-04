@@ -376,6 +376,7 @@ import BoardForecasts from "./pages/board/BoardForecasts";
 import BoardVideos from "./pages/board/BoardVideos";
 import BoardDocs from "./pages/board/BoardDocs";
 import BoardInvestorLinks from "./pages/board/BoardInvestorLinks";
+import BoardShare from "./pages/board/BoardShare";
 import BoardInvestorPortal from "./pages/investor/InvestorPortal";
 import BoardMemberManagement from "./pages/admin/BoardMemberManagement";
 import { BoardGuard } from "./components/board/BoardGuard";
@@ -811,6 +812,7 @@ const AppContent = () => {
           <Route path="/board/videos" element={<BoardVideos />} />
           <Route path="/board/docs" element={<BoardDocs />} />
           <Route path="/board/investor-links" element={<BoardInvestorLinks />} />
+          <Route path="/board/share" element={<BoardShare />} />
           <Route path="/investor/:token" element={<BoardInvestorPortal />} />
           
           {/* R&D Intelligence */}
