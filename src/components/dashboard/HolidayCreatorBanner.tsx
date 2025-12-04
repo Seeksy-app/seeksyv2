@@ -37,7 +37,7 @@ export const HolidayCreatorBanner = ({ firstName = "Creator" }: HolidayCreatorBa
           </Button>
           
           <Button
-            onClick={() => navigate("/meetings/new")}
+            onClick={() => navigate("/meetings/create")}
             variant="outline"
             className="border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white font-bold"
           >

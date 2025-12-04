@@ -683,6 +683,7 @@ const AppContent = () => {
               <Route path="/meeting-types/:id/edit" element={<EditMeetingType />} />
               <Route path="/meetings" element={<Meetings />} />
               <Route path="/meetings/now" element={<MeetNow />} />
+              <Route path="/meetings/new" element={<Navigate to="/meetings/create" replace />} />
               <Route path="/meeting-studio/:id" element={<MeetingStudio />} />
               <Route path="/meetings/studio/:id" element={<SimpleMeetingStudio />} />
               <Route path="/meetings/:id" element={<MeetingDetails />} />
@@ -710,7 +711,6 @@ const AppContent = () => {
               
             <Route path="/events" element={<Events />} />
             <Route path="/signup-sheets" element={<SignupSheets />} />
-              <Route path="/meetings/create" element={<CreateMeeting />} />
               <Route path="/availability" element={<Availability />} />
           <Route path="/integrations" element={<Integrations />} />
           <Route path="/module-selector" element={<ModuleSelector />} />

@@ -23,7 +23,7 @@ export function UpcomingMeetingsWidget({ meetings = [] }: Props) {
         <p className="text-sm text-muted-foreground mb-3">
           No meetings yet — Add your first meeting.
         </p>
-        <Button size="sm" variant="outline" onClick={() => navigate("/meetings")}>
+        <Button size="sm" variant="outline" onClick={() => navigate("/meetings/create")}>
           <Plus className="h-4 w-4 mr-2" />
           Schedule Meeting
         </Button>

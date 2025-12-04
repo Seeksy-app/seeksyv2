@@ -154,8 +154,8 @@ export default function MyDay() {
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
-      <div className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 space-y-6">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Header - matches Dashboard */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -169,6 +169,10 @@ export default function MyDay() {
               </p>
             </div>
           </div>
+          <Button variant="outline" size="sm" onClick={() => navigate("/meetings/create")}>
+            <Calendar className="h-4 w-4 mr-2" />
+            Schedule Meeting
+          </Button>
         </div>
 
         {/* Quick Stats Grid - matches Dashboard metric cards */}
@@ -264,10 +268,10 @@ export default function MyDay() {
                   </Button>
                 </div>
               ) : (
-                <div className="text-center">
+              <div className="text-center">
                   <Clock className="h-12 w-12 mx-auto mb-2 opacity-20" />
                   <p className="text-sm">No meetings scheduled today</p>
-                  <Button variant="link" onClick={() => navigate("/meetings")}>
+                  <Button variant="link" onClick={() => navigate("/meetings/create")}>
                     Schedule a meeting <ArrowRight className="h-3 w-3 ml-1" />
                   </Button>
                 </div>
@@ -303,11 +307,8 @@ export default function MyDay() {
           </Card>
         </div>
 
-        {/* Spacer to push cross-links to bottom */}
-        <div className="flex-1" />
-
         {/* Cross-links - matches Dashboard */}
-        <Card className="bg-muted/30 mt-auto">
+        <Card className="bg-muted/30">
           <CardContent className="p-4">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">

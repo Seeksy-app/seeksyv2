@@ -15,7 +15,7 @@ const quickActions = [
     id: "meeting", 
     label: "Create Meeting", 
     icon: Calendar, 
-    path: "/meetings/new",
+    path: "/meetings/create",
     gradient: "from-sky-500 to-blue-500",
     bgColor: "bg-sky-50",
     hoverBg: "hover:bg-sky-100",

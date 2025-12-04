@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Video, Loader2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
+import { StudioPreferenceModal } from "@/components/meetings/StudioPreferenceModal";
 
 export default function MeetNow() {
   const navigate = useNavigate();
@@ -15,6 +16,28 @@ export default function MeetNow() {
   const [currentName, setCurrentName] = useState("");
   const [currentEmail, setCurrentEmail] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [showStudioModal, setShowStudioModal] = useState(false);
+  const [studioPreference, setStudioPreference] = useState<"simple" | "podcast" | null>(null);
+  const [pendingMeetingId, setPendingMeetingId] = useState<string | null>(null);
+
+  // Check if user has a studio preference on load
+  useEffect(() => {
+    const checkPreference = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("user_preferences")
+        .select("meeting_studio_preference")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (data?.meeting_studio_preference) {
+        setStudioPreference(data.meeting_studio_preference as "simple" | "podcast");
+      }
+    };
+    checkPreference();
+  }, []);
 
   const addAttendee = () => {
     if (!currentName.trim() || !currentEmail.trim()) {
@@ -36,6 +59,22 @@ export default function MeetNow() {
     setAttendees(attendees.filter((_, i) => i !== index));
   };
 
+  const navigateToStudio = (meetingId: string, preference: "simple" | "podcast") => {
+    if (preference === "podcast") {
+      navigate(`/meeting-studio/${meetingId}`);
+    } else {
+      navigate(`/meetings/studio/${meetingId}`);
+    }
+  };
+
+  const handleStudioSelect = (preference: "simple" | "podcast") => {
+    setStudioPreference(preference);
+    setShowStudioModal(false);
+    if (pendingMeetingId) {
+      navigateToStudio(pendingMeetingId, preference);
+    }
+  };
+
   const handleStartMeeting = async () => {
     if (!title.trim()) {
       toast.error("Please enter a meeting title");
@@ -50,9 +89,6 @@ export default function MeetNow() {
 
       const now = new Date();
       const endTime = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour from now
-
-      // Use first attendee or placeholder
-      const firstAttendee = attendees[0] || { name: "Host Only", email: user.email || "" };
 
       // Create meeting
       const { data: meeting, error: meetingError } = await supabase
@@ -80,7 +116,7 @@ export default function MeetNow() {
               meeting_id: meeting.id,
               attendee_name: attendee.name,
               attendee_email: attendee.email,
-              rsvp_status: "awaiting_response"
+              rsvp_status: "awaiting"
             }))
           );
 
@@ -111,8 +147,13 @@ export default function MeetNow() {
 
       toast.success("Meeting created! Starting...");
       
-      // Navigate to meeting studio
-      navigate(`/meeting-studio/${meeting.id}`);
+      // If no preference set, show modal
+      if (!studioPreference) {
+        setPendingMeetingId(meeting.id);
+        setShowStudioModal(true);
+      } else {
+        navigateToStudio(meeting.id, studioPreference);
+      }
       
     } catch (error: any) {
       console.error("Error creating meeting:", error);
@@ -233,6 +274,12 @@ export default function MeetNow() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Studio Preference Modal */}
+      <StudioPreferenceModal 
+        open={showStudioModal} 
+        onSelect={handleStudioSelect}
+      />
     </div>
   );
 }

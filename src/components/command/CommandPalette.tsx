@@ -44,7 +44,7 @@ export function CommandPalette() {
     { id: "settings", label: "Settings", icon: Settings, category: "Navigation", action: () => navigate("/settings") },
     
     // Quick Actions
-    { id: "create-meeting", label: "Create Meeting", icon: Calendar, category: "Quick Actions", action: () => navigate("/meetings/new") },
+    { id: "create-meeting", label: "Create Meeting", icon: Calendar, category: "Quick Actions", action: () => navigate("/meetings/create") },
     { id: "create-event", label: "Create Event", icon: Calendar, category: "Quick Actions", action: () => navigate("/events/new") },
     { id: "new-episode", label: "New Episode", icon: Mic, category: "Quick Actions", action: () => navigate("/podcasts/episodes/new") },
     { id: "new-campaign", label: "New Campaign", icon: Mail, category: "Quick Actions", action: () => navigate("/campaigns/new") },
