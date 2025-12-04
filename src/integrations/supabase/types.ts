@@ -15871,6 +15871,53 @@ export type Database = {
         }
         Relationships: []
       }
+      user_auto_renew_settings: {
+        Row: {
+          created_at: string | null
+          enabled: boolean | null
+          id: string
+          last_auto_purchase_at: string | null
+          package_id: string | null
+          trigger_on_recording_limit: boolean | null
+          trigger_on_storage_limit: boolean | null
+          trigger_threshold: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          last_auto_purchase_at?: string | null
+          package_id?: string | null
+          trigger_on_recording_limit?: boolean | null
+          trigger_on_storage_limit?: boolean | null
+          trigger_threshold?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          last_auto_purchase_at?: string | null
+          package_id?: string | null
+          trigger_on_recording_limit?: boolean | null
+          trigger_on_storage_limit?: boolean | null
+          trigger_threshold?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_auto_renew_settings_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "credit_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_credits: {
         Row: {
           balance: number
@@ -16189,6 +16236,48 @@ export type Database = {
           id?: string
           timezone?: string | null
           updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_usage_limits: {
+        Row: {
+          created_at: string | null
+          free_recording_minutes_monthly: number | null
+          free_storage_gb: number | null
+          free_streaming_minutes_monthly: number | null
+          id: string
+          recording_minutes_used: number | null
+          storage_used_gb: number | null
+          streaming_minutes_used: number | null
+          updated_at: string | null
+          usage_period_start: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          free_recording_minutes_monthly?: number | null
+          free_storage_gb?: number | null
+          free_streaming_minutes_monthly?: number | null
+          id?: string
+          recording_minutes_used?: number | null
+          storage_used_gb?: number | null
+          streaming_minutes_used?: number | null
+          updated_at?: string | null
+          usage_period_start?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          free_recording_minutes_monthly?: number | null
+          free_storage_gb?: number | null
+          free_streaming_minutes_monthly?: number | null
+          id?: string
+          recording_minutes_used?: number | null
+          storage_used_gb?: number | null
+          streaming_minutes_used?: number | null
+          updated_at?: string | null
+          usage_period_start?: string | null
           user_id?: string
         }
         Relationships: []
@@ -17133,7 +17222,17 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      cfo_credit_analytics: {
+        Row: {
+          active_users: number | null
+          auto_renew_users: number | null
+          credits_consumed: number | null
+          credits_purchased: number | null
+          estimated_revenue: number | null
+          month: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_to_system_list: {
@@ -17233,6 +17332,7 @@ export type Database = {
         Args: { media_id: string; media_type: string; target_folder_id: string }
         Returns: boolean
       }
+      reset_monthly_usage: { Args: never; Returns: undefined }
       restore_media: {
         Args: { media_id: string; media_type: string }
         Returns: boolean
