@@ -4088,6 +4088,45 @@ export type Database = {
         }
         Relationships: []
       }
+      cco_ai_sessions: {
+        Row: {
+          context: string | null
+          created_at: string | null
+          feedback: string | null
+          id: string
+          input_text: string
+          output_text: string | null
+          rating: number | null
+          session_type: string
+          tone_requested: string | null
+          user_id: string | null
+        }
+        Insert: {
+          context?: string | null
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          input_text: string
+          output_text?: string | null
+          rating?: number | null
+          session_type: string
+          tone_requested?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          context?: string | null
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          input_text?: string
+          output_text?: string | null
+          rating?: number | null
+          session_type?: string
+          tone_requested?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       cco_brand_narratives: {
         Row: {
           approved_by: string | null
@@ -4132,6 +4171,42 @@ export type Database = {
           target_audience?: string | null
           title?: string
           tone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      cco_brand_voice: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          examples: string[] | null
+          id: string
+          is_active: boolean | null
+          priority: number | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          examples?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          priority?: number | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          examples?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          priority?: number | null
+          title?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -4307,6 +4382,162 @@ export type Database = {
           updated_at?: string | null
           usage_count?: number | null
           variables?: Json | null
+        }
+        Relationships: []
+      }
+      cco_messaging: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          audience: string | null
+          content: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          message_type: string
+          status: string | null
+          title: string
+          updated_at: string | null
+          usage_guidelines: string | null
+          version: number | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          audience?: string | null
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          message_type: string
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          usage_guidelines?: string | null
+          version?: number | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          audience?: string | null
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          message_type?: string
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          usage_guidelines?: string | null
+          version?: number | null
+        }
+        Relationships: []
+      }
+      cco_press_releases: {
+        Row: {
+          ai_generated: boolean | null
+          body: string | null
+          boilerplate: string | null
+          content_type: string
+          created_at: string | null
+          created_by: string | null
+          distribution_channels: string[] | null
+          embargo_date: string | null
+          headline: string | null
+          id: string
+          media_contact: string | null
+          publish_date: string | null
+          status: string | null
+          subheadline: string | null
+          template_used: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          ai_generated?: boolean | null
+          body?: string | null
+          boilerplate?: string | null
+          content_type: string
+          created_at?: string | null
+          created_by?: string | null
+          distribution_channels?: string[] | null
+          embargo_date?: string | null
+          headline?: string | null
+          id?: string
+          media_contact?: string | null
+          publish_date?: string | null
+          status?: string | null
+          subheadline?: string | null
+          template_used?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          ai_generated?: boolean | null
+          body?: string | null
+          boilerplate?: string | null
+          content_type?: string
+          created_at?: string | null
+          created_by?: string | null
+          distribution_channels?: string[] | null
+          embargo_date?: string | null
+          headline?: string | null
+          id?: string
+          media_contact?: string | null
+          publish_date?: string | null
+          status?: string | null
+          subheadline?: string | null
+          template_used?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      cco_templates: {
+        Row: {
+          body_template: string
+          category: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          last_used_at: string | null
+          name: string
+          subject_template: string | null
+          tone: string | null
+          updated_at: string | null
+          usage_count: number | null
+          variables: string[] | null
+        }
+        Insert: {
+          body_template: string
+          category: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          name: string
+          subject_template?: string | null
+          tone?: string | null
+          updated_at?: string | null
+          usage_count?: number | null
+          variables?: string[] | null
+        }
+        Update: {
+          body_template?: string
+          category?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          name?: string
+          subject_template?: string | null
+          tone?: string | null
+          updated_at?: string | null
+          usage_count?: number | null
+          variables?: string[] | null
         }
         Relationships: []
       }
@@ -5195,6 +5426,171 @@ export type Database = {
           target_cac?: number | null
           target_conversions?: number | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      cmo_ceo_briefs: {
+        Row: {
+          ai_generated: boolean | null
+          brief_date: string
+          budget_recommendations: Json | null
+          created_at: string | null
+          created_by: string | null
+          executive_message: string | null
+          id: string
+          pipeline_forecast: Json | null
+          required_decisions: Json | null
+          sent_to: string[] | null
+          sprint_summary: string | null
+          status: string | null
+          title: string
+          top_risks: Json | null
+          top_wins: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_generated?: boolean | null
+          brief_date?: string
+          budget_recommendations?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          executive_message?: string | null
+          id?: string
+          pipeline_forecast?: Json | null
+          required_decisions?: Json | null
+          sent_to?: string[] | null
+          sprint_summary?: string | null
+          status?: string | null
+          title: string
+          top_risks?: Json | null
+          top_wins?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_generated?: boolean | null
+          brief_date?: string
+          budget_recommendations?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          executive_message?: string | null
+          id?: string
+          pipeline_forecast?: Json | null
+          required_decisions?: Json | null
+          sent_to?: string[] | null
+          sprint_summary?: string | null
+          status?: string | null
+          title?: string
+          top_risks?: Json | null
+          top_wins?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      cmo_channel_strategy: {
+        Row: {
+          actual_cac: number | null
+          actual_conversions: number | null
+          budget_allocation: number | null
+          channel_name: string
+          channel_type: string
+          created_at: string | null
+          id: string
+          notes: string | null
+          owner_id: string | null
+          primary_kpis: string[] | null
+          status: string | null
+          strategy: string | null
+          target_cac: number | null
+          target_conversions: number | null
+          timeline: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          actual_cac?: number | null
+          actual_conversions?: number | null
+          budget_allocation?: number | null
+          channel_name: string
+          channel_type: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          owner_id?: string | null
+          primary_kpis?: string[] | null
+          status?: string | null
+          strategy?: string | null
+          target_cac?: number | null
+          target_conversions?: number | null
+          timeline?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          actual_cac?: number | null
+          actual_conversions?: number | null
+          budget_allocation?: number | null
+          channel_name?: string
+          channel_type?: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          owner_id?: string | null
+          primary_kpis?: string[] | null
+          status?: string | null
+          strategy?: string | null
+          target_cac?: number | null
+          target_conversions?: number | null
+          timeline?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      cmo_market_intelligence: {
+        Row: {
+          action_required: boolean | null
+          ai_analysis: string | null
+          created_at: string | null
+          expires_at: string | null
+          full_content: string | null
+          id: string
+          relevance_score: number | null
+          signal_type: string
+          source_name: string | null
+          source_url: string | null
+          summary: string | null
+          tags: string[] | null
+          title: string
+          urgency: string | null
+        }
+        Insert: {
+          action_required?: boolean | null
+          ai_analysis?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          full_content?: string | null
+          id?: string
+          relevance_score?: number | null
+          signal_type: string
+          source_name?: string | null
+          source_url?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          title: string
+          urgency?: string | null
+        }
+        Update: {
+          action_required?: boolean | null
+          ai_analysis?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          full_content?: string | null
+          id?: string
+          relevance_score?: number | null
+          signal_type?: string
+          source_name?: string | null
+          source_url?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          title?: string
+          urgency?: string | null
         }
         Relationships: []
       }
@@ -6836,6 +7232,249 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      crm_activity_timeline: {
+        Row: {
+          activity_type: string
+          actor_id: string | null
+          contact_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          metadata: Json | null
+          title: string
+        }
+        Insert: {
+          activity_type: string
+          actor_id?: string | null
+          contact_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          title: string
+        }
+        Update: {
+          activity_type?: string
+          actor_id?: string | null
+          contact_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_activity_timeline_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "crm_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_contacts: {
+        Row: {
+          assigned_to: string | null
+          avatar_url: string | null
+          company: string | null
+          created_at: string | null
+          custom_fields: Json | null
+          email: string
+          first_seen_at: string | null
+          health_score: number | null
+          id: string
+          last_activity_at: string | null
+          lead_source: string | null
+          lead_stage: string | null
+          lifetime_value: number | null
+          name: string | null
+          notes: string | null
+          phone: string | null
+          tags: string[] | null
+          total_revenue: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          avatar_url?: string | null
+          company?: string | null
+          created_at?: string | null
+          custom_fields?: Json | null
+          email: string
+          first_seen_at?: string | null
+          health_score?: number | null
+          id?: string
+          last_activity_at?: string | null
+          lead_source?: string | null
+          lead_stage?: string | null
+          lifetime_value?: number | null
+          name?: string | null
+          notes?: string | null
+          phone?: string | null
+          tags?: string[] | null
+          total_revenue?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          avatar_url?: string | null
+          company?: string | null
+          created_at?: string | null
+          custom_fields?: Json | null
+          email?: string
+          first_seen_at?: string | null
+          health_score?: number | null
+          id?: string
+          last_activity_at?: string | null
+          lead_source?: string | null
+          lead_stage?: string | null
+          lifetime_value?: number | null
+          name?: string | null
+          notes?: string | null
+          phone?: string | null
+          tags?: string[] | null
+          total_revenue?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      crm_sales_leads: {
+        Row: {
+          assigned_to: string | null
+          company: string | null
+          contact_id: string | null
+          created_at: string | null
+          deal_value: number | null
+          email: string
+          expected_close_date: string | null
+          id: string
+          last_contact_at: string | null
+          notes: string | null
+          phone: string | null
+          probability: number | null
+          source: string | null
+          stage: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          company?: string | null
+          contact_id?: string | null
+          created_at?: string | null
+          deal_value?: number | null
+          email: string
+          expected_close_date?: string | null
+          id?: string
+          last_contact_at?: string | null
+          notes?: string | null
+          phone?: string | null
+          probability?: number | null
+          source?: string | null
+          stage?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          company?: string | null
+          contact_id?: string | null
+          created_at?: string | null
+          deal_value?: number | null
+          email?: string
+          expected_close_date?: string | null
+          id?: string
+          last_contact_at?: string | null
+          notes?: string | null
+          phone?: string | null
+          probability?: number | null
+          source?: string | null
+          stage?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_sales_leads_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "crm_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_site_leads: {
+        Row: {
+          ai_classification: string | null
+          ai_suggested_response: string | null
+          converted_to_contact_id: string | null
+          created_at: string | null
+          email: string
+          id: string
+          ip_address: string | null
+          lead_type: string
+          metadata: Json | null
+          name: string | null
+          source_url: string | null
+          status: string | null
+          updated_at: string | null
+          user_agent: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          ai_classification?: string | null
+          ai_suggested_response?: string | null
+          converted_to_contact_id?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          ip_address?: string | null
+          lead_type: string
+          metadata?: Json | null
+          name?: string | null
+          source_url?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          ai_classification?: string | null
+          ai_suggested_response?: string | null
+          converted_to_contact_id?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          ip_address?: string | null
+          lead_type?: string
+          metadata?: Json | null
+          name?: string | null
+          source_url?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_site_leads_converted_to_contact_id_fkey"
+            columns: ["converted_to_contact_id"]
+            isOneToOne: false
+            referencedRelation: "crm_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       custom_link_sections: {
         Row: {
@@ -16099,6 +16738,53 @@ export type Database = {
         }
         Relationships: []
       }
+      support_escalations: {
+        Row: {
+          created_at: string | null
+          escalated_from: string | null
+          escalated_to: string | null
+          escalation_reason: string
+          id: string
+          priority: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          status: string | null
+          ticket_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          escalated_from?: string | null
+          escalated_to?: string | null
+          escalation_reason: string
+          id?: string
+          priority?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          status?: string | null
+          ticket_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          escalated_from?: string | null
+          escalated_to?: string | null
+          escalation_reason?: string
+          id?: string
+          priority?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          status?: string | null
+          ticket_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_escalations_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_knowledge_base: {
         Row: {
           category: string | null
@@ -16147,6 +16833,48 @@ export type Database = {
           updated_at?: string | null
           updated_by?: string | null
           view_count?: number | null
+        }
+        Relationships: []
+      }
+      support_macros: {
+        Row: {
+          action_config: Json
+          action_type: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          keyboard_shortcut: string | null
+          name: string
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          action_config: Json
+          action_type: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          keyboard_shortcut?: string | null
+          name: string
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          action_config?: Json
+          action_type?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          keyboard_shortcut?: string | null
+          name?: string
+          updated_at?: string | null
+          usage_count?: number | null
         }
         Relationships: []
       }
