@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { GripVertical, Star, Home, RotateCcw, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavPreferences, NAV_ITEMS, LANDING_OPTIONS, NavConfig, SubItemConfig } from "@/hooks/useNavPreferences";
+import { useUserRoles } from "@/hooks/useUserRoles";
 import { toast } from "sonner";
 import {
   DndContext,
@@ -32,6 +33,24 @@ interface NavCustomizationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
+// Admin-specific nav items (flat list from NAVIGATION_CONFIG groups)
+const ADMIN_NAV_ITEMS = [
+  { id: 'admin_dashboard', label: 'Admin Dashboard', path: '/admin', isHome: true },
+  { id: 'admin_advertising', label: 'Advertising & Revenue', path: '/admin/advertising' },
+  { id: 'admin_support', label: 'Support Desk', path: '/admin/support' },
+  { id: 'admin_financials', label: 'Financials (CFO)', path: '/admin/financials/key-metrics' },
+  { id: 'admin_users', label: 'User Management', path: '/admin/users' },
+  { id: 'admin_rd', label: 'R&D Intelligence', path: '/admin/rd-intelligence' },
+  { id: 'admin_content', label: 'Content Management', path: '/admin/awards-programs' },
+  { id: 'admin_developer', label: 'Developer Tools', path: '/admin/developer' },
+];
+
+const ADMIN_LANDING_OPTIONS = [
+  { id: '/admin', label: 'Admin Dashboard', description: 'Platform overview and quick actions' },
+  { id: '/admin/financials/key-metrics', label: 'CFO Dashboard', description: 'Financial metrics and analysis' },
+  { id: '/admin/rd-intelligence', label: 'R&D Intelligence', description: 'Research and market insights' },
+];
 
 interface SortableNavItemProps {
   item: typeof NAV_ITEMS[0];
@@ -170,12 +189,21 @@ function SubItemRow({ subItem, config, onToggleVisible, onTogglePinned }: SubIte
 
 export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationModalProps) {
   const { navConfig, defaultLandingRoute, savePreferences, resetToDefaults, isLoading } = useNavPreferences();
+  const { roles } = useUserRoles();
+  
+  // Determine if user is admin
+  const isAdmin = roles.includes('admin') || roles.includes('super_admin');
+  
+  // Use appropriate nav items based on role
+  const activeNavItems = isAdmin ? ADMIN_NAV_ITEMS : NAV_ITEMS;
+  const activeLandingOptions = isAdmin ? ADMIN_LANDING_OPTIONS : LANDING_OPTIONS;
+  const defaultLanding = isAdmin ? '/admin' : '/my-day';
   
   const [localOrder, setLocalOrder] = useState<string[]>([]);
   const [localHidden, setLocalHidden] = useState<string[]>([]);
   const [localPinned, setLocalPinned] = useState<string[]>([]);
   const [localSubItems, setLocalSubItems] = useState<Record<string, SubItemConfig[]>>({});
-  const [localLanding, setLocalLanding] = useState<string>('/my-day');
+  const [localLanding, setLocalLanding] = useState<string>(defaultLanding);
   const [isSaving, setIsSaving] = useState(false);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
@@ -188,24 +216,26 @@ export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationMo
 
   useEffect(() => {
     if (open && !isLoading) {
-      setLocalOrder(navConfig.order.length > 0 ? navConfig.order : NAV_ITEMS.map(i => i.id));
+      setLocalOrder(navConfig.order.length > 0 ? navConfig.order : activeNavItems.map(i => i.id));
       setLocalHidden(navConfig.hidden);
       setLocalPinned(navConfig.pinned);
-      setLocalLanding(defaultLandingRoute);
+      setLocalLanding(defaultLandingRoute || defaultLanding);
       
-      // Initialize sub-items config
+      // Initialize sub-items config (only for non-admin, admin nav items don't have sub-items)
       const subItemsConfig: Record<string, SubItemConfig[]> = {};
-      NAV_ITEMS.forEach(item => {
-        if (item.subItems) {
-          subItemsConfig[item.id] = item.subItems.map((sub, idx) => {
-            const existing = navConfig.subItems?.[item.id]?.find(s => s.id === sub.id);
-            return existing || { id: sub.id, visible: true, pinned: false, order: idx };
-          });
-        }
-      });
+      if (!isAdmin) {
+        NAV_ITEMS.forEach(item => {
+          if (item.subItems) {
+            subItemsConfig[item.id] = item.subItems.map((sub, idx) => {
+              const existing = navConfig.subItems?.[item.id]?.find(s => s.id === sub.id);
+              return existing || { id: sub.id, visible: true, pinned: false, order: idx };
+            });
+          }
+        });
+      }
       setLocalSubItems(subItemsConfig);
     }
-  }, [open, navConfig, defaultLandingRoute, isLoading]);
+  }, [open, navConfig, defaultLandingRoute, isLoading, isAdmin, activeNavItems, defaultLanding]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -219,7 +249,7 @@ export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationMo
   };
 
   const toggleVisibility = (id: string) => {
-    const homeItems = NAV_ITEMS.filter(i => i.isHome).map(i => i.id);
+    const homeItems = activeNavItems.filter(i => i.isHome).map(i => i.id);
     const currentlyVisibleHomes = homeItems.filter(h => !localHidden.includes(h));
     
     if (localHidden.includes(id)) {
@@ -298,7 +328,7 @@ export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationMo
     }
   };
 
-  const sortedItems = [...NAV_ITEMS].sort((a, b) => {
+  const sortedItems = [...activeNavItems].sort((a, b) => {
     const aIndex = localOrder.indexOf(a.id);
     const bIndex = localOrder.indexOf(b.id);
     if (aIndex === -1) return 1;
@@ -306,11 +336,11 @@ export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationMo
     return aIndex - bIndex;
   });
 
-  const homeItems = NAV_ITEMS.filter(i => i.isHome).map(i => i.id);
+  const homeItems = activeNavItems.filter(i => i.isHome).map(i => i.id);
   const visibleHomes = homeItems.filter(h => !localHidden.includes(h));
 
-  // Items with sub-items for the third tab
-  const itemsWithSubItems = NAV_ITEMS.filter(item => item.subItems && item.subItems.length > 0);
+  // Items with sub-items for the third tab (only for creator nav, admin nav doesn't have sub-items)
+  const itemsWithSubItems = isAdmin ? [] : NAV_ITEMS.filter(item => item.subItems && item.subItems.length > 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -335,7 +365,7 @@ export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationMo
                 Choose where you land after logging in:
               </p>
               <RadioGroup value={localLanding} onValueChange={setLocalLanding}>
-                {LANDING_OPTIONS.map((option) => (
+                {activeLandingOptions.map((option) => (
                   <div
                     key={option.id}
                     className={cn(
@@ -371,13 +401,13 @@ export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationMo
                   {sortedItems.map((item) => (
                     <SortableNavItem
                       key={item.id}
-                      item={item}
+                      item={item as typeof NAV_ITEMS[0]}
                       isVisible={!localHidden.includes(item.id)}
                       isPinned={localPinned.includes(item.id)}
                       onToggleVisibility={() => toggleVisibility(item.id)}
                       onTogglePinned={() => togglePinned(item.id)}
                       disableHide={item.isHome && visibleHomes.length <= 1 && !localHidden.includes(item.id)}
-                      hasSubItems={!!item.subItems?.length}
+                      hasSubItems={'subItems' in item && !!item.subItems?.length}
                     />
                   ))}
                 </SortableContext>

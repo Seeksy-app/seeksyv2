@@ -720,11 +720,19 @@ export default function RDIntelligenceFeeds() {
               Add YouTube Video
             </DialogTitle>
             <DialogDescription>
-              Paste a YouTube URL to ingest video metadata and description
+              Paste a YouTube video URL to ingest metadata, description, and generate AI insights.
+              <span className="block text-xs mt-1 text-amber-600">Playlist and channel support coming soon.</span>
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 mt-4">
-            <Input placeholder="https://youtube.com/watch?v=..." value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} />
+            <Input 
+              placeholder="https://youtube.com/watch?v=... or https://youtu.be/..." 
+              value={youtubeUrl} 
+              onChange={(e) => setYoutubeUrl(e.target.value)} 
+            />
+            <p className="text-xs text-muted-foreground">
+              Supports: youtube.com/watch?v=, youtu.be/, and youtube.com/embed/ URLs
+            </p>
             <Button onClick={() => ingestYoutubeMutation.mutate(youtubeUrl)} disabled={ingestYoutubeMutation.isPending || !youtubeUrl} className="w-full">
               {ingestYoutubeMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
               Ingest Video
