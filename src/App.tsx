@@ -43,6 +43,9 @@ import Meetings from "./pages/Meetings";
 import MeetNow from "./pages/MeetNow";
 import MeetingStudio from "./pages/MeetingStudio";
 import MeetingRSVP from "./pages/MeetingRSVP";
+import MeetingsDashboard from "./pages/creator/MeetingsDashboard";
+import PublicBookingPage from "./pages/public/PublicBookingPage";
+import AdminMeetings from "./pages/admin/AdminMeetings";
 import Availability from "./pages/Availability";
 import MasterStudio from "./pages/MasterStudio";
 import LiveStudio from "./pages/LiveStudio";
@@ -730,6 +733,11 @@ const AppContent = () => {
               <Route path="/seeksy-ai-boost-help" element={<SeeksyAIBoostHelp />} />
               <Route path="/book/:username" element={<BookMeetings />} />
               <Route path="/book/:username/:meetingTypeId" element={<BookMeetingSlot />} />
+              
+              {/* Creator Meetings Routes */}
+              <Route path="/creator/meetings" element={<MeetingsDashboard />} />
+              <Route path="/m/:slug" element={<PublicBookingPage />} />
+              
               <Route path="/profile/edit" element={<MyPageBuilderV2 />} />
               <Route path="/profile/edit/legacy" element={<ProfileEdit />} />
               <Route path="/role-settings" element={<RoleSettings />} />
@@ -786,6 +794,7 @@ const AppContent = () => {
               <Route path="/admin/webhooks" element={<Webhooks />} />
               <Route path="/admin/logs" element={<Logs />} />
               <Route path="/admin/market-intelligence" element={<MarketIntelligence />} />
+              <Route path="/admin/meetings" element={<AdminMeetings />} />
               <Route path="/admin/proposal-builder" element={<ProposalBuilder />} />
               <Route path="/admin/marketing-gtm" element={<MarketingGTM />} />
               <Route path="/admin/investor-spreadsheets-v2" element={<InvestorSpreadsheets />} />

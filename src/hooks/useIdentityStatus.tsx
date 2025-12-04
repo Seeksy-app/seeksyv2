@@ -14,10 +14,11 @@ export interface IdentityStatus {
 export const useIdentityStatus = () => {
   return useQuery({
     queryKey: ['identity-status'],
-    staleTime: 0, // Always refetch
-    gcTime: 0, // Don't cache
+    staleTime: 0,
+    gcTime: 0,
     refetchOnMount: 'always',
     refetchOnWindowFocus: true,
+    refetchInterval: 10000, // Refetch every 10 seconds to catch updates
     queryFn: async (): Promise<IdentityStatus> => {
       console.log('[useIdentityStatus] Fetching identity status...');
       const { data: { user } } = await supabase.auth.getUser();
