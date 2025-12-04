@@ -72,7 +72,7 @@ export const NAVIGATION_CONFIG: {
         },
         {
           "id": "seekies",
-          "label": "Seekies & Tools",
+          "label": "Seeksies & Apps",
           "icon": "grid-3x3",
           "path": "/seekies",
           "roles": ["creator", "influencer", "agency", "admin"]
@@ -197,13 +197,6 @@ export const NAVIGATION_CONFIG: {
           "label": "Contacts & Audience",
           "icon": "users",
           "path": "/contacts",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "social_analytics",
-          "label": "Social Analytics",
-          "icon": "instagram",
-          "path": "/social-analytics",
           "roles": ["creator", "influencer", "agency", "admin"]
         },
         {

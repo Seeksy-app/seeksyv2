@@ -33,17 +33,19 @@ export interface NavItem {
 
 const DEFAULT_NAV_CONFIG: NavConfig = {
   order: [
+    'creator_hub',
     'my_day',
     'dashboard',
-    'creator_hub',
     'meetings',
+    'social_analytics',
     'studio',
-    'podcasts',
+    'settings',
     'media',
     'monetization',
-    'social_analytics',
     'seekies',
-    'settings'
+    'email',
+    'media_streaming',
+    'marketing'
   ],
   hidden: [],
   pinned: ['my_day', 'dashboard', 'creator_hub'],
@@ -53,9 +55,9 @@ const DEFAULT_NAV_CONFIG: NavConfig = {
 const DEFAULT_LANDING_ROUTE = '/my-day';
 
 export const NAV_ITEMS: NavItem[] = [
+  { id: 'creator_hub', label: 'Creator Hub', path: '/creator-hub', isHome: true },
   { id: 'my_day', label: 'My Day', path: '/my-day', isHome: true },
   { id: 'dashboard', label: 'Dashboard', path: '/dashboard', isHome: true },
-  { id: 'creator_hub', label: 'Creator Hub', path: '/creator-hub', isHome: true },
   { 
     id: 'meetings', 
     label: 'Meetings', 
@@ -66,6 +68,7 @@ export const NAV_ITEMS: NavItem[] = [
       { id: 'meetings_history', label: 'Past Meetings', path: '/meetings/history' },
     ]
   },
+  { id: 'social_analytics', label: 'Social Analytics', path: '/social-analytics' },
   { 
     id: 'studio', 
     label: 'Studio', 
@@ -74,21 +77,11 @@ export const NAV_ITEMS: NavItem[] = [
       { id: 'video_studio', label: 'Video Studio', path: '/studio/video' },
       { id: 'audio_studio', label: 'Audio Studio', path: '/studio/audio' },
       { id: 'clips_editing', label: 'Clips & Editing', path: '/studio/clips' },
-      { id: 'media_library', label: 'Media Library', path: '/studio/media' },
+      { id: 'media_library_studio', label: 'Media Library', path: '/studio/media' },
       { id: 'studio_templates', label: 'Templates', path: '/studio/templates' },
     ]
   },
-  { 
-    id: 'podcasts', 
-    label: 'Podcasts', 
-    path: '/podcasts',
-    subItems: [
-      { id: 'podcast_list', label: 'My Podcasts', path: '/podcasts' },
-      { id: 'podcast_episodes', label: 'Episodes', path: '/podcasts/episodes' },
-      { id: 'podcast_analytics', label: 'Analytics', path: '/podcasts/analytics' },
-      { id: 'podcast_rss', label: 'RSS Feeds', path: '/podcasts/rss' },
-    ]
-  },
+  { id: 'settings', label: 'Settings', path: '/settings' },
   { 
     id: 'media', 
     label: 'Media & Content', 
@@ -108,9 +101,38 @@ export const NAV_ITEMS: NavItem[] = [
       { id: 'revenue_tracking', label: 'Revenue Tracking', path: '/monetization' },
     ]
   },
-  { id: 'social_analytics', label: 'Social Analytics', path: '/social-analytics' },
-  { id: 'seekies', label: 'Apps & Tools', path: '/apps' },
-  { id: 'settings', label: 'Settings', path: '/settings' },
+  { id: 'seekies', label: 'Seeksies & Apps', path: '/apps' },
+  { 
+    id: 'email', 
+    label: 'Email', 
+    path: '/email/inbox',
+    subItems: [
+      { id: 'email_inbox', label: 'Inbox', path: '/email/inbox' },
+      { id: 'email_scheduled', label: 'Scheduled', path: '/email/scheduled' },
+      { id: 'email_drafts', label: 'Drafts', path: '/email/drafts' },
+      { id: 'email_sent', label: 'Sent', path: '/email/sent' },
+    ]
+  },
+  { 
+    id: 'media_streaming', 
+    label: 'Media', 
+    path: '/mypage',
+    subItems: [
+      { id: 'mypage_streaming', label: 'My Page Streaming', path: '/mypage' },
+    ]
+  },
+  { 
+    id: 'marketing', 
+    label: 'Marketing', 
+    path: '/contacts',
+    subItems: [
+      { id: 'marketing_audience', label: 'Contacts & Audience', path: '/contacts' },
+      { id: 'marketing_segments', label: 'Segments', path: '/marketing/segments' },
+      { id: 'marketing_campaigns', label: 'Campaigns', path: '/marketing/campaigns' },
+      { id: 'marketing_templates', label: 'Templates', path: '/marketing/templates' },
+      { id: 'marketing_automations', label: 'Automations', path: '/marketing/automations' },
+    ]
+  },
 ];
 
 export const LANDING_OPTIONS = [
