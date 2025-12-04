@@ -173,66 +173,123 @@ const Pricing = () => {
         </Card>
 
         {/* Comparison Table */}
-        <section className="max-w-6xl mx-auto mb-20">
+        <section className="max-w-7xl mx-auto mb-20">
           <h2 className="text-3xl font-bold text-center mb-4">How We Compare</h2>
           <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-            See how Seeksy stacks up against other podcast platforms
+            See how Seeksy stacks up against other podcast and streaming platforms
           </p>
 
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
+            <table className="w-full border-collapse text-sm">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-left p-4 font-semibold">Feature</th>
-                  <th className="text-center p-4 font-semibold">
-                    <div className="text-primary text-lg">Seeksy</div>
+                  <th className="text-left p-3 font-semibold">Feature</th>
+                  <th className="text-center p-3 font-semibold">
+                    <div className="text-primary text-base">Seeksy</div>
                   </th>
-                  <th className="text-center p-4 font-semibold text-muted-foreground">Riverside</th>
-                  <th className="text-center p-4 font-semibold text-muted-foreground">Descript</th>
-                  <th className="text-center p-4 font-semibold text-muted-foreground">Anchor</th>
+                  <th className="text-center p-3 font-semibold text-muted-foreground">Riverside</th>
+                  <th className="text-center p-3 font-semibold text-muted-foreground">Descript</th>
+                  <th className="text-center p-3 font-semibold text-muted-foreground">Anchor</th>
+                  <th className="text-center p-3 font-semibold text-muted-foreground">Streamyard</th>
+                  <th className="text-center p-3 font-semibold text-muted-foreground">Restream</th>
+                  <th className="text-center p-3 font-semibold text-muted-foreground">Zoom</th>
+                  <th className="text-center p-3 font-semibold text-muted-foreground">OBS</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-b border-border">
-                  <td className="p-4">Free Recording Hours</td>
-                  <td className="text-center p-4 font-semibold text-primary">10 hrs/mo</td>
-                  <td className="text-center p-4 text-muted-foreground">2 hrs/mo</td>
-                  <td className="text-center p-4 text-muted-foreground">1 hr/mo</td>
-                  <td className="text-center p-4 text-muted-foreground">Unlimited*</td>
+                  <td className="p-3">Free Recording Hours</td>
+                  <td className="text-center p-3 font-semibold text-primary">10 hrs/mo</td>
+                  <td className="text-center p-3 text-muted-foreground">2 hrs/mo</td>
+                  <td className="text-center p-3 text-muted-foreground">1 hr/mo</td>
+                  <td className="text-center p-3 text-muted-foreground">Unlimited*</td>
+                  <td className="text-center p-3 text-muted-foreground">20 hrs/mo</td>
+                  <td className="text-center p-3 text-muted-foreground">Limited</td>
+                  <td className="text-center p-3 text-muted-foreground">40 min</td>
+                  <td className="text-center p-3 text-muted-foreground">Unlimited</td>
                 </tr>
                 <tr className="border-b border-border">
-                  <td className="p-4">Free Storage</td>
-                  <td className="text-center p-4 font-semibold text-primary">25 GB</td>
-                  <td className="text-center p-4 text-muted-foreground">5 GB</td>
-                  <td className="text-center p-4 text-muted-foreground">10 GB</td>
-                  <td className="text-center p-4 text-muted-foreground">Unlimited*</td>
+                  <td className="p-3">Free Storage</td>
+                  <td className="text-center p-3 font-semibold text-primary">25 GB</td>
+                  <td className="text-center p-3 text-muted-foreground">5 GB</td>
+                  <td className="text-center p-3 text-muted-foreground">10 GB</td>
+                  <td className="text-center p-3 text-muted-foreground">Unlimited*</td>
+                  <td className="text-center p-3 text-muted-foreground">4 hrs stored</td>
+                  <td className="text-center p-3 text-muted-foreground">None</td>
+                  <td className="text-center p-3 text-muted-foreground">Local only</td>
+                  <td className="text-center p-3 text-muted-foreground">Local only</td>
                 </tr>
                 <tr className="border-b border-border">
-                  <td className="p-4">AI Clip Generation</td>
-                  <td className="text-center p-4"><Check className="h-5 w-5 text-primary mx-auto" /></td>
-                  <td className="text-center p-4"><Check className="h-5 w-5 text-muted-foreground mx-auto" /></td>
-                  <td className="text-center p-4"><X className="h-5 w-5 text-muted-foreground mx-auto" /></td>
-                  <td className="text-center p-4"><X className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="p-3">AI Clip Generation</td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-primary mx-auto" /></td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><X className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><X className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><X className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><X className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><X className="h-5 w-5 text-muted-foreground mx-auto" /></td>
                 </tr>
                 <tr className="border-b border-border">
-                  <td className="p-4">Ad Monetization</td>
-                  <td className="text-center p-4"><Check className="h-5 w-5 text-primary mx-auto" /></td>
-                  <td className="text-center p-4"><X className="h-5 w-5 text-muted-foreground mx-auto" /></td>
-                  <td className="text-center p-4"><X className="h-5 w-5 text-muted-foreground mx-auto" /></td>
-                  <td className="text-center p-4"><Check className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="p-3">Ad Monetization</td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-primary mx-auto" /></td>
+                  <td className="text-center p-3"><X className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><X className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><X className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><X className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><X className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><X className="h-5 w-5 text-muted-foreground mx-auto" /></td>
                 </tr>
                 <tr className="border-b border-border">
-                  <td className="p-4">Pricing Model</td>
-                  <td className="text-center p-4 font-semibold text-primary">Pay-as-you-go</td>
-                  <td className="text-center p-4 text-muted-foreground">$19/mo+</td>
-                  <td className="text-center p-4 text-muted-foreground">$24/mo+</td>
-                  <td className="text-center p-4 text-muted-foreground">Free*</td>
+                  <td className="p-3">Live Streaming</td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-primary mx-auto" /></td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><X className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><X className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="p-3">Multi-Platform Streaming</td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-primary mx-auto" /></td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><X className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><X className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><X className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3">Plugin req.</td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="p-3">Browser-Based</td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-primary mx-auto" /></td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><Check className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                  <td className="text-center p-3"><X className="h-5 w-5 text-muted-foreground mx-auto" /></td>
+                </tr>
+                <tr className="border-b border-border">
+                  <td className="p-3">Pricing Model</td>
+                  <td className="text-center p-3 font-semibold text-primary">Pay-as-you-go</td>
+                  <td className="text-center p-3 text-muted-foreground">$19/mo+</td>
+                  <td className="text-center p-3 text-muted-foreground">$24/mo+</td>
+                  <td className="text-center p-3 text-muted-foreground">Free*</td>
+                  <td className="text-center p-3 text-muted-foreground">$25/mo+</td>
+                  <td className="text-center p-3 text-muted-foreground">$19/mo+</td>
+                  <td className="text-center p-3 text-muted-foreground">$16/mo+</td>
+                  <td className="text-center p-3 text-muted-foreground">Free</td>
                 </tr>
               </tbody>
             </table>
           </div>
           <p className="text-xs text-muted-foreground text-center mt-4">
-            *Anchor/Spotify limitations apply for monetization and distribution
+            *Anchor/Spotify limitations apply for monetization and distribution. OBS requires technical setup and plugins for advanced features.
           </p>
         </section>
 
