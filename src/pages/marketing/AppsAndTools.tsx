@@ -82,6 +82,8 @@ const categories: Category[] = [
     icon: Building2,
     color: "from-emerald-500 to-green-500",
     tools: [
+      { icon: Calendar, title: "Meetings", description: "Book calls and appointments", href: "/creator/meetings", status: "available" },
+      { icon: ClipboardList, title: "Sign-ups", description: "Collect RSVPs and registrations", href: "/signup-sheets", status: "available", bestWith: ["Events"] },
       { icon: FileText, title: "Proposals", description: "Create professional proposals and contracts", href: "/proposals", status: "available" },
       { icon: CheckSquare, title: "Tasks", description: "Manage tasks and projects", href: "/tasks", status: "available" },
       { icon: Ticket, title: "Events", description: "Create events and manage RSVPs", href: "/events", status: "available", bestWith: ["Forms"] },
