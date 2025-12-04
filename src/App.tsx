@@ -314,6 +314,7 @@ import TranscriptDetailPage from "./pages/transcripts/TranscriptDetailPage";
 import AdminCampaigns from "./pages/admin/AdminCampaigns";
 import AdminAdAnalytics from "./pages/admin/AdminAdAnalytics";
 import OnboardingAdmin from "./pages/admin/OnboardingAdmin";
+import LeadMagnetsAdmin from "./pages/admin/LeadMagnetsAdmin";
 import VoiceCertificationDashboard from "./pages/voice-certification/VoiceCertificationDashboard";
 import PublicCreatorIdentity from "./pages/PublicCreatorIdentity";
 import VoiceVerificationUnified from "./pages/voice-certification/VoiceVerificationUnified";
@@ -818,6 +819,7 @@ const AppContent = () => {
               <Route path="/admin/ad-campaigns" element={<AdminCampaigns />} />
             <Route path="/admin/ad-analytics" element={<AdminAdAnalytics />} />
             <Route path="/admin/onboarding" element={<OnboardingAdmin />} />
+            <Route path="/admin/lead-magnets" element={<LeadMagnetsAdmin />} />
               <Route path="/admin/permissions" element={<Permissions />} />
               <Route path="/admin/webhooks" element={<Webhooks />} />
               <Route path="/admin/logs" element={<Logs />} />

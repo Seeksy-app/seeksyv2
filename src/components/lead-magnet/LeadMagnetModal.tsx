@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Download, ChevronRight, ChevronLeft, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   getPersonaOptions,
-  getLeadMagnetOffersByPersona,
+  fetchLeadMagnetsFromDB,
   type LeadMagnetOffer,
 } from "@/config/leadMagnets";
 
@@ -32,6 +32,8 @@ export function LeadMagnetModal({
   const [selectedPersona, setSelectedPersona] = useState<string>(initialPersona || "");
   const [selectedOffer, setSelectedOffer] = useState<LeadMagnetOffer | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingOffers, setIsLoadingOffers] = useState(false);
+  const [offers, setOffers] = useState<LeadMagnetOffer[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -40,7 +42,18 @@ export function LeadMagnetModal({
   });
 
   const personaOptions = getPersonaOptions();
-  const offers = selectedPersona ? getLeadMagnetOffersByPersona(selectedPersona) : [];
+
+  // Load offers when persona changes
+  useEffect(() => {
+    if (selectedPersona) {
+      setIsLoadingOffers(true);
+      fetchLeadMagnetsFromDB(selectedPersona)
+        .then(setOffers)
+        .finally(() => setIsLoadingOffers(false));
+    } else {
+      setOffers([]);
+    }
+  }, [selectedPersona]);
 
   const handlePersonaSelect = (personaId: string) => {
     setSelectedPersona(personaId);
@@ -97,7 +110,6 @@ export function LeadMagnetModal({
   };
 
   const handleClose = () => {
-    // Reset state on close
     setStep(initialPersona ? "offers" : "persona");
     setSelectedPersona(initialPersona || "");
     setSelectedOffer(null);
@@ -111,7 +123,6 @@ export function LeadMagnetModal({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -120,7 +131,6 @@ export function LeadMagnetModal({
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
           />
 
-          {/* Modal */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -129,7 +139,6 @@ export function LeadMagnetModal({
             className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg mx-4"
           >
             <div className="bg-background rounded-2xl shadow-2xl overflow-hidden border">
-              {/* Header */}
               <div className="relative bg-gradient-to-r from-[#053877] to-[#2C6BED] p-6 text-white">
                 <button
                   onClick={handleClose}
@@ -156,10 +165,8 @@ export function LeadMagnetModal({
                 </h2>
               </div>
 
-              {/* Content */}
               <div className="p-6">
                 <AnimatePresence mode="wait">
-                  {/* Step 1: Persona Selection */}
                   {step === "persona" && (
                     <motion.div
                       key="persona"
@@ -187,7 +194,6 @@ export function LeadMagnetModal({
                     </motion.div>
                   )}
 
-                  {/* Step 2: Offer Selection */}
                   {step === "offers" && (
                     <motion.div
                       key="offers"
@@ -204,29 +210,33 @@ export function LeadMagnetModal({
                         Change persona
                       </button>
 
-                      {offers.map((offer) => (
-                        <button
-                          key={offer.id}
-                          onClick={() => handleOfferSelect(offer)}
-                          className={cn(
-                            "w-full p-4 rounded-xl border-2 transition-all text-left",
-                            "hover:border-primary hover:bg-primary/5",
-                            selectedOffer?.id === offer.id
-                              ? "border-primary bg-primary/5"
-                              : "border-border"
-                          )}
-                        >
-                          <div className="flex items-start gap-3">
-                            <Download className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-                            <div>
-                              <h3 className="font-semibold text-sm mb-1">{offer.title}</h3>
-                              <p className="text-xs text-muted-foreground">{offer.description}</p>
+                      {isLoadingOffers ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                        </div>
+                      ) : offers.length > 0 ? (
+                        offers.map((offer) => (
+                          <button
+                            key={offer.id}
+                            onClick={() => handleOfferSelect(offer)}
+                            className={cn(
+                              "w-full p-4 rounded-xl border-2 transition-all text-left",
+                              "hover:border-primary hover:bg-primary/5",
+                              selectedOffer?.id === offer.id
+                                ? "border-primary bg-primary/5"
+                                : "border-border"
+                            )}
+                          >
+                            <div className="flex items-start gap-3">
+                              <Download className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                              <div>
+                                <h3 className="font-semibold text-sm mb-1">{offer.title}</h3>
+                                <p className="text-xs text-muted-foreground">{offer.description}</p>
+                              </div>
                             </div>
-                          </div>
-                        </button>
-                      ))}
-
-                      {offers.length === 0 && (
+                          </button>
+                        ))
+                      ) : (
                         <p className="text-center text-muted-foreground py-8">
                           No reports available for this persona yet.
                         </p>
@@ -234,7 +244,6 @@ export function LeadMagnetModal({
                     </motion.div>
                   )}
 
-                  {/* Step 3: Contact Form */}
                   {step === "contact" && selectedOffer && (
                     <motion.div
                       key="contact"
@@ -327,7 +336,6 @@ export function LeadMagnetModal({
                     </motion.div>
                   )}
 
-                  {/* Success Step */}
                   {step === "success" && (
                     <motion.div
                       key="success"

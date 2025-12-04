@@ -58,8 +58,28 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
+    // Try to find the lead magnet in database and increment download count
+    const { data: leadMagnetRecord } = await supabase
+      .from("lead_magnets")
+      .select("id, storage_path, download_count")
+      .eq("slug", offerId)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (leadMagnetRecord) {
+      // Increment download count
+      await supabase
+        .from("lead_magnets")
+        .update({ download_count: (leadMagnetRecord.download_count || 0) + 1 })
+        .eq("id", leadMagnetRecord.id);
+      logStep("Lead magnet found in DB", { id: leadMagnetRecord.id });
+    }
+
+    // Use storage_path from DB if available, otherwise use provided pdfPath
+    const storagePath = leadMagnetRecord?.storage_path || pdfPath;
+
     // Generate signed URL for the PDF (valid for 7 days)
-    const fullPdfPath = pdfPath.startsWith("lead-magnets/") ? pdfPath.replace("lead-magnets/", "") : pdfPath;
+    const fullPdfPath = storagePath.startsWith("lead-magnets/") ? storagePath.replace("lead-magnets/", "") : storagePath;
     logStep("Generating signed URL", { fullPdfPath });
 
     const { data: signedUrlData, error: signedUrlError } = await supabase.storage
