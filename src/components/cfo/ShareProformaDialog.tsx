@@ -3,7 +3,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Copy, Mail, FileSpreadsheet, TrendingUp, Download } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Copy, Mail, FileSpreadsheet, TrendingUp, Download, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
@@ -173,10 +174,14 @@ export const ShareProformaDialog = ({ open, onOpenChange, proformaType }: ShareP
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileSpreadsheet className="h-5 w-5" />
-            Share {proformaType === 'ai' ? 'AI-Generated' : 'Custom'} Pro Forma
+            Share With Investors (External)
+            <Badge variant="outline" className="ml-2 bg-yellow-100 text-yellow-800 border-yellow-300">
+              <ExternalLink className="h-3 w-3 mr-1" />
+              EXTERNAL ACCESS
+            </Badge>
           </DialogTitle>
           <DialogDescription>
-            Generate secure access for investors with customizable view options
+            For investors only — not for internal Board users. Generate secure access with customizable view options.
           </DialogDescription>
         </DialogHeader>
 

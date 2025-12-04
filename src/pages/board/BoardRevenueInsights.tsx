@@ -38,7 +38,7 @@ export default function BoardRevenueInsights() {
   const revenueByChannel = isDemo ? demoRevenueByChannel : [];
 
   return (
-    <div className="space-y-6">
+    <div className="px-10 py-6 space-y-8">
       <Button
         variant="ghost"
         className="text-slate-500 hover:text-slate-700 -ml-2"
@@ -48,7 +48,7 @@ export default function BoardRevenueInsights() {
         Back to Dashboard
       </Button>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-start gap-4">
         <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md">
           <DollarSign className="w-7 h-7 text-white" />
         </div>
@@ -61,7 +61,7 @@ export default function BoardRevenueInsights() {
       <DataModeLabel />
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6 justify-start">
         {revenueMetrics.map((metric) => {
           const Icon = metric.icon;
           return (

@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import { sanitizeHtml } from "@/lib/sanitizeHtml";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -115,14 +114,14 @@ export const CFOAIChat = ({ financialData }: CFOAIChatProps) => {
   };
 
   return (
-    <Card className="flex flex-col min-h-[600px] h-full">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
+    <div className="flex flex-col h-full">
+      <div className="pb-3">
+        <div className="flex items-center gap-2 text-base font-semibold">
           <SparkAvatar pose="thinking" size={20} />
           Ask Seeksy Spark
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex-1 flex flex-col gap-3 min-h-0 pb-4">
+        </div>
+      </div>
+      <div className="flex-1 flex flex-col gap-3 min-h-0 pb-4">
         <ScrollArea className="flex-1 pr-4" ref={scrollAreaRef}>
           <div className="space-y-4">
             {messages.map((msg, idx) => (
@@ -184,7 +183,7 @@ export const CFOAIChat = ({ financialData }: CFOAIChatProps) => {
             <Send className="h-4 w-4" />
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };

@@ -12,8 +12,8 @@ export default function InvestorSpreadsheets() {
   ];
 
   return (
-    <div className="p-6 space-y-6 max-w-5xl mx-auto animate-fade-in">
-      <div className="flex items-center justify-between">
+    <div className="px-10 py-6 space-y-8 animate-fade-in">
+      <div className="flex flex-col items-start gap-4">
         <div>
           <h1 className="text-3xl font-bold">Investor Spreadsheets</h1>
           <p className="text-muted-foreground">Financial documents and investor materials</p>
