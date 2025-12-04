@@ -3,10 +3,32 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { Json } from '@/integrations/supabase/types';
 
+export interface SubItemConfig {
+  id: string;
+  visible: boolean;
+  pinned: boolean;
+  order: number;
+}
+
 export interface NavConfig {
   order: string[];
   hidden: string[];
   pinned: string[];
+  subItems?: Record<string, SubItemConfig[]>;
+}
+
+export interface NavSubItem {
+  id: string;
+  label: string;
+  path: string;
+}
+
+export interface NavItem {
+  id: string;
+  label: string;
+  path: string;
+  isHome?: boolean;
+  subItems?: NavSubItem[];
 }
 
 const DEFAULT_NAV_CONFIG: NavConfig = {
@@ -24,18 +46,38 @@ const DEFAULT_NAV_CONFIG: NavConfig = {
     'settings'
   ],
   hidden: [],
-  pinned: ['my_day', 'dashboard', 'creator_hub']
+  pinned: ['my_day', 'dashboard', 'creator_hub'],
+  subItems: {}
 };
 
 const DEFAULT_LANDING_ROUTE = '/my-day';
 
-export const NAV_ITEMS = [
+export const NAV_ITEMS: NavItem[] = [
   { id: 'my_day', label: 'My Day', path: '/my-day', isHome: true },
   { id: 'dashboard', label: 'Dashboard', path: '/dashboard', isHome: true },
   { id: 'creator_hub', label: 'Creator Hub', path: '/creator-hub', isHome: true },
   { id: 'meetings', label: 'Meetings', path: '/meetings' },
-  { id: 'studio', label: 'Studio', path: '/studio' },
-  { id: 'podcasts', label: 'Podcasts', path: '/podcasts' },
+  { 
+    id: 'studio', 
+    label: 'Studio', 
+    path: '/studio',
+    subItems: [
+      { id: 'video_studio', label: 'Video Studio', path: '/studio/video' },
+      { id: 'audio_studio', label: 'Audio Studio', path: '/studio/audio' },
+      { id: 'clips_editing', label: 'Clips & Editing', path: '/studio/clips' },
+      { id: 'media_library', label: 'Media Library', path: '/studio/media' },
+    ]
+  },
+  { 
+    id: 'podcasts', 
+    label: 'Podcasts', 
+    path: '/podcasts',
+    subItems: [
+      { id: 'podcast_list', label: 'My Podcasts', path: '/podcasts' },
+      { id: 'podcast_analytics', label: 'Analytics', path: '/podcasts/analytics' },
+      { id: 'podcast_rss', label: 'RSS Feeds', path: '/podcasts/rss' },
+    ]
+  },
   { id: 'brand_campaigns', label: 'Brand Campaigns', path: '/creator-campaigns' },
   { id: 'revenue_tracking', label: 'Revenue Tracking', path: '/monetization' },
   { id: 'content_library', label: 'Content Library', path: '/media' },
@@ -56,7 +98,8 @@ function parseNavConfig(value: unknown): NavConfig | null {
     return {
       order: obj.order as string[],
       hidden: obj.hidden as string[],
-      pinned: obj.pinned as string[]
+      pinned: obj.pinned as string[],
+      subItems: (obj.subItems as Record<string, SubItemConfig[]>) || {}
     };
   }
   return null;

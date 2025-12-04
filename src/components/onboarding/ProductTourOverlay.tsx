@@ -1,21 +1,21 @@
 /**
  * ProductTourOverlay Component
- * Anchored tooltip overlay for product tours
+ * Light, pointer-based callout tooltip for product tours
  * 
  * Features:
- * - Tooltips anchor to specific UI elements
- * - Spotlight highlight with dimmed backdrop
+ * - Light bright tooltip with subtle shadow
+ * - Soft glow spotlight on target (no heavy dark backdrop)
+ * - Arrow pointing to target element
  * - Auto-scroll to elements out of view
- * - Back/Next/Skip navigation with step counter
+ * - Non-blocking - users can still interact with page
  */
 
 import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { X, ChevronRight, ChevronLeft, SkipForward } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TourStep } from '@/onboarding/tourConfig';
-import { useToast } from '@/hooks/use-toast';
 
 interface ProductTourOverlayProps {
   tip: TourStep;
@@ -36,9 +36,9 @@ interface TooltipPosition {
   arrowPosition: 'top' | 'bottom' | 'left' | 'right';
 }
 
-const TOOLTIP_WIDTH = 340;
-const TOOLTIP_HEIGHT = 200;
-const ARROW_SIZE = 12;
+const TOOLTIP_WIDTH = 320;
+const TOOLTIP_MIN_HEIGHT = 140;
+const ARROW_SIZE = 10;
 const PADDING = 16;
 const SCROLL_PADDING = 100;
 
@@ -59,11 +59,9 @@ export function ProductTourOverlay({
   const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition | null>(null);
   const [isScrolling, setIsScrolling] = useState(false);
   const observerRef = useRef<ResizeObserver | null>(null);
-  const { toast } = useToast();
 
   // Find target element using selector (supports multiple selectors with comma)
   const findAndScrollToTarget = useCallback(async (selector: string) => {
-    // Split by comma and try each selector
     const selectors = selector.split(',').map(s => s.trim());
     let element: HTMLElement | null = null;
 
@@ -73,7 +71,6 @@ export function ProductTourOverlay({
     }
 
     if (!element) {
-      // Fallback: create a centered tooltip
       setTargetElement(null);
       setTargetRect(null);
       return;
@@ -91,14 +88,12 @@ export function ProductTourOverlay({
 
     if (!isInViewport) {
       setIsScrolling(true);
-
       element.scrollIntoView({
         behavior: 'smooth',
         block: 'center',
         inline: 'center',
       });
-
-      await new Promise(resolve => setTimeout(resolve, 400));
+      await new Promise(resolve => setTimeout(resolve, 350));
       setIsScrolling(false);
     }
 
@@ -120,10 +115,10 @@ export function ProductTourOverlay({
       (preferredPosition as 'top' | 'bottom' | 'left' | 'right') || 'bottom';
 
     // Override if not enough space
-    if (position === 'bottom' && spaceBelow < TOOLTIP_HEIGHT + ARROW_SIZE + PADDING) {
+    if (position === 'bottom' && spaceBelow < TOOLTIP_MIN_HEIGHT + ARROW_SIZE + PADDING) {
       position = spaceAbove > spaceBelow ? 'top' : 'right';
     }
-    if (position === 'top' && spaceAbove < TOOLTIP_HEIGHT + ARROW_SIZE + PADDING) {
+    if (position === 'top' && spaceAbove < TOOLTIP_MIN_HEIGHT + ARROW_SIZE + PADDING) {
       position = spaceBelow > spaceAbove ? 'bottom' : 'right';
     }
     if (position === 'right' && spaceRight < TOOLTIP_WIDTH + ARROW_SIZE + PADDING) {
@@ -145,7 +140,7 @@ export function ProductTourOverlay({
         ));
         break;
       case 'top':
-        top = rect.top - TOOLTIP_HEIGHT - ARROW_SIZE - 8;
+        top = rect.top - TOOLTIP_MIN_HEIGHT - ARROW_SIZE - 8;
         left = Math.max(PADDING, Math.min(
           rect.left + rect.width / 2 - TOOLTIP_WIDTH / 2,
           viewportWidth - TOOLTIP_WIDTH - PADDING
@@ -153,15 +148,15 @@ export function ProductTourOverlay({
         break;
       case 'right':
         top = Math.max(PADDING, Math.min(
-          rect.top + rect.height / 2 - TOOLTIP_HEIGHT / 2,
-          viewportHeight - TOOLTIP_HEIGHT - PADDING
+          rect.top + rect.height / 2 - TOOLTIP_MIN_HEIGHT / 2,
+          viewportHeight - TOOLTIP_MIN_HEIGHT - PADDING
         ));
         left = Math.min(rect.right + ARROW_SIZE + 8, viewportWidth - TOOLTIP_WIDTH - PADDING);
         break;
       case 'left':
         top = Math.max(PADDING, Math.min(
-          rect.top + rect.height / 2 - TOOLTIP_HEIGHT / 2,
-          viewportHeight - TOOLTIP_HEIGHT - PADDING
+          rect.top + rect.height / 2 - TOOLTIP_MIN_HEIGHT / 2,
+          viewportHeight - TOOLTIP_MIN_HEIGHT - PADDING
         ));
         left = Math.max(PADDING, rect.left - TOOLTIP_WIDTH - ARROW_SIZE - 8);
         break;
@@ -185,7 +180,7 @@ export function ProductTourOverlay({
     } else if (!targetRect && !isScrolling) {
       // Centered fallback
       setTooltipPosition({
-        top: window.innerHeight / 2 - TOOLTIP_HEIGHT / 2,
+        top: window.innerHeight / 2 - TOOLTIP_MIN_HEIGHT / 2,
         left: window.innerWidth / 2 - TOOLTIP_WIDTH / 2,
         arrowPosition: 'bottom',
       });
@@ -219,61 +214,76 @@ export function ProductTourOverlay({
   const handleNext = () => {
     if (isLastStep) {
       onComplete();
-      toast({
-        title: "Tour Completed!",
-        description: "You've learned the essentials. Explore more anytime!",
-      });
     } else {
       onNext();
     }
   };
 
-  // Arrow styles
+  // Arrow styles based on position
   const getArrowStyles = (): React.CSSProperties => {
     if (!targetRect || !tooltipPosition) return { display: 'none' };
 
-    const arrowOffset = ARROW_SIZE / 2;
+    const baseStyles: React.CSSProperties = {
+      position: 'absolute',
+      width: 0,
+      height: 0,
+    };
+
+    const arrowColor = 'white';
+    const borderColor = 'hsl(var(--border))';
 
     switch (tooltipPosition.arrowPosition) {
       case 'bottom':
         return {
-          position: 'absolute',
-          top: -ARROW_SIZE + 2,
+          ...baseStyles,
+          top: -ARROW_SIZE,
           left: Math.max(20, Math.min(
-            targetRect.left + targetRect.width / 2 - tooltipPosition.left - arrowOffset,
+            targetRect.left + targetRect.width / 2 - tooltipPosition.left,
             TOOLTIP_WIDTH - 40
           )),
-          transform: 'rotate(45deg)',
+          borderLeft: `${ARROW_SIZE}px solid transparent`,
+          borderRight: `${ARROW_SIZE}px solid transparent`,
+          borderBottom: `${ARROW_SIZE}px solid ${arrowColor}`,
+          filter: 'drop-shadow(0 -1px 0 hsl(var(--border) / 0.2))',
         };
       case 'top':
         return {
-          position: 'absolute',
-          bottom: -ARROW_SIZE + 2,
+          ...baseStyles,
+          bottom: -ARROW_SIZE,
           left: Math.max(20, Math.min(
-            targetRect.left + targetRect.width / 2 - tooltipPosition.left - arrowOffset,
+            targetRect.left + targetRect.width / 2 - tooltipPosition.left,
             TOOLTIP_WIDTH - 40
           )),
-          transform: 'rotate(45deg)',
+          borderLeft: `${ARROW_SIZE}px solid transparent`,
+          borderRight: `${ARROW_SIZE}px solid transparent`,
+          borderTop: `${ARROW_SIZE}px solid ${arrowColor}`,
+          filter: 'drop-shadow(0 1px 0 hsl(var(--border) / 0.2))',
         };
       case 'right':
         return {
-          position: 'absolute',
-          left: -ARROW_SIZE + 2,
+          ...baseStyles,
+          left: -ARROW_SIZE,
           top: Math.max(20, Math.min(
-            targetRect.top + targetRect.height / 2 - tooltipPosition.top - arrowOffset,
-            TOOLTIP_HEIGHT - 40
+            targetRect.top + targetRect.height / 2 - tooltipPosition.top,
+            TOOLTIP_MIN_HEIGHT - 40
           )),
-          transform: 'rotate(45deg)',
+          borderTop: `${ARROW_SIZE}px solid transparent`,
+          borderBottom: `${ARROW_SIZE}px solid transparent`,
+          borderRight: `${ARROW_SIZE}px solid ${arrowColor}`,
+          filter: 'drop-shadow(-1px 0 0 hsl(var(--border) / 0.2))',
         };
       case 'left':
         return {
-          position: 'absolute',
-          right: -ARROW_SIZE + 2,
+          ...baseStyles,
+          right: -ARROW_SIZE,
           top: Math.max(20, Math.min(
-            targetRect.top + targetRect.height / 2 - tooltipPosition.top - arrowOffset,
-            TOOLTIP_HEIGHT - 40
+            targetRect.top + targetRect.height / 2 - tooltipPosition.top,
+            TOOLTIP_MIN_HEIGHT - 40
           )),
-          transform: 'rotate(45deg)',
+          borderTop: `${ARROW_SIZE}px solid transparent`,
+          borderBottom: `${ARROW_SIZE}px solid transparent`,
+          borderLeft: `${ARROW_SIZE}px solid ${arrowColor}`,
+          filter: 'drop-shadow(1px 0 0 hsl(var(--border) / 0.2))',
         };
       default:
         return { display: 'none' };
@@ -282,86 +292,60 @@ export function ProductTourOverlay({
 
   return (
     <>
-      {/* Dark backdrop */}
+      {/* Very subtle page dim - 5% opacity, non-blocking */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[9998] pointer-events-auto"
-        onClick={onSkip}
-        style={{ background: 'rgba(0, 0, 0, 0.7)' }}
+        className="fixed inset-0 z-[9997] pointer-events-none"
+        style={{ background: 'rgba(0, 0, 0, 0.05)' }}
       />
 
-      {/* Spotlight highlight */}
+      {/* Soft spotlight glow on target element */}
       {targetRect && !isScrolling && (
-        <>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.2 }}
-            className="fixed z-[9999] pointer-events-none"
-            style={{
-              top: targetRect.top - 8,
-              left: targetRect.left - 8,
-              width: targetRect.width + 16,
-              height: targetRect.height + 16,
-              borderRadius: 12,
-              boxShadow: `
-                0 0 0 9999px rgba(0, 0, 0, 0.7),
-                0 0 0 3px hsl(var(--primary)),
-                0 0 20px 4px hsl(var(--primary) / 0.4),
-                inset 0 0 0 2px hsl(var(--primary) / 0.2)
-              `,
-              background: 'transparent',
-            }}
-          />
-
-          {/* Pulsing glow */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0.4, 0.7, 0.4] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            className="fixed z-[9998] pointer-events-none"
-            style={{
-              top: targetRect.top - 12,
-              left: targetRect.left - 12,
-              width: targetRect.width + 24,
-              height: targetRect.height + 24,
-              borderRadius: 16,
-              background: 'transparent',
-              boxShadow: '0 0 30px 8px hsl(var(--primary) / 0.3)',
-            }}
-          />
-        </>
-      )}
-
-      {/* Tooltip card */}
-      {tooltipPosition && !isScrolling && (
         <motion.div
-          key={tip.id}
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
           transition={{ duration: 0.2 }}
-          className="fixed z-[10001] bg-card border border-border rounded-xl shadow-2xl overflow-hidden pointer-events-auto"
+          className="fixed z-[9998] pointer-events-none rounded-lg"
+          style={{
+            top: targetRect.top - 6,
+            left: targetRect.left - 6,
+            width: targetRect.width + 12,
+            height: targetRect.height + 12,
+            boxShadow: `
+              0 0 0 2px hsl(var(--primary) / 0.5),
+              0 0 12px 4px hsl(var(--primary) / 0.2),
+              0 0 24px 8px hsl(var(--primary) / 0.1)
+            `,
+            background: 'transparent',
+          }}
+        />
+      )}
+
+      {/* Light tooltip card */}
+      {tooltipPosition && !isScrolling && (
+        <motion.div
+          key={tip.id}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 8 }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
+          className="fixed z-[10001] bg-white dark:bg-card rounded-xl shadow-lg border border-border/50 pointer-events-auto"
           style={{
             top: tooltipPosition.top,
             left: tooltipPosition.left,
             width: TOOLTIP_WIDTH,
-            minHeight: TOOLTIP_HEIGHT,
+            minHeight: TOOLTIP_MIN_HEIGHT,
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)',
           }}
         >
           {/* Arrow */}
-          {targetRect && (
-            <div
-              className="w-3 h-3 bg-card border-l border-t border-border"
-              style={getArrowStyles()}
-            />
-          )}
+          {targetRect && <div style={getArrowStyles()} />}
 
-          {/* Progress bar */}
-          <div className="h-1.5 bg-muted">
+          {/* Progress bar - thin blue */}
+          <div className="h-1 bg-muted/50 rounded-t-xl overflow-hidden">
             <motion.div
               className="h-full bg-primary"
               initial={{ width: 0 }}
@@ -370,39 +354,40 @@ export function ProductTourOverlay({
             />
           </div>
 
-          <div className="p-5">
+          <div className="p-4">
             {/* Header */}
-            <div className="flex items-start justify-between mb-3">
-              <h4 className="font-semibold text-base pr-4 leading-tight">{tip.title}</h4>
+            <div className="flex items-start justify-between mb-2">
+              <h4 className="font-semibold text-sm text-foreground pr-3 leading-snug">
+                {tip.title}
+              </h4>
               <button
                 onClick={onSkip}
-                className="p-1.5 rounded-full hover:bg-muted transition-colors flex-shrink-0 -mt-1 -mr-1"
-                title="Skip tour"
+                className="p-1 rounded-full hover:bg-muted/80 transition-colors flex-shrink-0 -mt-0.5 -mr-1"
+                title="Close"
               >
-                <X className="h-4 w-4 text-muted-foreground" />
+                <X className="h-3.5 w-3.5 text-muted-foreground" />
               </button>
             </div>
 
-            {/* Content */}
-            <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
+            {/* Content - max 2 sentences */}
+            <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
               {tip.body}
             </p>
 
             {/* Footer */}
-            <div className="flex items-center justify-between pt-2 border-t border-border/50">
-              <span className="text-xs text-muted-foreground font-medium">
-                Step {stepIndex + 1} of {totalSteps}
-                {isAdvanced && <span className="text-primary ml-1.5">(Advanced)</span>}
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] text-muted-foreground font-medium tabular-nums">
+                {stepIndex + 1}/{totalSteps}
+                {isAdvanced && <span className="text-primary/70 ml-1">(Pro tip)</span>}
               </span>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={onSkip}
-                  className="text-xs h-8 px-2"
+                  className="text-xs h-7 px-2 text-muted-foreground hover:text-foreground"
                 >
-                  <SkipForward className="h-3.5 w-3.5 mr-1" />
                   Skip
                 </Button>
 
@@ -411,19 +396,19 @@ export function ProductTourOverlay({
                     variant="outline"
                     size="sm"
                     onClick={onPrev}
-                    className="h-8 w-8 p-0"
+                    className="h-7 w-7 p-0"
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-3.5 w-3.5" />
                   </Button>
                 )}
 
                 <Button
                   size="sm"
                   onClick={handleNext}
-                  className="h-8 px-3"
+                  className="h-7 px-3 text-xs"
                 >
                   {isLastStep ? 'Done' : isLastBasicStep ? 'Continue' : 'Next'}
-                  {!isLastStep && <ChevronRight className="h-4 w-4 ml-1" />}
+                  {!isLastStep && <ChevronRight className="h-3.5 w-3.5 ml-0.5" />}
                 </Button>
               </div>
             </div>
@@ -438,8 +423,8 @@ export function ProductTourOverlay({
           animate={{ opacity: 1 }}
           className="fixed z-[10001] inset-0 flex items-center justify-center pointer-events-none"
         >
-          <div className="bg-card/90 backdrop-blur-sm px-4 py-2 rounded-full text-sm text-muted-foreground">
-            Scrolling to element...
+          <div className="bg-white/90 dark:bg-card/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs text-muted-foreground shadow-sm">
+            Scrolling...
           </div>
         </motion.div>
       )}

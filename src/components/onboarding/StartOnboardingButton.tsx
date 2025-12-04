@@ -1,12 +1,12 @@
 /**
  * StartOnboardingButton Component
- * Button to manually trigger product tours
+ * Compact pill button to start product tours
  */
 
 import { Button } from '@/components/ui/button';
-import { HelpCircle, ChevronDown } from 'lucide-react';
+import { Sparkles, HelpCircle, ChevronDown, Play } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
-import { getPageTourKeyFromRoute, getPageTour, PageTourKey } from '@/onboarding/tourConfig';
+import { getPageTourKeyFromRoute, getPageTour, PageTourKey, pageTours } from '@/onboarding/tourConfig';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,7 +40,12 @@ const tourPages: { key: PageTourKey; label: string }[] = [
   { key: 'appsTools', label: 'Apps & Tools' },
 ];
 
-export function StartOnboardingButton() {
+interface StartOnboardingButtonProps {
+  className?: string;
+  variant?: 'default' | 'compact';
+}
+
+export function StartOnboardingButton({ className, variant = 'default' }: StartOnboardingButtonProps) {
   const location = useLocation();
   
   let startBasicTour: (pageKey?: PageTourKey) => void = () => {};
@@ -62,7 +67,56 @@ export function StartOnboardingButton() {
     return null;
   }
 
-  // If current page has tips, show simple button + dropdown
+  // Compact pill variant
+  if (variant === 'compact') {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2.5 gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground rounded-full border border-border/50 hover:border-border hover:bg-muted/50"
+          >
+            <HelpCircle className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Tour</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+            Start a guided tour
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          
+          {currentPageKey && hasTipsForCurrentPage && (
+            <>
+              <DropdownMenuItem 
+                onClick={() => startBasicTour(currentPageKey)} 
+                className="gap-2"
+              >
+                <Play className="h-3.5 w-3.5" />
+                <span>This page</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
+
+          {tourPages.map((page) => (
+            <DropdownMenuItem
+              key={page.key}
+              onClick={() => startBasicTour(page.key)}
+              className="gap-2"
+              disabled={page.key === currentPageKey}
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>{page.label}</span>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
+
+  // Default variant - pill style
   if (hasTipsForCurrentPage) {
     return (
       <DropdownMenu>
@@ -70,31 +124,36 @@ export function StartOnboardingButton() {
           <Button
             variant="outline"
             size="sm"
-            className="gap-2 text-muted-foreground hover:text-foreground"
+            className="h-8 px-3 gap-2 text-xs font-medium rounded-full border-primary/30 text-primary hover:bg-primary/5 hover:border-primary/50"
             id="creatorhub-start-onboarding-button"
             data-onboarding="start-onboarding"
           >
-            <HelpCircle className="h-4 w-4" />
-            <span className="hidden sm:inline">Start Tour</span>
-            <ChevronDown className="h-3 w-3 hidden sm:inline" />
+            <Sparkles className="h-3.5 w-3.5" />
+            Start Onboarding
+            <ChevronDown className="h-3 w-3 opacity-60" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuLabel className="text-xs">Start tour for...</DropdownMenuLabel>
+        <DropdownMenuContent align="end" className="w-52">
+          <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+            Choose a page to explore
+          </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem 
             onClick={() => startBasicTour(currentPageKey)}
-            className="font-medium"
+            className="gap-2"
           >
-            This page ({getPageTour(currentPageKey)?.pageName})
+            <Play className="h-3.5 w-3.5 text-primary" />
+            <span className="font-medium">Tour this page</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           {tourPages.filter(p => p.key !== currentPageKey).map((page) => (
             <DropdownMenuItem 
               key={page.key}
               onClick={() => startBasicTour(page.key)}
+              className="gap-2"
             >
-              {page.label}
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>{page.label}</span>
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
@@ -109,22 +168,26 @@ export function StartOnboardingButton() {
         <Button
           variant="outline"
           size="sm"
-          className="gap-2 text-muted-foreground hover:text-foreground"
+          className="h-8 px-3 gap-2 text-xs font-medium rounded-full border-primary/30 text-primary hover:bg-primary/5 hover:border-primary/50"
         >
-          <HelpCircle className="h-4 w-4" />
-          <span className="hidden sm:inline">Tours</span>
-          <ChevronDown className="h-3 w-3 hidden sm:inline" />
+          <Sparkles className="h-3.5 w-3.5" />
+          Start Onboarding
+          <ChevronDown className="h-3 w-3 opacity-60" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuLabel className="text-xs">Start a tour</DropdownMenuLabel>
+      <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+          Choose a page to explore
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {tourPages.map((page) => (
           <DropdownMenuItem 
             key={page.key}
             onClick={() => startBasicTour(page.key)}
+            className="gap-2"
           >
-            {page.label}
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>{page.label}</span>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

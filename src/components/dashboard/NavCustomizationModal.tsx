@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { GripVertical, Star, Home, RotateCcw } from "lucide-react";
+import { GripVertical, Star, Home, RotateCcw, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useNavPreferences, NAV_ITEMS, LANDING_OPTIONS, NavConfig } from "@/hooks/useNavPreferences";
+import { useNavPreferences, NAV_ITEMS, LANDING_OPTIONS, NavConfig, SubItemConfig } from "@/hooks/useNavPreferences";
 import { toast } from "sonner";
 import {
   DndContext,
@@ -26,6 +26,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface NavCustomizationModalProps {
   open: boolean;
@@ -39,6 +40,9 @@ interface SortableNavItemProps {
   onToggleVisibility: () => void;
   onTogglePinned: () => void;
   disableHide: boolean;
+  hasSubItems?: boolean;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 }
 
 function SortableNavItem({ 
@@ -47,7 +51,10 @@ function SortableNavItem({
   isPinned, 
   onToggleVisibility, 
   onTogglePinned,
-  disableHide 
+  disableHide,
+  hasSubItems,
+  isExpanded,
+  onToggleExpand
 }: SortableNavItemProps) {
   const {
     attributes,
@@ -82,6 +89,15 @@ function SortableNavItem({
       </button>
       
       <div className="flex-1 flex items-center gap-2">
+        {hasSubItems && onToggleExpand && (
+          <button onClick={onToggleExpand} className="p-0.5">
+            {isExpanded ? (
+              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+            )}
+          </button>
+        )}
         {item.isHome && <Home className="h-3 w-3 text-muted-foreground" />}
         <span className={cn(
           "text-sm font-medium",
@@ -89,6 +105,11 @@ function SortableNavItem({
         )}>
           {item.label}
         </span>
+        {hasSubItems && (
+          <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+            {item.subItems?.length} items
+          </span>
+        )}
       </div>
 
       <button
@@ -112,14 +133,51 @@ function SortableNavItem({
   );
 }
 
+interface SubItemRowProps {
+  subItem: { id: string; label: string; path: string };
+  config: SubItemConfig;
+  onToggleVisible: () => void;
+  onTogglePinned: () => void;
+}
+
+function SubItemRow({ subItem, config, onToggleVisible, onTogglePinned }: SubItemRowProps) {
+  return (
+    <div className="flex items-center gap-3 py-2 px-3 ml-6 border-l-2 border-border/50">
+      <span className={cn(
+        "flex-1 text-sm",
+        config.visible ? "text-foreground" : "text-muted-foreground"
+      )}>
+        {subItem.label}
+      </span>
+      <button
+        onClick={onTogglePinned}
+        disabled={!config.visible}
+        className={cn(
+          "p-1 rounded transition-colors",
+          config.pinned ? "text-amber-500" : "text-muted-foreground/30 hover:text-muted-foreground"
+        )}
+      >
+        <Star className={cn("h-3.5 w-3.5", config.pinned && "fill-current")} />
+      </button>
+      <Switch
+        checked={config.visible}
+        onCheckedChange={onToggleVisible}
+        className="scale-90"
+      />
+    </div>
+  );
+}
+
 export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationModalProps) {
   const { navConfig, defaultLandingRoute, savePreferences, resetToDefaults, isLoading } = useNavPreferences();
   
   const [localOrder, setLocalOrder] = useState<string[]>([]);
   const [localHidden, setLocalHidden] = useState<string[]>([]);
   const [localPinned, setLocalPinned] = useState<string[]>([]);
+  const [localSubItems, setLocalSubItems] = useState<Record<string, SubItemConfig[]>>({});
   const [localLanding, setLocalLanding] = useState<string>('/my-day');
   const [isSaving, setIsSaving] = useState(false);
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -134,6 +192,18 @@ export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationMo
       setLocalHidden(navConfig.hidden);
       setLocalPinned(navConfig.pinned);
       setLocalLanding(defaultLandingRoute);
+      
+      // Initialize sub-items config
+      const subItemsConfig: Record<string, SubItemConfig[]> = {};
+      NAV_ITEMS.forEach(item => {
+        if (item.subItems) {
+          subItemsConfig[item.id] = item.subItems.map((sub, idx) => {
+            const existing = navConfig.subItems?.[item.id]?.find(s => s.id === sub.id);
+            return existing || { id: sub.id, visible: true, pinned: false, order: idx };
+          });
+        }
+      });
+      setLocalSubItems(subItemsConfig);
     }
   }, [open, navConfig, defaultLandingRoute, isLoading]);
 
@@ -149,21 +219,17 @@ export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationMo
   };
 
   const toggleVisibility = (id: string) => {
-    // Check if hiding this would leave no home pages visible
     const homeItems = NAV_ITEMS.filter(i => i.isHome).map(i => i.id);
     const currentlyVisibleHomes = homeItems.filter(h => !localHidden.includes(h));
     
     if (localHidden.includes(id)) {
-      // Showing the item
       setLocalHidden(prev => prev.filter(h => h !== id));
     } else {
-      // Hiding the item - check constraints
       if (homeItems.includes(id) && currentlyVisibleHomes.length <= 1) {
         toast.error("At least one home page must be visible");
         return;
       }
       setLocalHidden(prev => [...prev, id]);
-      // Also remove from pinned if hidden
       setLocalPinned(prev => prev.filter(p => p !== id));
     }
   };
@@ -176,13 +242,38 @@ export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationMo
     }
   };
 
+  const toggleExpanded = (id: string) => {
+    setExpandedItems(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSubItemVisibility = (parentId: string, subItemId: string) => {
+    setLocalSubItems(prev => ({
+      ...prev,
+      [parentId]: prev[parentId].map(s => 
+        s.id === subItemId ? { ...s, visible: !s.visible, pinned: s.visible ? false : s.pinned } : s
+      )
+    }));
+  };
+
+  const toggleSubItemPinned = (parentId: string, subItemId: string) => {
+    setLocalSubItems(prev => ({
+      ...prev,
+      [parentId]: prev[parentId].map(s => 
+        s.id === subItemId ? { ...s, pinned: !s.pinned } : s
+      )
+    }));
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
       const config: NavConfig = {
         order: localOrder,
         hidden: localHidden,
-        pinned: localPinned
+        pinned: localPinned,
+        subItems: localSubItems
       };
       await savePreferences(config, localLanding);
       toast.success("Navigation preferences saved");
@@ -207,7 +298,6 @@ export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationMo
     }
   };
 
-  // Sort items by local order
   const sortedItems = [...NAV_ITEMS].sort((a, b) => {
     const aIndex = localOrder.indexOf(a.id);
     const bIndex = localOrder.indexOf(b.id);
@@ -218,6 +308,9 @@ export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationMo
 
   const homeItems = NAV_ITEMS.filter(i => i.isHome).map(i => i.id);
   const visibleHomes = homeItems.filter(h => !localHidden.includes(h));
+
+  // Items with sub-items for the third tab
+  const itemsWithSubItems = NAV_ITEMS.filter(item => item.subItems && item.subItems.length > 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -230,9 +323,10 @@ export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationMo
         </DialogHeader>
 
         <Tabs defaultValue="startup" className="flex-1 overflow-hidden flex flex-col">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="startup">Startup Page</TabsTrigger>
-            <TabsTrigger value="nav">Nav Items</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="startup" className="text-xs">Startup</TabsTrigger>
+            <TabsTrigger value="nav" className="text-xs">Nav Items</TabsTrigger>
+            <TabsTrigger value="subitems" className="text-xs">Sub-Items</TabsTrigger>
           </TabsList>
 
           <TabsContent value="startup" className="flex-1 overflow-y-auto">
@@ -283,10 +377,62 @@ export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationMo
                       onToggleVisibility={() => toggleVisibility(item.id)}
                       onTogglePinned={() => togglePinned(item.id)}
                       disableHide={item.isHome && visibleHomes.length <= 1 && !localHidden.includes(item.id)}
+                      hasSubItems={!!item.subItems?.length}
                     />
                   ))}
                 </SortableContext>
               </DndContext>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="subitems" className="flex-1 overflow-y-auto">
+            <div className="py-4 space-y-3">
+              <p className="text-sm text-muted-foreground mb-4">
+                Configure sub-pages for modules with multiple sections.
+              </p>
+              
+              {itemsWithSubItems.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  No modules with sub-items configured.
+                </p>
+              ) : (
+                itemsWithSubItems.map((item) => (
+                  <Collapsible
+                    key={item.id}
+                    open={expandedItems.includes(item.id)}
+                    onOpenChange={() => toggleExpanded(item.id)}
+                  >
+                    <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors">
+                      {expandedItems.includes(item.id) ? (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      )}
+                      <span className="font-medium text-sm">{item.label}</span>
+                      <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded ml-auto">
+                        {item.subItems?.length} items
+                      </span>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="mt-1 space-y-1">
+                        {item.subItems?.map((subItem) => {
+                          const config = localSubItems[item.id]?.find(s => s.id === subItem.id) 
+                            || { id: subItem.id, visible: true, pinned: false, order: 0 };
+                          return (
+                            <SubItemRow
+                              key={subItem.id}
+                              subItem={subItem}
+                              config={config}
+                              onToggleVisible={() => toggleSubItemVisibility(item.id, subItem.id)}
+                              onTogglePinned={() => toggleSubItemPinned(item.id, subItem.id)}
+                            />
+                          );
+                        })}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                ))
+              )}
             </div>
           </TabsContent>
         </Tabs>
