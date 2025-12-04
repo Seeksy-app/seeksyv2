@@ -1,9 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, Sparkles, Zap, Download } from "lucide-react";
 
-export function CTASection() {
+interface CTASectionProps {
+  onGetFreeReport?: () => void;
+}
+
+export function CTASection({ onGetFreeReport }: CTASectionProps) {
   const navigate = useNavigate();
 
   return (
@@ -36,6 +40,24 @@ export function CTASection() {
               Book a Demo
             </Button>
           </div>
+
+          {onGetFreeReport && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+              className="mt-8"
+            >
+              <button
+                onClick={onGetFreeReport}
+                className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm"
+              >
+                <Download className="w-4 h-4" />
+                Or get a free industry report for your role
+              </button>
+            </motion.div>
+          )}
 
           <p className="mt-8 text-sm text-white/40">No credit card required • Free forever plan available</p>
         </motion.div>

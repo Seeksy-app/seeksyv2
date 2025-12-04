@@ -13,6 +13,7 @@ import { TestimonialsSection } from "@/components/homepage/TestimonialsSection";
 import { FAQSection } from "@/components/homepage/FAQSection";
 import { CTASection } from "@/components/homepage/CTASection";
 import { FooterSection } from "@/components/homepage/FooterSection";
+import { LeadMagnetModal, useLeadMagnetPopup } from "@/components/lead-magnet";
 
 // Map persona IDs to module IDs in ModuleBuilder
 const personaModuleMapping: Record<string, string[]> = {
@@ -30,6 +31,13 @@ const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
   const moduleBuilderRef = useRef<ModuleBuilderHandle>(null);
+  
+  // Lead magnet popup - triggers at 60% scroll or 45 seconds
+  const { isOpen: isLeadMagnetOpen, openModal: openLeadMagnet, closeModal: closeLeadMagnet } = useLeadMagnetPopup({
+    scrollThreshold: 60,
+    timeDelay: 45,
+    enabled: true,
+  });
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -116,12 +124,19 @@ const Index = () => {
         <FAQSection />
         
         {/* Final CTA */}
-        <CTASection />
+        <CTASection onGetFreeReport={openLeadMagnet} />
         
         {/* Footer */}
         <FooterSection />
       </main>
       <CookieConsent />
+      
+      {/* Lead Magnet Modal */}
+      <LeadMagnetModal
+        isOpen={isLeadMagnetOpen}
+        onClose={closeLeadMagnet}
+        source="homepage"
+      />
     </div>
   );
 };
