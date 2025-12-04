@@ -18219,6 +18219,7 @@ export type Database = {
           my_page_visited: boolean | null
           nav_config: Json | null
           onboarding_completed: boolean | null
+          onboarding_progress: Json | null
           pinned_modules: Json | null
           podcasts_enabled: boolean | null
           sms_event_registrations: boolean | null
@@ -18272,6 +18273,7 @@ export type Database = {
           my_page_visited?: boolean | null
           nav_config?: Json | null
           onboarding_completed?: boolean | null
+          onboarding_progress?: Json | null
           pinned_modules?: Json | null
           podcasts_enabled?: boolean | null
           sms_event_registrations?: boolean | null
@@ -18325,6 +18327,7 @@ export type Database = {
           my_page_visited?: boolean | null
           nav_config?: Json | null
           onboarding_completed?: boolean | null
+          onboarding_progress?: Json | null
           pinned_modules?: Json | null
           podcasts_enabled?: boolean | null
           sms_event_registrations?: boolean | null

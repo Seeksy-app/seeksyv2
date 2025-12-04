@@ -5,6 +5,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { AccountTypeSwitcher } from "@/components/AccountTypeSwitcher";
 import { BoardViewToggle } from "@/components/board/BoardViewToggle";
+import { StartOnboardingButton } from "@/components/onboarding/StartOnboardingButton";
 import { Button } from "@/components/ui/button";
 import { LogOut, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,6 +56,7 @@ export function TopNavBar() {
           <GlobalSearch />
           
           <div className="flex items-center gap-2">
+            <StartOnboardingButton />
             <BoardViewToggle />
             <AccountTypeSwitcher />
             {!hideCredits && <CreditsBadge />}

@@ -10,6 +10,7 @@ import { RoleProvider } from "@/contexts/RoleContext";
 import { TopNavBar } from "@/components/TopNavBar";
 import { TourModeWrapper } from "@/components/layout/TourModeWrapper";
 import { NavCustomizationModal } from "@/components/dashboard/NavCustomizationModal";
+import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 // AskSparkDock removed - using sidebar Ask Spark only
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -513,6 +514,7 @@ const AppContent = () => {
     <RoleProvider>
       <BoardGuard>
       <OnboardingGuard>
+      <OnboardingProvider>
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-background">
           {/* Unified Seeksy / My Day OS Sidebar for all routes */}
@@ -1000,6 +1002,7 @@ const AppContent = () => {
         <NavCustomizationModal open={navModalOpen} onOpenChange={setNavModalOpen} />
         </div>
       </SidebarProvider>
+      </OnboardingProvider>
       </OnboardingGuard>
       </BoardGuard>
     </RoleProvider>
