@@ -1,14 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { X, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft, Sparkles, BarChart3, Target, TrendingUp, Briefcase, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TourStep {
   id: string;
   title: string;
   description: string;
+  icon: React.ElementType;
   targetSelector?: string;
   route?: string;
   position?: 'top' | 'bottom' | 'left' | 'right' | 'center';
@@ -17,36 +18,41 @@ interface TourStep {
 const tourSteps: TourStep[] = [
   {
     id: 'dashboard-kpis',
-    title: 'Dashboard KPIs',
-    description: "Here's your real-time view of Seeksy's creator metrics, revenue, and performance.",
+    title: 'Your Key Metrics',
+    description: "Here's your real-time view of Seeksy's creators, usage, and monthly revenue performance.",
+    icon: BarChart3,
     route: '/board',
     position: 'center',
   },
   {
     id: 'gtm-strategy',
-    title: 'GTM Strategy Tab',
-    description: 'Explore our full go-to-market plan, channels, and acquisition strategy.',
+    title: 'GTM Strategy Overview',
+    description: 'Review the full go-to-market plan, channels, and acquisition roadmap.',
+    icon: Target,
     route: '/board/gtm',
     position: 'center',
   },
   {
     id: 'forecasts',
-    title: '3-Year Forecasts',
-    description: 'Review AI-generated financial projections based on our current model.',
+    title: 'Financial Forecasts',
+    description: 'See AI-generated projections based on real creator, usage, and revenue models.',
+    icon: TrendingUp,
     route: '/board/forecasts',
     position: 'center',
   },
   {
     id: 'ceo-vto',
-    title: 'CEO VTO',
-    description: "See leadership's quarterly priorities, targets, and action plan.",
+    title: 'CEO Action Plan',
+    description: "Track leadership's quarterly priorities, KPIs, and company-wide execution plan.",
+    icon: Briefcase,
     route: '/board/vto',
     position: 'center',
   },
   {
     id: 'board-ai',
-    title: 'Board AI Analyst',
-    description: 'Ask any financial, product, or strategic question — AI will analyze real data and answer instantly.',
+    title: 'Ask Anything',
+    description: 'Use the AI Analyst to ask questions about financials, forecasts, market trends, and strategy.',
+    icon: MessageSquare,
     position: 'center',
   },
 ];
@@ -66,10 +72,18 @@ export function BoardOnboardingTour() {
       // Small delay to let the page render
       const timer = setTimeout(() => {
         setIsActive(true);
-      }, 1000);
+      }, 1200);
       return () => clearTimeout(timer);
     }
   }, [location.pathname]);
+
+  const scrollToElement = useCallback((selector?: string) => {
+    if (!selector) return;
+    const element = document.querySelector(selector);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, []);
 
   const handleNext = () => {
     if (currentStep < tourSteps.length - 1) {
@@ -78,6 +92,8 @@ export function BoardOnboardingTour() {
         navigate(nextStep.route);
       }
       setCurrentStep(currentStep + 1);
+      // Auto-scroll to target element if defined
+      setTimeout(() => scrollToElement(nextStep.targetSelector), 300);
     } else {
       handleFinish();
     }
@@ -90,6 +106,8 @@ export function BoardOnboardingTour() {
         navigate(prevStep.route);
       }
       setCurrentStep(currentStep - 1);
+      // Auto-scroll to target element if defined
+      setTimeout(() => scrollToElement(prevStep.targetSelector), 300);
     }
   };
 
@@ -108,6 +126,7 @@ export function BoardOnboardingTour() {
   };
 
   const step = tourSteps[currentStep];
+  const StepIcon = step.icon;
 
   if (!isActive) return null;
 
@@ -120,92 +139,118 @@ export function BoardOnboardingTour() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100]"
+            className="fixed inset-0 bg-slate-900/50 backdrop-blur-[2px] z-[100]"
             onClick={handleSkip}
           />
 
           {/* Tour Modal */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.9, y: 30 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: 'spring', duration: 0.5 }}
+            exit={{ opacity: 0, scale: 0.9, y: 30 }}
+            transition={{ type: 'spring', duration: 0.5, bounce: 0.3 }}
             className="fixed inset-0 flex items-center justify-center z-[101] p-4"
           >
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
               {/* Header */}
-              <div className="bg-gradient-to-br from-blue-600 to-indigo-700 px-6 py-5 text-white relative">
+              <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 px-7 py-6 text-white relative overflow-hidden">
+                {/* Background pattern */}
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
+                  <div className="absolute bottom-0 left-0 w-32 h-32 bg-white rounded-full translate-y-1/2 -translate-x-1/2" />
+                </div>
+                
                 <button
                   onClick={handleSkip}
-                  className="absolute top-4 right-4 p-1 rounded-full hover:bg-white/20 transition-colors"
+                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/20 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                    <Sparkles className="w-5 h-5" />
+                
+                <div className="relative">
+                  <div className="flex items-center gap-4 mb-3">
+                    <motion.div 
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.2, type: 'spring' }}
+                      className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg"
+                    >
+                      <StepIcon className="w-7 h-7 text-white" />
+                    </motion.div>
+                    <div>
+                      <p className="text-blue-200 text-sm font-medium mb-0.5">
+                        Step {currentStep + 1} of {tourSteps.length}
+                      </p>
+                      <h3 className="text-2xl font-bold tracking-tight">{step.title}</h3>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-blue-100 text-xs font-medium">
-                      Step {currentStep + 1} of {tourSteps.length}
-                    </p>
-                    <h3 className="text-lg font-bold">{step.title}</h3>
+                  
+                  {/* Progress bar */}
+                  <div className="flex gap-2 mt-4">
+                    {tourSteps.map((_, index) => (
+                      <motion.div
+                        key={index}
+                        initial={false}
+                        animate={{
+                          width: index === currentStep ? 32 : 8,
+                          opacity: index <= currentStep ? 1 : 0.4,
+                        }}
+                        transition={{ duration: 0.3 }}
+                        className={cn(
+                          'h-2 rounded-full',
+                          index <= currentStep ? 'bg-white' : 'bg-white/40'
+                        )}
+                      />
+                    ))}
                   </div>
-                </div>
-                {/* Progress dots */}
-                <div className="flex gap-1.5 mt-3">
-                  {tourSteps.map((_, index) => (
-                    <div
-                      key={index}
-                      className={cn(
-                        'h-1.5 rounded-full transition-all duration-300',
-                        index === currentStep
-                          ? 'w-6 bg-white'
-                          : index < currentStep
-                          ? 'w-1.5 bg-white/60'
-                          : 'w-1.5 bg-white/30'
-                      )}
-                    />
-                  ))}
                 </div>
               </div>
 
               {/* Content */}
-              <div className="p-6">
-                <p className="text-slate-600 text-base leading-relaxed">
+              <div className="px-7 py-6">
+                <motion.p 
+                  key={currentStep}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="text-slate-600 text-base leading-relaxed"
+                >
                   {step.description}
-                </p>
+                </motion.p>
               </div>
 
               {/* Footer */}
-              <div className="px-6 pb-6 flex items-center justify-between">
+              <div className="px-7 pb-6 pt-2 flex items-center justify-between border-t border-slate-100">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleSkip}
-                  className="text-slate-500 hover:text-slate-700"
+                  className="text-slate-500 hover:text-slate-700 font-medium"
                 >
                   Skip Tour
                 </Button>
-                <div className="flex gap-2">
+                <div className="flex gap-2.5">
                   {currentStep > 0 && (
                     <Button
                       variant="outline"
-                      size="sm"
+                      size="default"
                       onClick={handleBack}
-                      className="gap-1"
+                      className="gap-1.5 border-slate-300 hover:bg-slate-50"
                     >
                       <ChevronLeft className="w-4 h-4" />
                       Back
                     </Button>
                   )}
                   <Button
-                    size="sm"
+                    size="default"
                     onClick={handleNext}
-                    className="gap-1 bg-blue-600 hover:bg-blue-700"
+                    className="gap-1.5 bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-500/20 px-5"
                   >
                     {currentStep === tourSteps.length - 1 ? (
-                      'Finish'
+                      <>
+                        <Sparkles className="w-4 h-4" />
+                        Finish
+                      </>
                     ) : (
                       <>
                         Next
