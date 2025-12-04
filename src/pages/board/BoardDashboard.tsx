@@ -83,15 +83,15 @@ export default function BoardDashboard() {
 
   return (
     <BoardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Hero Section - Compact, polished */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 via-white to-blue-50 border border-slate-200 shadow-sm p-6 md:p-8">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 via-white to-blue-50 border border-slate-200 shadow-sm px-6 py-5 md:px-8 md:py-6">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent" />
           <div className="relative z-10 text-center">
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3 leading-tight">
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2 leading-tight">
               A Clear Window Into the Creator & Podcast Business.
             </h1>
-            <p className="text-base md:text-lg text-slate-600 mb-6">
+            <p className="text-sm md:text-base text-slate-600 mb-4">
               Real-time view into our model, go-to-market, and forecasts—powered by internal R&D insights.
             </p>
             <div className="flex flex-wrap gap-3 justify-center">
@@ -117,7 +117,7 @@ export default function BoardDashboard() {
         </div>
 
         {/* Metrics Grid with subtle gradient backdrop */}
-        <div className="bg-gradient-to-r from-slate-50 via-white to-slate-50 border border-slate-100 rounded-2xl p-4">
+        <div className="bg-gradient-to-b from-slate-50/80 to-white border border-slate-100 rounded-2xl p-4 shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)]">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {metricsLoading ? (
               Array(4).fill(0).map((_, i) => (
@@ -148,7 +148,7 @@ export default function BoardDashboard() {
         </div>
 
         {/* Quick Links Grid - Moved up */}
-        <div>
+        <div className="mt-3">
           <h2 className="text-lg font-semibold text-slate-900 mb-3">Quick Access</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
             {quickLinks.map((link) => {
@@ -182,6 +182,9 @@ export default function BoardDashboard() {
               <Activity className="w-5 h-5 text-blue-500" />
               State of the Company
             </CardTitle>
+            <p className="text-sm text-slate-500 mt-1">
+              A high-level summary of ongoing development, performance, and strategic updates.
+            </p>
           </CardHeader>
           <CardContent className="p-5">
             {contentLoading ? (

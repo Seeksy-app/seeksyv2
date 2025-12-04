@@ -10,6 +10,36 @@ import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+
+// Video Player component with loading state
+function VideoPlayer({ videoRef, video }: { videoRef: React.RefObject<HTMLVideoElement>; video: DemoVideo }) {
+  const [isLoading, setIsLoading] = useState(true);
+
+  return (
+    <div className="relative w-full h-full">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-12 h-12 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin" />
+            <p className="text-slate-400 text-sm">Loading video...</p>
+          </div>
+        </div>
+      )}
+      <video
+        ref={videoRef}
+        key={video.id}
+        src={video.video_url}
+        controls
+        className="w-full h-full"
+        poster={video.thumbnail_url || undefined}
+        onLoadedData={() => setIsLoading(false)}
+        onCanPlay={() => setIsLoading(false)}
+      />
+    </div>
+  );
+}
 
 interface DemoVideo {
   id: string;
@@ -27,7 +57,7 @@ const placeholderVideos: DemoVideo[] = [
     id: 'placeholder-1',
     title: 'Seeksy Overview',
     description: 'Introduction to the Seeksy platform and mission',
-    video_url: '',
+    video_url: 'https://taxqcioheqdqtlmjeaht.supabase.co/storage/v1/object/public/demo-videos/Seeksy_%20Creator\'s%20Engine.mp4',
     thumbnail_url: null,
     duration_seconds: 192,
     category: 'Overview',
@@ -210,15 +240,11 @@ export default function BoardVideos() {
           {/* Video Player */}
           <div className="lg:col-span-2">
             <Card className="bg-white border-slate-200 shadow-sm overflow-hidden">
-              <div className="aspect-video bg-slate-100 relative">
+              <div className="aspect-video bg-slate-900 relative">
                 {selectedVideo?.video_url ? (
-                  <video
-                    ref={videoRef}
-                    key={selectedVideo.id}
-                    src={selectedVideo.video_url}
-                    controls
-                    className="w-full h-full"
-                    poster={selectedVideo.thumbnail_url || undefined}
+                  <VideoPlayer
+                    videoRef={videoRef}
+                    video={selectedVideo}
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full text-slate-400">
