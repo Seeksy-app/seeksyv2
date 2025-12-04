@@ -7,7 +7,6 @@ import {
   BarChart3,
   CreditCard,
   Plug,
-  HelpCircle,
   MessageSquare,
   FolderOpen,
   RotateCcw,
@@ -71,8 +70,7 @@ const advertiserNavSections: NavSection[] = [
   {
     title: 'Support',
     items: [
-      { title: 'Help Center', href: '/help-center', icon: HelpCircle },
-      { title: 'Contact Support', href: '/admin/tickets/new', icon: MessageSquare },
+      { title: 'Contact Support', href: '/contact', icon: MessageSquare },
     ],
   },
 ];
