@@ -1,58 +1,53 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Plus } from "lucide-react";
-import { listCampaigns, type Campaign } from "@/lib/api/advertiserAPI";
-import { useAdvertiserGuard } from "@/hooks/useAdvertiserGuard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, LayoutDashboard, Users, TrendingUp, Megaphone } from "lucide-react";
+import { AdvertiserKPIBar } from "@/components/advertiser/dashboard/AdvertiserKPIBar";
+import { RunningAdsCarousel } from "@/components/advertiser/dashboard/RunningAdsCarousel";
+import { TopInfluencersCarousel } from "@/components/advertiser/dashboard/TopInfluencersCarousel";
+import { PerformanceCharts } from "@/components/advertiser/dashboard/PerformanceCharts";
+import { CreatorLeaderboard } from "@/components/advertiser/dashboard/CreatorLeaderboard";
+import { OffersKanban } from "@/components/advertiser/dashboard/OffersKanban";
+import {
+  demoKPIs,
+  demoRunningAds,
+  demoInfluencers,
+  demoOffers,
+  demoImpressionsData,
+  demoSpendData,
+  demoCreatorLeaderboard,
+} from "@/data/advertiserDemoData";
 
 const AdvertiserDashboard = () => {
   const navigate = useNavigate();
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const { isOnboarded, advertiserId, isLoading: guardLoading } = useAdvertiserGuard();
-  const [isLoadingCampaigns, setIsLoadingCampaigns] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
 
-  useEffect(() => {
-    // Only load campaigns once we have a valid advertiser ID
-    const fetchCampaigns = async () => {
-      if (!isOnboarded || !advertiserId) return;
-      
-      setIsLoadingCampaigns(true);
-      try {
-        const { campaigns: fetchedCampaigns } = await listCampaigns(advertiserId);
-        setCampaigns(fetchedCampaigns);
-      } catch (error) {
-        console.error("Error loading campaigns:", error);
-      } finally {
-        setIsLoadingCampaigns(false);
-      }
-    };
+  const handleViewAd = (adId: string) => {
+    navigate(`/advertiser/creatives?ad=${adId}`);
+  };
 
-    fetchCampaigns();
-  }, [isOnboarded, advertiserId]);
+  const handleAddToCampaign = (influencerId: string) => {
+    navigate(`/advertiser/creators?invite=${influencerId}`);
+  };
 
-  const isLoading = guardLoading || isLoadingCampaigns;
+  const handleViewOffer = (offerId: string) => {
+    console.log("View offer:", offerId);
+  };
 
-  const getStatusColor = (status: Campaign["status"]) => {
-    switch (status) {
-      case "active":
-        return "text-green-600";
-      case "paused":
-        return "text-yellow-600";
-      case "draft":
-        return "text-gray-500";
-      default:
-        return "text-gray-500";
-    }
+  const handleMessageCreator = (creatorName: string) => {
+    console.log("Message creator:", creatorName);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#053877] to-[#041d3a] p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-white">Advertiser Dashboard</h1>
-            <p className="text-white/70 mt-1">Manage your campaigns and ad scripts</p>
+            <p className="text-white/70 mt-1">Manage campaigns, creators, and performance</p>
           </div>
           <div className="flex gap-2">
             <Button
@@ -68,80 +63,118 @@ const AdvertiserDashboard = () => {
               className="bg-[#2C6BED] hover:bg-[#2C6BED]/90 text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Create Campaign
+              New Campaign
             </Button>
           </div>
         </div>
 
-        {isLoading ? (
-          <Card className="p-8 bg-white/95 backdrop-blur">
-            <p className="text-center text-muted-foreground">Loading campaigns...</p>
-          </Card>
-        ) : campaigns.length === 0 ? (
-          <Card className="p-8 bg-white/95 backdrop-blur text-center">
-            <p className="text-muted-foreground mb-4">No campaigns yet</p>
-            <p className="text-sm text-muted-foreground mb-6">Get started by creating an ad first, then launch a campaign</p>
-            <div className="flex gap-2 justify-center">
-              <Button
-                onClick={() => navigate("/advertiser/campaigns/create-type")}
-                variant="outline"
-              >
-                Create Ad First
-              </Button>
-              <Button
-                onClick={() => navigate("/advertiser/campaigns/create")}
-                className="bg-[#2C6BED] hover:bg-[#2C6BED]/90 text-white"
-              >
-                Create Campaign
-              </Button>
+        {/* KPI Bar */}
+        <AdvertiserKPIBar {...demoKPIs} />
+
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="bg-white/10 border-white/20">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-white data-[state=active]:text-[#053877] text-white/70">
+              <LayoutDashboard className="w-4 h-4 mr-2" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="creators" className="data-[state=active]:bg-white data-[state=active]:text-[#053877] text-white/70">
+              <Users className="w-4 h-4 mr-2" />
+              Creators
+            </TabsTrigger>
+            <TabsTrigger value="performance" className="data-[state=active]:bg-white data-[state=active]:text-[#053877] text-white/70">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Performance
+            </TabsTrigger>
+            <TabsTrigger value="offers" className="data-[state=active]:bg-white data-[state=active]:text-[#053877] text-white/70">
+              <Megaphone className="w-4 h-4 mr-2" />
+              Offers
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            <RunningAdsCarousel ads={demoRunningAds} onViewAd={handleViewAd} />
+            
+            <div className="grid lg:grid-cols-2 gap-6">
+              <PerformanceCharts
+                impressionsData={demoImpressionsData}
+                spendData={demoSpendData}
+              />
             </div>
-          </Card>
-        ) : (
-          <div className="grid gap-4">
-            {campaigns.map((campaign) => (
-              <Card
-                key={campaign.id}
-                className="p-6 bg-white/95 backdrop-blur hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => navigate(`/advertiser/campaigns/${campaign.id}`)}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <h3 className="text-xl font-semibold text-[#053877]">
-                      {campaign.name}
-                    </h3>
-                    <div className="flex items-center gap-4 text-sm">
-                      <span className={`font-medium ${getStatusColor(campaign.status)}`}>
-                        {campaign.status.toUpperCase()}
-                      </span>
-                      <span className="text-muted-foreground">
-                        Budget: ${(campaign as any).total_budget?.toLocaleString() || '0'}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {campaign.targeting.map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-2 py-1 bg-[#2C6BED]/10 text-[#2C6BED] text-xs rounded-full"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/advertiser/campaigns/${campaign.id}`);
-                    }}
-                  >
-                    View Details
-                  </Button>
-                </div>
-              </Card>
-            ))}
+
+            <TopInfluencersCarousel
+              influencers={demoInfluencers}
+              onAddToCampaign={handleAddToCampaign}
+            />
+          </TabsContent>
+
+          {/* Creators Tab */}
+          <TabsContent value="creators" className="space-y-6">
+            <TopInfluencersCarousel
+              influencers={demoInfluencers}
+              onAddToCampaign={handleAddToCampaign}
+            />
+            <CreatorLeaderboard creators={demoCreatorLeaderboard} />
+          </TabsContent>
+
+          {/* Performance Tab */}
+          <TabsContent value="performance" className="space-y-6">
+            <PerformanceCharts
+              impressionsData={demoImpressionsData}
+              spendData={demoSpendData}
+            />
+            <CreatorLeaderboard creators={demoCreatorLeaderboard} />
+          </TabsContent>
+
+          {/* Offers Tab */}
+          <TabsContent value="offers" className="space-y-6">
+            <OffersKanban
+              offers={demoOffers}
+              onViewOffer={handleViewOffer}
+              onMessageCreator={handleMessageCreator}
+            />
+          </TabsContent>
+        </Tabs>
+
+        {/* Quick Actions */}
+        <Card className="p-6 bg-white/95 backdrop-blur">
+          <h3 className="text-lg font-semibold text-[#053877] mb-4">Quick Actions</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Button
+              variant="outline"
+              className="h-auto py-4 flex-col gap-2"
+              onClick={() => navigate("/advertiser/campaigns")}
+            >
+              <Megaphone className="w-5 h-5 text-[#2C6BED]" />
+              <span className="text-sm">View Campaigns</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="h-auto py-4 flex-col gap-2"
+              onClick={() => navigate("/advertiser/creators")}
+            >
+              <Users className="w-5 h-5 text-[#2C6BED]" />
+              <span className="text-sm">Browse Creators</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="h-auto py-4 flex-col gap-2"
+              onClick={() => navigate("/advertiser/creatives")}
+            >
+              <LayoutDashboard className="w-5 h-5 text-[#2C6BED]" />
+              <span className="text-sm">Manage Creatives</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="h-auto py-4 flex-col gap-2"
+              onClick={() => navigate("/advertiser/reports")}
+            >
+              <TrendingUp className="w-5 h-5 text-[#2C6BED]" />
+              <span className="text-sm">View Reports</span>
+            </Button>
           </div>
-        )}
+        </Card>
       </div>
     </div>
   );
