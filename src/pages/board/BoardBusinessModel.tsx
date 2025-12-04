@@ -78,9 +78,9 @@ const revenueStreams = [
 ];
 
 const subscriptionTiers = [
-  { name: 'Free', price: '$0', features: ['Basic studio', 'Up to 3 episodes', 'Community support'] },
-  { name: 'Pro', price: '$19/mo', features: ['Unlimited episodes', 'AI clips (50/mo)', 'Analytics dashboard', 'RSS hosting'] },
-  { name: 'Business', price: '$49/mo', features: ['Everything in Pro', 'Team members', 'White-label options', 'Priority support'] },
+  { name: 'Free', price: '50 credits', features: ['Basic studio', 'Up to 3 episodes', 'Community support'] },
+  { name: 'Pro', price: '500 credits/mo', features: ['Unlimited episodes', 'AI clips (50/mo)', 'Analytics dashboard', 'RSS hosting'] },
+  { name: 'Business', price: '1,500 credits/mo', features: ['Everything in Pro', 'Team members', 'White-label options', 'Priority support'] },
   { name: 'Enterprise', price: 'Custom', features: ['API access', 'Custom integrations', 'Dedicated account manager', 'SLA guarantee'] },
 ];
 
