@@ -386,6 +386,13 @@ import BoardMemberManagement from "./pages/admin/BoardMemberManagement";
 import { BoardGuard } from "./components/board/BoardGuard";
 import { BoardViewBanner } from "./components/board/BoardViewBanner";
 import RDIntelligenceFeeds from "./pages/admin/RDIntelligenceFeeds";
+import Permissions from "./pages/admin/Permissions";
+import Webhooks from "./pages/admin/Webhooks";
+import Logs from "./pages/admin/Logs";
+import MarketIntelligence from "./pages/admin/MarketIntelligence";
+import ProposalBuilder from "./pages/admin/ProposalBuilder";
+import MarketingGTM from "./pages/admin/MarketingGTM";
+import InvestorSpreadsheets from "./pages/admin/InvestorSpreadsheets";
 import BusinessToolsLanding from "./pages/business-tools/BusinessToolsLanding";
 import GTMBuilderList from "./pages/business-tools/GTMBuilderList";
 import GTMOnboardingWizard from "./pages/business-tools/GTMOnboardingWizard";
@@ -762,6 +769,14 @@ const AppContent = () => {
               <Route path="/admin/ad-campaigns" element={<AdminCampaigns />} />
             <Route path="/admin/ad-analytics" element={<AdminAdAnalytics />} />
             <Route path="/admin/onboarding" element={<OnboardingAdmin />} />
+              <Route path="/admin/permissions" element={<Permissions />} />
+              <Route path="/admin/webhooks" element={<Webhooks />} />
+              <Route path="/admin/logs" element={<Logs />} />
+              <Route path="/admin/market-intelligence" element={<MarketIntelligence />} />
+              <Route path="/admin/proposal-builder" element={<ProposalBuilder />} />
+              <Route path="/admin/marketing-gtm" element={<MarketingGTM />} />
+              <Route path="/admin/investor-spreadsheets-v2" element={<InvestorSpreadsheets />} />
+              <Route path="/admin/sales-leads" element={<SalesLeads />} />
           <Route path="/advertiser" element={<AdvertiserServices />} />
           <Route path="/advertiser/signup" element={<AdvertiserSignup />} />
           <Route path="/advertiser/dashboard" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserDashboard /></ProtectedRoute>} />
