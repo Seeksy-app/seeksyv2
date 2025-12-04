@@ -518,14 +518,14 @@ const AppContent = () => {
           {/* Unified Seeksy / My Day OS Sidebar for all routes */}
           {shouldShowSidebar && <RoleBasedSidebar user={user} />}
         
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-h-screen overflow-auto">
           {/* TopNavBar on all authenticated pages except studio routes and tour mode */}
           {shouldShowTopNav && <TopNavBar />}
           
           {/* Board View Banner for super admins in preview mode */}
           <BoardViewBanner />
           
-          <main className="flex-1 bg-background overflow-hidden">
+          <main className="flex-1 flex flex-col bg-background">
             <RouteTransition>
               <Routes>
               <Route path="/" element={<Index />} />

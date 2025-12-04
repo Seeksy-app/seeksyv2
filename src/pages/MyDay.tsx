@@ -154,8 +154,8 @@ export default function MyDay() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6 flex-1">
+    <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 space-y-6">
         {/* Header - matches Dashboard */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -303,8 +303,11 @@ export default function MyDay() {
           </Card>
         </div>
 
+        {/* Spacer to push cross-links to bottom */}
+        <div className="flex-1" />
+
         {/* Cross-links - matches Dashboard */}
-        <Card className="bg-muted/30">
+        <Card className="bg-muted/30 mt-auto">
           <CardContent className="p-4">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
