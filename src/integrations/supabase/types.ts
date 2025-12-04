@@ -17959,6 +17959,137 @@ export type Database = {
         }
         Relationships: []
       }
+      ticket_attachments: {
+        Row: {
+          created_at: string | null
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          message_id: string | null
+          ticket_id: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          message_id?: string | null
+          ticket_id?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          message_id?: string | null
+          ticket_id?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_attachments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_audit_log: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          new_value: Json | null
+          old_value: Json | null
+          ticket_id: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          new_value?: Json | null
+          old_value?: Json | null
+          ticket_id: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          new_value?: Json | null
+          old_value?: Json | null
+          ticket_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_audit_log_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_automations: {
+        Row: {
+          actions: Json | null
+          conditions: Json | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          priority: number | null
+          trigger_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          actions?: Json | null
+          conditions?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          priority?: number | null
+          trigger_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          actions?: Json | null
+          conditions?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          priority?: number | null
+          trigger_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       ticket_comments: {
         Row: {
           comment_text: string
@@ -17994,14 +18125,189 @@ export type Database = {
           },
         ]
       }
+      ticket_messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          is_internal_note: boolean | null
+          sender_id: string | null
+          sender_type: string
+          ticket_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          is_internal_note?: boolean | null
+          sender_id?: string | null
+          sender_type?: string
+          ticket_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_internal_note?: boolean | null
+          sender_id?: string | null
+          sender_type?: string
+          ticket_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_sla_policies: {
+        Row: {
+          created_at: string | null
+          first_response_hours: number
+          id: string
+          is_active: boolean | null
+          name: string
+          priority: string
+          resolution_hours: number
+        }
+        Insert: {
+          created_at?: string | null
+          first_response_hours: number
+          id?: string
+          is_active?: boolean | null
+          name: string
+          priority: string
+          resolution_hours: number
+        }
+        Update: {
+          created_at?: string | null
+          first_response_hours?: number
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          priority?: string
+          resolution_hours?: number
+        }
+        Relationships: []
+      }
+      ticket_tag_assignments: {
+        Row: {
+          created_at: string | null
+          id: string
+          tag_id: string
+          ticket_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          tag_id: string
+          ticket_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          tag_id?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_tag_assignments_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_tag_assignments_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_tags: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      ticket_templates: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          shortcut_key: string | null
+          subject: string | null
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          shortcut_key?: string | null
+          subject?: string | null
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          shortcut_key?: string | null
+          subject?: string | null
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
       tickets: {
         Row: {
+          ai_summary: string | null
           assigned_to: string | null
           best_contact_times: string[] | null
+          browser_info: Json | null
           category: string | null
+          channel: string | null
           contact_id: string | null
           created_at: string | null
           description: string | null
+          device_info: Json | null
+          first_response_at: string | null
           id: string
           last_activity_at: string | null
           latitude: number | null
@@ -18012,8 +18318,13 @@ export type Database = {
           preferred_contact_method: string[] | null
           priority: string | null
           property_address: string | null
+          requester_email: string | null
+          requester_name: string | null
           resolved_at: string | null
           scheduled_estimate_time: string | null
+          sla_breach_at: string | null
+          sla_policy_id: string | null
+          source: string | null
           status: string | null
           ticket_number: string
           title: string
@@ -18022,12 +18333,17 @@ export type Database = {
           work_types: string[] | null
         }
         Insert: {
+          ai_summary?: string | null
           assigned_to?: string | null
           best_contact_times?: string[] | null
+          browser_info?: Json | null
           category?: string | null
+          channel?: string | null
           contact_id?: string | null
           created_at?: string | null
           description?: string | null
+          device_info?: Json | null
+          first_response_at?: string | null
           id?: string
           last_activity_at?: string | null
           latitude?: number | null
@@ -18038,8 +18354,13 @@ export type Database = {
           preferred_contact_method?: string[] | null
           priority?: string | null
           property_address?: string | null
+          requester_email?: string | null
+          requester_name?: string | null
           resolved_at?: string | null
           scheduled_estimate_time?: string | null
+          sla_breach_at?: string | null
+          sla_policy_id?: string | null
+          source?: string | null
           status?: string | null
           ticket_number: string
           title: string
@@ -18048,12 +18369,17 @@ export type Database = {
           work_types?: string[] | null
         }
         Update: {
+          ai_summary?: string | null
           assigned_to?: string | null
           best_contact_times?: string[] | null
+          browser_info?: Json | null
           category?: string | null
+          channel?: string | null
           contact_id?: string | null
           created_at?: string | null
           description?: string | null
+          device_info?: Json | null
+          first_response_at?: string | null
           id?: string
           last_activity_at?: string | null
           latitude?: number | null
@@ -18064,8 +18390,13 @@ export type Database = {
           preferred_contact_method?: string[] | null
           priority?: string | null
           property_address?: string | null
+          requester_email?: string | null
+          requester_name?: string | null
           resolved_at?: string | null
           scheduled_estimate_time?: string | null
+          sla_breach_at?: string | null
+          sla_policy_id?: string | null
+          source?: string | null
           status?: string | null
           ticket_number?: string
           title?: string
@@ -18079,6 +18410,13 @@ export type Database = {
             columns: ["contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_sla_policy_id_fkey"
+            columns: ["sla_policy_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_sla_policies"
             referencedColumns: ["id"]
           },
         ]
