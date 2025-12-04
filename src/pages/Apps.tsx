@@ -342,6 +342,28 @@ const modules: Module[] = [
 
   // Business Operations
   {
+    id: "meetings",
+    name: "Meetings",
+    description: "Book calls and appointments",
+    icon: CalendarClock,
+    status: "active",
+    category: "business",
+    route: "/creator/meetings",
+    recommendedWith: ["Events"],
+    creditEstimate: 5,
+  },
+  {
+    id: "signups",
+    name: "Sign-ups",
+    description: "Collect RSVPs and registrations",
+    icon: FormInput,
+    status: "active",
+    category: "business",
+    route: "/signup-sheets",
+    recommendedWith: ["Events", "Forms"],
+    creditEstimate: 5,
+  },
+  {
     id: "proposals",
     name: "Proposals",
     description: "Create professional proposals and contracts",
