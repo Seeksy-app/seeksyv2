@@ -161,8 +161,12 @@ export function BoardOnboardingTour() {
                 </div>
                 
                 <button
-                  onClick={handleSkip}
-                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/20 transition-colors"
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSkip();
+                  }}
+                  className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/20 transition-colors z-10"
                 >
                   <X className="w-5 h-5" />
                 </button>
