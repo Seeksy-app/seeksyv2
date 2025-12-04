@@ -15,39 +15,40 @@ import {
   ArrowRight,
   Clock,
   Check,
-  Plus,
-  Loader2
+  Loader2,
+  ExternalLink,
+  Grid3x3
 } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useModuleActivation } from "@/hooks/useModuleActivation";
 
 /**
- * CREATOR HUB - Tools & Opportunities Hub (App Store)
+ * CREATOR HUB - Personal Control Center
  * 
  * Purpose: "What tools and earning opportunities do I have?"
- * Content: Available tools for activation, monetization opportunities
+ * Content: ONLY shows activated tools - this is a personal workspace, not an app store.
  * 
- * Activated modules are removed from here and appear in navigation.
- * This acts as an "App Store" - Navigation is "My Installed Apps"
+ * To discover and activate new modules, users go to Apps / Seekies & Tools page.
  */
 
-const allTools = [
+const allModules = [
   {
     id: 'social-connect',
     name: 'Social Connect',
     description: 'Link social accounts',
     icon: Instagram,
     color: 'from-purple-500 to-pink-500',
-    path: '/integrations'
+    path: '/integrations',
+    category: 'tools'
   },
   {
     id: 'social-analytics',
     name: 'Social Analytics',
-    description: 'Track engagement',
+    description: 'Track engagement & growth',
     icon: BarChart3,
     color: 'from-blue-500 to-cyan-500',
     path: '/social-analytics',
-    prerequisite: 'social-connect'
+    category: 'tools'
   },
   {
     id: 'meetings',
@@ -55,23 +56,26 @@ const allTools = [
     description: 'Book calls & appointments',
     icon: Calendar,
     color: 'from-teal-500 to-emerald-500',
-    path: '/meetings'
+    path: '/meetings',
+    category: 'tools'
   },
   {
     id: 'studio',
     name: 'Studio',
-    description: 'Record content',
+    description: 'Record & edit content',
     icon: Video,
     color: 'from-slate-600 to-slate-800',
-    path: '/studio'
+    path: '/studio',
+    category: 'tools'
   },
   {
     id: 'podcasts',
     name: 'Podcasts',
-    description: 'Publish shows',
+    description: 'Publish & distribute shows',
     icon: Mic,
     color: 'from-violet-500 to-purple-500',
-    path: '/podcasts'
+    path: '/podcasts',
+    category: 'tools'
   },
   {
     id: 'content-library',
@@ -79,18 +83,17 @@ const allTools = [
     description: 'Manage media assets',
     icon: FolderOpen,
     color: 'from-red-500 to-orange-500',
-    path: '/media'
+    path: '/media',
+    category: 'tools'
   },
-];
-
-const allOpportunities = [
   {
     id: 'brand-campaigns',
     name: 'Brand Campaigns',
     description: 'Sponsorship opportunities',
     icon: Target,
     color: 'from-blue-600 to-indigo-600',
-    path: '/creator-campaigns'
+    path: '/creator-campaigns',
+    category: 'monetization'
   },
   {
     id: 'revenue-tracking',
@@ -98,17 +101,9 @@ const allOpportunities = [
     description: 'Earnings and payouts',
     icon: DollarSign,
     color: 'from-orange-500 to-amber-500',
-    path: '/monetization'
+    path: '/monetization',
+    category: 'monetization'
   },
-  {
-    id: 'growth-tools',
-    name: 'Growth Tools',
-    description: 'AI audience growth',
-    icon: TrendingUp,
-    color: 'from-pink-500 to-rose-500',
-    path: '/creator-hub',
-    comingSoon: true
-  }
 ];
 
 export default function CreatorHub() {
@@ -116,34 +111,18 @@ export default function CreatorHub() {
   const { 
     activatedModuleIds, 
     isLoading, 
-    isModuleActivated, 
-    activateModule, 
-    isActivating 
+    isModuleActivated
   } = useModuleActivation();
 
-  // Filter to show only NON-activated tools (App Store behavior)
-  const availableTools = allTools.filter(tool => !isModuleActivated(tool.id));
-  const availableOpportunities = allOpportunities.filter(opp => !isModuleActivated(opp.id));
+  // Show ONLY activated modules - Creator Hub is a personal control center
+  const activatedTools = allModules.filter(
+    mod => mod.category === 'tools' && isModuleActivated(mod.id)
+  );
+  const activatedMonetization = allModules.filter(
+    mod => mod.category === 'monetization' && isModuleActivated(mod.id)
+  );
 
-  // Get activated tools to show in a summary section
-  const activatedTools = allTools.filter(tool => isModuleActivated(tool.id));
-  const activatedOpportunities = allOpportunities.filter(opp => isModuleActivated(opp.id));
-
-  const handleActivate = (moduleId: string, path: string) => {
-    activateModule(moduleId);
-    // Navigate after activation
-    setTimeout(() => navigate(path), 300);
-  };
-
-  const checkPrerequisite = (tool: typeof allTools[0]) => {
-    if (!tool.prerequisite) return { met: true, message: null };
-    const prereqMet = isModuleActivated(tool.prerequisite);
-    const prereqTool = allTools.find(t => t.id === tool.prerequisite);
-    return {
-      met: prereqMet,
-      message: prereqMet ? null : `Requires ${prereqTool?.name || tool.prerequisite}`
-    };
-  };
+  const hasAnyActivatedModules = activatedTools.length > 0 || activatedMonetization.length > 0;
 
   if (isLoading) {
     return (
@@ -167,9 +146,9 @@ export default function CreatorHub() {
           </div>
         </div>
 
-        {/* Active Tools Summary (if any are activated) */}
-        {(activatedTools.length > 0 || activatedOpportunities.length > 0) && (
-          <Card className="bg-emerald-50/50 border-emerald-200">
+        {/* Your Active Tools */}
+        {activatedTools.length > 0 && (
+          <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Check className="h-5 w-5 text-emerald-600" />
@@ -177,33 +156,6 @@ export default function CreatorHub() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {[...activatedTools, ...activatedOpportunities.filter(o => !o.comingSoon)].map((item) => (
-                  <Badge 
-                    key={item.id} 
-                    variant="secondary" 
-                    className="bg-emerald-100 text-emerald-700 cursor-pointer hover:bg-emerald-200"
-                    onClick={() => navigate(item.path)}
-                  >
-                    {item.name}
-                    <ArrowRight className="h-3 w-3 ml-1" />
-                  </Badge>
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                These appear in your navigation. Click to open.
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Available Tools */}
-        {availableTools.length > 0 && (
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Available Tools</CardTitle>
-            </CardHeader>
-            <CardContent>
               <div 
                 className="grid gap-4"
                 style={{
@@ -211,42 +163,27 @@ export default function CreatorHub() {
                   gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
                 }}
               >
-                {availableTools.map((tool) => {
+                {activatedTools.map((tool) => {
                   const Icon = tool.icon;
-                  const prereq = checkPrerequisite(tool);
-                  
                   return (
                     <div
                       key={tool.id}
-                      className={`group p-4 rounded-xl border transition-all duration-200 hover:shadow-md ${
-                        !prereq.met ? 'opacity-60' : ''
-                      }`}
+                      onClick={() => navigate(tool.path)}
+                      className="group p-4 rounded-xl border cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/30 bg-card"
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div className={`p-2 rounded-lg bg-gradient-to-br ${tool.color} shadow-sm`}>
                           <Icon className="h-4 w-4 text-white" />
                         </div>
-                        <Badge variant="outline" className="text-[10px]">
-                          Available
+                        <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 text-[10px]">
+                          Activated
                         </Badge>
                       </div>
                       <h3 className="font-semibold text-sm">{tool.name}</h3>
                       <p className="text-xs text-muted-foreground mb-3">{tool.description}</p>
-                      
-                      {prereq.message ? (
-                        <p className="text-xs text-amber-600">{prereq.message}</p>
-                      ) : (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          className="w-full"
-                          onClick={() => handleActivate(tool.id, tool.path)}
-                          disabled={isActivating}
-                        >
-                          <Plus className="h-3 w-3 mr-1" />
-                          Add to Workspace
-                        </Button>
-                      )}
+                      <div className="flex items-center text-xs text-primary font-medium group-hover:underline">
+                        Open <ExternalLink className="h-3 w-3 ml-1" />
+                      </div>
                     </div>
                   );
                 })}
@@ -255,13 +192,13 @@ export default function CreatorHub() {
           </Card>
         )}
 
-        {/* Monetization Opportunities */}
-        {availableOpportunities.length > 0 && (
+        {/* Your Monetization Tools */}
+        {activatedMonetization.length > 0 && (
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
                 <DollarSign className="h-5 w-5 text-green-600" />
-                Monetization Opportunities
+                Your Monetization Tools
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -272,46 +209,27 @@ export default function CreatorHub() {
                   gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
                 }}
               >
-                {availableOpportunities.map((opp) => {
-                  const Icon = opp.icon;
-                  const isComingSoon = opp.comingSoon;
-                  
+                {activatedMonetization.map((tool) => {
+                  const Icon = tool.icon;
                   return (
                     <div
-                      key={opp.id}
-                      className={`group p-4 rounded-xl border transition-all duration-200 hover:shadow-md ${
-                        isComingSoon ? 'opacity-60' : ''
-                      }`}
+                      key={tool.id}
+                      onClick={() => navigate(tool.path)}
+                      className="group p-4 rounded-xl border cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/30 bg-card"
                     >
                       <div className="flex items-start justify-between mb-2">
-                        <div className={`p-2 rounded-lg bg-gradient-to-br ${opp.color} shadow-sm`}>
+                        <div className={`p-2 rounded-lg bg-gradient-to-br ${tool.color} shadow-sm`}>
                           <Icon className="h-4 w-4 text-white" />
                         </div>
-                        {isComingSoon ? (
-                          <Badge variant="secondary" className="text-[10px] bg-amber-100 text-amber-700">
-                            Soon
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-[10px]">
-                            Available
-                          </Badge>
-                        )}
+                        <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 text-[10px]">
+                          Activated
+                        </Badge>
                       </div>
-                      <h3 className="font-semibold text-sm">{opp.name}</h3>
-                      <p className="text-xs text-muted-foreground mb-3">{opp.description}</p>
-                      
-                      {!isComingSoon && (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          className="w-full"
-                          onClick={() => handleActivate(opp.id, opp.path)}
-                          disabled={isActivating}
-                        >
-                          <Plus className="h-3 w-3 mr-1" />
-                          Add to Workspace
-                        </Button>
-                      )}
+                      <h3 className="font-semibold text-sm">{tool.name}</h3>
+                      <p className="text-xs text-muted-foreground mb-3">{tool.description}</p>
+                      <div className="flex items-center text-xs text-primary font-medium group-hover:underline">
+                        Open <ExternalLink className="h-3 w-3 ml-1" />
+                      </div>
                     </div>
                   );
                 })}
@@ -320,15 +238,37 @@ export default function CreatorHub() {
           </Card>
         )}
 
-        {/* All activated message */}
-        {availableTools.length === 0 && availableOpportunities.filter(o => !o.comingSoon).length === 0 && (
+        {/* Empty State - No activated modules */}
+        {!hasAnyActivatedModules && (
           <Card className="bg-muted/30">
-            <CardContent className="p-6 text-center">
-              <Check className="h-8 w-8 text-emerald-600 mx-auto mb-2" />
-              <h3 className="font-semibold">All tools activated!</h3>
-              <p className="text-sm text-muted-foreground">
-                You've added all available tools to your workspace. Find them in your navigation.
+            <CardContent className="p-8 text-center">
+              <Grid3x3 className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+              <h3 className="font-semibold text-lg mb-2">No tools activated yet</h3>
+              <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
+                Visit the Apps & Tools page to discover and activate tools for your workspace.
+                Once activated, they'll appear here for quick access.
               </p>
+              <Button onClick={() => navigate('/apps')}>
+                <Sparkles className="h-4 w-4 mr-2" />
+                Browse Apps & Tools
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Browse More Tools CTA */}
+        {hasAnyActivatedModules && (
+          <Card className="bg-primary/5 border-primary/20">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <span>Want more tools?</span>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => navigate('/apps')}>
+                  Browse Apps & Tools <ArrowRight className="h-3 w-3 ml-1" />
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}

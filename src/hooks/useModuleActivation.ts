@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { getAllModulesToActivate } from "@/config/moduleCompanions";
 
 export interface ActivatedModule {
   module_id: string;
@@ -44,31 +45,54 @@ export function useModuleActivation() {
   // Get list of activated module IDs
   const activatedModuleIds = activatedModules.map(m => m.module_id);
 
-  // Activate a module
-  const activateModule = useMutation({
+  // Activate a module (with companion auto-activation)
+  const activateModuleMutation = useMutation({
     mutationFn: async (moduleId: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // Get all modules to activate (main + companions)
+      const modulesToActivate = getAllModulesToActivate(moduleId);
+      
+      // Filter out already activated modules
+      const newModules = modulesToActivate.filter(
+        id => !activatedModules.some(m => m.module_id === id)
+      );
+
+      if (newModules.length === 0) {
+        return { moduleId, companions: [] };
+      }
+
+      // Batch insert all modules
       const { error } = await supabase
         .from('user_modules')
-        .upsert({
-          user_id: user.id,
-          module_id: moduleId,
-          activated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id,module_id'
-        });
+        .upsert(
+          newModules.map(id => ({
+            user_id: user.id,
+            module_id: id,
+            activated_at: new Date().toISOString()
+          })),
+          { onConflict: 'user_id,module_id' }
+        );
 
       if (error) throw error;
-      return moduleId;
+      
+      return { 
+        moduleId, 
+        companions: newModules.filter(id => id !== moduleId) 
+      };
     },
-    onSuccess: (moduleId) => {
+    onSuccess: ({ moduleId, companions }) => {
       queryClient.invalidateQueries({ queryKey: ['user-activated-modules'] });
       queryClient.invalidateQueries({ queryKey: ['user-preferences'] });
+      
+      const companionText = companions.length > 0 
+        ? ` Also enabled: ${companions.join(', ')}.` 
+        : '';
+      
       toast({
         title: "Module Activated",
-        description: `Module has been added to your workspace and navigation.`,
+        description: `Added to your workspace and navigation.${companionText}`,
       });
     },
     onError: (error) => {
@@ -82,7 +106,7 @@ export function useModuleActivation() {
   });
 
   // Deactivate a module
-  const deactivateModule = useMutation({
+  const deactivateModuleMutation = useMutation({
     mutationFn: async (moduleId: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
@@ -119,10 +143,10 @@ export function useModuleActivation() {
     activatedModuleIds,
     isLoading,
     isModuleActivated,
-    activateModule: activateModule.mutate,
-    deactivateModule: deactivateModule.mutate,
-    isActivating: activateModule.isPending,
-    isDeactivating: deactivateModule.isPending,
+    activateModule: activateModuleMutation.mutate,
+    deactivateModule: deactivateModuleMutation.mutate,
+    isActivating: activateModuleMutation.isPending,
+    isDeactivating: deactivateModuleMutation.isPending,
     refetch,
   };
 }

@@ -24,6 +24,8 @@ const personaModuleMapping: Record<string, string[]> = {
   agency: ["crm", "email", "events", "sms", "monetize"],
 };
 
+const DEFAULT_CREATOR_LANDING = '/my-day';
+
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
@@ -49,15 +51,25 @@ const Index = () => {
         // Admin users go to admin
         if (roles?.role === 'admin' || roles?.role === 'super_admin') {
           navigate('/admin');
+          return;
         }
+        
         // Advertiser users go to advertiser dashboard
-        else if (profile?.preferred_role === 'advertiser' || (profile?.is_advertiser && !profile?.is_creator)) {
+        if (profile?.preferred_role === 'advertiser' || (profile?.is_advertiser && !profile?.is_creator)) {
           navigate('/advertiser');
+          return;
         }
-        // Creator users go to creator dashboard
-        else {
-          navigate('/dashboard');
-        }
+        
+        // Creator users - check for custom default landing route
+        const { data: prefs } = await supabase
+          .from('user_preferences')
+          .select('default_landing_route')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+
+        // Use user's preferred landing route, or fallback to My Day
+        const landingRoute = prefs?.default_landing_route || DEFAULT_CREATOR_LANDING;
+        navigate(landingRoute);
       }
     });
 
