@@ -18190,6 +18190,7 @@ export type Database = {
           auto_transcribe_enabled: boolean | null
           contacts_enabled: boolean | null
           created_at: string | null
+          default_landing_route: string | null
           dismissed_dependency_warnings: string[] | null
           id: string
           meeting_studio_preference: string | null
@@ -18216,6 +18217,7 @@ export type Database = {
           module_team_chat_enabled: boolean | null
           my_page_enabled: boolean | null
           my_page_visited: boolean | null
+          nav_config: Json | null
           onboarding_completed: boolean | null
           pinned_modules: Json | null
           podcasts_enabled: boolean | null
@@ -18241,6 +18243,7 @@ export type Database = {
           auto_transcribe_enabled?: boolean | null
           contacts_enabled?: boolean | null
           created_at?: string | null
+          default_landing_route?: string | null
           dismissed_dependency_warnings?: string[] | null
           id?: string
           meeting_studio_preference?: string | null
@@ -18267,6 +18270,7 @@ export type Database = {
           module_team_chat_enabled?: boolean | null
           my_page_enabled?: boolean | null
           my_page_visited?: boolean | null
+          nav_config?: Json | null
           onboarding_completed?: boolean | null
           pinned_modules?: Json | null
           podcasts_enabled?: boolean | null
@@ -18292,6 +18296,7 @@ export type Database = {
           auto_transcribe_enabled?: boolean | null
           contacts_enabled?: boolean | null
           created_at?: string | null
+          default_landing_route?: string | null
           dismissed_dependency_warnings?: string[] | null
           id?: string
           meeting_studio_preference?: string | null
@@ -18318,6 +18323,7 @@ export type Database = {
           module_team_chat_enabled?: boolean | null
           my_page_enabled?: boolean | null
           my_page_visited?: boolean | null
+          nav_config?: Json | null
           onboarding_completed?: boolean | null
           pinned_modules?: Json | null
           podcasts_enabled?: boolean | null

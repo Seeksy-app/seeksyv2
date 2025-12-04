@@ -4,46 +4,59 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   Mail, 
-  Users, 
   Calendar, 
   CheckSquare, 
   Bell,
-  Plus,
-  Video,
-  Mic,
-  FileText,
-  CalendarCheck
+  ArrowRight,
+  Clock,
+  AlertCircle
 } from "lucide-react";
 import { SparkIcon } from "@/components/spark/SparkIcon";
 import { Link } from "react-router-dom";
 import { FloatingEmailComposer } from "@/components/email/client/FloatingEmailComposer";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useFaviconManager } from "@/hooks/useFaviconManager";
-import { GlobalSearch } from "@/components/GlobalSearch";
 import { TodaysKeyTasks } from "@/components/my-day/TodaysKeyTasks";
-import { EngagementOpportunities } from "@/components/my-day/EngagementOpportunities";
-import { DraftReview } from "@/components/my-day/DraftReview";
 import { UpcomingMeetings } from "@/components/my-day/UpcomingMeetings";
+import { format } from "date-fns";
 
+/**
+ * MY DAY - Daily Control Center
+ * 
+ * Purpose: "What do I need to do today?"
+ * Content: Today's meetings, tasks, deadlines, reminders, notifications
+ * 
+ * This is distinct from:
+ * - Dashboard (metrics/performance snapshot)
+ * - Creator Hub (tools & opportunities)
+ */
 export default function MyDay() {
   const [user, setUser] = useState<any>(null);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [stats, setStats] = useState({
     unreadEmails: 0,
-    newContacts: 0,
     meetingsToday: 0,
     pendingTasks: 0,
     alerts: 0
   });
+  const [greeting, setGreeting] = useState("Hello");
 
-  // Page title and favicon management
   usePageTitle("My Day");
   useFaviconManager();
 
   useEffect(() => {
     loadUser();
     loadStats();
+    setTimeBasedGreeting();
   }, []);
+
+  const setTimeBasedGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting("Good morning");
+    else if (hour < 17) setGreeting("Good afternoon");
+    else if (hour < 21) setGreeting("Good evening");
+    else setGreeting("Good night");
+  };
 
   const loadUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -58,11 +71,9 @@ export default function MyDay() {
   };
 
   const loadStats = async () => {
-    // Load real stats from database
-    // For now, showing structure with placeholder data
+    // Stats loaded via individual components
     setStats({
       unreadEmails: 0,
-      newContacts: 0,
       meetingsToday: 0,
       pendingTasks: 0,
       alerts: 0
@@ -70,167 +81,122 @@ export default function MyDay() {
   };
 
   const firstName = user?.full_name?.split(' ')[0] || 'there';
+  const today = format(new Date(), "EEEE, MMMM d");
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-7xl mx-auto p-6 space-y-8">
-        {/* Welcome Header with Gradient */}
-        <div className="rounded-2xl bg-gradient-to-r from-[hsl(220,80%,96%)] to-[hsl(270,60%,97%)] p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-start gap-4">
-              <div className="mt-1">
-                <SparkIcon size={48} />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold mb-2 text-foreground">Good morning, {firstName}! ✨</h1>
-                <p className="text-muted-foreground">
-                  Here's what needs your attention today
-                </p>
-              </div>
-            </div>
-            <div className="w-96">
-              <GlobalSearch />
+      <div className="container max-w-5xl mx-auto p-6 space-y-6">
+        {/* Header - Time-focused */}
+        <div className="rounded-2xl bg-gradient-to-r from-primary/5 to-primary/10 p-6">
+          <div className="flex items-start gap-4">
+            <SparkIcon size={48} />
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">{today}</p>
+              <h1 className="text-2xl font-bold text-foreground">{greeting}, {firstName}!</h1>
+              <p className="text-muted-foreground mt-1">
+                Your schedule and action items for today.
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Stats Grid - Metric Cards with Colors */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Inbox - Blue */}
+        {/* Today's Quick Stats - Action-oriented */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Link to="/email">
-            <Card className="cursor-pointer transition-all duration-200 hover:scale-[1.02] shadow-sm hover:shadow-md bg-[hsl(217,100%,97%)] hover:bg-[hsl(217,100%,95%)] border-[hsl(217,90%,90%)] rounded-xl group">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-3 text-foreground">
-                  <div className="p-2 rounded-full bg-[hsl(217,90%,60%)] shadow-sm">
-                    <Mail className="h-4 w-4 text-white" />
+            <Card className="cursor-pointer hover:shadow-md transition-all hover:scale-[1.02]">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                    <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
-                  Inbox
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-[1.5rem] font-bold text-foreground">{stats.unreadEmails}</div>
-                <p className="text-xs text-muted-foreground">unread messages</p>
+                  <div>
+                    <p className="text-2xl font-bold">{stats.unreadEmails}</p>
+                    <p className="text-xs text-muted-foreground">Unread</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </Link>
 
-          {/* Audience - Green */}
-          <Link to="/contacts">
-            <Card className="cursor-pointer transition-all duration-200 hover:scale-[1.02] shadow-sm hover:shadow-md bg-[hsl(142,70%,96%)] hover:bg-[hsl(142,70%,93%)] border-[hsl(142,60%,85%)] rounded-xl group">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-3 text-foreground">
-                  <div className="p-2 rounded-full bg-[hsl(142,70%,45%)] shadow-sm">
-                    <Users className="h-4 w-4 text-white" />
-                  </div>
-                  Audience
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-[1.5rem] font-bold text-foreground">{stats.newContacts}</div>
-                <p className="text-xs text-muted-foreground">new contacts</p>
-              </CardContent>
-            </Card>
-          </Link>
-
-          {/* Meetings - Teal */}
           <Link to="/meetings">
-            <Card className="cursor-pointer transition-all duration-200 hover:scale-[1.02] shadow-sm hover:shadow-md bg-[hsl(199,90%,96%)] hover:bg-[hsl(199,90%,93%)] border-[hsl(199,80%,85%)] rounded-xl group">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-3 text-foreground">
-                  <div className="p-2 rounded-full bg-[hsl(199,90%,48%)] shadow-sm">
-                    <Calendar className="h-4 w-4 text-white" />
+            <Card className="cursor-pointer hover:shadow-md transition-all hover:scale-[1.02]">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-teal-100 dark:bg-teal-900/30">
+                    <Calendar className="h-5 w-5 text-teal-600 dark:text-teal-400" />
                   </div>
-                  Meetings
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-[1.5rem] font-bold text-foreground">{stats.meetingsToday}</div>
-                <p className="text-xs text-muted-foreground">meetings today</p>
+                  <div>
+                    <p className="text-2xl font-bold">{stats.meetingsToday}</p>
+                    <p className="text-xs text-muted-foreground">Meetings</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </Link>
 
-          {/* Tasks - Orange */}
           <Link to="/tasks">
-            <Card className="cursor-pointer transition-all duration-200 hover:scale-[1.02] shadow-sm hover:shadow-md bg-[hsl(25,100%,96%)] hover:bg-[hsl(25,100%,93%)] border-[hsl(25,90%,85%)] rounded-xl group">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-3 text-foreground">
-                  <div className="p-2 rounded-full bg-[hsl(25,95%,53%)] shadow-sm">
-                    <CheckSquare className="h-4 w-4 text-white" />
+            <Card className="cursor-pointer hover:shadow-md transition-all hover:scale-[1.02]">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                    <CheckSquare className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                   </div>
-                  Tasks
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-[1.5rem] font-bold text-foreground">{stats.pendingTasks}</div>
-                <p className="text-xs text-muted-foreground">pending tasks</p>
+                  <div>
+                    <p className="text-2xl font-bold">{stats.pendingTasks}</p>
+                    <p className="text-xs text-muted-foreground">Tasks</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </Link>
+
+          <Card className="cursor-pointer hover:shadow-md transition-all hover:scale-[1.02]">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30">
+                  <Bell className="h-5 w-5 text-red-600 dark:text-red-400" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{stats.alerts}</p>
+                  <p className="text-xs text-muted-foreground">Alerts</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Quick Actions - Quick Create Cards with Colors */}
-        <Card className="shadow-sm hover:shadow-md transition-all duration-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-primary/10">
-                <Plus className="h-5 w-5 text-primary" />
+        {/* Main Content - Today's Focus */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Today's Meetings */}
+          <UpcomingMeetings />
+
+          {/* Today's Tasks */}
+          <TodaysKeyTasks />
+        </div>
+
+        {/* Cross-links to other views */}
+        <Card className="bg-muted/30">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock className="h-4 w-4" />
+                <span>Need a bigger picture?</span>
               </div>
-              Quick Create
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {/* Create Email - Blue */}
-            <Button 
-              variant="outline" 
-              className="h-auto py-6 flex-col gap-2 border-border/60 hover:bg-[hsl(217,100%,97%)] hover:border-[hsl(217,90%,80%)] transition-all"
-              onClick={() => setIsComposerOpen(true)}
-            >
-              <div className="p-2 rounded-full bg-[hsl(217,90%,95%)]">
-                <Mail className="h-6 w-6 text-[hsl(217,90%,50%)]" />
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/dashboard">
+                    View Dashboard <ArrowRight className="h-3 w-3 ml-1" />
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/creator-hub">
+                    Open Creator Hub <ArrowRight className="h-3 w-3 ml-1" />
+                  </Link>
+                </Button>
               </div>
-              <span className="font-medium">Create Email</span>
-            </Button>
-            
-            {/* Create Post - Purple */}
-            <Button variant="outline" className="h-auto py-6 flex-col gap-2 border-border/60 hover:bg-[hsl(270,80%,97%)] hover:border-[hsl(270,70%,80%)] transition-all" asChild>
-              <Link to="/content">
-                <div className="p-2 rounded-full bg-[hsl(270,80%,95%)]">
-                  <FileText className="h-6 w-6 text-[hsl(270,70%,50%)]" />
-                </div>
-                <span className="font-medium">Create Post</span>
-              </Link>
-            </Button>
-            
-            {/* Create Clip - Pink */}
-            <Button variant="outline" className="h-auto py-6 flex-col gap-2 border-border/60 hover:bg-[hsl(330,80%,97%)] hover:border-[hsl(330,70%,80%)] transition-all" asChild>
-              <Link to="/studio/clips">
-                <div className="p-2 rounded-full bg-[hsl(330,80%,95%)]">
-                  <Video className="h-6 w-6 text-[hsl(330,70%,50%)]" />
-                </div>
-                <span className="font-medium">Create Clip</span>
-              </Link>
-            </Button>
-            
-            {/* Schedule Meeting - Teal */}
-            <Button variant="outline" className="h-auto py-6 flex-col gap-2 border-border/60 hover:bg-[hsl(199,90%,97%)] hover:border-[hsl(199,80%,80%)] transition-all" asChild>
-              <Link to="/meetings">
-                <div className="p-2 rounded-full bg-[hsl(199,90%,95%)]">
-                  <CalendarCheck className="h-6 w-6 text-[hsl(199,80%,45%)]" />
-                </div>
-                <span className="font-medium">Schedule Meeting</span>
-              </Link>
-            </Button>
+            </div>
           </CardContent>
         </Card>
-
-        {/* Smart Blocks - Spark-Powered */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <TodaysKeyTasks />
-          <EngagementOpportunities />
-          <DraftReview />
-          <UpcomingMeetings />
-        </div>
       </div>
 
       <FloatingEmailComposer 
