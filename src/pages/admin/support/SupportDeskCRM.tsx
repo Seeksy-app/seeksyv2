@@ -137,7 +137,7 @@ export default function SupportDeskCRM() {
     }
 
     try {
-      const { error } = await supabase.from("support_tickets").insert([{
+      const { error } = await supabase.from("support_tickets").insert({
         subject: newTicket.subject,
         description: newTicket.description || null,
         user_email: newTicket.user_email || null,
@@ -145,7 +145,7 @@ export default function SupportDeskCRM() {
         category_id: newTicket.category_id || null,
         issue_type: newTicket.issue_type || null,
         source: "portal"
-      }]);
+      } as any);
 
       if (error) throw error;
 

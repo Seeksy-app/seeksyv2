@@ -199,6 +199,9 @@ import CreateMultiChannelCampaign from "./pages/CreateMultiChannelCampaign";
 import MetaOAuthCallback from "./pages/MetaOAuthCallback";
 import SeeksyArchitecture from "./pages/SeeksyArchitecture";
 import SupportDesk from "./pages/admin/SupportDesk";
+import SupportDeskCRM from "./pages/admin/support/SupportDeskCRM";
+import CMOCommandCenter from "./pages/admin/cmo/CMOCommandCenter";
+import CCOCommunications from "./pages/admin/cco/CCOCommunications";
 import SalesLeads from "./pages/admin/SalesLeads";
 import SalesDesk from "./pages/admin/SalesDesk";
 import AdvertisingManagement from "./pages/admin/AdvertisingManagement";
@@ -845,6 +848,15 @@ const AppContent = () => {
           
           {/* R&D Intelligence */}
           <Route path="/admin/rd-feeds" element={<RDIntelligenceFeeds />} />
+          
+          {/* Support Desk CRM */}
+          <Route path="/admin/support-desk" element={<SupportDeskCRM />} />
+          
+          {/* CMO Command Center */}
+          <Route path="/admin/cmo" element={<CMOCommandCenter />} />
+          
+          {/* CCO Communications */}
+          <Route path="/admin/cco" element={<CCOCommunications />} />
           
           {/* Business Tools */}
           <Route path="/business-tools" element={<BusinessToolsLanding />} />
