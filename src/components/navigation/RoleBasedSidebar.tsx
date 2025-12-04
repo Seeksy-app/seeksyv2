@@ -7,8 +7,9 @@
  * 3. Role permissions
  */
 
+import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
-import { 
+import {
   LayoutDashboard,
   User as UserIcon,
   Settings,
@@ -231,9 +232,19 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
   const collapsed = state === "collapsed";
   const { activatedModuleIds, isLoading: modulesLoading } = useModuleActivation();
   const { navConfig, isLoading: navLoading } = useNavPreferences();
+  const [refreshKey, setRefreshKey] = useState(0);
   
   // Use persisted sidebar state with localStorage
   const { openGroups, toggleGroup, isGroupOpen } = useSidebarState();
+
+  // Listen for nav preference updates to force re-render
+  useEffect(() => {
+    const handleNavUpdate = () => {
+      setRefreshKey(prev => prev + 1);
+    };
+    window.addEventListener('navPreferencesUpdated', handleNavUpdate);
+    return () => window.removeEventListener('navPreferencesUpdated', handleNavUpdate);
+  }, []);
 
   if (!user || rolesLoading || navLoading) {
     return null;
