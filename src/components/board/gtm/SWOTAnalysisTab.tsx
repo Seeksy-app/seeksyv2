@@ -337,10 +337,8 @@ Please analyze:
 3. Resource requirements and trade-offs
 4. Specific board-level decisions required`;
 
-    const event = new CustomEvent('openBoardAIChatWithPrompt', { 
-      detail: { prompt }
-    });
-    window.dispatchEvent(event);
+    const encodedPrompt = encodeURIComponent(prompt);
+    window.open(`/board/ai-analyst?prompt=${encodedPrompt}`, '_blank');
     setSelectedItem(null);
   };
 
