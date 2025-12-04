@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
-import { Check, Instagram, Youtube, Users, TrendingUp, DollarSign, Target } from "lucide-react";
+import { Check, Instagram, Youtube, Twitter, Linkedin, Users, TrendingUp, DollarSign, Target } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import type { DemoCreatorV2 } from "@/data/advertiserDemoDataV2";
 
