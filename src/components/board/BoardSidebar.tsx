@@ -24,8 +24,6 @@ import {
   Sword,
   ChartPie,
   Globe,
-  Share2,
-  LineChart,
   Sparkles,
   Briefcase,
 } from 'lucide-react';
@@ -33,7 +31,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useBoardViewMode } from '@/hooks/useBoardViewMode';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
 
 // Overview section
 const overviewItems = [
@@ -103,7 +100,7 @@ const financialItems = [
     id: 'revenue-insights',
     label: 'Revenue Insights',
     icon: DollarSign,
-    disabled: true,
+    path: '/board/revenue-insights',
   },
 ];
 
@@ -125,23 +122,7 @@ const strategyItems = [
     id: 'market-intel',
     label: 'Market Intelligence',
     icon: Globe,
-    disabled: true,
-  },
-];
-
-// Sharing & Access section
-const sharingItems = [
-  {
-    id: 'share-investor',
-    label: 'Share With Investor',
-    icon: Share2,
-    path: '/board/gtm?tab=share-with-investor',
-  },
-  {
-    id: 'investor-analytics',
-    label: 'Investor Analytics',
-    icon: LineChart,
-    path: '/board/investor-links',
+    path: '/board/market-intelligence',
   },
 ];
 
@@ -150,7 +131,6 @@ type NavItem = {
   label: string;
   icon: any;
   path?: string;
-  disabled?: boolean;
 };
 
 export function BoardSidebar() {
@@ -169,7 +149,7 @@ export function BoardSidebar() {
   };
 
   const handleNavigation = (item: NavItem) => {
-    if (item.disabled || !item.path) return;
+    if (!item.path) return;
     navigate(item.path);
   };
 
@@ -190,7 +170,6 @@ export function BoardSidebar() {
   const renderNavItem = (item: NavItem) => {
     const isActive = isItemActive(item);
     const Icon = item.icon;
-    const isDisabled = item.disabled;
 
     return (
       <SidebarMenuItem key={item.id}>
@@ -198,22 +177,15 @@ export function BoardSidebar() {
           onClick={() => handleNavigation(item)}
           className={cn(
             'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm',
-            isDisabled 
-              ? 'text-muted-foreground/50 cursor-not-allowed'
-              : 'text-foreground/80 hover:bg-muted hover:text-foreground',
-            isActive && !isDisabled && 'bg-primary/10 text-primary font-medium'
+            'text-foreground/80 hover:bg-muted hover:text-foreground',
+            isActive && 'bg-primary/10 text-primary font-medium'
           )}
         >
           <Icon className={cn(
             "w-4 h-4 flex-shrink-0",
-            isDisabled ? "text-muted-foreground/50" : isActive ? "text-primary" : "text-muted-foreground"
+            isActive ? "text-primary" : "text-muted-foreground"
           )} />
           <span className="flex-1 truncate">{item.label}</span>
-          {isDisabled && (
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-muted text-muted-foreground border-border">
-              Soon
-            </Badge>
-          )}
         </SidebarMenuButton>
       </SidebarMenuItem>
     );
@@ -249,7 +221,6 @@ export function BoardSidebar() {
         {renderSection('Business', businessItems, 'mt-4')}
         {renderSection('Financials', financialItems, 'mt-4')}
         {renderSection('Competitive & Strategy', strategyItems, 'mt-4')}
-        {renderSection('Sharing & Access', sharingItems, 'mt-4')}
       </SidebarContent>
 
       <SidebarFooter className="p-3 border-t border-border space-y-2">

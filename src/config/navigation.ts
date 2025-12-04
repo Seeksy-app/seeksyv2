@@ -332,7 +332,7 @@ export const NAVIGATION_CONFIG: {
           "id": "admin_revenue_insights",
           "label": "Revenue Insights",
           "icon": "bar-chart-2",
-          "path": "/admin/revenue-reports",
+          "path": "/admin/revenue-insights",
           "roles": ["admin", "super_admin"]
         },
         {

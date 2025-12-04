@@ -381,6 +381,8 @@ import BoardShare from "./pages/board/BoardShare";
 import BoardCEOPlan from "./pages/board/BoardCEOPlan";
 import BoardCEOVTO from "./pages/board/BoardCEOVTO";
 import BoardResearch from "./pages/board/BoardResearch";
+import BoardRevenueInsights from "./pages/board/BoardRevenueInsights";
+import BoardMarketIntelligence from "./pages/board/BoardMarketIntelligence";
 import BoardInvestorPortal from "./pages/investor/InvestorPortal";
 import BoardMemberManagement from "./pages/admin/BoardMemberManagement";
 import { BoardGuard } from "./components/board/BoardGuard";
@@ -756,6 +758,7 @@ const AppContent = () => {
             <Route path="/admin/mascot-generator" element={<MascotGeneratorPage />} />
             <Route path="/admin/email-templates" element={<AdminEmailTemplates />} />
               <Route path="/admin/revenue-reports" element={<RevenueReports />} />
+              <Route path="/admin/revenue-insights" element={<RevenueReports />} />
               <Route path="/admin/billing" element={<Billing />} />
               <Route path="/admin/payments" element={<Payments />} />
               <Route path="/admin/financial-models/ads/*" element={<AdFinancialModels />} />
@@ -836,6 +839,8 @@ const AppContent = () => {
           <Route path="/board/investor-links" element={<BoardInvestorLinks />} />
           <Route path="/board/share" element={<BoardShare />} />
           <Route path="/board/research" element={<BoardResearch />} />
+          <Route path="/board/revenue-insights" element={<BoardRevenueInsights />} />
+          <Route path="/board/market-intelligence" element={<BoardMarketIntelligence />} />
           <Route path="/investor/:token" element={<BoardInvestorPortal />} />
           
           {/* R&D Intelligence */}
