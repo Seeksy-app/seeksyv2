@@ -1,8 +1,8 @@
 /**
- * My Day OS - Navigation Configuration
+ * Admin Navigation Configuration
  * 
- * User-centered navigation aligned with daily workflows
- * instead of technical modules.
+ * This config is ONLY for admin/super_admin users.
+ * Creator navigation is handled by useNavPreferences hook.
  */
 
 export type UserRole = 'creator' | 'subscriber' | 'advertiser' | 'influencer' | 'agency' | 'admin' | 'super_admin' | 'board_member';
@@ -28,215 +28,11 @@ export const NAVIGATION_CONFIG: {
   navigation: NavigationGroup[];
 } = {
   "roles": [
-    "creator",
-    "subscriber",
-    "advertiser",
-    "influencer",
-    "agency",
     "admin",
     "super_admin",
     "board_member"
   ],
   "navigation": [
-    {
-      "group": "Seeksy OS",
-      "description": "Core system navigation",
-      "items": [
-        {
-          "id": "my_day",
-          "label": "My Day",
-          "icon": "sparkles",
-          "path": "/my-day",
-          "roles": ["creator", "influencer", "agency", "advertiser", "admin"]
-        },
-        {
-          "id": "dashboard",
-          "label": "Dashboard",
-          "icon": "layout-dashboard",
-          "path": "/dashboard",
-          "roles": ["creator", "influencer", "agency", "advertiser", "admin"]
-        },
-        {
-          "id": "creator_hub",
-          "label": "Creator Hub",
-          "icon": "sparkles",
-          "path": "/creator-hub",
-          "roles": ["creator", "influencer"]
-        },
-        {
-          "id": "agency_hub",
-          "label": "Agency Hub",
-          "icon": "briefcase",
-          "path": "/agency",
-          "roles": ["agency", "admin"]
-        },
-        {
-          "id": "seekies",
-          "label": "Seeksies & Apps",
-          "icon": "grid-3x3",
-          "path": "/seekies",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "settings",
-          "label": "Settings",
-          "icon": "settings",
-          "path": "/settings",
-          "roles": ["creator", "subscriber", "influencer", "agency", "advertiser", "admin"]
-        }
-      ]
-    },
-
-    {
-      "group": "Email",
-      "description": "Email management",
-      "collapsible": true,
-      "items": [
-        {
-          "id": "email_inbox",
-          "label": "Inbox",
-          "icon": "inbox",
-          "path": "/email/inbox",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "email_scheduled",
-          "label": "Scheduled",
-          "icon": "calendar",
-          "path": "/email/scheduled",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "email_drafts",
-          "label": "Drafts",
-          "icon": "file-text",
-          "path": "/email/drafts",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "email_sent",
-          "label": "Sent",
-          "icon": "send",
-          "path": "/email/sent",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        }
-      ]
-    },
-
-    {
-      "group": "Media",
-      "description": "Content creation and media tools",
-      "collapsible": true,
-      "items": [
-        {
-          "id": "studio_hub",
-          "label": "Studio Hub",
-          "icon": "layout-dashboard",
-          "path": "/studio",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "audio_studio",
-          "label": "Audio Studio",
-          "icon": "mic",
-          "path": "/studio/audio",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "video_studio",
-          "label": "Video Studio",
-          "icon": "video",
-          "path": "/studio/video",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "studio_clips",
-          "label": "Clips & Highlights",
-          "icon": "scissors",
-          "path": "/studio/ai-clips",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "media_library",
-          "label": "Media Library",
-          "icon": "folder-open",
-          "path": "/studio/media",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "studio_templates",
-          "label": "Templates",
-          "icon": "file-text",
-          "path": "/studio/templates",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "media_podcasts",
-          "label": "Podcasts",
-          "icon": "podcast",
-          "path": "/podcasts",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "mypage_streaming",
-          "label": "My Page Streaming",
-          "icon": "radio",
-          "path": "/mypage",
-          "roles": ["creator", "influencer"]
-        }
-      ]
-    },
-
-    {
-      "group": "Marketing",
-      "description": "Marketing and monetization tools",
-      "collapsible": true,
-      "items": [
-        {
-          "id": "marketing_audience",
-          "label": "Contacts & Audience",
-          "icon": "users",
-          "path": "/contacts",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "marketing_segments",
-          "label": "Segments",
-          "icon": "users",
-          "path": "/marketing/segments",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "marketing_campaigns",
-          "label": "Campaigns",
-          "icon": "megaphone",
-          "path": "/marketing/campaigns",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "marketing_templates",
-          "label": "Templates",
-          "icon": "file-text",
-          "path": "/marketing/templates",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "marketing_automations",
-          "label": "Automations",
-          "icon": "zap",
-          "path": "/marketing/automations",
-          "roles": ["creator", "influencer", "agency", "admin"]
-        },
-        {
-          "id": "marketing_monetization",
-          "label": "Monetization Hub",
-          "icon": "dollar-sign",
-          "path": "/monetization",
-          "roles": ["creator", "influencer", "agency", "advertiser", "admin"]
-        }
-      ]
-    },
-
     {
       "group": "Advertising & Revenue",
       "description": "Advertising, campaigns, and revenue management",
@@ -629,7 +425,7 @@ export const NAVIGATION_CONFIG: {
         },
         {
           "id": "admin_settings",
-          "label": "Settings",
+          "label": "Admin Settings",
           "icon": "settings",
           "path": "/admin/settings",
           "roles": ["admin", "super_admin"]
@@ -640,13 +436,19 @@ export const NAVIGATION_CONFIG: {
 };
 
 /**
- * Filter navigation items by user roles
+ * Filter navigation items by user roles (admin only)
  */
 export function filterNavigationByRoles(
   navigation: NavigationGroup[],
   userRoles: UserRole[]
 ): NavigationGroup[] {
   if (!userRoles || userRoles.length === 0) {
+    return [];
+  }
+
+  // Only show admin navigation to admin/super_admin users
+  const isAdmin = userRoles.includes('admin') || userRoles.includes('super_admin');
+  if (!isAdmin) {
     return [];
   }
 

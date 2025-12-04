@@ -29,23 +29,25 @@ export interface NavItem {
   path: string;
   isHome?: boolean;
   subItems?: NavSubItem[];
+  /** Module ID required for this nav item to be visible (for module activation) */
+  moduleId?: string;
 }
 
 const DEFAULT_NAV_CONFIG: NavConfig = {
   order: [
-    'creator_hub',
     'my_day',
     'dashboard',
+    'creator_hub',
     'meetings',
-    'social_analytics',
     'studio',
-    'settings',
-    'media',
+    'social_analytics',
+    'media_content',
     'monetization',
     'seekies',
     'email',
-    'media_streaming',
-    'marketing'
+    'media_distribution',
+    'marketing',
+    'settings'
   ],
   hidden: [],
   pinned: ['my_day', 'dashboard', 'creator_hub'],
@@ -54,25 +56,56 @@ const DEFAULT_NAV_CONFIG: NavConfig = {
 
 const DEFAULT_LANDING_ROUTE = '/my-day';
 
+/**
+ * Creator navigation items - clean, consistent structure
+ * Top-level items in order:
+ * 1. My Day
+ * 2. Dashboard
+ * 3. Creator Hub (with dynamic sub-items based on activated modules)
+ * 4. Meetings
+ * 5. Studio (production tools)
+ * 6. Social Analytics
+ * 7. Media & Content (content organization)
+ * 8. Monetization
+ * 9. Seekies & Apps
+ * 10. Email
+ * 11. Media (distribution channels)
+ * 12. Marketing
+ * 13. Settings
+ */
 export const NAV_ITEMS: NavItem[] = [
-  { id: 'creator_hub', label: 'Creator Hub', path: '/creator-hub', isHome: true },
   { id: 'my_day', label: 'My Day', path: '/my-day', isHome: true },
   { id: 'dashboard', label: 'Dashboard', path: '/dashboard', isHome: true },
+  { 
+    id: 'creator_hub', 
+    label: 'Creator Hub', 
+    path: '/creator-hub', 
+    isHome: true,
+    subItems: [
+      { id: 'creator_social_analytics', label: 'Social Analytics', path: '/social-analytics' },
+      { id: 'creator_monetization', label: 'Monetization', path: '/monetization' },
+      { id: 'creator_awards', label: 'Awards', path: '/awards' },
+      { id: 'creator_brand_campaigns', label: 'Brand Campaigns', path: '/creator-campaigns' },
+      { id: 'creator_revenue', label: 'Revenue Tracking', path: '/monetization' },
+      { id: 'creator_my_page', label: 'My Page', path: '/profile/edit' },
+    ]
+  },
   { 
     id: 'meetings', 
     label: 'Meetings', 
     path: '/meetings',
+    moduleId: 'meetings',
     subItems: [
       { id: 'meetings_upcoming', label: 'Upcoming Meetings', path: '/meetings' },
       { id: 'meetings_types', label: 'Meeting Types', path: '/meetings/types' },
       { id: 'meetings_history', label: 'Past Meetings', path: '/meetings/history' },
     ]
   },
-  { id: 'social_analytics', label: 'Social Analytics', path: '/social-analytics' },
   { 
     id: 'studio', 
     label: 'Studio', 
     path: '/studio',
+    moduleId: 'studio',
     subItems: [
       { id: 'video_studio', label: 'Video Studio', path: '/studio/video' },
       { id: 'audio_studio', label: 'Audio Studio', path: '/studio/audio' },
@@ -81,27 +114,34 @@ export const NAV_ITEMS: NavItem[] = [
       { id: 'studio_templates', label: 'Templates', path: '/studio/templates' },
     ]
   },
-  { id: 'settings', label: 'Settings', path: '/settings' },
   { 
-    id: 'media', 
+    id: 'social_analytics', 
+    label: 'Social Analytics', 
+    path: '/social-analytics',
+    moduleId: 'social-analytics'
+  },
+  { 
+    id: 'media_content', 
     label: 'Media & Content', 
     path: '/media',
     subItems: [
-      { id: 'media_library', label: 'Media Library', path: '/media' },
-      { id: 'media_transcripts', label: 'Transcripts', path: '/transcripts' },
-      { id: 'media_blogs', label: 'Blog Posts', path: '/blog' },
+      { id: 'content_library', label: 'Content Library', path: '/media' },
+      { id: 'content_transcripts', label: 'Transcripts', path: '/transcripts' },
+      { id: 'content_blogs', label: 'Blog Posts', path: '/blog' },
     ]
   },
   { 
     id: 'monetization', 
     label: 'Monetization', 
     path: '/monetization',
+    moduleId: 'revenue-tracking',
     subItems: [
-      { id: 'brand_campaigns', label: 'Brand Campaigns', path: '/creator-campaigns' },
-      { id: 'revenue_tracking', label: 'Revenue Tracking', path: '/monetization' },
+      { id: 'monetization_hub', label: 'Monetization Hub', path: '/monetization' },
+      { id: 'monetization_brand_campaigns', label: 'Brand Campaigns', path: '/creator-campaigns' },
+      { id: 'monetization_revenue', label: 'Revenue Tracking', path: '/monetization' },
     ]
   },
-  { id: 'seekies', label: 'Seeksies & Apps', path: '/apps' },
+  { id: 'seekies', label: 'Seekies & Apps', path: '/apps' },
   { 
     id: 'email', 
     label: 'Email', 
@@ -114,11 +154,13 @@ export const NAV_ITEMS: NavItem[] = [
     ]
   },
   { 
-    id: 'media_streaming', 
+    id: 'media_distribution', 
     label: 'Media', 
-    path: '/mypage',
+    path: '/studio',
     subItems: [
-      { id: 'mypage_streaming', label: 'My Page Streaming', path: '/mypage' },
+      { id: 'media_studio_hub', label: 'Studio Hub', path: '/studio' },
+      { id: 'media_podcasts', label: 'Podcasts', path: '/podcasts' },
+      { id: 'media_streaming_channel', label: 'My Streaming Channel', path: '/mypage' },
     ]
   },
   { 
@@ -133,6 +175,7 @@ export const NAV_ITEMS: NavItem[] = [
       { id: 'marketing_automations', label: 'Automations', path: '/marketing/automations' },
     ]
   },
+  { id: 'settings', label: 'Settings', path: '/settings' },
 ];
 
 export const LANDING_OPTIONS = [
