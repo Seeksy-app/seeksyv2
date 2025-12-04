@@ -829,7 +829,7 @@ const AppContent = () => {
           <Route path="/board/business-model" element={<BoardBusinessModel />} />
           <Route path="/board/gtm" element={<BoardGTM />} />
           <Route path="/board/ceo-plan" element={<BoardCEOPlan />} />
-          <Route path="/board/ceo-vto" element={<BoardCEOVTO />} />
+          <Route path="/board/vto" element={<BoardCEOVTO />} />
           <Route path="/board/forecasts" element={<BoardForecasts />} />
           <Route path="/board/videos" element={<BoardVideos />} />
           <Route path="/board/docs" element={<BoardDocs />} />

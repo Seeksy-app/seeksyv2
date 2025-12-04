@@ -27,7 +27,7 @@ import {
   Share2,
   LineChart,
   Sparkles,
-  ClipboardList,
+  Briefcase,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useBoardViewMode } from '@/hooks/useBoardViewMode';
@@ -74,8 +74,8 @@ const businessItems = [
   {
     id: 'ceo-vto',
     label: 'CEO VTO',
-    icon: ClipboardList,
-    path: '/board/ceo-vto',
+    icon: Briefcase,
+    path: '/board/vto',
   },
   {
     id: 'docs',

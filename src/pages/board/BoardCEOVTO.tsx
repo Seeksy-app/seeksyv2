@@ -1,231 +1,238 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   Download, 
-  Target, 
-  Users, 
-  DollarSign, 
-  Rocket, 
-  CheckCircle2,
-  Clock,
-  TrendingUp,
+  ChevronDown,
+  Target,
+  DollarSign,
+  Users,
+  AlertTriangle,
+  Calendar,
+  Rocket,
   Building2,
-  Zap
+  TrendingUp
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from "jspdf";
 
 const pageVariants = {
-  initial: { opacity: 0, y: 8 },
+  initial: { opacity: 0, y: 10 },
   animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -8 }
+  exit: { opacity: 0, y: -10 }
 };
 
 export default function BoardCEOVTO() {
   const { toast } = useToast();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [page1Open, setPage1Open] = useState(true);
+  const [page2Open, setPage2Open] = useState(true);
 
   const handleDownloadPDF = async () => {
     setIsGeneratingPDF(true);
     try {
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
       const margin = 20;
-      let y = 20;
+      let y = 25;
 
-      // Helper function to add text with wrapping
-      const addWrappedText = (text: string, x: number, yPos: number, maxWidth: number, fontSize: number = 11) => {
+      // Helper for wrapped text
+      const addWrappedText = (text: string, x: number, yPos: number, maxWidth: number, fontSize: number = 10) => {
         doc.setFontSize(fontSize);
         const lines = doc.splitTextToSize(text, maxWidth);
         doc.text(lines, x, yPos);
-        return yPos + (lines.length * fontSize * 0.4);
+        return yPos + (lines.length * fontSize * 0.45);
       };
 
-      // Page 1 Header
+      // Header
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text("Seeksy", margin, 15);
+      doc.text("CEO VTO", pageWidth - margin - 25, 15);
+      
+      // Page 1 Title
+      doc.setFontSize(18);
+      doc.setTextColor(0, 0, 0);
+      doc.setFont("helvetica", "bold");
+      doc.text("CEO VTO — Page 1", margin, y);
+      y += 8;
+      doc.setFontSize(14);
+      doc.text("Seeksy: Vision & Traction Plan (2025–2027)", margin, y);
+      y += 12;
+
+      // Section 1: Vision Summary
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("1. Vision Summary", margin, y);
+      y += 6;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      y = addWrappedText(
+        "Seeksy is building the unified system for how people work, share, and monetize online. Our platform connects identity, meetings, events, hosting, podcasting, advertising, and AI into one operating system. Our near-term GTM focus is the U.S. military and veteran community, where we have a unique trust advantage and monetization potential.",
+        margin, y, pageWidth - margin * 2
+      );
+      y += 8;
+
+      // Section 2: 3-Year Targets
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("2. 3-Year Targets", margin, y);
+      y += 6;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      const targets = [
+        "250,000 verified military/veteran users",
+        "$25M annual recurring revenue",
+        "VPA + Event Platform sale for $3–$7M",
+        "50M monthly listens/views hosted",
+        "70% automation of operations using AI"
+      ];
+      targets.forEach(t => {
+        doc.text(`• ${t}`, margin + 5, y);
+        y += 5;
+      });
+      y += 6;
+
+      // Section 3: Revenue Strategy
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("3. Revenue Strategy by Vertical", margin, y);
+      y += 8;
+
+      // A. Subscriptions
+      doc.setFontSize(11);
+      doc.text("A. Subscriptions", margin, y);
+      y += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text("Goal: 80,000 paid subscribers | Pricing: $12–$29/mo creators, $49–$299/mo business", margin + 5, y);
+      y += 5;
+      doc.text("Execution: Unified billing + AI onboarding, Military Creator Program, On-base activation", margin + 5, y);
+      y += 5;
+      doc.text("Cost: ~$150k to fully execute", margin + 5, y);
+      y += 8;
+
+      // B. VPA + Event Platform Sale
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text("B. VPA + Event Platform Sale", margin, y);
+      y += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text("Goal: $3–$7M IP sale | Cost: ~$25k (legal + prep)", margin + 5, y);
+      y += 5;
+      doc.text("Execution: Package IP + demos, Deliver buyer-ready docs, Build 3-buyer pipeline", margin + 5, y);
+      y += 8;
+
+      // C. Advertising Revenue
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text("C. Advertising Revenue", margin, y);
+      y += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text("Military CPMs: $22–$100+ | Cost: ~$100k engineering + sales", margin + 5, y);
+      y += 5;
+      doc.text("Execution: Onboard 10,000 military podcasters, Dynamic Ad Insertion engine", margin + 5, y);
+      y += 5;
+      doc.text("Target Advertisers: USAA, Navy Fed, Boeing, Lockheed, BAH", margin + 5, y);
+      y += 10;
+
+      // Section 4: Risks
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("4. Risks & Mitigation", margin, y);
+      y += 6;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      const risks = [
+        ["Slow adoption outside creators", "Veteran-first expansion into events & educators"],
+        ["High AI compute cost", "Hybrid local + optimized model routing"],
+        ["Ad demand fluctuations", "Hybrid sponsorship + CPM packages"],
+        ["Buyer dependency", "Maintain 3+ strategic buyers"]
+      ];
+      risks.forEach(([risk, mitigation]) => {
+        doc.text(`• ${risk} → ${mitigation}`, margin + 5, y);
+        y += 5;
+      });
+
+      // Footer Page 1
       doc.setFontSize(8);
       doc.setTextColor(128, 128, 128);
-      doc.text("CONFIDENTIAL — Seeksy Board Material", margin, y);
-      doc.text(new Date().toLocaleDateString(), pageWidth - margin - 30, y);
-      y += 15;
-
-      // Title
-      doc.setFontSize(24);
-      doc.setTextColor(0, 0, 0);
-      doc.text("CEO Vision/Traction Organizer", margin, y);
-      y += 10;
-
-      doc.setFontSize(12);
-      doc.setTextColor(100, 100, 100);
-      doc.text("Seeksy — Q1 2025", margin, y);
-      y += 20;
-
-      // Section 1: Core Values
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0);
-      doc.text("1. Core Values", margin, y);
-      y += 8;
-      
-      const coreValues = [
-        "Creator First — Every decision prioritizes creator success",
-        "Authenticity — Real voices, verified identity, trusted content",
-        "Simplicity — Complex problems, simple solutions",
-        "Innovation — AI-powered tools that feel magical",
-        "Community — Building connections, not just audiences"
-      ];
-      
-      doc.setFontSize(10);
-      coreValues.forEach(value => {
-        doc.text(`• ${value}`, margin + 5, y);
-        y += 6;
-      });
-      y += 10;
-
-      // Section 2: 10-Year Target
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0);
-      doc.text("2. 10-Year Target", margin, y);
-      y += 8;
-      
-      doc.setFontSize(10);
-      y = addWrappedText("Become the #1 platform for authenticated creator content, serving 10M+ verified creators with $1B+ in annual creator payouts.", margin + 5, y, pageWidth - margin * 2 - 10);
-      y += 15;
-
-      // Section 3: 3-Year Picture
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0);
-      doc.text("3. 3-Year Picture (2027)", margin, y);
-      y += 8;
-      
-      const threeYearGoals = [
-        "500K+ active verified creators",
-        "$50M ARR from platform fees + advertising",
-        "Market leader in voice/identity certification",
-        "Integrated studio, monetization, and distribution",
-        "Expansion into enterprise content authentication"
-      ];
-      
-      doc.setFontSize(10);
-      threeYearGoals.forEach(goal => {
-        doc.text(`• ${goal}`, margin + 5, y);
-        y += 6;
-      });
-      y += 10;
-
-      // Section 4: 1-Year Plan
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0);
-      doc.text("4. 1-Year Plan (2025)", margin, y);
-      y += 8;
-      
-      const oneYearGoals = [
-        "Launch Voice NFT certification at scale",
-        "Reach 50K active creators",
-        "Hit $5M ARR milestone",
-        "Complete Series A funding",
-        "Launch AI Studio 2.0 with multi-modal editing"
-      ];
-      
-      doc.setFontSize(10);
-      oneYearGoals.forEach(goal => {
-        doc.text(`• ${goal}`, margin + 5, y);
-        y += 6;
-      });
+      doc.text("Seeksy Board Portal — Confidential & Internal Use Only", margin, pageHeight - 10);
 
       // Page 2
       doc.addPage();
-      y = 20;
+      y = 25;
 
-      // Page 2 Header
+      // Header
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text("Seeksy", margin, 15);
+      doc.text("CEO VTO", pageWidth - margin - 25, 15);
+
+      // Page 2 Title
+      doc.setFontSize(18);
+      doc.setTextColor(0, 0, 0);
+      doc.setFont("helvetica", "bold");
+      doc.text("CEO VTO — Page 2", margin, y);
+      y += 8;
+      doc.setFontSize(14);
+      doc.text("Traction Plan: What Leadership Will Execute", margin, y);
+      y += 12;
+
+      // Quarterly sections
+      const quarters = [
+        {
+          title: "Q1 Priorities",
+          items: ["Unified billing + subscription plans", "Deliver VPA sale package", "Military Creator Program launch", "Sponsorship catalog (USAA, Lockheed, Boeing)"],
+          cost: "~$90k",
+          output: "3,500 creators, $50k MRR"
+        },
+        {
+          title: "Q2 Priorities",
+          items: ["AI Onboarding Assistant", "Ad Engine (beta)", "Base partnerships", "3 sponsorship deals"],
+          cost: "~$110k",
+          output: "10k creators, $1–1.5M pipeline"
+        },
+        {
+          title: "Q3 Priorities",
+          items: ["Full Ad Engine", "Veteran Podcaster Network", "15–20 advertisers", "Begin acquisition talks"],
+          cost: "~$140k",
+          output: "$5M pipeline, 25k creators"
+        },
+        {
+          title: "Q4 Priorities",
+          items: ["Deliver buyer-ready IP package", "Premium dashboards", "Event & education vertical expansions"],
+          cost: "~$125k",
+          output: "VPA sale opportunity, 50k creators, 10M+ monthly impressions"
+        }
+      ];
+
+      quarters.forEach((q, i) => {
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text(q.title, margin, y);
+        y += 6;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        q.items.forEach(item => {
+          doc.text(`• ${item}`, margin + 5, y);
+          y += 5;
+        });
+        doc.setFontSize(9);
+        doc.text(`Cost: ${q.cost} | Expected Output: ${q.output}`, margin + 5, y);
+        y += 10;
+      });
+
+      // Footer Page 2
       doc.setFontSize(8);
       doc.setTextColor(128, 128, 128);
-      doc.text("CONFIDENTIAL — Seeksy Board Material", margin, y);
-      doc.text("Page 2", pageWidth - margin - 15, y);
-      y += 20;
-
-      // Section 5: Quarterly Rocks
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0);
-      doc.text("5. Q1 2025 Rocks (90-Day Priorities)", margin, y);
-      y += 10;
-      
-      const rocks = [
-        { owner: "CEO", rock: "Close Series A term sheet", status: "On Track" },
-        { owner: "CTO", rock: "Ship Voice Certification v2.0", status: "On Track" },
-        { owner: "VP Product", rock: "Launch AI Clips to 10K users", status: "At Risk" },
-        { owner: "VP Marketing", rock: "Achieve 25K creator signups", status: "On Track" },
-        { owner: "VP Sales", rock: "Sign 5 enterprise pilot contracts", status: "On Track" }
-      ];
-      
-      doc.setFontSize(10);
-      rocks.forEach(rock => {
-        doc.text(`${rock.owner}: ${rock.rock} — [${rock.status}]`, margin + 5, y);
-        y += 7;
-      });
-      y += 10;
-
-      // Section 6: Issues List
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0);
-      doc.text("6. Issues List", margin, y);
-      y += 8;
-      
-      const issues = [
-        "Scaling infrastructure for voice processing demand",
-        "Competitive pressure from Riverside on studio features",
-        "Creator acquisition cost trending above target"
-      ];
-      
-      doc.setFontSize(10);
-      issues.forEach((issue, i) => {
-        doc.text(`${i + 1}. ${issue}`, margin + 5, y);
-        y += 6;
-      });
-      y += 10;
-
-      // Section 7: Marketing Strategy
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0);
-      doc.text("7. Marketing Strategy", margin, y);
-      y += 8;
-      
-      doc.setFontSize(10);
-      doc.text("Target Market: Podcasters, content creators, and brands seeking", margin + 5, y);
-      y += 5;
-      doc.text("authenticated content solutions.", margin + 5, y);
-      y += 8;
-      doc.text("Unique Guarantee: \"Your voice, verified. Your content, protected.\"", margin + 5, y);
-      y += 8;
-      doc.text("Proven Process: Verify → Create → Certify → Monetize", margin + 5, y);
-      y += 15;
-
-      // Section 8: Scorecard Metrics
-      doc.setFontSize(14);
-      doc.setTextColor(0, 0, 0);
-      doc.text("8. Weekly Scorecard Metrics", margin, y);
-      y += 8;
-      
-      const metrics = [
-        "New Creator Signups: Target 1,200/week",
-        "Voice Certifications: Target 400/week",
-        "Studio Sessions: Target 8,000/week",
-        "MRR: Target $420K",
-        "NPS Score: Target 65+"
-      ];
-      
-      doc.setFontSize(10);
-      metrics.forEach(metric => {
-        doc.text(`• ${metric}`, margin + 5, y);
-        y += 6;
-      });
-
-      // Footer
-      doc.setFontSize(8);
-      doc.setTextColor(128, 128, 128);
-      doc.text("Generated: " + new Date().toLocaleString(), margin, doc.internal.pageSize.getHeight() - 10);
+      doc.text("Seeksy Board Portal — Confidential & Internal Use Only", margin, pageHeight - 10);
 
       doc.save("Seeksy-CEO-VTO.pdf");
       toast({ title: "PDF Downloaded", description: "CEO VTO document saved successfully" });
@@ -243,263 +250,300 @@ export default function BoardCEOVTO() {
       initial="initial"
       animate="animate"
       exit="exit"
-      transition={{ duration: 0.2 }}
-      className="max-w-4xl mx-auto py-8 px-6 space-y-8"
+      transition={{ duration: 0.25, ease: "easeOut" }}
+      className="max-w-4xl mx-auto py-8 px-6 space-y-6"
     >
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">CEO Vision/Traction Organizer</h1>
-          <p className="text-muted-foreground mt-1">Seeksy — Q1 2025 Executive Summary</p>
+          <h1 className="text-2xl font-bold text-foreground">CEO VTO: Vision & Traction Plan</h1>
+          <p className="text-muted-foreground text-sm mt-1">Prepared by Seeksy Leadership • Updated Quarterly</p>
         </div>
-        <Button onClick={handleDownloadPDF} disabled={isGeneratingPDF}>
+        <Button onClick={handleDownloadPDF} disabled={isGeneratingPDF} className="shrink-0">
           <Download className="w-4 h-4 mr-2" />
-          {isGeneratingPDF ? "Generating..." : "Download PDF"}
+          {isGeneratingPDF ? "Generating..." : "Download as PDF"}
         </Button>
       </div>
 
-      {/* Page 1 Content */}
-      <Card className="border-border shadow-sm">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold">Page 1: Vision & Long-Term Goals</CardTitle>
-            <Badge variant="outline" className="text-xs">EOS Framework</Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Section 1: Core Values */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-primary font-bold text-sm">1</span>
-              </div>
-              <h3 className="font-semibold text-foreground">Core Values</h3>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-9">
-              {[
-                { icon: Users, text: "Creator First — Every decision prioritizes creator success" },
-                { icon: CheckCircle2, text: "Authenticity — Real voices, verified identity, trusted content" },
-                { icon: Zap, text: "Simplicity — Complex problems, simple solutions" },
-                { icon: Rocket, text: "Innovation — AI-powered tools that feel magical" },
-                { icon: Building2, text: "Community — Building connections, not just audiences" }
-              ].map((value, i) => (
-                <div key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <value.icon className="w-4 h-4 mt-0.5 text-primary/70" />
-                  <span>{value.text}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Section 2: 10-Year Target */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-primary font-bold text-sm">2</span>
-              </div>
-              <h3 className="font-semibold text-foreground">10-Year Target (BHAG)</h3>
-            </div>
-            <div className="pl-9 p-4 bg-muted/50 rounded-lg">
-              <p className="text-foreground font-medium">
-                Become the #1 platform for authenticated creator content, serving <b>10M+ verified creators</b> with <b>$1B+ in annual creator payouts</b>.
-              </p>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Section 3: 3-Year Picture */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-primary font-bold text-sm">3</span>
-              </div>
-              <h3 className="font-semibold text-foreground">3-Year Picture (2027)</h3>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-9">
-              {[
-                { metric: "500K+", label: "Active verified creators" },
-                { metric: "$50M", label: "ARR from platform + ads" },
-                { metric: "#1", label: "Voice/identity certification" },
-                { metric: "Full Stack", label: "Studio + monetization + distribution" },
-                { metric: "Enterprise", label: "Content authentication expansion" }
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg">
-                  <span className="text-xl font-bold text-primary">{item.metric}</span>
-                  <span className="text-sm text-muted-foreground">{item.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Section 4: 1-Year Plan */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-primary font-bold text-sm">4</span>
-              </div>
-              <h3 className="font-semibold text-foreground">1-Year Plan (2025)</h3>
-            </div>
-            <div className="space-y-2 pl-9">
-              {[
-                "Launch Voice NFT certification at scale",
-                "Reach 50K active creators",
-                "Hit $5M ARR milestone",
-                "Complete Series A funding",
-                "Launch AI Studio 2.0 with multi-modal editing"
-              ].map((goal, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm">
-                  <Target className="w-4 h-4 text-primary" />
-                  <span className="text-foreground">{goal}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Visual Page Break */}
-      <div className="flex items-center gap-4 py-4">
-        <Separator className="flex-1" />
-        <span className="text-xs text-muted-foreground font-medium px-3 py-1 bg-muted rounded-full">Page Break</span>
-        <Separator className="flex-1" />
-      </div>
-
-      {/* Page 2 Content */}
-      <Card className="border-border shadow-sm">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold">Page 2: Quarterly Execution</CardTitle>
-            <Badge variant="outline" className="text-xs">Q1 2025</Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Section 5: Quarterly Rocks */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-primary font-bold text-sm">5</span>
-              </div>
-              <h3 className="font-semibold text-foreground">Q1 2025 Rocks (90-Day Priorities)</h3>
-            </div>
-            <div className="space-y-2 pl-9">
-              {[
-                { owner: "CEO", rock: "Close Series A term sheet", status: "on-track" },
-                { owner: "CTO", rock: "Ship Voice Certification v2.0", status: "on-track" },
-                { owner: "VP Product", rock: "Launch AI Clips to 10K users", status: "at-risk" },
-                { owner: "VP Marketing", rock: "Achieve 25K creator signups", status: "on-track" },
-                { owner: "VP Sales", rock: "Sign 5 enterprise pilot contracts", status: "on-track" }
-              ].map((rock, i) => (
-                <div key={i} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Badge variant="secondary" className="text-xs">{rock.owner}</Badge>
-                    <span className="text-sm text-foreground">{rock.rock}</span>
+      {/* Page 1 - Vision & Revenue Strategy */}
+      <Collapsible open={page1Open} onOpenChange={setPage1Open}>
+        <Card className="border-border shadow-sm overflow-hidden">
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                    <Target className="w-4 h-4 text-primary" />
                   </div>
-                  <Badge 
-                    variant={rock.status === "on-track" ? "default" : "destructive"}
-                    className="text-xs"
-                  >
-                    {rock.status === "on-track" ? "On Track" : "At Risk"}
-                  </Badge>
+                  <CardTitle className="text-lg font-semibold">Page 1 — Vision & Revenue Strategy</CardTitle>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Section 6: Issues List */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-full bg-destructive/10 flex items-center justify-center">
-                <span className="text-destructive font-bold text-sm">6</span>
+                <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${page1Open ? 'rotate-180' : ''}`} />
               </div>
-              <h3 className="font-semibold text-foreground">Issues List</h3>
-            </div>
-            <div className="space-y-2 pl-9">
-              {[
-                "Scaling infrastructure for voice processing demand",
-                "Competitive pressure from Riverside on studio features",
-                "Creator acquisition cost trending above target"
-              ].map((issue, i) => (
-                <div key={i} className="flex items-start gap-2 text-sm p-2 border-l-2 border-destructive/50 bg-destructive/5 rounded-r-lg">
-                  <span className="font-medium text-destructive">{i + 1}.</span>
-                  <span className="text-muted-foreground">{issue}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Section 7: Marketing Strategy */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-primary font-bold text-sm">7</span>
-              </div>
-              <h3 className="font-semibold text-foreground">Marketing Strategy</h3>
-            </div>
-            <div className="pl-9 space-y-3">
-              <div className="p-3 bg-muted/30 rounded-lg">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Target Market</p>
-                <p className="text-sm text-foreground">Podcasters, content creators, and brands seeking authenticated content solutions.</p>
-              </div>
-              <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
-                <p className="text-xs text-primary uppercase tracking-wide mb-1">Unique Guarantee</p>
-                <p className="text-sm text-foreground font-medium">"Your voice, verified. Your content, protected."</p>
-              </div>
-              <div className="p-3 bg-muted/30 rounded-lg">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Proven Process</p>
-                <div className="flex items-center gap-2 mt-2">
-                  {["Verify", "Create", "Certify", "Monetize"].map((step, i) => (
-                    <div key={step} className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-foreground">{step}</span>
-                      {i < 3 && <span className="text-muted-foreground">→</span>}
+            </CardHeader>
+          </CollapsibleTrigger>
+          <AnimatePresence>
+            {page1Open && (
+              <CollapsibleContent forceMount>
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <CardContent className="pt-0 space-y-6">
+                    {/* VTO Header */}
+                    <div className="p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl border border-primary/10">
+                      <p className="text-sm font-semibold text-foreground"><b>CEO VTO — Page 1</b></p>
+                      <p className="text-base font-bold text-foreground mt-1"><b>Seeksy: Vision & Traction Plan (2025–2027)</b></p>
                     </div>
-                  ))}
+
+                    {/* Section 1: Vision Summary */}
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs text-primary font-bold">1</span>
+                        <b>Vision Summary</b>
+                      </h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed pl-8">
+                        Seeksy is building the unified system for how people work, share, and monetize online. Our platform connects identity, meetings, events, hosting, podcasting, advertising, and AI into one operating system. Our near-term GTM focus is the U.S. military and veteran community, where we have a unique trust advantage and monetization potential.
+                      </p>
+                    </div>
+
+                    {/* Section 2: 3-Year Targets */}
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs text-primary font-bold">2</span>
+                        <b>3-Year Targets</b>
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-8">
+                        {[
+                          { icon: Users, text: "250,000 verified military/veteran users" },
+                          { icon: DollarSign, text: "$25M annual recurring revenue" },
+                          { icon: Building2, text: "VPA + Event Platform sale for $3–$7M" },
+                          { icon: TrendingUp, text: "50M monthly listens/views hosted" },
+                          { icon: Rocket, text: "70% automation of operations using AI" },
+                        ].map((item, i) => (
+                          <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground p-2 bg-muted/30 rounded-lg">
+                            <item.icon className="w-4 h-4 text-primary/70 shrink-0" />
+                            <span>{item.text}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Section 3: Revenue Strategy */}
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs text-primary font-bold">3</span>
+                        <b>Revenue Strategy by Vertical</b>
+                      </h3>
+                      
+                      {/* A. Subscriptions */}
+                      <div className="pl-8 p-4 bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-blue-950/20 dark:to-blue-900/10 rounded-xl border border-blue-200/50 dark:border-blue-800/30">
+                        <p className="text-sm font-bold text-foreground mb-2"><b>A. Subscriptions</b></p>
+                        <p className="text-sm text-muted-foreground"><b>Goal:</b> 80,000 paid subscribers</p>
+                        <p className="text-sm text-muted-foreground"><b>Pricing:</b> $12–$29/mo creators, $49–$299/mo business</p>
+                        <p className="text-sm text-muted-foreground mt-2"><b>Execution:</b></p>
+                        <ul className="text-sm text-muted-foreground list-disc list-inside ml-2">
+                          <li>Unified billing + AI onboarding</li>
+                          <li>Military Creator Program</li>
+                          <li>On-base activation strategy</li>
+                        </ul>
+                        <p className="text-sm text-muted-foreground mt-2"><b>Cost:</b> ~$150k to fully execute</p>
+                      </div>
+
+                      {/* B. VPA + Event Platform Sale */}
+                      <div className="pl-8 p-4 bg-gradient-to-r from-green-50 to-green-100/50 dark:from-green-950/20 dark:to-green-900/10 rounded-xl border border-green-200/50 dark:border-green-800/30">
+                        <p className="text-sm font-bold text-foreground mb-2"><b>B. VPA + Event Platform Sale</b></p>
+                        <p className="text-sm text-muted-foreground"><b>Goal:</b> $3–$7M IP sale</p>
+                        <p className="text-sm text-muted-foreground mt-2"><b>Execution:</b></p>
+                        <ul className="text-sm text-muted-foreground list-disc list-inside ml-2">
+                          <li>Package IP + demos</li>
+                          <li>Deliver buyer-ready docs</li>
+                          <li>Build 3-buyer pipeline</li>
+                        </ul>
+                        <p className="text-sm text-muted-foreground mt-2"><b>Cost:</b> ~$25k (legal + prep)</p>
+                      </div>
+
+                      {/* C. Advertising Revenue */}
+                      <div className="pl-8 p-4 bg-gradient-to-r from-purple-50 to-purple-100/50 dark:from-purple-950/20 dark:to-purple-900/10 rounded-xl border border-purple-200/50 dark:border-purple-800/30">
+                        <p className="text-sm font-bold text-foreground mb-2"><b>C. Advertising Revenue</b></p>
+                        <p className="text-sm text-muted-foreground"><b>Military CPMs:</b> $22–$100+</p>
+                        <p className="text-sm text-muted-foreground mt-2"><b>Execution:</b></p>
+                        <ul className="text-sm text-muted-foreground list-disc list-inside ml-2">
+                          <li>Onboard 10,000 military podcasters</li>
+                          <li>Dynamic Ad Insertion engine</li>
+                          <li>Sell to USAA, Navy Fed, Boeing, Lockheed, BAH</li>
+                        </ul>
+                        <p className="text-sm text-muted-foreground mt-2"><b>Cost:</b> ~$100k engineering + sales</p>
+                      </div>
+                    </div>
+
+                    {/* Section 4: Risks */}
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-full bg-destructive/10 flex items-center justify-center text-xs text-destructive font-bold">4</span>
+                        <b>Risks & Mitigation</b>
+                      </h3>
+                      <div className="pl-8 overflow-x-auto">
+                        <table className="w-full text-sm border-collapse">
+                          <thead>
+                            <tr className="border-b border-border">
+                              <th className="text-left py-2 pr-4 font-semibold text-foreground">Risk</th>
+                              <th className="text-left py-2 font-semibold text-foreground">Mitigation</th>
+                            </tr>
+                          </thead>
+                          <tbody className="text-muted-foreground">
+                            <tr className="border-b border-border/50">
+                              <td className="py-2 pr-4">Slow adoption outside creators</td>
+                              <td className="py-2">Veteran-first expansion into events & educators</td>
+                            </tr>
+                            <tr className="border-b border-border/50">
+                              <td className="py-2 pr-4">High AI compute cost</td>
+                              <td className="py-2">Hybrid local + optimized model routing</td>
+                            </tr>
+                            <tr className="border-b border-border/50">
+                              <td className="py-2 pr-4">Ad demand fluctuations</td>
+                              <td className="py-2">Hybrid sponsorship + CPM packages</td>
+                            </tr>
+                            <tr>
+                              <td className="py-2 pr-4">Buyer dependency</td>
+                              <td className="py-2">Maintain 3+ strategic buyers</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </CardContent>
+                </motion.div>
+              </CollapsibleContent>
+            )}
+          </AnimatePresence>
+        </Card>
+      </Collapsible>
+
+      {/* Page 2 - Traction Plan */}
+      <Collapsible open={page2Open} onOpenChange={setPage2Open}>
+        <Card className="border-border shadow-sm overflow-hidden">
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500/20 to-green-500/10 flex items-center justify-center">
+                    <Calendar className="w-4 h-4 text-green-600" />
+                  </div>
+                  <CardTitle className="text-lg font-semibold">Page 2 — Traction Plan & Financial Overview</CardTitle>
                 </div>
+                <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${page2Open ? 'rotate-180' : ''}`} />
               </div>
-            </div>
-          </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <AnimatePresence>
+            {page2Open && (
+              <CollapsibleContent forceMount>
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <CardContent className="pt-0 space-y-6">
+                    {/* VTO Header */}
+                    <div className="p-4 bg-gradient-to-r from-green-500/5 to-green-500/10 rounded-xl border border-green-500/10">
+                      <p className="text-sm font-semibold text-foreground"><b>CEO VTO — Page 2</b></p>
+                      <p className="text-base font-bold text-foreground mt-1"><b>Traction Plan: What Leadership Will Execute</b></p>
+                    </div>
 
-          <Separator />
-
-          {/* Section 8: Scorecard */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-primary font-bold text-sm">8</span>
-              </div>
-              <h3 className="font-semibold text-foreground">Weekly Scorecard Metrics</h3>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pl-9">
-              {[
-                { metric: "1,200", label: "New Signups/week", icon: Users },
-                { metric: "400", label: "Certifications/week", icon: CheckCircle2 },
-                { metric: "8,000", label: "Studio Sessions/week", icon: Clock },
-                { metric: "$420K", label: "Target MRR", icon: DollarSign },
-                { metric: "65+", label: "NPS Score", icon: TrendingUp }
-              ].map((item, i) => (
-                <div key={i} className="p-3 bg-muted/30 rounded-lg text-center">
-                  <item.icon className="w-5 h-5 mx-auto mb-1 text-primary/70" />
-                  <p className="text-lg font-bold text-foreground">{item.metric}</p>
-                  <p className="text-xs text-muted-foreground">{item.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Footer */}
-      <p className="text-xs text-center text-muted-foreground">
-        Confidential — Seeksy Board Material • Generated {new Date().toLocaleDateString()}
-      </p>
+                    {/* Quarterly Priorities */}
+                    {[
+                      {
+                        quarter: "Q1",
+                        color: "blue",
+                        priorities: [
+                          "Unified billing + subscription plans",
+                          "Deliver VPA sale package",
+                          "Military Creator Program launch",
+                          "Sponsorship catalog (USAA, Lockheed, Boeing)"
+                        ],
+                        cost: "~$90k",
+                        output: "3,500 creators, $50k MRR"
+                      },
+                      {
+                        quarter: "Q2",
+                        color: "green",
+                        priorities: [
+                          "AI Onboarding Assistant",
+                          "Ad Engine (beta)",
+                          "Base partnerships",
+                          "3 sponsorship deals"
+                        ],
+                        cost: "~$110k",
+                        output: "10k creators, $1–1.5M pipeline"
+                      },
+                      {
+                        quarter: "Q3",
+                        color: "purple",
+                        priorities: [
+                          "Full Ad Engine",
+                          "Veteran Podcaster Network",
+                          "15–20 advertisers",
+                          "Begin acquisition talks"
+                        ],
+                        cost: "~$140k",
+                        output: "$5M pipeline, 25k creators"
+                      },
+                      {
+                        quarter: "Q4",
+                        color: "orange",
+                        priorities: [
+                          "Deliver buyer-ready IP package",
+                          "Premium dashboards",
+                          "Event & education vertical expansions"
+                        ],
+                        cost: "~$125k",
+                        output: "VPA sale opportunity, 50k creators, 10M+ monthly impressions"
+                      }
+                    ].map((q, idx) => (
+                      <div key={idx} className="space-y-3">
+                        <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                          <Badge variant="outline" className={`text-xs px-2 py-0.5 ${
+                            q.color === 'blue' ? 'bg-blue-100 text-blue-700 border-blue-200' :
+                            q.color === 'green' ? 'bg-green-100 text-green-700 border-green-200' :
+                            q.color === 'purple' ? 'bg-purple-100 text-purple-700 border-purple-200' :
+                            'bg-orange-100 text-orange-700 border-orange-200'
+                          }`}>
+                            {q.quarter}
+                          </Badge>
+                          <b>{q.quarter} Priorities</b>
+                        </h3>
+                        <div className="ml-0 p-4 bg-muted/30 rounded-xl space-y-3">
+                          <ul className="space-y-1">
+                            {q.priorities.map((p, i) => (
+                              <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                                <span className="text-primary mt-1">•</span>
+                                <span>{p}</span>
+                              </li>
+                            ))}
+                          </ul>
+                          <div className="flex flex-wrap gap-4 pt-2 border-t border-border/50">
+                            <div className="text-sm">
+                              <span className="font-semibold text-foreground">Cost:</span>{" "}
+                              <span className="text-muted-foreground">{q.cost}</span>
+                            </div>
+                            <div className="text-sm">
+                              <span className="font-semibold text-foreground">Expected Output:</span>{" "}
+                              <span className="text-muted-foreground">{q.output}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </motion.div>
+              </CollapsibleContent>
+            )}
+          </AnimatePresence>
+        </Card>
+      </Collapsible>
     </motion.div>
   );
 }
