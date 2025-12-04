@@ -14583,7 +14583,7 @@ export type Database = {
           cleaned_text: string | null
           content_type: string
           created_at: string
-          feed_id: string
+          feed_id: string | null
           id: string
           item_guid: string
           processed: boolean
@@ -14597,7 +14597,7 @@ export type Database = {
           cleaned_text?: string | null
           content_type: string
           created_at?: string
-          feed_id: string
+          feed_id?: string | null
           id?: string
           item_guid: string
           processed?: boolean
@@ -14611,7 +14611,7 @@ export type Database = {
           cleaned_text?: string | null
           content_type?: string
           created_at?: string
-          feed_id?: string
+          feed_id?: string | null
           id?: string
           item_guid?: string
           processed?: boolean
