@@ -151,6 +151,7 @@ import AIClipGeneratorPremium from "./pages/studio/AIClipGeneratorPremium";
 import AIClipGeneratorFull from "./pages/studio/AIClipGeneratorFull";
 import AIClipGeneratorDemoV2 from "./pages/studio/AIClipGeneratorDemoV2";
 import AIClipGeneratorDemoV3 from "./pages/studio/AIClipGeneratorDemoV3";
+import AIClipGeneratorV4 from "./pages/studio/AIClipGeneratorV4";
 import MediaLibraryHub from "./pages/studio/MediaLibraryHub";
 import StudioTemplatesPage from "./pages/studio/StudioTemplates";
 import AudioStudioPremium from "./pages/studio/AudioStudioPremiumNew";
@@ -710,6 +711,7 @@ const AppContent = () => {
               <Route path="/studio/ai-production" element={<AIClipGeneratorFull />} />
               <Route path="/studio/clips-demo-v2" element={<AIClipGeneratorDemoV2 />} />
               <Route path="/studio/clips-demo-v3" element={<AIClipGeneratorDemoV3 />} />
+              <Route path="/studio/clips-v4" element={<AIClipGeneratorV4 />} />
               <Route path="/studio/media" element={<TourModeWrapper><MediaLibraryHub /></TourModeWrapper>} />
               <Route path="/studio/templates" element={<StudioTemplatesPage />} />
               <Route path="/studio/settings" element={<StudioSettings />} />
