@@ -165,6 +165,13 @@ export const NAVIGATION_CONFIG: {
           "roles": ["admin", "super_admin", "cfo", "board_member"]
         },
         {
+          "id": "admin_ad_inventory",
+          "label": "Ad Inventory",
+          "icon": "package",
+          "path": "/admin/ad-inventory",
+          "roles": ["admin", "super_admin", "cfo", "cmo", "board_member"]
+        },
+        {
           "id": "admin_investor_spreadsheets",
           "label": "Investor Spreadsheets",
           "icon": "file-spreadsheet",
