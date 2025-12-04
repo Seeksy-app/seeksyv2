@@ -12,7 +12,7 @@ import { TopNavBar } from "@/components/TopNavBar";
 import { TourModeWrapper } from "@/components/layout/TourModeWrapper";
 import { NavCustomizationModal } from "@/components/dashboard/NavCustomizationModal";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
-// AskSparkDock removed - using sidebar Ask Spark only
+import { FloatingSparkButton } from "@/components/FloatingSparkButton";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -20,7 +20,6 @@ import { useTaskReminders } from "@/hooks/useTaskReminders";
 import { useAutoTheme } from "@/hooks/useAutoTheme";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { RouteTransition } from "@/components/RouteTransition";
-// FloatingSparkButton removed - using sidebar Ask Spark only
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -1061,7 +1060,7 @@ const AppContent = () => {
             </RouteTransition>
           </main>
         </div>
-        {/* Floating chatbot and holiday features completely removed */}
+        <FloatingSparkButton />
         
         <CommandPalette />
         <AIAssistantPanel />

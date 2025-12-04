@@ -29,15 +29,21 @@ export interface DemoCreatorV2 {
 export interface DemoAdV2 {
   id: string;
   name: string;
+  title?: string;
   type: "video" | "image" | "audio";
-  thumbnail: string;
-  status: "active" | "paused" | "draft";
-  impressions: number;
-  clicks: number;
-  ctr: number;
-  cpc: number;
-  cpm: number;
+  thumbnail?: string;
+  thumbnailUrl?: string;
+  status: "active" | "paused" | "draft" | "completed";
+  impressions?: number;
+  clicks?: number;
+  ctr?: number;
+  cpc?: number;
+  cpm?: number;
+  metrics?: { ctr: number; cpc: number; cpm: number; impressions: number; clicks: number };
   assignedCreators: string[];
+  createdAt?: string;
+  duration?: string;
+  format?: string;
 }
 
 // AI-generated realistic creator profiles
