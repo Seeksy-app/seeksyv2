@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { CEOBriefModal } from "@/components/admin/cco/CEOBriefModal";
+import { SystemHealthBanner } from "@/components/debug/SystemHealthBanner";
 
 interface SentimentData {
   source: string;
@@ -52,6 +54,7 @@ export default function CCOCommunications() {
   const [activeTab, setActiveTab] = useState("sentiment");
   const [generatingContent, setGeneratingContent] = useState(false);
   const [aiGeneratedContent, setAiGeneratedContent] = useState("");
+  const [ceoBriefOpen, setCeoBriefOpen] = useState(false);
 
   // Demo sentiment data
   const sentimentData: SentimentData[] = [
@@ -193,7 +196,7 @@ The future of creator tools is here. Link in bio 👆
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => setCeoBriefOpen(true)}>
             <FileText className="h-4 w-4 mr-2" />
             CEO Brief
           </Button>
@@ -582,6 +585,12 @@ The future of creator tools is here. Link in bio 👆
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* CEO Brief Modal */}
+      <CEOBriefModal open={ceoBriefOpen} onOpenChange={setCeoBriefOpen} />
+      
+      {/* System Health Banner */}
+      <SystemHealthBanner />
     </div>
   );
 }
