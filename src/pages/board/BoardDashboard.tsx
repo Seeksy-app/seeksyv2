@@ -83,77 +83,107 @@ export default function BoardDashboard() {
 
   return (
     <BoardLayout>
-      <div className="space-y-8">
-        {/* Hero Section - Light theme, full-width centered */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 via-white to-blue-50 border border-slate-200 shadow-sm p-8 md:p-12">
+      <div className="space-y-6">
+        {/* Hero Section - Compact, polished */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 via-white to-blue-50 border border-slate-200 shadow-sm p-6 md:p-8">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent" />
           <div className="relative z-10 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4 leading-tight">
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3 leading-tight">
               A Clear Window Into the Creator & Podcast Business.
             </h1>
-            <p className="text-lg md:text-xl text-slate-600 mb-8">
+            <p className="text-base md:text-lg text-slate-600 mb-6">
               Real-time view into our model, go-to-market, and forecasts—powered by internal R&D insights.
             </p>
-            <div className="flex flex-wrap gap-4 justify-center">
+            <div className="flex flex-wrap gap-3 justify-center">
               <Button 
-                size="lg" 
+                size="default" 
                 onClick={() => navigate('/board/videos')}
                 className="bg-blue-600 text-white hover:bg-blue-700 gap-2 shadow-md"
               >
-                <Play className="w-5 h-5" />
+                <Play className="w-4 h-4" />
                 Start with Overview Video
               </Button>
               <Button 
-                size="lg" 
+                size="default" 
                 variant="outline" 
                 onClick={() => navigate('/board/videos')}
                 className="border-slate-300 text-slate-700 hover:bg-slate-50 gap-2"
               >
-                <Wrench className="w-5 h-5" />
+                <Wrench className="w-4 h-4" />
                 Open Demo & Tools
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Metrics Grid - 4 equal columns */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {metricsLoading ? (
-            Array(4).fill(0).map((_, i) => (
-              <Card key={i} className="bg-white border-slate-200 shadow-sm">
-                <CardContent className="p-6">
-                  <Skeleton className="h-4 w-20 mb-2" />
-                  <Skeleton className="h-8 w-24" />
-                </CardContent>
-              </Card>
-            ))
-          ) : (
-            metrics?.map((metric) => {
-              const Icon = metricIcons[metric.metric_key] || Activity;
+        {/* Metrics Grid with subtle gradient backdrop */}
+        <div className="bg-gradient-to-r from-slate-50 via-white to-slate-50 border border-slate-100 rounded-2xl p-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {metricsLoading ? (
+              Array(4).fill(0).map((_, i) => (
+                <Card key={i} className="bg-white border-slate-200 shadow-sm">
+                  <CardContent className="p-5">
+                    <Skeleton className="h-4 w-20 mb-2" />
+                    <Skeleton className="h-8 w-24" />
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              metrics?.map((metric) => {
+                const Icon = metricIcons[metric.metric_key] || Activity;
+                return (
+                  <Card key={metric.id} className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                    <CardContent className="p-5">
+                      <div className="flex items-center gap-2 text-slate-500 mb-1">
+                        <Icon className="w-4 h-4" />
+                        <span className="text-sm font-medium">{metric.metric_label}</span>
+                      </div>
+                      <p className="text-2xl font-bold text-slate-900">{metric.metric_value}</p>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {/* Quick Links Grid - Moved up */}
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900 mb-3">Quick Access</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+            {quickLinks.map((link) => {
+              const Icon = link.icon;
               return (
-                <Card key={metric.id} className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-2 text-slate-500 mb-2">
-                      <Icon className="w-4 h-4" />
-                      <span className="text-sm font-medium">{metric.metric_label}</span>
+                <Card
+                  key={link.path}
+                  className="bg-white border-slate-200 hover:border-slate-300 hover:shadow-md transition-all cursor-pointer group"
+                  onClick={() => navigate(link.path)}
+                >
+                  <CardContent className="p-4">
+                    <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${link.gradient} flex items-center justify-center mb-3`}>
+                      <Icon className="w-5 h-5 text-white" />
                     </div>
-                    <p className="text-2xl font-bold text-slate-900">{metric.metric_value}</p>
+                    <h3 className="text-sm font-semibold text-slate-900 mb-1">{link.title}</h3>
+                    <p className="text-xs text-slate-500 mb-2 line-clamp-2">{link.description}</p>
+                    <span className="text-xs text-blue-600 group-hover:translate-x-1 transition-transform inline-flex items-center">
+                      View <ArrowRight className="w-3 h-3 ml-1" />
+                    </span>
                   </CardContent>
                 </Card>
               );
-            })
-          )}
+            })}
+          </div>
         </div>
 
         {/* State of the Company */}
         <Card className="bg-white border-slate-200 shadow-sm">
-          <CardHeader className="border-b border-slate-100">
-            <CardTitle className="text-slate-900 flex items-center gap-2">
+          <CardHeader className="border-b border-slate-100 py-4">
+            <CardTitle className="text-slate-900 flex items-center gap-2 text-base">
               <Activity className="w-5 h-5 text-blue-500" />
               State of the Company
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-5">
             {contentLoading ? (
               <div className="space-y-3">
                 <Skeleton className="h-4 w-full" />
@@ -161,13 +191,13 @@ export default function BoardDashboard() {
                 <Skeleton className="h-4 w-1/2" />
               </div>
             ) : content?.content ? (
-              <div className="prose prose-slate max-w-none">
+              <div className="prose prose-slate prose-sm max-w-none">
                 <MarkdownRenderer content={content.content} />
               </div>
             ) : (
-              <div className="space-y-6 text-slate-700 leading-relaxed">
+              <div className="space-y-4 text-slate-700 text-sm leading-relaxed">
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-900 mb-3">Current Status</h3>
+                  <h3 className="text-base font-semibold text-slate-900 mb-2">Current Status</h3>
                   <p>
                     Seeksy is in active development with a strong foundation across creator tools, 
                     podcast hosting, and monetization systems. The platform has onboarded early 
@@ -175,8 +205,8 @@ export default function BoardDashboard() {
                   </p>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-900 mb-3">Key Highlights</h3>
-                  <ul className="list-disc list-inside space-y-2 text-slate-600">
+                  <h3 className="text-base font-semibold text-slate-900 mb-2">Key Highlights</h3>
+                  <ul className="list-disc list-inside space-y-1 text-slate-600">
                     <li>Voice and Face Identity verification system live on Polygon mainnet</li>
                     <li>AI-powered clip generation and content certification operational</li>
                     <li>Podcast RSS hosting with migration support from major platforms</li>
@@ -185,7 +215,7 @@ export default function BoardDashboard() {
                   </ul>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-900 mb-3">Next Quarter Focus</h3>
+                  <h3 className="text-base font-semibold text-slate-900 mb-2">Next Quarter Focus</h3>
                   <p>
                     Accelerate creator acquisition, launch advertising marketplace, and expand 
                     monetization tools including digital products and paid DMs.
@@ -195,37 +225,6 @@ export default function BoardDashboard() {
             )}
           </CardContent>
         </Card>
-
-        {/* Quick Links Grid */}
-        <div>
-          <h2 className="text-xl font-semibold text-slate-900 mb-4">Quick Access</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {quickLinks.map((link) => {
-              const Icon = link.icon;
-              return (
-                <Card
-                  key={link.path}
-                  className="bg-white border-slate-200 hover:border-slate-300 hover:shadow-md transition-all cursor-pointer group"
-                  onClick={() => navigate(link.path)}
-                >
-                  <CardContent className="p-6">
-                    <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${link.gradient} flex items-center justify-center mb-4`}>
-                      <Icon className="w-6 h-6 text-white" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-1">{link.title}</h3>
-                    <p className="text-sm text-slate-500 mb-4">{link.description}</p>
-                    <Button
-                      variant="ghost"
-                      className="p-0 h-auto text-blue-600 hover:text-blue-700 group-hover:translate-x-1 transition-transform"
-                    >
-                      View <ArrowRight className="w-4 h-4 ml-1" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
       </div>
     </BoardLayout>
   );

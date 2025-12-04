@@ -23,10 +23,10 @@ export function BoardLayout({ children }: BoardLayoutProps) {
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-slate-50">
         <BoardSidebar />
-        <div className="flex-1 flex flex-col overflow-auto">
+        <div className="flex-1 flex flex-col overflow-auto min-w-0">
           <BoardTopNav />
           <main className="flex-1">
-            <div className="max-w-7xl mx-auto px-6 py-8">
+            <div className="max-w-7xl mx-auto px-6 lg:px-8 py-6">
               {children}
             </div>
           </main>
