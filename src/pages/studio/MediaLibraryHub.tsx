@@ -129,21 +129,21 @@ export default function MediaLibraryHub() {
   const renderClipCard = (clip: Clip) => (
     <div
       key={clip.id}
-      className="group rounded-xl border border-white/10 bg-white/5 overflow-hidden hover:border-violet-500/50 transition-all cursor-pointer"
+      className="group rounded-xl border border-border bg-card overflow-hidden hover:border-primary/50 transition-all cursor-pointer shadow-sm"
       onClick={() => navigate(`/studio/clips?clipId=${clip.id}`)}
     >
-      <div className="aspect-[9/16] max-h-48 bg-black/50 relative flex items-center justify-center">
+      <div className="aspect-[9/16] max-h-48 bg-muted relative flex items-center justify-center">
         {clip.thumbnail_url ? (
           <img src={clip.thumbnail_url} alt="" className="w-full h-full object-cover" />
         ) : (
-          <Scissors className="w-10 h-10 text-white/20" />
+          <Scissors className="w-10 h-10 text-muted-foreground/40" />
         )}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
           <Play className="w-10 h-10 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
         {clip.status === "processing" && (
           <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center">
-            <Loader2 className="w-6 h-6 text-violet-400 animate-spin mb-2" />
+            <Loader2 className="w-6 h-6 text-primary animate-spin mb-2" />
             <p className="text-xs text-white/70">Rendering...</p>
             <Progress value={65} className="w-20 h-1 mt-2" />
           </div>
@@ -153,8 +153,8 @@ export default function MediaLibraryHub() {
         </Badge>
       </div>
       <div className="p-3">
-        <p className="font-medium text-sm text-white truncate">{clip.title || "Untitled Clip"}</p>
-        <p className="text-xs text-white/50 flex items-center gap-1 mt-1">
+        <p className="font-medium text-sm text-foreground truncate">{clip.title || "Untitled Clip"}</p>
+        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
           <Clock className="w-3 h-3" />
           {formatDistanceToNow(new Date(clip.created_at), { addSuffix: true })}
         </p>
@@ -167,14 +167,14 @@ export default function MediaLibraryHub() {
     return (
       <div
         key={file.id}
-        className="group rounded-xl border border-white/10 bg-white/5 overflow-hidden hover:border-violet-500/50 transition-all cursor-pointer"
+        className="group rounded-xl border border-border bg-card overflow-hidden hover:border-primary/50 transition-all cursor-pointer shadow-sm"
         onClick={() => navigate(`/studio/clips?mediaId=${file.id}`)}
       >
-        <div className="aspect-video bg-black/50 relative flex items-center justify-center">
+        <div className="aspect-video bg-muted relative flex items-center justify-center">
           {file.thumbnail_url ? (
             <img src={file.thumbnail_url} alt="" className="w-full h-full object-cover" />
           ) : (
-            <FileIcon className="w-10 h-10 text-white/20" />
+            <FileIcon className="w-10 h-10 text-muted-foreground/40" />
           )}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
             <Play className="w-10 h-10 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -184,14 +184,14 @@ export default function MediaLibraryHub() {
           </Badge>
         </div>
         <div className="p-3">
-          <p className="font-medium text-sm text-white truncate">{file.file_name}</p>
+          <p className="font-medium text-sm text-foreground truncate">{file.file_name}</p>
           <div className="flex items-center justify-between mt-1">
-            <p className="text-xs text-white/50 flex items-center gap-1">
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {formatDistanceToNow(new Date(file.created_at), { addSuffix: true })}
             </p>
             {file.file_size && file.file_size > 0 && (
-              <span className="text-xs text-white/40">{formatFileSize(file.file_size)}</span>
+              <span className="text-xs text-muted-foreground">{formatFileSize(file.file_size)}</span>
             )}
           </div>
         </div>
@@ -200,17 +200,17 @@ export default function MediaLibraryHub() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0F14]">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="h-14 border-b border-white/10 px-6 flex items-center justify-between">
+      <header className="h-14 border-b border-border px-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/studio")} className="text-white/60 hover:text-white hover:bg-white/10">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/studio")}>
             <ChevronLeft className="w-5 h-5" />
           </Button>
-          <span className="text-white/60 text-sm cursor-pointer hover:text-white" onClick={() => navigate("/studio")}>Back to Studio Home</span>
+          <span className="text-muted-foreground text-sm cursor-pointer hover:text-foreground" onClick={() => navigate("/studio")}>Back to Studio Home</span>
         </div>
-        <h1 className="font-semibold text-white">Media Library</h1>
-        <Button className="gap-2 bg-violet-500 hover:bg-violet-600">
+        <h1 className="font-semibold text-foreground">Media Library</h1>
+        <Button className="gap-2 bg-primary hover:bg-primary/90">
           <Upload className="w-4 h-4" />
           Upload Media
         </Button>
@@ -219,7 +219,7 @@ export default function MediaLibraryHub() {
       <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Filter Tabs */}
         <div className="flex items-center gap-6 mb-6">
-          <div className="flex items-center gap-1 p-1 rounded-lg bg-white/5 border border-white/10">
+          <div className="flex items-center gap-1 p-1 rounded-lg bg-muted border border-border">
             {filters.map((filter) => (
               <button
                 key={filter.id}
@@ -227,8 +227,8 @@ export default function MediaLibraryHub() {
                 className={cn(
                   "px-4 py-2 rounded-md text-sm font-medium transition-all",
                   activeFilter === filter.id 
-                    ? "bg-violet-500 text-white" 
-                    : "text-white/60 hover:text-white hover:bg-white/10"
+                    ? "bg-primary text-primary-foreground" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
                 )}
               >
                 {filter.label}
@@ -241,21 +241,21 @@ export default function MediaLibraryHub() {
 
           {/* Search */}
           <div className="relative w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Search media..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/40"
+              className="pl-10"
             />
           </div>
 
           {/* View Toggle */}
-          <div className="flex border border-white/10 rounded-lg overflow-hidden">
+          <div className="flex border border-border rounded-lg overflow-hidden">
             <Button
               variant="ghost"
               size="icon"
-              className={cn("rounded-none", viewMode === "grid" ? "bg-white/10 text-white" : "text-white/60")}
+              className={cn("rounded-none", viewMode === "grid" ? "bg-accent text-foreground" : "text-muted-foreground")}
               onClick={() => setViewMode("grid")}
             >
               <Grid3X3 className="w-4 h-4" />
@@ -263,7 +263,7 @@ export default function MediaLibraryHub() {
             <Button
               variant="ghost"
               size="icon"
-              className={cn("rounded-none", viewMode === "list" ? "bg-white/10 text-white" : "text-white/60")}
+              className={cn("rounded-none", viewMode === "list" ? "bg-accent text-foreground" : "text-muted-foreground")}
               onClick={() => setViewMode("list")}
             >
               <List className="w-4 h-4" />
@@ -273,13 +273,13 @@ export default function MediaLibraryHub() {
 
         {/* Content */}
         {isLoading ? (
-          <div className="text-center py-20 text-white/60">Loading...</div>
+          <div className="text-center py-20 text-muted-foreground">Loading...</div>
         ) : filteredItems.length === 0 ? (
           <div className="text-center py-20">
-            <FolderOpen className="w-12 h-12 text-white/20 mx-auto mb-3" />
-            <p className="font-medium text-white mb-1">No media files yet</p>
-            <p className="text-sm text-white/50 mb-4">Upload or record to get started</p>
-            <Button onClick={() => navigate("/studio")} className="bg-violet-500 hover:bg-violet-600">
+            <FolderOpen className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
+            <p className="font-medium text-foreground mb-1">No media files yet</p>
+            <p className="text-sm text-muted-foreground mb-4">Upload or record to get started</p>
+            <Button onClick={() => navigate("/studio")} className="bg-primary hover:bg-primary/90">
               Go to Studio
             </Button>
           </div>
@@ -294,7 +294,7 @@ export default function MediaLibraryHub() {
             }
           </div>
         ) : (
-          <div className="border border-white/10 rounded-xl divide-y divide-white/10">
+          <div className="border border-border rounded-xl divide-y divide-border bg-card">
             {(filteredItems as (MediaFile | Clip)[]).map((item) => {
               const isClip = 'title' in item;
               const FileIcon = isClip ? Scissors : getFileIcon((item as MediaFile).file_type);
@@ -302,10 +302,10 @@ export default function MediaLibraryHub() {
               return (
                 <div
                   key={item.id}
-                  className="flex items-center gap-4 p-4 hover:bg-white/5 cursor-pointer transition-colors"
+                  className="flex items-center gap-4 p-4 hover:bg-accent cursor-pointer transition-colors"
                   onClick={() => navigate(isClip ? `/studio/clips?clipId=${item.id}` : `/studio/clips?mediaId=${item.id}`)}
                 >
-                  <div className="w-16 h-10 rounded-lg bg-white/10 flex items-center justify-center shrink-0 overflow-hidden">
+                  <div className="w-16 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden">
                     {(isClip ? (item as Clip).thumbnail_url : (item as MediaFile).thumbnail_url) ? (
                       <img 
                         src={isClip ? (item as Clip).thumbnail_url! : (item as MediaFile).thumbnail_url!} 
@@ -313,24 +313,24 @@ export default function MediaLibraryHub() {
                         className="w-full h-full object-cover" 
                       />
                     ) : (
-                      <FileIcon className="w-5 h-5 text-white/40" />
+                      <FileIcon className="w-5 h-5 text-muted-foreground/60" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm text-white truncate">
+                    <p className="font-medium text-sm text-foreground truncate">
                       {isClip ? (item as Clip).title || "Untitled Clip" : (item as MediaFile).file_name}
                     </p>
-                    <p className="text-xs text-white/50">
+                    <p className="text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
                     </p>
                   </div>
-                  <Badge variant="outline" className="text-xs tabular-nums border-white/20 text-white/70">
+                  <Badge variant="outline" className="text-xs tabular-nums">
                     {formatDuration(isClip ? (item as Clip).duration_seconds : (item as MediaFile).duration_seconds)}
                   </Badge>
-                  <Button variant="ghost" size="icon" className="text-white/60 hover:text-white hover:bg-white/10">
+                  <Button variant="ghost" size="icon">
                     <Download className="w-4 h-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="text-white/60 hover:text-white hover:bg-white/10">
+                  <Button variant="ghost" size="icon">
                     <MoreHorizontal className="w-4 h-4" />
                   </Button>
                 </div>
