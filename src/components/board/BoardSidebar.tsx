@@ -74,6 +74,12 @@ const businessItems = [
     icon: FileText,
     path: '/board/docs',
   },
+  {
+    id: 'investor-links',
+    label: 'Shared Links',
+    icon: Users,
+    path: '/board/investor-links',
+  },
 ];
 
 // R&D & Intelligence section

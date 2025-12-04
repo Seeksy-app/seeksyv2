@@ -8921,6 +8921,98 @@ export type Database = {
         }
         Relationships: []
       }
+      investor_link_activity: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          link_id: string | null
+          tab_viewed: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          link_id?: string | null
+          tab_viewed?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          link_id?: string | null
+          tab_viewed?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investor_link_activity_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "investor_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investor_links: {
+        Row: {
+          allow_ai: boolean | null
+          allow_pdf_export: boolean | null
+          created_at: string | null
+          created_by: string | null
+          data_mode: string
+          expires_at: string | null
+          id: string
+          investor_name: string | null
+          last_viewed_at: string | null
+          passcode: string
+          scope: string[]
+          status: string
+          tabs_viewed: string[] | null
+          token: string
+          total_views: number | null
+        }
+        Insert: {
+          allow_ai?: boolean | null
+          allow_pdf_export?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          data_mode?: string
+          expires_at?: string | null
+          id?: string
+          investor_name?: string | null
+          last_viewed_at?: string | null
+          passcode: string
+          scope?: string[]
+          status?: string
+          tabs_viewed?: string[] | null
+          token: string
+          total_views?: number | null
+        }
+        Update: {
+          allow_ai?: boolean | null
+          allow_pdf_export?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          data_mode?: string
+          expires_at?: string | null
+          id?: string
+          investor_name?: string | null
+          last_viewed_at?: string | null
+          passcode?: string
+          scope?: string[]
+          status?: string
+          tabs_viewed?: string[] | null
+          token?: string
+          total_views?: number | null
+        }
+        Relationships: []
+      }
       investor_portal_emails: {
         Row: {
           access_code: string

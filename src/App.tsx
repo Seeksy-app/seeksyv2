@@ -375,6 +375,8 @@ import BoardGTM from "./pages/board/BoardGTM";
 import BoardForecasts from "./pages/board/BoardForecasts";
 import BoardVideos from "./pages/board/BoardVideos";
 import BoardDocs from "./pages/board/BoardDocs";
+import BoardInvestorLinks from "./pages/board/BoardInvestorLinks";
+import BoardInvestorPortal from "./pages/investor/InvestorPortal";
 import BoardMemberManagement from "./pages/admin/BoardMemberManagement";
 import { BoardGuard } from "./components/board/BoardGuard";
 import { BoardViewBanner } from "./components/board/BoardViewBanner";
@@ -808,6 +810,8 @@ const AppContent = () => {
           <Route path="/board/forecasts" element={<BoardForecasts />} />
           <Route path="/board/videos" element={<BoardVideos />} />
           <Route path="/board/docs" element={<BoardDocs />} />
+          <Route path="/board/investor-links" element={<BoardInvestorLinks />} />
+          <Route path="/investor/:token" element={<BoardInvestorPortal />} />
           
           {/* R&D Intelligence */}
           <Route path="/admin/rd-feeds" element={<RDIntelligenceFeeds />} />
