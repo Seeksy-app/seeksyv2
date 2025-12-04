@@ -123,6 +123,10 @@ import AdvertiserServices from "./pages/AdvertiserServices";
 import AdminAdvertisers from "./pages/AdminAdvertisers";
 import AdvertiserDashboard from "./pages/AdvertiserDashboard";
 import AdvertiserDashboardV2 from "./pages/AdvertiserDashboardV2";
+import AdLibraryV2 from "./pages/advertiser/AdLibraryV2";
+import MarketplaceV2 from "./pages/advertiser/MarketplaceV2";
+import CampaignBuilderV2 from "./pages/advertiser/CampaignBuilderV2";
+import SystemArchitecture from "./pages/admin/SystemArchitecture";
 import AdvertiserCampaigns from "./pages/AdvertiserCampaigns";
 import AdvertiserAdLibrary from "./pages/AdvertiserAdLibrary";
 import CreateCampaignTypeSelection from "./pages/CreateCampaignTypeSelection";
@@ -861,6 +865,12 @@ const AppContent = () => {
               <Route path="/advertiser/conversational-ads/create" element={<ProtectedRoute requiredRole="advertiser"><CreateConversationalAd /></ProtectedRoute>} />
               <Route path="/advertiser/upload-ad" element={<ProtectedRoute requiredRole="advertiser"><UploadReadyAd /></ProtectedRoute>} />
               <Route path="/advertiser/pricing" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserPricing /></ProtectedRoute>} />
+              {/* Advertiser V2 Routes */}
+              <Route path="/advertiser/dashboard-v2" element={<ProtectedRoute requiredRole="advertiser"><AdvertiserDashboardV2 /></ProtectedRoute>} />
+              <Route path="/advertiser/ad-library-v2" element={<ProtectedRoute requiredRole="advertiser"><AdLibraryV2 /></ProtectedRoute>} />
+              <Route path="/advertiser/marketplace-v2" element={<ProtectedRoute requiredRole="advertiser"><MarketplaceV2 /></ProtectedRoute>} />
+              <Route path="/advertiser/campaign-builder-v2" element={<ProtectedRoute requiredRole="advertiser"><CampaignBuilderV2 /></ProtectedRoute>} />
+          <Route path="/admin/system-architecture" element={<SystemArchitecture />} />
           <Route path="/podcast-ads" element={<PodcastAds />} />
           <Route path="/podcast-revenue" element={<PodcastRevenue />} />
           <Route path="/voice-protection" element={<VoiceProtection />} />

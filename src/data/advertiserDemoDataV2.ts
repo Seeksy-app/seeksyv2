@@ -1,7 +1,47 @@
 // Expanded Demo Data V2 for Advertiser Portal
 
+// Type definitions
+export interface DemoCreatorV2 {
+  id: string;
+  name: string;
+  handle: string;
+  avatar?: string;
+  avatarUrl?: string;
+  niche: string;
+  bio: string;
+  followers: number;
+  engagementRate: number;
+  performanceScore: number;
+  platforms: string[];
+  platform?: string;
+  audienceDemo?: { female: number; male: number; age18_24: number; age25_34: number; age35_plus: number };
+  demographics?: { ageRange: string; gender: string; topLocation: string };
+  avgCPM?: number;
+  cpm?: number;
+  avgCTR?: number;
+  verified: boolean;
+  voiceVerified?: boolean;
+  topContent?: string[];
+  recommendedFormats?: string[];
+  reachTrend?: number[];
+}
+
+export interface DemoAdV2 {
+  id: string;
+  name: string;
+  type: "video" | "image" | "audio";
+  thumbnail: string;
+  status: "active" | "paused" | "draft";
+  impressions: number;
+  clicks: number;
+  ctr: number;
+  cpc: number;
+  cpm: number;
+  assignedCreators: string[];
+}
+
 // AI-generated realistic creator profiles
-export const demoCreatorsV2 = [
+export const demoCreatorsV2: DemoCreatorV2[] = [
   {
     id: "creator-1",
     name: "Sarah Mitchell",
