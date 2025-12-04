@@ -97,6 +97,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { NAVIGATION_CONFIG, filterNavigationByRoles } from "@/config/navigation";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { useAccountType } from "@/hooks/useAccountType";
+import { useRoleBasedNavigation } from "@/hooks/useRoleBasedNavigation";
 import { SparkIcon } from "@/components/spark/SparkIcon";
 import { useSidebarState } from "@/hooks/useSidebarState";
 import { useModuleActivation } from "@/hooks/useModuleActivation";
@@ -213,6 +214,9 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
   const { navConfig, isLoading: navLoading } = useNavPreferences();
   const [refreshKey, setRefreshKey] = useState(0);
   
+  // Use permission-based navigation filtering for admin nav
+  const { navigation: permissionFilteredNav, canAccessPath, isLoading: rbacLoading } = useRoleBasedNavigation();
+  
   // Use persisted sidebar state with localStorage
   const { openGroups, toggleGroup, isGroupOpen } = useSidebarState();
 
@@ -225,7 +229,7 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
     return () => window.removeEventListener('navPreferencesUpdated', handleNavUpdate);
   }, []);
 
-  if (!user || rolesLoading || navLoading) {
+  if (!user || rolesLoading || navLoading || rbacLoading) {
     return null;
   }
 
@@ -257,10 +261,8 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
       return aIndex - bIndex;
     });
 
-  // Only show admin navigation groups to admin users
-  const filteredNavigation = isAdmin 
-    ? filterNavigationByRoles(NAVIGATION_CONFIG.navigation, roles)
-    : [];
+  // Use permission-filtered navigation for admin users (combines role + permission checks)
+  const filteredNavigation = isAdmin ? permissionFilteredNav : [];
 
   return (
     <Sidebar collapsible="icon">

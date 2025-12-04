@@ -19,7 +19,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Shield, Users, Key, History, Search, UserPlus, Settings2 } from 'lucide-react';
+import { Shield, Users, Key, History, Search, UserPlus, Settings2, TestTube } from 'lucide-react';
+import { PermissionEnforcementTest } from '@/components/rbac/PermissionEnforcementTest';
 
 interface RoleDefinition {
   id: string;
@@ -259,7 +260,7 @@ export default function RolesPermissions() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="h-4 w-4" /> Users
           </TabsTrigger>
@@ -271,6 +272,9 @@ export default function RolesPermissions() {
           </TabsTrigger>
           <TabsTrigger value="audit" className="flex items-center gap-2">
             <History className="h-4 w-4" /> Audit Log
+          </TabsTrigger>
+          <TabsTrigger value="test" className="flex items-center gap-2">
+            <TestTube className="h-4 w-4" /> Test RBAC
           </TabsTrigger>
         </TabsList>
 
@@ -556,6 +560,11 @@ export default function RolesPermissions() {
               </Table>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* RBAC Test Tab */}
+        <TabsContent value="test" className="space-y-4">
+          <PermissionEnforcementTest />
         </TabsContent>
       </Tabs>
     </div>
