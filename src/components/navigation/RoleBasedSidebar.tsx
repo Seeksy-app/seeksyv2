@@ -116,12 +116,17 @@ const MODULE_ACTIVATION_MAP: Record<string, string> = {
   'media_library': 'content-library',
   'studio_templates': 'studio',
   'media_podcasts': 'podcasts',
-  // Marketing modules
-  'social_analytics': 'social-analytics',
+  // Marketing modules - Social Analytics is HIDDEN from nav, only accessible via Creator Hub
+  // 'social_analytics': 'social-analytics', // Intentionally removed - only in Creator Hub
   'marketing_monetization': 'revenue-tracking',
-  // Meetings (in Business Operations or could be custom group)
+  // Meetings
   'meetings': 'meetings',
 };
+
+// Nav items to completely hide (they live elsewhere, e.g., Creator Hub only)
+const HIDDEN_NAV_ITEMS = [
+  'social_analytics', // Social Analytics only appears in Creator Hub, not Marketing nav
+];
 
 // Icon mapping
 const ICON_MAP: Record<string, any> = {
@@ -215,6 +220,9 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
 
   // Check if a nav item should be visible based on module activation
   const isNavItemVisible = (itemId: string): boolean => {
+    // Some items are intentionally hidden from nav (they live in Creator Hub only)
+    if (HIDDEN_NAV_ITEMS.includes(itemId)) return false;
+    
     const requiredModule = MODULE_ACTIVATION_MAP[itemId];
     // If no module requirement, always show
     if (!requiredModule) return true;
