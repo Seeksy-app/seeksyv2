@@ -56,7 +56,16 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'my_day', label: 'My Day', path: '/my-day', isHome: true },
   { id: 'dashboard', label: 'Dashboard', path: '/dashboard', isHome: true },
   { id: 'creator_hub', label: 'Creator Hub', path: '/creator-hub', isHome: true },
-  { id: 'meetings', label: 'Meetings', path: '/meetings' },
+  { 
+    id: 'meetings', 
+    label: 'Meetings', 
+    path: '/meetings',
+    subItems: [
+      { id: 'meetings_upcoming', label: 'Upcoming Meetings', path: '/meetings' },
+      { id: 'meetings_types', label: 'Meeting Types', path: '/meetings/types' },
+      { id: 'meetings_history', label: 'Past Meetings', path: '/meetings/history' },
+    ]
+  },
   { 
     id: 'studio', 
     label: 'Studio', 
@@ -66,6 +75,7 @@ export const NAV_ITEMS: NavItem[] = [
       { id: 'audio_studio', label: 'Audio Studio', path: '/studio/audio' },
       { id: 'clips_editing', label: 'Clips & Editing', path: '/studio/clips' },
       { id: 'media_library', label: 'Media Library', path: '/studio/media' },
+      { id: 'studio_templates', label: 'Templates', path: '/studio/templates' },
     ]
   },
   { 
@@ -74,13 +84,23 @@ export const NAV_ITEMS: NavItem[] = [
     path: '/podcasts',
     subItems: [
       { id: 'podcast_list', label: 'My Podcasts', path: '/podcasts' },
+      { id: 'podcast_episodes', label: 'Episodes', path: '/podcasts/episodes' },
       { id: 'podcast_analytics', label: 'Analytics', path: '/podcasts/analytics' },
       { id: 'podcast_rss', label: 'RSS Feeds', path: '/podcasts/rss' },
     ]
   },
+  { 
+    id: 'media', 
+    label: 'Media & Content', 
+    path: '/media',
+    subItems: [
+      { id: 'media_library', label: 'Media Library', path: '/media' },
+      { id: 'media_transcripts', label: 'Transcripts', path: '/transcripts' },
+      { id: 'media_blogs', label: 'Blog Posts', path: '/blog' },
+    ]
+  },
   { id: 'brand_campaigns', label: 'Brand Campaigns', path: '/creator-campaigns' },
   { id: 'revenue_tracking', label: 'Revenue Tracking', path: '/monetization' },
-  { id: 'content_library', label: 'Content Library', path: '/media' },
   { id: 'social_analytics', label: 'Social Analytics', path: '/social-analytics' },
   { id: 'settings', label: 'Settings', path: '/settings' },
 ];

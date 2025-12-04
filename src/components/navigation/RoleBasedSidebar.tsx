@@ -261,17 +261,27 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-border/50 px-4 py-3">
-        {!collapsed && (
-          <div className="flex items-center gap-3">
-            <SparkIcon variant="holiday" size={48} animated pose="waving" />
-            <span className="text-white text-2xl font-bold">Seeksy</span>
-          </div>
-        )}
-        {collapsed && (
-          <div className="flex items-center justify-center">
-            <SparkIcon variant="holiday" size={32} animated pose="idle" />
-          </div>
-        )}
+        <div className="flex items-center justify-between w-full">
+          {!collapsed && (
+            <div className="flex items-center gap-3">
+              <SparkIcon variant="holiday" size={48} animated pose="waving" />
+              <span className="text-white text-2xl font-bold">Seeksy</span>
+            </div>
+          )}
+          {collapsed && (
+            <div className="flex items-center justify-center flex-1">
+              <SparkIcon variant="holiday" size={32} animated pose="idle" />
+            </div>
+          )}
+          {/* Customize Nav Icon Button */}
+          <button
+            onClick={() => window.dispatchEvent(new Event('openNavCustomization'))}
+            className="p-1.5 rounded-md hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+            title="Customize Navigation"
+          >
+            <Sliders className="h-4 w-4" />
+          </button>
+        </div>
       </SidebarHeader>
 
       <SidebarContent className="pb-6">
@@ -356,23 +366,10 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
           );
         })}
 
-        {/* Bottom Section - Ask Spark & Customize */}
+        {/* Bottom Section - Ask Spark */}
         <SidebarGroup className="mt-auto mb-4 space-y-2">
           <SidebarGroupContent>
             <SidebarMenu>
-              {/* Customize Navigation Button */}
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  onClick={() => window.dispatchEvent(new Event('openNavCustomization'))}
-                  className="hover:bg-muted/50 cursor-pointer transition-all duration-200 py-2 px-3 rounded-lg text-muted-foreground hover:text-foreground"
-                >
-                  <div className="flex items-center gap-3 w-full">
-                    <Sliders className="h-4 w-4" />
-                    {!collapsed && <span className="text-sm">Customize Nav</span>}
-                  </div>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
               {/* Ask Spark */}
               <SidebarMenuItem>
                 <SidebarMenuButton 
