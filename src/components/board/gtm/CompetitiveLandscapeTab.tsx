@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mic, Calendar, Video, Link2, CreditCard, Shield } from 'lucide-react';
+import { CompetitiveCategoryModal } from './CompetitiveCategoryModal';
 
 const categories = [
   {
@@ -39,7 +41,13 @@ const categories = [
   },
 ];
 
-export function CompetitiveLandscapeTab() {
+interface CompetitiveLandscapeTabProps {
+  isInvestorView?: boolean;
+}
+
+export function CompetitiveLandscapeTab({ isInvestorView = false }: CompetitiveLandscapeTabProps) {
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
   return (
     <div className="space-y-8">
       {/* Overview */}
@@ -56,10 +64,14 @@ export function CompetitiveLandscapeTab() {
       {/* Categories */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {categories.map((category) => (
-          <Card key={category.title} className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <Card 
+            key={category.title} 
+            className="bg-white border-slate-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all cursor-pointer group"
+            onClick={() => setSelectedCategory(category.title)}
+          >
             <CardHeader className="pb-2">
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${category.color}`}>
+                <div className={`p-2 rounded-lg ${category.color} group-hover:scale-105 transition-transform`}>
                   <category.icon className="w-5 h-5" />
                 </div>
                 <CardTitle className="text-base text-slate-900">{category.title}</CardTitle>
@@ -74,6 +86,9 @@ export function CompetitiveLandscapeTab() {
                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Their Weakness</p>
                 <p className="text-sm text-slate-600 mt-1">{category.weakness}</p>
               </div>
+              <p className="text-xs text-blue-600 font-medium pt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                Click to learn more →
+              </p>
             </CardContent>
           </Card>
         ))}
@@ -96,6 +111,14 @@ export function CompetitiveLandscapeTab() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Category Detail Modal */}
+      <CompetitiveCategoryModal
+        open={!!selectedCategory}
+        onOpenChange={(open) => !open && setSelectedCategory(null)}
+        categoryKey={selectedCategory}
+        isInvestorView={isInvestorView}
+      />
     </div>
   );
 }
