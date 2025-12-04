@@ -5809,6 +5809,45 @@ export type Database = {
         }
         Relationships: []
       }
+      connected_calendars: {
+        Row: {
+          access_token: string | null
+          created_at: string | null
+          email: string
+          id: string
+          is_connected: boolean | null
+          last_sync_at: string | null
+          provider: string
+          refresh_token: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          is_connected?: boolean | null
+          last_sync_at?: string | null
+          provider?: string
+          refresh_token?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          is_connected?: boolean | null
+          last_sync_at?: string | null
+          provider?: string
+          refresh_token?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       connected_channels: {
         Row: {
           created_at: string
@@ -12155,6 +12194,112 @@ export type Database = {
           },
         ]
       }
+      meeting_availability: {
+        Row: {
+          created_at: string | null
+          end_time: string
+          id: string
+          is_active: boolean | null
+          meeting_type_id: string | null
+          start_time: string
+          timezone: string
+          updated_at: string | null
+          user_id: string
+          weekday: number
+        }
+        Insert: {
+          created_at?: string | null
+          end_time: string
+          id?: string
+          is_active?: boolean | null
+          meeting_type_id?: string | null
+          start_time: string
+          timezone?: string
+          updated_at?: string | null
+          user_id: string
+          weekday: number
+        }
+        Update: {
+          created_at?: string | null
+          end_time?: string
+          id?: string
+          is_active?: boolean | null
+          meeting_type_id?: string | null
+          start_time?: string
+          timezone?: string
+          updated_at?: string | null
+          user_id?: string
+          weekday?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_availability_meeting_type_id_fkey"
+            columns: ["meeting_type_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_bookings: {
+        Row: {
+          cancel_reason: string | null
+          canceled_at: string | null
+          created_at: string | null
+          end_time_utc: string
+          guest_email: string
+          guest_name: string
+          guest_notes: string | null
+          host_user_id: string
+          id: string
+          location_details: string | null
+          meeting_type_id: string
+          start_time_utc: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          cancel_reason?: string | null
+          canceled_at?: string | null
+          created_at?: string | null
+          end_time_utc: string
+          guest_email: string
+          guest_name: string
+          guest_notes?: string | null
+          host_user_id: string
+          id?: string
+          location_details?: string | null
+          meeting_type_id: string
+          start_time_utc: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          cancel_reason?: string | null
+          canceled_at?: string | null
+          created_at?: string | null
+          end_time_utc?: string
+          guest_email?: string
+          guest_name?: string
+          guest_notes?: string | null
+          host_user_id?: string
+          id?: string
+          location_details?: string | null
+          meeting_type_id?: string
+          start_time_utc?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_bookings_meeting_type_id_fkey"
+            columns: ["meeting_type_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_intelligence: {
         Row: {
           action_items: Json | null
@@ -12260,6 +12405,7 @@ export type Database = {
           location_type: Database["public"]["Enums"]["location_type"]
           name: string
           pre_meeting_questions: Json | null
+          slug: string | null
           updated_at: string | null
           user_id: string
         }
@@ -12276,6 +12422,7 @@ export type Database = {
           location_type?: Database["public"]["Enums"]["location_type"]
           name: string
           pre_meeting_questions?: Json | null
+          slug?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -12292,6 +12439,7 @@ export type Database = {
           location_type?: Database["public"]["Enums"]["location_type"]
           name?: string
           pre_meeting_questions?: Json | null
+          slug?: string | null
           updated_at?: string | null
           user_id?: string
         }
