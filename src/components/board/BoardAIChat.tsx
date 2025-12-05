@@ -7,6 +7,8 @@ import { Send, Loader2, X, Minimize2, Shield, Bot } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
+import DOMPurify from "dompurify";
 
 interface Message {
   role: "user" | "assistant";
@@ -26,6 +28,26 @@ const quickActions = [
   { label: "3-Year Forecast", prompt: "Explain the 3-year financial forecast projections" },
 ];
 
+// Function to convert URLs in content to clickable links and render HTML
+const renderMessageContent = (content: string) => {
+  // Convert /board/* paths to clickable links
+  let processedContent = content.replace(
+    /(?:→\s*)?(\/?board\/[a-z0-9-]+)/gi,
+    (match, path) => {
+      const cleanPath = path.startsWith('/') ? path : `/${path}`;
+      return `<a href="${cleanPath}" class="text-blue-600 hover:underline font-medium">${cleanPath}</a>`;
+    }
+  );
+  
+  // Sanitize HTML but allow safe tags
+  const sanitized = DOMPurify.sanitize(processedContent, {
+    ALLOWED_TAGS: ['b', 'strong', 'em', 'i', 'a', 'br', 'p', 'ul', 'li'],
+    ALLOWED_ATTR: ['href', 'class', 'target'],
+  });
+  
+  return sanitized;
+};
+
 export function BoardAIChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -39,17 +61,9 @@ export function BoardAIChat() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-open for first-time board visitors
+  // Auto-open DISABLED - users can open manually
   useEffect(() => {
-    const hasSeenBoardChat = localStorage.getItem('seeksy_board_chat_seen');
-    if (!hasSeenBoardChat && !hasAutoOpened) {
-      const timer = setTimeout(() => {
-        setIsOpen(true);
-        setHasAutoOpened(true);
-        localStorage.setItem('seeksy_board_chat_seen', 'true');
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
+    // No auto-open behavior
   }, [hasAutoOpened]);
 
   // Listen for sidebar "Board AI Analyst" click
@@ -268,9 +282,16 @@ export function BoardAIChat() {
                         : "bg-blue-600 text-white"
                     )}
                   >
-                    <p className="whitespace-pre-wrap break-words leading-relaxed text-sm">
-                      {message.content}
-                    </p>
+                    {message.role === "assistant" ? (
+                      <div 
+                        className="whitespace-pre-wrap break-words leading-relaxed text-sm [&_b]:font-semibold [&_a]:text-blue-600 [&_a]:hover:underline"
+                        dangerouslySetInnerHTML={{ __html: renderMessageContent(message.content) }}
+                      />
+                    ) : (
+                      <p className="whitespace-pre-wrap break-words leading-relaxed text-sm">
+                        {message.content}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
