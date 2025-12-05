@@ -77,6 +77,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'my_day', label: 'My Day', path: '/my-day', isHome: true },
   { id: 'dashboard', label: 'Dashboard', path: '/dashboard', isHome: true },
   { id: 'creator_hub', label: 'Creator Hub', path: '/creator-hub', isHome: true },
+  { id: 'my_streaming_channel', label: 'My Streaming Channel', path: '/mypage', moduleId: 'my-page-streaming' },
   { 
     id: 'meetings', 
     label: 'Meetings', 

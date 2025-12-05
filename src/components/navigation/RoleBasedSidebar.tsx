@@ -123,6 +123,7 @@ const ICON_MAP: Record<string, any> = {
   'my_day': Calendar,
   'dashboard': LayoutDashboard,
   'creator_hub': Rocket,
+  'my_streaming_channel': Radio,
   'meetings': Calendar,
   'studio': Video,
   'social_analytics': BarChart2,
