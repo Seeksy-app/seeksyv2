@@ -5444,6 +5444,62 @@ export type Database = {
         }
         Relationships: []
       }
+      clip_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_step: string | null
+          error_message: string | null
+          id: string
+          options: Json | null
+          progress_percent: number | null
+          source_media_id: string
+          started_at: string | null
+          status: string
+          total_clips: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: string | null
+          error_message?: string | null
+          id?: string
+          options?: Json | null
+          progress_percent?: number | null
+          source_media_id: string
+          started_at?: string | null
+          status?: string
+          total_clips?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: string | null
+          error_message?: string | null
+          id?: string
+          options?: Json | null
+          progress_percent?: number | null
+          source_media_id?: string
+          started_at?: string | null
+          status?: string
+          total_clips?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clip_jobs_source_media_id_fkey"
+            columns: ["source_media_id"]
+            isOneToOne: false
+            referencedRelation: "media_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clip_markers: {
         Row: {
           created_at: string | null
@@ -5482,6 +5538,7 @@ export type Database = {
       clips: {
         Row: {
           ai_job_id: string | null
+          aspect_ratio: string | null
           cert_chain: string | null
           cert_created_at: string | null
           cert_explorer_url: string | null
@@ -5489,6 +5546,7 @@ export type Database = {
           cert_token_id: string | null
           cert_tx_hash: string | null
           cert_updated_at: string | null
+          clip_job_id: string | null
           collection_id: string | null
           created_at: string
           deleted_at: string | null
@@ -5496,6 +5554,8 @@ export type Database = {
           enable_certification: boolean | null
           end_seconds: number
           error_message: string | null
+          export_formats: Json | null
+          hook_score: number | null
           id: string
           shotstack_job_id: string | null
           shotstack_job_id_thumbnail: string | null
@@ -5506,15 +5566,18 @@ export type Database = {
           status: string
           storage_path: string | null
           suggested_caption: string | null
+          template_id: string | null
           template_name: string | null
           thumbnail_url: string | null
           title: string | null
+          transcript_snippet: string | null
           user_id: string
           vertical_url: string | null
           virality_score: number | null
         }
         Insert: {
           ai_job_id?: string | null
+          aspect_ratio?: string | null
           cert_chain?: string | null
           cert_created_at?: string | null
           cert_explorer_url?: string | null
@@ -5522,6 +5585,7 @@ export type Database = {
           cert_token_id?: string | null
           cert_tx_hash?: string | null
           cert_updated_at?: string | null
+          clip_job_id?: string | null
           collection_id?: string | null
           created_at?: string
           deleted_at?: string | null
@@ -5529,6 +5593,8 @@ export type Database = {
           enable_certification?: boolean | null
           end_seconds: number
           error_message?: string | null
+          export_formats?: Json | null
+          hook_score?: number | null
           id?: string
           shotstack_job_id?: string | null
           shotstack_job_id_thumbnail?: string | null
@@ -5539,15 +5605,18 @@ export type Database = {
           status?: string
           storage_path?: string | null
           suggested_caption?: string | null
+          template_id?: string | null
           template_name?: string | null
           thumbnail_url?: string | null
           title?: string | null
+          transcript_snippet?: string | null
           user_id: string
           vertical_url?: string | null
           virality_score?: number | null
         }
         Update: {
           ai_job_id?: string | null
+          aspect_ratio?: string | null
           cert_chain?: string | null
           cert_created_at?: string | null
           cert_explorer_url?: string | null
@@ -5555,6 +5624,7 @@ export type Database = {
           cert_token_id?: string | null
           cert_tx_hash?: string | null
           cert_updated_at?: string | null
+          clip_job_id?: string | null
           collection_id?: string | null
           created_at?: string
           deleted_at?: string | null
@@ -5562,6 +5632,8 @@ export type Database = {
           enable_certification?: boolean | null
           end_seconds?: number
           error_message?: string | null
+          export_formats?: Json | null
+          hook_score?: number | null
           id?: string
           shotstack_job_id?: string | null
           shotstack_job_id_thumbnail?: string | null
@@ -5572,9 +5644,11 @@ export type Database = {
           status?: string
           storage_path?: string | null
           suggested_caption?: string | null
+          template_id?: string | null
           template_name?: string | null
           thumbnail_url?: string | null
           title?: string | null
+          transcript_snippet?: string | null
           user_id?: string
           vertical_url?: string | null
           virality_score?: number | null
@@ -5585,6 +5659,13 @@ export type Database = {
             columns: ["ai_job_id"]
             isOneToOne: false
             referencedRelation: "ai_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clips_clip_job_id_fkey"
+            columns: ["clip_job_id"]
+            isOneToOne: false
+            referencedRelation: "clip_jobs"
             referencedColumns: ["id"]
           },
           {
@@ -12359,6 +12440,7 @@ export type Database = {
       }
       media_files: {
         Row: {
+          aspect_ratio: string | null
           broadcast_id: string | null
           clip_metadata: Json | null
           cloudflare_download_url: string | null
@@ -12377,8 +12459,10 @@ export type Database = {
           file_url: string
           folder_id: string | null
           id: string
+          media_type: string | null
           original_file_url: string | null
           original_source_url: string | null
+          parent_media_id: string | null
           source: string | null
           status: string | null
           thumbnail_url: string | null
@@ -12386,6 +12470,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          aspect_ratio?: string | null
           broadcast_id?: string | null
           clip_metadata?: Json | null
           cloudflare_download_url?: string | null
@@ -12404,8 +12489,10 @@ export type Database = {
           file_url: string
           folder_id?: string | null
           id?: string
+          media_type?: string | null
           original_file_url?: string | null
           original_source_url?: string | null
+          parent_media_id?: string | null
           source?: string | null
           status?: string | null
           thumbnail_url?: string | null
@@ -12413,6 +12500,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          aspect_ratio?: string | null
           broadcast_id?: string | null
           clip_metadata?: Json | null
           cloudflare_download_url?: string | null
@@ -12431,8 +12519,10 @@ export type Database = {
           file_url?: string
           folder_id?: string | null
           id?: string
+          media_type?: string | null
           original_file_url?: string | null
           original_source_url?: string | null
+          parent_media_id?: string | null
           source?: string | null
           status?: string | null
           thumbnail_url?: string | null
@@ -12459,6 +12549,13 @@ export type Database = {
             columns: ["folder_id"]
             isOneToOne: false
             referencedRelation: "media_folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_files_parent_media_id_fkey"
+            columns: ["parent_media_id"]
+            isOneToOne: false
+            referencedRelation: "media_files"
             referencedColumns: ["id"]
           },
         ]
