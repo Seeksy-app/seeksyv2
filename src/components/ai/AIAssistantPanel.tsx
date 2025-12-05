@@ -35,8 +35,8 @@ const QUICK_STARTERS = [
 const ACTION_ROUTES: Record<string, string> = {
   "open studio": "/studio",
   "open audio settings": "/studio/audio",
-  "open ai clips": "/studio/clips",
-  "create clip": "/studio/clips",
+  "open ai clips": "/clips-studio",
+  "create clip": "/clips-studio",
   "go to monetization": "/monetization",
   "open monetization": "/monetization",
   "connect social platforms": "/integrations",

@@ -82,7 +82,7 @@ export const NAV_ITEMS: NavItem[] = [
     subItems: [
       { id: 'studio_hub', label: 'Studio Hub', path: '/studio' },
       { id: 'ai_post_production', label: 'AI Post-Production', path: '/studio/ai-post-production' },
-      { id: 'ai_clip_generation', label: 'AI Clip Generation', path: '/studio/clips' },
+      { id: 'ai_clip_generation', label: 'AI Clips Studio', path: '/clips-studio' },
       { id: 'content_library', label: 'Content Library', path: '/studio/media' },
       { id: 'blog_posts', label: 'Blog Posts', path: '/blog' },
       { id: 'podcasts', label: 'Podcasts', path: '/podcasts' },

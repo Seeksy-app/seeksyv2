@@ -7,7 +7,7 @@ export function AIQuickActionsWidget() {
   const navigate = useNavigate();
 
   const actions = [
-    { label: "Generate Clips", icon: Scissors, path: "/studio/clips", available: true },
+    { label: "Generate Clips", icon: Scissors, path: "/clips-studio", available: true },
     { label: "Clean My Audio", icon: Wand2, path: "/studio/ai-production", available: true },
     { label: "Create Podcast Episode", icon: Mic, path: "/podcasts/create", available: true },
     { label: "AI Transcription", icon: Sparkles, path: "/transcripts", available: false, comingSoon: true },

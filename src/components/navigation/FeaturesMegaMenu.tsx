@@ -16,7 +16,7 @@ interface FeatureItem {
 
 const CORE_TOOLS: FeatureItem[] = [
   { icon: Video, label: "Media AI Studio", description: "Record & stream with AI enhancements", href: "/studio" },
-  { icon: Scissors, label: "AI Clips Generator", description: "Turn videos into viral clips", href: "/studio/clips" },
+  { icon: Scissors, label: "AI Clips Generator", description: "Turn videos into viral clips", href: "/clips-studio" },
   { icon: Headphones, label: "Podcast Hosting", description: "Host & distribute your podcast", href: "/podcasts" },
   { icon: Calendar, label: "Meetings & Scheduling", description: "Book calls with ease", href: "/meetings" },
   { icon: Users, label: "CRM + Messaging", description: "Manage contacts & campaigns", href: "/contacts" },

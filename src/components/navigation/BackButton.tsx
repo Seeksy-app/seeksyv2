@@ -60,6 +60,7 @@ const PARENT_ROUTES: Record<string, string> = {
   "/studio/audio": "/studio",
   "/studio/video": "/studio",
   "/studio/clips": "/studio",
+  "/clips-studio": "/studio",
   "/studio/media": "/studio",
   "/studio/templates": "/studio",
   "/studio/settings": "/studio",

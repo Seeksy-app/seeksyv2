@@ -57,14 +57,14 @@ export default function StudioHubPremium() {
   const quickActions = [
     { icon: Play, label: "Create New Studio", color: "bg-primary", path: "/studio/video" },
     { icon: Upload, label: "Upload Media", color: "bg-amber-500", path: "/studio/media?upload=true" },
-    { icon: Wand2, label: "Generate Clips", color: "bg-pink-500", path: "/studio/clips" },
+    { icon: Wand2, label: "Generate Clips", color: "bg-pink-500", path: "/clips-studio" },
   ];
 
   const hubMenuItems = [
     { icon: History, label: "Past Streams", path: "/studio/past-streams", desc: "View recordings" },
     { icon: Calendar, label: "Scheduled Streams", path: "/studio/scheduled", desc: "Upcoming streams" },
     { icon: HardDrive, label: "Storage", path: "/studio/storage", desc: "All assets & files" },
-    { icon: Scissors, label: "Clips & Highlights", path: "/studio/clips", desc: "AI-generated clips" },
+    { icon: Scissors, label: "Clips & Highlights", path: "/clips-studio", desc: "AI-generated clips" },
     { icon: FolderOpen, label: "Media Library", path: "/studio/media", desc: "All your recordings" },
     { icon: FileText, label: "Templates", path: "/studio/templates", desc: "Scripts & ad reads" },
   ];
