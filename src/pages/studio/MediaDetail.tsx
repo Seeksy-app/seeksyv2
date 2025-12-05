@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -392,142 +393,146 @@ export default function MediaDetail() {
               </CardContent>
             </Card>
 
-            {/* Video Analytics Section */}
+            {/* Analytics Tabs */}
             <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart2 className="w-5 h-5 text-primary" />
-                    Video Analytics
-                  </CardTitle>
-                  <Badge variant={isPublished ? "default" : "secondary"}>
-                    {isPublished ? `Published to ${publishStatus.replace('published_', '').charAt(0).toUpperCase() + publishStatus.replace('published_', '').slice(1)}` : "Not yet published"}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {/* Info banner */}
-                <div className="mb-4 p-3 bg-muted/50 rounded-lg flex items-start gap-2">
-                  <Info className="w-4 h-4 text-muted-foreground mt-0.5" />
-                  <p className="text-sm text-muted-foreground">
-                    Analytics will start updating once this video is published to social.
-                  </p>
-                </div>
-                
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {analyticsCards.map((card) => {
-                    const Icon = card.icon;
-                    return (
-                      <div key={card.label} className="p-4 rounded-lg border bg-card text-center">
-                        <Icon className="w-5 h-5 mx-auto mb-2 text-muted-foreground" />
-                        <p className="text-2xl font-bold">
-                          {card.noData ? (card.isTime || card.isPercent ? "—" : "0") : card.value}
+              <Tabs defaultValue="video" className="w-full">
+                <CardHeader className="pb-0">
+                  <TabsList className="w-full grid grid-cols-2 bg-muted">
+                    <TabsTrigger value="video" className="flex items-center gap-2">
+                      <BarChart2 className="w-4 h-4" />
+                      Video Analytics
+                    </TabsTrigger>
+                    <TabsTrigger value="ai" className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4" />
+                      AI Processing
+                    </TabsTrigger>
+                  </TabsList>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  {/* Video Analytics Tab */}
+                  <TabsContent value="video" className="mt-0">
+                    <div className="flex items-center justify-between mb-4">
+                      <Badge variant={isPublished ? "default" : "secondary"}>
+                        {isPublished ? `Published to ${publishStatus.replace('published_', '').charAt(0).toUpperCase() + publishStatus.replace('published_', '').slice(1)}` : "Not yet published"}
+                      </Badge>
+                    </div>
+                    
+                    {/* Info banner */}
+                    <div className="mb-4 p-3 bg-muted/50 rounded-lg flex items-start gap-2">
+                      <Info className="w-4 h-4 text-muted-foreground mt-0.5" />
+                      <p className="text-sm text-muted-foreground">
+                        Analytics will start updating once this video is published to social.
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {analyticsCards.map((card) => {
+                        const Icon = card.icon;
+                        return (
+                          <div key={card.label} className="p-4 rounded-lg border bg-card text-center">
+                            <Icon className="w-5 h-5 mx-auto mb-2 text-muted-foreground" />
+                            <p className="text-2xl font-bold">
+                              {card.noData ? (card.isTime || card.isPercent ? "—" : "0") : card.value}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {card.noData 
+                                ? (card.isTime || card.isPercent 
+                                    ? "Analytics start after first publish" 
+                                    : `No ${card.label.toLowerCase()} yet`)
+                                : card.label}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </TabsContent>
+                  
+                  {/* AI Processing Tab */}
+                  <TabsContent value="ai" className="mt-0">
+                    {!hasAIProcessing ? (
+                      <div className="text-center py-8">
+                        <Wand2 className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
+                        <p className="font-medium mb-1">No AI processing yet</p>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Enhance your video with AI-powered post-production
                         </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {card.noData 
-                            ? (card.isTime || card.isPercent 
-                                ? "Analytics start after first publish" 
-                                : `No ${card.label.toLowerCase()} yet`)
-                            : card.label}
-                        </p>
+                        <Button onClick={() => navigate(`/studio/ai-post-production?media=${id}`)}>
+                          <Wand2 className="w-4 h-4 mr-2" />
+                          Start AI Enhancement
+                        </Button>
                       </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+                    ) : (
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="p-4 rounded-lg border bg-card">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Layers className="w-5 h-5 text-blue-500" />
+                            <span className="font-medium">Chapters</span>
+                          </div>
+                          <p className="text-2xl font-bold">
+                            {completedJobs.find(j => j.job_type === 'chapters') ? '✓' : '—'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Auto-detected</p>
+                        </div>
 
-            {/* AI Analytics Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-primary" />
-                  AI Processing Analytics
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {!hasAIProcessing ? (
-                  <div className="text-center py-8">
-                    <Wand2 className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
-                    <p className="font-medium mb-1">No AI processing yet</p>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Enhance your video with AI-powered post-production
-                    </p>
-                    <Button onClick={() => navigate(`/studio/ai-post-production?media=${id}`)}>
-                      <Wand2 className="w-4 h-4 mr-2" />
-                      Start AI Enhancement
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="p-4 rounded-lg border bg-card">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Layers className="w-5 h-5 text-blue-500" />
-                        <span className="font-medium">Chapters</span>
-                      </div>
-                      <p className="text-2xl font-bold">
-                        {completedJobs.find(j => j.job_type === 'chapters') ? '✓' : '—'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">Auto-detected</p>
-                    </div>
+                        <div className="p-4 rounded-lg border bg-card">
+                          <div className="flex items-center gap-2 mb-2">
+                            <FileText className="w-5 h-5 text-green-500" />
+                            <span className="font-medium">Transcript</span>
+                          </div>
+                          <p className="text-2xl font-bold">
+                            {latestTranscript ? '✓' : '—'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {latestTranscript ? 'Words transcribed' : 'Not generated'}
+                          </p>
+                        </div>
 
-                    <div className="p-4 rounded-lg border bg-card">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FileText className="w-5 h-5 text-green-500" />
-                        <span className="font-medium">Transcript</span>
-                      </div>
-                      <p className="text-2xl font-bold">
-                        {latestTranscript ? '✓' : '—'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {latestTranscript ? 'Words transcribed' : 'Not generated'}
-                      </p>
-                    </div>
+                        <div className="p-4 rounded-lg border bg-card">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Mic className="w-5 h-5 text-orange-500" />
+                            <span className="font-medium">Filler Removal</span>
+                          </div>
+                          <p className="text-2xl font-bold">
+                            {completedJobs.find(j => j.job_type === 'filler_removal') ? '✓' : '—'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Processed</p>
+                        </div>
 
-                    <div className="p-4 rounded-lg border bg-card">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Mic className="w-5 h-5 text-orange-500" />
-                        <span className="font-medium">Filler Removal</span>
-                      </div>
-                      <p className="text-2xl font-bold">
-                        {completedJobs.find(j => j.job_type === 'filler_removal') ? '✓' : '—'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">Processed</p>
-                    </div>
+                        <div className="p-4 rounded-lg border bg-card">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Volume2 className="w-5 h-5 text-purple-500" />
+                            <span className="font-medium">Audio Enhanced</span>
+                          </div>
+                          <p className="text-2xl font-bold">
+                            {completedJobs.find(j => j.job_type === 'audio_enhancement') ? '✓' : '—'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Noise reduced</p>
+                        </div>
 
-                    <div className="p-4 rounded-lg border bg-card">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Volume2 className="w-5 h-5 text-purple-500" />
-                        <span className="font-medium">Audio Enhanced</span>
-                      </div>
-                      <p className="text-2xl font-bold">
-                        {completedJobs.find(j => j.job_type === 'audio_enhancement') ? '✓' : '—'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">Noise reduced</p>
-                    </div>
+                        <div className="p-4 rounded-lg border bg-card">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Palette className="w-5 h-5 text-pink-500" />
+                            <span className="font-medium">Color Grading</span>
+                          </div>
+                          <p className="text-2xl font-bold">
+                            {completedJobs.find(j => j.job_type === 'color_correction') ? '✓' : '—'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Applied</p>
+                        </div>
 
-                    <div className="p-4 rounded-lg border bg-card">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Palette className="w-5 h-5 text-pink-500" />
-                        <span className="font-medium">Color Grading</span>
+                        <div className="p-4 rounded-lg border bg-card">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Scissors className="w-5 h-5 text-cyan-500" />
+                            <span className="font-medium">Clips</span>
+                          </div>
+                          <p className="text-2xl font-bold">{clips?.length || 0}</p>
+                          <p className="text-xs text-muted-foreground">Generated</p>
+                        </div>
                       </div>
-                      <p className="text-2xl font-bold">
-                        {completedJobs.find(j => j.job_type === 'color_correction') ? '✓' : '—'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">Applied</p>
-                    </div>
-
-                    <div className="p-4 rounded-lg border bg-card">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Scissors className="w-5 h-5 text-cyan-500" />
-                        <span className="font-medium">Clips</span>
-                      </div>
-                      <p className="text-2xl font-bold">{clips?.length || 0}</p>
-                      <p className="text-xs text-muted-foreground">Generated</p>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
+                    )}
+                  </TabsContent>
+                </CardContent>
+              </Tabs>
             </Card>
 
             {/* Generated Clips Section */}
