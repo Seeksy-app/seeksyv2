@@ -533,45 +533,44 @@ export default function AIPostProduction() {
                 <div className="grid md:grid-cols-2 gap-6">
                   {/* Video Preview */}
                   <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
-                    {videoUrl && !videoError ? (
+                    {/* Video element - always render if URL exists */}
+                    {videoUrl && !videoError && (
                       <video 
                         src={videoUrl} 
-                        className="w-full h-full object-contain" 
+                        className="w-full h-full object-cover" 
                         autoPlay 
                         muted 
                         loop 
+                        playsInline
                         onError={handleVideoError}
                       />
-                    ) : (
+                    )}
+                    
+                    {/* Fallback when no video */}
+                    {(!videoUrl || videoError) && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        {videoError || !videoUrl ? (
-                          <>
-                            <FileVideo className="h-16 w-16 text-white/20 mb-2" />
-                            <p className="text-white/50 text-sm">
-                              {retryCount > 0 && retryCount < 3 ? 'Retrying preview...' : 'Preview not available'}
-                            </p>
-                            {retryCount >= 3 && (
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="mt-2 text-white/70"
-                                onClick={() => { setRetryCount(0); setVideoError(false); }}
-                              >
-                                <RefreshCw className="h-3 w-3 mr-1" />
-                                Try Again
-                              </Button>
-                            )}
-                          </>
-                        ) : (
-                          <Loader2 className="h-8 w-8 text-white/50 animate-spin" />
+                        <FileVideo className="h-16 w-16 text-white/20 mb-2" />
+                        <p className="text-white/50 text-sm">
+                          {retryCount > 0 && retryCount < 3 ? 'Retrying preview...' : 'Preview not available'}
+                        </p>
+                        {retryCount >= 3 && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="mt-2 text-white/70"
+                            onClick={() => { setRetryCount(0); setVideoError(false); }}
+                          >
+                            <RefreshCw className="h-3 w-3 mr-1" />
+                            Try Again
+                          </Button>
                         )}
                       </div>
                     )}
                     
-                    {/* Processing Overlay */}
-                    <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center">
+                    {/* Processing Overlay - semi-transparent so video shows through */}
+                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center backdrop-blur-[1px]">
                       <div className="relative">
-                        <div className="w-16 h-16 rounded-full border-4 border-[#2C6BED]/30 flex items-center justify-center">
+                        <div className="w-16 h-16 rounded-full border-4 border-[#2C6BED]/40 bg-black/50 flex items-center justify-center">
                           {(() => {
                             const StepIcon = PROCESSING_STEPS[currentStep]?.icon || Wand2;
                             return <StepIcon className="h-7 w-7 text-[#2C6BED] animate-pulse" />;
@@ -579,8 +578,8 @@ export default function AIPostProduction() {
                         </div>
                         <div className="absolute inset-0 rounded-full border-2 border-[#2C6BED]/50 animate-ping" />
                       </div>
-                      <p className="mt-3 text-white font-medium">{processingStatus}</p>
-                      <p className="text-white/60 text-sm">Step {currentStep + 1} of {PROCESSING_STEPS.length}</p>
+                      <p className="mt-3 text-white font-medium drop-shadow-md">{processingStatus}</p>
+                      <p className="text-white/70 text-sm drop-shadow-md">Step {currentStep + 1} of {PROCESSING_STEPS.length}</p>
                     </div>
                   </div>
 
