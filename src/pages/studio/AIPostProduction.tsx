@@ -124,6 +124,51 @@ export default function AIPostProduction() {
     }
   });
 
+  // Poll for import status when importing external media (YouTube, Zoom, etc.)
+  useEffect(() => {
+    if (!isImporting || !selectedMedia?.id) return;
+
+    const pollImportStatus = async () => {
+      const { data, error } = await supabase
+        .from('media_files')
+        .select('id, file_name, file_type, file_url, cloudflare_download_url, duration_seconds, thumbnail_url, status, source')
+        .eq('id', selectedMedia.id)
+        .single();
+
+      if (error) {
+        console.error('Import poll error:', error);
+        return;
+      }
+
+      if (data.status === 'ready') {
+        setIsImporting(false);
+        setSelectedMedia({
+          ...selectedMedia,
+          file_name: data.file_name,
+          file_url: data.file_url,
+          cloudflare_download_url: data.cloudflare_download_url,
+          duration_seconds: data.duration_seconds,
+          thumbnail_url: data.thumbnail_url,
+        });
+        toast({
+          title: "Import Complete",
+          description: `"${data.file_name}" is ready for processing.`,
+        });
+      } else if (data.status === 'error') {
+        setIsImporting(false);
+        toast({
+          title: "Import Failed",
+          description: "Could not import the video. Please try again.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    const interval = setInterval(pollImportStatus, 2000);
+    return () => clearInterval(interval);
+  }, [isImporting, selectedMedia?.id, toast]);
+
+
   // Fetch processing jobs for selected media
   const { data: processingJobs, refetch: refetchJobs } = useQuery({
     queryKey: ['processing-jobs', selectedMedia?.id],
