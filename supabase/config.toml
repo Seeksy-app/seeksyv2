@@ -118,7 +118,6 @@ verify_jwt = true
 verify_jwt = false
 
 [[functions.daily-ai-blog-posts.schedules]]
-# Runs daily at 9:00 AM UTC (4:00 AM EST / 1:00 AM PST)
 cron = "0 9 * * *"
 
 [functions.generate-screenshot]
@@ -266,4 +265,31 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.extract-pdf-text]
+verify_jwt = true
+
+[functions.daily-create-room]
+verify_jwt = true
+
+[functions.daily-stop-recording]
+verify_jwt = true
+
+[functions.daily-start-recording]
+verify_jwt = true
+
+[functions.daily-create-meeting-room]
+verify_jwt = true
+
+[functions.daily-join-meeting]
+verify_jwt = false
+
+[functions.daily-start-meeting-recording]
+verify_jwt = true
+
+[functions.daily-stop-meeting-recording]
+verify_jwt = true
+
+[functions.daily-recording-webhook]
+verify_jwt = false
+
+[functions.daily-end-meeting]
 verify_jwt = true
