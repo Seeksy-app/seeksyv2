@@ -12,6 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import { useVideoProcessing } from "@/hooks/useVideoProcessing";
+import { UploadMediaDialog } from "@/components/media/UploadMediaDialog";
 import { 
   Wand2, Scissors, ArrowLeft, Play, Pause, Clock, FileVideo, FileAudio, 
   Sparkles, Volume2, Type, Layers, Image, Upload, Check, Loader2, 
@@ -79,6 +80,7 @@ export default function AIPostProduction() {
   const [showMediaSelector, setShowMediaSelector] = useState(false);
   const [showStudioView, setShowStudioView] = useState(false);
   const [showThumbnailDialog, setShowThumbnailDialog] = useState(false);
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [mediaFilter, setMediaFilter] = useState<'all' | 'video' | 'audio'>('all');
   
   // Processing state
@@ -812,11 +814,21 @@ export default function AIPostProduction() {
         {/* Media Selector Dialog */}
         <Dialog open={showMediaSelector} onOpenChange={setShowMediaSelector}>
           <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
-            <DialogHeader>
-              <DialogTitle>Select Media</DialogTitle>
-              <DialogDescription>
-                Choose a video or audio file to process
-              </DialogDescription>
+            <DialogHeader className="flex flex-row items-start justify-between">
+              <div>
+                <DialogTitle>Select Media</DialogTitle>
+                <DialogDescription>
+                  Choose a video or audio file to process
+                </DialogDescription>
+              </div>
+              <Button 
+                size="sm" 
+                onClick={() => setShowUploadDialog(true)}
+                className="gap-1"
+              >
+                <Upload className="h-4 w-4" />
+                Upload
+              </Button>
             </DialogHeader>
             <Tabs value={mediaFilter} onValueChange={(v) => setMediaFilter(v as any)} className="flex-1 overflow-hidden flex flex-col">
               <TabsList className="grid w-full grid-cols-3">
@@ -833,13 +845,20 @@ export default function AIPostProduction() {
                   <div className="text-center py-8 text-muted-foreground">
                     <FileVideo className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>No media files found</p>
-                    <Button 
-                      variant="outline" 
-                      className="mt-4"
-                      onClick={() => navigate('/studio/media')}
-                    >
-                      Go to Media Library
-                    </Button>
+                    <div className="flex gap-2 justify-center mt-4">
+                      <Button 
+                        onClick={() => setShowUploadDialog(true)}
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload Media
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => navigate('/studio/media')}
+                      >
+                        Go to Media Library
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-2 pr-4">
@@ -971,6 +990,15 @@ export default function AIPostProduction() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Upload Media Dialog */}
+        <UploadMediaDialog
+          open={showUploadDialog}
+          onOpenChange={setShowUploadDialog}
+          onUploadComplete={() => {
+            queryClient.invalidateQueries({ queryKey: ["ai-post-production-media"] });
+          }}
+        />
       </div>
     </div>
   );
