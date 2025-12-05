@@ -29,16 +29,22 @@ export function ThemeSection({ theme, onUpdate }: ThemeSectionProps) {
         <div className="flex items-center gap-2">
           <Input
             type="color"
-            value={theme.themeColor}
-            onChange={(e) => onUpdate({ ...theme, themeColor: e.target.value })}
-            className="w-14 h-14 p-1 rounded-xl cursor-pointer"
+            value={theme.themeColor || "#3b82f6"}
+            onChange={(e) => {
+              const newColor = e.target.value;
+              onUpdate({ ...theme, themeColor: newColor });
+            }}
+            className="w-14 h-14 p-1 rounded-xl cursor-pointer border-2"
           />
           <Input
             type="text"
-            value={theme.themeColor}
-            onChange={(e) => onUpdate({ ...theme, themeColor: e.target.value })}
+            value={theme.themeColor || "#3b82f6"}
+            onChange={(e) => {
+              const newColor = e.target.value;
+              onUpdate({ ...theme, themeColor: newColor });
+            }}
             className="flex-1 font-mono uppercase"
-            placeholder="#FFFFFF"
+            placeholder="#3b82f6"
           />
         </div>
         <div className="grid grid-cols-6 gap-2">
