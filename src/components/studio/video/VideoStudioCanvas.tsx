@@ -14,39 +14,7 @@ interface VideoStudioCanvasProps {
   onFullscreen: () => void;
 }
 
-const layoutOptions = [
-  { id: "host-only", icon: "□" },
-  { id: "side-by-side", icon: "□□" },
-  { id: "grid", icon: "▦" },
-  { id: "pip", icon: "◰" },
-  { id: "presentation", icon: "▣" },
-];
-
-interface LayoutSwitcherProps {
-  currentLayout: SceneLayout;
-  onLayoutChange: (layout: SceneLayout) => void;
-}
-
-function LayoutSwitcher({ currentLayout, onLayoutChange }: LayoutSwitcherProps) {
-  return (
-    <div className="flex items-center justify-center gap-1 py-3">
-      {layoutOptions.map((opt) => (
-        <button
-          key={opt.id}
-          onClick={() => onLayoutChange(opt.id as SceneLayout)}
-          className={cn(
-            "w-14 h-10 rounded border-2 flex items-center justify-center transition-all",
-            currentLayout === opt.id
-              ? "border-white bg-white/10"
-              : "border-white/30 hover:border-white/50 bg-transparent"
-          )}
-        >
-          <span className="text-white/80 text-xs font-mono">{opt.icon}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
+// Layout switcher removed - using visual layout panel in footer instead
 
 export function VideoStudioCanvas({
   videoRef,
@@ -129,11 +97,6 @@ export function VideoStudioCanvas({
         </div>
       </div>
 
-      {/* Layout Switcher - Below Canvas */}
-      <LayoutSwitcher 
-        currentLayout={layout} 
-        onLayoutChange={() => {}} 
-      />
     </div>
   );
 }
