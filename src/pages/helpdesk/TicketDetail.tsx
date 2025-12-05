@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Send, Sparkles, Clock, User, Tag, Monitor, Globe, Paperclip, MessageSquare, Eye, Loader2 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { demoTickets } from "@/data/helpdeskDemoData";
 
 interface TicketMessage {
   id: string;
@@ -45,7 +46,15 @@ export default function TicketDetail() {
         .select("*")
         .eq("id", ticketId)
         .single();
-      if (error) throw error;
+      
+      // If not found in DB, check demo tickets
+      if (error || !data) {
+        const demoTicket = demoTickets.find(t => t.id === ticketId);
+        if (demoTicket) {
+          return demoTicket;
+        }
+        throw error || new Error("Ticket not found");
+      }
       return data;
     },
   });
@@ -209,7 +218,7 @@ export default function TicketDetail() {
   }
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen w-full">
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}

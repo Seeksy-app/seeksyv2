@@ -28,8 +28,8 @@ export default function SupportDesk() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-6 px-10 pt-8 pb-16 flex flex-col items-start w-full space-y-6">
+      <div className="flex items-center justify-between w-full">
         <div className="text-left">
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Headphones className="h-8 w-8 text-primary" />

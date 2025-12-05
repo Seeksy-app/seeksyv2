@@ -11,6 +11,7 @@ import { Search, Plus, Clock, AlertCircle, CheckCircle2, Loader2, RefreshCw, Inb
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import CreateTicketModal from "@/components/helpdesk/CreateTicketModal";
+import { demoTickets, DemoTicket } from "@/data/helpdeskDemoData";
 
 type TicketStatus = "all" | "open" | "in_progress" | "resolved" | "archived";
 
@@ -35,7 +36,7 @@ export default function TicketsInbox() {
   const [activeTab, setActiveTab] = useState<TicketStatus>("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  const { data: tickets = [], isLoading, refetch } = useQuery({
+  const { data: dbTickets = [], isLoading, refetch } = useQuery({
     queryKey: ["helpdesk-tickets", activeTab],
     queryFn: async () => {
       let query = supabase
@@ -52,6 +53,15 @@ export default function TicketsInbox() {
       return data as Ticket[];
     },
   });
+
+  // Merge demo tickets with database tickets, prioritizing DB tickets
+  const tickets = useMemo(() => {
+    const dbIds = new Set(dbTickets.map(t => t.id));
+    const filteredDemo = demoTickets
+      .filter(t => !dbIds.has(t.id))
+      .filter(t => activeTab === "all" || t.status === activeTab) as Ticket[];
+    return [...dbTickets, ...filteredDemo];
+  }, [dbTickets, activeTab]);
 
   const filteredTickets = useMemo(() => {
     if (!searchQuery) return tickets;

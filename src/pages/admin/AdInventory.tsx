@@ -197,9 +197,9 @@ export default function AdInventory() {
   }, [inventory]);
 
   return (
-    <div className="space-y-6">
+    <div className="px-10 pt-8 pb-16 flex flex-col items-start w-full space-y-6">
       {/* Header */}
-      <div>
+      <div className="text-left">
         <h1 className="text-2xl font-bold text-foreground">Ad Inventory</h1>
         <p className="text-muted-foreground">
           Line-by-line ledger of all sellable ad opportunities across Seeksy and creators.

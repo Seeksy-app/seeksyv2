@@ -570,8 +570,8 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <WelcomeModal />
-      <main className="container mx-auto py-8 px-4">
-        <div className="mb-8 flex items-start justify-between" data-onboarding="dashboard-header">
+      <main className="px-10 pt-8 pb-16 flex flex-col items-start w-full">
+        <div className="w-full mb-8 flex items-start justify-between" data-onboarding="dashboard-header">
           <div className="flex items-center gap-4">
             {profileData.avatar_url && (
               <Avatar className="h-16 w-16 ring-2 ring-primary/20">

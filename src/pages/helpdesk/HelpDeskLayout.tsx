@@ -53,7 +53,7 @@ export default function HelpDeskLayout() {
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen w-full bg-background">
         <Sidebar className="border-r border-border">
-          <SidebarHeader className="border-b border-border p-4">
+          <SidebarHeader className="sticky top-0 z-10 border-b border-border p-4 bg-sidebar">
             <div className="flex items-center gap-2">
               <Headphones className="h-6 w-6 text-primary" />
               <span className="font-semibold text-lg">Help Desk</span>
@@ -89,7 +89,7 @@ export default function HelpDeskLayout() {
           </SidebarContent>
         </Sidebar>
         <main className="flex-1 overflow-auto">
-          <div className="px-6 py-6">
+          <div className="px-10 pt-8 pb-16 flex flex-col items-start w-full">
             <Outlet />
           </div>
         </main>

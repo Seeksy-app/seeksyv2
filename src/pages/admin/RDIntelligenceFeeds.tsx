@@ -362,10 +362,10 @@ export default function RDIntelligenceFeeds() {
   }, null as string | null);
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="px-10 pt-8 pb-16 flex flex-col items-start w-full space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-start justify-between w-full">
+        <div className="text-left">
           <h1 className="text-3xl font-bold text-foreground">R&D Intelligence Feeds</h1>
           <p className="text-muted-foreground mt-1">
             Research feeds powering AI insights and CFO forecasts

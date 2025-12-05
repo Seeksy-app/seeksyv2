@@ -73,9 +73,9 @@ const AdvertiserDashboardV2 = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="min-h-screen bg-gradient-to-br from-[#053877] to-[#041d3a] p-6"
+      className="min-h-screen bg-gradient-to-br from-[#053877] to-[#041d3a] px-10 pt-8 pb-16"
     >
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="w-full max-w-none space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
