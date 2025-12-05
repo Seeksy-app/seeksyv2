@@ -395,64 +395,30 @@ export default function MediaDetail() {
 
             {/* Analytics Tabs */}
             <Card>
-              <Tabs defaultValue="video" className="w-full">
+              <Tabs defaultValue="ai" className="w-full">
                 <CardHeader className="pb-0">
-                  <TabsList className="w-full grid grid-cols-2 bg-muted">
+                  <TabsList className="w-full grid grid-cols-3 bg-muted">
+                    <TabsTrigger value="ai" className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4" />
+                      AI Enhancements
+                    </TabsTrigger>
+                    <TabsTrigger value="clips" className="flex items-center gap-2">
+                      <Scissors className="w-4 h-4" />
+                      Clips
+                    </TabsTrigger>
                     <TabsTrigger value="video" className="flex items-center gap-2">
                       <BarChart2 className="w-4 h-4" />
                       Video Analytics
                     </TabsTrigger>
-                    <TabsTrigger value="ai" className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4" />
-                      AI Processing
-                    </TabsTrigger>
                   </TabsList>
                 </CardHeader>
                 <CardContent className="pt-6">
-                  {/* Video Analytics Tab */}
-                  <TabsContent value="video" className="mt-0">
-                    <div className="flex items-center justify-between mb-4">
-                      <Badge variant={isPublished ? "default" : "secondary"}>
-                        {isPublished ? `Published to ${publishStatus.replace('published_', '').charAt(0).toUpperCase() + publishStatus.replace('published_', '').slice(1)}` : "Not yet published"}
-                      </Badge>
-                    </div>
-                    
-                    {/* Info banner */}
-                    <div className="mb-4 p-3 bg-muted/50 rounded-lg flex items-start gap-2">
-                      <Info className="w-4 h-4 text-muted-foreground mt-0.5" />
-                      <p className="text-sm text-muted-foreground">
-                        Analytics will start updating once this video is published to social.
-                      </p>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {analyticsCards.map((card) => {
-                        const Icon = card.icon;
-                        return (
-                          <div key={card.label} className="p-4 rounded-lg border bg-card text-center">
-                            <Icon className="w-5 h-5 mx-auto mb-2 text-muted-foreground" />
-                            <p className="text-2xl font-bold">
-                              {card.noData ? (card.isTime || card.isPercent ? "—" : "0") : card.value}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {card.noData 
-                                ? (card.isTime || card.isPercent 
-                                    ? "Analytics start after first publish" 
-                                    : `No ${card.label.toLowerCase()} yet`)
-                                : card.label}
-                            </p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </TabsContent>
-                  
-                  {/* AI Processing Tab */}
+                  {/* AI Enhancements Tab */}
                   <TabsContent value="ai" className="mt-0">
                     {!hasAIProcessing ? (
                       <div className="text-center py-8">
                         <Wand2 className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
-                        <p className="font-medium mb-1">No AI processing yet</p>
+                        <p className="font-medium mb-1">No AI enhancements yet</p>
                         <p className="text-sm text-muted-foreground mb-4">
                           Enhance your video with AI-powered post-production
                         </p>
@@ -523,13 +489,115 @@ export default function MediaDetail() {
                         <div className="p-4 rounded-lg border bg-card">
                           <div className="flex items-center gap-2 mb-2">
                             <Scissors className="w-5 h-5 text-cyan-500" />
-                            <span className="font-medium">Clips</span>
+                            <span className="font-medium">Clips Generated</span>
                           </div>
                           <p className="text-2xl font-bold">{clips?.length || 0}</p>
-                          <p className="text-xs text-muted-foreground">Generated</p>
+                          <p className="text-xs text-muted-foreground">Ready to share</p>
                         </div>
                       </div>
                     )}
+                  </TabsContent>
+
+                  {/* Clips Tab */}
+                  <TabsContent value="clips" className="mt-0">
+                    {!clips || clips.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Scissors className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
+                        <p className="font-medium mb-1">No clips generated yet</p>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Generate viral clips from your video with AI
+                        </p>
+                        <Button onClick={() => navigate(`/studio/clips?media=${id}`)}>
+                          <Scissors className="w-4 h-4 mr-2" />
+                          Generate Clips
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-muted-foreground">{clips.length} clips generated</p>
+                          <Button variant="outline" size="sm" onClick={() => navigate(`/studio/clips?media=${id}`)}>
+                            Generate More
+                          </Button>
+                        </div>
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {clips.slice(0, 6).map((clip) => (
+                            <div
+                              key={clip.id}
+                              className="group relative aspect-[9/16] rounded-lg overflow-hidden border bg-muted cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+                              onClick={() => handlePublishToSocial(clip)}
+                            >
+                              {clip.thumbnail_url ? (
+                                <img
+                                  src={clip.thumbnail_url}
+                                  alt={clip.title}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <Scissors className="w-8 h-8 text-muted-foreground/40" />
+                                </div>
+                              )}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                              <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p className="text-white text-sm font-medium truncate">{clip.title}</p>
+                                <p className="text-white/70 text-xs">{formatDuration(clip.duration_seconds)}</p>
+                              </div>
+                              {clip.hook_score && (
+                                <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs">
+                                  {Math.round(clip.hook_score * 100)}%
+                                </Badge>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        {clips.length > 6 && (
+                          <div className="text-center">
+                            <Button variant="link" onClick={() => navigate(`/studio/clips?media=${id}`)}>
+                              View all {clips.length} clips
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </TabsContent>
+                  
+                  {/* Video Analytics Tab */}
+                  <TabsContent value="video" className="mt-0">
+                    <div className="flex items-center justify-between mb-4">
+                      <Badge variant={isPublished ? "default" : "secondary"}>
+                        {isPublished ? `Published to ${publishStatus.replace('published_', '').charAt(0).toUpperCase() + publishStatus.replace('published_', '').slice(1)}` : "Not yet published"}
+                      </Badge>
+                    </div>
+                    
+                    {/* Info banner */}
+                    <div className="mb-4 p-3 bg-muted/50 rounded-lg flex items-start gap-2">
+                      <Info className="w-4 h-4 text-muted-foreground mt-0.5" />
+                      <p className="text-sm text-muted-foreground">
+                        Analytics will start updating once this video is published to social.
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {analyticsCards.map((card) => {
+                        const Icon = card.icon;
+                        return (
+                          <div key={card.label} className="p-4 rounded-lg border bg-card text-center">
+                            <Icon className="w-5 h-5 mx-auto mb-2 text-muted-foreground" />
+                            <p className="text-2xl font-bold">
+                              {card.noData ? (card.isTime || card.isPercent ? "—" : "0") : card.value}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {card.noData 
+                                ? (card.isTime || card.isPercent 
+                                    ? "Analytics start after first publish" 
+                                    : `No ${card.label.toLowerCase()} yet`)
+                                : card.label}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </TabsContent>
                 </CardContent>
               </Tabs>
