@@ -5,29 +5,35 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Mic, Radio, Scissors, DollarSign, 
-  Clock, TrendingUp, Sparkles, Play,
-  CheckCircle2, XCircle
+  Video, Upload, Scissors, Clock, 
+  Play, History, Calendar, HardDrive,
+  FolderOpen, FileText, MoreHorizontal,
+  Radio, TrendingUp
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function StudioHome() {
   const navigate = useNavigate();
 
   // Fetch recent sessions
-  const { data: recentSessions, refetch } = useQuery({
+  const { data: recentSessions } = useQuery({
     queryKey: ["studio-recent-sessions"],
     queryFn: async (): Promise<any[]> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      // @ts-ignore
       const { data, error } = await supabase
         .from("studio_sessions")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
-        .limit(5);
+        .limit(6);
 
       if (error) {
         console.error("Error fetching sessions:", error);
@@ -37,338 +43,306 @@ export default function StudioHome() {
     },
   });
 
-  // Fetch identity status
-  const { data: identityStatus } = useQuery({
-    queryKey: ["identity-status-home"],
-    queryFn: async (): Promise<{ voiceVerified: boolean; faceVerified: boolean }> => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return { voiceVerified: false, faceVerified: false };
-
-      // @ts-ignore
-      const faceResult = await supabase.from("identity_assets")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("asset_type", "FACE_IDENTITY")
-        .eq("cert_status", "minted")
-        .limit(1);
-      
-      // @ts-ignore
-      const voiceResult = await supabase.from("creator_voice_profiles")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("is_verified", true)
-        .limit(1);
-
-      return {
-        faceVerified: !!(faceResult.data && faceResult.data.length > 0),
-        voiceVerified: !!(voiceResult.data && voiceResult.data.length > 0),
-      };
-    },
-  });
-
   // Fetch studio stats
   const { data: stats } = useQuery({
     queryKey: ["studio-stats"],
-    queryFn: async (): Promise<{ totalSessions: number; totalClips: number }> => {
+    queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return { totalSessions: 0, totalClips: 0 };
+      if (!user) return { totalSessions: 0, totalClips: 0, totalHours: 0, lastSession: null };
 
-      // @ts-ignore
-      const [sessionsResult, clipsResult] = await Promise.all([
+      const [sessionsResult, clipsResult, durationsResult] = await Promise.all([
         supabase.from("studio_sessions")
           .select("id", { count: "exact", head: true })
           .eq("user_id", user.id),
-        supabase.from("clip_markers")
+        supabase.from("clips")
           .select("id", { count: "exact", head: true })
-          .eq("created_by", user.id)
+          .eq("user_id", user.id),
+        supabase.from("studio_sessions")
+          .select("duration_seconds, created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
       ]);
+
+      const totalSeconds = (durationsResult.data || []).reduce((acc: number, s: any) => acc + (s.duration_seconds || 0), 0);
+      const lastSession = durationsResult.data?.[0]?.created_at || null;
 
       return {
         totalSessions: sessionsResult.count || 0,
         totalClips: clipsResult.count || 0,
+        totalHours: Math.round((totalSeconds / 3600) * 10) / 10,
+        lastSession,
       };
     },
   });
 
+  // Fetch live sessions count
+  const { data: liveCount } = useQuery({
+    queryKey: ["studio-live-count"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return 0;
+
+      const { count } = await supabase.from("studio_sessions")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("status", "active");
+
+      return count || 0;
+    },
+  });
+
   const quickActions = [
-    {
-      title: "Start Recording",
-      description: "Begin a new audio session",
-      icon: Mic,
-      color: "from-purple-500 to-purple-600",
-      action: () => navigate("/studio/recording/new"),
-      available: true,
+    { 
+      icon: Video, 
+      label: "Create New Session", 
+      bgClass: "bg-[hsl(208,93%,24%)]",
+      hoverClass: "hover:bg-[hsl(208,93%,20%)]",
+      path: "/studio/video" 
     },
-    {
-      title: "Start Live Session",
-      description: "Stream live to multiple platforms",
-      icon: Radio,
-      color: "from-red-500 to-red-600",
-      action: () => navigate("/studio/live/new"),
-      available: true,
+    { 
+      icon: Upload, 
+      label: "Upload Media", 
+      bgClass: "bg-[hsl(38,100%,55%)]",
+      hoverClass: "hover:bg-[hsl(38,100%,50%)]",
+      path: "/studio/media?upload=true" 
     },
-    {
-      title: "Open Clips & Highlights",
-      description: "Manage your clip library",
-      icon: Scissors,
-      color: "from-blue-500 to-blue-600",
-      action: () => navigate("/studio/clips"),
-      available: true,
-    },
-    {
-      title: "Set up Ads & Monetization",
-      description: "Configure revenue opportunities",
-      icon: DollarSign,
-      color: "from-green-500 to-green-600",
-      action: () => navigate("/studio/ads"),
-      available: true,
+    { 
+      icon: Scissors, 
+      label: "Generate Clips", 
+      bgClass: "bg-gradient-to-r from-[hsl(330,80%,55%)] to-[hsl(280,70%,55%)]",
+      hoverClass: "hover:opacity-90",
+      path: "/studio/clips" 
     },
   ];
 
+  const studioTools = [
+    { icon: History, label: "Past Streams", desc: "View previous recordings", path: "/studio/past-streams" },
+    { icon: Calendar, label: "Scheduled Streams", desc: "Upcoming recording times", path: "/studio/scheduled" },
+    { icon: HardDrive, label: "Storage", desc: "All media files & assets", path: "/studio/storage" },
+    { icon: Scissors, label: "Clips & Highlights", desc: "Auto-generated clips from sessions", path: "/studio/clips" },
+    { icon: FolderOpen, label: "Media Library", desc: "Uploaded files + recordings", path: "/studio/media" },
+    { icon: FileText, label: "Templates", desc: "Scripts, ad reads, show templates", path: "/studio/templates" },
+  ];
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'active':
+        return <Badge className="bg-green-500 text-white border-0">Active</Badge>;
+      case 'ended':
+        return <Badge variant="secondary">Completed</Badge>;
+      default:
+        return <Badge variant="outline">Draft</Badge>;
+    }
+  };
+
+  const getThumbnail = (session: any) => {
+    if (session.thumbnail_url) {
+      return session.thumbnail_url;
+    }
+    return null;
+  };
+
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-br from-background via-background to-muted/10">
-      <div className="container max-w-7xl mx-auto p-8 space-y-8">
-        {/* Hero Section */}
-        <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                Seeksy Studio
-              </h1>
-              <p className="text-lg text-muted-foreground mt-2">
-                Professional content creation, simplified
-              </p>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold text-foreground">Studio Hub</h1>
+            <p className="text-muted-foreground mt-1">Your home for recording, editing, and managing content</p>
+          </div>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-green-500"></span>
+              <span>{liveCount || 0} Live Sessions</span>
             </div>
-            <Button
-              size="lg"
-              className="gap-2 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 shadow-xl h-14 px-8"
-              onClick={() => navigate("/studio/recording/new")}
-            >
-              <Play className="w-5 h-5" />
-              Start Recording
-            </Button>
+            <span className="text-border">|</span>
+            <span>{stats?.totalSessions || 0} Past Streams</span>
+            <span className="text-border">|</span>
+            <span>{stats?.totalClips || 0} Auto Clips Generated</span>
           </div>
         </div>
 
-        {/* Identity Status Card */}
-        {identityStatus && (!identityStatus.voiceVerified || !identityStatus.faceVerified) && (
-          <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-purple-500/5 shadow-xl animate-in fade-in slide-in-from-top-5 duration-700">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-primary" />
-                Complete Your Identity Verification
-              </CardTitle>
-              <CardDescription>
-                Unlock premium features and build trust with advertisers
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-4">
-                {!identityStatus.faceVerified && (
-                  <Button
-                    variant="outline"
-                    className="gap-2"
-                    onClick={() => navigate("/identity")}
-                  >
-                    <XCircle className="w-4 h-4" />
-                    Verify Face
-                  </Button>
-                )}
-                {identityStatus.faceVerified && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <CheckCircle2 className="w-4 h-4 text-green-500" />
-                    Face Verified
-                  </div>
-                )}
-                {!identityStatus.voiceVerified && (
-                  <Button
-                    variant="outline"
-                    className="gap-2"
-                    onClick={() => navigate("/my-voice-identity")}
-                  >
-                    <XCircle className="w-4 h-4" />
-                    Verify Voice
-                  </Button>
-                )}
-                {identityStatus.voiceVerified && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <CheckCircle2 className="w-4 h-4 text-green-500" />
-                    Voice Verified
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Studio Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-6 duration-700">
-          <Card className="border-2 hover:border-primary/30 transition-colors shadow-lg">
-            <CardHeader>
-              <CardDescription>Total Sessions</CardDescription>
-              <CardTitle className="text-4xl">{stats?.totalSessions || 0}</CardTitle>
-            </CardHeader>
-          </Card>
-          <Card className="border-2 hover:border-primary/30 transition-colors shadow-lg">
-            <CardHeader>
-              <CardDescription>Clip Markers</CardDescription>
-              <CardTitle className="text-4xl flex items-center gap-2">
-                {stats?.totalClips || 0}
-                <TrendingUp className="w-5 h-5 text-green-500" />
-              </CardTitle>
-            </CardHeader>
-          </Card>
-          <Card className="border-2 hover:border-primary/30 transition-colors shadow-lg">
-            <CardHeader>
-              <CardDescription>Total Guests</CardDescription>
-              <CardTitle className="text-4xl">0</CardTitle>
-              <Badge variant="outline" className="w-fit text-xs mt-2">Phase 2</Badge>
-            </CardHeader>
-          </Card>
-        </div>
-
-        {/* Quick Actions Grid */}
-        <div className="animate-in fade-in slide-in-from-bottom-7 duration-700">
-          <h2 className="text-2xl font-bold mb-6">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {quickActions.map((action, index) => (
-              <Card
-                key={index}
-                className={`group transition-all duration-300 border-2 overflow-hidden ${
-                  action.available 
-                    ? 'cursor-pointer hover:shadow-2xl hover:-translate-y-1 hover:border-primary/50' 
-                    : 'opacity-50 cursor-not-allowed'
-                }`}
-                onClick={action.available ? action.action : undefined}
+        {/* Quick Actions */}
+        <section>
+          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-3 gap-4">
+            {quickActions.map((action) => (
+              <Button
+                key={action.label}
+                onClick={() => navigate(action.path)}
+                className={`h-14 text-base font-medium gap-3 ${action.bgClass} ${action.hoverClass} text-white shadow-md`}
               >
-                <div className={`absolute inset-0 bg-gradient-to-br ${action.color} opacity-0 ${action.available ? 'group-hover:opacity-5' : ''} transition-opacity`} />
-                <CardHeader className="relative">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center mb-3 ${action.available ? 'group-hover:scale-110' : ''} transition-transform shadow-lg`}>
-                    <action.icon className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CardTitle className={`${action.available ? 'group-hover:text-primary' : ''} transition-colors`}>
-                      {action.title}
-                    </CardTitle>
-                    {!action.available && (
-                      <Badge variant="outline" className="text-xs">Coming Soon</Badge>
-                    )}
-                  </div>
-                  <CardDescription>{action.description}</CardDescription>
-                </CardHeader>
-              </Card>
+                <action.icon className="w-5 h-5" />
+                {action.label}
+              </Button>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Recent Recordings */}
-        {recentSessions && recentSessions.length > 0 && (
-          <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">Recent Recordings</h2>
-              <Button variant="ghost" onClick={() => navigate("/studio/recordings")}>
-                View All
-              </Button>
+        {/* Studio Overview Card */}
+        <Card className="border shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              Studio Overview
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-4 gap-6">
+              <div className="text-center p-4 rounded-xl bg-muted/50">
+                <p className="text-3xl font-bold text-foreground">{stats?.totalSessions || 0}</p>
+                <p className="text-sm text-muted-foreground mt-1">Total Recordings</p>
+              </div>
+              <div className="text-center p-4 rounded-xl bg-muted/50">
+                <p className="text-3xl font-bold text-foreground">{stats?.totalHours || 0}</p>
+                <p className="text-sm text-muted-foreground mt-1">Hours Created</p>
+              </div>
+              <div className="text-center p-4 rounded-xl bg-muted/50">
+                <p className="text-3xl font-bold text-foreground">{stats?.totalClips || 0}</p>
+                <p className="text-sm text-muted-foreground mt-1">Clips Generated</p>
+              </div>
+              <div className="text-center p-4 rounded-xl bg-muted/50">
+                <p className="text-sm font-medium text-foreground">
+                  {stats?.lastSession 
+                    ? format(new Date(stats.lastSession), "MMM d, yyyy")
+                    : "—"
+                  }
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">Last Session</p>
+              </div>
             </div>
-            <div className="space-y-3">
-              {recentSessions.map((session) => (
+          </CardContent>
+        </Card>
+
+        {/* Recent Sessions */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Recent Sessions</h2>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/studio/recordings")}>
+              View All
+            </Button>
+          </div>
+          
+          {recentSessions && recentSessions.length > 0 ? (
+            <div className="grid grid-cols-3 gap-4">
+              {recentSessions.map((session: any) => (
                 <Card 
                   key={session.id} 
-                  className="hover:shadow-lg transition-all hover:border-primary/30 border-2 cursor-pointer"
-                  onClick={() => navigate(`/studio/post-session/${session.id}`)}
+                  className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group"
+                  onClick={() => navigate(`/studio/session/${session.id}`)}
                 >
-                  <CardHeader className="py-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center shadow-md">
-                          <Mic className="w-6 h-6 text-primary" />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <CardTitle className="text-base">
-                              {session.room_name || "Untitled Recording"}
-                            </CardTitle>
-                            {session.identity_verified && (
-                              <Badge variant="outline" className="gap-1 text-xs">
-                                <CheckCircle2 className="w-3 h-3 text-green-500" />
-                                Verified
-                              </Badge>
-                            )}
-                          </div>
-                          <CardDescription className="flex items-center gap-2">
-                            <Clock className="w-3 h-3" />
-                            {formatDistanceToNow(new Date(session.created_at), { addSuffix: true })}
-                          </CardDescription>
-                        </div>
+                  {/* Thumbnail */}
+                  <div className="aspect-video bg-muted relative">
+                    {getThumbnail(session) ? (
+                      <img 
+                        src={getThumbnail(session)} 
+                        alt={session.room_name || "Session"} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
+                        <Video className="w-10 h-10 text-primary/40" />
                       </div>
-                      <div className="flex items-center gap-3">
-                        <Badge variant="secondary" className="tabular-nums">
-                          {session.duration_seconds 
-                            ? `${Math.floor(session.duration_seconds / 60)}:${(session.duration_seconds % 60).toString().padStart(2, '0')}`
-                            : "0:00"}
-                        </Badge>
-                        <Badge 
-                          variant={session.status === 'ended' ? 'outline' : 'default'}
-                          className="capitalize"
-                        >
-                          {session.status}
-                        </Badge>
-                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                      <Play className="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
                     </div>
-                  </CardHeader>
+                    <div className="absolute top-2 right-2">
+                      {getStatusBadge(session.status)}
+                    </div>
+                  </div>
+                  
+                  {/* Content */}
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-medium text-sm truncate">
+                          {session.room_name || "Untitled Session"}
+                        </h3>
+                        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                          <Clock className="w-3 h-3" />
+                          <span>{formatDistanceToNow(new Date(session.created_at), { addSuffix: true })}</span>
+                          <span className="text-border">•</span>
+                          <span className="tabular-nums">
+                            {session.duration_seconds 
+                              ? `${Math.floor(session.duration_seconds / 60)}:${(session.duration_seconds % 60).toString().padStart(2, '0')}`
+                              : "0:00"}
+                          </span>
+                        </div>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/studio/session/${session.id}`); }}>
+                            View
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                            Rename
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                            Export
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={(e) => e.stopPropagation()} className="text-destructive">
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </CardContent>
                 </Card>
               ))}
             </div>
+          ) : (
+            <Card className="border-dashed">
+              <CardContent className="py-12">
+                <div className="text-center space-y-4">
+                  <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto">
+                    <Video className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium mb-1">No recent sessions</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Start by creating your first recording.
+                    </p>
+                  </div>
+                  <Button onClick={() => navigate("/studio/video")} className="bg-primary hover:bg-primary/90">
+                    <Play className="w-4 h-4 mr-2" />
+                    Create Your First Recording
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </section>
+
+        {/* Studio Tools */}
+        <section>
+          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">Studio Tools</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {studioTools.map((tool) => (
+              <Card 
+                key={tool.label}
+                className="cursor-pointer hover:shadow-md hover:border-primary/30 transition-all group"
+                onClick={() => navigate(tool.path)}
+              >
+                <CardContent className="p-5 flex items-start gap-4">
+                  <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                    <tool.icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-medium text-sm group-hover:text-primary transition-colors">{tool.label}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">{tool.desc}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        )}
-
-        {/* Empty State */}
-        {recentSessions && recentSessions.length === 0 && (
-          <Card className="border-2 border-dashed bg-muted/20 animate-in fade-in slide-in-from-bottom-8 duration-700">
-            <CardContent className="py-16">
-              <div className="text-center space-y-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-primary/10 to-purple-500/10 rounded-2xl flex items-center justify-center mx-auto">
-                  <Mic className="w-10 h-10 text-primary" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold mb-2">No recordings yet</h3>
-                  <p className="text-muted-foreground max-w-md mx-auto">
-                    Start your first recording session and build your content library
-                  </p>
-                </div>
-                <Button
-                  size="lg"
-                  className="gap-2 bg-gradient-to-r from-primary to-purple-500"
-                  onClick={() => navigate("/studio/recording/new")}
-                >
-                  <Play className="w-5 h-5" />
-                  Create Your First Recording
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Help & Resources */}
-        <Card className="bg-gradient-to-br from-muted/30 to-muted/10 border-2 shadow-lg animate-in fade-in slide-in-from-bottom-9 duration-700">
-          <CardHeader>
-            <CardTitle>Studio Resources</CardTitle>
-            <CardDescription>
-              Learn how to get the most out of Seeksy Studio
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex gap-3">
-            <Button variant="outline" size="sm">
-              View Tutorials
-            </Button>
-            <Button variant="outline" size="sm">
-              Best Practices
-            </Button>
-            <Button variant="outline" size="sm">
-              Community
-            </Button>
-          </CardContent>
-        </Card>
+        </section>
       </div>
     </div>
   );
