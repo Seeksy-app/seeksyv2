@@ -87,7 +87,7 @@ export function HeroSection() {
             <Button
               size="lg"
               variant="outline"
-              onClick={() => navigate("/meetings/schedule?type=demo")}
+              onClick={() => navigate("/demo")}
               className="bg-yellow-500 hover:bg-yellow-400 border-2 border-yellow-500 text-slate-900 text-lg px-8 py-7 h-auto font-bold transition-all duration-300 hover:scale-105 active:scale-100"
             >
               <Calendar className="mr-2 h-5 w-5" />

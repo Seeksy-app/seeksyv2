@@ -56,6 +56,9 @@ import AdminMeetingTypes from "./pages/admin/meetings/AdminMeetingTypes";
 import AdminBookingLinks from "./pages/admin/meetings/AdminBookingLinks";
 import AdminUpcomingMeetings from "./pages/admin/meetings/AdminUpcomingMeetings";
 import AdminTeamAvailability from "./pages/admin/meetings/AdminTeamAvailability";
+import AdminScheduledMeetings from "./pages/admin/meetings/AdminScheduledMeetings";
+import AdminMeetingSettings from "./pages/admin/meetings/AdminMeetingSettings";
+import BookMeeting from "./pages/public/BookMeeting";
 import Availability from "./pages/Availability";
 import MasterStudio from "./pages/MasterStudio";
 import LiveStudio from "./pages/LiveStudio";
@@ -869,8 +872,10 @@ const AppContent = () => {
               <Route path="/admin/meetings" element={<AdminMeetingsDashboard />} />
               <Route path="/admin/meetings/types" element={<AdminMeetingTypes />} />
               <Route path="/admin/meetings/links" element={<AdminBookingLinks />} />
+              <Route path="/admin/meetings/scheduled" element={<AdminScheduledMeetings />} />
               <Route path="/admin/meetings/upcoming" element={<AdminUpcomingMeetings />} />
               <Route path="/admin/meetings/availability" element={<AdminTeamAvailability />} />
+              <Route path="/admin/meetings/settings" element={<AdminMeetingSettings />} />
               <Route path="/admin/proposal-builder" element={<ProposalBuilder />} />
               <Route path="/admin/marketing-gtm" element={<MarketingGTM />} />
               <Route path="/admin/investor-spreadsheets-v2" element={<InvestorSpreadsheets />} />
@@ -1083,6 +1088,11 @@ const AppContent = () => {
           {/* Agency Routes */}
           <Route path="/agency/influencer-search" element={<InfluencerSearch />} />
           <Route path="/agency/campaigns" element={<AgencyCampaigns />} />
+          
+          {/* Public Booking Routes */}
+          <Route path="/book/:slug" element={<BookMeeting />} />
+          <Route path="/demo" element={<BookMeeting />} />
+          
               <Route path="/:username.portfolio" element={<InfluencerPortfolio />} />
               <Route path="/:username.blog" element={<UserBlog />} />
               <Route path="/:username" element={<MyPagePublic />} />

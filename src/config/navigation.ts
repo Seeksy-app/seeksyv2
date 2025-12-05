@@ -159,10 +159,10 @@ export const NAVIGATION_CONFIG: {
           "roles": ["admin", "super_admin", "platform_owner", "support_admin"]
         },
         {
-          "id": "admin_upcoming_meetings",
-          "label": "Upcoming Meetings",
+          "id": "admin_scheduled_meetings",
+          "label": "Scheduled Meetings",
           "icon": "calendar",
-          "path": "/admin/meetings/upcoming",
+          "path": "/admin/meetings/scheduled",
           "roles": ["admin", "super_admin", "platform_owner", "support_admin", "cmo", "cco", "cfo"]
         },
         {
@@ -170,6 +170,13 @@ export const NAVIGATION_CONFIG: {
           "label": "Team Availability",
           "icon": "clock",
           "path": "/admin/meetings/availability",
+          "roles": ["admin", "super_admin", "platform_owner"]
+        },
+        {
+          "id": "admin_meeting_settings",
+          "label": "Settings",
+          "icon": "settings",
+          "path": "/admin/meetings/settings",
           "roles": ["admin", "super_admin", "platform_owner"]
         }
       ]
