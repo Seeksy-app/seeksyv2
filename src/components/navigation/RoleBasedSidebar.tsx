@@ -308,28 +308,21 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                   const isPinned = navConfig.pinned.includes(item.id);
                   const hasSubItems = item.subItems && item.subItems.length > 0;
                   
-                  // Special handling for My Workspaces - show custom packages as sub-items
-                  if (item.id === 'my_workspaces' && customPackages.length > 0 && !collapsed) {
-                    const isOpen = openGroups[item.id] ?? false;
+                  // Special handling for My Workspaces - render each workspace as a single row (no dropdown)
+                  if (item.id === 'my_workspaces') {
                     return (
-                      <Collapsible
-                        key={item.id}
-                        open={isOpen}
-                        onOpenChange={() => toggleGroup(item.id)}
-                      >
-                        <CollapsibleTrigger asChild>
-                          <button className="w-full flex items-center justify-between cursor-pointer hover:bg-white/10 text-white px-3 py-2 rounded-md transition-colors">
-                            <div className="flex items-center gap-3 min-w-0">
-                              <Icon className="h-4 w-4 shrink-0 text-white" />
-                              <span className="truncate text-white font-medium text-sm">{item.label}</span>
-                            </div>
-                            <div className="flex items-center gap-2 ml-auto shrink-0">
-                              {isPinned && <span className="text-amber-400 text-xs">★</span>}
-                              <ChevronDown className={`h-4 w-4 text-white/70 transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`} />
-                            </div>
-                          </button>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
+                      <div key={item.id} className="flex flex-col">
+                        {/* My Workspaces header */}
+                        <NavLink
+                          to={item.path}
+                          className="flex items-center gap-3 text-white hover:bg-white/10 w-full px-2 py-2 rounded-md transition-colors"
+                          activeClassName="bg-primary/20 text-white"
+                        >
+                          <Icon className="h-4 w-4 shrink-0 text-white" />
+                          {!collapsed && <span className="truncate text-white font-medium text-sm">{item.label}</span>}
+                        </NavLink>
+                        {/* Individual workspace rows - no dropdown, just direct links */}
+                        {!collapsed && customPackages.length > 0 && (
                           <div className="ml-7 mt-1 space-y-0.5 border-l border-white/20 pl-3">
                             {customPackages.map((pkg) => (
                               <NavLink
@@ -339,12 +332,12 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                                 activeClassName="text-white bg-white/10"
                               >
                                 <span className="truncate">{pkg.name}</span>
-                                {pkg.is_default && <span className="text-amber-400 text-xs">★</span>}
+                                {pkg.is_default && <span className="text-amber-400 text-xs">⭐</span>}
                               </NavLink>
                             ))}
                           </div>
-                        </CollapsibleContent>
-                      </Collapsible>
+                        )}
+                      </div>
                     );
                   }
                   
@@ -364,7 +357,8 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                         onOpenChange={() => toggleGroup(item.id)}
                       >
                         <CollapsibleTrigger asChild>
-                          <button className="w-full flex items-center justify-between cursor-pointer hover:bg-white/10 text-white px-3 py-2 rounded-md transition-colors">
+                          {/* Level 0 collapsible - use px-2 for consistent left alignment */}
+                          <button className="w-full flex items-center justify-between cursor-pointer hover:bg-white/10 text-white px-2 py-2 rounded-md transition-colors">
                             <div className="flex items-center gap-3 min-w-0">
                               <Icon className="h-4 w-4 shrink-0 text-white" />
                               <span className="truncate text-white font-medium text-sm">{item.label}</span>
@@ -394,12 +388,12 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                     );
                   }
                   
-                  // Level 0 items without sub-items - left-justified like admin group labels
+                  // Level 0 items without sub-items - use px-2 for consistent left alignment
                   return (
                     <NavLink
                       key={item.id}
                       to={item.path}
-                      className="flex items-center justify-between text-white hover:bg-white/10 w-full px-3 py-2 rounded-md transition-colors"
+                      className="flex items-center justify-between text-white hover:bg-white/10 w-full px-2 py-2 rounded-md transition-colors"
                       activeClassName="bg-primary/20 text-white"
                     >
                       <div className="flex items-center gap-3 min-w-0">
