@@ -293,3 +293,9 @@ verify_jwt = false
 
 [functions.daily-end-meeting]
 verify_jwt = true
+
+[functions.create-public-meeting]
+verify_jwt = false
+
+[functions.send-meeting-confirmation]
+verify_jwt = false

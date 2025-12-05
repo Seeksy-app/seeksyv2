@@ -118,9 +118,9 @@ export default function MyDay() {
       try {
         const { count } = await (supabase.from("meetings") as any)
           .select("id", { count: "exact", head: true })
-          .eq("host_id", user.id)
-          .gte("scheduled_at", todayStart.toISOString())
-          .lte("scheduled_at", todayEnd.toISOString());
+          .eq("user_id", user.id)
+          .gte("start_time", todayStart.toISOString())
+          .lte("start_time", todayEnd.toISOString());
         meetingsCount = count || 0;
       } catch {}
 

@@ -63,8 +63,36 @@ export default function BookMeeting() {
     setIsSubmitting(true);
     
     try {
+      // Parse time and create proper datetime with timezone
+      const [hours, minutes] = selectedTime.split(':').map(Number);
+      const startTime = new Date(selectedDate);
+      startTime.setHours(hours, minutes, 0, 0);
+      
+      const endTime = new Date(startTime);
+      endTime.setMinutes(endTime.getMinutes() + meetingType.duration);
+
+      // Try to create meeting via edge function (handles both authenticated and public)
+      const { data: meetingResult, error: meetingError } = await supabase.functions.invoke('create-public-meeting', {
+        body: {
+          title: meetingType.name,
+          description: `Booked by ${formData.name} (${formData.email})${formData.company ? ` from ${formData.company}` : ''}. ${formData.notes || ''}`,
+          startTime: startTime.toISOString(),
+          endTime: endTime.toISOString(),
+          locationType: 'seeksy_studio',
+          attendeeName: formData.name,
+          attendeeEmail: formData.email,
+          attendeePhone: formData.phone || null,
+          hostName: meetingType.host,
+          meetingTypeName: effectiveSlug,
+        },
+      });
+
+      if (meetingError) {
+        console.error('Meeting creation error:', meetingError);
+      }
+
       // Send confirmation email via edge function
-      const { data, error } = await supabase.functions.invoke('send-meeting-confirmation', {
+      const { error: emailError } = await supabase.functions.invoke('send-meeting-confirmation', {
         body: {
           attendeeName: formData.name,
           attendeeEmail: formData.email,
@@ -74,12 +102,12 @@ export default function BookMeeting() {
           duration: meetingType.duration,
           hostName: meetingType.host,
           notes: formData.notes || undefined,
+          meetingId: meetingResult?.meetingId,
         },
       });
 
-      if (error) {
-        console.error('Email error:', error);
-        // Still show success but warn about email
+      if (emailError) {
+        console.error('Email error:', emailError);
         toast({ 
           title: "Meeting booked!", 
           description: "Confirmation email may be delayed.",
@@ -92,7 +120,6 @@ export default function BookMeeting() {
       setIsBooked(true);
     } catch (err) {
       console.error('Booking error:', err);
-      // Still mark as booked even if email fails
       setIsBooked(true);
       toast({ title: "Meeting booked!", description: "You'll receive a confirmation email shortly." });
     } finally {

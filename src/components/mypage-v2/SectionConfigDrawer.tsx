@@ -65,7 +65,7 @@ export function SectionConfigDrawer({ section, onClose, userId }: SectionConfigD
       const result: any = await (supabase as any)
         .from("meetings")
         .select("id, title")
-        .eq("host_id", userId);
+        .eq("user_id", userId);
       setMeetings(result.data || []);
     }
 
