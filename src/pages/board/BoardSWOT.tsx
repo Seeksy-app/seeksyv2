@@ -6,11 +6,13 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { SWOT_DATA, categoryConfig, groupByCategory, SwotItem, SwotCategory } from '@/data/swotData';
 import { useBoardDataMode } from '@/contexts/BoardDataModeContext';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { formatDistanceToNow } from 'date-fns';
 import {
   Grid3X3,
   List,
@@ -21,9 +23,118 @@ import {
   Bot,
   Sparkles,
   X,
+  Clock,
+  User,
+  Loader2,
 } from 'lucide-react';
 
 type ViewMode = 'quadrant' | 'stack' | 'radial' | 'tabs';
+type SwotCategory = 'strength' | 'weakness' | 'opportunity' | 'threat';
+
+interface SwotItem {
+  id: string;
+  title: string;
+  category: SwotCategory;
+  description: string;
+  whyItMatters: string[];
+  boardConsiderations: string[];
+}
+
+interface CFOSwotData {
+  strengths: string[];
+  weaknesses: string[];
+  opportunities: string[];
+  threats: string[];
+  ai_summary?: string | null;
+  last_updated_by_name?: string;
+  last_updated_at?: string;
+}
+
+const categoryConfig: Record<SwotCategory, {
+  title: string;
+  subtitle: string;
+  emoji: string;
+  bgColor: string;
+  borderColor: string;
+  iconBgColor: string;
+  pillBg: string;
+  pillHover: string;
+}> = {
+  strength: {
+    title: 'Strengths',
+    subtitle: 'Internal • Positive',
+    emoji: '💪',
+    bgColor: 'bg-emerald-50',
+    borderColor: 'border-emerald-200',
+    iconBgColor: 'bg-emerald-100',
+    pillBg: 'bg-white border border-emerald-200',
+    pillHover: 'hover:border-emerald-400 hover:shadow-md',
+  },
+  weakness: {
+    title: 'Weaknesses',
+    subtitle: 'Internal • Negative',
+    emoji: '⚠️',
+    bgColor: 'bg-rose-50',
+    borderColor: 'border-rose-200',
+    iconBgColor: 'bg-rose-100',
+    pillBg: 'bg-white border border-rose-200',
+    pillHover: 'hover:border-rose-400 hover:shadow-md',
+  },
+  opportunity: {
+    title: 'Opportunities',
+    subtitle: 'External • Positive',
+    emoji: '🎯',
+    bgColor: 'bg-amber-50',
+    borderColor: 'border-amber-200',
+    iconBgColor: 'bg-amber-100',
+    pillBg: 'bg-white border border-amber-200',
+    pillHover: 'hover:border-amber-400 hover:shadow-md',
+  },
+  threat: {
+    title: 'Threats',
+    subtitle: 'External • Negative',
+    emoji: '🛡️',
+    bgColor: 'bg-slate-50',
+    borderColor: 'border-slate-200',
+    iconBgColor: 'bg-slate-100',
+    pillBg: 'bg-white border border-slate-200',
+    pillHover: 'hover:border-slate-400 hover:shadow-md',
+  },
+};
+
+// Convert CFO data to SwotItem format
+function convertToSwotItems(cfoData: CFOSwotData): Record<SwotCategory, SwotItem[]> {
+  const result: Record<SwotCategory, SwotItem[]> = {
+    strength: [],
+    weakness: [],
+    opportunity: [],
+    threat: [],
+  };
+
+  const createItem = (text: string, category: SwotCategory, index: number): SwotItem => ({
+    id: `${category}-${index}`,
+    title: text.replace(/^[•\-\*]\s*/, '').trim(),
+    category,
+    description: text.replace(/^[•\-\*]\s*/, '').trim(),
+    whyItMatters: ['Strategic impact on business positioning'],
+    boardConsiderations: ['Monitor and review quarterly'],
+  });
+
+  cfoData.strengths?.forEach((s, i) => {
+    if (s.trim()) result.strength.push(createItem(s, 'strength', i));
+  });
+  cfoData.weaknesses?.forEach((w, i) => {
+    if (w.trim()) result.weakness.push(createItem(w, 'weakness', i));
+  });
+  cfoData.opportunities?.forEach((o, i) => {
+    if (o.trim()) result.opportunity.push(createItem(o, 'opportunity', i));
+  });
+  cfoData.threats?.forEach((t, i) => {
+    if (t.trim()) result.threat.push(createItem(t, 'threat', i));
+  });
+
+  return result;
+}
 
 export default function BoardSWOT() {
   const [viewMode, setViewMode] = useState<ViewMode>('quadrant');
@@ -31,7 +142,47 @@ export default function BoardSWOT() {
   const [activeTab, setActiveTab] = useState<SwotCategory>('strength');
   const { isDemo } = useBoardDataMode();
 
-  const groupedItems = useMemo(() => groupByCategory(SWOT_DATA), []);
+  // Fetch CFO SWOT from board_settings
+  const { data: cfoSwotSetting, isLoading } = useQuery({
+    queryKey: ['board-cfo-swot'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('board_settings' as any)
+        .select('*')
+        .eq('setting_key', 'cfo_swot')
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching board SWOT:', error);
+        return null;
+      }
+      return data;
+    },
+  });
+
+  const cfoSwotData = (cfoSwotSetting as any)?.setting_value as CFOSwotData | null;
+  const groupedItems = useMemo(() => {
+    if (cfoSwotData && !isDemo) {
+      return convertToSwotItems(cfoSwotData);
+    }
+    // Demo fallback data
+    return {
+      strength: [
+        { id: 's1', title: 'First-mover advantage in AI-powered podcast monetization', category: 'strength' as SwotCategory, description: 'First-mover advantage in AI-powered podcast monetization', whyItMatters: ['Strategic positioning'], boardConsiderations: ['Continue investment'] },
+        { id: 's2', title: 'Proprietary voice certification technology', category: 'strength' as SwotCategory, description: 'Proprietary voice certification technology', whyItMatters: ['Competitive moat'], boardConsiderations: ['Patent protection'] },
+      ],
+      weakness: [
+        { id: 'w1', title: 'Limited brand awareness', category: 'weakness' as SwotCategory, description: 'Limited brand awareness compared to established platforms', whyItMatters: ['Growth constraint'], boardConsiderations: ['Increase marketing'] },
+      ],
+      opportunity: [
+        { id: 'o1', title: '$50B+ podcast advertising market growing 20% YoY', category: 'opportunity' as SwotCategory, description: '$50B+ podcast advertising market growing 20% YoY', whyItMatters: ['Revenue potential'], boardConsiderations: ['Accelerate GTM'] },
+      ],
+      threat: [
+        { id: 't1', title: 'Large incumbents entering similar space', category: 'threat' as SwotCategory, description: 'Large incumbents (Spotify, YouTube) entering similar space', whyItMatters: ['Competitive pressure'], boardConsiderations: ['Differentiation strategy'] },
+      ],
+    };
+  }, [cfoSwotData, isDemo]);
+
   const quadrantOrder: SwotCategory[] = ['strength', 'weakness', 'opportunity', 'threat'];
 
   const handleAskAI = (item: SwotItem) => {
@@ -47,8 +198,7 @@ Provide:
 3. Resource requirements
 4. Board-level decisions required`;
 
-    const encodedPrompt = encodeURIComponent(prompt);
-    window.open(`/board/ai-analyst?prompt=${encodedPrompt}`, '_blank');
+    window.dispatchEvent(new CustomEvent('openSparkChat', { detail: { prompt } }));
     setSelectedItem(null);
   };
 
@@ -68,19 +218,15 @@ ${item.boardConsiderations.map(c => `• ${c}`).join('\n')}`;
     toast.success("Summary copied to clipboard");
   };
 
-  const handleAskAIQuadrant = (category: SwotCategory) => {
-    const config = categoryConfig[category];
-    const items = groupedItems[category];
-    const prompt = `Summarize the ${config.title} quadrant for Seeksy's strategic position.
-
-Items:
-${items.map(i => `- ${i.title}`).join('\n')}
-
-Analyze implications for revenue, CAC, churn, partnerships, and overall strategy.`;
-
-    const encodedPrompt = encodeURIComponent(prompt);
-    window.open(`/board/ai-analyst?prompt=${encodedPrompt}`, '_blank');
-  };
+  if (isLoading) {
+    return (
+      <BoardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </BoardLayout>
+    );
+  }
 
   // Quadrant View Component
   const QuadrantView = () => (
@@ -111,24 +257,9 @@ Analyze implications for revenue, CAC, churn, partnerships, and overall strategy
                   <p className="text-xs text-slate-500">{config.subtitle}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 w-8 p-0"
-                      onClick={() => handleAskAIQuadrant(category)}
-                    >
-                      <Bot className="w-4 h-4 text-blue-600" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Ask AI About This Quadrant</TooltipContent>
-                </Tooltip>
-                <Badge variant="secondary" className="text-xs bg-white/80 text-slate-600">
-                  {items.length}
-                </Badge>
-              </div>
+              <Badge variant="secondary" className="text-xs bg-white/80 text-slate-600">
+                {items.length}
+              </Badge>
             </div>
 
             <div className="space-y-2">
@@ -153,209 +284,44 @@ Analyze implications for revenue, CAC, churn, partnerships, and overall strategy
                   <Info className="w-4 h-4 text-slate-400 flex-shrink-0" />
                 </motion.button>
               ))}
+              {items.length === 0 && (
+                <p className="text-sm text-slate-400 italic text-center py-4">
+                  No items published yet
+                </p>
+              )}
             </div>
           </motion.div>
         );
       })}
-    </div>
-  );
-
-  // Stack View Component
-  const StackView = () => (
-    <div className="space-y-6">
-      {quadrantOrder.map((category, idx) => {
-        const config = categoryConfig[category];
-        const items = groupedItems[category] || [];
-
-        return (
-          <motion.div
-            key={category}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: idx * 0.1 }}
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <div className={cn("p-2 rounded-lg", config.iconBgColor)}>
-                <span className="text-lg">{config.emoji}</span>
-              </div>
-              <h3 className="font-semibold text-slate-900">{config.title}</h3>
-              <Badge variant="secondary" className="text-xs">{items.length}</Badge>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="ml-auto gap-1.5 text-blue-600"
-                onClick={() => handleAskAIQuadrant(category)}
-              >
-                <Bot className="w-4 h-4" />
-                Ask AI
-              </Button>
-            </div>
-            <div className="space-y-2 pl-10">
-              {items.map((item) => (
-                <Card
-                  key={item.id}
-                  className="cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => setSelectedItem(item)}
-                >
-                  <CardContent className="p-4">
-                    <p className="text-sm font-medium text-slate-800">{item.title}</p>
-                    <p className="text-xs text-slate-500 mt-1 line-clamp-2">{item.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </motion.div>
-        );
-      })}
-    </div>
-  );
-
-  // Radial View Component
-  const RadialView = () => (
-    <div className="relative w-full max-w-2xl mx-auto aspect-square">
-      <div className="absolute inset-0 rounded-full border-4 border-slate-200" />
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
-          <span className="text-white font-bold text-lg">SWOT</span>
-        </div>
-      </div>
-      
-      {/* Quadrants */}
-      {quadrantOrder.map((category, idx) => {
-        const config = categoryConfig[category];
-        const items = groupedItems[category] || [];
-        const angle = (idx * 90) - 45;
-        const x = Math.cos((angle * Math.PI) / 180) * 35;
-        const y = Math.sin((angle * Math.PI) / 180) * 35;
-
-        return (
-          <motion.div
-            key={category}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, delay: idx * 0.1 }}
-            className="absolute"
-            style={{
-              top: `${50 + y}%`,
-              left: `${50 + x}%`,
-              transform: 'translate(-50%, -50%)',
-            }}
-          >
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => {
-                    setActiveTab(category);
-                    setViewMode('tabs');
-                  }}
-                  className={cn(
-                    "w-32 h-32 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all",
-                    "hover:scale-110 hover:shadow-xl cursor-pointer",
-                    config.bgColor,
-                    `border-2 ${config.borderColor}`
-                  )}
-                >
-                  <span className="text-2xl">{config.emoji}</span>
-                  <span className="text-sm font-semibold text-slate-800">{config.title}</span>
-                  <Badge variant="secondary" className="text-xs">{items.length}</Badge>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>Click to view {config.title.toLowerCase()}</TooltipContent>
-            </Tooltip>
-          </motion.div>
-        );
-      })}
-    </div>
-  );
-
-  // Tabs View Component
-  const TabsView = () => (
-    <div className="space-y-4">
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as SwotCategory)}>
-        <TabsList className="grid grid-cols-4 w-full">
-          {quadrantOrder.map((category) => {
-            const config = categoryConfig[category];
-            return (
-              <TabsTrigger key={category} value={category} className="gap-2">
-                <span>{config.emoji}</span>
-                <span className="hidden sm:inline">{config.title}</span>
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
-      </Tabs>
-
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeTab}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }}
-        >
-          {(() => {
-            const config = categoryConfig[activeTab];
-            const items = groupedItems[activeTab] || [];
-
-            return (
-              <div className={cn("rounded-2xl border p-6", config.bgColor, config.borderColor)}>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{config.emoji}</span>
-                    <div>
-                      <h3 className="font-semibold text-slate-900">{config.title}</h3>
-                      <p className="text-sm text-slate-500">{config.subtitle}</p>
-                    </div>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-2"
-                    onClick={() => handleAskAIQuadrant(activeTab)}
-                  >
-                    <Bot className="w-4 h-4" />
-                    Ask AI About {config.title}
-                  </Button>
-                </div>
-
-                <div className="grid gap-3">
-                  {items.map((item) => (
-                    <Card
-                      key={item.id}
-                      className="cursor-pointer hover:shadow-md transition-all bg-white"
-                      onClick={() => setSelectedItem(item)}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1">
-                            <p className="font-medium text-slate-800">{item.title}</p>
-                            <p className="text-sm text-slate-500 mt-1 line-clamp-2">{item.description}</p>
-                          </div>
-                          <Info className="w-5 h-5 text-slate-400 flex-shrink-0" />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
-        </motion.div>
-      </AnimatePresence>
     </div>
   );
 
   return (
     <BoardLayout>
       <TooltipProvider>
-        <div className="max-w-6xl mx-auto space-y-6">
+        <div className="w-full max-w-none space-y-6">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-slate-900">SWOT Analysis</h1>
               <p className="text-sm text-slate-500 mt-1">
                 Strategic assessment of Seeksy's position in the creator economy
               </p>
+              {/* Source info */}
+              {cfoSwotData?.last_updated_at && !isDemo && (
+                <div className="flex items-center gap-2 mt-2 text-xs text-slate-500">
+                  <Clock className="w-3 h-3" />
+                  <span>Source: CFO SWOT</span>
+                  <span>•</span>
+                  <span>Last updated {formatDistanceToNow(new Date(cfoSwotData.last_updated_at), { addSuffix: true })}</span>
+                  {cfoSwotData.last_updated_by_name && (
+                    <>
+                      <span>by</span>
+                      <span className="font-medium">{cfoSwotData.last_updated_by_name}</span>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-2">
@@ -391,58 +357,31 @@ Analyze implications for revenue, CAC, churn, partnerships, and overall strategy
                   </TooltipTrigger>
                   <TooltipContent>Stack View</TooltipContent>
                 </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant={viewMode === 'radial' ? 'default' : 'ghost'}
-                      className="h-8 w-8 p-0"
-                      onClick={() => setViewMode('radial')}
-                    >
-                      <PieChart className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Radial View</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant={viewMode === 'tabs' ? 'default' : 'ghost'}
-                      className="h-8 w-8 p-0"
-                      onClick={() => setViewMode('tabs')}
-                    >
-                      <LayoutGrid className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Tabbed View</TooltipContent>
-                </Tooltip>
               </div>
             </div>
           </div>
 
-          {/* AI Coming Soon Banner */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100"
-          >
-            <div className="p-2 rounded-lg bg-blue-100">
-              <Sparkles className="w-4 h-4 text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <span className="text-sm font-medium text-blue-900">Coming Soon: AI-Generated SWOT Updates</span>
-              <p className="text-xs text-blue-600 mt-0.5">
-                AI will track competitive landscape, market shifts, and internal KPIs to suggest SWOT updates.
-              </p>
-            </div>
-          </motion.div>
+          {/* Source Banner */}
+          {!isDemo && cfoSwotData && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100"
+            >
+              <div className="p-2 rounded-lg bg-blue-100">
+                <User className="w-4 h-4 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <span className="text-sm font-medium text-blue-900">CFO Published SWOT</span>
+                <p className="text-xs text-blue-600 mt-0.5">
+                  This analysis was published by the CFO team and represents the official strategic assessment.
+                </p>
+              </div>
+            </motion.div>
+          )}
 
           {/* View Content */}
-          {viewMode === 'quadrant' && <QuadrantView />}
-          {viewMode === 'stack' && <StackView />}
-          {viewMode === 'radial' && <RadialView />}
-          {viewMode === 'tabs' && <TabsView />}
+          <QuadrantView />
 
           {/* Detail Modal */}
           <AnimatePresence>
@@ -453,78 +392,72 @@ Analyze implications for revenue, CAC, churn, partnerships, and overall strategy
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.15 }}
+                    className="p-6"
                   >
-                    {/* Modal Header */}
-                    <DialogHeader className="p-6 pb-4 border-b bg-slate-50/50">
-                      <div className="flex items-start gap-3">
-                        <div className={cn(
-                          "p-2.5 rounded-xl flex-shrink-0",
-                          categoryConfig[selectedItem.category].iconBgColor
+                    <DialogHeader className="mb-4">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className={cn("p-2 rounded-lg", categoryConfig[selectedItem.category].iconBgColor)}>
+                          <span className="text-lg">{categoryConfig[selectedItem.category].emoji}</span>
+                        </div>
+                        <Badge className={cn(
+                          "text-xs",
+                          selectedItem.category === 'strength' && "bg-emerald-100 text-emerald-700",
+                          selectedItem.category === 'weakness' && "bg-rose-100 text-rose-700",
+                          selectedItem.category === 'opportunity' && "bg-amber-100 text-amber-700",
+                          selectedItem.category === 'threat' && "bg-slate-100 text-slate-700",
                         )}>
-                          <span className="text-xl">{categoryConfig[selectedItem.category].emoji}</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <Badge className={cn("mb-2 text-xs font-medium", categoryConfig[selectedItem.category].badgeColor)}>
-                            {categoryConfig[selectedItem.category].title.slice(0, -1)} • {categoryConfig[selectedItem.category].subtitle}
-                          </Badge>
-                          <DialogTitle className="text-lg font-semibold text-slate-900 leading-tight pr-8">
-                            {selectedItem.title}
-                          </DialogTitle>
-                        </div>
+                          {categoryConfig[selectedItem.category].title.slice(0, -1)}
+                        </Badge>
                       </div>
+                      <DialogTitle className="text-xl font-bold text-slate-900">
+                        {selectedItem.title}
+                      </DialogTitle>
                     </DialogHeader>
 
-                    {/* Modal Body */}
-                    <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
-                      <div>
-                        <h4 className="text-sm font-semibold text-slate-700 mb-2">Description</h4>
-                        <p className="text-sm text-slate-600 leading-relaxed">{selectedItem.description}</p>
-                      </div>
+                    <div className="space-y-4">
+                      <p className="text-slate-600">{selectedItem.description}</p>
 
-                      <div>
-                        <h4 className="text-sm font-semibold text-slate-700 mb-3">Why This Matters</h4>
-                        <ul className="space-y-2.5">
-                          {selectedItem.whyItMatters.map((point, idx) => (
-                            <li key={idx} className="flex items-start gap-2.5 text-sm text-slate-600">
-                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
-                              <span className="leading-relaxed">{point}</span>
+                      <div className="bg-slate-50 rounded-xl p-4">
+                        <h4 className="font-semibold text-slate-900 mb-2">Why This Matters</h4>
+                        <ul className="space-y-1">
+                          {selectedItem.whyItMatters.map((item, i) => (
+                            <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                              <span className="text-slate-400">•</span>
+                              {item}
                             </li>
                           ))}
                         </ul>
                       </div>
 
-                      <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                        <h4 className="text-sm font-semibold text-slate-700 mb-3">Board-Level Considerations</h4>
-                        <ul className="space-y-2">
-                          {selectedItem.boardConsiderations.map((point, idx) => (
-                            <li key={idx} className="flex items-start gap-2.5 text-sm text-slate-600">
-                              <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-2 flex-shrink-0" />
-                              <span className="leading-relaxed">{point}</span>
+                      <div className="bg-blue-50 rounded-xl p-4">
+                        <h4 className="font-semibold text-slate-900 mb-2">Board Considerations</h4>
+                        <ul className="space-y-1">
+                          {selectedItem.boardConsiderations.map((item, i) => (
+                            <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                              <span className="text-blue-400">•</span>
+                              {item}
                             </li>
                           ))}
                         </ul>
                       </div>
                     </div>
 
-                    {/* Modal Footer */}
-                    <div className="p-4 border-t bg-slate-50/50 flex flex-col sm:flex-row gap-2 sm:justify-between">
+                    <div className="flex gap-3 mt-6">
                       <Button
                         variant="outline"
-                        size="sm"
-                        onClick={() => handleCopySummary(selectedItem)}
-                        className="gap-2"
-                      >
-                        <Copy className="w-4 h-4" />
-                        Copy summary
-                      </Button>
-                      <Button
-                        size="sm"
+                        className="flex-1 gap-2"
                         onClick={() => handleAskAI(selectedItem)}
-                        className="gap-2 bg-blue-600 hover:bg-blue-700"
                       >
                         <Bot className="w-4 h-4" />
                         Ask Board AI Analyst
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="gap-2"
+                        onClick={() => handleCopySummary(selectedItem)}
+                      >
+                        <Copy className="w-4 h-4" />
+                        Copy
                       </Button>
                     </div>
                   </motion.div>

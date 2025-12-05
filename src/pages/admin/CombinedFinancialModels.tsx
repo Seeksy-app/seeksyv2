@@ -2,13 +2,17 @@ import { useState } from "react";
 import { useCombinedFinancialData } from "@/hooks/useCombinedFinancialData";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { 
   DollarSign, 
   TrendingUp, 
   Download, 
   Loader2,
   BarChart3,
-  Target
+  Target,
+  Share2,
+  CheckCircle2
 } from "lucide-react";
 import { 
   LineChart, 
@@ -24,10 +28,13 @@ import {
 } from "recharts";
 import { CFOAIChat } from "@/components/cfo/CFOAIChat";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import jsPDF from "jspdf";
 
 export default function CombinedFinancialModels() {
   const { toast } = useToast();
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const [aiScenario, setAiScenario] = useState<"conservative" | "base" | "aggressive">("base");
   
   const getScenarioId = () => {
@@ -138,16 +145,56 @@ export default function CombinedFinancialModels() {
     toast({ title: "Excel file exported successfully" });
   };
 
+  const handleShareWithBoard = async () => {
+    setIsSharing(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const reportData = {
+        scenario: aiScenario,
+        yearlySummaries: yearlySummaries,
+        generatedAt: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('board_shared_reports' as any)
+        .insert({
+          report_type: 'custom_proforma',
+          report_name: 'Custom 3-Year Combined Pro Forma',
+          report_data: reportData,
+          shared_by: user.id,
+          is_active: true
+        } as any);
+
+      if (error) throw error;
+
+      toast({ 
+        title: "Pro Forma shared with Board Portal",
+        description: "Board members can now access this report."
+      });
+      setShowShareModal(false);
+    } catch (err) {
+      console.error('Share error:', err);
+      toast({ 
+        title: "Error sharing report", 
+        variant: "destructive" 
+      });
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
   if (isLoading) {
     return (
-      <div className="px-10 py-6 flex items-center justify-center min-h-[400px]">
+      <div className="w-full max-w-none px-10 pt-8 pb-16 flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="px-10 py-6 space-y-8">
+    <div className="w-full max-w-none px-10 pt-8 pb-16 mx-auto flex flex-col gap-8 items-stretch">
       {/* Header */}
       <div className="flex flex-col items-start">
         <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -244,13 +291,26 @@ export default function CombinedFinancialModels() {
             {/* Custom 3-Year Combined Pro Forma */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5" />
-                  Custom 3-Year Combined Pro Forma
-                </CardTitle>
-                <CardDescription>
-                  Based on your custom subscription + ad assumptions
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="h-5 w-5" />
+                      Custom 3-Year Combined Pro Forma
+                    </CardTitle>
+                    <CardDescription>
+                      Based on your custom subscription + ad assumptions
+                    </CardDescription>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowShareModal(true)}
+                    className="gap-2"
+                  >
+                    <Share2 className="h-4 w-4" />
+                    Share with Board
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-4">
@@ -408,6 +468,50 @@ export default function CombinedFinancialModels() {
           </div>
         </div>
       </div>
+
+      {/* Share with Board Modal */}
+      <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-2 mb-2">
+              <Badge className="bg-blue-100 text-blue-700">BOARD PORTAL</Badge>
+            </div>
+            <DialogTitle>Share with Board Portal (Internal)</DialogTitle>
+            <DialogDescription>
+              Grant board members access to this custom 3-year pro forma inside the Board Portal.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Report Type:</span>
+                <span className="font-medium">Custom 3-Year Pro Forma</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Scenario:</span>
+                <span className="font-medium capitalize">{aiScenario}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Access:</span>
+                <span className="font-medium">Board Members Only</span>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowShareModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleShareWithBoard} disabled={isSharing}>
+              {isSharing ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+              )}
+              Share with Board
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

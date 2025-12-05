@@ -14,7 +14,8 @@ import {
   RefreshCw,
   Clock,
   User,
-  CheckCircle2
+  CheckCircle2,
+  Share2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -51,6 +52,7 @@ export default function SWOTAnalysis() {
   });
   const [savedIndicator, setSavedIndicator] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   // Fetch SWOT data
   const { data: fetchedSwot, isLoading } = useQuery({
@@ -156,7 +158,6 @@ export default function SWOTAnalysis() {
   const handleGenerateAI = async () => {
     setIsGenerating(true);
     try {
-      // Simulated AI generation - in production would call an AI endpoint
       const generatedSWOT = {
         strengths: `• First-mover advantage in AI-powered podcast monetization
 • Proprietary voice certification technology with blockchain verification
@@ -201,7 +202,6 @@ export default function SWOTAnalysis() {
   const handleRegenerateSummary = async () => {
     setIsGenerating(true);
     try {
-      // Generate summary from current SWOT content
       const summary = `Based on the current SWOT analysis, Seeksy demonstrates strong positioning in the emerging AI-powered creator economy with proprietary voice certification technology. Key growth drivers include the expanding $50B podcast advertising market and increasing demand for verified authentic content. Priority areas for attention include building brand awareness and reducing third-party AI dependencies. The competitive landscape requires vigilant monitoring of incumbent platform moves while capitalizing on the authenticity trend before market saturation.`;
 
       const updated = { ...swotData, ai_last_summary: summary };
@@ -219,16 +219,66 @@ export default function SWOTAnalysis() {
     }
   };
 
+  const handlePublishToBoard = async () => {
+    setIsPublishing(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Get user's profile for name
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      const swotPayload = {
+        strengths: swotData.strengths?.split('\n').filter(s => s.trim()) || [],
+        weaknesses: swotData.weaknesses?.split('\n').filter(s => s.trim()) || [],
+        opportunities: swotData.opportunities?.split('\n').filter(s => s.trim()) || [],
+        threats: swotData.threats?.split('\n').filter(s => s.trim()) || [],
+        ai_summary: swotData.ai_last_summary || null,
+        last_updated_by_name: profile?.full_name || 'CFO',
+        last_updated_by_id: user.id,
+        last_updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('board_settings')
+        .upsert({
+          setting_key: 'cfo_swot',
+          setting_value: swotPayload,
+          last_updated_by: user.id,
+          last_updated_at: new Date().toISOString()
+        }, { onConflict: 'setting_key' });
+
+      if (error) throw error;
+
+      toast({ 
+        title: "SWOT published to Board Portal",
+        description: "Board members can now view this SWOT analysis."
+      });
+    } catch (err) {
+      console.error('Publish error:', err);
+      toast({ 
+        title: "Error publishing SWOT", 
+        variant: "destructive" 
+      });
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
   if (isLoading) {
     return (
-      <div className="px-10 py-6 flex items-center justify-center min-h-[400px]">
+      <div className="w-full max-w-none px-10 pt-8 pb-16 flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="px-10 py-6 space-y-6">
+    <div className="w-full max-w-none px-10 pt-8 pb-16 mx-auto flex flex-col gap-8 items-stretch">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -240,17 +290,31 @@ export default function SWOTAnalysis() {
             High-level strategic view of Seeksy's financial position and market environment.
           </p>
         </div>
-        <Button 
-          onClick={handleGenerateAI}
-          disabled={isGenerating}
-        >
-          {isGenerating ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <Sparkles className="h-4 w-4 mr-2" />
-          )}
-          Generate AI Summary
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button 
+            onClick={handleGenerateAI}
+            disabled={isGenerating}
+            variant="outline"
+          >
+            {isGenerating ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4 mr-2" />
+            )}
+            Generate AI Summary
+          </Button>
+          <Button 
+            onClick={handlePublishToBoard}
+            disabled={isPublishing}
+          >
+            {isPublishing ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Share2 className="h-4 w-4 mr-2" />
+            )}
+            Publish to Board Portal
+          </Button>
+        </div>
       </div>
 
       {/* Main 2-column layout */}

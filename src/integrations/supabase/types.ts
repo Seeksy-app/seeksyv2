@@ -3891,6 +3891,66 @@ export type Database = {
           },
         ]
       }
+      board_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_updated_at: string | null
+          last_updated_by: string | null
+          setting_key: string
+          setting_value: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_updated_at?: string | null
+          last_updated_by?: string | null
+          setting_key: string
+          setting_value?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_updated_at?: string | null
+          last_updated_by?: string | null
+          setting_key?: string
+          setting_value?: Json | null
+        }
+        Relationships: []
+      }
+      board_shared_reports: {
+        Row: {
+          id: string
+          is_active: boolean | null
+          notes: string | null
+          report_data: Json | null
+          report_name: string
+          report_type: string
+          shared_at: string | null
+          shared_by: string | null
+        }
+        Insert: {
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          report_data?: Json | null
+          report_name: string
+          report_type: string
+          shared_at?: string | null
+          shared_by?: string | null
+        }
+        Update: {
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          report_data?: Json | null
+          report_name?: string
+          report_type?: string
+          shared_at?: string | null
+          shared_by?: string | null
+        }
+        Relationships: []
+      }
       calendar_connections: {
         Row: {
           access_token: string
