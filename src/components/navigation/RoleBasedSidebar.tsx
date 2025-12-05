@@ -307,9 +307,6 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
               const hasSubItems = item.subItems && item.subItems.length > 0;
               const isOpen = openGroups[item.id] ?? false;
               
-              // Items that should NOT be bold group headers (regular nav items)
-              const isRegularNavItem = ['settings', 'awards'].includes(item.id);
-              
               // Special handling for My Workspaces - collapsible with sub-items
               if (item.id === 'my_workspaces') {
                 return (
@@ -406,31 +403,7 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                 );
               }
               
-              // Regular nav items (Settings, Awards) - NOT bold, just regular links
-              if (isRegularNavItem) {
-                return (
-                  <SidebarGroup key={item.id}>
-                    <SidebarGroupContent>
-                      <SidebarMenu>
-                        <SidebarMenuItem>
-                          <SidebarMenuButton asChild>
-                            <NavLink
-                              to={item.path}
-                              className="flex items-center gap-3 text-white/80 font-normal px-3 py-2"
-                              activeClassName="nav-active"
-                            >
-                              <Icon className="h-4 w-4 shrink-0" />
-                              {!collapsed && <span className="truncate">{item.label}</span>}
-                            </NavLink>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      </SidebarMenu>
-                    </SidebarGroupContent>
-                  </SidebarGroup>
-                );
-              }
-              
-              // Items WITHOUT sub-items - bold group header style (My Day, Creator Hub, Dashboard, Seekies & Apps)
+              // Items WITHOUT sub-items - bold group header style (My Day, Creator Hub, Dashboard, Seekies & Apps, Settings, Awards)
               return (
                 <SidebarGroup key={item.id}>
                   <SidebarGroupLabel asChild className="cursor-pointer hover:bg-white/10 rounded-md transition-colors">
