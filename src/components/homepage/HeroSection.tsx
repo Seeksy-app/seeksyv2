@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Play, ArrowRight, Users, Mic, Zap, Shield } from "lucide-react";
+import { Calendar, ArrowRight, Users, Mic, Zap, Shield } from "lucide-react";
 import { motion } from "framer-motion";
 import heroImage from "@/assets/homepage/hero-studio.jpg";
 
@@ -87,11 +87,11 @@ export function HeroSection() {
             <Button
               size="lg"
               variant="outline"
-              onClick={() => window.open("https://calendly.com/seeksy-demo", "_blank")}
-              className="bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white hover:text-slate-900 hover:border-white text-lg px-8 py-7 h-auto font-bold transition-all duration-300 hover:scale-105 active:scale-100"
+              onClick={() => navigate("/meetings/schedule?type=demo")}
+              className="bg-yellow-500 hover:bg-yellow-400 border-2 border-yellow-500 text-slate-900 text-lg px-8 py-7 h-auto font-bold transition-all duration-300 hover:scale-105 active:scale-100"
             >
-              <Play className="mr-2 h-5 w-5" />
-              Watch Demo
+              <Calendar className="mr-2 h-5 w-5" />
+              Schedule a Demo
             </Button>
           </motion.div>
 

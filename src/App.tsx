@@ -48,8 +48,14 @@ import SimpleMeetingStudio from "./pages/SimpleMeetingStudio";
 import MeetingDetails from "./pages/MeetingDetails";
 import MeetingRSVP from "./pages/MeetingRSVP";
 import MeetingsDashboard from "./pages/creator/MeetingsDashboard";
+import ScheduleMeeting from "./pages/meetings/ScheduleMeeting";
 import PublicBookingPage from "./pages/public/PublicBookingPage";
 import AdminMeetings from "./pages/admin/AdminMeetings";
+import AdminMeetingsDashboard from "./pages/admin/meetings/AdminMeetingsDashboard";
+import AdminMeetingTypes from "./pages/admin/meetings/AdminMeetingTypes";
+import AdminBookingLinks from "./pages/admin/meetings/AdminBookingLinks";
+import AdminUpcomingMeetings from "./pages/admin/meetings/AdminUpcomingMeetings";
+import AdminTeamAvailability from "./pages/admin/meetings/AdminTeamAvailability";
 import Availability from "./pages/Availability";
 import MasterStudio from "./pages/MasterStudio";
 import LiveStudio from "./pages/LiveStudio";
@@ -734,6 +740,7 @@ const AppContent = () => {
               <Route path="/meetings/studio/:id" element={<SimpleMeetingStudio />} />
               <Route path="/meetings/:id" element={<MeetingDetails />} />
               <Route path="/meetings/create" element={<CreateMeeting />} />
+              <Route path="/meetings/schedule" element={<ScheduleMeeting />} />
               <Route path="/meetings/edit/:id" element={<EditMeeting />} />
               <Route path="/meeting-rsvp" element={<MeetingRSVP />} />
               
@@ -859,7 +866,11 @@ const AppContent = () => {
               <Route path="/admin/webhooks" element={<Webhooks />} />
               <Route path="/admin/logs" element={<Logs />} />
               <Route path="/admin/market-intelligence" element={<MarketIntelligence />} />
-              <Route path="/admin/meetings" element={<AdminMeetings />} />
+              <Route path="/admin/meetings" element={<AdminMeetingsDashboard />} />
+              <Route path="/admin/meetings/types" element={<AdminMeetingTypes />} />
+              <Route path="/admin/meetings/links" element={<AdminBookingLinks />} />
+              <Route path="/admin/meetings/upcoming" element={<AdminUpcomingMeetings />} />
+              <Route path="/admin/meetings/availability" element={<AdminTeamAvailability />} />
               <Route path="/admin/proposal-builder" element={<ProposalBuilder />} />
               <Route path="/admin/marketing-gtm" element={<MarketingGTM />} />
               <Route path="/admin/investor-spreadsheets-v2" element={<InvestorSpreadsheets />} />

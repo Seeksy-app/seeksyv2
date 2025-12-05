@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Play, ArrowRight, Sparkles, Users2 } from "lucide-react";
+import { Calendar, ArrowRight, Sparkles, Users2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const heroScenes = [
@@ -124,16 +124,16 @@ export function HeroSectionPremium() {
               </Button>
             </motion.div>
 
-            {/* Watch Demo Link */}
+            {/* Schedule Demo Link */}
             <motion.button
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              onClick={() => window.open("https://calendly.com/seeksy-demo", "_blank")}
+              onClick={() => navigate("/meetings/schedule?type=demo")}
               className="inline-flex items-center gap-2 text-white/50 hover:text-white/80 text-sm transition-colors group"
             >
-              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                <Play className="h-3 w-3 text-white ml-0.5" />
+              <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center group-hover:bg-yellow-500/30 transition-colors">
+                <Calendar className="h-3 w-3 text-yellow-400" />
               </div>
               Watch a 2-minute demo
             </motion.button>

@@ -133,6 +133,49 @@ export const NAVIGATION_CONFIG: {
     },
 
     {
+      "group": "Meetings",
+      "description": "Meeting management and scheduling",
+      "collapsible": true,
+      "items": [
+        {
+          "id": "admin_meetings_dashboard",
+          "label": "Dashboard",
+          "icon": "layout-dashboard",
+          "path": "/admin/meetings",
+          "roles": ["admin", "super_admin", "platform_owner", "support_admin", "cmo", "cco", "cfo"]
+        },
+        {
+          "id": "admin_meeting_types",
+          "label": "Meeting Types",
+          "icon": "calendar-check",
+          "path": "/admin/meetings/types",
+          "roles": ["admin", "super_admin", "platform_owner"]
+        },
+        {
+          "id": "admin_booking_links",
+          "label": "Booking Links",
+          "icon": "link",
+          "path": "/admin/meetings/links",
+          "roles": ["admin", "super_admin", "platform_owner", "support_admin"]
+        },
+        {
+          "id": "admin_upcoming_meetings",
+          "label": "Upcoming Meetings",
+          "icon": "calendar",
+          "path": "/admin/meetings/upcoming",
+          "roles": ["admin", "super_admin", "platform_owner", "support_admin", "cmo", "cco", "cfo"]
+        },
+        {
+          "id": "admin_team_availability",
+          "label": "Team Availability",
+          "icon": "clock",
+          "path": "/admin/meetings/availability",
+          "roles": ["admin", "super_admin", "platform_owner"]
+        }
+      ]
+    },
+
+    {
       "group": "Financials (CFO)",
       "description": "Financial planning and analysis",
       "collapsible": true,
