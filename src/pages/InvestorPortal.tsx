@@ -36,8 +36,8 @@ export default function InvestorPortal() {
   const [showDisclosure, setShowDisclosure] = useState(false);
   const [pendingAccessData, setPendingAccessData] = useState<any>(null);
   const [viewingSpreadsheet, setViewingSpreadsheet] = useState<any>(null);
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [showShareModal, setShowShareModal] = useState(false);
+  const theme = "light"; // Always use light theme
   const [shareConfig, setShareConfig] = useState<any>({
     allowHtmlView: true,
     allowDownload: true,
@@ -296,15 +296,15 @@ export default function InvestorPortal() {
   }
 
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#0A1628]' : 'bg-background'}`}>
-      <div className={`border-b ${theme === 'dark' ? 'border-blue-900/30' : 'border-border'}`}>
+    <div className="min-h-screen bg-background">
+      <div className="border-b border-border">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-foreground'}`}>
+              <h1 className="text-2xl font-bold text-foreground">
                 Seeksy Financial Portal
               </h1>
-              <p className={`text-sm ${theme === 'dark' ? 'text-blue-200/70' : 'text-muted-foreground'}`}>
+              <p className="text-sm text-muted-foreground">
                 Read-only access for {investorEmail}
               </p>
             </div>
@@ -322,16 +322,7 @@ export default function InvestorPortal() {
               )}
               <Button 
                 variant="outline" 
-                size="sm"
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className={theme === 'dark' ? 'border-blue-700 bg-blue-950/50 text-blue-100 hover:bg-blue-900/50' : ''}
-              >
-                {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
-              </Button>
-              <Button 
-                variant="outline" 
                 onClick={() => setIsAuthenticated(false)}
-                className={theme === 'dark' ? 'border-blue-700 bg-blue-950/50 text-blue-100 hover:bg-blue-900/50' : ''}
               >
                 Sign Out
               </Button>
@@ -342,24 +333,24 @@ export default function InvestorPortal() {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="proforma" className="space-y-8">
-          <TabsList className={`grid w-full max-w-3xl grid-cols-3 h-12 ${theme === 'dark' ? 'bg-blue-950/50 border-blue-800' : 'bg-muted/30 border-border'} border`}>
+          <TabsList className="grid w-full max-w-3xl grid-cols-3 h-12 bg-muted/30 border-border border">
             <TabsTrigger 
               value="proforma" 
-              className={`text-base font-medium ${theme === 'dark' ? 'data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white text-blue-200' : 'data-[state=active]:bg-primary data-[state=active]:text-primary-foreground'}`}
+              className="text-base font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <FileSpreadsheet className="h-5 w-5 mr-2" />
               3-Year Pro Forma
             </TabsTrigger>
             <TabsTrigger 
               value="business-model" 
-              className={`text-base font-medium ${theme === 'dark' ? 'data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white text-blue-200' : 'data-[state=active]:bg-primary data-[state=active]:text-primary-foreground'}`}
+              className="text-base font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <TrendingUp className="h-5 w-5 mr-2" />
               Business Model
             </TabsTrigger>
             <TabsTrigger 
               value="assumptions" 
-              className={`text-base font-medium ${theme === 'dark' ? 'data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white text-blue-200' : 'data-[state=active]:bg-primary data-[state=active]:text-primary-foreground'}`}
+              className="text-base font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Settings className="h-5 w-5 mr-2" />
               Assumptions
@@ -367,17 +358,17 @@ export default function InvestorPortal() {
           </TabsList>
 
           <TabsContent value="proforma" className="space-y-6">
-            <Card className={`${theme === 'dark' ? 'bg-gradient-to-br from-blue-600/20 to-cyan-500/20 border-blue-700' : 'bg-gradient-to-br from-purple-500/5 to-pink-600/5 border-purple-200/20'}`}>
+            <Card className="bg-gradient-to-br from-purple-500/5 to-pink-600/5 border-purple-200/20">
               <CardContent className="py-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full ${theme === 'dark' ? 'bg-gradient-to-br from-blue-400 to-cyan-400' : 'bg-gradient-to-br from-purple-500 to-pink-600'} animate-pulse`} />
-                    <span className={`text-sm font-medium ${theme === 'dark' ? 'text-blue-100' : 'text-foreground'}`}>Powered by</span>
-                    <span className={`text-sm font-semibold ${theme === 'dark' ? 'bg-gradient-to-br from-blue-400 to-cyan-400' : 'bg-gradient-to-br from-purple-600 to-pink-600'} bg-clip-text text-transparent`}>
+                    <div className="w-2 h-2 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 animate-pulse" />
+                    <span className="text-sm font-medium text-foreground">Powered by</span>
+                    <span className="text-sm font-semibold bg-gradient-to-br from-purple-600 to-pink-600 bg-clip-text text-transparent">
                       Google Gemini 2.5 Flash
                     </span>
                   </div>
-                  <span className={`text-xs ${theme === 'dark' ? 'text-blue-300/70' : 'text-muted-foreground'}`}>AI-Generated Financial Model</span>
+                  <span className="text-xs text-muted-foreground">AI-Generated Financial Model</span>
                 </div>
               </CardContent>
             </Card>
@@ -392,139 +383,139 @@ export default function InvestorPortal() {
           </TabsContent>
 
           <TabsContent value="business-model" className="space-y-6">
-            <BusinessModelTab theme={theme} />
+            <BusinessModelTab theme="light" />
           </TabsContent>
 
           <TabsContent value="assumptions" className="space-y-6">
-            <Card className={`${theme === 'dark' ? 'bg-blue-950/40 border-blue-800' : 'bg-card'}`}>
+            <Card className="bg-card">
               <CardHeader>
-                <CardTitle className={theme === 'dark' ? 'text-blue-100' : ''}>Financial Model Assumptions</CardTitle>
-                <CardDescription className={theme === 'dark' ? 'text-blue-300/70' : ''}>
+                <CardTitle>Financial Model Assumptions</CardTitle>
+                <CardDescription>
                   Key assumptions driving the 3-year financial projections
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-8">
                 {/* Subscription Pricing */}
                 <div>
-                  <h3 className={`font-semibold text-lg mb-4 ${theme === 'dark' ? 'text-blue-100' : ''}`}>Subscription Pricing</h3>
+                  <h3 className="font-semibold text-lg mb-4">Subscription Pricing</h3>
                   <div className="grid md:grid-cols-3 gap-4">
-                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gradient-to-br from-emerald-600/30 to-teal-600/30 border border-emerald-500/30' : 'bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200'}`}>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-emerald-300' : 'text-emerald-700'}`}>Podcaster Basic</p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-emerald-100' : 'text-emerald-900'}`}>$19<span className="text-sm font-normal">/mo</span></p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200">
+                      <p className="text-sm text-emerald-700">Podcaster Basic</p>
+                      <p className="text-2xl font-bold text-emerald-900">$19<span className="text-sm font-normal">/mo</span></p>
                     </div>
-                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gradient-to-br from-blue-600/30 to-cyan-600/30 border border-blue-500/30' : 'bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200'}`}>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>Podcaster Pro</p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-blue-100' : 'text-blue-900'}`}>$49<span className="text-sm font-normal">/mo</span></p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200">
+                      <p className="text-sm text-blue-700">Podcaster Pro</p>
+                      <p className="text-2xl font-bold text-blue-900">$49<span className="text-sm font-normal">/mo</span></p>
                     </div>
-                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gradient-to-br from-purple-600/30 to-pink-600/30 border border-purple-500/30' : 'bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200'}`}>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-purple-300' : 'text-purple-700'}`}>Enterprise</p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-purple-100' : 'text-purple-900'}`}>$199<span className="text-sm font-normal">/mo</span></p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200">
+                      <p className="text-sm text-purple-700">Enterprise</p>
+                      <p className="text-2xl font-bold text-purple-900">$199<span className="text-sm font-normal">/mo</span></p>
                     </div>
-                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gradient-to-br from-amber-600/30 to-orange-600/30 border border-amber-500/30' : 'bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200'}`}>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-amber-300' : 'text-amber-700'}`}>My Page Basic</p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-amber-100' : 'text-amber-900'}`}>$9<span className="text-sm font-normal">/mo</span></p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200">
+                      <p className="text-sm text-amber-700">My Page Basic</p>
+                      <p className="text-2xl font-bold text-amber-900">$9<span className="text-sm font-normal">/mo</span></p>
                     </div>
-                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gradient-to-br from-rose-600/30 to-red-600/30 border border-rose-500/30' : 'bg-gradient-to-br from-rose-50 to-red-50 border border-rose-200'}`}>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-rose-300' : 'text-rose-700'}`}>My Page Pro</p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-rose-100' : 'text-rose-900'}`}>$29<span className="text-sm font-normal">/mo</span></p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-rose-50 to-red-50 border border-rose-200">
+                      <p className="text-sm text-rose-700">My Page Pro</p>
+                      <p className="text-2xl font-bold text-rose-900">$29<span className="text-sm font-normal">/mo</span></p>
                     </div>
-                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gradient-to-br from-indigo-600/30 to-violet-600/30 border border-indigo-500/30' : 'bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-200'}`}>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-indigo-300' : 'text-indigo-700'}`}>Event Creator</p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-indigo-100' : 'text-indigo-900'}`}>$29<span className="text-sm font-normal">/mo</span></p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-200">
+                      <p className="text-sm text-indigo-700">Event Creator</p>
+                      <p className="text-2xl font-bold text-indigo-900">$29<span className="text-sm font-normal">/mo</span></p>
                     </div>
                   </div>
                 </div>
 
                 {/* Growth & Users */}
                 <div>
-                  <h3 className={`font-semibold text-lg mb-4 ${theme === 'dark' ? 'text-blue-100' : ''}`}>Growth & Customer Acquisition</h3>
+                  <h3 className="font-semibold text-lg mb-4">Growth & Customer Acquisition</h3>
                   <div className="grid md:grid-cols-4 gap-4">
-                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gradient-to-br from-blue-600/30 to-cyan-600/30 border border-blue-500/30' : 'bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200'}`}>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>Starting Users</p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-blue-100' : 'text-blue-900'}`}>20</p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200">
+                      <p className="text-sm text-blue-700">Starting Users</p>
+                      <p className="text-2xl font-bold text-blue-900">20</p>
                     </div>
-                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gradient-to-br from-emerald-600/30 to-teal-600/30 border border-emerald-500/30' : 'bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200'}`}>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-emerald-300' : 'text-emerald-700'}`}>Monthly Growth</p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-emerald-100' : 'text-emerald-900'}`}>25<span className="text-sm font-normal">%</span></p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200">
+                      <p className="text-sm text-emerald-700">Monthly Growth</p>
+                      <p className="text-2xl font-bold text-emerald-900">25<span className="text-sm font-normal">%</span></p>
                     </div>
-                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gradient-to-br from-amber-600/30 to-orange-600/30 border border-amber-500/30' : 'bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200'}`}>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-amber-300' : 'text-amber-700'}`}>Monthly Churn</p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-amber-100' : 'text-amber-900'}`}>5<span className="text-sm font-normal">%</span></p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200">
+                      <p className="text-sm text-amber-700">Monthly Churn</p>
+                      <p className="text-2xl font-bold text-amber-900">5<span className="text-sm font-normal">%</span></p>
                     </div>
-                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gradient-to-br from-rose-600/30 to-red-600/30 border border-rose-500/30' : 'bg-gradient-to-br from-rose-50 to-red-50 border border-rose-200'}`}>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-rose-300' : 'text-rose-700'}`}>Customer CAC</p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-rose-100' : 'text-rose-900'}`}>$45</p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-rose-50 to-red-50 border border-rose-200">
+                      <p className="text-sm text-rose-700">Customer CAC</p>
+                      <p className="text-2xl font-bold text-rose-900">$45</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Ad Revenue */}
                 <div>
-                  <h3 className={`font-semibold text-lg mb-4 ${theme === 'dark' ? 'text-blue-100' : ''}`}>Ad Revenue Model</h3>
+                  <h3 className="font-semibold text-lg mb-4">Ad Revenue Model</h3>
                   <div className="grid md:grid-cols-4 gap-4">
-                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gradient-to-br from-purple-600/30 to-pink-600/30 border border-purple-500/30' : 'bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200'}`}>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-purple-300' : 'text-purple-700'}`}>Average CPM</p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-purple-100' : 'text-purple-900'}`}>$25</p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200">
+                      <p className="text-sm text-purple-700">Average CPM</p>
+                      <p className="text-2xl font-bold text-purple-900">$25</p>
                     </div>
-                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gradient-to-br from-indigo-600/30 to-violet-600/30 border border-indigo-500/30' : 'bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-200'}`}>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-indigo-300' : 'text-indigo-700'}`}>Ad Fill Rate</p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-indigo-100' : 'text-indigo-900'}`}>80<span className="text-sm font-normal">%</span></p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-200">
+                      <p className="text-sm text-indigo-700">Ad Fill Rate</p>
+                      <p className="text-2xl font-bold text-indigo-900">80<span className="text-sm font-normal">%</span></p>
                     </div>
-                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gradient-to-br from-emerald-600/30 to-teal-600/30 border border-emerald-500/30' : 'bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200'}`}>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-emerald-300' : 'text-emerald-700'}`}>Platform Share</p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-emerald-100' : 'text-emerald-900'}`}>30<span className="text-sm font-normal">%</span></p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200">
+                      <p className="text-sm text-emerald-700">Platform Share</p>
+                      <p className="text-2xl font-bold text-emerald-900">30<span className="text-sm font-normal">%</span></p>
                     </div>
-                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gradient-to-br from-blue-600/30 to-cyan-600/30 border border-blue-500/30' : 'bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200'}`}>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>Episodes/Mo</p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-blue-100' : 'text-blue-900'}`}>4</p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200">
+                      <p className="text-sm text-blue-700">Episodes/Mo</p>
+                      <p className="text-2xl font-bold text-blue-900">4</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Cost Structure */}
                 <div>
-                  <h3 className={`font-semibold text-lg mb-4 ${theme === 'dark' ? 'text-blue-100' : ''}`}>Cost Structure</h3>
+                  <h3 className="font-semibold text-lg mb-4">Cost Structure</h3>
                   <div className="grid md:grid-cols-4 gap-4">
-                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gradient-to-br from-amber-600/30 to-orange-600/30 border border-amber-500/30' : 'bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200'}`}>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-amber-300' : 'text-amber-700'}`}>AI Compute</p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-amber-100' : 'text-amber-900'}`}>$2.50<span className="text-sm font-normal">/user</span></p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200">
+                      <p className="text-sm text-amber-700">AI Compute</p>
+                      <p className="text-2xl font-bold text-amber-900">$2.50<span className="text-sm font-normal">/user</span></p>
                     </div>
-                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gradient-to-br from-rose-600/30 to-red-600/30 border border-rose-500/30' : 'bg-gradient-to-br from-rose-50 to-red-50 border border-rose-200'}`}>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-rose-300' : 'text-rose-700'}`}>Storage</p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-rose-100' : 'text-rose-900'}`}>$0.023<span className="text-sm font-normal">/GB</span></p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-rose-50 to-red-50 border border-rose-200">
+                      <p className="text-sm text-rose-700">Storage</p>
+                      <p className="text-2xl font-bold text-rose-900">$0.023<span className="text-sm font-normal">/GB</span></p>
                     </div>
-                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gradient-to-br from-indigo-600/30 to-violet-600/30 border border-indigo-500/30' : 'bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-200'}`}>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-indigo-300' : 'text-indigo-700'}`}>Bandwidth</p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-indigo-100' : 'text-indigo-900'}`}>$0.05<span className="text-sm font-normal">/GB</span></p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-200">
+                      <p className="text-sm text-indigo-700">Bandwidth</p>
+                      <p className="text-2xl font-bold text-indigo-900">$0.05<span className="text-sm font-normal">/GB</span></p>
                     </div>
-                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gradient-to-br from-purple-600/30 to-pink-600/30 border border-purple-500/30' : 'bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200'}`}>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-purple-300' : 'text-purple-700'}`}>Streaming</p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-purple-100' : 'text-purple-900'}`}>$0.15<span className="text-sm font-normal">/hr</span></p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200">
+                      <p className="text-sm text-purple-700">Streaming</p>
+                      <p className="text-2xl font-bold text-purple-900">$0.15<span className="text-sm font-normal">/hr</span></p>
                     </div>
                   </div>
                 </div>
 
                 {/* Tier Distribution */}
                 <div>
-                  <h3 className={`font-semibold text-lg mb-4 ${theme === 'dark' ? 'text-blue-100' : ''}`}>Customer Tier Distribution</h3>
+                  <h3 className="font-semibold text-lg mb-4">Customer Tier Distribution</h3>
                   <div className="grid md:grid-cols-3 gap-4">
-                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gradient-to-br from-emerald-600/30 to-teal-600/30 border border-emerald-500/30' : 'bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200'}`}>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-emerald-300' : 'text-emerald-700'}`}>Podcaster Basic</p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-emerald-100' : 'text-emerald-900'}`}>40<span className="text-sm font-normal">%</span></p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200">
+                      <p className="text-sm text-emerald-700">Podcaster Basic</p>
+                      <p className="text-2xl font-bold text-emerald-900">40<span className="text-sm font-normal">%</span></p>
                     </div>
-                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gradient-to-br from-blue-600/30 to-cyan-600/30 border border-blue-500/30' : 'bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200'}`}>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>Podcaster Pro</p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-blue-100' : 'text-blue-900'}`}>45<span className="text-sm font-normal">%</span></p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200">
+                      <p className="text-sm text-blue-700">Podcaster Pro</p>
+                      <p className="text-2xl font-bold text-blue-900">45<span className="text-sm font-normal">%</span></p>
                     </div>
-                    <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gradient-to-br from-purple-600/30 to-pink-600/30 border border-purple-500/30' : 'bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200'}`}>
-                      <p className={`text-sm ${theme === 'dark' ? 'text-purple-300' : 'text-purple-700'}`}>Enterprise</p>
-                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-purple-100' : 'text-purple-900'}`}>15<span className="text-sm font-normal">%</span></p>
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200">
+                      <p className="text-sm text-purple-700">Enterprise</p>
+                      <p className="text-2xl font-bold text-purple-900">15<span className="text-sm font-normal">%</span></p>
                     </div>
                   </div>
                 </div>
 
-                <div className={`pt-4 border-t ${theme === 'dark' ? 'border-blue-800' : ''}`}>
-                  <p className={`text-xs ${theme === 'dark' ? 'text-blue-300/70' : 'text-muted-foreground'}`}>
+                <div className="pt-4 border-t">
+                  <p className="text-xs text-muted-foreground">
                     <strong>Note:</strong> These assumptions are configured by the Seeksy CFO team and drive all financial projections. 
                     The Custom 3-Year Pro Forma model uses these values to calculate monthly and annual forecasts.
                   </p>
@@ -534,8 +525,8 @@ export default function InvestorPortal() {
           </TabsContent>
         </Tabs>
         
-        <div className={`mt-12 text-center text-sm border-t pt-6 ${theme === 'dark' ? 'border-blue-800 text-blue-300/70' : 'text-muted-foreground border-border'}`}>
-          <p>For questions or additional information, please contact <a href="mailto:Hello@Seeksy.io" className={`hover:underline font-medium ${theme === 'dark' ? 'text-cyan-400' : 'text-primary'}`}>Hello@Seeksy.io</a></p>
+        <div className="mt-12 text-center text-sm border-t pt-6 text-muted-foreground border-border">
+          <p>For questions or additional information, please contact <a href="mailto:Hello@Seeksy.io" className="hover:underline font-medium text-primary">Hello@Seeksy.io</a></p>
         </div>
       </div>
 
