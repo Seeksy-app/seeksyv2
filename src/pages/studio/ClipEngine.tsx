@@ -542,8 +542,8 @@ export default function ClipEngine() {
         {/* Media Selector Modal */}
         {showMediaSelector && (
           <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-            <div className="bg-[#1a1f2e] rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
-              <div className="p-4 border-b border-white/10">
+            <div className="bg-[#1a1f2e] rounded-2xl w-full max-w-2xl flex flex-col" style={{ maxHeight: "80vh" }}>
+              <div className="p-4 border-b border-white/10 shrink-0">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold">Choose from Media Library</h3>
                   <Button 
@@ -573,41 +573,54 @@ export default function ClipEngine() {
                   ))}
                 </div>
               </div>
-              <ScrollArea className="h-[60vh] p-4">
+              <div className="flex-1 overflow-y-auto p-4">
                 <div className="grid grid-cols-2 gap-3">
-                  {filteredMedia?.map(media => (
-                    <button
-                      key={media.id}
-                      onClick={() => handleSelectMedia(media)}
-                      className={cn(
-                        "p-3 rounded-lg border text-left transition-all hover:bg-white/5",
-                        selectedMediaId === media.id 
-                          ? "border-emerald-400 bg-emerald-400/10" 
-                          : "border-white/10"
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        {media.thumbnail_url ? (
-                          <img 
-                            src={media.thumbnail_url} 
-                            alt="" 
-                            className="w-16 h-12 object-cover rounded-lg"
-                          />
-                        ) : (
-                          <div className="w-16 h-12 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
+                  {filteredMedia?.map(media => {
+                    // Generate thumbnail URL from cloudflare_uid if no thumbnail_url
+                    const thumbnailSrc = media.thumbnail_url || 
+                      (media.cloudflare_uid ? `https://customer-typiggwc4l6lm7r2.cloudflarestream.com/${media.cloudflare_uid}/thumbnails/thumbnail.jpg?time=5s&width=320` : null);
+                    
+                    return (
+                      <button
+                        key={media.id}
+                        onClick={() => handleSelectMedia(media)}
+                        className={cn(
+                          "p-3 rounded-lg border text-left transition-all hover:bg-white/5",
+                          selectedMediaId === media.id 
+                            ? "border-emerald-400 bg-emerald-400/10" 
+                            : "border-white/10"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          {thumbnailSrc ? (
+                            <img 
+                              src={thumbnailSrc} 
+                              alt="" 
+                              className="w-16 h-12 object-cover rounded-lg bg-white/5"
+                              onError={(e) => {
+                                // Fallback to placeholder on error
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                              }}
+                            />
+                          ) : null}
+                          <div className={cn(
+                            "w-16 h-12 bg-white/10 rounded-lg flex items-center justify-center shrink-0",
+                            thumbnailSrc && "hidden"
+                          )}>
                             <Film className="w-5 h-5 text-white/40" />
                           </div>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium truncate">{media.file_name || "Untitled"}</p>
-                          <p className="text-xs text-white/50">
-                            {formatDuration(media.duration_seconds)}
-                            {media.file_size_bytes && ` • ${formatFileSize(media.file_size_bytes)}`}
-                          </p>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium truncate">{media.file_name || "Untitled"}</p>
+                            <p className="text-xs text-white/50">
+                              {formatDuration(media.duration_seconds)}
+                              {media.file_size_bytes && ` • ${formatFileSize(media.file_size_bytes)}`}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    );
+                  })}
                   {(!filteredMedia || filteredMedia.length === 0) && (
                     <div className="col-span-2 text-center py-12 text-white/50">
                       <Film className="w-10 h-10 mx-auto mb-3 opacity-50" />
@@ -615,7 +628,7 @@ export default function ClipEngine() {
                     </div>
                   )}
                 </div>
-              </ScrollArea>
+              </div>
             </div>
           </div>
         )}
