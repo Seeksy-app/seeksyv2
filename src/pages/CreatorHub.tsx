@@ -65,12 +65,12 @@ const allModules = [
     description: 'Book calls & appointments',
     icon: Calendar,
     color: 'from-teal-500 to-emerald-500',
-    path: '/meetings',
+    path: '/creator/meetings',
     category: 'tools'
   },
   {
     id: 'studio',
-    name: 'Studio',
+    name: 'Studio & Recording',
     description: 'Record & edit content',
     icon: Video,
     color: 'from-slate-600 to-slate-800',
@@ -88,11 +88,38 @@ const allModules = [
   },
   {
     id: 'content-library',
-    name: 'Content Library',
+    name: 'Media Library',
     description: 'Manage media assets',
     icon: FolderOpen,
     color: 'from-red-500 to-orange-500',
     path: '/media',
+    category: 'tools'
+  },
+  {
+    id: 'events',
+    name: 'Events',
+    description: 'Create & manage events',
+    icon: Calendar,
+    color: 'from-amber-500 to-yellow-500',
+    path: '/events',
+    category: 'tools'
+  },
+  {
+    id: 'awards',
+    name: 'Awards',
+    description: 'Nominate & vote for awards',
+    icon: Sparkles,
+    color: 'from-pink-500 to-rose-500',
+    path: '/awards',
+    category: 'tools'
+  },
+  {
+    id: 'clips',
+    name: 'Clips & Editing',
+    description: 'Create clips from recordings',
+    icon: Video,
+    color: 'from-indigo-500 to-blue-500',
+    path: '/studio/clips',
     category: 'tools'
   },
   {
@@ -115,31 +142,34 @@ const allModules = [
   },
 ];
 
-// Modules available for discovery
+// Modules available for discovery (not yet activated)
 const discoveryModules = [
   {
     id: 'audience-insights',
     name: 'Audience Insights',
-    description: 'Deep analytics on followers and demographics',
+    description: 'Deep analytics on followers',
     icon: BarChart3,
     color: 'from-cyan-500 to-blue-500',
     status: 'available' as const,
+    path: '/social-analytics'
   },
   {
     id: 'growth-tools',
     name: 'Growth Tools',
-    description: 'AI-powered audience growth strategies',
+    description: 'AI-powered growth strategies',
     icon: TrendingUp,
     color: 'from-green-500 to-emerald-500',
     status: 'coming_soon' as const,
+    path: '/growth'
   },
   {
-    id: 'content-library-premium',
-    name: 'Content Library Pro',
-    description: 'Advanced asset management & organization',
-    icon: FolderOpen,
+    id: 'crm',
+    name: 'CRM & Contacts',
+    description: 'Manage contacts & relationships',
+    icon: Target,
     color: 'from-amber-500 to-orange-500',
     status: 'available' as const,
+    path: '/contacts'
   },
 ];
 
@@ -360,9 +390,9 @@ export default function CreatorHub() {
                         variant="ghost" 
                         size="sm" 
                         className="w-full text-xs text-primary"
-                        onClick={() => navigate('/creator-hub')}
+                        onClick={() => navigate(module.path || '/creator-hub')}
                       >
-                        View in Hub
+                        Open Module
                       </Button>
                     ) : null}
                   </div>

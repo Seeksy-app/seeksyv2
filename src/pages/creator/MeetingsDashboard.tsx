@@ -177,8 +177,12 @@ export default function MeetingsDashboard() {
           <p className="text-muted-foreground mt-1">Create meeting types, share your link, and manage bookings.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate('/creator/meetings/availability')}>
+          <Button variant="outline" onClick={() => navigate('/creator/meetings/settings')}>
             <Clock className="w-4 h-4 mr-2" />
+            Settings
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/creator/meetings/availability')}>
+            <Calendar className="w-4 h-4 mr-2" />
             Availability
           </Button>
           <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
