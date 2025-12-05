@@ -38,8 +38,8 @@ export const NAVIGATION_CONFIG: {
   ],
   "navigation": [
     {
-      "group": "Advertising & Revenue",
-      "description": "Advertising, campaigns, and revenue management",
+      "group": "Advertising and Sales",
+      "description": "Advertising, campaigns, sales, and revenue management",
       "collapsible": true,
       "items": [
         {
@@ -76,6 +76,13 @@ export const NAVIGATION_CONFIG: {
           "icon": "bar-chart-2",
           "path": "/admin/revenue-insights",
           "roles": ["admin", "super_admin", "cfo", "cmo"]
+        },
+        {
+          "id": "admin_lead_manager",
+          "label": "Lead Manager",
+          "icon": "user-plus",
+          "path": "/admin/sales-leads",
+          "roles": ["admin", "super_admin", "cmo"]
         }
       ]
     },
@@ -101,11 +108,12 @@ export const NAVIGATION_CONFIG: {
           "roles": ["admin", "super_admin", "cfo"]
         },
         {
-          "id": "admin_lead_manager",
-          "label": "Lead Manager",
-          "icon": "user-plus",
-          "path": "/admin/sales-leads",
-          "roles": ["admin", "super_admin", "cmo"]
+          "id": "admin_site_leads",
+          "label": "Site Leads",
+          "icon": "globe",
+          "path": "/admin/site-leads",
+          "roles": ["admin", "super_admin", "cmo"],
+          "description": "Website visitors requesting demos or info"
         },
         {
           "id": "admin_billing_payments",

@@ -37,7 +37,7 @@ interface NavCustomizationModalProps {
 // Admin-specific nav items (flat list from NAVIGATION_CONFIG groups)
 const ADMIN_NAV_ITEMS = [
   { id: 'admin_dashboard', label: 'Admin Dashboard', path: '/admin', isHome: true },
-  { id: 'admin_advertising', label: 'Advertising & Revenue', path: '/admin/advertising' },
+  { id: 'admin_advertising', label: 'Advertising and Sales', path: '/admin/advertising' },
   { id: 'admin_support', label: 'Support Desk', path: '/admin/support' },
   { id: 'admin_financials', label: 'Financials (CFO)', path: '/admin/financials/key-metrics' },
   { id: 'admin_users', label: 'User Management', path: '/admin/users' },
