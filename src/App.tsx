@@ -179,6 +179,7 @@ import ScheduledStreams from "./pages/studio/ScheduledStreams";
 import StudioStorage from "./pages/studio/StudioStorage";
 import EnhancedContentLibrary from "./pages/studio/EnhancedContentLibrary";
 import EnhancedContentDetail from "./pages/studio/EnhancedContentDetail";
+import MediaDetail from "./pages/studio/MediaDetail";
 import VoiceCertificationPage from "./pages/admin/VoiceCertificationPage";
 import VoiceNFTCertificatesPage from "./pages/admin/VoiceNFTCertificatesPage";
 import PublicLandingPage from "./pages/PublicLandingPage";
@@ -774,6 +775,7 @@ const AppContent = () => {
               <Route path="/studio/video" element={<TourModeWrapper><VideoStudioPremium /></TourModeWrapper>} />
               <Route path="/studio/clips" element={<TourModeWrapper><ClipEngine /></TourModeWrapper>} />
               <Route path="/studio/media" element={<TourModeWrapper><MediaLibraryHub /></TourModeWrapper>} />
+              <Route path="/studio/media/:id" element={<TourModeWrapper><MediaDetail /></TourModeWrapper>} />
               <Route path="/studio/ai-post-production" element={<TourModeWrapper><AIPostProduction /></TourModeWrapper>} />
               <Route path="/studio/templates" element={<StudioTemplatesPage />} />
               <Route path="/studio/settings" element={<StudioSettings />} />

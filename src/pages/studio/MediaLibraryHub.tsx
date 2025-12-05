@@ -6,14 +6,32 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Search, Upload, FolderOpen, Video, Mic, Scissors, 
-  MoreHorizontal, Play, Clock, Download,
-  Grid3X3, List, ChevronLeft, Loader2
+  MoreHorizontal, Play, Clock, Download, Eye, Edit3, Trash2, Wand2,
+  Grid3X3, List, ChevronLeft, Loader2, AlertTriangle
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { UploadMediaDialog } from "@/components/media/UploadMediaDialog";
+import { toast } from "sonner";
 
 type MediaFilter = "all" | "audio" | "video" | "clips";
 
@@ -28,6 +46,9 @@ interface MediaFile {
   file_size_bytes: number | null;
   source?: string | null;
   status?: string | null;
+  description?: string | null;
+  tags?: string[] | null;
+  category?: string | null;
 }
 
 interface Clip {
@@ -47,6 +68,17 @@ export default function MediaLibraryHub() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [activeFilter, setActiveFilter] = useState<MediaFilter>("all");
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  
+  // Edit modal state
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingMedia, setEditingMedia] = useState<MediaFile | null>(null);
+  const [editForm, setEditForm] = useState({ title: "", description: "", tags: "" });
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Delete modal state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deletingMedia, setDeletingMedia] = useState<MediaFile | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data: mediaFiles, isLoading: loadingMedia } = useQuery({
     queryKey: ["media-library-hub"],
@@ -129,6 +161,76 @@ export default function MediaLibraryHub() {
     if (fileType?.includes("video")) return Video;
     if (fileType?.includes("audio")) return Mic;
     return FolderOpen;
+  };
+
+  // Handle opening edit modal
+  const handleOpenEdit = (file: MediaFile, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingMedia(file);
+    setEditForm({
+      title: file.file_name || "",
+      description: file.description || "",
+      tags: file.tags?.join(", ") || "",
+    });
+    setEditModalOpen(true);
+  };
+
+  // Handle saving edit
+  const handleSaveEdit = async () => {
+    if (!editingMedia) return;
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("media_files")
+        .update({
+          file_name: editForm.title,
+          description: editForm.description,
+          tags: editForm.tags.split(",").map(t => t.trim()).filter(Boolean),
+        })
+        .eq("id", editingMedia.id);
+
+      if (error) throw error;
+      
+      toast.success("Media updated successfully");
+      setEditModalOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["media-library-hub"] });
+    } catch (error) {
+      console.error("Error updating media:", error);
+      toast.error("Failed to update media");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Handle opening delete modal
+  const handleOpenDelete = (file: MediaFile, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDeletingMedia(file);
+    setDeleteModalOpen(true);
+  };
+
+  // Handle delete confirmation
+  const handleConfirmDelete = async () => {
+    if (!deletingMedia) return;
+    setIsDeleting(true);
+    try {
+      // Soft delete the media file
+      const { error } = await supabase
+        .from("media_files")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", deletingMedia.id);
+
+      if (error) throw error;
+      
+      toast.success("Media deleted successfully");
+      setDeleteModalOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["media-library-hub"] });
+    } catch (error) {
+      console.error("Error deleting media:", error);
+      toast.error("Failed to delete media");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // Generate thumbnail URL from Cloudflare Stream URL or other video sources
@@ -222,7 +324,7 @@ export default function MediaLibraryHub() {
       <div
         key={file.id}
         className="group rounded-xl border border-border bg-card overflow-hidden hover:border-primary/50 transition-all cursor-pointer shadow-sm"
-        onClick={() => navigate(`/studio/clips?mediaId=${file.id}`)}
+        onClick={() => navigate(`/studio/media/${file.id}`)}
       >
         <div className="aspect-video bg-muted relative flex items-center justify-center">
           {thumbnailSrc ? (
@@ -242,6 +344,33 @@ export default function MediaLibraryHub() {
               <Loader2 className="w-8 h-8 text-white animate-spin" />
             </div>
           )}
+          {/* Three-dot menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 bg-black/50 hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity">
+                <MoreHorizontal className="w-4 h-4 text-white" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/studio/media/${file.id}`); }}>
+                <Eye className="w-4 h-4 mr-2" />
+                View Video
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => handleOpenEdit(file, e)}>
+                <Edit3 className="w-4 h-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/studio/ai-post-production?media=${file.id}`); }}>
+                <Wand2 className="w-4 h-4 mr-2" />
+                AI Enhance
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={(e) => handleOpenDelete(file, e)} className="text-destructive">
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <div className="p-3">
           <p className="font-medium text-sm text-foreground truncate">{file.file_name}</p>
@@ -412,6 +541,76 @@ export default function MediaLibraryHub() {
           queryClient.invalidateQueries({ queryKey: ["media-library-hub"] });
         }}
       />
+
+      {/* Edit Modal */}
+      <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Media</DialogTitle>
+            <DialogDescription>Update the title and description for this file.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={editForm.title}
+                onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={editForm.description}
+                onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tags">Tags (comma separated)</Label>
+              <Input
+                id="tags"
+                value={editForm.tags}
+                onChange={(e) => setEditForm(prev => ({ ...prev, tags: e.target.value }))}
+                placeholder="e.g., podcast, interview, tutorial"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditModalOpen(false)}>Cancel</Button>
+            <Button onClick={handleSaveEdit} disabled={isSaving}>
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="w-5 h-5" />
+              Delete Media File
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{deletingMedia?.file_name}"?
+            </DialogDescription>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground py-2">
+            This will remove the file from storage and delete all associated records (clips, analytics, transcripts). This action cannot be undone.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleConfirmDelete} disabled={isDeleting}>
+              {isDeleting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trash2 className="w-4 h-4 mr-2" />}
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
