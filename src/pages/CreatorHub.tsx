@@ -94,7 +94,7 @@ const allModules = [
     description: 'Manage media assets',
     icon: FolderOpen,
     color: 'from-red-500 to-orange-500',
-    path: '/media',
+    path: '/studio/media',
     category: 'tools'
   },
   {

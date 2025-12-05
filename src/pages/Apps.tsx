@@ -233,7 +233,7 @@ const modules: Module[] = [
     icon: Image,
     status: "active",
     category: "media",
-    route: "/media/library",
+    route: "/studio/media",
     creditEstimate: 10,
   },
   {

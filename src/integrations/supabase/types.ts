@@ -12299,6 +12299,8 @@ export type Database = {
         Row: {
           broadcast_id: string | null
           clip_metadata: Json | null
+          cloudflare_download_url: string | null
+          cloudflare_uid: string | null
           converted_to_episode_id: string | null
           created_at: string | null
           deleted_at: string | null
@@ -12313,12 +12315,15 @@ export type Database = {
           id: string
           original_file_url: string | null
           source: string | null
+          thumbnail_url: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           broadcast_id?: string | null
           clip_metadata?: Json | null
+          cloudflare_download_url?: string | null
+          cloudflare_uid?: string | null
           converted_to_episode_id?: string | null
           created_at?: string | null
           deleted_at?: string | null
@@ -12333,12 +12338,15 @@ export type Database = {
           id?: string
           original_file_url?: string | null
           source?: string | null
+          thumbnail_url?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           broadcast_id?: string | null
           clip_metadata?: Json | null
+          cloudflare_download_url?: string | null
+          cloudflare_uid?: string | null
           converted_to_episode_id?: string | null
           created_at?: string | null
           deleted_at?: string | null
@@ -12353,6 +12361,7 @@ export type Database = {
           id?: string
           original_file_url?: string | null
           source?: string | null
+          thumbnail_url?: string | null
           updated_at?: string | null
           user_id?: string
         }

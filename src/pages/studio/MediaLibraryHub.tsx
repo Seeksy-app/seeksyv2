@@ -24,7 +24,7 @@ interface MediaFile {
   created_at: string;
   cloudflare_download_url: string | null;
   thumbnail_url: string | null;
-  file_size: number | null;
+  file_size_bytes: number | null;
 }
 
 interface Clip {
@@ -190,8 +190,8 @@ export default function MediaLibraryHub() {
               <Clock className="w-3 h-3" />
               {formatDistanceToNow(new Date(file.created_at), { addSuffix: true })}
             </p>
-            {file.file_size && file.file_size > 0 && (
-              <span className="text-xs text-muted-foreground">{formatFileSize(file.file_size)}</span>
+            {file.file_size_bytes && file.file_size_bytes > 0 && (
+              <span className="text-xs text-muted-foreground">{formatFileSize(file.file_size_bytes)}</span>
             )}
           </div>
         </div>

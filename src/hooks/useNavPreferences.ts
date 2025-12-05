@@ -80,13 +80,13 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'my_day', label: 'My Day', path: '/my-day', isHome: true, level: 0 },
   { id: 'creator_hub', label: 'Creator Hub', path: '/creator-hub', isHome: true, level: 0 },
   { id: 'dashboard', label: 'Dashboard', path: '/dashboard', isHome: true, level: 0 },
-  { 
+{ 
     id: 'media_content', 
     label: 'Media & Content', 
-    path: '/media',
+    path: '/studio/media',
     level: 0,
     subItems: [
-      { id: 'content_library', label: 'Content Library', path: '/media' },
+      { id: 'content_library', label: 'Media Library', path: '/studio/media' },
       { id: 'content_transcripts', label: 'Transcripts', path: '/transcripts' },
       { id: 'content_blogs', label: 'Blog Posts', path: '/blog' },
       { id: 'generate_clips', label: 'Generate Clips', path: '/studio/clips' },

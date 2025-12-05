@@ -42,7 +42,7 @@ const categories: Category[] = [
       { icon: Target, title: "Brand Campaigns", description: "Manage brand deals and sponsorships", href: "/campaigns", status: "available" },
       { icon: DollarSign, title: "Revenue Tracking", description: "Monitor all your income streams", href: "/revenue", status: "available" },
       { icon: Zap, title: "Growth Tools", description: "Tools to accelerate your growth", href: "/growth", status: "coming-soon" },
-      { icon: FolderOpen, title: "Content Library", description: "Organize all your content assets", href: "/media-vault", status: "available" },
+      { icon: FolderOpen, title: "Media Library", description: "Organize all your content assets", href: "/studio/media", status: "available" },
     ]
   },
   {

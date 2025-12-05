@@ -1035,6 +1035,7 @@ const AppContent = () => {
           <Route path="/studio-templates" element={<StudioTemplates />} />
           <Route path="/broadcast/session/:id" element={<BroadcastStudio />} />
           <Route path="/broadcast/:id" element={<BroadcastStudio />} />
+          <Route path="/media" element={<Navigate to="/studio/media" replace />} />
           <Route path="/media-library" element={<TourModeWrapper><MediaVault /></TourModeWrapper>} />
           <Route path="/media/library" element={<TourModeWrapper><MediaVault /></TourModeWrapper>} />
           <Route path="/media-library-legacy" element={<MediaLibrary />} />
