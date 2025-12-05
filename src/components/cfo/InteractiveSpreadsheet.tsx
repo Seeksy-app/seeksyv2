@@ -13,6 +13,7 @@ import { ShareProformaDialog } from "./ShareProformaDialog";
 import { SpreadsheetViewerDialog } from "./SpreadsheetViewerDialog";
 import jsPDF from "jspdf";
 import * as XLSX from "xlsx";
+import { SUBSCRIPTION_PRICING } from "@/lib/config/creditConfig";
 
 interface SpreadsheetAssumptions {
   // Pricing by Product Line
@@ -87,16 +88,16 @@ export const InteractiveSpreadsheet = ({ isReadOnly = false }: { isReadOnly?: bo
   const [viewerData, setViewerData] = useState<{ assumptions: any; forecast: any[]; type: 'ai' | 'custom' } | null>(null);
   const [proformaType] = useState<'ai' | 'custom'>('custom'); // InteractiveSpreadsheet uses custom proforma
   const [assumptions, setAssumptions] = useState<SpreadsheetAssumptions>({
-    // Pricing
-    podcasterBasicPrice: 19,
-    podcasterProPrice: 49,
-    podcasterEnterprisePrice: 199,
-    eventCreatorPrice: 29,
-    eventOrgPrice: 299,
-    politicalCampaignPrice: 499,
-    myPageBasicPrice: 9,
-    myPageProPrice: 29,
-    industryCreatorPrice: 149,
+    // Pricing (from centralized config)
+    podcasterBasicPrice: SUBSCRIPTION_PRICING.podcaster_basic,
+    podcasterProPrice: SUBSCRIPTION_PRICING.podcaster_pro,
+    podcasterEnterprisePrice: SUBSCRIPTION_PRICING.podcaster_enterprise,
+    eventCreatorPrice: SUBSCRIPTION_PRICING.event_creator,
+    eventOrgPrice: SUBSCRIPTION_PRICING.event_org,
+    politicalCampaignPrice: SUBSCRIPTION_PRICING.political_campaign,
+    myPageBasicPrice: SUBSCRIPTION_PRICING.mypage_basic,
+    myPageProPrice: SUBSCRIPTION_PRICING.mypage_pro,
+    industryCreatorPrice: SUBSCRIPTION_PRICING.industry_creator,
     
     // Starting Customers
     startingPodcasters: 20,

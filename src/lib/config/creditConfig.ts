@@ -4,6 +4,20 @@
  * Centralized config for all credit pricing, usage rates, and limits.
  */
 
+// Subscription Pricing (USD/month)
+export const SUBSCRIPTION_PRICING = {
+  podcaster_basic: 19,
+  podcaster_pro: 49,
+  podcaster_enterprise: 199,
+  event_creator: 29,
+  event_org: 299,
+  political_campaign: 499,
+  mypage_basic: 9,
+  mypage_pro: 29,
+  industry_creator: 149,
+  awards_pro: 79,
+} as const;
+
 // Credit Pack Pricing (USD)
 export const CREDIT_PACK_PRICING = {
   starter_300: { credits: 300, price: 19 },
