@@ -36,11 +36,35 @@ export default function InvestorPortal() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [shareConfig, setShareConfig] = useState<any>({
     allowHtmlView: true,
-    allowDownload: false,
+    allowDownload: true,
     proformaType: 'ai',
     adjustmentMultiplier: 1,
     useRealTimeData: true,
   });
+
+  // Auto-authenticate admin/CFO users without requiring access code
+  useEffect(() => {
+    const checkAdminAccess = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Check if user is admin/CFO
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+
+      const adminRoles = ['admin', 'super_admin', 'cfo', 'board_member'];
+      const isAdmin = roles?.some(r => adminRoles.includes(r.role));
+
+      if (isAdmin) {
+        setIsAuthenticated(true);
+        setInvestorEmail(user.email || 'Admin Access');
+      }
+    };
+
+    checkAdminAccess();
+  }, []);
 
   useEffect(() => {
     // Pre-fill access code from URL but don't auto-validate
