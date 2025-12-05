@@ -64,6 +64,13 @@ export const NAVIGATION_CONFIG: {
           "roles": ["admin", "super_admin", "cmo"]
         },
         {
+          "id": "admin_ad_inventory",
+          "label": "Ad Inventory",
+          "icon": "package",
+          "path": "/admin/ad-inventory",
+          "roles": ["admin", "super_admin", "cfo", "cmo"]
+        },
+        {
           "id": "admin_ad_analytics",
           "label": "Ad Analytics",
           "icon": "trending-up",
@@ -235,13 +242,6 @@ export const NAVIGATION_CONFIG: {
           "icon": "target",
           "path": "/admin/financials/swot",
           "roles": ["admin", "super_admin", "cfo", "board_member"]
-        },
-        {
-          "id": "admin_ad_inventory",
-          "label": "Ad Inventory",
-          "icon": "package",
-          "path": "/admin/ad-inventory",
-          "roles": ["admin", "super_admin", "cfo", "cmo", "board_member"]
         },
         {
           "id": "admin_investor_spreadsheets",

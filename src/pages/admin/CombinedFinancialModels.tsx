@@ -187,14 +187,16 @@ export default function CombinedFinancialModels() {
 
   if (isLoading) {
     return (
-      <div className="w-full max-w-none px-10 pt-8 pb-16 flex items-center justify-center min-h-[400px]">
+      <div className="mx-auto max-w-7xl px-6 py-6 flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
+  const hasData = yearlySummaries.length > 0 && yearlySummaries.some(y => y.totalRevenue > 0);
+
   return (
-    <div className="w-full max-w-none px-10 pt-8 pb-16 mx-auto flex flex-col gap-8 items-stretch">
+    <div className="mx-auto max-w-7xl px-6 py-6 flex flex-col gap-8 items-stretch">
       {/* Header */}
       <div className="flex flex-col items-start">
         <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -398,14 +400,25 @@ export default function CombinedFinancialModels() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-96">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={monthlyProjections}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="periodLabel" 
-                      label={{ value: "Month", position: "insideBottom", offset: -5 }}
-                    />
+              {!hasData ? (
+                <div className="h-96 flex flex-col items-center justify-center text-center">
+                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                    <BarChart3 className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No Data Available</h3>
+                  <p className="text-muted-foreground max-w-sm">
+                    Adjust assumptions to generate your custom 3-year model.
+                  </p>
+                </div>
+              ) : (
+                <div className="h-96">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={monthlyProjections}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="periodLabel" 
+                        label={{ value: "Month", position: "insideBottom", offset: -5 }}
+                      />
                     <YAxis />
                     <Tooltip 
                       formatter={(value: number) => formatCurrency(value)}
@@ -436,6 +449,7 @@ export default function CombinedFinancialModels() {
                   </LineChart>
                 </ResponsiveContainer>
               </div>
+              )}
             </CardContent>
           </Card>
         </div>

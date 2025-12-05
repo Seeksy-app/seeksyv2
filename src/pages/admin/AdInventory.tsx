@@ -199,15 +199,21 @@ export default function AdInventory() {
   return (
     <div className="mx-auto max-w-7xl px-6 py-6 flex flex-col items-start w-full space-y-6">
       {/* Header */}
-      <div className="text-left">
-        <h1 className="text-2xl font-bold text-foreground">Ad Inventory</h1>
-        <p className="text-muted-foreground">
-          Line-by-line ledger of all sellable ad opportunities across Seeksy and creators.
-        </p>
+      <div className="w-full flex items-center justify-between">
+        <div className="text-left">
+          <h1 className="text-2xl font-bold text-foreground">Ad Inventory</h1>
+          <p className="text-muted-foreground">
+            Line-by-line ledger of all sellable ad opportunities across Seeksy and creators.
+          </p>
+        </div>
+        <Button className="gap-2">
+          <TrendingUp className="h-4 w-4" />
+          Add Inventory Item
+        </Button>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -372,8 +378,20 @@ export default function AdInventory() {
                   </TableRow>
                 ) : filteredInventory.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                      No inventory items found
+                    <TableCell colSpan={9} className="py-16">
+                      <div className="flex flex-col items-center justify-center text-center">
+                        <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                          <DollarSign className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-foreground mb-2">No Ad Inventory Found</h3>
+                        <p className="text-muted-foreground mb-4 max-w-sm">
+                          Add your first ad opportunity to begin tracking revenue and profit.
+                        </p>
+                        <Button className="gap-2">
+                          <TrendingUp className="h-4 w-4" />
+                          Add Inventory Item
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
