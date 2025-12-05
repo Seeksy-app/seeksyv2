@@ -44,7 +44,7 @@ export function BoardLayout({ children }: BoardLayoutProps) {
                   duration: 0.25, 
                   ease: [0.4, 0, 0.2, 1]
                 }}
-                className="max-w-7xl mx-auto px-6 lg:px-8 py-6 pb-16 min-h-full"
+                className="px-6 lg:px-8 py-6 pb-16 min-h-full"
               >
                 {children}
               </motion.div>
