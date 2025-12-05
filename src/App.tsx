@@ -45,6 +45,7 @@ import Meetings from "./pages/Meetings";
 import MeetNow from "./pages/MeetNow";
 import MeetingStudio from "./pages/MeetingStudio";
 import SimpleMeetingStudio from "./pages/SimpleMeetingStudio";
+import SeeksyMeetingStudio from "./pages/meetings/SeeksyMeetingStudio";
 import MeetingDetails from "./pages/MeetingDetails";
 import MeetingRSVP from "./pages/MeetingRSVP";
 import MeetingsDashboard from "./pages/creator/MeetingsDashboard";
@@ -767,6 +768,7 @@ const AppContent = () => {
               <Route path="/studio/past-streams" element={<PastStreams />} />
               <Route path="/studio/scheduled" element={<ScheduledStreams />} />
               <Route path="/studio/storage" element={<StudioStorage />} />
+              <Route path="/studio/meeting/:meetingId" element={<SeeksyMeetingStudio />} />
               
             <Route path="/events" element={<Events />} />
             <Route path="/signup-sheets" element={<SignupSheets />} />

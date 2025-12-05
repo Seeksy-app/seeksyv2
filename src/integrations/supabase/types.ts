@@ -12705,6 +12705,41 @@ export type Database = {
           },
         ]
       }
+      meeting_chat_messages: {
+        Row: {
+          created_at: string
+          id: string
+          meeting_id: string
+          message: string
+          sender_name: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meeting_id: string
+          message: string
+          sender_name: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meeting_id?: string
+          message?: string
+          sender_name?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_chat_messages_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_files: {
         Row: {
           created_at: string | null
@@ -12837,6 +12872,94 @@ export type Database = {
           },
         ]
       }
+      meeting_participants: {
+        Row: {
+          created_at: string
+          guest_email: string | null
+          guest_name: string | null
+          id: string
+          joined_at: string | null
+          left_at: string | null
+          meeting_id: string
+          role: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          guest_email?: string | null
+          guest_name?: string | null
+          id?: string
+          joined_at?: string | null
+          left_at?: string | null
+          meeting_id: string
+          role?: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          guest_email?: string | null
+          guest_name?: string | null
+          id?: string
+          joined_at?: string | null
+          left_at?: string | null
+          meeting_id?: string
+          role?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_participants_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_recordings: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          file_size_bytes: number | null
+          id: string
+          meeting_id: string
+          recording_url: string
+          status: string
+          storage_path: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          file_size_bytes?: number | null
+          id?: string
+          meeting_id: string
+          recording_url: string
+          status?: string
+          storage_path?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          file_size_bytes?: number | null
+          id?: string
+          meeting_id?: string
+          recording_url?: string
+          status?: string
+          storage_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_recordings_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_types: {
         Row: {
           availability_windows: Json | null
@@ -12899,6 +13022,7 @@ export type Database = {
           description: string | null
           end_time: string
           id: string
+          is_active: boolean | null
           location_details: string | null
           location_type: Database["public"]["Enums"]["location_type"]
           meeting_type_id: string | null
@@ -12906,12 +13030,15 @@ export type Database = {
           recording_duration: number | null
           recording_size: number | null
           recording_url: string | null
+          room_name: string | null
+          room_url: string | null
           show_ai_notes: boolean | null
           start_time: string
           status: Database["public"]["Enums"]["meeting_status"] | null
           title: string
           updated_at: string | null
           user_id: string
+          waiting_room_enabled: boolean | null
         }
         Insert: {
           agenda?: string | null
@@ -12920,6 +13047,7 @@ export type Database = {
           description?: string | null
           end_time: string
           id?: string
+          is_active?: boolean | null
           location_details?: string | null
           location_type: Database["public"]["Enums"]["location_type"]
           meeting_type_id?: string | null
@@ -12927,12 +13055,15 @@ export type Database = {
           recording_duration?: number | null
           recording_size?: number | null
           recording_url?: string | null
+          room_name?: string | null
+          room_url?: string | null
           show_ai_notes?: boolean | null
           start_time: string
           status?: Database["public"]["Enums"]["meeting_status"] | null
           title: string
           updated_at?: string | null
           user_id: string
+          waiting_room_enabled?: boolean | null
         }
         Update: {
           agenda?: string | null
@@ -12941,6 +13072,7 @@ export type Database = {
           description?: string | null
           end_time?: string
           id?: string
+          is_active?: boolean | null
           location_details?: string | null
           location_type?: Database["public"]["Enums"]["location_type"]
           meeting_type_id?: string | null
@@ -12948,12 +13080,15 @@ export type Database = {
           recording_duration?: number | null
           recording_size?: number | null
           recording_url?: string | null
+          room_name?: string | null
+          room_url?: string | null
           show_ai_notes?: boolean | null
           start_time?: string
           status?: Database["public"]["Enums"]["meeting_status"] | null
           title?: string
           updated_at?: string | null
           user_id?: string
+          waiting_room_enabled?: boolean | null
         }
         Relationships: [
           {
