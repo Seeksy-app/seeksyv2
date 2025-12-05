@@ -299,114 +299,131 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
 
       <SidebarContent className="pb-6">
         {/* Creator nav items - ONLY for non-admin users */}
+        {/* ALL top-level items render as bold collapsible group headers for consistency */}
         {!isAdmin && (
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <div className="flex flex-col">
-                {userNavItems.map((item) => {
-                  const Icon = ICON_MAP[item.id] || LayoutDashboard;
-                  const isPinned = navConfig.pinned.includes(item.id);
-                  const hasSubItems = item.subItems && item.subItems.length > 0;
-                  
-                  // Special handling for My Workspaces - render each workspace as a single row (no dropdown)
-                  if (item.id === 'my_workspaces') {
-                    return (
-                      <div key={item.id} className="flex flex-col">
-                        {/* My Workspaces header */}
-                        <NavLink
-                          to={item.path}
-                          className="flex items-center gap-3 text-white hover:bg-white/10 w-full px-2 py-2 rounded-md transition-colors"
-                          activeClassName="bg-primary/20 text-white"
-                        >
-                          <Icon className="h-4 w-4 shrink-0 text-white" />
-                          {!collapsed && <span className="truncate text-white font-medium text-sm">{item.label}</span>}
-                        </NavLink>
-                        {/* Individual workspace rows - no dropdown, just direct links */}
-                        {!collapsed && customPackages.length > 0 && (
-                          <div className="ml-7 mt-1 space-y-0.5 border-l border-white/20 pl-3">
-                            {customPackages.map((pkg) => (
-                              <NavLink
-                                key={pkg.id}
-                                to={`/apps?workspace=${pkg.id}`}
-                                className="flex items-center justify-between text-sm py-1.5 px-2 text-white/80 hover:text-white hover:bg-white/5 rounded transition-colors"
-                                activeClassName="text-white bg-white/10"
-                              >
-                                <span className="truncate">{pkg.name}</span>
-                                {pkg.is_default && <span className="text-amber-400 text-xs">⭐</span>}
-                              </NavLink>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  }
-                  
-                  // Level 0 items with sub-items render as collapsible
-                  if (hasSubItems && !collapsed) {
-                    const isOpen = openGroups[item.id] ?? false;
-                    const subItemConfigs = navConfig.subItems?.[item.id] || [];
-                    const visibleSubItems = item.subItems.filter(sub => {
-                      const config = subItemConfigs.find(c => c.id === sub.id);
-                      return !config || config.visible !== false;
-                    });
-                    
-                    return (
-                      <Collapsible
-                        key={item.id}
-                        open={isOpen}
-                        onOpenChange={() => toggleGroup(item.id)}
-                      >
-                        <CollapsibleTrigger asChild>
-                          {/* Level 0 collapsible - use px-2 for consistent left alignment */}
-                          <button className="w-full flex items-center justify-between cursor-pointer hover:bg-white/10 text-white px-2 py-2 rounded-md transition-colors">
-                            <div className="flex items-center gap-3 min-w-0">
-                              <Icon className="h-4 w-4 shrink-0 text-white" />
-                              <span className="truncate text-white font-medium text-sm">{item.label}</span>
-                            </div>
-                            <div className="flex items-center gap-2 ml-auto shrink-0">
-                              {isPinned && <span className="text-amber-400 text-xs">★</span>}
-                              <ChevronDown className={`h-4 w-4 text-white/70 transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`} />
-                            </div>
-                          </button>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                          {/* Sub-items get indentation */}
-                          <div className="ml-7 mt-1 space-y-0.5 border-l border-white/20 pl-3">
-                            {visibleSubItems.map((subItem) => (
-                              <NavLink
-                                key={subItem.id}
-                                to={subItem.path}
-                                className="flex items-center gap-2 text-sm py-1.5 px-2 text-white/80 hover:text-white hover:bg-white/5 rounded transition-colors"
-                                activeClassName="text-white bg-white/10"
-                              >
-                                <span className="truncate">{subItem.label}</span>
-                              </NavLink>
-                            ))}
-                          </div>
-                        </CollapsibleContent>
-                      </Collapsible>
-                    );
-                  }
-                  
-                  // Level 0 items without sub-items - use px-2 for consistent left alignment
-                  return (
-                    <NavLink
-                      key={item.id}
-                      to={item.path}
-                      className="flex items-center justify-between text-white hover:bg-white/10 w-full px-2 py-2 rounded-md transition-colors"
-                      activeClassName="bg-primary/20 text-white"
+          <>
+            {userNavItems.map((item) => {
+              const Icon = ICON_MAP[item.id] || LayoutDashboard;
+              const isPinned = navConfig.pinned.includes(item.id);
+              const hasSubItems = item.subItems && item.subItems.length > 0;
+              const isOpen = openGroups[item.id] ?? false;
+              
+              // Special handling for My Workspaces
+              if (item.id === 'my_workspaces') {
+                return (
+                  <SidebarGroup key={item.id}>
+                    <Collapsible
+                      open={isOpen}
+                      onOpenChange={() => toggleGroup(item.id)}
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <Icon className="h-4 w-4 shrink-0 text-white" />
-                        {!collapsed && <span className="truncate text-white font-medium text-sm">{item.label}</span>}
+                      <CollapsibleTrigger asChild>
+                        <SidebarGroupLabel className="cursor-pointer hover:bg-white/10 rounded-md transition-colors flex items-center justify-between text-white font-semibold text-sm px-3 py-2 w-full">
+                          <div className="flex items-center gap-3">
+                            <Icon className="h-4 w-4 shrink-0" />
+                            {!collapsed && <span className="truncate">{item.label}</span>}
+                          </div>
+                          {!collapsed && (
+                            <ChevronDown className={`h-4 w-4 shrink-0 text-white/70 transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`} />
+                          )}
+                        </SidebarGroupLabel>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <SidebarGroupContent>
+                          <SidebarMenu>
+                            {customPackages.map((pkg) => (
+                              <SidebarMenuItem key={pkg.id}>
+                                <SidebarMenuButton asChild>
+                                  <NavLink
+                                    to={`/apps?workspace=${pkg.id}`}
+                                    className="flex items-center justify-between"
+                                    activeClassName="nav-active"
+                                  >
+                                    <span className="truncate">{pkg.name}</span>
+                                    {pkg.is_default && <span className="text-amber-400 text-xs">⭐</span>}
+                                  </NavLink>
+                                </SidebarMenuButton>
+                              </SidebarMenuItem>
+                            ))}
+                          </SidebarMenu>
+                        </SidebarGroupContent>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </SidebarGroup>
+                );
+              }
+              
+              // Items WITH sub-items - render as collapsible group
+              if (hasSubItems) {
+                const subItemConfigs = navConfig.subItems?.[item.id] || [];
+                const visibleSubItems = item.subItems!.filter(sub => {
+                  const config = subItemConfigs.find(c => c.id === sub.id);
+                  return !config || config.visible !== false;
+                });
+                
+                return (
+                  <SidebarGroup key={item.id}>
+                    <Collapsible
+                      open={isOpen}
+                      onOpenChange={() => toggleGroup(item.id)}
+                    >
+                      <CollapsibleTrigger asChild>
+                        <SidebarGroupLabel className="cursor-pointer hover:bg-white/10 rounded-md transition-colors flex items-center justify-between text-white font-semibold text-sm px-3 py-2 w-full">
+                          <div className="flex items-center gap-3">
+                            <Icon className="h-4 w-4 shrink-0" />
+                            {!collapsed && <span className="truncate">{item.label}</span>}
+                          </div>
+                          {!collapsed && (
+                            <div className="flex items-center gap-2">
+                              {isPinned && <span className="text-amber-400 text-xs">★</span>}
+                              <ChevronDown className={`h-4 w-4 shrink-0 text-white/70 transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`} />
+                            </div>
+                          )}
+                        </SidebarGroupLabel>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <SidebarGroupContent>
+                          <SidebarMenu>
+                            {visibleSubItems.map((subItem) => (
+                              <SidebarMenuItem key={subItem.id}>
+                                <SidebarMenuButton asChild>
+                                  <NavLink
+                                    to={subItem.path}
+                                    className="flex items-center gap-2"
+                                    activeClassName="nav-active"
+                                  >
+                                    <span className="truncate">{subItem.label}</span>
+                                  </NavLink>
+                                </SidebarMenuButton>
+                              </SidebarMenuItem>
+                            ))}
+                          </SidebarMenu>
+                        </SidebarGroupContent>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </SidebarGroup>
+                );
+              }
+              
+              // Items WITHOUT sub-items - still render as group header (link style)
+              return (
+                <SidebarGroup key={item.id}>
+                  <SidebarGroupLabel asChild className="cursor-pointer hover:bg-white/10 rounded-md transition-colors">
+                    <NavLink
+                      to={item.path}
+                      className="flex items-center justify-between text-white font-semibold text-sm px-3 py-2 w-full"
+                      activeClassName="bg-primary/20"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className="h-4 w-4 shrink-0" />
+                        {!collapsed && <span className="truncate">{item.label}</span>}
                       </div>
-                      {!collapsed && isPinned && <span className="text-amber-400 text-xs ml-auto shrink-0">★</span>}
+                      {!collapsed && isPinned && <span className="text-amber-400 text-xs">★</span>}
                     </NavLink>
-                  );
-                })}
-              </div>
-            </SidebarGroupContent>
-          </SidebarGroup>
+                  </SidebarGroupLabel>
+                </SidebarGroup>
+              );
+            })}
+          </>
         )}
 
         {/* Admin-only collapsible sections */}
