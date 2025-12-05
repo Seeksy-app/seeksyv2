@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { SocialPublishModal } from "@/components/clips/SocialPublishModal";
+import { YouTubePublishModal } from "@/components/studio/YouTubePublishModal";
 import { formatDistanceToNow, format } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
@@ -87,6 +88,7 @@ export default function MediaDetail() {
   const [selectedClip, setSelectedClip] = useState<Clip | null>(null);
   const [preSelectedPlatform, setPreSelectedPlatform] = useState<'youtube' | 'instagram' | 'tiktok' | null>(null);
   const [showAdSubmitModal, setShowAdSubmitModal] = useState(false);
+  const [showYouTubeModal, setShowYouTubeModal] = useState(false);
   
   // Local state for demo publish/ad status
   const [publishStatus, setPublishStatus] = useState<PublishStatus>('not_published');
@@ -627,7 +629,7 @@ export default function MediaDetail() {
                     <TooltipTrigger asChild>
                       <Button
                         className="w-full justify-start bg-red-500 hover:bg-red-600 text-white"
-                        onClick={() => handlePublishToSocial(undefined, 'youtube')}
+                        onClick={() => setShowYouTubeModal(true)}
                       >
                         <Youtube className="w-4 h-4 mr-2" />
                         Post to YouTube
@@ -636,7 +638,7 @@ export default function MediaDetail() {
                     <TooltipContent side="left" className="max-w-[200px]">
                       {publishStatus === 'published_youtube' 
                         ? "You've already posted this once — posting again will create another upload on YouTube."
-                        : "Publish your video directly to YouTube with optimized settings."}
+                        : "Upload as a full YouTube video with title, description, and tags."}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -827,6 +829,20 @@ export default function MediaDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* YouTube Publish Modal */}
+      <YouTubePublishModal
+        open={showYouTubeModal}
+        onOpenChange={setShowYouTubeModal}
+        video={media ? {
+          id: media.id,
+          title: media.file_name || "Untitled",
+          description: media.description || "",
+          file_url: primaryVideoUrl,
+          thumbnail_url: primaryThumbnail,
+          duration_seconds: media.duration_seconds,
+        } : null}
+      />
     </div>
   );
 }
