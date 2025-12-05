@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
+import { UploadMediaDialog } from "@/components/media/UploadMediaDialog";
 
 type MediaFilter = "all" | "audio" | "video" | "clips";
 
@@ -39,9 +40,11 @@ interface Clip {
 
 export default function MediaLibraryHub() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [activeFilter, setActiveFilter] = useState<MediaFilter>("all");
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
   const { data: mediaFiles, isLoading: loadingMedia } = useQuery({
     queryKey: ["media-library-hub"],
@@ -210,7 +213,7 @@ export default function MediaLibraryHub() {
           <span className="text-muted-foreground text-sm cursor-pointer hover:text-foreground" onClick={() => navigate("/studio")}>Back to Studio Home</span>
         </div>
         <h1 className="font-semibold text-foreground">Media Library</h1>
-        <Button className="gap-2 bg-primary hover:bg-primary/90">
+        <Button className="gap-2 bg-primary hover:bg-primary/90" onClick={() => setUploadDialogOpen(true)}>
           <Upload className="w-4 h-4" />
           Upload Media
         </Button>
@@ -339,6 +342,14 @@ export default function MediaLibraryHub() {
           </div>
         )}
       </div>
+
+      <UploadMediaDialog
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        onUploadComplete={() => {
+          queryClient.invalidateQueries({ queryKey: ["media-library-hub"] });
+        }}
+      />
     </div>
   );
 }
