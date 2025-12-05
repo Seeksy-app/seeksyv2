@@ -308,6 +308,27 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                   // Section title items (standalone without sub-items) - styled as headers
                   const isSectionTitle = ['my_day', 'dashboard', 'settings', 'seekies', 'social_analytics', 'creator_hub'].includes(item.id);
                   
+                  // Section titles render as left-justified links
+                  if (isSectionTitle && !hasSubItems) {
+                    return (
+                      <SidebarMenuItem key={item.id}>
+                        <SidebarMenuButton asChild>
+                          <NavLink
+                            to={item.path}
+                            className="flex items-center gap-3 transition-all duration-150 text-white hover:bg-white/10 w-full"
+                            activeClassName="nav-active"
+                          >
+                            {Icon && <Icon className="h-4 w-4 shrink-0 text-white" />}
+                            {!collapsed && <span className="truncate text-white">{item.label}</span>}
+                            {!collapsed && isPinned && (
+                              <span className="text-amber-400 text-xs ml-auto shrink-0">★</span>
+                            )}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  }
+                  
                   // Items with sub-items render as collapsible
                   if (hasSubItems && !collapsed) {
                     const isOpen = openGroups[item.id] ?? false;
