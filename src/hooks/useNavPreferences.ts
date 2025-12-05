@@ -42,12 +42,13 @@ const DEFAULT_NAV_CONFIG: NavConfig = {
     'creator_hub',
     'settings',
     'my_workspaces',
-    'active_apps',
+    'meetings',
+    'events',
+    'my_page',
     'media_content',
     'seekies',
     'email',
     'marketing',
-    'meetings',
     'awards',
   ],
   hidden: [],
@@ -72,12 +73,21 @@ const DEFAULT_LANDING_ROUTE = '/my-day';
  * 10. Awards
  */
 export const NAV_ITEMS: NavItem[] = [
+  // Core nav items (always visible, no module requirement)
   { id: 'my_day', label: 'My Day', path: '/my-day', isHome: true, level: 0 },
   { id: 'dashboard', label: 'Dashboard', path: '/dashboard', isHome: true, level: 0 },
   { id: 'creator_hub', label: 'Creator Hub', path: '/creator-hub', isHome: true, level: 0 },
   { id: 'settings', label: 'Settings', path: '/settings', level: 0 },
   { id: 'my_workspaces', label: 'My Workspaces', path: '/apps?category=my-workspaces', level: 0 },
-  { id: 'active_apps', label: 'Active Apps', path: '/apps?category=active', level: 0 },
+  { id: 'seekies', label: 'Seekies & Apps', path: '/apps', level: 0 },
+  
+  // Standalone module items (top-level when activated)
+  { id: 'meetings', label: 'Meetings', path: '/meetings', level: 0, moduleId: 'meetings' },
+  { id: 'events', label: 'Events', path: '/events', level: 0, moduleId: 'events' },
+  { id: 'my_page', label: 'My Page', path: '/profile/edit', level: 0, moduleId: 'my-page' },
+  { id: 'awards', label: 'Awards', path: '/awards', level: 0, moduleId: 'awards' },
+  
+  // Grouped module items (collapsible sections when activated)
   { 
     id: 'media_content', 
     label: 'Media & Content', 
@@ -92,7 +102,6 @@ export const NAV_ITEMS: NavItem[] = [
       { id: 'podcasts', label: 'Podcasts', path: '/podcasts' },
     ]
   },
-  { id: 'seekies', label: 'Seekies & Apps', path: '/apps', level: 0 },
   { 
     id: 'email', 
     label: 'Email', 
@@ -122,8 +131,6 @@ export const NAV_ITEMS: NavItem[] = [
       { id: 'marketing_automations', label: 'Automations', path: '/marketing/automations' },
     ]
   },
-  { id: 'meetings', label: 'Meetings', path: '/meetings', level: 0, moduleId: 'meetings' },
-  { id: 'awards', label: 'Awards', path: '/awards', level: 0, moduleId: 'awards' },
 ];
 
 export const LANDING_OPTIONS = [

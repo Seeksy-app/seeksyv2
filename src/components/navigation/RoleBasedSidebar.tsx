@@ -128,8 +128,9 @@ const ICON_MAP: Record<string, any> = {
   'creator_hub': Rocket,
   'my_streaming_channel': Radio,
   'my_workspaces': Package,
-  'active_apps': Zap,
   'meetings': Calendar,
+  'events': Calendar,
+  'my_page': Layout,
   'studio': Video,
   'social_analytics': BarChart2,
   'media_content': Clapperboard,
@@ -464,62 +465,8 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                 );
               }
               
-              // Active Apps - shows activated modules as sub-items
-              if (item.id === 'active_apps' && activatedModuleIds.length > 0) {
-                return (
-                  <div key={item.id}>
-                    <Collapsible open={isOpen} onOpenChange={() => toggleGroup(item.id)}>
-                      <CollapsibleTrigger asChild>
-                        <SidebarMenuItem>
-                          <SidebarMenuButton className="w-full justify-between hover:bg-white/10 text-white">
-                            <div className="flex items-center gap-3">
-                              <Zap className="h-4 w-4 shrink-0 text-green-400" />
-                              {!collapsed && (
-                                <>
-                                  <span className="font-medium text-white">{item.label}</span>
-                                  <span className="text-xs text-green-400 bg-green-500/20 px-1.5 py-0.5 rounded">
-                                    {activatedModuleIds.length}
-                                  </span>
-                                </>
-                              )}
-                            </div>
-                            {!collapsed && (
-                              <ChevronDown className={`h-4 w-4 shrink-0 text-white/70 transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`} />
-                            )}
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <div className="ml-6 mt-1 space-y-0.5">
-                          {activatedModuleIds.map((moduleId) => {
-                            const ModuleIcon = MODULE_ICON_MAP[moduleId] || Zap;
-                            const moduleName = MODULE_NAME_MAP[moduleId] || moduleId;
-                            const moduleRoute = MODULE_ROUTE_MAP[moduleId] || `/apps?category=active`;
-                            
-                            return (
-                              <SidebarMenuItem key={moduleId}>
-                                <SidebarMenuButton asChild>
-                                  <NavLink
-                                    to={moduleRoute}
-                                    className="flex items-center gap-2 text-white/80 text-sm py-1.5"
-                                    activeClassName="text-white bg-white/10"
-                                  >
-                                    <ModuleIcon className="h-3.5 w-3.5 shrink-0" />
-                                    <span className="truncate">{moduleName}</span>
-                                  </NavLink>
-                                </SidebarMenuButton>
-                              </SidebarMenuItem>
-                            );
-                          })}
-                        </div>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  </div>
-                );
-              }
-              
-              // Hide Active Apps if no modules activated
-              if (item.id === 'active_apps' && activatedModuleIds.length === 0) {
+              // Hide My Workspaces if no workspaces exist
+              if (item.id === 'my_workspaces' && customPackages.length === 0) {
                 return null;
               }
               
