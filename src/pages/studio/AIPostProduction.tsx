@@ -213,11 +213,21 @@ export default function AIPostProduction() {
       finalDuration: mediaDuration,
     }));
 
+    let isActive = true;
+    
     const interval = setInterval(() => {
+      if (!isActive) {
+        clearInterval(interval);
+        return;
+      }
+      
       setStepProgress(prev => {
-        const newProgress = Math.min(100, prev + Math.random() * 12 + 3);
+        // Strictly cap progress at 100
+        const increment = Math.random() * 10 + 3;
+        const newProgress = Math.min(100, prev + increment);
         
-        if (newProgress >= 100) {
+        if (newProgress >= 100 && prev < 100) {
+          // Step completed - move to next step
           setCurrentStep(step => {
             // Update analytics based on completed step
             setAiAnalytics(analytics => {
@@ -251,24 +261,34 @@ export default function AIPostProduction() {
               return updates;
             });
             
-            if (step < PROCESSING_STEPS.length - 1) {
-              setProcessingStatus(PROCESSING_STEPS[step + 1].label + '...');
-              return step + 1;
+            const nextStep = step + 1;
+            
+            if (nextStep < PROCESSING_STEPS.length) {
+              // More steps to go
+              setProcessingStatus(PROCESSING_STEPS[nextStep].label + '...');
+              setStepProgress(0); // Reset progress for new step
+              return nextStep;
             } else {
-              // Last step complete - stop processing
+              // All steps complete - stop processing
+              isActive = false;
               clearInterval(interval);
               setIsStudioActive(false);
               setProcessingStatus('Complete!');
               return step;
             }
           });
-          return 0;
+          
+          return 100; // Return 100 to show completion
         }
+        
         return newProgress;
       });
-    }, 600);
+    }, 700);
 
-    return () => clearInterval(interval);
+    return () => {
+      isActive = false;
+      clearInterval(interval);
+    };
   }, [isStudioActive, selectedMedia?.duration_seconds]);
 
   const handleStartProcessing = async (mode: 'full' | 'clips') => {
