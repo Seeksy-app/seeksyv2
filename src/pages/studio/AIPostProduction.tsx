@@ -17,8 +17,9 @@ import {
   Wand2, Scissors, ArrowLeft, Play, Pause, Clock, FileVideo, FileAudio, 
   Sparkles, Volume2, Type, Layers, Image, Upload, Check, Loader2, 
   AlertCircle, Film, Mic, Palette, Sun, X, RefreshCw, Download, Eye,
-  ChevronRight, Zap, RotateCcw, ImagePlus, Minimize2, Maximize2
+  ChevronRight, Zap, RotateCcw, ImagePlus, Minimize2, Maximize2, Video
 } from "lucide-react";
+import { MediaSourceSelector, MediaSource } from "@/components/studio/MediaSourceSelector";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +34,7 @@ interface MediaFile {
   thumbnail_url: string | null;
   edit_status: string | null;
   file_size_bytes: number | null;
+  source?: string | null;
 }
 
 interface ProcessingJob {
@@ -124,7 +126,7 @@ export default function AIPostProduction() {
       
       const { data, error } = await supabase
         .from('media_files')
-        .select('id, file_name, file_type, file_url, cloudflare_download_url, duration_seconds, created_at, thumbnail_url, edit_status, file_size_bytes')
+        .select('id, file_name, file_type, file_url, cloudflare_download_url, duration_seconds, created_at, thumbnail_url, edit_status, file_size_bytes, source')
         .eq('user_id', user.id)
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
@@ -458,66 +460,49 @@ export default function AIPostProduction() {
               Select Media
             </CardTitle>
             <CardDescription>
-              Choose a video or audio file from your Media Library to process
+              Choose a video or audio file to process with AI enhancement
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {selectedMedia ? (
-              <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
-                <div className="w-24 h-16 bg-muted rounded overflow-hidden flex items-center justify-center relative">
-                  {selectedMedia.thumbnail_url ? (
-                    <img 
-                      src={selectedMedia.thumbnail_url} 
-                      alt={selectedMedia.file_name || 'Media'}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : selectedMedia.file_type === 'video' ? (
-                    <FileVideo className="h-8 w-8 text-muted-foreground" />
-                  ) : (
-                    <FileAudio className="h-8 w-8 text-muted-foreground" />
-                  )}
-                  {videoUrl && (
-                    <button 
-                      className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
-                      onClick={() => setShowComparisonModal(true)}
-                    >
-                      <Play className="h-6 w-6 text-white" />
-                    </button>
-                  )}
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium">{selectedMedia.file_name || 'Untitled'}</p>
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {formatDuration(selectedMedia.duration_seconds)}
-                    </span>
-                    <span>{formatFileSize(selectedMedia.file_size_bytes)}</span>
-                    <Badge variant="outline">{selectedMedia.file_type || 'unknown'}</Badge>
-                    {selectedMedia.edit_status === 'edited' && (
-                      <Badge variant="secondary" className="bg-green-500/10 text-green-600">
-                        <Check className="h-3 w-3 mr-1" />
-                        AI Enhanced
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-                <Button variant="outline" onClick={() => setShowMediaSelector(true)}>
-                  Change
-                </Button>
-              </div>
-            ) : (
-              <Button 
-                variant="outline" 
-                className="w-full h-24 border-dashed"
-                onClick={() => setShowMediaSelector(true)}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <Upload className="h-6 w-6" />
-                  <span>Select from Media Library</span>
-                </div>
-              </Button>
-            )}
+            <MediaSourceSelector
+              onUploadClick={() => setShowUploadDialog(true)}
+              onLibraryClick={() => setShowMediaSelector(true)}
+              onMediaSelected={(mediaId, source) => {
+                // Find or create media with this ID
+                const media = mediaFiles?.find(m => m.id === mediaId);
+                if (media) {
+                  setSelectedMedia({ ...media, source } as MediaFile);
+                } else {
+                  // Media was just created via import - refetch and select
+                  queryClient.invalidateQueries({ queryKey: ['media-files-for-processing'] });
+                  // Set a temporary placeholder
+                  setSelectedMedia({
+                    id: mediaId,
+                    file_name: `Importing from ${source}...`,
+                    file_type: 'video',
+                    file_url: null,
+                    cloudflare_download_url: null,
+                    duration_seconds: null,
+                    created_at: new Date().toISOString(),
+                    thumbnail_url: null,
+                    edit_status: 'pending',
+                    file_size_bytes: null,
+                    source
+                  });
+                }
+              }}
+              selectedMedia={selectedMedia ? {
+                id: selectedMedia.id,
+                file_name: selectedMedia.file_name,
+                thumbnail_url: selectedMedia.thumbnail_url,
+                duration_seconds: selectedMedia.duration_seconds,
+                file_type: selectedMedia.file_type,
+                source: (selectedMedia.source as MediaSource) || 'library'
+              } : null}
+              onClearMedia={() => setSelectedMedia(null)}
+              importStatus={selectedMedia?.edit_status === 'pending' ? 'importing' : 
+                           selectedMedia?.edit_status === 'edited' ? 'ready' : 'idle'}
+            />
           </CardContent>
         </Card>
 
