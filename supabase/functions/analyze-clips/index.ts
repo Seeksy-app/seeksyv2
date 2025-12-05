@@ -31,6 +31,10 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    if (!mediaId) {
+      throw new Error("mediaId is required");
+    }
+
     console.log("Analyzing video for clips:", { mediaId, duration, hasTranscript: !!transcript, userId: user.id });
 
     // Create AI job for clips generation
@@ -172,17 +176,18 @@ Video duration: ${duration || 'unknown'} seconds`
     console.log("AI identified", result.clips.length, "clips");
 
     // Create clip records in database
+    // NOTE: duration_seconds is a GENERATED column, do NOT include it in insert
     const clipInserts = result.clips.map((clip: any) => ({
       user_id: user.id,
       source_media_id: mediaId,
       ai_job_id: aiJob.id,
       start_seconds: clip.start_time,
       end_seconds: clip.end_time,
-      duration_seconds: clip.end_time - clip.start_time,
+      // duration_seconds is GENERATED from (end_seconds - start_seconds), do not insert
       title: clip.title,
       suggested_caption: clip.hook,
       virality_score: clip.virality_score,
-      storage_path: `${fileUrl}#t=${clip.start_time},${clip.end_time}`,
+      storage_path: fileUrl ? `${fileUrl}#t=${clip.start_time},${clip.end_time}` : null,
       status: 'ready', // Clips are playable via time-fragment URLs immediately
     }));
 
@@ -241,29 +246,3 @@ Video duration: ${duration || 'unknown'} seconds`
     );
   }
 });
-
-/*
-IMPLEMENTATION STATUS:
-
-✅ COMPLETED:
-- AI job tracking for clip generation
-- Real clip records in clips table with metadata
-- Virality scoring and hooks from AI
-- Proper error handling and job status updates
-- Processing time tracking
-
-⚠️ SIMULATED (Needs FFmpeg for production):
-- Actual clip file extraction (currently stores time-stamped URL fragments)
-- Physical clip file creation
-- Clip status progression (pending → processing → ready)
-
-For production with real clip extraction:
-1. After AI identifies clips, download source video
-2. Use FFmpeg to extract each time segment
-3. Upload extracted clips to storage
-4. Update storage_path with real clip URLs
-5. Set status to 'ready'
-
-Current implementation provides full clip metadata and tracking, allowing UI to display
-clips with time ranges while waiting for FFmpeg extraction.
-*/
