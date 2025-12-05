@@ -250,7 +250,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.board-ai-analyst]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-lead-magnet]
 verify_jwt = false
