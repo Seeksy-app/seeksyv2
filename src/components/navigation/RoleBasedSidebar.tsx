@@ -299,7 +299,6 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
 
       <SidebarContent className="pb-6">
         {/* Creator nav items - ONLY for non-admin users */}
-        {/* ALL top-level items render as bold collapsible group headers for consistency */}
         {!isAdmin && (
           <>
             {userNavItems.map((item) => {
@@ -308,7 +307,10 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
               const hasSubItems = item.subItems && item.subItems.length > 0;
               const isOpen = openGroups[item.id] ?? false;
               
-              // Special handling for My Workspaces
+              // Items that should NOT be bold group headers (regular nav items)
+              const isRegularNavItem = ['settings', 'awards'].includes(item.id);
+              
+              // Special handling for My Workspaces - collapsible with sub-items
               if (item.id === 'my_workspaces') {
                 return (
                   <SidebarGroup key={item.id}>
@@ -329,13 +331,13 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                       </CollapsibleTrigger>
                       <CollapsibleContent>
                         <SidebarGroupContent>
-                          <SidebarMenu>
+                          <SidebarMenu className="pl-4">
                             {customPackages.map((pkg) => (
                               <SidebarMenuItem key={pkg.id}>
                                 <SidebarMenuButton asChild>
                                   <NavLink
                                     to={`/apps?workspace=${pkg.id}`}
-                                    className="flex items-center justify-between"
+                                    className="flex items-center justify-between text-white/80 font-normal"
                                     activeClassName="nav-active"
                                   >
                                     <span className="truncate">{pkg.name}</span>
@@ -352,7 +354,7 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                 );
               }
               
-              // Items WITH sub-items - render as collapsible group
+              // Items WITH sub-items - render as collapsible group with bold header
               if (hasSubItems) {
                 const subItemConfigs = navConfig.subItems?.[item.id] || [];
                 const visibleSubItems = item.subItems!.filter(sub => {
@@ -382,13 +384,13 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                       </CollapsibleTrigger>
                       <CollapsibleContent>
                         <SidebarGroupContent>
-                          <SidebarMenu>
+                          <SidebarMenu className="pl-4">
                             {visibleSubItems.map((subItem) => (
                               <SidebarMenuItem key={subItem.id}>
                                 <SidebarMenuButton asChild>
                                   <NavLink
                                     to={subItem.path}
-                                    className="flex items-center gap-2"
+                                    className="flex items-center gap-2 text-white/80 font-normal"
                                     activeClassName="nav-active"
                                   >
                                     <span className="truncate">{subItem.label}</span>
@@ -404,7 +406,31 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                 );
               }
               
-              // Items WITHOUT sub-items - still render as group header (link style)
+              // Regular nav items (Settings, Awards) - NOT bold, just regular links
+              if (isRegularNavItem) {
+                return (
+                  <SidebarGroup key={item.id}>
+                    <SidebarGroupContent>
+                      <SidebarMenu>
+                        <SidebarMenuItem>
+                          <SidebarMenuButton asChild>
+                            <NavLink
+                              to={item.path}
+                              className="flex items-center gap-3 text-white/80 font-normal px-3 py-2"
+                              activeClassName="nav-active"
+                            >
+                              <Icon className="h-4 w-4 shrink-0" />
+                              {!collapsed && <span className="truncate">{item.label}</span>}
+                            </NavLink>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      </SidebarMenu>
+                    </SidebarGroupContent>
+                  </SidebarGroup>
+                );
+              }
+              
+              // Items WITHOUT sub-items - bold group header style (My Day, Creator Hub, Dashboard, Seekies & Apps)
               return (
                 <SidebarGroup key={item.id}>
                   <SidebarGroupLabel asChild className="cursor-pointer hover:bg-white/10 rounded-md transition-colors">
