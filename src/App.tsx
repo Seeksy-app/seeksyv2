@@ -197,6 +197,7 @@ import SystemStatus from "./pages/SystemStatus";
 import AdminSystemStatus from "./pages/admin/SystemStatus";
 import Pricing from "./pages/Pricing";
 import ContentAcceleratorHub from "./pages/ContentAcceleratorHub";
+import CreatorGrowthBlueprint from "./pages/CreatorGrowthBlueprint";
 import Awards from "./pages/Awards";
 import CreateAwardsProgram from "./pages/CreateAwardsProgram";
 import AwardsProgramDetail from "./pages/AwardsProgramDetail";
@@ -613,6 +614,7 @@ const AppContent = () => {
               
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/content-accelerator" element={<ContentAcceleratorHub />} />
+              <Route path="/creator-growth-blueprint" element={<CreatorGrowthBlueprint />} />
               <Route path="/comparison" element={<Comparison />} />
               <Route path="/credits" element={<Credits />} />
               <Route path="/personas" element={<Personas />} />
