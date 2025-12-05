@@ -845,7 +845,7 @@ const CFODashboard = () => {
             <CardContent>
               <div className="flex flex-wrap gap-3">
                 <Button 
-                  onClick={() => navigate('/cfo/proforma/events-awards')}
+                  onClick={() => window.open('/cfo/proforma/events-awards', '_blank')}
                   className="bg-[#053877] hover:bg-[#053877]/90"
                 >
                   Events & Awards Pro Forma
