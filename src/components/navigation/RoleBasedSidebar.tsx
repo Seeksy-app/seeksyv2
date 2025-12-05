@@ -82,6 +82,7 @@ import {
   Package,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+import { useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -212,6 +213,7 @@ const ICON_MAP: Record<string, any> = {
 };
 
 export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
+  const navigate = useNavigate();
   const { roles, isLoading: rolesLoading, isAdmin } = useUserRoles();
   const { activeAccountType } = useAccountType();
   const { state } = useSidebar();
@@ -223,6 +225,12 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
   
   // Use permission-based navigation filtering for admin nav
   const { navigation: permissionFilteredNav, canAccessPath, isLoading: rbacLoading } = useRoleBasedNavigation();
+
+  // Handle logo click - navigate to default landing (My Day for creators, /admin for admins)
+  const handleLogoClick = () => {
+    const defaultRoute = isAdmin ? '/admin' : '/my-day';
+    navigate(defaultRoute);
+  };
   
   // Use persisted sidebar state with localStorage
   const { openGroups, toggleGroup, isGroupOpen } = useSidebarState();
@@ -276,15 +284,23 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
       <SidebarHeader className="border-b border-border/50 px-4 py-3">
         <div className="flex items-center justify-between w-full">
           {!collapsed && (
-            <div className="flex items-center gap-3">
+            <button 
+              onClick={handleLogoClick}
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+              title="Go to Dashboard"
+            >
               <SparkIcon variant="holiday" size={48} animated pose="waving" />
               <span className="text-white text-2xl font-bold">Seeksy</span>
-            </div>
+            </button>
           )}
           {collapsed && (
-            <div className="flex items-center justify-center flex-1">
+            <button 
+              onClick={handleLogoClick}
+              className="flex items-center justify-center flex-1 hover:opacity-80 transition-opacity cursor-pointer"
+              title="Go to Dashboard"
+            >
               <SparkIcon variant="holiday" size={32} animated pose="idle" />
-            </div>
+            </button>
           )}
           {/* Customize Nav Icon Button */}
           <button
@@ -446,6 +462,23 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                     <SidebarMenu>
                       {group.items.map((item) => {
                         const Icon = ICON_MAP[item.icon] || Grid3x3;
+                        
+                        // Special handling for Ask Spark - opens AI panel
+                        if (item.path === '#ask-spark') {
+                          return (
+                            <SidebarMenuItem key={item.id}>
+                              <SidebarMenuButton 
+                                tooltip={collapsed ? item.label : undefined}
+                                onClick={() => window.dispatchEvent(new Event('openSparkChat'))}
+                                className="flex items-center gap-3 transition-all duration-150 cursor-pointer"
+                              >
+                                <Icon className="h-4 w-4 shrink-0" />
+                                {!collapsed && <span className="truncate">{item.label}</span>}
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          );
+                        }
+                        
                         return (
                           <SidebarMenuItem key={item.id}>
                             <SidebarMenuButton asChild tooltip={collapsed ? item.label : undefined}>

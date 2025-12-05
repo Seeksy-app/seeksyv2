@@ -476,6 +476,13 @@ export const NAVIGATION_CONFIG: {
       "collapsible": true,
       "items": [
         {
+          "id": "admin_ask_spark",
+          "label": "Ask Seeksy",
+          "icon": "sparkles",
+          "path": "#ask-spark",
+          "roles": ["admin", "super_admin", "cfo", "cmo", "cco", "manager"]
+        },
+        {
           "id": "admin_help_center",
           "label": "Help Center",
           "icon": "help-circle",
