@@ -143,7 +143,7 @@ export function CompletionSuccessPage({
             <Button 
               className="w-full justify-between h-auto py-4 text-white group"
               style={{ background: 'linear-gradient(135deg, #053877 0%, #2C6BED 100%)' }}
-              onClick={() => navigate(`/studio/ai-clips?mediaId=${mediaId}`)}
+              onClick={() => navigate(`/studio/clips?media=${mediaId}`)}
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
@@ -175,12 +175,12 @@ export function CompletionSuccessPage({
               <Button 
                 variant="outline" 
                 className="justify-start h-auto py-3 gap-3"
-                onClick={() => navigate('/studio/media?folder=ai-enhanced')}
+                onClick={() => navigate(`/studio/enhanced/${mediaId}`)}
               >
                 <FolderOpen className="h-5 w-5 text-[#2C6BED]" />
                 <div className="text-left">
-                  <div className="font-medium">View in Media Library</div>
-                  <div className="text-xs text-muted-foreground">AI Enhanced Videos folder</div>
+                  <div className="font-medium">View Full Details</div>
+                  <div className="text-xs text-muted-foreground">Analytics, downloads & sharing</div>
                 </div>
               </Button>
             </div>

@@ -177,6 +177,8 @@ import StudioComplete from "./pages/studio/StudioComplete";
 import PastStreams from "./pages/studio/PastStreams";
 import ScheduledStreams from "./pages/studio/ScheduledStreams";
 import StudioStorage from "./pages/studio/StudioStorage";
+import EnhancedContentLibrary from "./pages/studio/EnhancedContentLibrary";
+import EnhancedContentDetail from "./pages/studio/EnhancedContentDetail";
 import VoiceCertificationPage from "./pages/admin/VoiceCertificationPage";
 import VoiceNFTCertificatesPage from "./pages/admin/VoiceNFTCertificatesPage";
 import PublicLandingPage from "./pages/PublicLandingPage";
@@ -782,6 +784,8 @@ const AppContent = () => {
               <Route path="/studio/past-streams" element={<PastStreams />} />
               <Route path="/studio/scheduled" element={<ScheduledStreams />} />
               <Route path="/studio/storage" element={<StudioStorage />} />
+              <Route path="/studio/enhanced-content" element={<EnhancedContentLibrary />} />
+              <Route path="/studio/enhanced/:id" element={<EnhancedContentDetail />} />
               <Route path="/studio/meeting/:meetingId" element={<SeeksyMeetingStudio />} />
               
             <Route path="/events" element={<Events />} />
