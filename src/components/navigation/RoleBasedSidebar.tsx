@@ -111,11 +111,13 @@ interface RoleBasedSidebarProps {
 }
 
 // Mapping of nav item IDs to module IDs for module-gated features
+// Items without a mapping are always visible (core nav)
 const NAV_TO_MODULE_MAP: Record<string, string> = {
   'meetings': 'meetings',
-  'studio': 'studio',
-  'social_analytics': 'social-analytics',
-  'monetization': 'revenue-tracking',
+  'media_content': 'studio',
+  'email': 'email',
+  'marketing': 'marketing',
+  'awards': 'awards',
 };
 
 // Icon mapping for all nav items
@@ -256,16 +258,17 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
   };
 
   // Check if a nav item should be visible based on module activation
-  const isModuleActivated = (itemId: string): boolean => {
-    const requiredModule = NAV_TO_MODULE_MAP[itemId];
-    if (!requiredModule) return true; // No module requirement
+  // Uses the moduleId from NAV_ITEMS or falls back to NAV_TO_MODULE_MAP
+  const isModuleActivated = (item: typeof NAV_ITEMS[0]): boolean => {
+    const requiredModule = item.moduleId || NAV_TO_MODULE_MAP[item.id];
+    if (!requiredModule) return true; // No module requirement - always visible
     if (isAdmin) return true; // Admins see all
     return activatedModuleIds.includes(requiredModule);
   };
 
   // Build nav items from NAV_ITEMS respecting user config and module activation
   const userNavItems = NAV_ITEMS
-    .filter(item => isNavItemVisibleByNavConfig(item.id) && isModuleActivated(item.id))
+    .filter(item => isNavItemVisibleByNavConfig(item.id) && isModuleActivated(item))
     .sort((a, b) => {
       const aIndex = navConfig.order.indexOf(a.id);
       const bIndex = navConfig.order.indexOf(b.id);

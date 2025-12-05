@@ -9,6 +9,35 @@ import { DashboardPreviewStep } from './steps/DashboardPreviewStep';
 import { CompletionStep } from './steps/CompletionStep';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
+
+// Map display tool names to module IDs
+const TOOL_TO_MODULE_MAP: Record<string, string> = {
+  'Studio & Recording': 'studio',
+  'Social Analytics': 'social-analytics',
+  'Media Library': 'content-library',
+  'My Page Builder': 'my-page',
+  'Clips & Editing': 'clips',
+  'Podcasts': 'podcasts',
+  'Social Connect': 'social-connect',
+  'Contacts & Audience': 'contacts',
+  'Campaigns': 'campaigns',
+  'Segments': 'segments',
+  'Events': 'events',
+  'Forms': 'forms',
+  'Automations': 'automations',
+  'SMS': 'sms',
+  'Team & Collaboration': 'team',
+  'Proposals': 'proposals',
+  'Identity & Verification': 'identity',
+  'Video Studio': 'video-studio',
+  'Brand Deals': 'brand-campaigns',
+  'Meetings': 'meetings',
+  'Email': 'email',
+  'Awards': 'awards',
+  'Marketing': 'marketing',
+  'Revenue Tracking': 'revenue-tracking',
+};
 
 export function OnboardingWizard() {
   const [step, setStep] = useState(1);
@@ -64,9 +93,34 @@ export function OnboardingWizard() {
     }
 
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Convert tool names to module IDs and insert into user_modules
+      const moduleIds = recommendedTools
+        .map(tool => TOOL_TO_MODULE_MAP[tool])
+        .filter(Boolean);
+      
+      if (moduleIds.length > 0) {
+        const modulesToInsert = moduleIds.map(moduleId => ({
+          user_id: user.id,
+          module_id: moduleId,
+          granted_at: new Date().toISOString()
+        }));
+
+        const { error: modulesError } = await supabase
+          .from('user_modules')
+          .upsert(modulesToInsert, { onConflict: 'user_id,module_id' });
+        
+        if (modulesError) {
+          console.error('Error activating modules:', modulesError);
+        }
+      }
+
       await completeOnboarding({
         account_type: selectedType,
-        onboarding_data: { ...onboardingData, recommendedTools },
+        onboarding_data: { ...onboardingData, recommendedTools, activatedModules: moduleIds },
       }, {
         onSuccess: () => {
           const redirects: Record<AccountType, string> = {

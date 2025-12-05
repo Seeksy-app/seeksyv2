@@ -37,19 +37,20 @@ export interface NavItem {
 
 const DEFAULT_NAV_CONFIG: NavConfig = {
   order: [
-    'my_workspaces',
-    'creator_hub',
     'my_day',
     'dashboard',
+    'creator_hub',
+    'settings',
+    'my_workspaces',
     'media_content',
     'seekies',
     'email',
     'marketing',
-    'settings',
+    'meetings',
     'awards',
   ],
   hidden: [],
-  pinned: ['my_day', 'creator_hub', 'dashboard'],
+  pinned: ['my_day', 'dashboard', 'creator_hub'],
   subItems: {}
 };
 
@@ -70,15 +71,17 @@ const DEFAULT_LANDING_ROUTE = '/my-day';
  * 10. Awards
  */
 export const NAV_ITEMS: NavItem[] = [
-  { id: 'my_workspaces', label: 'My Workspaces', path: '/apps?category=my-workspaces', level: 0 },
-  { id: 'creator_hub', label: 'Creator Hub', path: '/creator-hub', isHome: true, level: 0 },
   { id: 'my_day', label: 'My Day', path: '/my-day', isHome: true, level: 0 },
   { id: 'dashboard', label: 'Dashboard', path: '/dashboard', isHome: true, level: 0 },
+  { id: 'creator_hub', label: 'Creator Hub', path: '/creator-hub', isHome: true, level: 0 },
+  { id: 'settings', label: 'Settings', path: '/settings', level: 0 },
+  { id: 'my_workspaces', label: 'My Workspaces', path: '/apps?category=my-workspaces', level: 0 },
   { 
     id: 'media_content', 
     label: 'Media & Content', 
     path: '/studio',
     level: 0,
+    moduleId: 'studio',
     subItems: [
       { id: 'studio_hub', label: 'Studio Hub', path: '/studio' },
       { id: 'ai_post_production', label: 'AI Post-Production', path: '/studio/ai-post-production' },
@@ -94,6 +97,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Email', 
     path: '/email/inbox',
     level: 0,
+    moduleId: 'email',
     subItems: [
       { id: 'email_inbox', label: 'Inbox', path: '/email/inbox' },
       { id: 'email_scheduled', label: 'Scheduled', path: '/email/scheduled' },
@@ -106,6 +110,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Marketing', 
     path: '/contacts',
     level: 0,
+    moduleId: 'marketing',
     subItems: [
       { id: 'marketing_audience', label: 'Contacts & Audience', path: '/contacts' },
       { id: 'marketing_segments', label: 'Segments', path: '/marketing/segments' },
@@ -114,8 +119,8 @@ export const NAV_ITEMS: NavItem[] = [
       { id: 'marketing_automations', label: 'Automations', path: '/marketing/automations' },
     ]
   },
-  { id: 'settings', label: 'Settings', path: '/settings', level: 0 },
-  { id: 'awards', label: 'Awards', path: '/awards', level: 0 },
+  { id: 'meetings', label: 'Meetings', path: '/meetings', level: 0, moduleId: 'meetings' },
+  { id: 'awards', label: 'Awards', path: '/awards', level: 0, moduleId: 'awards' },
 ];
 
 export const LANDING_OPTIONS = [
