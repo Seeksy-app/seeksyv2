@@ -38,25 +38,31 @@ export default function BoardROICalculator() {
   const paybackMonths = (cac / arpu).toFixed(1);
 
   const handleAskAI = () => {
-    const prompt = `Analyze this ROI scenario for Seeksy:
-- Monthly Budget: $${monthlyBudget}
+    const prompt = `Analyze these ROI assumptions and suggest 2–3 key insights to present to the Board.
+
+ROI Scenario for Seeksy:
+- Monthly Budget: $${monthlyBudget.toLocaleString()}
 - CAC: $${cac}
-- ARPU: $${arpu}
+- ARPU: $${arpu}/mo
 - Churn Rate: ${churnRate}%
 - Time Horizon: ${timeHorizon} months
 
 Calculated Results:
-- LTV/CAC Ratio: ${ltvCacRatio}
+- LTV/CAC Ratio: ${ltvCacRatio}x
 - Net ROI: ${netROI}%
 - Payback Period: ${paybackMonths} months
+- New Customers/Month: ${newCustomersPerMonth}
+- Customer LTV: $${Math.round(ltv).toLocaleString()}
 
 Provide insights on:
 1. Is this ROI sustainable?
 2. What levers should we pull to improve?
-3. Industry benchmarks comparison
-4. Risk factors to monitor`;
+3. Industry benchmarks comparison`;
 
-    window.open(`/board/ai-analyst?prompt=${encodeURIComponent(prompt)}`, '_blank');
+    // Dispatch event to open Spark panel with pre-filled prompt
+    window.dispatchEvent(new CustomEvent('openSparkChat', { 
+      detail: { prompt } 
+    }));
   };
 
   const resetDefaults = () => {
@@ -69,7 +75,7 @@ Provide insights on:
 
   return (
     <BoardLayout>
-      <div className="max-w-5xl mx-auto space-y-6">
+      <div className="w-full max-w-none space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
