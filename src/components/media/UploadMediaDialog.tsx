@@ -156,7 +156,6 @@ export function UploadMediaDialog({
           file_size_bytes: file.size,
           folder_id: folderId,
           source: "upload",
-          storage_path: filePath,
         });
 
         if (insertError) throw insertError;

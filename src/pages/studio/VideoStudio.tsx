@@ -237,10 +237,9 @@ export default function VideoStudio() {
           file_name: sessionTitle || fileName,
           file_url: urlData.publicUrl,
           file_type: 'video',
-          file_size: blob.size,
+          file_size_bytes: blob.size,
           duration_seconds: durationSeconds,
           source: 'studio-recording',
-          storage_path: filePath,
         });
       
       if (dbError) throw dbError;

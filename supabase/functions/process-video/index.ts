@@ -221,7 +221,7 @@ async function processVideoBackground(
     // For now, we reference the original file with edit metadata
     // Real implementation would use Cloudflare Stream's clip/transform features
     
-    let cloudflareUid = mediaFile.storage_path; // Use existing if available
+    let cloudflareUid = mediaFile.cloudflare_uid; // Use existing if available
     let thumbnailUrl = mediaFile.thumbnail_url;
     let fileUrl = mediaFile.file_url;
 

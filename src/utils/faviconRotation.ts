@@ -1,8 +1,6 @@
+// Use main favicon - rotating favicons removed to avoid 404s
 const FAVICONS = [
-  '/favicons/spark-1.png',
-  '/favicons/spark-2.png',
-  '/favicons/spark-3.png',
-  '/favicons/spark-4.png',
+  '/favicon.png',
 ];
 
 function getOrCreateFaviconLink(): HTMLLinkElement {

@@ -90,8 +90,8 @@ serve(async (req) => {
         file_name: fileName,
         file_type: file.type.startsWith('video') ? 'video' : 'audio',
         file_url: publicUrl,
-        file_size: file.size,
-        storage_path: streamUid
+        file_size_bytes: file.size,
+        cloudflare_uid: streamUid
       });
 
     if (dbError) {
