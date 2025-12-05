@@ -301,6 +301,9 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                   const isPinned = navConfig.pinned.includes(item.id);
                   const hasSubItems = item.subItems && item.subItems.length > 0;
                   
+                  // Section title items (standalone without sub-items) - styled as headers
+                  const isSectionTitle = ['my_day', 'dashboard', 'settings', 'seekies', 'social_analytics'].includes(item.id);
+                  
                   // Items with sub-items render as collapsible
                   if (hasSubItems && !collapsed) {
                     const isOpen = openGroups[item.id] ?? false;
@@ -317,16 +320,16 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                         onOpenChange={() => toggleGroup(item.id)}
                       >
                         <SidebarMenuItem>
-                      <CollapsibleTrigger asChild>
+                          <CollapsibleTrigger asChild>
                             <SidebarMenuButton className="w-full flex items-center justify-between transition-all duration-150 cursor-pointer hover:bg-white/10 text-white">
                               <div className="flex items-center gap-3 min-w-0">
                                 <Icon className="h-4 w-4 shrink-0 text-white" />
-                                <span className="flex items-center gap-2 text-white min-w-0">
-                                  <span className="truncate">{item.label}</span>
-                                  {isPinned && <span className="pinned-star text-amber-400 text-xs">★</span>}
-                                </span>
+                                <span className="truncate text-white">{item.label}</span>
                               </div>
-                              <ChevronDown className={`h-4 w-4 shrink-0 text-white/70 transition-transform duration-200 ml-2 ${isOpen ? 'rotate-0' : '-rotate-90'}`} />
+                              <div className="flex items-center gap-2 ml-auto shrink-0">
+                                {isPinned && <span className="pinned-star text-amber-400 text-xs">★</span>}
+                                <ChevronDown className={`h-4 w-4 text-white/70 transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`} />
+                              </div>
                             </SidebarMenuButton>
                           </CollapsibleTrigger>
                           <CollapsibleContent>
@@ -351,22 +354,41 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                     );
                   }
                   
-                  // Regular items without sub-items
+                  // Section title items - styled as headers with right-justified elements
+                  if (isSectionTitle && !collapsed) {
+                    return (
+                      <SidebarMenuItem key={item.id}>
+                        <SidebarMenuButton asChild tooltip={collapsed ? item.label : undefined}>
+                          <NavLink
+                            to={item.path}
+                            className="flex items-center justify-between transition-all duration-150 text-white hover:bg-white/10 w-full"
+                            activeClassName="nav-active"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <Icon className="h-4 w-4 shrink-0 text-white" />
+                              <span className="truncate text-white">{item.label}</span>
+                            </div>
+                            {isPinned && <span className="pinned-star text-amber-400 text-xs ml-auto shrink-0">★</span>}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  }
+                  
+                  // Regular items without sub-items (collapsed mode fallback)
                   return (
                     <SidebarMenuItem key={item.id}>
                       <SidebarMenuButton asChild tooltip={collapsed ? item.label : undefined}>
                         <NavLink
                           to={item.path}
-                          className="flex items-center gap-3 transition-all duration-150 text-white hover:bg-white/10 w-full"
+                          className="flex items-center justify-between transition-all duration-150 text-white hover:bg-white/10 w-full"
                           activeClassName="nav-active"
                         >
-                          <Icon className="h-4 w-4 shrink-0 text-white" />
-                          {!collapsed && (
-                            <span className="flex items-center gap-2 text-white min-w-0 flex-1">
-                              <span className="truncate">{item.label}</span>
-                              {isPinned && <span className="pinned-star text-amber-400 text-xs">★</span>}
-                            </span>
-                          )}
+                          <div className="flex items-center gap-3 min-w-0">
+                            <Icon className="h-4 w-4 shrink-0 text-white" />
+                            {!collapsed && <span className="truncate text-white">{item.label}</span>}
+                          </div>
+                          {!collapsed && isPinned && <span className="pinned-star text-amber-400 text-xs ml-auto shrink-0">★</span>}
                         </NavLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
