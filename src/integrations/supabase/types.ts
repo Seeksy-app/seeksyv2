@@ -12922,6 +12922,7 @@ export type Database = {
       meeting_recordings: {
         Row: {
           created_at: string
+          daily_recording_id: string | null
           duration_seconds: number | null
           file_size_bytes: number | null
           id: string
@@ -12932,6 +12933,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          daily_recording_id?: string | null
           duration_seconds?: number | null
           file_size_bytes?: number | null
           id?: string
@@ -12942,6 +12944,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          daily_recording_id?: string | null
           duration_seconds?: number | null
           file_size_bytes?: number | null
           id?: string

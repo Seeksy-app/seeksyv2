@@ -4,42 +4,47 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { LogOut, Clock, Users, Shield } from 'lucide-react';
+import { LogOut, Clock, Users, Shield, Video, AlertCircle } from 'lucide-react';
 import MeetingControls from '@/components/meetings/MeetingControls';
 import MeetingParticipantGrid from '@/components/meetings/MeetingParticipantGrid';
 import MeetingChat from '@/components/meetings/MeetingChat';
 import MeetingWaitingRoom from '@/components/meetings/MeetingWaitingRoom';
-import { useMeetingStudio } from '@/hooks/useMeetingStudio';
+import { useDailyMeeting } from '@/hooks/useDailyMeeting';
 
-const MeetingStudio = () => {
+const SeeksyMeetingStudio = () => {
   const { meetingId } = useParams<{ meetingId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   
   const [meeting, setMeeting] = useState<any>(null);
-  const [isHost, setIsHost] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [waitingParticipants, setWaitingParticipants] = useState<any[]>([]);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isWaitingRoomOpen, setIsWaitingRoomOpen] = useState(false);
+  const [showPreJoin, setShowPreJoin] = useState(true);
 
   const {
     isConnected,
     isConnecting,
+    isHost,
     isMuted,
     isVideoOff,
     isScreenSharing,
     isRecording,
     participants,
+    waitingParticipants,
     localVideoRef,
+    meetingTitle,
+    initializeCall,
     toggleMute,
     toggleVideo,
     toggleScreenShare,
     startRecording,
     stopRecording,
+    admitParticipant,
+    rejectParticipant,
     leaveCall,
-    joinCall,
-  } = useMeetingStudio(meetingId || '');
+    endMeeting,
+  } = useDailyMeeting(meetingId || '');
 
   // Fetch meeting details
   useEffect(() => {
@@ -61,11 +66,10 @@ const MeetingStudio = () => {
       }
 
       setMeeting(data);
-      setIsHost(data.user_id === user?.id);
     };
 
     fetchMeeting();
-  }, [meetingId]);
+  }, [meetingId, navigate, toast]);
 
   // Timer
   useEffect(() => {
@@ -78,39 +82,6 @@ const MeetingStudio = () => {
     return () => clearInterval(interval);
   }, [isConnected]);
 
-  // Subscribe to waiting participants
-  useEffect(() => {
-    if (!meetingId || !isHost) return;
-
-    const channel = supabase
-      .channel(`waiting-${meetingId}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'meeting_participants',
-        filter: `meeting_id=eq.${meetingId}`,
-      }, (payload) => {
-        fetchWaitingParticipants();
-      })
-      .subscribe();
-
-    fetchWaitingParticipants();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [meetingId, isHost]);
-
-  const fetchWaitingParticipants = async () => {
-    const { data } = await supabase
-      .from('meeting_participants')
-      .select('*')
-      .eq('meeting_id', meetingId)
-      .eq('status', 'waiting');
-    
-    setWaitingParticipants(data || []);
-  };
-
   const formatTime = (seconds: number) => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
@@ -122,46 +93,104 @@ const MeetingStudio = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleLeave = async () => {
-    await leaveCall();
-    navigate('/');
+  const handleJoinMeeting = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const isHostUser = meeting?.user_id === user?.id;
+    
+    setShowPreJoin(false);
+    await initializeCall(isHostUser);
   };
 
-  const handleEndMeeting = async () => {
-    if (!isHost) return;
-    
-    await supabase
-      .from('meetings')
-      .update({ is_active: false, status: 'completed' })
-      .eq('id', meetingId);
-    
+  const handleLeave = async () => {
     await leaveCall();
-    toast({ title: 'Meeting ended for all participants' });
     navigate('/admin/meetings/scheduled');
   };
 
-  const admitParticipant = async (participantId: string) => {
-    await supabase
-      .from('meeting_participants')
-      .update({ status: 'admitted' })
-      .eq('id', participantId);
-    
-    toast({ title: 'Participant admitted' });
+  const handleEndMeeting = async () => {
+    await endMeeting();
+    navigate('/admin/meetings/scheduled');
   };
 
-  const rejectParticipant = async (participantId: string) => {
-    await supabase
-      .from('meeting_participants')
-      .update({ status: 'rejected' })
-      .eq('id', participantId);
-  };
-
+  // Loading state
   if (!meeting) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading meeting...</p>
+          <p className="text-slate-400">Loading meeting...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Pre-join screen
+  if (showPreJoin) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 text-center">
+          <div className="w-16 h-16 bg-[#053877] rounded-full flex items-center justify-center mx-auto mb-6">
+            <Video className="h-8 w-8 text-white" />
+          </div>
+          
+          <h1 className="text-2xl font-bold text-white mb-2">{meeting.title}</h1>
+          <p className="text-slate-400 mb-6">
+            {meeting.description || 'Ready to join the meeting?'}
+          </p>
+
+          {/* Preview video */}
+          <div className="relative bg-slate-700 rounded-xl overflow-hidden aspect-video mb-6">
+            <video
+              ref={localVideoRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute bottom-3 left-3 bg-slate-900/80 px-3 py-1 rounded-lg">
+              <span className="text-white text-sm">Preview</span>
+            </div>
+          </div>
+
+          <Button
+            onClick={handleJoinMeeting}
+            disabled={isConnecting}
+            className="w-full bg-[#053877] hover:bg-[#053877]/90 text-white rounded-lg h-12"
+          >
+            {isConnecting ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                Connecting...
+              </>
+            ) : (
+              'Join Meeting'
+            )}
+          </Button>
+
+          <p className="text-slate-500 text-sm mt-4">
+            By joining, you agree to our terms of service
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Waiting for host screen (for non-hosts when room not ready)
+  if (!isConnected && !isConnecting) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 text-center">
+          <AlertCircle className="h-12 w-12 text-amber-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-white mb-2">Waiting for host</h2>
+          <p className="text-slate-400">
+            The host hasn't started the meeting yet. Please wait...
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => navigate(-1)}
+            className="mt-6"
+          >
+            Go Back
+          </Button>
         </div>
       </div>
     );
@@ -172,11 +201,17 @@ const MeetingStudio = () => {
       {/* Top Bar */}
       <div className="h-14 bg-slate-800 border-b border-slate-700 flex items-center justify-between px-4">
         <div className="flex items-center gap-4">
-          <h1 className="text-white font-medium">{meeting.title}</h1>
+          <h1 className="text-white font-medium">{meetingTitle || meeting.title}</h1>
           {isHost && (
             <Badge variant="secondary" className="bg-amber-500/20 text-amber-400 border-amber-500/30">
               <Shield className="h-3 w-3 mr-1" />
               Host
+            </Badge>
+          )}
+          {isRecording && (
+            <Badge variant="secondary" className="bg-red-500/20 text-red-400 border-red-500/30 animate-pulse">
+              <div className="w-2 h-2 bg-red-500 rounded-full mr-2" />
+              Recording
             </Badge>
           )}
         </div>
@@ -255,7 +290,11 @@ const MeetingStudio = () => {
       {/* Waiting Room Modal */}
       {isWaitingRoomOpen && (
         <MeetingWaitingRoom
-          participants={waitingParticipants}
+          participants={waitingParticipants.map(p => ({
+            id: p.id,
+            guest_name: p.user_name,
+            created_at: new Date().toISOString(),
+          }))}
           onAdmit={admitParticipant}
           onReject={rejectParticipant}
           onClose={() => setIsWaitingRoomOpen(false)}
@@ -265,4 +304,4 @@ const MeetingStudio = () => {
   );
 };
 
-export default MeetingStudio;
+export default SeeksyMeetingStudio;
