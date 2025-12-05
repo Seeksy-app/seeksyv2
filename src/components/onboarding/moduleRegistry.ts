@@ -66,6 +66,13 @@ export const MODULE_REGISTRY: Record<string, RecommendedModule> = {
     category: "marketing",
     priority: "recommended",
   },
+  "email": {
+    id: "email",
+    name: "Email",
+    description: "Full email inbox with multi-account support",
+    category: "marketing",
+    priority: "core",
+  },
   "email-templates": {
     id: "email-templates",
     name: "Email Templates",

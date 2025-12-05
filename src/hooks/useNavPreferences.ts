@@ -37,16 +37,16 @@ export interface NavItem {
 
 const DEFAULT_NAV_CONFIG: NavConfig = {
   order: [
+    'my_workspaces',
+    'my_page',
+    'creator_hub',
     'my_day',
     'dashboard',
-    'creator_hub',
-    'settings',
-    'my_workspaces',
-    'meetings',
-    'events',
-    'my_page',
     'media_content',
     'seekies',
+    'settings',
+    'meetings',
+    'events',
     'email',
     'marketing',
     'awards',

@@ -257,6 +257,19 @@ const modules: Module[] = [
     creditEstimate: 40,
   },
 
+  // Email
+  {
+    id: "email",
+    name: "Email",
+    description: "Full email inbox with multi-account support",
+    icon: Mail,
+    status: "active",
+    category: "marketing",
+    route: "/email/inbox",
+    recommendedWith: ["Campaigns", "Contacts"],
+    creditEstimate: 10,
+  },
+
   // Marketing & CRM
   {
     id: "contacts",
