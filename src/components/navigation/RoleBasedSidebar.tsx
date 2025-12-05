@@ -317,14 +317,16 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                         onOpenChange={() => toggleGroup(item.id)}
                       >
                         <SidebarMenuItem>
-                          <CollapsibleTrigger asChild>
-                            <SidebarMenuButton className="w-full flex items-center gap-3 transition-all duration-150 cursor-pointer hover:bg-white/10 text-white">
-                              <Icon className="h-4 w-4 shrink-0 text-white" />
-                              <span className="flex items-center gap-2 flex-1 text-white">
-                                <span className="truncate">{item.label}</span>
-                                {isPinned && <span className="pinned-star text-amber-400 text-xs">★</span>}
-                              </span>
-                              <ChevronDown className={`h-4 w-4 text-white transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`} />
+                      <CollapsibleTrigger asChild>
+                            <SidebarMenuButton className="w-full flex items-center justify-between transition-all duration-150 cursor-pointer hover:bg-white/10 text-white">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <Icon className="h-4 w-4 shrink-0 text-white" />
+                                <span className="flex items-center gap-2 text-white min-w-0">
+                                  <span className="truncate">{item.label}</span>
+                                  {isPinned && <span className="pinned-star text-amber-400 text-xs">★</span>}
+                                </span>
+                              </div>
+                              <ChevronDown className={`h-4 w-4 shrink-0 text-white/70 transition-transform duration-200 ml-2 ${isOpen ? 'rotate-0' : '-rotate-90'}`} />
                             </SidebarMenuButton>
                           </CollapsibleTrigger>
                           <CollapsibleContent>
@@ -355,12 +357,12 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                       <SidebarMenuButton asChild tooltip={collapsed ? item.label : undefined}>
                         <NavLink
                           to={item.path}
-                          className="flex items-center gap-3 transition-all duration-150 text-white hover:bg-white/10"
+                          className="flex items-center gap-3 transition-all duration-150 text-white hover:bg-white/10 w-full"
                           activeClassName="nav-active"
                         >
                           <Icon className="h-4 w-4 shrink-0 text-white" />
                           {!collapsed && (
-                            <span className="flex items-center gap-2 flex-1 text-white">
+                            <span className="flex items-center gap-2 text-white min-w-0 flex-1">
                               <span className="truncate">{item.label}</span>
                               {isPinned && <span className="pinned-star text-amber-400 text-xs">★</span>}
                             </span>
@@ -386,18 +388,18 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
               onOpenChange={() => toggleGroup(group.group)}
             >
               <SidebarGroup>
-                <CollapsibleTrigger asChild>
-                  <SidebarGroupLabel className="cursor-pointer hover:bg-muted/50 rounded-md transition-colors flex items-center justify-between text-white font-semibold text-sm px-3 py-2">
-                    <span>{group.group}</span>
-                    {!collapsed && (
-                      <ChevronDown 
-                        className={`h-4 w-4 transition-transform duration-200 ${
-                          isOpen ? 'rotate-0' : '-rotate-90'
-                        }`} 
-                      />
-                    )}
-                  </SidebarGroupLabel>
-                </CollapsibleTrigger>
+                  <CollapsibleTrigger asChild>
+                    <SidebarGroupLabel className="cursor-pointer hover:bg-muted/50 rounded-md transition-colors flex items-center justify-between text-white font-semibold text-sm px-3 py-2 w-full">
+                      <span className="truncate">{group.group}</span>
+                      {!collapsed && (
+                        <ChevronDown 
+                          className={`h-4 w-4 shrink-0 text-white/70 transition-transform duration-200 ml-auto ${
+                            isOpen ? 'rotate-0' : '-rotate-90'
+                          }`} 
+                        />
+                      )}
+                    </SidebarGroupLabel>
+                  </CollapsibleTrigger>
                 
                 <CollapsibleContent>
                   <SidebarGroupContent>
