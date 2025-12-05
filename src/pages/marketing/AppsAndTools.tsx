@@ -128,26 +128,26 @@ const categories: Category[] = [
   },
 ];
 
-function CategorySection({ category }: { category: Category }) {
+function CategorySection({ category, id }: { category: Category; id: string }) {
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(true);
   
   const getStatusBadge = (status?: string) => {
     switch (status) {
       case 'active':
-        return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 text-xs">Active</Badge>;
+        return <Badge className="bg-emerald-900/50 text-emerald-300 border-emerald-700 text-xs">Active</Badge>;
       case 'coming-soon':
-        return <Badge className="bg-slate-100 text-slate-600 border-slate-200 text-xs">Coming Soon</Badge>;
+        return <Badge className="bg-slate-700/50 text-slate-400 border-slate-600 text-xs">Coming Soon</Badge>;
       default:
-        return <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs">Available</Badge>;
+        return <Badge className="bg-blue-900/50 text-blue-300 border-blue-700 text-xs">Available</Badge>;
     }
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div id={id} className="bg-slate-900/50 rounded-2xl border border-slate-700 shadow-sm overflow-hidden scroll-mt-24">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors"
+        className="w-full flex items-center justify-between p-5 hover:bg-slate-800/50 transition-colors"
       >
         <div className="flex items-center gap-4">
           <div className={cn("w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center", category.color)}>
@@ -155,12 +155,12 @@ function CategorySection({ category }: { category: Category }) {
           </div>
           <div className="text-left">
             <div className="flex items-center gap-3">
-              <h2 className="text-lg font-bold text-slate-900">{category.title}</h2>
-              <Badge variant="secondary" className="bg-amber-100 text-amber-700 border-amber-200">
+              <h2 className="text-lg font-bold text-white">{category.title}</h2>
+              <Badge variant="secondary" className="bg-amber-500/20 text-amber-300 border-amber-500/30">
                 {category.tools.length} modules
               </Badge>
             </div>
-            <p className="text-sm text-slate-500">{category.description}</p>
+            <p className="text-sm text-slate-400">{category.description}</p>
           </div>
         </div>
         {isExpanded ? (
@@ -179,27 +179,27 @@ function CategorySection({ category }: { category: Category }) {
                 onClick={() => tool.status !== 'coming-soon' && navigate(tool.href)}
                 disabled={tool.status === 'coming-soon'}
                 className={cn(
-                  "group relative bg-slate-50 hover:bg-slate-100 rounded-xl p-4 border border-slate-200 hover:border-slate-300 transition-all text-left",
+                  "group relative bg-slate-800/50 hover:bg-slate-700/50 rounded-xl p-4 border border-slate-700 hover:border-slate-600 transition-all text-left",
                   tool.status === 'coming-soon' && "opacity-60 cursor-not-allowed"
                 )}
               >
                 <div className="flex items-start justify-between mb-3">
-                  <div className="w-10 h-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center group-hover:border-slate-300 transition-colors">
-                    <tool.icon className="w-5 h-5 text-slate-600" />
+                  <div className="w-10 h-10 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center group-hover:border-slate-600 transition-colors">
+                    <tool.icon className="w-5 h-5 text-slate-300" />
                   </div>
                   {getStatusBadge(tool.status)}
                 </div>
                 
-                <h3 className="font-semibold text-slate-900 mb-1 group-hover:text-amber-600 transition-colors text-sm">
+                <h3 className="font-semibold text-white mb-1 group-hover:text-amber-400 transition-colors text-sm">
                   {tool.title}
                 </h3>
                 
-                <p className="text-xs text-slate-500 leading-relaxed mb-2">
+                <p className="text-xs text-slate-400 leading-relaxed mb-2">
                   {tool.description}
                 </p>
                 
                 {tool.bestWith && tool.bestWith.length > 0 && (
-                  <div className="flex items-center gap-1 text-xs text-emerald-600">
+                  <div className="flex items-center gap-1 text-xs text-emerald-400">
                     <span>Best with:</span>
                     {tool.bestWith.map((item, i) => (
                       <span key={item}>{item}{i < tool.bestWith!.length - 1 ? ', ' : ''}</span>
@@ -209,7 +209,7 @@ function CategorySection({ category }: { category: Category }) {
                 
                 {tool.status !== 'coming-soon' && (
                   <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <ArrowRight className="w-4 h-4 text-amber-500" />
+                    <ArrowRight className="w-4 h-4 text-amber-400" />
                   </div>
                 )}
               </button>
@@ -223,14 +223,17 @@ function CategorySection({ category }: { category: Category }) {
 
 export default function AppsAndTools() {
   const navigate = useNavigate();
-  
-  const totalModules = categories.reduce((acc, cat) => acc + cat.tools.length, 0);
-  const activeModules = categories.reduce((acc, cat) => acc + cat.tools.filter(t => t.status === 'active').length, 0);
-  const availableModules = categories.reduce((acc, cat) => acc + cat.tools.filter(t => t.status === 'available').length, 0);
-  const comingSoonModules = categories.reduce((acc, cat) => acc + cat.tools.filter(t => t.status === 'coming-soon').length, 0);
+
+  const scrollToCategory = (categoryTitle: string) => {
+    const id = categoryTitle.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="min-h-screen bg-slate-950 text-white">
       <TopNavigation />
       
       <main className="pt-24">
@@ -239,7 +242,7 @@ export default function AppsAndTools() {
           <Button
             variant="ghost"
             onClick={() => navigate("/")}
-            className="mb-8 text-slate-500 hover:text-slate-900 hover:bg-slate-100"
+            className="mb-8 text-slate-400 hover:text-white hover:bg-slate-800"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Homepage
@@ -248,39 +251,30 @@ export default function AppsAndTools() {
           <div className="max-w-3xl mx-auto">
             <div className="flex items-center justify-center gap-2 mb-6">
               <Sparkles className="w-8 h-8 text-amber-500" />
-              <span className="text-amber-600 font-semibold">Seeksy App Directory</span>
+              <span className="text-amber-400 font-semibold">Seeksy App Directory</span>
             </div>
             
-            <h1 className="text-4xl md:text-5xl font-black mb-6 text-slate-900">
+            <h1 className="text-4xl md:text-5xl font-black mb-6 text-white">
               All modules, tools, and integrations available in your workspace
             </h1>
             
-            <p className="text-lg text-slate-600 mb-8">
+            <p className="text-lg text-slate-400 mb-8">
               Discover the complete suite of Seeksy tools designed to help creators 
               build their brand, engage their audience, and turn passion into profit.
             </p>
             
-            {/* Stats Bar */}
-            <div className="flex items-center justify-center gap-6 text-sm bg-white rounded-full px-6 py-3 border border-slate-200 shadow-sm inline-flex">
-              <div className="flex items-center gap-2">
-                <span className="text-slate-400">Total:</span>
-                <span className="font-semibold text-slate-900">{totalModules}</span>
-              </div>
-              <div className="w-px h-4 bg-slate-200" />
-              <div className="flex items-center gap-2">
-                <span className="text-emerald-500">Active:</span>
-                <span className="font-semibold text-emerald-600">{activeModules}</span>
-              </div>
-              <div className="w-px h-4 bg-slate-200" />
-              <div className="flex items-center gap-2">
-                <span className="text-blue-500">Available:</span>
-                <span className="font-semibold text-blue-600">{availableModules}</span>
-              </div>
-              <div className="w-px h-4 bg-slate-200" />
-              <div className="flex items-center gap-2">
-                <span className="text-slate-400">Coming Soon:</span>
-                <span className="font-semibold text-slate-500">{comingSoonModules}</span>
-              </div>
+            {/* Category Navigation */}
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {categories.map((category) => (
+                <button
+                  key={category.title}
+                  onClick={() => scrollToCategory(category.title)}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 hover:border-slate-600 rounded-full text-sm font-medium text-slate-300 hover:text-white transition-all"
+                >
+                  <category.icon className="w-4 h-4" />
+                  {category.title}
+                </button>
+              ))}
             </div>
           </div>
         </section>
@@ -289,16 +283,20 @@ export default function AppsAndTools() {
         <section className="container mx-auto px-4 py-8 pb-20">
           <div className="max-w-7xl mx-auto space-y-4">
             {categories.map((category) => (
-              <CategorySection key={category.title} category={category} />
+              <CategorySection 
+                key={category.title} 
+                category={category} 
+                id={category.title.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and')}
+              />
             ))}
           </div>
         </section>
 
         {/* CTA Section */}
         <section className="container mx-auto px-4 py-16 text-center">
-          <div className="max-w-xl mx-auto bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl p-8 border border-amber-200">
-            <h2 className="text-2xl font-bold mb-4 text-slate-900">Ready to Get Started?</h2>
-            <p className="text-slate-600 mb-6">
+          <div className="max-w-xl mx-auto bg-gradient-to-br from-amber-900/30 to-orange-900/30 rounded-3xl p-8 border border-amber-700/50">
+            <h2 className="text-2xl font-bold mb-4 text-white">Ready to Get Started?</h2>
+            <p className="text-slate-400 mb-6">
               Sign up free and unlock the full power of Seeksy's creator toolkit.
             </p>
             <Button
