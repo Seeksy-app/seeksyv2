@@ -78,7 +78,7 @@ export default function AIPostProduction() {
   
   const [selectedMedia, setSelectedMedia] = useState<MediaFile | null>(null);
   const [showMediaSelector, setShowMediaSelector] = useState(false);
-  const [showStudioView, setShowStudioView] = useState(false);
+  const [showComparisonModal, setShowComparisonModal] = useState(false);
   const [showThumbnailDialog, setShowThumbnailDialog] = useState(false);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [mediaFilter, setMediaFilter] = useState<'all' | 'video' | 'audio'>('all');
@@ -90,6 +90,7 @@ export default function AIPostProduction() {
   const [stepProgress, setStepProgress] = useState(0);
   const [processingStatus, setProcessingStatus] = useState('');
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
+  const [processingComplete, setProcessingComplete] = useState(false);
   
   // AI Analytics state - real-time stats
   const [aiAnalytics, setAiAnalytics] = useState({
@@ -269,11 +270,16 @@ export default function AIPostProduction() {
               setStepProgress(0); // Reset progress for new step
               return nextStep;
             } else {
-              // All steps complete - stop processing
+              // All steps complete - stop processing and show comparison modal
               isActive = false;
               clearInterval(interval);
               setIsStudioActive(false);
               setProcessingStatus('Complete!');
+              setProcessingComplete(true);
+              // Auto-open comparison modal after brief delay
+              setTimeout(() => {
+                setShowComparisonModal(true);
+              }, 500);
               return step;
             }
           });
@@ -321,6 +327,7 @@ export default function AIPostProduction() {
         originalDuration: selectedMedia.duration_seconds || 300,
         finalDuration: selectedMedia.duration_seconds || 300,
       });
+      setProcessingComplete(false);
       
       const jobType = mode === 'full' ? 'ai_edit' : 'full_process';
       await processVideo(selectedMedia.id, jobType);
@@ -472,7 +479,7 @@ export default function AIPostProduction() {
                   {videoUrl && (
                     <button 
                       className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
-                      onClick={() => setShowStudioView(true)}
+                      onClick={() => setShowComparisonModal(true)}
                     >
                       <Play className="h-6 w-6 text-white" />
                     </button>
@@ -969,79 +976,73 @@ export default function AIPostProduction() {
           </CardContent>
         </Card>
 
-        {/* Processing History */}
+        {/* Recent Activity - Simplified from Processing History */}
         {selectedMedia && processingJobs && processingJobs.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Processing History</CardTitle>
-              <CardDescription>Recent AI processing jobs for this media</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Recent Activity
+              </CardTitle>
+              <CardDescription>Recent enhancements for this media</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {processingJobs.slice(0, 10).map((job) => (
+              <div className="space-y-2">
+                {processingJobs.filter(j => j.status === 'completed').slice(0, 5).map((job) => (
                   <div 
                     key={job.id} 
-                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors cursor-pointer"
-                    onClick={() => {
-                      if (job.status === 'completed') {
-                        setShowStudioView(true);
-                      }
-                    }}
+                    className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      {job.status === 'processing' || job.status === 'queued' ? (
-                        <div className="relative">
-                          <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
-                          <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-ping" />
-                        </div>
-                      ) : job.status === 'completed' ? (
-                        <Check className="h-5 w-5 text-green-500" />
-                      ) : (
-                        <AlertCircle className="h-5 w-5 text-red-500" />
-                      )}
+                      <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
+                        <Check className="h-4 w-4 text-green-500" />
+                      </div>
                       <div>
-                        <p className="font-medium text-sm capitalize">
-                          {job.job_type.replace(/_/g, ' ')}
+                        <p className="font-medium text-sm">
+                          {job.job_type === 'full_enhancement' ? 'Enhanced Version Created' : 
+                           job.job_type === 'clip_generation' ? 'AI Clips Generated' :
+                           job.job_type === 'thumbnail' ? 'Thumbnails Generated' : 
+                           'Processing Complete'}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {job.status === 'failed' && (
-                        <Button size="sm" variant="ghost" onClick={(e) => {
-                          e.stopPropagation();
-                          handleRetryJob(job);
-                        }}>
-                          <RotateCcw className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {job.status === 'completed' && (
-                        <Button size="sm" variant="ghost" onClick={(e) => {
-                          e.stopPropagation();
-                          setShowStudioView(true);
-                        }}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      )}
-                      <Badge 
-                        variant={
-                          job.status === 'completed' ? 'default' : 
-                          job.status === 'failed' ? 'destructive' : 
-                          job.status === 'processing' ? 'secondary' :
-                          'outline'
-                        }
-                        className={cn(
-                          job.status === 'completed' && 'bg-green-500',
-                          job.status === 'processing' && 'bg-blue-500'
-                        )}
-                      >
-                        {job.status}
-                      </Badge>
-                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={() => setShowComparisonModal(true)}
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      View
+                    </Button>
                   </div>
                 ))}
+                {processingJobs.filter(j => j.status === 'failed').length > 0 && (
+                  <div className="pt-2 border-t mt-2">
+                    {processingJobs.filter(j => j.status === 'failed').slice(0, 2).map((job) => (
+                      <div 
+                        key={job.id} 
+                        className="flex items-center justify-between p-3 bg-destructive/5 rounded-lg"
+                      >
+                        <div className="flex items-center gap-3">
+                          <AlertCircle className="h-5 w-5 text-destructive" />
+                          <div>
+                            <p className="font-medium text-sm text-destructive">Processing failed</p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
+                            </p>
+                          </div>
+                        </div>
+                        <Button size="sm" variant="outline" onClick={() => handleRetryJob(job)}>
+                          <RotateCcw className="h-4 w-4 mr-1" />
+                          Retry
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -1116,22 +1117,39 @@ export default function AIPostProduction() {
           </DialogContent>
         </Dialog>
 
-        {/* Studio View Dialog - Before/After Comparison */}
-        <Dialog open={showStudioView} onOpenChange={setShowStudioView}>
-          <DialogContent className="max-w-5xl">
-            <DialogHeader>
-              <DialogTitle>Studio View</DialogTitle>
-              <DialogDescription>
-                Compare original and enhanced versions of your content
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-6">
-              {/* Comparison View */}
-              <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+        {/* Enhanced Comparison Modal - Primary Success Screen */}
+        <Dialog open={showComparisonModal} onOpenChange={setShowComparisonModal}>
+          <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 overflow-hidden">
+            {/* Gradient Header */}
+            <div className="bg-gradient-to-r from-[#053877] to-[#2C6BED] px-6 py-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <DialogTitle className="text-white text-xl font-semibold flex items-center gap-2">
+                    <Sparkles className="h-5 w-5" />
+                    Your Content Has Been Enhanced
+                  </DialogTitle>
+                  <DialogDescription className="text-white/80 mt-1">
+                    Compare the original and upgraded version below
+                  </DialogDescription>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-white hover:bg-white/20"
+                  onClick={() => setShowComparisonModal(false)}
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+              {/* Large Comparison View */}
+              <div className="relative aspect-video bg-black rounded-xl overflow-hidden shadow-xl">
                 <div className="absolute inset-0 flex">
                   {/* Original */}
                   <div 
-                    className="h-full overflow-hidden"
+                    className="h-full overflow-hidden relative"
                     style={{ width: `${comparisonPosition}%` }}
                   >
                     {videoUrl && (
@@ -1139,16 +1157,19 @@ export default function AIPostProduction() {
                         src={videoUrl} 
                         className="w-full h-full object-cover"
                         style={{ filter: 'brightness(0.9) contrast(0.95)' }}
+                        autoPlay
+                        muted
+                        loop
                       />
                     )}
-                    <div className="absolute top-4 left-4 bg-black/70 px-3 py-1 rounded text-white text-sm">
+                    <div className="absolute top-4 left-4 bg-black/70 px-4 py-2 rounded-lg text-white text-sm font-medium">
                       Original
                     </div>
                   </div>
                   
                   {/* Enhanced */}
                   <div 
-                    className="h-full overflow-hidden"
+                    className="h-full overflow-hidden relative"
                     style={{ width: `${100 - comparisonPosition}%` }}
                   >
                     {videoUrl && (
@@ -1156,9 +1177,12 @@ export default function AIPostProduction() {
                         src={videoUrl} 
                         className="w-full h-full object-cover"
                         style={{ filter: 'brightness(1.1) contrast(1.05) saturate(1.1)' }}
+                        autoPlay
+                        muted
+                        loop
                       />
                     )}
-                    <div className="absolute top-4 right-4 bg-primary/90 px-3 py-1 rounded text-white text-sm">
+                    <div className="absolute top-4 right-4 bg-gradient-to-r from-[#053877] to-[#2C6BED] px-4 py-2 rounded-lg text-white text-sm font-medium">
                       Enhanced
                     </div>
                   </div>
@@ -1166,41 +1190,172 @@ export default function AIPostProduction() {
                 
                 {/* Slider handle */}
                 <div 
-                  className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize"
+                  className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize shadow-lg"
                   style={{ left: `${comparisonPosition}%` }}
                 >
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg">
-                    <ChevronRight className="h-4 w-4 text-black -ml-1" />
-                    <ChevronRight className="h-4 w-4 text-black -ml-3 rotate-180" />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-xl">
+                    <ChevronRight className="h-5 w-5 text-gray-700 -ml-1" />
+                    <ChevronRight className="h-5 w-5 text-gray-700 -ml-3.5 rotate-180" />
                   </div>
                 </div>
               </div>
               
-              {/* Comparison Slider */}
-              <div className="px-4">
+              {/* Comparison Slider Control */}
+              <div className="px-8">
                 <Slider
                   value={[comparisonPosition]}
                   onValueChange={([v]) => setComparisonPosition(v)}
                   min={10}
                   max={90}
                   step={1}
+                  className="cursor-pointer"
                 />
               </div>
 
-              {/* Download Links */}
-              <div className="flex gap-3">
-                <Button variant="outline" className="flex-1">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Enhanced Video
-                </Button>
-                <Button variant="outline" className="flex-1">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Transcript
-                </Button>
-                <Button variant="outline" className="flex-1">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Chapters
-                </Button>
+              {/* Enhancement Summary Metrics */}
+              <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50 rounded-xl p-5 border">
+                <h3 className="font-semibold mb-4 flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  Enhancement Summary
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                  {/* Filler Words - Green */}
+                  <div className="p-3 bg-green-50 dark:bg-green-500/10 rounded-lg border border-green-200 dark:border-green-500/20">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Mic className="h-3.5 w-3.5 text-green-600" />
+                      <span className="text-xs text-green-700 dark:text-green-400 font-medium">Filler Words</span>
+                    </div>
+                    <p className="text-xl font-bold text-green-600">
+                      {aiAnalytics.fillerWordsRemoved}
+                      <span className="text-xs font-normal ml-1">removed</span>
+                    </p>
+                  </div>
+                  
+                  {/* Pauses - Green */}
+                  <div className="p-3 bg-green-50 dark:bg-green-500/10 rounded-lg border border-green-200 dark:border-green-500/20">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Zap className="h-3.5 w-3.5 text-green-600" />
+                      <span className="text-xs text-green-700 dark:text-green-400 font-medium">Pauses</span>
+                    </div>
+                    <p className="text-xl font-bold text-green-600">
+                      {aiAnalytics.pausesRemoved}
+                      <span className="text-xs font-normal ml-1">trimmed</span>
+                    </p>
+                  </div>
+                  
+                  {/* Silences - Green */}
+                  <div className="p-3 bg-green-50 dark:bg-green-500/10 rounded-lg border border-green-200 dark:border-green-500/20">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Volume2 className="h-3.5 w-3.5 text-green-600" />
+                      <span className="text-xs text-green-700 dark:text-green-400 font-medium">Silences</span>
+                    </div>
+                    <p className="text-xl font-bold text-green-600">
+                      {aiAnalytics.silencesTrimmed}
+                      <span className="text-xs font-normal ml-1">removed</span>
+                    </p>
+                  </div>
+                  
+                  {/* Noise Reduction - Blue */}
+                  <div className="p-3 bg-blue-50 dark:bg-blue-500/10 rounded-lg border border-blue-200 dark:border-blue-500/20">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Volume2 className="h-3.5 w-3.5 text-blue-600" />
+                      <span className="text-xs text-blue-700 dark:text-blue-400 font-medium">Noise Reduced</span>
+                    </div>
+                    <p className="text-xl font-bold text-blue-600">
+                      {aiAnalytics.noiseReduced}
+                      <span className="text-xs font-normal ml-1">%</span>
+                    </p>
+                  </div>
+                  
+                  {/* Chapters - Blue */}
+                  <div className="p-3 bg-blue-50 dark:bg-blue-500/10 rounded-lg border border-blue-200 dark:border-blue-500/20">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Layers className="h-3.5 w-3.5 text-blue-600" />
+                      <span className="text-xs text-blue-700 dark:text-blue-400 font-medium">Chapters</span>
+                    </div>
+                    <p className="text-xl font-bold text-blue-600">
+                      {aiAnalytics.chaptersDetected}
+                      <span className="text-xs font-normal ml-1">detected</span>
+                    </p>
+                  </div>
+                  
+                  {/* Time Saved - Yellow/Amber */}
+                  <div className="p-3 bg-amber-50 dark:bg-amber-500/10 rounded-lg border border-amber-200 dark:border-amber-500/20">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Clock className="h-3.5 w-3.5 text-amber-600" />
+                      <span className="text-xs text-amber-700 dark:text-amber-400 font-medium">Time Saved</span>
+                    </div>
+                    <p className="text-xl font-bold text-amber-600">
+                      {Math.round(aiAnalytics.totalTimeSaved)}
+                      <span className="text-xs font-normal ml-1">sec</span>
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Duration Comparison Banner */}
+                {aiAnalytics.totalTimeSaved > 0 && (
+                  <div className="mt-4 p-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg border border-green-500/20 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                        <Check className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-green-700 dark:text-green-400">
+                          Duration optimized from {formatDuration(aiAnalytics.originalDuration)} → {formatDuration(aiAnalytics.finalDuration)}
+                        </p>
+                        <p className="text-sm text-green-600 dark:text-green-500">
+                          Your video is now {Math.round((aiAnalytics.totalTimeSaved / aiAnalytics.originalDuration) * 100)}% shorter and more engaging
+                        </p>
+                      </div>
+                    </div>
+                    <Badge className="bg-green-500 text-white text-sm px-3 py-1">
+                      -{Math.round((aiAnalytics.totalTimeSaved / aiAnalytics.originalDuration) * 100)}%
+                    </Badge>
+                  </div>
+                )}
+              </div>
+
+              {/* Primary CTA Section */}
+              <div className="space-y-4">
+                <h3 className="font-semibold">What's Next?</h3>
+                <div className="grid md:grid-cols-2 gap-3">
+                  <Button 
+                    className="h-14 text-base bg-gradient-to-r from-[#053877] to-[#2C6BED] hover:opacity-90"
+                    onClick={() => {
+                      setShowComparisonModal(false);
+                      navigate(`/studio/clips?media=${selectedMedia?.id}`);
+                    }}
+                  >
+                    <Scissors className="h-5 w-5 mr-2" />
+                    Generate AI Clips From This Video
+                  </Button>
+                  <Button 
+                    className="h-14 text-base bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90"
+                    onClick={() => {
+                      setShowComparisonModal(false);
+                      handleGenerateThumbnails();
+                    }}
+                  >
+                    <ImagePlus className="h-5 w-5 mr-2" />
+                    Generate Thumbnails
+                  </Button>
+                </div>
+                
+                {/* Secondary Download Actions */}
+                <div className="grid grid-cols-3 gap-3">
+                  <Button variant="outline" className="h-11">
+                    <Download className="h-4 w-4 mr-2" />
+                    Enhanced Video
+                  </Button>
+                  <Button variant="outline" className="h-11">
+                    <Type className="h-4 w-4 mr-2" />
+                    Transcript
+                  </Button>
+                  <Button variant="outline" className="h-11">
+                    <Layers className="h-4 w-4 mr-2" />
+                    Chapters
+                  </Button>
+                </div>
               </div>
             </div>
           </DialogContent>
