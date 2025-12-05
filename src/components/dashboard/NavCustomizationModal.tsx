@@ -208,7 +208,11 @@ export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationMo
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -216,7 +220,14 @@ export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationMo
 
   useEffect(() => {
     if (open && !isLoading) {
-      setLocalOrder(navConfig.order.length > 0 ? navConfig.order : activeNavItems.map(i => i.id));
+      // Ensure localOrder includes all current items, preserving stored order for existing items
+      const storedOrder = navConfig.order || [];
+      const allItemIds = activeNavItems.map(i => i.id);
+      const mergedOrder = [
+        ...storedOrder.filter(id => allItemIds.includes(id)),
+        ...allItemIds.filter(id => !storedOrder.includes(id))
+      ];
+      setLocalOrder(mergedOrder);
       setLocalHidden(navConfig.hidden);
       setLocalPinned(navConfig.pinned);
       setLocalLanding(defaultLandingRoute || defaultLanding);
