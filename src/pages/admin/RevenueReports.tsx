@@ -61,7 +61,7 @@ export default function RevenueReports() {
   };
 
   return (
-    <div className="px-10 py-6 space-y-8">
+    <div className="mx-auto max-w-7xl px-6 py-6 space-y-8">
       <div className="flex flex-col items-start gap-4">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">

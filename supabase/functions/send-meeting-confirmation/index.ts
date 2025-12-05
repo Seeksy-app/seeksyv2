@@ -40,7 +40,7 @@ serve(async (req) => {
       throw new Error("RESEND_API_KEY not configured");
     }
 
-    const senderEmail = Deno.env.get("SENDER_EMAIL") || "onboarding@resend.dev";
+    const senderEmail = "hello@seeksy.io";
 
     const emailHtml = `
       <!DOCTYPE html>

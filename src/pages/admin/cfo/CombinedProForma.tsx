@@ -12,7 +12,7 @@ import ProFormaCharts from "@/components/cfo/proforma/ProFormaCharts";
 import ProFormaAssumptions from "@/components/cfo/proforma/ProFormaAssumptions";
 import { useProFormaData, ProFormaAssumptions as AssumptionsType } from "@/hooks/useProFormaData";
 
-const EventsAwardsProForma = () => {
+const CombinedProForma = () => {
   const navigate = useNavigate();
   const contentRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
@@ -45,11 +45,11 @@ const EventsAwardsProForma = () => {
       pdf.rect(0, 0, 210, 20, "F");
       pdf.setTextColor(255, 255, 255);
       pdf.setFontSize(16);
-      pdf.text("Seeksy Events & Awards - 3-Year Pro Forma", 10, 13);
+      pdf.text("Seeksy Combined Platform - 3-Year Pro Forma", 10, 13);
       
       pdf.addImage(imgData, "PNG", 0, 25, imgWidth, imgHeight);
       
-      pdf.save("seeksy-events-awards-proforma.pdf");
+      pdf.save("seeksy-combined-platform-proforma.pdf");
       toast.success("PDF exported successfully!");
     } catch (error) {
       toast.error("Failed to export PDF");
@@ -59,7 +59,7 @@ const EventsAwardsProForma = () => {
   };
 
   const handleCopyShareLink = () => {
-    const shareUrl = `${window.location.origin}/proforma/events-awards/share`;
+    const shareUrl = `${window.location.origin}/proforma/combined/share`;
     navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     toast.success("Share link copied to clipboard!");
@@ -88,7 +88,7 @@ const EventsAwardsProForma = () => {
             </Button>
             <Button 
               variant="outline" 
-              onClick={() => navigate("/proforma/events-awards/share")}
+              onClick={() => navigate("/proforma/combined/share")}
               className="gap-2"
             >
               <Share2 className="h-4 w-4" />
@@ -108,10 +108,10 @@ const EventsAwardsProForma = () => {
         {/* Title */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-[#053877] mb-2">
-            Events & Awards App - 3-Year Pro Forma
+            Combined Platform - 3-Year Pro Forma
           </h1>
           <p className="text-muted-foreground">
-            Financial projections for the Seeksy Events & Awards platform acquisition
+            Unified financial projections for the Seeksy platform including subscriptions, ads, and all revenue streams
           </p>
         </div>
 
@@ -197,4 +197,4 @@ const EventsAwardsProForma = () => {
   );
 };
 
-export default EventsAwardsProForma;
+export default CombinedProForma;

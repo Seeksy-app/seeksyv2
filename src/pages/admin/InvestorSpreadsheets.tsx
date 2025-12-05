@@ -12,7 +12,7 @@ export default function InvestorSpreadsheets() {
   ];
 
   return (
-    <div className="px-10 py-6 space-y-8 animate-fade-in">
+    <div className="mx-auto max-w-7xl px-6 py-6 space-y-8 animate-fade-in">
       <div className="flex flex-col items-start gap-4">
         <div>
           <h1 className="text-3xl font-bold">Investor Spreadsheets</h1>
