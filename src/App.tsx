@@ -192,6 +192,7 @@ import BroadcastStudio from "./pages/BroadcastStudio";
 import CreditInfo from "./pages/CreditInfo";
 import StudioTemplates from "./pages/StudioTemplates";
 import ClipsLibrary from "./pages/ClipsLibrary";
+import ClipsStudio from "./pages/ClipsStudio";
 import MediaLibrary from "./pages/MediaLibrary";
 import MediaVault from "./pages/MediaVault";
 import PostProductionStudio from "./pages/PostProductionStudio";
@@ -774,6 +775,7 @@ const AppContent = () => {
               <Route path="/studio/audio" element={<TourModeWrapper><AudioStudioPremium /></TourModeWrapper>} />
               <Route path="/studio/video" element={<TourModeWrapper><VideoStudioPremium /></TourModeWrapper>} />
               <Route path="/studio/clips" element={<TourModeWrapper><ClipEngine /></TourModeWrapper>} />
+              <Route path="/clips-studio" element={<TourModeWrapper><ClipsStudio /></TourModeWrapper>} />
               <Route path="/studio/media" element={<TourModeWrapper><MediaLibraryHub /></TourModeWrapper>} />
               <Route path="/studio/media/:id" element={<TourModeWrapper><MediaDetail /></TourModeWrapper>} />
               <Route path="/studio/ai-post-production" element={<TourModeWrapper><AIPostProduction /></TourModeWrapper>} />
