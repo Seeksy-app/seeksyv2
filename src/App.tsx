@@ -1095,8 +1095,8 @@ const AppContent = () => {
           <Route path="/agency/influencer-search" element={<InfluencerSearch />} />
           <Route path="/agency/campaigns" element={<AgencyCampaigns />} />
           
-          {/* Public Booking Routes */}
-          <Route path="/book/:slug" element={<BookMeeting />} />
+          {/* Public Booking Routes (Meeting Types) */}
+          <Route path="/meet/:slug" element={<BookMeeting />} />
           <Route path="/demo" element={<BookMeeting />} />
           
               <Route path="/:username.portfolio" element={<InfluencerPortfolio />} />

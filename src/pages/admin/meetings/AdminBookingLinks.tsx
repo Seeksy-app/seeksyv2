@@ -5,24 +5,24 @@ import { Link, Copy, ExternalLink, QrCode, Plus, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const bookingLinks = [
-  { id: "1", name: "Demo Call", slug: "demo", url: "/book/demo", views: 234, bookings: 45, conversionRate: "19.2%" },
-  { id: "2", name: "Sales Discovery", slug: "sales", url: "/book/sales", views: 156, bookings: 32, conversionRate: "20.5%" },
-  { id: "3", name: "Support Session", slug: "support", url: "/book/support", views: 89, bookings: 28, conversionRate: "31.5%" },
-  { id: "4", name: "Onboarding", slug: "onboarding", url: "/book/onboarding", views: 67, bookings: 18, conversionRate: "26.9%" },
-  { id: "5", name: "Consultation", slug: "consultation", url: "/book/consultation", views: 45, bookings: 12, conversionRate: "26.7%" },
+  { id: "1", name: "Demo Call", slug: "demo", url: "/meet/demo", views: 234, bookings: 45, conversionRate: "19.2%" },
+  { id: "2", name: "Sales Discovery", slug: "sales", url: "/meet/sales", views: 156, bookings: 32, conversionRate: "20.5%" },
+  { id: "3", name: "Support Session", slug: "support", url: "/meet/support", views: 89, bookings: 28, conversionRate: "31.5%" },
+  { id: "4", name: "Onboarding", slug: "onboarding", url: "/meet/onboarding", views: 67, bookings: 18, conversionRate: "26.9%" },
+  { id: "5", name: "Consultation", slug: "consultation", url: "/meet/consultation", views: 45, bookings: 12, conversionRate: "26.7%" },
 ];
 
 export default function AdminBookingLinks() {
   const { toast } = useToast();
 
   const copyLink = (slug: string) => {
-    const fullUrl = `${window.location.origin}/book/${slug}`;
+    const fullUrl = `${window.location.origin}/meet/${slug}`;
     navigator.clipboard.writeText(fullUrl);
     toast({ title: "Link copied!", description: fullUrl });
   };
 
   const copyEmbed = (slug: string) => {
-    const embedCode = `<iframe src="${window.location.origin}/book/${slug}?embed=true" width="100%" height="700" frameborder="0"></iframe>`;
+    const embedCode = `<iframe src="${window.location.origin}/meet/${slug}?embed=true" width="100%" height="700" frameborder="0"></iframe>`;
     navigator.clipboard.writeText(embedCode);
     toast({ title: "Embed code copied!" });
   };

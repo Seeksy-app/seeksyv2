@@ -36,7 +36,7 @@ export default function AdminMeetingTypes() {
   };
 
   const copyLink = (slug: string) => {
-    navigator.clipboard.writeText(`${window.location.origin}/book/${slug}`);
+    navigator.clipboard.writeText(`${window.location.origin}/meet/${slug}`);
     toast({ title: "Link copied!" });
   };
 

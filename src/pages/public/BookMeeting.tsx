@@ -40,7 +40,7 @@ export default function BookMeeting() {
   const isEmbed = searchParams.get("embed") === "true";
   const { toast } = useToast();
 
-  // Handle /demo route without slug param
+  // Handle /demo route without slug param, and /meet/:slug routes
   const effectiveSlug = slug || (location.pathname === "/demo" ? "demo" : "demo");
   const meetingType = meetingTypes[effectiveSlug] || meetingTypes.demo;
   
