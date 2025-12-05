@@ -90,71 +90,106 @@ const CFODashboard = () => {
     platformSharePercent: 25,
   });
 
-  // Fetch comprehensive financial data from APIs
+  // Demo data for AI projections mode
+  const demoData = {
+    totalUsers: 2847,
+    activeCreators: 342,
+    totalPodcasts: 156,
+    totalEpisodes: 892,
+    mrr: 54293,
+    arr: 651516,
+    adRevenue: 33390,
+    awardsRevenue: 375000,
+    totalRevenue: 491320,
+    totalImpressions: 425600,
+    hostReadRevenue: 15680,
+    announcerRevenue: 8940,
+    programmaticRevenue: 2560,
+    videoRevenue: 4320,
+    displayRevenue: 1890,
+    ppiRevenue: 16250,
+    sponsorshipRevenue: 12500,
+    creatorPayouts: 46605,
+    storageCosts: 446,
+    bandwidthCosts: 2128,
+    aiComputeCosts: 2676,
+    paymentProcessingCosts: 14248,
+    totalCosts: 66103,
+    grossMargin: 86.5,
+    burnRate: -425217,
+    runwayMonths: 999,
+    cac: 25,
+    ltv: 456,
+    totalInquiries: 312,
+    qualifiedInquiries: 25,
+    submissionsCount: 0,
+    programCount: 0,
+    cpmTiers: [],
+  };
+
+  // Fetch real financial data from APIs (actual customer data)
   const { data: financialOverview, isLoading: metricsLoading } = useQuery({
-    queryKey: ['financial-overview'],
+    queryKey: ['financial-overview-real'],
     queryFn: async () => {
       const overview = await getFinancialOverview();
       
-      if (!overview) {
-        // Fallback to direct queries if API fails
-        const [
-          { count: totalUsers },
-          { count: activeCreators },
-          { count: totalPodcasts },
-          { count: totalEpisodes },
-          { data: subscriptions },
-        ] = await Promise.all([
-          supabase.from('profiles').select('*', { count: 'exact', head: true }),
-          supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('account_type', 'creator'),
-          supabase.from('podcasts').select('*', { count: 'exact', head: true }),
-          supabase.from('episodes').select('*', { count: 'exact', head: true }),
-          supabase.from('subscriptions').select('plan_name').eq('status', 'active'),
-        ]);
+      // Get actual data from database (may be zero)
+      const [
+        { count: totalUsers },
+        { count: activeCreators },
+        { count: totalPodcasts },
+        { count: totalEpisodes },
+        { data: subscriptions },
+      ] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('account_type', 'creator'),
+        supabase.from('podcasts').select('*', { count: 'exact', head: true }),
+        supabase.from('episodes').select('*', { count: 'exact', head: true }),
+        supabase.from('subscriptions').select('plan_name').eq('status', 'active'),
+      ]);
 
-        return {
-          totalUsers: totalUsers || 2847,
-          activeCreators: activeCreators || 342,
-          totalPodcasts: totalPodcasts || 156,
-          totalEpisodes: totalEpisodes || 892,
-          mrr: (subscriptions?.length || 0) * assumptions.avgSubscriptionPrice,
-          arr: (subscriptions?.length || 0) * assumptions.avgSubscriptionPrice * 12,
-          adRevenue: overview?.adRevenue || 33390,
-          awardsRevenue: overview?.awardsRevenue || 375000,
-          totalRevenue: overview?.totalRevenue || 491320,
-          totalImpressions: overview?.totalImpressions || 425600,
-          hostReadRevenue: 15680,
-          announcerRevenue: 8940,
-          programmaticRevenue: 2560,
-          videoRevenue: 4320,
-          displayRevenue: 1890,
-          ppiRevenue: 16250,
-          sponsorshipRevenue: 12500,
-          creatorPayouts: 46605,
-          storageCosts: 446,
-          bandwidthCosts: 2128,
-          aiComputeCosts: 2676,
-          paymentProcessingCosts: 14248,
-          totalCosts: 66103,
-          grossMargin: 86.5,
-          burnRate: -425217,
-          runwayMonths: 999,
-          cac: 25,
-          ltv: 456,
-          totalInquiries: 312,
-          qualifiedInquiries: 25,
-          submissionsCount: overview?.submissionsCount || 0,
-          programCount: overview?.programCount || 0,
-          cpmTiers: overview?.cpmTiers || [],
-        };
-      }
-
-      return overview;
+      // Return ACTUAL data (zeros if no real customers)
+      return {
+        totalUsers: totalUsers || 0,
+        activeCreators: activeCreators || 0,
+        totalPodcasts: totalPodcasts || 0,
+        totalEpisodes: totalEpisodes || 0,
+        mrr: (subscriptions?.length || 0) * assumptions.avgSubscriptionPrice,
+        arr: (subscriptions?.length || 0) * assumptions.avgSubscriptionPrice * 12,
+        adRevenue: overview?.adRevenue || 0,
+        awardsRevenue: overview?.awardsRevenue || 0,
+        totalRevenue: overview?.totalRevenue || 0,
+        totalImpressions: overview?.totalImpressions || 0,
+        hostReadRevenue: overview?.hostReadRevenue || 0,
+        announcerRevenue: overview?.announcerRevenue || 0,
+        programmaticRevenue: overview?.programmaticRevenue || 0,
+        videoRevenue: overview?.videoRevenue || 0,
+        displayRevenue: overview?.displayRevenue || 0,
+        ppiRevenue: overview?.ppiRevenue || 0,
+        sponsorshipRevenue: overview?.sponsorshipRevenue || 0,
+        creatorPayouts: overview?.creatorPayouts || 0,
+        storageCosts: overview?.storageCosts || 0,
+        bandwidthCosts: overview?.bandwidthCosts || 0,
+        aiComputeCosts: overview?.aiComputeCosts || 0,
+        paymentProcessingCosts: overview?.paymentProcessingCosts || 0,
+        totalCosts: overview?.totalCosts || 0,
+        grossMargin: overview?.grossMargin || 0,
+        burnRate: overview?.burnRate || 0,
+        runwayMonths: overview?.runwayMonths || 999,
+        cac: overview?.cac || 0,
+        ltv: overview?.ltv || 0,
+        totalInquiries: overview?.totalInquiries || 0,
+        qualifiedInquiries: overview?.qualifiedInquiries || 0,
+        submissionsCount: overview?.submissionsCount || 0,
+        programCount: overview?.programCount || 0,
+        cpmTiers: overview?.cpmTiers || [],
+      };
     },
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 
-  const realTimeMetrics = financialOverview;
+  // Use demo data when toggle is OFF, real data when toggle is ON
+  const realTimeMetrics = useRealTimeData ? financialOverview : demoData;
 
   // Calculate projected revenue based on assumptions (not real-time data)
   const calculateProjectedRevenue = () => {
@@ -298,7 +333,7 @@ const CFODashboard = () => {
         </div>
         <div className="flex items-center gap-3">
           <Label htmlFor="data-mode" className="text-sm font-medium">
-            {useRealTimeData ? "Real-Time Mode" : "Projection Mode"}
+            {useRealTimeData ? "Real-Time Data (Actual)" : "Demo Mode (AI Projections)"}
           </Label>
           <Switch
             id="data-mode"
