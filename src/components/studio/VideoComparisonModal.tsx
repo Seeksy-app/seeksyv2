@@ -2,8 +2,19 @@ import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { X, Play, Pause, Volume2, VolumeX, Maximize2, AlertCircle } from "lucide-react";
+import { X, Play, Pause, Volume2, VolumeX, AlertCircle, Mic, Zap, VolumeX as VolumeOff, Clock, Layers, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+interface AnalyticsData {
+  fillerWordsRemoved: number;
+  pausesRemoved: number;
+  silencesTrimmed: number;
+  noiseReduced: number;
+  totalTimeSaved: number;
+  chaptersDetected: number;
+  originalDuration: number;
+  finalDuration: number;
+}
 
 interface VideoComparisonModalProps {
   open: boolean;
@@ -12,6 +23,36 @@ interface VideoComparisonModalProps {
   enhancedUrl: string | null;
   originalTitle?: string;
   enhancedTitle?: string;
+  analytics?: AnalyticsData | null;
+}
+
+const formatDuration = (seconds: number) => {
+  if (!seconds) return "0:00";
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
+
+interface AnalyticCardProps {
+  icon: React.ElementType;
+  label: string;
+  value: number | string;
+  unit: string;
+  color: string;
+  notAvailable?: boolean;
+}
+
+function AnalyticCard({ icon: Icon, label, value, unit, color, notAvailable }: AnalyticCardProps) {
+  return (
+    <div className="p-2 rounded-lg border bg-card text-center min-w-[90px]">
+      <Icon className={cn("h-4 w-4 mx-auto mb-1", color)} />
+      <div className="text-lg font-bold">
+        {notAvailable ? "—" : value}
+      </div>
+      <div className="text-[10px] text-muted-foreground">{notAvailable ? "Not available" : unit}</div>
+      <div className="text-[9px] text-muted-foreground uppercase tracking-wide">{label}</div>
+    </div>
+  );
 }
 
 export function VideoComparisonModal({
@@ -20,7 +61,8 @@ export function VideoComparisonModal({
   originalUrl,
   enhancedUrl,
   originalTitle = "Original",
-  enhancedTitle = "Enhanced"
+  enhancedTitle = "Enhanced",
+  analytics
 }: VideoComparisonModalProps) {
   const [comparisonPosition, setComparisonPosition] = useState(50);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -163,7 +205,7 @@ export function VideoComparisonModal({
               {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
             </Button>
             <Button variant="outline" size="icon" onClick={toggleMute}>
-              {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+              {isMuted ? <VolumeOff className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
             </Button>
             
             <div className="flex-1 flex items-center gap-3">
@@ -179,6 +221,78 @@ export function VideoComparisonModal({
               <span className="text-sm text-muted-foreground whitespace-nowrap">Enhanced</span>
             </div>
           </div>
+
+          {/* AI Processing Analytics Strip */}
+          {analytics && (
+            <div className="p-3 rounded-lg border bg-muted/30">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="h-4 w-4 text-[#2C6BED]" />
+                <span className="text-sm font-medium">AI Processing Analytics</span>
+              </div>
+              <div className="flex flex-wrap gap-2 justify-center">
+                <AnalyticCard 
+                  icon={Mic} 
+                  label="Filler Words" 
+                  value={analytics.fillerWordsRemoved} 
+                  unit="removed" 
+                  color="text-orange-500"
+                  notAvailable={analytics.fillerWordsRemoved === 0 && analytics.totalTimeSaved === 0}
+                />
+                <AnalyticCard 
+                  icon={Zap} 
+                  label="Pauses" 
+                  value={analytics.pausesRemoved} 
+                  unit="trimmed" 
+                  color="text-yellow-500"
+                  notAvailable={analytics.pausesRemoved === 0 && analytics.totalTimeSaved === 0}
+                />
+                <AnalyticCard 
+                  icon={VolumeOff} 
+                  label="Silences" 
+                  value={analytics.silencesTrimmed} 
+                  unit="cut" 
+                  color="text-blue-500"
+                  notAvailable={analytics.silencesTrimmed === 0 && analytics.totalTimeSaved === 0}
+                />
+                <AnalyticCard 
+                  icon={Volume2} 
+                  label="Noise Reduced" 
+                  value={analytics.noiseReduced} 
+                  unit="%" 
+                  color="text-green-500"
+                  notAvailable={analytics.noiseReduced === 0}
+                />
+                <AnalyticCard 
+                  icon={Clock} 
+                  label="Time Saved" 
+                  value={Math.round(analytics.totalTimeSaved)} 
+                  unit="sec" 
+                  color="text-purple-500"
+                  notAvailable={analytics.totalTimeSaved === 0}
+                />
+                <AnalyticCard 
+                  icon={Layers} 
+                  label="Chapters" 
+                  value={analytics.chaptersDetected} 
+                  unit="detected" 
+                  color="text-pink-500"
+                  notAvailable={analytics.chaptersDetected === 0}
+                />
+              </div>
+              
+              {/* Duration Comparison */}
+              {analytics.totalTimeSaved > 0 && (
+                <div className="mt-3 p-2 bg-green-50 dark:bg-green-500/10 rounded-lg border border-green-200 dark:border-green-500/20 flex flex-wrap items-center justify-center gap-2 text-sm">
+                  <span className="text-green-700 dark:text-green-400">
+                    Original: {formatDuration(analytics.originalDuration)} → Enhanced: {formatDuration(analytics.finalDuration)}
+                  </span>
+                  <span className="px-2 py-0.5 bg-green-500 text-white rounded text-xs font-medium">
+                    {Math.round((analytics.totalTimeSaved / analytics.originalDuration) * 100)}% shorter
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

@@ -2,9 +2,10 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   Check, Download, FileText, Layers, Type, Scissors, 
-  Eye, FolderOpen, Share2, ExternalLink, ChevronRight, Copy
+  Eye, FolderOpen, Share2, ChevronRight, Copy
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ProcessingAnalyticsPanel, DurationComparisonBanner } from "./ProcessingAnalyticsPanel";
@@ -20,12 +21,20 @@ interface AnalyticsData {
   finalDuration: number;
 }
 
+interface DownloadAssets {
+  enhancedVideoUrl?: string | null;
+  transcriptUrl?: string | null;
+  chaptersJsonUrl?: string | null;
+  srtUrl?: string | null;
+}
+
 interface CompletionSuccessPageProps {
   mediaId: string;
   mediaName: string;
   analytics: AnalyticsData;
   onCompareClick: () => void;
   hasOriginalPreview?: boolean;
+  downloadAssets?: DownloadAssets;
 }
 
 export function CompletionSuccessPage({
@@ -33,13 +42,13 @@ export function CompletionSuccessPage({
   mediaName,
   analytics,
   onCompareClick,
-  hasOriginalPreview = true
+  hasOriginalPreview = true,
+  downloadAssets
 }: CompletionSuccessPageProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleCopyLink = () => {
-    // In a real implementation, this would copy a shareable link
     navigator.clipboard.writeText(`${window.location.origin}/studio/media/${mediaId}`);
     toast({
       title: "Link Copied",
@@ -47,13 +56,57 @@ export function CompletionSuccessPage({
     });
   };
 
-  const handleDownload = (type: 'video' | 'transcript' | 'chapters' | 'srt') => {
+  const handleDownload = (type: 'video' | 'transcript' | 'chapters' | 'srt', url?: string | null) => {
+    if (!url) {
+      toast({
+        title: "Not Available",
+        description: "This file isn't available yet. Try re-running AI Post-Production.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     toast({
       title: "Download Started",
-      description: `Your ${type} is being prepared for download.`
+      description: `Your ${type} download has started.`
     });
-    // In a real implementation, this would trigger the actual download
+    window.open(url, "_blank");
   };
+
+  const downloadButtons = [
+    {
+      type: 'video' as const,
+      icon: Download,
+      label: 'Enhanced Video',
+      url: downloadAssets?.enhancedVideoUrl,
+      tooltip: 'Download the final enhanced video file with all edits applied.',
+      disabledTooltip: "This file isn't available yet. Try re-running AI Post-Production."
+    },
+    {
+      type: 'transcript' as const,
+      icon: FileText,
+      label: 'Transcript',
+      url: downloadAssets?.transcriptUrl,
+      tooltip: 'Download a full text transcript for blogs, show notes, or editing.',
+      disabledTooltip: "This file isn't available yet. Try re-running AI Post-Production."
+    },
+    {
+      type: 'chapters' as const,
+      icon: Layers,
+      label: 'Chapters JSON',
+      url: downloadAssets?.chaptersJsonUrl,
+      tooltip: 'Download structured chapter data (JSON) for players, show notes, or custom apps.',
+      disabledTooltip: "This file isn't available yet. Try re-running AI Post-Production."
+    },
+    {
+      type: 'srt' as const,
+      icon: Type,
+      label: 'SRT Captions',
+      url: downloadAssets?.srtUrl,
+      tooltip: 'Download a standard SRT subtitle file for captions on YouTube, TikTok, Instagram, etc.',
+      disabledTooltip: "This file isn't available yet. Try re-running AI Post-Production."
+    }
+  ];
 
   return (
     <div className="space-y-6">
@@ -97,40 +150,37 @@ export function CompletionSuccessPage({
             <Download className="h-4 w-4 text-[#2C6BED]" />
             Download Your Files
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Button 
-              variant="outline" 
-              className="h-auto py-4 flex-col gap-2 hover:border-[#2C6BED] hover:bg-[#2C6BED]/5 transition-all"
-              onClick={() => handleDownload('video')}
-            >
-              <Download className="h-6 w-6 text-[#2C6BED]" />
-              <span className="text-sm font-medium">Enhanced Video</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-auto py-4 flex-col gap-2 hover:border-[#2C6BED] hover:bg-[#2C6BED]/5 transition-all"
-              onClick={() => handleDownload('transcript')}
-            >
-              <FileText className="h-6 w-6 text-[#2C6BED]" />
-              <span className="text-sm font-medium">Transcript</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-auto py-4 flex-col gap-2 hover:border-[#2C6BED] hover:bg-[#2C6BED]/5 transition-all"
-              onClick={() => handleDownload('chapters')}
-            >
-              <Layers className="h-6 w-6 text-[#2C6BED]" />
-              <span className="text-sm font-medium">Chapters JSON</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-auto py-4 flex-col gap-2 hover:border-[#2C6BED] hover:bg-[#2C6BED]/5 transition-all"
-              onClick={() => handleDownload('srt')}
-            >
-              <Type className="h-6 w-6 text-[#2C6BED]" />
-              <span className="text-sm font-medium">SRT Captions</span>
-            </Button>
-          </div>
+          <TooltipProvider>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {downloadButtons.map((btn) => {
+                const Icon = btn.icon;
+                const isDisabled = !btn.url;
+                
+                return (
+                  <Tooltip key={btn.type}>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        className={`h-auto py-4 flex-col gap-2 transition-all ${
+                          isDisabled 
+                            ? 'opacity-50 cursor-not-allowed' 
+                            : 'hover:border-[#2C6BED] hover:bg-[#2C6BED]/5'
+                        }`}
+                        onClick={() => handleDownload(btn.type, btn.url)}
+                        disabled={isDisabled}
+                      >
+                        <Icon className={`h-6 w-6 ${isDisabled ? 'text-muted-foreground' : 'text-[#2C6BED]'}`} />
+                        <span className="text-sm font-medium">{btn.label}</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-[200px] text-center">
+                      <p className="text-xs">{isDisabled ? btn.disabledTooltip : btn.tooltip}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </div>
+          </TooltipProvider>
         </CardContent>
       </Card>
 

@@ -1,22 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { SocialPublishModal } from "@/components/clips/SocialPublishModal";
 import { formatDistanceToNow, format } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
-  ChevronLeft, Play, Pause, Clock, Calendar, Download, Share2,
+  ChevronLeft, Clock, Calendar, Download, Share2,
   Scissors, Wand2, FileText, Layers, Volume2, Palette, Mic,
-  Users, Sparkles, ExternalLink, Copy, Instagram, Youtube, Video,
-  MoreHorizontal, Edit3, Trash2, CheckCircle, AlertCircle, Loader2,
-  MessageSquare, Eye
+  Sparkles, Copy, Instagram, Youtube, Video,
+  CheckCircle, AlertCircle, Loader2, Eye, Heart, MessageSquare,
+  ThumbsUp, BarChart2, DollarSign, Info
 } from "lucide-react";
 
 interface MediaFile {
@@ -47,13 +48,6 @@ interface Clip {
   created_at: string;
 }
 
-interface Chapter {
-  id: string;
-  title: string;
-  start_time: number;
-  end_time: number;
-}
-
 interface TranscriptData {
   id: string;
   raw_text: string | null;
@@ -69,15 +63,22 @@ interface AIJob {
   created_at: string;
 }
 
+// Publish status type
+type PublishStatus = 'not_published' | 'published_youtube' | 'published_tiktok' | 'published_instagram';
+
 export default function MediaDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   
-  const [isPlaying, setIsPlaying] = useState(false);
   const [showSocialModal, setShowSocialModal] = useState(false);
   const [selectedClip, setSelectedClip] = useState<Clip | null>(null);
+  const [preSelectedPlatform, setPreSelectedPlatform] = useState<'youtube' | 'instagram' | 'tiktok' | null>(null);
+  const [showAdSubmitModal, setShowAdSubmitModal] = useState(false);
+  
+  // Local state for demo publish/ad status
+  const [publishStatus, setPublishStatus] = useState<PublishStatus>('not_published');
+  const [adStatus, setAdStatus] = useState<'none' | 'pending_review' | 'active'>('none');
 
   // Fetch media file
   const { data: media, isLoading: loadingMedia } = useQuery({
@@ -190,10 +191,47 @@ export default function MediaDetail() {
     }
   };
 
-  const handlePublishToSocial = (clip?: Clip) => {
+  const handlePublishToSocial = (clip?: Clip, platform?: 'youtube' | 'instagram' | 'tiktok') => {
     setSelectedClip(clip || null);
+    setPreSelectedPlatform(platform || null);
     setShowSocialModal(true);
   };
+
+  const handlePostToYouTube = () => {
+    // Simulate YouTube publish
+    console.log("Simulated YouTube publish", { videoId: id });
+    setPublishStatus('published_youtube');
+    toast({
+      title: "Queued for YouTube",
+      description: "Your video has been queued for YouTube. Analytics will start updating once views come in.",
+    });
+    setShowSocialModal(false);
+  };
+
+  const handleSubmitForAds = () => {
+    console.log("Video submitted for ads", { videoId: id, slots: 3, estimatedCPM: 18.50 });
+    setAdStatus('pending_review');
+    setShowAdSubmitModal(false);
+    toast({
+      title: "Submitted for Ads",
+      description: "Your video has been submitted to Seeksy Ads. Our team will review and start serving ads when it's approved.",
+    });
+  };
+
+  // Check if published
+  const isPublished = publishStatus !== 'not_published';
+  const isAdEnabled = adStatus !== 'none';
+
+  // Analytics cards - show real data only
+  const analyticsCards = [
+    { label: "Total Views", value: 0, icon: Eye, noData: true },
+    { label: "Likes", value: 0, icon: ThumbsUp, noData: true },
+    { label: "Shares", value: 0, icon: Share2, noData: true },
+    { label: "Comments", value: 0, icon: MessageSquare, noData: true },
+    { label: "Avg Watch Time", value: "—", icon: Clock, noData: true, isTime: true },
+    { label: "Completion Rate", value: "—", icon: BarChart2, noData: true, isPercent: true },
+    { label: "Engagement Rate", value: "—", icon: Heart, noData: true, isPercent: true },
+  ];
 
   if (loadingMedia) {
     return (
@@ -285,12 +323,60 @@ export default function MediaDetail() {
                         {media.created_at ? format(new Date(media.created_at), "MMM d, yyyy") : "—"}
                       </span>
                       <Badge className={sourceInfo.className}>{sourceInfo.label}</Badge>
+                      {hasAIProcessing && completedJobs.length > 0 && (
+                        <Badge className="bg-green-500/90 text-white">Enhanced</Badge>
+                      )}
                     </div>
                   </div>
                 </div>
                 {media.description && (
                   <p className="mt-3 text-sm text-muted-foreground">{media.description}</p>
                 )}
+              </CardContent>
+            </Card>
+
+            {/* Video Analytics Section */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart2 className="w-5 h-5 text-primary" />
+                    Video Analytics
+                  </CardTitle>
+                  <Badge variant={isPublished ? "default" : "secondary"}>
+                    {isPublished ? `Published to ${publishStatus.replace('published_', '').charAt(0).toUpperCase() + publishStatus.replace('published_', '').slice(1)}` : "Not yet published"}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {/* Info banner */}
+                <div className="mb-4 p-3 bg-muted/50 rounded-lg flex items-start gap-2">
+                  <Info className="w-4 h-4 text-muted-foreground mt-0.5" />
+                  <p className="text-sm text-muted-foreground">
+                    Analytics will start updating once this video is published to social.
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {analyticsCards.map((card) => {
+                    const Icon = card.icon;
+                    return (
+                      <div key={card.label} className="p-4 rounded-lg border bg-card text-center">
+                        <Icon className="w-5 h-5 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-2xl font-bold">
+                          {card.noData ? (card.isTime || card.isPercent ? "—" : "0") : card.value}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {card.noData 
+                            ? (card.isTime || card.isPercent 
+                                ? "Analytics start after first publish" 
+                                : `No ${card.label.toLowerCase()} yet`)
+                            : card.label}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
               </CardContent>
             </Card>
 
@@ -317,7 +403,6 @@ export default function MediaDetail() {
                   </div>
                 ) : (
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {/* Chapters */}
                     <div className="p-4 rounded-lg border bg-card">
                       <div className="flex items-center gap-2 mb-2">
                         <Layers className="w-5 h-5 text-blue-500" />
@@ -329,7 +414,6 @@ export default function MediaDetail() {
                       <p className="text-xs text-muted-foreground">Auto-detected</p>
                     </div>
 
-                    {/* Transcript */}
                     <div className="p-4 rounded-lg border bg-card">
                       <div className="flex items-center gap-2 mb-2">
                         <FileText className="w-5 h-5 text-green-500" />
@@ -343,7 +427,6 @@ export default function MediaDetail() {
                       </p>
                     </div>
 
-                    {/* Filler Words */}
                     <div className="p-4 rounded-lg border bg-card">
                       <div className="flex items-center gap-2 mb-2">
                         <Mic className="w-5 h-5 text-orange-500" />
@@ -355,7 +438,6 @@ export default function MediaDetail() {
                       <p className="text-xs text-muted-foreground">Processed</p>
                     </div>
 
-                    {/* Audio Enhancement */}
                     <div className="p-4 rounded-lg border bg-card">
                       <div className="flex items-center gap-2 mb-2">
                         <Volume2 className="w-5 h-5 text-purple-500" />
@@ -367,7 +449,6 @@ export default function MediaDetail() {
                       <p className="text-xs text-muted-foreground">Noise reduced</p>
                     </div>
 
-                    {/* Color Correction */}
                     <div className="p-4 rounded-lg border bg-card">
                       <div className="flex items-center gap-2 mb-2">
                         <Palette className="w-5 h-5 text-pink-500" />
@@ -379,7 +460,6 @@ export default function MediaDetail() {
                       <p className="text-xs text-muted-foreground">Applied</p>
                     </div>
 
-                    {/* Clips Generated */}
                     <div className="p-4 rounded-lg border bg-card">
                       <div className="flex items-center gap-2 mb-2">
                         <Scissors className="w-5 h-5 text-cyan-500" />
@@ -440,7 +520,6 @@ export default function MediaDetail() {
                               className="flex-1 text-xs h-8"
                               onClick={() => navigate(`/studio/clips?clipId=${clip.id}`)}
                             >
-                              <Edit3 className="w-3 h-3 mr-1" />
                               Edit
                             </Button>
                             <Button
@@ -448,7 +527,6 @@ export default function MediaDetail() {
                               className="flex-1 text-xs h-8"
                               onClick={() => handlePublishToSocial(clip)}
                             >
-                              <Share2 className="w-3 h-3 mr-1" />
                               Publish
                             </Button>
                           </div>
@@ -466,13 +544,97 @@ export default function MediaDetail() {
             {/* Quick Actions */}
             <Card>
               <CardHeader>
+                <CardTitle className="text-base">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => navigate(`/studio/clips?media=${id}`)}
+                >
+                  <Scissors className="w-4 h-4 mr-2 text-[#2C6BED]" />
+                  Generate AI Clips
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => handlePublishToSocial()}
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Publish to Social
+                </Button>
+                
+                <Separator className="my-3" />
+                
+                {/* Post to YouTube */}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        className="w-full justify-start bg-red-500 hover:bg-red-600 text-white"
+                        onClick={() => handlePublishToSocial(undefined, 'youtube')}
+                      >
+                        <Youtube className="w-4 h-4 mr-2" />
+                        Post to YouTube
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="max-w-[200px]">
+                      {publishStatus === 'published_youtube' 
+                        ? "You've already posted this once — posting again will create another upload on YouTube."
+                        : "Publish your video directly to YouTube with optimized settings."}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                {/* Submit for Ads */}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        className={cn(
+                          "w-full justify-start",
+                          isAdEnabled 
+                            ? "bg-muted text-muted-foreground cursor-not-allowed" 
+                            : "bg-gradient-to-r from-[#053877] to-[#2C6BED] text-white hover:opacity-90"
+                        )}
+                        onClick={() => !isAdEnabled && setShowAdSubmitModal(true)}
+                        disabled={isAdEnabled}
+                      >
+                        <DollarSign className="w-4 h-4 mr-2" />
+                        {isAdEnabled ? "Ad-Enabled" : "Submit for Ads"}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="max-w-[200px]">
+                      {isAdEnabled 
+                        ? "Ads are already enabled for this video."
+                        : "Submit your video to Seeksy Ads to start earning revenue."}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <Separator className="my-3" />
+
+                <Button variant="outline" className="w-full justify-start" onClick={handleDownload}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Download All
+                </Button>
+                <Button variant="outline" className="w-full justify-start" onClick={handleCopyLink}>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Get Shareable Link
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Export & Share */}
+            <Card>
+              <CardHeader>
                 <CardTitle className="text-base">Export & Share</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button
                   variant="outline"
                   className="w-full justify-start"
-                  onClick={() => handlePublishToSocial()}
+                  onClick={() => handlePublishToSocial(undefined, 'instagram')}
                 >
                   <Instagram className="w-4 h-4 mr-2 text-pink-500" />
                   Publish to Instagram
@@ -480,7 +642,7 @@ export default function MediaDetail() {
                 <Button
                   variant="outline"
                   className="w-full justify-start"
-                  onClick={() => handlePublishToSocial()}
+                  onClick={() => handlePublishToSocial(undefined, 'tiktok')}
                 >
                   <Video className="w-4 h-4 mr-2" />
                   Publish to TikTok
@@ -488,24 +650,10 @@ export default function MediaDetail() {
                 <Button
                   variant="outline"
                   className="w-full justify-start"
-                  onClick={() => handlePublishToSocial()}
+                  onClick={() => handlePublishToSocial(undefined, 'youtube')}
                 >
                   <Youtube className="w-4 h-4 mr-2 text-red-500" />
                   Publish to YouTube Shorts
-                </Button>
-                <Separator className="my-3" />
-                <Button variant="outline" className="w-full justify-start" onClick={handleDownload}>
-                  <Download className="w-4 h-4 mr-2" />
-                  Download Video
-                </Button>
-                <Button variant="outline" className="w-full justify-start" onClick={handleCopyLink}>
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copy Share Link
-                </Button>
-                <Button variant="ghost" className="w-full justify-start text-muted-foreground" disabled>
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  More Coming Soon
-                  <Badge variant="secondary" className="ml-auto text-xs">Soon</Badge>
                 </Button>
               </CardContent>
             </Card>
@@ -584,6 +732,46 @@ export default function MediaDetail() {
           duration_seconds: media.duration_seconds,
         } : null}
       />
+
+      {/* Submit for Ads Modal */}
+      <Dialog open={showAdSubmitModal} onOpenChange={setShowAdSubmitModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-[#2C6BED]" />
+              Submit this video to Seeksy Ads?
+            </DialogTitle>
+            <DialogDescription className="pt-4 space-y-4">
+              <p>We'll add this video to our ad marketplace.</p>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                  <span><strong>3 ad slots</strong> will be inserted (pre-roll / mid-roll / post-roll)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                  <span>Estimated payout: <strong>$18.50</strong> per 1,000 impressions (CPM)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                  <span>You'll earn revenue whenever this video is shown with ads</span>
+                </li>
+              </ul>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setShowAdSubmitModal(false)}>
+              Cancel
+            </Button>
+            <Button 
+              className="bg-gradient-to-r from-[#053877] to-[#2C6BED]"
+              onClick={handleSubmitForAds}
+            >
+              Yes, submit for ads
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

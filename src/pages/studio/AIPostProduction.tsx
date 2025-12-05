@@ -779,6 +779,7 @@ export default function AIPostProduction() {
           onOpenChange={setShowComparisonModal}
           originalUrl={hasOriginalPreview ? videoUrl || null : null}
           enhancedUrl={videoUrl || null}
+          analytics={aiAnalytics}
         />
 
         {/* Media Selector Dialog */}
