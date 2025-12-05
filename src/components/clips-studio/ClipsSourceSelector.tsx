@@ -102,7 +102,9 @@ export function ClipsSourceSelector({ onMediaSelect, onBack }: ClipsSourceSelect
       if (!session) throw new Error("Not authenticated");
 
       const user = session.user;
-      const filePath = `${user.id}/${Date.now()}-${file.name}`;
+      // Sanitize filename to remove special characters that are invalid for storage keys
+      const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '-').replace(/--+/g, '-');
+      const filePath = `${user.id}/${Date.now()}-${sanitizedName}`;
 
       // Use TUS for large files
       if (file.size > 6 * 1024 * 1024) {
