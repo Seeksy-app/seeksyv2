@@ -145,14 +145,14 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Larger dimensions without phone frame
+  // Much larger dimensions for better preview
   const getPreviewDimensions = () => {
     switch (selectedRatio) {
-      case "9:16": return { width: 320, height: 568 };
-      case "1:1": return { width: 400, height: 400 };
-      case "16:9": return { width: 560, height: 315 };
-      case "4:5": return { width: 360, height: 450 };
-      default: return { width: 320, height: 568 };
+      case "9:16": return { width: 380, height: 676 };
+      case "1:1": return { width: 500, height: 500 };
+      case "16:9": return { width: 700, height: 394 };
+      case "4:5": return { width: 450, height: 562 };
+      default: return { width: 380, height: 676 };
     }
   };
 
@@ -173,9 +173,9 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
   const dimensions = getPreviewDimensions();
 
   return (
-    <div className="flex-1 flex items-start justify-center bg-muted/5 overflow-y-auto py-6">
-      {/* Sticky preview container */}
-      <div className="sticky top-6 flex flex-col items-center gap-4">
+    <div className="flex-1 flex items-center justify-center bg-muted/5 p-6">
+      {/* Fixed preview container - no scroll */}
+      <div className="flex flex-col items-center gap-5">
         {/* Video Container - No phone frame */}
         <motion.div 
           className="relative"
@@ -288,7 +288,7 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
         </motion.div>
 
         {/* Controls - directly under video */}
-        <div className="w-full max-w-[400px] bg-card/90 backdrop-blur-sm rounded-xl border p-4 space-y-4">
+        <div className="w-full max-w-[500px] bg-card/90 backdrop-blur-sm rounded-xl border p-4 space-y-4">
           {/* Playback controls */}
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={skipBack} className="h-9 w-9">
