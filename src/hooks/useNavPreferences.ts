@@ -76,20 +76,7 @@ const DEFAULT_LANDING_ROUTE = '/my-day';
 export const NAV_ITEMS: NavItem[] = [
   { id: 'my_day', label: 'My Day', path: '/my-day', isHome: true },
   { id: 'dashboard', label: 'Dashboard', path: '/dashboard', isHome: true },
-  { 
-    id: 'creator_hub', 
-    label: 'Creator Hub', 
-    path: '/creator-hub', 
-    isHome: true,
-    subItems: [
-      { id: 'creator_social_analytics', label: 'Social Analytics', path: '/social-analytics' },
-      { id: 'creator_monetization', label: 'Monetization', path: '/monetization' },
-      { id: 'creator_awards', label: 'Awards', path: '/awards' },
-      { id: 'creator_brand_campaigns', label: 'Brand Campaigns', path: '/creator-campaigns' },
-      { id: 'creator_revenue', label: 'Revenue Tracking', path: '/monetization' },
-      { id: 'creator_my_page', label: 'My Page', path: '/profile/edit' },
-    ]
-  },
+  { id: 'creator_hub', label: 'Creator Hub', path: '/creator-hub', isHome: true },
   { 
     id: 'meetings', 
     label: 'Meetings', 

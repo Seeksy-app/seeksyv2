@@ -79,6 +79,7 @@ import {
   Instagram,
   ChevronDown,
   Play,
+  Package,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -102,6 +103,7 @@ import { SparkIcon } from "@/components/spark/SparkIcon";
 import { useSidebarState } from "@/hooks/useSidebarState";
 import { useModuleActivation } from "@/hooks/useModuleActivation";
 import { useNavPreferences, NAV_ITEMS } from "@/hooks/useNavPreferences";
+import { useCustomPackages } from "@/hooks/useCustomPackages";
 
 interface RoleBasedSidebarProps {
   user?: User | null;
@@ -203,6 +205,7 @@ const ICON_MAP: Record<string, any> = {
   mail: Mail,
   instagram: Instagram,
   play: Play,
+  package: Package,
 };
 
 export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
@@ -212,6 +215,7 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
   const collapsed = state === "collapsed";
   const { activatedModuleIds, isLoading: modulesLoading } = useModuleActivation();
   const { navConfig, isLoading: navLoading } = useNavPreferences();
+  const { packages: customPackages } = useCustomPackages();
   const [refreshKey, setRefreshKey] = useState(0);
   
   // Use permission-based navigation filtering for admin nav
@@ -302,7 +306,7 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                   const hasSubItems = item.subItems && item.subItems.length > 0;
                   
                   // Section title items (standalone without sub-items) - styled as headers
-                  const isSectionTitle = ['my_day', 'dashboard', 'settings', 'seekies', 'social_analytics'].includes(item.id);
+                  const isSectionTitle = ['my_day', 'dashboard', 'settings', 'seekies', 'social_analytics', 'creator_hub'].includes(item.id);
                   
                   // Items with sub-items render as collapsible
                   if (hasSubItems && !collapsed) {
@@ -394,6 +398,38 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                     </SidebarMenuItem>
                   );
                 })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {/* Custom Workspaces Section - Non-admin users */}
+        {!isAdmin && customPackages.length > 0 && !collapsed && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-white/60 text-xs font-medium px-3 py-1">
+              My Workspaces
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {customPackages.map((pkg) => (
+                  <SidebarMenuItem key={pkg.id}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={`/apps?workspace=${pkg.id}`}
+                        className="flex items-center justify-between transition-all duration-150 text-white hover:bg-white/10 w-full"
+                        activeClassName="nav-active"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <Package className="h-4 w-4 shrink-0 text-white" />
+                          <span className="truncate text-white">{pkg.name}</span>
+                        </div>
+                        {pkg.is_default && (
+                          <span className="text-amber-400 text-xs ml-auto shrink-0">★</span>
+                        )}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
