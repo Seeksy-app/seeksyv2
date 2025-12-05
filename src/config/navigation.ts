@@ -230,6 +230,13 @@ export const NAVIGATION_CONFIG: {
           "roles": ["admin", "super_admin", "cfo", "board_member"]
         },
         {
+          "id": "admin_proforma_creator_economy",
+          "label": "3-Year Pro Forma (Creator)",
+          "icon": "sparkles",
+          "path": "/cfo/proforma/creator-economy",
+          "roles": ["admin", "super_admin", "cfo", "board_member"]
+        },
+        {
           "id": "admin_proforma_events",
           "label": "3-Year Pro Forma (Events)",
           "icon": "trophy",
