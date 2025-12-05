@@ -90,12 +90,8 @@ const Meetings = () => {
   });
 
   const handleStartMeeting = async (meeting: any) => {
-    try {
-      // Navigate directly to meeting studio (not podcast studio)
-      navigate(`/meeting-studio/${meeting.id}`);
-    } catch (error: any) {
-      toast.error("Failed to start meeting: " + error.message);
-    }
+    // Navigate to Daily.co-powered Meeting Studio
+    navigate(`/studio/meeting/${meeting.id}`);
   };
 
   const handleDeleteMeeting = (meeting: any) => {

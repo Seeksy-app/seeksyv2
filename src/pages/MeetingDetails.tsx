@@ -260,9 +260,9 @@ export default function MeetingDetails() {
             </div>
 
             {!isPast && (
-              <Button onClick={() => navigate(`/meeting-studio/${id}`)}>
+              <Button onClick={() => navigate(`/studio/meeting/${id}`)}>
                 <Video className="h-4 w-4 mr-2" />
-                Join Meeting
+                Join Studio
               </Button>
             )}
           </div>
