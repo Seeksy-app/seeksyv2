@@ -58,9 +58,11 @@ export function ModulePreviewModal({ open, onOpenChange, module }: ModulePreview
     if (!module) return;
     
     if (isAlreadyActivated) {
-      // Already activated, just navigate
+      // Already activated, open in new tab
       onOpenChange(false);
-      if (module.route) navigate(module.route);
+      if (module.route) {
+        window.open(module.route, '_blank');
+      }
       return;
     }
 
@@ -68,7 +70,7 @@ export function ModulePreviewModal({ open, onOpenChange, module }: ModulePreview
     activateModule(module.id);
     onOpenChange(false);
     if (module.route) {
-      setTimeout(() => navigate(module.route!), 300);
+      setTimeout(() => window.open(module.route!, '_blank'), 300);
     }
   };
 

@@ -512,6 +512,7 @@ export default function Apps() {
   const [isCompact, setIsCompact] = useState(false);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const [showPackageBuilder, setShowPackageBuilder] = useState(false);
+  const [editPackage, setEditPackage] = useState<typeof packages[0] | null>(null);
   const [previewModule, setPreviewModule] = useState<Module | null>(null);
 
   // Compute module status based on activation
@@ -726,10 +727,16 @@ export default function Apps() {
         {/* My Workspaces Section */}
         {activeCategory === "my-workspaces" && (
           <MyWorkspacesSection 
-            onCreateNew={() => setShowPackageBuilder(true)} 
-            onEdit={(packageId) => {
-              // TODO: Implement edit functionality - for now show package builder
+            onCreateNew={() => {
+              setEditPackage(null);
               setShowPackageBuilder(true);
+            }} 
+            onEdit={(packageId) => {
+              const pkg = packages.find(p => p.id === packageId);
+              if (pkg) {
+                setEditPackage(pkg);
+                setShowPackageBuilder(true);
+              }
             }}
           />
         )}
@@ -854,8 +861,12 @@ export default function Apps() {
       {/* Custom Package Builder Modal */}
       <CustomPackageBuilder
         open={showPackageBuilder}
-        onOpenChange={setShowPackageBuilder}
+        onOpenChange={(open) => {
+          setShowPackageBuilder(open);
+          if (!open) setEditPackage(null);
+        }}
         modules={packageModules}
+        editPackage={editPackage}
       />
 
       {/* Module Preview Modal */}
