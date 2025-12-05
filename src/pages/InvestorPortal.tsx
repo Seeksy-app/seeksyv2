@@ -7,12 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Lock, FileSpreadsheet, Settings, ShieldCheck, Download, TrendingUp } from "lucide-react";
+import { Lock, FileSpreadsheet, Settings, ShieldCheck, Download, TrendingUp, Mail, Loader2 } from "lucide-react";
 import { InteractiveSpreadsheet } from "@/components/cfo/InteractiveSpreadsheet";
 import { CFOAIChat } from "@/components/cfo/CFOAIChat";
 import { BusinessModelTab } from "@/components/cfo/BusinessModelTab";
 import { SpreadsheetList } from "@/components/investor/SpreadsheetList";
 import { SpreadsheetViewer } from "@/components/investor/SpreadsheetViewer";
+import { GenerateLinkModal } from "@/components/board/investor/GenerateLinkModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,11 +30,14 @@ export default function InvestorPortal() {
   const [accessCode, setAccessCode] = useState(searchParams.get("code") || "");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [checkingAdmin, setCheckingAdmin] = useState(true); // New: prevent flash
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const [investorEmail, setInvestorEmail] = useState("");
   const [showDisclosure, setShowDisclosure] = useState(false);
   const [pendingAccessData, setPendingAccessData] = useState<any>(null);
   const [viewingSpreadsheet, setViewingSpreadsheet] = useState<any>(null);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [showShareModal, setShowShareModal] = useState(false);
   const [shareConfig, setShareConfig] = useState<any>({
     allowHtmlView: true,
     allowDownload: true,
@@ -45,21 +49,30 @@ export default function InvestorPortal() {
   // Auto-authenticate admin/CFO users without requiring access code
   useEffect(() => {
     const checkAdminAccess = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      setCheckingAdmin(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setCheckingAdmin(false);
+          return;
+        }
 
-      // Check if user is admin/CFO
-      const { data: roles } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id);
+        // Check if user is admin/CFO
+        const { data: roles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id);
 
-      const adminRoles = ['admin', 'super_admin', 'cfo', 'board_member'];
-      const isAdmin = roles?.some(r => adminRoles.includes(r.role));
+        const adminRoles = ['admin', 'super_admin', 'cfo', 'board_member'];
+        const isAdmin = roles?.some(r => adminRoles.includes(r.role));
 
-      if (isAdmin) {
-        setIsAuthenticated(true);
-        setInvestorEmail(user.email || 'Admin Access');
+        if (isAdmin) {
+          setIsAuthenticated(true);
+          setIsAdminUser(true);
+          setInvestorEmail(user.email || 'Admin Access');
+        }
+      } finally {
+        setCheckingAdmin(false);
       }
     };
 
@@ -136,6 +149,18 @@ export default function InvestorPortal() {
     setPendingAccessData(null);
     toast.info("Access declined. You must accept the agreement to continue.");
   };
+
+  // Show loading while checking admin status to prevent flash
+  if (checkingAdmin) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (
@@ -284,6 +309,17 @@ export default function InvestorPortal() {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              {isAdminUser && (
+                <Button 
+                  variant="default" 
+                  size="sm"
+                  onClick={() => setShowShareModal(true)}
+                  className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white"
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  Email to Investor
+                </Button>
+              )}
               <Button 
                 variant="outline" 
                 size="sm"
@@ -502,6 +538,13 @@ export default function InvestorPortal() {
           <p>For questions or additional information, please contact <a href="mailto:Hello@Seeksy.io" className={`hover:underline font-medium ${theme === 'dark' ? 'text-cyan-400' : 'text-primary'}`}>Hello@Seeksy.io</a></p>
         </div>
       </div>
+
+      {/* Email to Investor Modal */}
+      <GenerateLinkModal
+        open={showShareModal}
+        onOpenChange={setShowShareModal}
+        onSuccess={() => {}}
+      />
     </div>
   );
 }
