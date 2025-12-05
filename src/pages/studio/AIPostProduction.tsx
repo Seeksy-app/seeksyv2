@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -14,10 +14,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useVideoProcessing } from "@/hooks/useVideoProcessing";
 import { UploadMediaDialog } from "@/components/media/UploadMediaDialog";
 import { 
-  Wand2, Scissors, ArrowLeft, Play, Pause, Clock, FileVideo, FileAudio, 
-  Sparkles, Volume2, Type, Layers, Image, Upload, Check, Loader2, 
+  Wand2, Scissors, ArrowLeft, Clock, FileVideo, 
+  Sparkles, Volume2, Type, Layers, Upload, Check, Loader2, 
   AlertCircle, Film, Mic, Palette, Sun, X, RefreshCw, Download, Eye,
-  ChevronRight, Zap, RotateCcw, ImagePlus, Minimize2, Maximize2, Video
+  ChevronRight, Zap, RotateCcw, Video, ExternalLink, FileText, Share2, FolderOpen
 } from "lucide-react";
 import { MediaSourceSelector, MediaSource } from "@/components/studio/MediaSourceSelector";
 import { formatDistanceToNow } from "date-fns";
@@ -46,7 +46,7 @@ interface ProcessingJob {
   error_message: string | null;
 }
 
-// Processing steps for the multi-step progress bar
+// Processing steps
 const PROCESSING_STEPS = [
   { id: 'audio', label: 'Audio Enhancement', icon: Volume2 },
   { id: 'video', label: 'Video Enhancement', icon: Sun },
@@ -59,17 +59,10 @@ const PROCESSING_STEPS = [
 ];
 
 const formatDuration = (seconds: number | null) => {
-  if (!seconds) return "Unknown";
+  if (!seconds) return "0:00";
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins}:${secs.toString().padStart(2, '0')}`;
-};
-
-const formatFileSize = (bytes: number | null) => {
-  if (!bytes) return "Unknown";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
 export default function AIPostProduction() {
@@ -78,23 +71,21 @@ export default function AIPostProduction() {
   const queryClient = useQueryClient();
   const { processVideo, isProcessing } = useVideoProcessing();
   
+  // Wizard step: 1 = Select, 2 = Processing, 3 = Success
+  const [wizardStep, setWizardStep] = useState<1 | 2 | 3>(1);
+  
   const [selectedMedia, setSelectedMedia] = useState<MediaFile | null>(null);
   const [showMediaSelector, setShowMediaSelector] = useState(false);
   const [showComparisonModal, setShowComparisonModal] = useState(false);
-  const [showThumbnailDialog, setShowThumbnailDialog] = useState(false);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [mediaFilter, setMediaFilter] = useState<'all' | 'video' | 'audio'>('all');
   
   // Processing state
-  const [isStudioActive, setIsStudioActive] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [stepProgress, setStepProgress] = useState(0);
   const [processingStatus, setProcessingStatus] = useState('');
-  const [activeJobId, setActiveJobId] = useState<string | null>(null);
-  const [processingComplete, setProcessingComplete] = useState(false);
   
-  // AI Analytics state - real-time stats
+  // AI Analytics state
   const [aiAnalytics, setAiAnalytics] = useState({
     fillerWordsRemoved: 0,
     pausesRemoved: 0,
@@ -108,11 +99,6 @@ export default function AIPostProduction() {
     originalDuration: 0,
     finalDuration: 0,
   });
-  
-  // Thumbnail state
-  const [generatedThumbnails, setGeneratedThumbnails] = useState<string[]>([]);
-  const [selectedThumbnail, setSelectedThumbnail] = useState<string | null>(null);
-  const [isGeneratingThumbnails, setIsGeneratingThumbnails] = useState(false);
   
   // Comparison slider
   const [comparisonPosition, setComparisonPosition] = useState(50);
@@ -152,7 +138,7 @@ export default function AIPostProduction() {
       return data as ProcessingJob[];
     },
     enabled: !!selectedMedia,
-    refetchInterval: isStudioActive ? 2000 : false
+    refetchInterval: wizardStep === 2 ? 2000 : false
   });
 
   // Real-time subscription for job updates
@@ -173,20 +159,15 @@ export default function AIPostProduction() {
           console.log('Job update:', payload);
           refetchJobs();
           
-          // Update studio state based on job status
           const job = payload.new as any;
           if (job) {
             if (job.status === 'completed') {
-              setIsStudioActive(false);
+              setWizardStep(3);
               setCurrentStep(PROCESSING_STEPS.length);
               setStepProgress(100);
               setProcessingStatus('Complete!');
-              toast({
-                title: "Processing Complete!",
-                description: "Your media has been enhanced successfully.",
-              });
             } else if (job.status === 'failed') {
-              setIsStudioActive(false);
+              setWizardStep(1);
               setProcessingStatus('Failed');
               toast({
                 title: "Processing Failed",
@@ -204,11 +185,10 @@ export default function AIPostProduction() {
     };
   }, [selectedMedia?.id, refetchJobs, toast]);
 
-  // Simulate step progression during processing with analytics updates
+  // Simulate step progression during processing
   useEffect(() => {
-    if (!isStudioActive) return;
+    if (wizardStep !== 2) return;
     
-    // Initialize analytics with media duration
     const mediaDuration = selectedMedia?.duration_seconds || 300;
     setAiAnalytics(prev => ({
       ...prev,
@@ -225,39 +205,37 @@ export default function AIPostProduction() {
       }
       
       setStepProgress(prev => {
-        // Strictly cap progress at 100
         const increment = Math.random() * 10 + 3;
         const newProgress = Math.min(100, prev + increment);
         
         if (newProgress >= 100 && prev < 100) {
-          // Step completed - move to next step
           setCurrentStep(step => {
             // Update analytics based on completed step
             setAiAnalytics(analytics => {
               const updates = { ...analytics };
               switch (step) {
-                case 0: // Audio Enhancement
+                case 0:
                   updates.audioLevelNormalized = Math.round(Math.random() * 15 + 5);
                   updates.noiseReduced = Math.round(Math.random() * 40 + 20);
                   break;
-                case 1: // Video Enhancement
+                case 1:
                   updates.colorGraded = true;
                   break;
-                case 2: // Filler Removal
+                case 2:
                   updates.fillerWordsRemoved = Math.round(Math.random() * 30 + 15);
                   updates.totalTimeSaved += Math.round(Math.random() * 20 + 10);
                   updates.finalDuration = Math.max(updates.originalDuration - updates.totalTimeSaved, updates.originalDuration * 0.85);
                   break;
-                case 3: // Pause Removal
+                case 3:
                   updates.pausesRemoved = Math.round(Math.random() * 25 + 10);
                   updates.silencesTrimmed = Math.round(Math.random() * 40 + 20);
                   updates.totalTimeSaved += Math.round(Math.random() * 15 + 8);
                   updates.finalDuration = Math.max(updates.originalDuration - updates.totalTimeSaved, updates.originalDuration * 0.8);
                   break;
-                case 5: // Transcription
+                case 5:
                   updates.transcriptWords = Math.round(analytics.originalDuration * 2.5);
                   break;
-                case 6: // Chapter Detection
+                case 6:
                   updates.chaptersDetected = Math.round(Math.random() * 5 + 3);
                   break;
               }
@@ -267,26 +245,19 @@ export default function AIPostProduction() {
             const nextStep = step + 1;
             
             if (nextStep < PROCESSING_STEPS.length) {
-              // More steps to go
               setProcessingStatus(PROCESSING_STEPS[nextStep].label + '...');
-              setStepProgress(0); // Reset progress for new step
+              setStepProgress(0);
               return nextStep;
             } else {
-              // All steps complete - stop processing and show comparison modal
               isActive = false;
               clearInterval(interval);
-              setIsStudioActive(false);
+              setWizardStep(3);
               setProcessingStatus('Complete!');
-              setProcessingComplete(true);
-              // Auto-open comparison modal after brief delay
-              setTimeout(() => {
-                setShowComparisonModal(true);
-              }, 500);
               return step;
             }
           });
           
-          return 100; // Return 100 to show completion
+          return 100;
         }
         
         return newProgress;
@@ -297,9 +268,9 @@ export default function AIPostProduction() {
       isActive = false;
       clearInterval(interval);
     };
-  }, [isStudioActive, selectedMedia?.duration_seconds]);
+  }, [wizardStep, selectedMedia?.duration_seconds]);
 
-  const handleStartProcessing = async (mode: 'full' | 'clips') => {
+  const handleStartProcessing = async () => {
     if (!selectedMedia) {
       toast({
         title: "No media selected",
@@ -310,12 +281,10 @@ export default function AIPostProduction() {
     }
 
     try {
-      // Reset studio state
-      setIsStudioActive(true);
+      setWizardStep(2);
       setCurrentStep(0);
       setStepProgress(0);
       setProcessingStatus(PROCESSING_STEPS[0].label + '...');
-      // Reset AI analytics
       setAiAnalytics({
         fillerWordsRemoved: 0,
         pausesRemoved: 0,
@@ -329,27 +298,17 @@ export default function AIPostProduction() {
         originalDuration: selectedMedia.duration_seconds || 300,
         finalDuration: selectedMedia.duration_seconds || 300,
       });
-      setProcessingComplete(false);
       
-      const jobType = mode === 'full' ? 'ai_edit' : 'full_process';
-      await processVideo(selectedMedia.id, jobType);
-      
+      await processVideo(selectedMedia.id, 'ai_edit');
       queryClient.invalidateQueries({ queryKey: ['processing-jobs', selectedMedia.id] });
       
-      toast({
-        title: "Processing started",
-        description: "View progress in the Studio below",
-        action: (
-          <Button size="sm" variant="outline" onClick={() => {
-            document.getElementById('processing-studio')?.scrollIntoView({ behavior: 'smooth' });
-          }}>
-            View Studio
-          </Button>
-        )
-      });
+      // Auto-scroll to processing section
+      setTimeout(() => {
+        document.getElementById('processing-section')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
     } catch (error) {
       console.error('Processing error:', error);
-      setIsStudioActive(false);
+      setWizardStep(1);
       setProcessingStatus('Failed');
     }
   };
@@ -358,11 +317,10 @@ export default function AIPostProduction() {
     if (!selectedMedia) return;
     
     try {
-      setIsStudioActive(true);
+      setWizardStep(2);
       setCurrentStep(0);
       setStepProgress(0);
       setProcessingStatus(PROCESSING_STEPS[0].label + '...');
-      // Reset AI analytics
       setAiAnalytics({
         fillerWordsRemoved: 0,
         pausesRemoved: 0,
@@ -379,56 +337,31 @@ export default function AIPostProduction() {
       
       await processVideo(selectedMedia.id, job.job_type as any);
       queryClient.invalidateQueries({ queryKey: ['processing-jobs', selectedMedia.id] });
-      
-      toast({ title: "Retrying processing...", description: "Job resubmitted successfully" });
     } catch (error) {
-      setIsStudioActive(false);
+      setWizardStep(1);
       toast({ title: "Retry failed", variant: "destructive" });
     }
   };
 
-  const handleGenerateThumbnails = async () => {
-    if (!selectedMedia) return;
-    
-    setIsGeneratingThumbnails(true);
-    
-    // Simulate thumbnail generation
-    await new Promise(r => setTimeout(r, 2000));
-    
-    const mockThumbnails = [
-      `https://picsum.photos/seed/${selectedMedia.id}-1/400/225`,
-      `https://picsum.photos/seed/${selectedMedia.id}-2/400/225`,
-      `https://picsum.photos/seed/${selectedMedia.id}-3/400/225`,
-      `https://picsum.photos/seed/${selectedMedia.id}-4/400/225`,
-    ];
-    
-    setGeneratedThumbnails(mockThumbnails);
-    setSelectedThumbnail(mockThumbnails[0]);
-    setIsGeneratingThumbnails(false);
-    
-    toast({ title: "Thumbnails generated!", description: "Select one to set as default" });
+  const handleMediaSelect = (media: MediaFile) => {
+    setSelectedMedia(media);
+    setShowMediaSelector(false);
+    // Auto-scroll to step 2 area
+    setTimeout(() => {
+      document.getElementById('processing-section')?.scrollIntoView({ behavior: 'smooth' });
+    }, 200);
   };
 
-  const handleSetDefaultThumbnail = async () => {
-    if (!selectedMedia || !selectedThumbnail) return;
-    
-    try {
-      await supabase
-        .from('media_files')
-        .update({ thumbnail_url: selectedThumbnail })
-        .eq('id', selectedMedia.id);
-      
-      queryClient.invalidateQueries({ queryKey: ['media-files-for-processing'] });
-      toast({ title: "Thumbnail saved!" });
-      setShowThumbnailDialog(false);
-    } catch (error) {
-      toast({ title: "Failed to save thumbnail", variant: "destructive" });
-    }
+  const handleChangeMedia = () => {
+    setSelectedMedia(null);
+    setWizardStep(1);
+    setCurrentStep(0);
+    setStepProgress(0);
   };
 
-  const latestJob = processingJobs?.[0];
   const latestFailedJob = processingJobs?.find(j => j.status === 'failed');
   const videoUrl = selectedMedia?.cloudflare_download_url || selectedMedia?.file_url;
+  const overallProgress = Math.min(100, Math.round((currentStep / PROCESSING_STEPS.length) * 100 + (stepProgress / PROCESSING_STEPS.length)));
 
   // Filter media files
   const filteredMedia = mediaFiles?.filter(f => {
@@ -438,156 +371,209 @@ export default function AIPostProduction() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 max-w-5xl">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex items-center gap-4 mb-6">
           <Button variant="ghost" size="icon" onClick={() => navigate('/studio/media')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">AI Post-Production</h1>
-            <p className="text-muted-foreground">
-              Automatically enhance, edit, and generate clips from your content
+            <h1 className="text-2xl font-bold">AI Post-Production</h1>
+            <p className="text-sm text-muted-foreground">
+              Enhance your content in 3 simple steps
             </p>
           </div>
         </div>
 
-        {/* Media Selection Card */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Film className="h-5 w-5" />
-              Select Media
-            </CardTitle>
-            <CardDescription>
-              Choose a video or audio file to process with AI enhancement
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <MediaSourceSelector
-              onUploadClick={() => setShowUploadDialog(true)}
-              onLibraryClick={() => setShowMediaSelector(true)}
-              onMediaSelected={(mediaId, source) => {
-                // Find or create media with this ID
-                const media = mediaFiles?.find(m => m.id === mediaId);
-                if (media) {
-                  setSelectedMedia({ ...media, source } as MediaFile);
-                } else {
-                  // Media was just created via import - refetch and select
-                  queryClient.invalidateQueries({ queryKey: ['media-files-for-processing'] });
-                  // Set a temporary placeholder
-                  setSelectedMedia({
-                    id: mediaId,
-                    file_name: `Importing from ${source}...`,
-                    file_type: 'video',
-                    file_url: null,
-                    cloudflare_download_url: null,
-                    duration_seconds: null,
-                    created_at: new Date().toISOString(),
-                    thumbnail_url: null,
-                    edit_status: 'pending',
-                    file_size_bytes: null,
-                    source
-                  });
-                }
-              }}
-              selectedMedia={selectedMedia ? {
-                id: selectedMedia.id,
-                file_name: selectedMedia.file_name,
-                thumbnail_url: selectedMedia.thumbnail_url,
-                duration_seconds: selectedMedia.duration_seconds,
-                file_type: selectedMedia.file_type,
-                source: (selectedMedia.source as MediaSource) || 'library'
-              } : null}
-              onClearMedia={() => setSelectedMedia(null)}
-              importStatus={selectedMedia?.edit_status === 'pending' ? 'importing' : 
-                           selectedMedia?.edit_status === 'edited' ? 'ready' : 'idle'}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Processing Studio (Pic-in-Pic) */}
-        {isStudioActive && selectedMedia && !isMinimized && (
-          <Card className="mb-8 border-primary" id="processing-studio">
-            <CardHeader className="bg-primary/5">
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                  Processing Studio
-                </CardTitle>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => setIsMinimized(true)}
-                  >
-                    <Minimize2 className="h-4 w-4 mr-1" />
-                    Minimize
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => {
-                      setIsStudioActive(false);
-                      setIsMinimized(false);
-                    }}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
+        {/* Step Indicator */}
+        <div className="flex items-center gap-2 mb-6">
+          {[1, 2, 3].map((step) => (
+            <div key={step} className="flex items-center">
+              <div className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all",
+                wizardStep >= step 
+                  ? "bg-[#053877] text-white" 
+                  : "bg-muted text-muted-foreground"
+              )}>
+                {wizardStep > step ? <Check className="h-4 w-4" /> : step}
               </div>
-            </CardHeader>
+              <span className={cn(
+                "ml-2 text-sm font-medium",
+                wizardStep >= step ? "text-foreground" : "text-muted-foreground"
+              )}>
+                {step === 1 ? 'Select' : step === 2 ? 'Enhance' : 'Complete'}
+              </span>
+              {step < 3 && <div className="w-8 h-px bg-border mx-3" />}
+            </div>
+          ))}
+        </div>
+
+        {/* ========== STEP 1: SELECT MEDIA ========== */}
+        {!selectedMedia ? (
+          <Card className="mb-6">
             <CardContent className="pt-6">
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Video Preview */}
-                <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
-                  {videoUrl ? (
-                    <video 
-                      src={videoUrl} 
-                      className="w-full h-full object-contain"
-                      autoPlay
-                      muted
-                      loop
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <FileVideo className="h-16 w-16 text-white/20" />
-                    </div>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-full bg-[#053877] flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">1</span>
+                </div>
+                <h2 className="text-lg font-semibold">Select Your Media</h2>
+              </div>
+              <MediaSourceSelector
+                onUploadClick={() => setShowUploadDialog(true)}
+                onLibraryClick={() => setShowMediaSelector(true)}
+                onMediaSelected={(mediaId, source) => {
+                  const media = mediaFiles?.find(m => m.id === mediaId);
+                  if (media) {
+                    handleMediaSelect({ ...media, source } as MediaFile);
+                  } else {
+                    queryClient.invalidateQueries({ queryKey: ['media-files-for-processing'] });
+                    handleMediaSelect({
+                      id: mediaId,
+                      file_name: `Importing from ${source}...`,
+                      file_type: 'video',
+                      file_url: null,
+                      cloudflare_download_url: null,
+                      duration_seconds: null,
+                      created_at: new Date().toISOString(),
+                      thumbnail_url: null,
+                      edit_status: 'pending',
+                      file_size_bytes: null,
+                      source
+                    });
+                  }
+                }}
+                selectedMedia={null}
+                onClearMedia={() => {}}
+                importStatus="idle"
+              />
+            </CardContent>
+          </Card>
+        ) : (
+          /* Collapsed Selection Header */
+          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border mb-6" style={{ borderColor: 'rgba(5,56,119,0.2)' }}>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-8 bg-muted rounded overflow-hidden flex items-center justify-center">
+                {selectedMedia.thumbnail_url ? (
+                  <img src={selectedMedia.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <Video className="h-4 w-4 text-muted-foreground" />
+                )}
+              </div>
+              <div>
+                <p className="font-medium text-sm flex items-center gap-2">
+                  🎥 Selected: {selectedMedia.file_name || 'Untitled'}
+                  {selectedMedia.duration_seconds && (
+                    <span className="text-muted-foreground">({formatDuration(selectedMedia.duration_seconds)})</span>
                   )}
-                  
-                  {/* Processing Overlay */}
-                  <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center">
-                    <div className="relative">
-                      <div className="w-20 h-20 rounded-full border-4 border-primary/30 flex items-center justify-center animate-pulse">
-                        <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
+                </p>
+              </div>
+            </div>
+            <Button variant="ghost" size="sm" onClick={handleChangeMedia}>
+              Change Video
+            </Button>
+          </div>
+        )}
+
+        {/* ========== STEP 2: PROCESSING ========== */}
+        <div id="processing-section">
+          {selectedMedia && wizardStep === 1 && (
+            <Card className="mb-6">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-full bg-[#053877] flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">2</span>
+                  </div>
+                  <h2 className="text-lg font-semibold">Start Enhancement</h2>
+                </div>
+                
+                {/* Failed Job Banner */}
+                {latestFailedJob && (
+                  <div className="mb-4 p-3 bg-destructive/10 rounded-lg border border-destructive/30 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="h-5 w-5 text-destructive" />
+                      <span className="text-sm text-destructive font-medium">
+                        Previous processing failed: {latestFailedJob.error_message || 'Unknown error'}
+                      </span>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => handleRetryJob(latestFailedJob)}>
+                      <RotateCcw className="h-4 w-4 mr-1" />
+                      Retry
+                    </Button>
+                  </div>
+                )}
+
+                <p className="text-muted-foreground mb-4">
+                  AI will enhance your video with noise reduction, filler word removal, chapter detection, and more.
+                </p>
+                
+                <div className="flex flex-wrap gap-2 mb-6">
+                  <Badge variant="secondary" className="gap-1"><Volume2 className="h-3 w-3" /> Audio Enhancement</Badge>
+                  <Badge variant="secondary" className="gap-1"><Mic className="h-3 w-3" /> Filler Removal</Badge>
+                  <Badge variant="secondary" className="gap-1"><Zap className="h-3 w-3" /> Pause Trimming</Badge>
+                  <Badge variant="secondary" className="gap-1"><Sun className="h-3 w-3" /> Color Correction</Badge>
+                  <Badge variant="secondary" className="gap-1"><Layers className="h-3 w-3" /> Chapters</Badge>
+                  <Badge variant="secondary" className="gap-1"><Type className="h-3 w-3" /> Transcript</Badge>
+                </div>
+
+                <Button 
+                  className="w-full text-white"
+                  style={{ background: 'linear-gradient(135deg, #053877 0%, #2C6BED 100%)' }}
+                  size="lg"
+                  disabled={isProcessing}
+                  onClick={handleStartProcessing}
+                >
+                  <Sparkles className="h-5 w-5 mr-2" />
+                  Start AI Enhancement
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Active Processing State */}
+          {wizardStep === 2 && selectedMedia && (
+            <Card className="mb-6 border-2" style={{ borderColor: '#2C6BED' }}>
+              <CardContent className="pt-6">
+                {/* Sticky Overall Progress */}
+                <div className="mb-6 p-4 rounded-lg" style={{ background: 'linear-gradient(135deg, #053877 0%, #2C6BED 100%)' }}>
+                  <div className="flex items-center justify-between text-white mb-2">
+                    <span className="font-medium flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Overall Progress
+                    </span>
+                    <span className="font-bold">{overallProgress}%</span>
+                  </div>
+                  <Progress value={overallProgress} className="h-2 bg-white/20" />
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Video Preview */}
+                  <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+                    {videoUrl ? (
+                      <video src={videoUrl} className="w-full h-full object-contain" autoPlay muted loop />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <FileVideo className="h-16 w-16 text-white/20" />
+                      </div>
+                    )}
+                    
+                    {/* Processing Overlay */}
+                    <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center">
+                      <div className="relative">
+                        <div className="w-16 h-16 rounded-full border-4 border-[#2C6BED]/30 flex items-center justify-center">
                           {(() => {
                             const StepIcon = PROCESSING_STEPS[currentStep]?.icon || Wand2;
-                            return <StepIcon className="h-8 w-8 text-primary animate-bounce" />;
+                            return <StepIcon className="h-7 w-7 text-[#2C6BED] animate-pulse" />;
                           })()}
                         </div>
+                        <div className="absolute inset-0 rounded-full border-2 border-[#2C6BED]/50 animate-ping" />
                       </div>
-                      {/* Ripple effect */}
-                      <div className="absolute inset-0 rounded-full border-2 border-primary/50 animate-ping" />
+                      <p className="mt-3 text-white font-medium">{processingStatus}</p>
+                      <p className="text-white/60 text-sm">Step {currentStep + 1} of {PROCESSING_STEPS.length}</p>
                     </div>
-                    <p className="mt-4 text-white font-medium">{processingStatus}</p>
-                    <p className="text-white/60 text-sm">Step {currentStep + 1} of {PROCESSING_STEPS.length}</p>
                   </div>
-                </div>
 
-                {/* Step Progress */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium">Overall Progress</span>
-                    <span className="text-muted-foreground">
-                      {Math.min(100, Math.round((currentStep / PROCESSING_STEPS.length) * 100 + (stepProgress / PROCESSING_STEPS.length)))}%
-                    </span>
-                  </div>
-                  <Progress 
-                    value={Math.min(100, (currentStep / PROCESSING_STEPS.length) * 100 + (stepProgress / PROCESSING_STEPS.length))} 
-                    className="h-2"
-                  />
-                  
-                  <div className="space-y-2 mt-6">
+                  {/* Step Progress */}
+                  <div className="space-y-2">
                     {PROCESSING_STEPS.map((step, index) => {
                       const StepIcon = step.icon;
                       const isComplete = index < currentStep;
@@ -598,33 +584,29 @@ export default function AIPostProduction() {
                           key={step.id}
                           className={cn(
                             "flex items-center gap-3 p-2 rounded-lg transition-all",
-                            isActive && "bg-primary/10 ring-1 ring-primary/30",
+                            isActive && "bg-[#2C6BED]/10 ring-1 ring-[#2C6BED]/30",
                             isComplete && "opacity-60"
                           )}
                         >
                           <div className={cn(
-                            "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                            "w-7 h-7 rounded-full flex items-center justify-center transition-all",
                             isComplete && "bg-green-500 text-white",
-                            isActive && "bg-primary text-primary-foreground animate-pulse",
+                            isActive && "bg-[#2C6BED] text-white animate-pulse",
                             !isComplete && !isActive && "bg-muted text-muted-foreground"
                           )}>
-                            {isComplete ? (
-                              <Check className="h-4 w-4" />
-                            ) : (
-                              <StepIcon className="h-4 w-4" />
-                            )}
+                            {isComplete ? <Check className="h-3.5 w-3.5" /> : <StepIcon className="h-3.5 w-3.5" />}
                           </div>
                           <span className={cn(
-                            "text-sm",
+                            "text-sm flex-1",
                             isActive && "font-medium",
                             isComplete && "text-muted-foreground line-through"
                           )}>
                             {step.label}
                           </span>
                           {isActive && (
-                            <div className="ml-auto flex items-center gap-2">
-                              <Progress value={stepProgress} className="w-20 h-1" />
-                              <span className="text-xs text-muted-foreground">{Math.round(stepProgress)}%</span>
+                            <div className="flex items-center gap-2">
+                              <Progress value={stepProgress} className="w-16 h-1" />
+                              <span className="text-xs text-muted-foreground w-8">{Math.round(stepProgress)}%</span>
                             </div>
                           )}
                         </div>
@@ -632,402 +614,185 @@ export default function AIPostProduction() {
                     })}
                   </div>
                 </div>
-              </div>
-              
-              {/* AI Analytics Panel - Real-time stats */}
-              <div className="mt-6 p-4 bg-gradient-to-r from-primary/5 via-purple-500/5 to-pink-500/5 rounded-xl border border-primary/10">
-                <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                  <h4 className="font-semibold text-foreground">AI Processing Analytics</h4>
-                  <Badge variant="outline" className="ml-auto text-xs">Live</Badge>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                  {/* Filler Words */}
-                  <div className="p-3 bg-background rounded-lg border shadow-sm">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Mic className="h-4 w-4 text-orange-500" />
-                      <span className="text-xs text-muted-foreground">Filler Words</span>
-                    </div>
-                    <p className="text-2xl font-bold text-orange-500">
-                      {aiAnalytics.fillerWordsRemoved}
-                      <span className="text-xs font-normal text-muted-foreground ml-1">removed</span>
-                    </p>
-                  </div>
-                  
-                  {/* Pauses */}
-                  <div className="p-3 bg-background rounded-lg border shadow-sm">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Zap className="h-4 w-4 text-yellow-500" />
-                      <span className="text-xs text-muted-foreground">Awkward Pauses</span>
-                    </div>
-                    <p className="text-2xl font-bold text-yellow-500">
-                      {aiAnalytics.pausesRemoved}
-                      <span className="text-xs font-normal text-muted-foreground ml-1">trimmed</span>
-                    </p>
-                  </div>
-                  
-                  {/* Silences */}
-                  <div className="p-3 bg-background rounded-lg border shadow-sm">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Volume2 className="h-4 w-4 text-blue-500" />
-                      <span className="text-xs text-muted-foreground">Silences</span>
-                    </div>
-                    <p className="text-2xl font-bold text-blue-500">
-                      {aiAnalytics.silencesTrimmed}
-                      <span className="text-xs font-normal text-muted-foreground ml-1">cut</span>
-                    </p>
-                  </div>
-                  
-                  {/* Noise Reduction */}
-                  <div className="p-3 bg-background rounded-lg border shadow-sm">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Sun className="h-4 w-4 text-green-500" />
-                      <span className="text-xs text-muted-foreground">Noise Reduced</span>
-                    </div>
-                    <p className="text-2xl font-bold text-green-500">
-                      {aiAnalytics.noiseReduced}
-                      <span className="text-xs font-normal text-muted-foreground ml-1">%</span>
-                    </p>
-                  </div>
-                  
-                  {/* Time Saved */}
-                  <div className="p-3 bg-background rounded-lg border shadow-sm">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Clock className="h-4 w-4 text-purple-500" />
-                      <span className="text-xs text-muted-foreground">Time Saved</span>
-                    </div>
-                    <p className="text-2xl font-bold text-purple-500">
-                      {Math.round(aiAnalytics.totalTimeSaved)}
-                      <span className="text-xs font-normal text-muted-foreground ml-1">sec</span>
-                    </p>
-                  </div>
-                  
-                  {/* Chapters */}
-                  <div className="p-3 bg-background rounded-lg border shadow-sm">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Layers className="h-4 w-4 text-pink-500" />
-                      <span className="text-xs text-muted-foreground">Chapters</span>
-                    </div>
-                    <p className="text-2xl font-bold text-pink-500">
-                      {aiAnalytics.chaptersDetected}
-                      <span className="text-xs font-normal text-muted-foreground ml-1">detected</span>
-                    </p>
-                  </div>
-                </div>
                 
-                {/* Duration Comparison */}
-                {aiAnalytics.totalTimeSaved > 0 && (
-                  <div className="mt-4 p-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg border border-green-500/20">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Check className="h-5 w-5 text-green-500" />
-                        <span className="font-medium text-green-700 dark:text-green-400">
-                          Video optimized! Reduced from {formatDuration(aiAnalytics.originalDuration)} to {formatDuration(aiAnalytics.finalDuration)}
-                        </span>
-                      </div>
+                {/* AI Processing Analytics - Live */}
+                <div className="mt-6 p-4 bg-muted/50 rounded-xl border">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Sparkles className="h-5 w-5 text-[#2C6BED]" />
+                    <h4 className="font-semibold">AI Processing Analytics</h4>
+                    <Badge variant="outline" className="ml-auto text-xs animate-pulse" style={{ borderColor: '#2C6BED', color: '#2C6BED' }}>Live</Badge>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                    <AnalyticsCard icon={Mic} label="Filler Words" value={aiAnalytics.fillerWordsRemoved} unit="removed" color="text-orange-500" />
+                    <AnalyticsCard icon={Zap} label="Pauses" value={aiAnalytics.pausesRemoved} unit="trimmed" color="text-yellow-500" />
+                    <AnalyticsCard icon={Volume2} label="Silences" value={aiAnalytics.silencesTrimmed} unit="cut" color="text-blue-500" />
+                    <AnalyticsCard icon={Sun} label="Noise Reduced" value={aiAnalytics.noiseReduced} unit="%" color="text-green-500" />
+                    <AnalyticsCard icon={Clock} label="Time Saved" value={Math.round(aiAnalytics.totalTimeSaved)} unit="sec" color="text-purple-500" />
+                    <AnalyticsCard icon={Layers} label="Chapters" value={aiAnalytics.chaptersDetected} unit="detected" color="text-pink-500" />
+                  </div>
+                  
+                  {/* Duration Comparison */}
+                  {aiAnalytics.totalTimeSaved > 0 && (
+                    <div className="mt-4 p-3 bg-green-50 dark:bg-green-500/10 rounded-lg border border-green-200 dark:border-green-500/20 flex items-center justify-between">
+                      <span className="text-sm font-medium text-green-700 dark:text-green-400">
+                        Original: {formatDuration(aiAnalytics.originalDuration)} → Enhanced: {formatDuration(aiAnalytics.finalDuration)}
+                      </span>
                       <Badge className="bg-green-500 text-white">
                         -{Math.round((aiAnalytics.totalTimeSaved / aiAnalytics.originalDuration) * 100)}% shorter
                       </Badge>
                     </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* ========== STEP 3: SUCCESS ========== */}
+          {wizardStep === 3 && selectedMedia && (
+            <div className="space-y-6">
+              {/* Success Banner */}
+              <div className="p-6 rounded-xl text-white" style={{ background: 'linear-gradient(135deg, #053877 0%, #2C6BED 100%)' }}>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                    <Check className="h-6 w-6" />
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Floating Restore Button when Minimized */}
-        {isStudioActive && isMinimized && (
-          <div className="fixed bottom-6 right-6 z-50">
-            <Button 
-              onClick={() => setIsMinimized(false)}
-              className="bg-primary hover:bg-primary/90 shadow-lg rounded-full px-4 py-3 flex items-center gap-2"
-            >
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Processing Studio</span>
-              <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">
-                {Math.min(100, Math.round((currentStep / PROCESSING_STEPS.length) * 100 + (stepProgress / PROCESSING_STEPS.length)))}%
-              </span>
-              <Maximize2 className="h-4 w-4 ml-1" />
-            </Button>
-          </div>
-        )}
-
-        {/* Failed Job Banner */}
-        {latestFailedJob && !isStudioActive && (
-          <Card className="mb-8 border-destructive bg-destructive/5">
-            <CardContent className="py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <AlertCircle className="h-5 w-5 text-destructive" />
                   <div>
-                    <p className="font-medium text-destructive">AI processing failed</p>
-                    <p className="text-sm text-muted-foreground">
-                      {latestFailedJob.error_message || 'An error occurred during processing'}
-                    </p>
+                    <h2 className="text-xl font-bold">🎉 Your Video Has Been Successfully Enhanced</h2>
+                    <p className="text-white/80 text-sm">Your enhanced content is ready. Choose what you'd like to do next.</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => handleRetryJob(latestFailedJob)}>
-                  <RotateCcw className="h-4 w-4 mr-2" />
-                  Run Again
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Processing Options */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          {/* Full AI Post-Production */}
-          <Card className="relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500" />
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Wand2 className="h-5 w-5 text-purple-500" />
-                Full AI Post-Production
-              </CardTitle>
-              <CardDescription>
-                Complete automated enhancement pipeline for podcasts and videos
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <Volume2 className="h-4 w-4 text-blue-500" />
-                  <span>Audio Enhancement</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Mic className="h-4 w-4 text-green-500" />
-                  <span>Filler Word Removal</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Sun className="h-4 w-4 text-yellow-500" />
-                  <span>Video Enhancement</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Palette className="h-4 w-4 text-orange-500" />
-                  <span>Color Correction</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Layers className="h-4 w-4 text-purple-500" />
-                  <span>Chapter Detection</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Type className="h-4 w-4 text-cyan-500" />
-                  <span>Auto Transcript</span>
-                </div>
               </div>
 
-              <div className="pt-4 border-t">
-                <h4 className="font-medium mb-2 text-sm">Outputs Generated:</h4>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary">Enhanced Video/Audio</Badge>
-                  <Badge variant="secondary">Chapters JSON</Badge>
-                  <Badge variant="secondary">Full Transcript</Badge>
-                  <Badge variant="secondary">SRT Captions</Badge>
-                </div>
-              </div>
+              {/* Analytics Summary */}
+              <Card>
+                <CardContent className="pt-6">
+                  <h3 className="font-semibold mb-4 flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-[#2C6BED]" />
+                    Enhancement Summary
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
+                    <AnalyticsCard icon={Mic} label="Filler Words" value={aiAnalytics.fillerWordsRemoved} unit="removed" color="text-green-600" bg="bg-green-50" />
+                    <AnalyticsCard icon={Zap} label="Pauses" value={aiAnalytics.pausesRemoved} unit="trimmed" color="text-green-600" bg="bg-green-50" />
+                    <AnalyticsCard icon={Volume2} label="Silences" value={aiAnalytics.silencesTrimmed} unit="cut" color="text-green-600" bg="bg-green-50" />
+                    <AnalyticsCard icon={Sun} label="Noise Reduced" value={aiAnalytics.noiseReduced} unit="%" color="text-blue-600" bg="bg-blue-50" />
+                    <AnalyticsCard icon={Layers} label="Chapters" value={aiAnalytics.chaptersDetected} unit="detected" color="text-blue-600" bg="bg-blue-50" />
+                    <AnalyticsCard icon={Clock} label="Time Saved" value={Math.round(aiAnalytics.totalTimeSaved)} unit="sec" color="text-amber-600" bg="bg-amber-50" />
+                  </div>
+                  
+                  {aiAnalytics.totalTimeSaved > 0 && (
+                    <div className="p-3 bg-green-50 dark:bg-green-500/10 rounded-lg border border-green-200 dark:border-green-500/20 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Check className="h-5 w-5 text-green-600" />
+                        <span className="font-medium text-green-700 dark:text-green-400">
+                          Duration: {formatDuration(aiAnalytics.originalDuration)} → {formatDuration(aiAnalytics.finalDuration)}
+                        </span>
+                      </div>
+                      <Badge className="bg-green-500 text-white">
+                        {Math.round((aiAnalytics.totalTimeSaved / aiAnalytics.originalDuration) * 100)}% improvement
+                      </Badge>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-              <Button 
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                disabled={!selectedMedia || isProcessing || isStudioActive}
-                onClick={() => handleStartProcessing('full')}
-              >
-                <Sparkles className="h-4 w-4 mr-2" />
-                Run Full AI Post-Production
-              </Button>
-            </CardContent>
-          </Card>
+              {/* Download Actions */}
+              <Card>
+                <CardContent className="pt-6">
+                  <h3 className="font-semibold mb-4">Download Your Files</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <Button variant="outline" className="h-auto py-3 flex-col gap-1">
+                      <Download className="h-5 w-5 text-[#2C6BED]" />
+                      <span className="text-xs">Enhanced Video</span>
+                    </Button>
+                    <Button variant="outline" className="h-auto py-3 flex-col gap-1">
+                      <FileText className="h-5 w-5 text-[#2C6BED]" />
+                      <span className="text-xs">Transcript</span>
+                    </Button>
+                    <Button variant="outline" className="h-auto py-3 flex-col gap-1">
+                      <Layers className="h-5 w-5 text-[#2C6BED]" />
+                      <span className="text-xs">Chapters JSON</span>
+                    </Button>
+                    <Button variant="outline" className="h-auto py-3 flex-col gap-1">
+                      <Type className="h-5 w-5 text-[#2C6BED]" />
+                      <span className="text-xs">SRT Captions</span>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
 
-          {/* AI Clip Generation */}
-          <Card className="relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 to-blue-500" />
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Scissors className="h-5 w-5 text-cyan-500" />
-                Generate AI Clips
-              </CardTitle>
-              <CardDescription>
-                Automatically create social media clips from your content
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <Sparkles className="h-4 w-4 text-yellow-500" />
-                  <span>Hook Detection</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Film className="h-4 w-4 text-red-500" />
-                  <span>High-Energy Moments</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Type className="h-4 w-4 text-green-500" />
-                  <span>Auto Captions</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Layers className="h-4 w-4 text-blue-500" />
-                  <span>Multi-Format Export</span>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t">
-                <h4 className="font-medium mb-2 text-sm">Export Formats:</h4>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary">9:16 TikTok/Reels</Badge>
-                  <Badge variant="secondary">1:1 Instagram</Badge>
-                  <Badge variant="secondary">16:9 YouTube</Badge>
-                </div>
-              </div>
-
-              <Button 
-                className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
-                disabled={!selectedMedia}
-                onClick={() => navigate(`/studio/clips?media=${selectedMedia?.id}`)}
-              >
-                <Scissors className="h-4 w-4 mr-2" />
-                Generate AI Clips
-              </Button>
-            </CardContent>
-          </Card>
+              {/* Next Steps */}
+              <Card>
+                <CardContent className="pt-6">
+                  <h3 className="font-semibold mb-4">Next Steps</h3>
+                  <div className="space-y-3">
+                    <Button 
+                      className="w-full justify-start h-auto py-3 text-white"
+                      style={{ background: 'linear-gradient(135deg, #053877 0%, #2C6BED 100%)' }}
+                      onClick={() => navigate(`/studio/ai-clips?mediaId=${selectedMedia.id}`)}
+                    >
+                      <Scissors className="h-5 w-5 mr-3" />
+                      <div className="text-left">
+                        <div className="font-medium">✂️ Generate AI Clips from This Video</div>
+                        <div className="text-xs text-white/70">Create viral short clips automatically</div>
+                      </div>
+                      <ChevronRight className="h-5 w-5 ml-auto" />
+                    </Button>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button variant="outline" className="justify-start" onClick={() => setShowComparisonModal(true)}>
+                        <Eye className="h-4 w-4 mr-2" />
+                        Compare Original vs Enhanced
+                      </Button>
+                      <Button variant="outline" className="justify-start" onClick={() => navigate('/studio/media')}>
+                        <FolderOpen className="h-4 w-4 mr-2" />
+                        View in Media Library
+                      </Button>
+                    </div>
+                    
+                    <Button variant="ghost" className="w-full justify-start text-muted-foreground">
+                      <Share2 className="h-4 w-4 mr-2" />
+                      Share or Copy Link
+                      <ExternalLink className="h-3 w-3 ml-auto" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
 
-        {/* Thumbnail Generation */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Image className="h-5 w-5" />
-              Thumbnail Generation
-            </CardTitle>
-            <CardDescription>
-              Generate or upload thumbnails for your processed content
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-4">
-              <Button 
-                variant="outline" 
-                className="h-20 flex-col gap-2"
-                disabled={!selectedMedia || isGeneratingThumbnails}
-                onClick={handleGenerateThumbnails}
-              >
-                {isGeneratingThumbnails ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <Sparkles className="h-5 w-5" />
-                )}
-                <span>Generate with AI</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-20 flex-col gap-2"
-                onClick={() => setShowThumbnailDialog(true)}
-              >
-                <Upload className="h-5 w-5" />
-                <span>Upload Custom</span>
-              </Button>
-            </div>
-
-            {/* Generated Thumbnails Preview */}
-            {generatedThumbnails.length > 0 && (
-              <div className="mt-6">
-                <h4 className="font-medium mb-3">Generated Thumbnails</h4>
-                <div className="grid grid-cols-4 gap-3">
-                  {generatedThumbnails.map((url, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setSelectedThumbnail(url)}
-                      className={cn(
-                        "aspect-video rounded-lg overflow-hidden border-2 transition-all",
-                        selectedThumbnail === url ? "border-primary ring-2 ring-primary/30" : "border-transparent hover:border-muted-foreground/30"
-                      )}
-                    >
-                      <img src={url} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-                <div className="flex gap-2 mt-4">
-                  <Button onClick={handleSetDefaultThumbnail} disabled={!selectedThumbnail}>
-                    <Check className="h-4 w-4 mr-2" />
-                    Set as Default
-                  </Button>
-                  <Button variant="outline" onClick={handleGenerateThumbnails}>
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Regenerate
-                  </Button>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Recent Activity - Simplified from Processing History */}
-        {selectedMedia && processingJobs && processingJobs.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
+        {/* Recent Activity - Only when media selected and not in success state */}
+        {selectedMedia && processingJobs && processingJobs.length > 0 && wizardStep !== 3 && (
+          <Card className="mt-6">
+            <CardContent className="pt-6">
+              <h3 className="font-semibold mb-4 flex items-center gap-2">
+                <Clock className="h-4 w-4" />
                 Recent Activity
-              </CardTitle>
-              <CardDescription>Recent enhancements for this media</CardDescription>
-            </CardHeader>
-            <CardContent>
+              </h3>
               <div className="space-y-2">
-                {processingJobs.filter(j => j.status === 'completed').slice(0, 5).map((job) => (
-                  <div 
-                    key={job.id} 
-                    className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
-                  >
+                {processingJobs.filter(j => j.status === 'completed').slice(0, 3).map((job) => (
+                  <div key={job.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
-                        <Check className="h-4 w-4 text-green-500" />
+                      <div className="w-7 h-7 rounded-full bg-green-500/10 flex items-center justify-center">
+                        <Check className="h-3.5 w-3.5 text-green-500" />
                       </div>
                       <div>
-                        <p className="font-medium text-sm">
-                          {job.job_type === 'full_enhancement' ? 'Enhanced Version Created' : 
-                           job.job_type === 'clip_generation' ? 'AI Clips Generated' :
-                           job.job_type === 'thumbnail' ? 'Thumbnails Generated' : 
-                           'Processing Complete'}
-                        </p>
+                        <p className="font-medium text-sm">Enhancement Complete</p>
                         <p className="text-xs text-muted-foreground">
                           {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
                         </p>
                       </div>
                     </div>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      onClick={() => setShowComparisonModal(true)}
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      View
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="ghost" onClick={() => navigate('/studio/media')}>
+                        <FolderOpen className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="ghost">
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
-                {processingJobs.filter(j => j.status === 'failed').length > 0 && (
-                  <div className="pt-2 border-t mt-2">
-                    {processingJobs.filter(j => j.status === 'failed').slice(0, 2).map((job) => (
-                      <div 
-                        key={job.id} 
-                        className="flex items-center justify-between p-3 bg-destructive/5 rounded-lg"
-                      >
-                        <div className="flex items-center gap-3">
-                          <AlertCircle className="h-5 w-5 text-destructive" />
-                          <div>
-                            <p className="font-medium text-sm text-destructive">Processing failed</p>
-                            <p className="text-xs text-muted-foreground">
-                              {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
-                            </p>
-                          </div>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => handleRetryJob(job)}>
-                          <RotateCcw className="h-4 w-4 mr-1" />
-                          Retry
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
@@ -1036,21 +801,9 @@ export default function AIPostProduction() {
         {/* Media Selector Dialog */}
         <Dialog open={showMediaSelector} onOpenChange={setShowMediaSelector}>
           <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
-            <DialogHeader className="flex flex-row items-start justify-between">
-              <div>
-                <DialogTitle>Select Media</DialogTitle>
-                <DialogDescription>
-                  Choose a video or audio file to process
-                </DialogDescription>
-              </div>
-              <Button 
-                size="sm" 
-                onClick={() => setShowUploadDialog(true)}
-                className="gap-1"
-              >
-                <Upload className="h-4 w-4" />
-                Upload
-              </Button>
+            <DialogHeader>
+              <DialogTitle>Select Media</DialogTitle>
+              <DialogDescription>Choose a video or audio file to process</DialogDescription>
             </DialogHeader>
             <Tabs value={mediaFilter} onValueChange={(v) => setMediaFilter(v as any)} className="flex-1 overflow-hidden flex flex-col">
               <TabsList className="grid w-full grid-cols-3">
@@ -1067,33 +820,39 @@ export default function AIPostProduction() {
                   <div className="text-center py-8 text-muted-foreground">
                     <FileVideo className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>No media files found</p>
-                    <div className="flex gap-2 justify-center mt-4">
-                      <Button 
-                        onClick={() => setShowUploadDialog(true)}
-                      >
-                        <Upload className="h-4 w-4 mr-2" />
-                        Upload Media
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => navigate('/studio/media')}
-                      >
-                        Go to Media Library
-                      </Button>
-                    </div>
+                    <Button className="mt-4" onClick={() => setShowUploadDialog(true)}>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Media
+                    </Button>
                   </div>
                 ) : (
                   <div className="space-y-2 pr-4">
                     {filteredMedia?.map((file) => (
-                      <MediaSelectItem 
-                        key={file.id} 
-                        file={file} 
-                        selected={selectedMedia?.id === file.id}
-                        onSelect={() => {
-                          setSelectedMedia(file);
-                          setShowMediaSelector(false);
-                        }}
-                      />
+                      <div 
+                        key={file.id}
+                        onClick={() => handleMediaSelect(file)}
+                        className={cn(
+                          "flex items-center gap-4 p-3 rounded-lg border cursor-pointer transition-all hover:bg-muted/50",
+                          selectedMedia?.id === file.id && "ring-2 ring-[#2C6BED] bg-[#2C6BED]/5"
+                        )}
+                      >
+                        <div className="w-20 h-12 bg-muted rounded overflow-hidden flex items-center justify-center shrink-0">
+                          {file.thumbnail_url ? (
+                            <img src={file.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                          ) : file.file_type === 'video' ? (
+                            <Video className="h-6 w-6 text-muted-foreground" />
+                          ) : (
+                            <Volume2 className="h-6 w-6 text-muted-foreground" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{file.file_name || 'Untitled'}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            {file.duration_seconds && <span>{formatDuration(file.duration_seconds)}</span>}
+                            {file.source && <Badge variant="outline" className="text-xs">{file.source}</Badge>}
+                          </div>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -1102,277 +861,58 @@ export default function AIPostProduction() {
           </DialogContent>
         </Dialog>
 
-        {/* Enhanced Comparison Modal - Primary Success Screen */}
+        {/* Comparison Modal */}
         <Dialog open={showComparisonModal} onOpenChange={setShowComparisonModal}>
-          <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 overflow-hidden">
-            {/* Gradient Header */}
-            <div className="bg-gradient-to-r from-[#053877] to-[#2C6BED] px-6 py-5">
+          <DialogContent className="max-w-4xl p-0 overflow-hidden">
+            <div className="bg-gradient-to-r from-[#053877] to-[#2C6BED] px-6 py-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <DialogTitle className="text-white text-xl font-semibold flex items-center gap-2">
-                    <Sparkles className="h-5 w-5" />
-                    Your Content Has Been Enhanced
-                  </DialogTitle>
-                  <DialogDescription className="text-white/80 mt-1">
-                    Compare the original and upgraded version below
-                  </DialogDescription>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="text-white hover:bg-white/20"
-                  onClick={() => setShowComparisonModal(false)}
-                >
+                <DialogTitle className="text-white text-lg font-semibold">Compare Original vs Enhanced</DialogTitle>
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => setShowComparisonModal(false)}>
                   <X className="h-5 w-5" />
                 </Button>
               </div>
             </div>
 
-            <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-80px)]">
-              {/* Large Comparison View */}
-              <div className="relative aspect-video bg-black rounded-xl overflow-hidden shadow-xl">
+            <div className="p-6 space-y-4">
+              <div className="relative aspect-video bg-black rounded-xl overflow-hidden">
                 <div className="absolute inset-0 flex">
-                  {/* Original */}
-                  <div 
-                    className="h-full overflow-hidden relative"
-                    style={{ width: `${comparisonPosition}%` }}
-                  >
+                  <div className="h-full overflow-hidden relative" style={{ width: `${comparisonPosition}%` }}>
                     {videoUrl && (
-                      <video 
-                        src={videoUrl} 
-                        className="w-full h-full object-cover"
-                        style={{ filter: 'brightness(0.9) contrast(0.95)' }}
-                        autoPlay
-                        muted
-                        loop
-                      />
+                      <video src={videoUrl} className="w-full h-full object-cover" style={{ filter: 'brightness(0.9) contrast(0.95)' }} autoPlay muted loop />
                     )}
-                    <div className="absolute top-4 left-4 bg-black/70 px-4 py-2 rounded-lg text-white text-sm font-medium">
-                      Original
-                    </div>
+                    <div className="absolute top-3 left-3 bg-black/70 px-3 py-1.5 rounded-lg text-white text-sm font-medium">Original</div>
                   </div>
                   
-                  {/* Enhanced */}
-                  <div 
-                    className="h-full overflow-hidden relative"
-                    style={{ width: `${100 - comparisonPosition}%` }}
-                  >
+                  <div className="h-full overflow-hidden relative" style={{ width: `${100 - comparisonPosition}%` }}>
                     {videoUrl && (
-                      <video 
-                        src={videoUrl} 
-                        className="w-full h-full object-cover"
-                        style={{ filter: 'brightness(1.1) contrast(1.05) saturate(1.1)' }}
-                        autoPlay
-                        muted
-                        loop
-                      />
+                      <video src={videoUrl} className="w-full h-full object-cover" style={{ filter: 'brightness(1.1) contrast(1.05) saturate(1.1)' }} autoPlay muted loop />
                     )}
-                    <div className="absolute top-4 right-4 bg-gradient-to-r from-[#053877] to-[#2C6BED] px-4 py-2 rounded-lg text-white text-sm font-medium">
-                      Enhanced
-                    </div>
+                    <div className="absolute top-3 right-3 bg-gradient-to-r from-[#053877] to-[#2C6BED] px-3 py-1.5 rounded-lg text-white text-sm font-medium">Enhanced</div>
                   </div>
                 </div>
                 
-                {/* Slider handle */}
-                <div 
-                  className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize shadow-lg"
-                  style={{ left: `${comparisonPosition}%` }}
-                >
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-xl">
-                    <ChevronRight className="h-5 w-5 text-gray-700 -ml-1" />
-                    <ChevronRight className="h-5 w-5 text-gray-700 -ml-3.5 rotate-180" />
+                <div className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize shadow-lg" style={{ left: `${comparisonPosition}%` }}>
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-xl">
+                    <ChevronRight className="h-4 w-4 text-gray-700 -ml-0.5" />
+                    <ChevronRight className="h-4 w-4 text-gray-700 -ml-3 rotate-180" />
                   </div>
                 </div>
               </div>
               
-              {/* Comparison Slider Control */}
-              <div className="px-8">
-                <Slider
-                  value={[comparisonPosition]}
-                  onValueChange={([v]) => setComparisonPosition(v)}
-                  min={10}
-                  max={90}
-                  step={1}
-                  className="cursor-pointer"
-                />
-              </div>
-
-              {/* Enhancement Summary Metrics */}
-              <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50 rounded-xl p-5 border">
-                <h3 className="font-semibold mb-4 flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  Enhancement Summary
-                </h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                  {/* Filler Words - Green */}
-                  <div className="p-3 bg-green-50 dark:bg-green-500/10 rounded-lg border border-green-200 dark:border-green-500/20">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Mic className="h-3.5 w-3.5 text-green-600" />
-                      <span className="text-xs text-green-700 dark:text-green-400 font-medium">Filler Words</span>
-                    </div>
-                    <p className="text-xl font-bold text-green-600">
-                      {aiAnalytics.fillerWordsRemoved}
-                      <span className="text-xs font-normal ml-1">removed</span>
-                    </p>
-                  </div>
-                  
-                  {/* Pauses - Green */}
-                  <div className="p-3 bg-green-50 dark:bg-green-500/10 rounded-lg border border-green-200 dark:border-green-500/20">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Zap className="h-3.5 w-3.5 text-green-600" />
-                      <span className="text-xs text-green-700 dark:text-green-400 font-medium">Pauses</span>
-                    </div>
-                    <p className="text-xl font-bold text-green-600">
-                      {aiAnalytics.pausesRemoved}
-                      <span className="text-xs font-normal ml-1">trimmed</span>
-                    </p>
-                  </div>
-                  
-                  {/* Silences - Green */}
-                  <div className="p-3 bg-green-50 dark:bg-green-500/10 rounded-lg border border-green-200 dark:border-green-500/20">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Volume2 className="h-3.5 w-3.5 text-green-600" />
-                      <span className="text-xs text-green-700 dark:text-green-400 font-medium">Silences</span>
-                    </div>
-                    <p className="text-xl font-bold text-green-600">
-                      {aiAnalytics.silencesTrimmed}
-                      <span className="text-xs font-normal ml-1">removed</span>
-                    </p>
-                  </div>
-                  
-                  {/* Noise Reduction - Blue */}
-                  <div className="p-3 bg-blue-50 dark:bg-blue-500/10 rounded-lg border border-blue-200 dark:border-blue-500/20">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Volume2 className="h-3.5 w-3.5 text-blue-600" />
-                      <span className="text-xs text-blue-700 dark:text-blue-400 font-medium">Noise Reduced</span>
-                    </div>
-                    <p className="text-xl font-bold text-blue-600">
-                      {aiAnalytics.noiseReduced}
-                      <span className="text-xs font-normal ml-1">%</span>
-                    </p>
-                  </div>
-                  
-                  {/* Chapters - Blue */}
-                  <div className="p-3 bg-blue-50 dark:bg-blue-500/10 rounded-lg border border-blue-200 dark:border-blue-500/20">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Layers className="h-3.5 w-3.5 text-blue-600" />
-                      <span className="text-xs text-blue-700 dark:text-blue-400 font-medium">Chapters</span>
-                    </div>
-                    <p className="text-xl font-bold text-blue-600">
-                      {aiAnalytics.chaptersDetected}
-                      <span className="text-xs font-normal ml-1">detected</span>
-                    </p>
-                  </div>
-                  
-                  {/* Time Saved - Yellow/Amber */}
-                  <div className="p-3 bg-amber-50 dark:bg-amber-500/10 rounded-lg border border-amber-200 dark:border-amber-500/20">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Clock className="h-3.5 w-3.5 text-amber-600" />
-                      <span className="text-xs text-amber-700 dark:text-amber-400 font-medium">Time Saved</span>
-                    </div>
-                    <p className="text-xl font-bold text-amber-600">
-                      {Math.round(aiAnalytics.totalTimeSaved)}
-                      <span className="text-xs font-normal ml-1">sec</span>
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Duration Comparison Banner */}
-                {aiAnalytics.totalTimeSaved > 0 && (
-                  <div className="mt-4 p-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg border border-green-500/20 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                        <Check className="h-5 w-5 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-green-700 dark:text-green-400">
-                          Duration optimized from {formatDuration(aiAnalytics.originalDuration)} → {formatDuration(aiAnalytics.finalDuration)}
-                        </p>
-                        <p className="text-sm text-green-600 dark:text-green-500">
-                          Your video is now {Math.round((aiAnalytics.totalTimeSaved / aiAnalytics.originalDuration) * 100)}% shorter and more engaging
-                        </p>
-                      </div>
-                    </div>
-                    <Badge className="bg-green-500 text-white text-sm px-3 py-1">
-                      -{Math.round((aiAnalytics.totalTimeSaved / aiAnalytics.originalDuration) * 100)}%
-                    </Badge>
-                  </div>
-                )}
-              </div>
-
-              {/* Primary CTA Section */}
-              <div className="space-y-4">
-                <h3 className="font-semibold">What's Next?</h3>
-                <div className="grid md:grid-cols-2 gap-3">
-                  <Button 
-                    className="h-14 text-base bg-gradient-to-r from-[#053877] to-[#2C6BED] hover:opacity-90"
-                    onClick={() => {
-                      setShowComparisonModal(false);
-                      navigate(`/studio/clips?media=${selectedMedia?.id}`);
-                    }}
-                  >
-                    <Scissors className="h-5 w-5 mr-2" />
-                    Generate AI Clips From This Video
-                  </Button>
-                  <Button 
-                    className="h-14 text-base bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90"
-                    onClick={() => {
-                      setShowComparisonModal(false);
-                      handleGenerateThumbnails();
-                    }}
-                  >
-                    <ImagePlus className="h-5 w-5 mr-2" />
-                    Generate Thumbnails
-                  </Button>
-                </div>
-                
-                {/* Secondary Download Actions */}
-                <div className="grid grid-cols-3 gap-3">
-                  <Button variant="outline" className="h-11">
-                    <Download className="h-4 w-4 mr-2" />
-                    Enhanced Video
-                  </Button>
-                  <Button variant="outline" className="h-11">
-                    <Type className="h-4 w-4 mr-2" />
-                    Transcript
-                  </Button>
-                  <Button variant="outline" className="h-11">
-                    <Layers className="h-4 w-4 mr-2" />
-                    Chapters
-                  </Button>
-                </div>
+              <div className="px-4">
+                <Slider value={[comparisonPosition]} onValueChange={([v]) => setComparisonPosition(v)} min={10} max={90} step={1} />
               </div>
             </div>
           </DialogContent>
         </Dialog>
 
-        {/* Thumbnail Upload Dialog */}
-        <Dialog open={showThumbnailDialog} onOpenChange={setShowThumbnailDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Upload Thumbnail</DialogTitle>
-              <DialogDescription>
-                Upload a custom thumbnail for your content
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-8">
-              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
-                <ImagePlus className="h-10 w-10 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground mb-4">
-                  Drag and drop an image, or click to browse
-                </p>
-                <Button variant="outline">Select Image</Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Upload Media Dialog */}
+        {/* Upload Dialog */}
         <UploadMediaDialog
           open={showUploadDialog}
           onOpenChange={setShowUploadDialog}
           onUploadComplete={() => {
-            queryClient.invalidateQueries({ queryKey: ["ai-post-production-media"] });
+            queryClient.invalidateQueries({ queryKey: ['media-files-for-processing'] });
+            setShowUploadDialog(false);
           }}
         />
       </div>
@@ -1380,56 +920,32 @@ export default function AIPostProduction() {
   );
 }
 
-// Media Select Item Component
-function MediaSelectItem({ 
-  file, 
-  selected, 
-  onSelect 
+// Analytics Card Component
+function AnalyticsCard({ 
+  icon: Icon, 
+  label, 
+  value, 
+  unit, 
+  color,
+  bg = "bg-background"
 }: { 
-  file: MediaFile; 
-  selected: boolean;
-  onSelect: () => void;
+  icon: any; 
+  label: string; 
+  value: number; 
+  unit: string; 
+  color: string;
+  bg?: string;
 }) {
   return (
-    <button
-      onClick={onSelect}
-      className={cn(
-        "w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left",
-        selected 
-          ? "border-primary bg-primary/5" 
-          : "border-border hover:bg-muted/50"
-      )}
-    >
-      <div className="w-20 h-14 bg-muted rounded overflow-hidden flex items-center justify-center flex-shrink-0">
-        {file.thumbnail_url ? (
-          <img 
-            src={file.thumbnail_url} 
-            alt={file.file_name || 'Media'}
-            className="w-full h-full object-cover"
-          />
-        ) : file.file_type === 'video' ? (
-          <FileVideo className="h-6 w-6 text-muted-foreground" />
-        ) : (
-          <FileAudio className="h-6 w-6 text-muted-foreground" />
-        )}
+    <div className={cn("p-3 rounded-lg border", bg)}>
+      <div className="flex items-center gap-1.5 mb-1">
+        <Icon className={cn("h-3.5 w-3.5", color)} />
+        <span className="text-xs text-muted-foreground">{label}</span>
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="font-medium truncate">{file.file_name || 'Untitled'}</p>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Clock className="h-3 w-3" />
-            {formatDuration(file.duration_seconds)}
-          </span>
-          <span>•</span>
-          <span>{formatFileSize(file.file_size_bytes)}</span>
-          <span>•</span>
-          <span>{file.created_at ? formatDistanceToNow(new Date(file.created_at), { addSuffix: true }) : 'Unknown'}</span>
-        </div>
-      </div>
-      <Badge variant="outline" className="flex-shrink-0 capitalize">
-        {file.file_type || 'unknown'}
-      </Badge>
-      {selected && <Check className="h-4 w-4 text-primary flex-shrink-0" />}
-    </button>
+      <p className={cn("text-xl font-bold", color)}>
+        {value}
+        <span className="text-xs font-normal text-muted-foreground ml-1">{unit}</span>
+      </p>
+    </div>
   );
 }
