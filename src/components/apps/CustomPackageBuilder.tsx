@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,10 +25,20 @@ interface Module {
   creditEstimate: number;
 }
 
+interface EditPackage {
+  id: string;
+  name: string;
+  description: string | null;
+  modules: string[] | null;
+  settings: any;
+  is_default: boolean;
+}
+
 interface CustomPackageBuilderProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   modules: Module[];
+  editPackage?: EditPackage | null;
 }
 
 const CREDIT_PACKAGES = [
@@ -53,7 +63,7 @@ const LAYOUT_OPTIONS = [
   { id: 'sidebar', name: 'Sidebar Focus', description: 'Expanded sidebar navigation' },
 ];
 
-export function CustomPackageBuilder({ open, onOpenChange, modules }: CustomPackageBuilderProps) {
+export function CustomPackageBuilder({ open, onOpenChange, modules, editPackage }: CustomPackageBuilderProps) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -64,6 +74,50 @@ export function CustomPackageBuilder({ open, onOpenChange, modules }: CustomPack
   const [selectedTheme, setSelectedTheme] = useState('default');
   const [selectedLayout, setSelectedLayout] = useState('grid');
   const [showQuickStart, setShowQuickStart] = useState(true);
+
+  // Reset when modal opens/closes or edit package changes
+  const resetForm = () => {
+    if (editPackage) {
+      setPackageName(editPackage.name || "My Custom Workspace");
+      setPackageDescription(editPackage.description || "");
+      setSelectedModules(new Set(editPackage.modules || []));
+      setIsDefault(editPackage.is_default || false);
+      if (editPackage.settings) {
+        setSelectedTheme(editPackage.settings.theme || 'default');
+        setSelectedLayout(editPackage.settings.layout || 'grid');
+        setShowQuickStart(editPackage.settings.showQuickStart ?? true);
+      }
+    } else {
+      setPackageName("My Custom Workspace");
+      setPackageDescription("");
+      setSelectedModules(new Set());
+      setIsDefault(false);
+      setSelectedTheme('default');
+      setSelectedLayout('grid');
+      setShowQuickStart(true);
+    }
+    setStep(1);
+  };
+
+  // Load edit package data or reset when modal opens
+  useEffect(() => {
+    if (open) {
+      if (editPackage) {
+        setPackageName(editPackage.name || "My Custom Workspace");
+        setPackageDescription(editPackage.description || "");
+        setSelectedModules(new Set(editPackage.modules || []));
+        setIsDefault(editPackage.is_default || false);
+        if (editPackage.settings) {
+          setSelectedTheme(editPackage.settings.theme || 'default');
+          setSelectedLayout(editPackage.settings.layout || 'grid');
+          setShowQuickStart(editPackage.settings.showQuickStart ?? true);
+        }
+        setStep(1);
+      } else {
+        resetForm();
+      }
+    }
+  }, [open, editPackage]);
 
   const totalCredits = useMemo(() => {
     return modules
@@ -115,36 +169,43 @@ export function CustomPackageBuilder({ open, onOpenChange, modules }: CustomPack
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Not authenticated");
 
-      const { error } = await supabase
-        .from('custom_packages')
-        .insert({
-          user_id: session.user.id,
-          name: packageName,
-          description: packageDescription,
-          modules: Array.from(selectedModules),
-          estimated_monthly_credits: totalCredits,
-          recommended_bundle: recommendedBundle.name,
-          settings: {
-            theme: selectedTheme,
-            layout: selectedLayout,
-            showQuickStart,
-          },
-          is_default: isDefault,
-        });
+      const packageData = {
+        user_id: session.user.id,
+        name: packageName,
+        description: packageDescription,
+        modules: Array.from(selectedModules),
+        estimated_monthly_credits: totalCredits,
+        recommended_bundle: recommendedBundle.name,
+        settings: {
+          theme: selectedTheme,
+          layout: selectedLayout,
+          showQuickStart,
+        },
+        is_default: isDefault,
+      };
 
-      if (error) throw error;
+      if (editPackage) {
+        // Update existing package
+        const { error } = await supabase
+          .from('custom_packages')
+          .update(packageData)
+          .eq('id', editPackage.id);
+        if (error) throw error;
+      } else {
+        // Insert new package
+        const { error } = await supabase
+          .from('custom_packages')
+          .insert(packageData);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom-packages'] });
-      toast.success("Workspace saved!", {
+      toast.success(editPackage ? "Workspace updated!" : "Workspace saved!", {
         description: "You can manage this under My Workspaces in the App Directory.",
       });
       onOpenChange(false);
-      setStep(1);
-      setSelectedModules(new Set());
-      setPackageName("My Custom Workspace");
-      setPackageDescription("");
-      setIsDefault(false);
+      resetForm();
     },
     onError: (error) => {
       toast.error("Failed to save package", { description: error.message });
@@ -168,7 +229,7 @@ export function CustomPackageBuilder({ open, onOpenChange, modules }: CustomPack
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="h-5 w-5 text-primary" />
-            Create Your Own Package
+            {editPackage ? "Edit Workspace" : "Create Your Own Package"}
           </DialogTitle>
           <DialogDescription>
             {step === 1 && "Select the modules you want in your custom workspace."}
@@ -502,7 +563,7 @@ export function CustomPackageBuilder({ open, onOpenChange, modules }: CustomPack
                 disabled={saveMutation.isPending || !packageName.trim()}
               >
                 <Check className="h-4 w-4 mr-2" />
-                {saveMutation.isPending ? "Saving..." : "Save Package"}
+                {saveMutation.isPending ? "Saving..." : editPackage ? "Update Package" : "Save Package"}
               </Button>
             </>
           )}
