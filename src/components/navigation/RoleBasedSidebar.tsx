@@ -300,14 +300,13 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
       <SidebarContent className="pb-6">
         {/* Creator nav items - ONLY for non-admin users */}
         {!isAdmin && (
-          <SidebarGroup className="px-0">
-            <SidebarGroupContent className="px-0">
-              <SidebarMenu className="px-0">
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <div className="flex flex-col">
                 {userNavItems.map((item) => {
                   const Icon = ICON_MAP[item.id] || LayoutDashboard;
                   const isPinned = navConfig.pinned.includes(item.id);
                   const hasSubItems = item.subItems && item.subItems.length > 0;
-                  const isLevel0 = item.level === 0;
                   
                   // Level 0 items with sub-items render as collapsible
                   if (hasSubItems && !collapsed) {
@@ -324,62 +323,54 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                         open={isOpen}
                         onOpenChange={() => toggleGroup(item.id)}
                       >
-                        <SidebarMenuItem className="px-0">
-                          <CollapsibleTrigger asChild>
-                            <SidebarMenuButton className="w-full flex items-center justify-between transition-all duration-150 cursor-pointer hover:bg-white/10 text-white px-3 py-2">
-                              <div className="flex items-center gap-3 min-w-0">
-                                <Icon className="h-4 w-4 shrink-0 text-white" />
-                                <span className="truncate text-white font-medium">{item.label}</span>
-                              </div>
-                              <div className="flex items-center gap-2 ml-auto shrink-0">
-                                {isPinned && <span className="pinned-star text-amber-400 text-xs">★</span>}
-                                <ChevronDown className={`h-4 w-4 text-white/70 transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`} />
-                              </div>
-                            </SidebarMenuButton>
-                          </CollapsibleTrigger>
-                          <CollapsibleContent>
-                            {/* Sub-items (level 1) get indentation */}
-                            <SidebarMenu className="ml-6 mt-1 space-y-0.5 border-l border-white/20 pl-3">
-                              {visibleSubItems.map((subItem) => (
-                                <SidebarMenuItem key={subItem.id}>
-                                  <SidebarMenuButton asChild>
-                                    <NavLink
-                                      to={subItem.path}
-                                      className="flex items-center gap-2 transition-all duration-150 text-sm py-1.5 text-white/80 hover:text-white"
-                                      activeClassName="nav-active text-white"
-                                    >
-                                      <span className="truncate">{subItem.label}</span>
-                                    </NavLink>
-                                  </SidebarMenuButton>
-                                </SidebarMenuItem>
-                              ))}
-                            </SidebarMenu>
-                          </CollapsibleContent>
-                        </SidebarMenuItem>
+                        <CollapsibleTrigger asChild>
+                          <button className="w-full flex items-center justify-between cursor-pointer hover:bg-white/10 text-white px-3 py-2 rounded-md transition-colors">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <Icon className="h-4 w-4 shrink-0 text-white" />
+                              <span className="truncate text-white font-medium text-sm">{item.label}</span>
+                            </div>
+                            <div className="flex items-center gap-2 ml-auto shrink-0">
+                              {isPinned && <span className="text-amber-400 text-xs">★</span>}
+                              <ChevronDown className={`h-4 w-4 text-white/70 transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`} />
+                            </div>
+                          </button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          {/* Sub-items get indentation */}
+                          <div className="ml-7 mt-1 space-y-0.5 border-l border-white/20 pl-3">
+                            {visibleSubItems.map((subItem) => (
+                              <NavLink
+                                key={subItem.id}
+                                to={subItem.path}
+                                className="flex items-center gap-2 text-sm py-1.5 px-2 text-white/80 hover:text-white hover:bg-white/5 rounded transition-colors"
+                                activeClassName="text-white bg-white/10"
+                              >
+                                <span className="truncate">{subItem.label}</span>
+                              </NavLink>
+                            ))}
+                          </div>
+                        </CollapsibleContent>
                       </Collapsible>
                     );
                   }
                   
-                  // Level 0 items without sub-items - left-justified, no indent
+                  // Level 0 items without sub-items - left-justified like admin group labels
                   return (
-                    <SidebarMenuItem key={item.id} className="px-0">
-                      <SidebarMenuButton asChild tooltip={collapsed ? item.label : undefined}>
-                        <NavLink
-                          to={item.path}
-                          className="flex items-center justify-between transition-all duration-150 text-white hover:bg-white/10 w-full px-3 py-2"
-                          activeClassName="nav-active"
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <Icon className="h-4 w-4 shrink-0 text-white" />
-                            {!collapsed && <span className="truncate text-white font-medium">{item.label}</span>}
-                          </div>
-                          {!collapsed && isPinned && <span className="pinned-star text-amber-400 text-xs ml-auto shrink-0">★</span>}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
+                    <NavLink
+                      key={item.id}
+                      to={item.path}
+                      className="flex items-center justify-between text-white hover:bg-white/10 w-full px-3 py-2 rounded-md transition-colors"
+                      activeClassName="bg-primary/20 text-white"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Icon className="h-4 w-4 shrink-0 text-white" />
+                        {!collapsed && <span className="truncate text-white font-medium text-sm">{item.label}</span>}
+                      </div>
+                      {!collapsed && isPinned && <span className="text-amber-400 text-xs ml-auto shrink-0">★</span>}
+                    </NavLink>
                   );
                 })}
-              </SidebarMenu>
+              </div>
             </SidebarGroupContent>
           </SidebarGroup>
         )}
