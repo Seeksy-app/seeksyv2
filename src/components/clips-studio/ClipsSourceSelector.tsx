@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ interface ClipsSourceSelectorProps {
 }
 
 export function ClipsSourceSelector({ onMediaSelect, onBack }: ClipsSourceSelectorProps) {
+  const navigate = useNavigate();
   const [mediaFiles, setMediaFiles] = useState<SourceMedia[]>([]);
   const [selectedFile, setSelectedFile] = useState<SourceMedia | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -102,11 +104,9 @@ export function ClipsSourceSelector({ onMediaSelect, onBack }: ClipsSourceSelect
       if (!session) throw new Error("Not authenticated");
 
       const user = session.user;
-      // Sanitize filename to remove special characters that are invalid for storage keys
       const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '-').replace(/--+/g, '-');
       const filePath = `${user.id}/${Date.now()}-${sanitizedName}`;
 
-      // Use TUS for large files
       if (file.size > 6 * 1024 * 1024) {
         const projectId = "taxqcioheqdqtlmjeaht";
         
@@ -146,7 +146,6 @@ export function ClipsSourceSelector({ onMediaSelect, onBack }: ClipsSourceSelect
           });
         });
       } else {
-        // Standard upload for smaller files
         const { error: uploadError } = await supabase.storage
           .from("media-vault")
           .upload(filePath, file, { cacheControl: "3600", upsert: false });
@@ -154,10 +153,8 @@ export function ClipsSourceSelector({ onMediaSelect, onBack }: ClipsSourceSelect
         if (uploadError) throw uploadError;
       }
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage.from("media-vault").getPublicUrl(filePath);
 
-      // Create media_files record
       const { data: newMedia, error: insertError } = await supabase
         .from("media_files")
         .insert({
@@ -201,6 +198,10 @@ export function ClipsSourceSelector({ onMediaSelect, onBack }: ClipsSourceSelect
       setIsUploading(false);
       setUploadProgress(0);
     }
+  };
+
+  const handleOpenMediaLibrary = () => {
+    navigate('/studio/media');
   };
 
   const formatDuration = (seconds: number | null) => {
@@ -317,6 +318,15 @@ export function ClipsSourceSelector({ onMediaSelect, onBack }: ClipsSourceSelect
                 <Upload className="h-4 w-4" />
                 Upload New
               </Button>
+              <div className="flex-1" />
+              <Button
+                variant="outline"
+                onClick={handleOpenMediaLibrary}
+                className="gap-2"
+              >
+                <Film className="h-4 w-4" />
+                Open Full Media Library
+              </Button>
             </div>
 
             {activeTab === 'upload' ? (
@@ -365,6 +375,12 @@ export function ClipsSourceSelector({ onMediaSelect, onBack }: ClipsSourceSelect
               </div>
             ) : (
               <div className="space-y-4">
+                {/* Section header */}
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-lg">Recent Videos</h3>
+                  <span className="text-sm text-muted-foreground">{filteredMedia.length} videos</span>
+                </div>
+
                 {/* Search */}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -393,7 +409,7 @@ export function ClipsSourceSelector({ onMediaSelect, onBack }: ClipsSourceSelect
                     </Button>
                   </div>
                 ) : (
-                  <ScrollArea className="h-[450px]">
+                  <ScrollArea className="h-[400px]">
                     <div className="grid gap-3">
                       {filteredMedia.map((media, index) => (
                         <motion.div
@@ -417,12 +433,17 @@ export function ClipsSourceSelector({ onMediaSelect, onBack }: ClipsSourceSelect
                                 alt={media.file_name}
                                 className="w-full h-full object-cover"
                               />
-                            ) : (
+                            ) : media.cloudflare_download_url || media.file_url ? (
                               <video
-                                src={media.file_url}
+                                src={media.cloudflare_download_url || media.file_url}
                                 className="w-full h-full object-cover"
                                 muted
+                                preload="metadata"
                               />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-muted">
+                                <Film className="h-8 w-8 text-muted-foreground" />
+                              </div>
                             )}
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                               <Play className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -469,21 +490,27 @@ export function ClipsSourceSelector({ onMediaSelect, onBack }: ClipsSourceSelect
                   </ScrollArea>
                 )}
 
-                {selectedFile && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                {/* Generate AI Clips Button - More visible */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="pt-4 border-t"
+                >
+                  <Button 
+                    onClick={() => selectedFile && onMediaSelect(selectedFile)}
+                    disabled={!selectedFile}
+                    size="lg"
+                    className={cn(
+                      "w-full text-lg h-16 gap-3 font-bold transition-all",
+                      selectedFile 
+                        ? "bg-gradient-to-r from-[#053877] via-[#2C6BED] to-[#DDA3FF] hover:opacity-90 shadow-lg shadow-[#2C6BED]/30"
+                        : "bg-muted text-muted-foreground"
+                    )}
                   >
-                    <Button 
-                      onClick={() => onMediaSelect(selectedFile)}
-                      size="lg"
-                      className="w-full bg-gradient-to-r from-[#053877] to-[#2C6BED] hover:opacity-90 text-lg h-14"
-                    >
-                      <Sparkles className="h-5 w-5 mr-2" />
-                      Generate AI Clips
-                    </Button>
-                  </motion.div>
-                )}
+                    <Sparkles className="h-6 w-6" />
+                    {selectedFile ? "Generate AI Clips" : "Select a video to continue"}
+                  </Button>
+                </motion.div>
               </div>
             )}
           </CardContent>

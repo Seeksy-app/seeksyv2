@@ -22,7 +22,6 @@ const aspectRatios = [
   { id: "4:5", label: "4:5", icon: RectangleHorizontal, platforms: "Instagram Portrait" },
 ];
 
-// Extract YouTube video ID from various URL formats
 function getYouTubeVideoId(url: string): string | null {
   if (!url) return null;
   const patterns = [
@@ -46,7 +45,6 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
 
   const clipDuration = clip ? (clip.end_seconds - clip.start_seconds) : 0;
 
-  // Check if source is YouTube
   const isYouTubeSource = sourceMedia.source === 'youtube' || 
     (sourceMedia.file_url && sourceMedia.file_url.includes('youtube.com'));
   const youtubeVideoId = useMemo(() => 
@@ -54,7 +52,6 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
     [sourceMedia.file_url, isYouTubeSource]
   );
   
-  // Check if we have a playable video URL (Cloudflare or direct file)
   const hasPlayableVideo = !!sourceMedia.cloudflare_download_url || 
     (sourceMedia.file_url && !isYouTubeSource);
 
@@ -102,7 +99,6 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
     }
   };
 
-  // Sync isPlaying state with video events
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -145,26 +141,34 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Much larger dimensions for better preview
+  // Reduced dimensions to fit in viewport
   const getPreviewDimensions = () => {
     switch (selectedRatio) {
-      case "9:16": return { width: 380, height: 676 };
-      case "1:1": return { width: 500, height: 500 };
-      case "16:9": return { width: 700, height: 394 };
-      case "4:5": return { width: 450, height: 562 };
-      default: return { width: 380, height: 676 };
+      case "9:16": return { width: 280, height: 498 };
+      case "1:1": return { width: 380, height: 380 };
+      case "16:9": return { width: 500, height: 281 };
+      case "4:5": return { width: 340, height: 425 };
+      default: return { width: 280, height: 498 };
     }
   };
 
+  // No clip selected - show black placeholder
   if (!clip) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-muted/10">
-        <div className="text-center">
-          <div className="w-24 h-24 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
-            <Scissors className="h-10 w-10 text-muted-foreground" />
+      <div className="flex-1 flex flex-col bg-muted/5">
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="text-center">
+            <div 
+              className="bg-black rounded-xl mx-auto flex items-center justify-center mb-4"
+              style={{ width: 280, height: 498 }}
+            >
+              <div className="text-center">
+                <Scissors className="h-12 w-12 text-white/30 mx-auto mb-3" />
+                <p className="text-white/50 font-medium">Select a clip to preview</p>
+                <p className="text-white/30 text-sm mt-1">Choose from the clips on the left</p>
+              </div>
+            </div>
           </div>
-          <p className="text-lg font-medium text-muted-foreground">Select a clip to preview</p>
-          <p className="text-sm text-muted-foreground/70 mt-1">Choose from the clips on the left</p>
         </div>
       </div>
     );
@@ -173,21 +177,18 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
   const dimensions = getPreviewDimensions();
 
   return (
-    <div className="flex-1 flex items-center justify-center bg-muted/5 p-6">
-      {/* Fixed preview container - no scroll */}
-      <div className="flex flex-col items-center gap-5">
-        {/* Video Container - No phone frame */}
+    <div className="flex-1 flex flex-col bg-muted/5 overflow-hidden">
+      {/* Video Preview - Fixed area, no scroll */}
+      <div className="flex-1 flex items-center justify-center p-4 min-h-0">
         <motion.div 
           className="relative"
           layout
           transition={{ duration: 0.3 }}
         >
-          {/* Video container */}
           <div 
             className="relative bg-black overflow-hidden rounded-xl shadow-2xl"
             style={{ width: dimensions.width, height: dimensions.height }}
           >
-            {/* YouTube embed for YouTube sources */}
             {isYouTubeSource && youtubeVideoId ? (
               <div className="w-full h-full flex flex-col">
                 <iframe
@@ -196,7 +197,6 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
-                {/* Overlay info for YouTube */}
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-3">
                   <div className="flex items-center gap-2 text-white/80 text-xs mb-1">
                     <Youtube className="h-3 w-3 text-red-500" />
@@ -216,20 +216,20 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
                   muted={isMuted}
                   playsInline
                   onClick={togglePlay}
+                  poster={sourceMedia.thumbnail_url}
                 />
                 
-                {/* Caption overlay preview */}
+                {/* Caption overlay with text styling */}
                 {clip.suggested_caption && (
                   <div className="absolute bottom-12 left-3 right-3">
-                    <div className="bg-black/70 backdrop-blur-sm px-4 py-2 rounded-lg">
-                      <p className="text-white text-center text-sm font-semibold leading-relaxed line-clamp-3">
+                    <div className="bg-black/80 backdrop-blur-sm px-4 py-3 rounded-lg border border-white/10">
+                      <p className="text-white text-center text-sm font-bold leading-relaxed tracking-wide uppercase">
                         {clip.suggested_caption}
                       </p>
                     </div>
                   </div>
                 )}
 
-                {/* Play button overlay */}
                 {!isPlaying && (
                   <button
                     onClick={togglePlay}
@@ -242,17 +242,13 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
                 )}
               </>
             ) : (
-              // No playable source - show message
               <div className="w-full h-full flex flex-col items-center justify-center text-center p-4">
                 <AlertCircle className="h-12 w-12 text-yellow-500 mb-3" />
                 <p className="text-white font-medium mb-1">Video not playable</p>
-                <p className="text-white/60 text-sm">
-                  Download required for rendering.
-                </p>
+                <p className="text-white/60 text-sm">Download required for rendering.</p>
               </div>
             )}
 
-            {/* Scene markers - only for playable videos */}
             {hasPlayableVideo && clip.scenes && clip.scenes.length > 0 && (
               <div className="absolute top-3 right-3 space-y-1">
                 {clip.scenes.slice(0, 2).map((scene, i) => (
@@ -265,20 +261,16 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
                       scene.type === 'cta' && "bg-green-500/80 text-white"
                     )}
                   >
-                    {scene.type === 'hook' ? '⚡' : 
-                     scene.type === 'key_point' ? '💡' : 
-                     scene.type === 'cta' ? '🎯' : scene.type}
+                    {scene.type === 'hook' ? '⚡' : scene.type === 'key_point' ? '💡' : scene.type === 'cta' ? '🎯' : scene.type}
                   </Badge>
                 ))}
               </div>
             )}
 
-            {/* Preview badge */}
             <Badge className="absolute top-3 left-3 bg-black/60 text-white border-0 text-xs px-2 py-0.5">
               PREVIEW
             </Badge>
 
-            {/* Time indicator - only for non-YouTube sources */}
             {!isYouTubeSource && hasPlayableVideo && (
               <div className="absolute top-10 left-3 bg-black/60 px-2 py-1 rounded text-xs text-white font-mono">
                 {formatTime(currentTime)} / {formatTime(clipDuration)}
@@ -286,92 +278,73 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
             )}
           </div>
         </motion.div>
+      </div>
 
-        {/* Controls - directly under video */}
-        <div className="w-full max-w-[500px] bg-card/90 backdrop-blur-sm rounded-xl border p-4 space-y-4">
-          {/* Playback controls */}
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={skipBack} className="h-9 w-9">
-              <SkipBack className="h-4 w-4" />
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={togglePlay}
-              className="w-12 h-12 rounded-full bg-[#F5C242] hover:bg-[#F5C242]/90 text-black"
-            >
-              {isPlaying ? (
-                <Pause className="h-5 w-5" />
-              ) : (
-                <Play className="h-5 w-5 ml-0.5" fill="currentColor" />
+      {/* Controls - Fixed at bottom */}
+      <div className="flex-shrink-0 border-t bg-card/90 backdrop-blur-sm p-4 space-y-3">
+        {/* Playback controls */}
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={skipBack} className="h-9 w-9">
+            <SkipBack className="h-4 w-4" />
+          </Button>
+          
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={togglePlay}
+            className="w-12 h-12 rounded-full bg-[#F5C242] hover:bg-[#F5C242]/90 text-black"
+          >
+            {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" fill="currentColor" />}
+          </Button>
+          
+          <Button variant="ghost" size="icon" onClick={skipForward} className="h-9 w-9">
+            <SkipForward className="h-4 w-4" />
+          </Button>
+
+          <div className="flex-1 px-2">
+            <Slider 
+              value={[clipDuration > 0 ? (currentTime / clipDuration) * 100 : 0]}
+              max={100}
+              step={0.1}
+              onValueChange={handleSeek}
+              className="cursor-pointer"
+            />
+          </div>
+
+          <span className="text-sm text-muted-foreground font-mono whitespace-nowrap">
+            {formatTime(currentTime)} / {formatTime(clipDuration)}
+          </span>
+
+          <Button variant="ghost" size="icon" onClick={() => setIsMuted(!isMuted)} className="h-8 w-8">
+            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+          </Button>
+
+          <Button variant="ghost" size="icon" onClick={() => setShowTrimHandles(!showTrimHandles)} className={cn("h-8 w-8", showTrimHandles && "bg-muted")}>
+            <Scissors className="h-4 w-4" />
+          </Button>
+
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Maximize2 className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Aspect ratio selector */}
+        <div className="flex items-center justify-center gap-2">
+          {aspectRatios.map((ratio) => (
+            <button
+              key={ratio.id}
+              onClick={() => setSelectedRatio(ratio.id)}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all text-sm",
+                selectedRatio === ratio.id
+                  ? "bg-[#053877] text-white shadow-lg"
+                  : "bg-muted hover:bg-muted/80 text-muted-foreground"
               )}
-            </Button>
-            
-            <Button variant="ghost" size="icon" onClick={skipForward} className="h-9 w-9">
-              <SkipForward className="h-4 w-4" />
-            </Button>
-
-            <div className="flex-1 px-2">
-              <Slider 
-                value={[clipDuration > 0 ? (currentTime / clipDuration) * 100 : 0]}
-                max={100}
-                step={0.1}
-                onValueChange={handleSeek}
-                className="cursor-pointer"
-              />
-            </div>
-
-            <span className="text-sm text-muted-foreground font-mono whitespace-nowrap">
-              {formatTime(currentTime)} / {formatTime(clipDuration)}
-            </span>
-          </div>
-
-          {/* Secondary controls */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1">
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={() => setIsMuted(!isMuted)}
-                className="h-8 w-8"
-              >
-                {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-              </Button>
-
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={() => setShowTrimHandles(!showTrimHandles)}
-                className={cn("h-8 w-8", showTrimHandles && "bg-muted")}
-              >
-                <Scissors className="h-4 w-4" />
-              </Button>
-
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Maximize2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Aspect ratio selector */}
-          <div className="flex items-center justify-center gap-2">
-            {aspectRatios.map((ratio) => (
-              <button
-                key={ratio.id}
-                onClick={() => setSelectedRatio(ratio.id)}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all text-sm",
-                  selectedRatio === ratio.id
-                    ? "bg-[#053877] text-white shadow-lg"
-                    : "bg-muted hover:bg-muted/80 text-muted-foreground"
-                )}
-              >
-                <ratio.icon className="h-4 w-4" />
-                <span className="font-medium">{ratio.label}</span>
-              </button>
-            ))}
-          </div>
+            >
+              <ratio.icon className="h-4 w-4" />
+              <span className="font-medium">{ratio.label}</span>
+            </button>
+          ))}
         </div>
       </div>
     </div>

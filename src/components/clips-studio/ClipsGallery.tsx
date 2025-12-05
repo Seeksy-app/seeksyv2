@@ -3,7 +3,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { 
   TrendingUp, Zap, BarChart3, Flame, Play, Clock, 
-  Smartphone, Youtube, Instagram
+  Smartphone, Youtube, Instagram, Film
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -61,10 +61,17 @@ export function ClipsGallery({
     }
   };
 
+  // Get thumbnail URL - use clip thumbnail, source media thumbnail, or generate from video
+  const getThumbnailUrl = (clip: ClipData) => {
+    if (clip.thumbnail_url) return clip.thumbnail_url;
+    if (sourceMedia.thumbnail_url) return sourceMedia.thumbnail_url;
+    return null;
+  };
+
   return (
-    <div className="w-80 border-r bg-card/30 flex flex-col">
-      {/* Header */}
-      <div className="p-4 border-b bg-card/50">
+    <div className="w-80 border-r bg-card/30 flex flex-col h-full overflow-hidden">
+      {/* Header - fixed */}
+      <div className="flex-shrink-0 p-4 border-b bg-card/50">
         <div className="flex items-center justify-between mb-2">
           <h2 className="font-semibold text-lg">AI Clips</h2>
           <Badge className="bg-[#2C6BED]/20 text-[#2C6BED] border-0 font-semibold">
@@ -76,7 +83,7 @@ export function ClipsGallery({
         </p>
       </div>
 
-      {/* Clips list */}
+      {/* Clips list - scrollable independently */}
       <ScrollArea className="flex-1">
         <div className={cn(
           "p-3",
@@ -98,28 +105,31 @@ export function ClipsGallery({
             >
               {/* Thumbnail with overlays */}
               <div className="relative aspect-video bg-black">
-                {/* Use thumbnail if available, otherwise show poster from video */}
-                {clip.thumbnail_url || sourceMedia.thumbnail_url ? (
+                {getThumbnailUrl(clip) ? (
                   <img
-                    src={clip.thumbnail_url || sourceMedia.thumbnail_url}
+                    src={getThumbnailUrl(clip)!}
                     alt={clip.title || `Clip ${index + 1}`}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      // Fallback to video frame if image fails
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
-                      const parent = target.parentElement;
-                      if (parent) {
-                        const fallback = document.createElement('div');
-                        fallback.className = 'w-full h-full flex items-center justify-center bg-muted';
-                        fallback.innerHTML = '<svg class="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>';
-                        parent.appendChild(fallback);
-                      }
+                    }}
+                  />
+                ) : sourceMedia.cloudflare_download_url || sourceMedia.file_url ? (
+                  <video
+                    src={`${sourceMedia.cloudflare_download_url || sourceMedia.file_url}#t=${clip.start_seconds}`}
+                    className="w-full h-full object-cover"
+                    muted
+                    preload="metadata"
+                    onLoadedData={(e) => {
+                      // Seek to clip start for thumbnail
+                      const video = e.target as HTMLVideoElement;
+                      video.currentTime = clip.start_seconds;
                     }}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-muted">
-                    <Play className="w-8 h-8 text-muted-foreground" />
+                    <Film className="w-8 h-8 text-muted-foreground" />
                   </div>
                 )}
                 
