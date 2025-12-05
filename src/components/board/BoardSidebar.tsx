@@ -80,6 +80,7 @@ const businessItems = [
     label: 'CEO VTO',
     icon: Briefcase,
     path: '/board/vto',
+    external: true,
   },
   {
     id: 'docs',
@@ -108,6 +109,18 @@ const financialItems = [
     label: 'Revenue Insights',
     icon: DollarSign,
     path: '/board/revenue-insights',
+  },
+  {
+    id: 'proforma-combined',
+    label: '3-Year Pro Forma (Combined)',
+    icon: TrendingUp,
+    path: '/cfo/proforma/combined',
+  },
+  {
+    id: 'proforma-events',
+    label: '3-Year Pro Forma (Events)',
+    icon: TrendingUp,
+    path: '/cfo/proforma/events-awards',
   },
 ];
 
@@ -150,6 +163,7 @@ type NavItem = {
   icon: any;
   path?: string;
   isAI?: boolean;
+  external?: boolean;
 };
 
 export function BoardSidebar() {
@@ -169,7 +183,11 @@ export function BoardSidebar() {
 
   const handleNavigation = (item: NavItem) => {
     if (!item.path) return;
-    navigate(item.path);
+    if (item.external) {
+      window.open(item.path, '_blank', 'noopener,noreferrer');
+    } else {
+      navigate(item.path);
+    }
   };
 
   const isItemActive = (item: NavItem) => {
