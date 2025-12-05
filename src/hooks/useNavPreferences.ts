@@ -42,6 +42,7 @@ const DEFAULT_NAV_CONFIG: NavConfig = {
     'creator_hub',
     'settings',
     'my_workspaces',
+    'active_apps',
     'media_content',
     'seekies',
     'email',
@@ -76,6 +77,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'creator_hub', label: 'Creator Hub', path: '/creator-hub', isHome: true, level: 0 },
   { id: 'settings', label: 'Settings', path: '/settings', level: 0 },
   { id: 'my_workspaces', label: 'My Workspaces', path: '/apps?category=my-workspaces', level: 0 },
+  { id: 'active_apps', label: 'Active Apps', path: '/apps?category=active', level: 0 },
   { 
     id: 'media_content', 
     label: 'Media & Content', 

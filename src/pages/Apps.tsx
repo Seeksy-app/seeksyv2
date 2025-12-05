@@ -543,6 +543,17 @@ export default function Apps() {
   }, [searchTerm, activeCategory, isModuleActivated]);
 
   const groupedModules = useMemo(() => {
+    // For "active" category, group by original module category so they display properly
+    if (activeCategory === "active") {
+      return filteredModules.reduce((acc, module) => {
+        if (!acc[module.category]) {
+          acc[module.category] = [];
+        }
+        acc[module.category].push(module);
+        return acc;
+      }, {} as Record<string, Module[]>);
+    }
+    
     if (activeCategory !== "all") {
       return { [activeCategory]: filteredModules };
     }

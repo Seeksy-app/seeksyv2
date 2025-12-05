@@ -128,6 +128,7 @@ const ICON_MAP: Record<string, any> = {
   'creator_hub': Rocket,
   'my_streaming_channel': Radio,
   'my_workspaces': Package,
+  'active_apps': Zap,
   'meetings': Calendar,
   'studio': Video,
   'social_analytics': BarChart2,
@@ -211,6 +212,102 @@ const ICON_MAP: Record<string, any> = {
   instagram: Instagram,
   play: Play,
   package: Package,
+};
+
+// Module ID to icon mapping for active apps
+const MODULE_ICON_MAP: Record<string, any> = {
+  'audience-insights': BarChart2,
+  'social-analytics': BarChart2,
+  'studio': Video,
+  'podcasts': Podcast,
+  'media-library': Image,
+  'clips-editing': Scissors,
+  'contacts': Users,
+  'segments': Target,
+  'campaigns': Megaphone,
+  'email-templates': Mail,
+  'automations': Zap,
+  'sms': MessageCircle,
+  'forms': FileText,
+  'qr-codes': Grid3x3,
+  'meetings': Calendar,
+  'events': Calendar,
+  'proposals': FileText,
+  'tasks': Activity,
+  'polls': MessageSquare,
+  'awards': Award,
+  'team': Users,
+  'my-page': Layout,
+  'identity-verification': Shield,
+  'social-connect': Instagram,
+  'marketing': Megaphone,
+  'email': Mail,
+  'content-library': FolderOpen,
+  'clips': Scissors,
+};
+
+// Module ID to route mapping
+const MODULE_ROUTE_MAP: Record<string, string> = {
+  'audience-insights': '/social-analytics',
+  'social-analytics': '/social-analytics',
+  'studio': '/studio',
+  'podcasts': '/podcasts',
+  'media-library': '/studio/media',
+  'clips-editing': '/clips',
+  'contacts': '/audience',
+  'segments': '/marketing/segments',
+  'campaigns': '/marketing/campaigns',
+  'email-templates': '/marketing/templates',
+  'automations': '/marketing/automations',
+  'sms': '/sms',
+  'forms': '/forms',
+  'qr-codes': '/qr-codes',
+  'meetings': '/meetings',
+  'events': '/events',
+  'proposals': '/proposals',
+  'tasks': '/tasks',
+  'polls': '/polls',
+  'awards': '/awards',
+  'team': '/team',
+  'my-page': '/profile/edit',
+  'identity-verification': '/identity',
+  'social-connect': '/integrations',
+  'marketing': '/contacts',
+  'email': '/email/inbox',
+  'content-library': '/studio/media',
+  'clips': '/clips',
+};
+
+// Module ID to display name mapping
+const MODULE_NAME_MAP: Record<string, string> = {
+  'audience-insights': 'Audience Insights',
+  'social-analytics': 'Social Analytics',
+  'studio': 'Studio',
+  'podcasts': 'Podcasts',
+  'media-library': 'Media Library',
+  'clips-editing': 'Clips & Editing',
+  'contacts': 'Contacts',
+  'segments': 'Segments',
+  'campaigns': 'Campaigns',
+  'email-templates': 'Email Templates',
+  'automations': 'Automations',
+  'sms': 'SMS',
+  'forms': 'Forms',
+  'qr-codes': 'QR Codes',
+  'meetings': 'Meetings',
+  'events': 'Events',
+  'proposals': 'Proposals',
+  'tasks': 'Tasks',
+  'polls': 'Polls & Surveys',
+  'awards': 'Awards',
+  'team': 'Team',
+  'my-page': 'My Page',
+  'identity-verification': 'Identity',
+  'social-connect': 'Social Connect',
+  'marketing': 'Marketing',
+  'email': 'Email',
+  'content-library': 'Content Library',
+  'clips': 'AI Clips',
 };
 
 export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
@@ -365,6 +462,65 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                     </Collapsible>
                   </div>
                 );
+              }
+              
+              // Active Apps - shows activated modules as sub-items
+              if (item.id === 'active_apps' && activatedModuleIds.length > 0) {
+                return (
+                  <div key={item.id}>
+                    <Collapsible open={isOpen} onOpenChange={() => toggleGroup(item.id)}>
+                      <CollapsibleTrigger asChild>
+                        <SidebarMenuItem>
+                          <SidebarMenuButton className="w-full justify-between hover:bg-white/10 text-white">
+                            <div className="flex items-center gap-3">
+                              <Zap className="h-4 w-4 shrink-0 text-green-400" />
+                              {!collapsed && (
+                                <>
+                                  <span className="font-medium text-white">{item.label}</span>
+                                  <span className="text-xs text-green-400 bg-green-500/20 px-1.5 py-0.5 rounded">
+                                    {activatedModuleIds.length}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                            {!collapsed && (
+                              <ChevronDown className={`h-4 w-4 shrink-0 text-white/70 transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`} />
+                            )}
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="ml-6 mt-1 space-y-0.5">
+                          {activatedModuleIds.map((moduleId) => {
+                            const ModuleIcon = MODULE_ICON_MAP[moduleId] || Zap;
+                            const moduleName = MODULE_NAME_MAP[moduleId] || moduleId;
+                            const moduleRoute = MODULE_ROUTE_MAP[moduleId] || `/apps?category=active`;
+                            
+                            return (
+                              <SidebarMenuItem key={moduleId}>
+                                <SidebarMenuButton asChild>
+                                  <NavLink
+                                    to={moduleRoute}
+                                    className="flex items-center gap-2 text-white/80 text-sm py-1.5"
+                                    activeClassName="text-white bg-white/10"
+                                  >
+                                    <ModuleIcon className="h-3.5 w-3.5 shrink-0" />
+                                    <span className="truncate">{moduleName}</span>
+                                  </NavLink>
+                                </SidebarMenuButton>
+                              </SidebarMenuItem>
+                            );
+                          })}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </div>
+                );
+              }
+              
+              // Hide Active Apps if no modules activated
+              if (item.id === 'active_apps' && activatedModuleIds.length === 0) {
+                return null;
               }
               
               // Items WITH sub-items - collapsible with chevron
