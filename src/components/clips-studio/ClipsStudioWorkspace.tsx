@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { ClipData, SourceMedia } from "@/pages/ClipsStudio";
 import { ClipsGallery } from "./ClipsGallery";
 import { ClipDetailPanel } from "./ClipDetailPanel";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   ArrowLeft, RefreshCw, Download, Share2, Sparkles, 
-  Settings, Layers, LayoutGrid, List
+  LayoutGrid, List
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +30,6 @@ export function ClipsStudioWorkspace({
     clips[0]?.id || null
   );
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [showSettings, setShowSettings] = useState(false);
 
   const selectedClip = clips.find(c => c.id === selectedClipId) || null;
 
@@ -52,9 +51,9 @@ export function ClipsStudioWorkspace({
     : 0;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
+      {/* Header - Fixed */}
+      <header className="flex-shrink-0 border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="flex items-center justify-between h-16 px-4">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={onBack}>
@@ -115,9 +114,9 @@ export function ClipsStudioWorkspace({
         </div>
       </header>
 
-      {/* Main Content - 3 Panel Layout */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Panel - Clips Gallery */}
+      {/* Main Content - 3 Panel Layout - Full height minus header */}
+      <div className="flex-1 flex overflow-hidden min-h-0">
+        {/* Left Panel - Clips Gallery (scrollable independently) */}
         <ClipsGallery
           clips={clips}
           selectedClipId={selectedClipId}
@@ -126,13 +125,13 @@ export function ClipsStudioWorkspace({
           viewMode={viewMode}
         />
 
-        {/* Center - Video Preview */}
+        {/* Center - Video Preview (fixed, no scroll) */}
         <ClipVideoPreview
           clip={selectedClip}
           sourceMedia={sourceMedia}
         />
 
-        {/* Right Panel - Clip Details & Editor */}
+        {/* Right Panel - Clip Details & Editor (scrollable independently) */}
         <ClipDetailPanel
           clip={selectedClip}
           sourceMedia={sourceMedia}
