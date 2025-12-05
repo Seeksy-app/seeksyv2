@@ -83,6 +83,7 @@ export function useModuleActivation() {
       };
     },
     onSuccess: ({ moduleId, companions }) => {
+      // Immediately refetch to update state
       queryClient.invalidateQueries({ queryKey: ['user-activated-modules'] });
       queryClient.invalidateQueries({ queryKey: ['user-preferences'] });
       
@@ -92,7 +93,7 @@ export function useModuleActivation() {
       
       toast({
         title: "Module Activated",
-        description: `Added to your workspace and navigation.${companionText}`,
+        description: `${moduleId} has been activated for this workspace.${companionText}`,
       });
     },
     onError: (error: any) => {

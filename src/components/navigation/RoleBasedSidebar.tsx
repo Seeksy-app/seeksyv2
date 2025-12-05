@@ -308,6 +308,46 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                   const isPinned = navConfig.pinned.includes(item.id);
                   const hasSubItems = item.subItems && item.subItems.length > 0;
                   
+                  // Special handling for My Workspaces - show custom packages as sub-items
+                  if (item.id === 'my_workspaces' && customPackages.length > 0 && !collapsed) {
+                    const isOpen = openGroups[item.id] ?? false;
+                    return (
+                      <Collapsible
+                        key={item.id}
+                        open={isOpen}
+                        onOpenChange={() => toggleGroup(item.id)}
+                      >
+                        <CollapsibleTrigger asChild>
+                          <button className="w-full flex items-center justify-between cursor-pointer hover:bg-white/10 text-white px-3 py-2 rounded-md transition-colors">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <Icon className="h-4 w-4 shrink-0 text-white" />
+                              <span className="truncate text-white font-medium text-sm">{item.label}</span>
+                            </div>
+                            <div className="flex items-center gap-2 ml-auto shrink-0">
+                              {isPinned && <span className="text-amber-400 text-xs">★</span>}
+                              <ChevronDown className={`h-4 w-4 text-white/70 transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`} />
+                            </div>
+                          </button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <div className="ml-7 mt-1 space-y-0.5 border-l border-white/20 pl-3">
+                            {customPackages.map((pkg) => (
+                              <NavLink
+                                key={pkg.id}
+                                to={`/apps?workspace=${pkg.id}`}
+                                className="flex items-center justify-between text-sm py-1.5 px-2 text-white/80 hover:text-white hover:bg-white/5 rounded transition-colors"
+                                activeClassName="text-white bg-white/10"
+                              >
+                                <span className="truncate">{pkg.name}</span>
+                                {pkg.is_default && <span className="text-amber-400 text-xs">★</span>}
+                              </NavLink>
+                            ))}
+                          </div>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    );
+                  }
+                  
                   // Level 0 items with sub-items render as collapsible
                   if (hasSubItems && !collapsed) {
                     const isOpen = openGroups[item.id] ?? false;
@@ -371,38 +411,6 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                   );
                 })}
               </div>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        {/* Custom Workspaces Section - Non-admin users */}
-        {!isAdmin && customPackages.length > 0 && !collapsed && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-white/60 text-xs font-medium px-3 py-1">
-              My Workspaces
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {customPackages.map((pkg) => (
-                  <SidebarMenuItem key={pkg.id}>
-                    <SidebarMenuButton asChild>
-                      <NavLink
-                        to={`/apps?workspace=${pkg.id}`}
-                        className="flex items-center justify-between transition-all duration-150 text-white hover:bg-white/10 w-full"
-                        activeClassName="nav-active"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <Package className="h-4 w-4 shrink-0 text-white" />
-                          <span className="truncate text-white">{pkg.name}</span>
-                        </div>
-                        {pkg.is_default && (
-                          <span className="text-amber-400 text-xs ml-auto shrink-0">★</span>
-                        )}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
         )}

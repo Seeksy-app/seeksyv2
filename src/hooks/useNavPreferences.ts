@@ -37,6 +37,7 @@ export interface NavItem {
 
 const DEFAULT_NAV_CONFIG: NavConfig = {
   order: [
+    'my_workspaces',
     'my_day',
     'creator_hub',
     'dashboard',
@@ -49,7 +50,6 @@ const DEFAULT_NAV_CONFIG: NavConfig = {
     'meetings',
     'monetization',
     'settings',
-    'my_workspaces'
   ],
   hidden: [],
   pinned: ['my_day', 'creator_hub', 'dashboard'],
@@ -61,21 +61,22 @@ const DEFAULT_LANDING_ROUTE = '/my-day';
 /**
  * Creator navigation items - clean, consistent structure
  * Top-level items in order:
- * 1. My Day
- * 2. Dashboard
- * 3. Creator Hub (with dynamic sub-items based on activated modules)
- * 4. Meetings
- * 5. Studio (production tools)
- * 6. Social Analytics
- * 7. Media & Content (content organization)
- * 8. Monetization
- * 9. Seekies & Apps
- * 10. Email
- * 11. Media (distribution channels)
- * 12. Marketing
+ * 1. My Workspaces
+ * 2. My Day
+ * 3. Creator Hub
+ * 4. Dashboard
+ * 5. Media & Content
+ * 6. Seekies & Apps
+ * 7. Email
+ * 8. Media (distribution channels)
+ * 9. Marketing
+ * 10. Awards
+ * 11. Meetings
+ * 12. Monetization
  * 13. Settings
  */
 export const NAV_ITEMS: NavItem[] = [
+  { id: 'my_workspaces', label: 'My Workspaces', path: '/apps?category=my-workspaces', level: 0 },
   { id: 'my_day', label: 'My Day', path: '/my-day', isHome: true, level: 0 },
   { id: 'creator_hub', label: 'Creator Hub', path: '/creator-hub', isHome: true, level: 0 },
   { id: 'dashboard', label: 'Dashboard', path: '/dashboard', isHome: true, level: 0 },
@@ -156,7 +157,6 @@ export const NAV_ITEMS: NavItem[] = [
     ]
   },
   { id: 'settings', label: 'Settings', path: '/settings', level: 0 },
-  { id: 'my_workspaces', label: 'My Workspaces', path: '/apps?category=my-workspaces', level: 0 },
 ];
 
 export const LANDING_OPTIONS = [
