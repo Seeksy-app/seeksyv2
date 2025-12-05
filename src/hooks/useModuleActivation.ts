@@ -95,11 +95,12 @@ export function useModuleActivation() {
         description: `Added to your workspace and navigation.${companionText}`,
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error activating module:', error);
+      const errorMessage = error?.message || 'Failed to activate module. Please try again.';
       toast({
-        title: "Error",
-        description: "Failed to activate module. Please try again.",
+        title: "Activation Error",
+        description: errorMessage,
         variant: "destructive",
       });
     },
