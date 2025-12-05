@@ -331,10 +331,10 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                     <Collapsible open={isOpen} onOpenChange={() => toggleGroup(item.id)}>
                       <CollapsibleTrigger asChild>
                         <SidebarMenuItem>
-                          <SidebarMenuButton className="w-full justify-between hover:bg-white/10">
+                          <SidebarMenuButton className="w-full justify-between hover:bg-white/10 text-white">
                             <div className="flex items-center gap-3">
-                              <Icon className="h-4 w-4 shrink-0" />
-                              {!collapsed && <span className="font-medium">{item.label}</span>}
+                              <Icon className="h-4 w-4 shrink-0 text-white" />
+                              {!collapsed && <span className="font-medium text-white">{item.label}</span>}
                             </div>
                             {!collapsed && (
                               <ChevronDown className={`h-4 w-4 shrink-0 text-white/70 transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`} />
@@ -378,10 +378,10 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                     <Collapsible open={isOpen} onOpenChange={() => toggleGroup(item.id)}>
                       <CollapsibleTrigger asChild>
                         <SidebarMenuItem>
-                          <SidebarMenuButton className="w-full justify-between hover:bg-white/10">
+                          <SidebarMenuButton className="w-full justify-between hover:bg-white/10 text-white">
                             <div className="flex items-center gap-3">
-                              <Icon className="h-4 w-4 shrink-0" />
-                              {!collapsed && <span className="font-medium">{item.label}</span>}
+                              <Icon className="h-4 w-4 shrink-0 text-white" />
+                              {!collapsed && <span className="font-medium text-white">{item.label}</span>}
                             </div>
                             {!collapsed && (
                               <ChevronDown className={`h-4 w-4 shrink-0 text-white/70 transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`} />
@@ -417,12 +417,12 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.path}
-                      className="flex items-center justify-between hover:bg-white/10"
+                      className="flex items-center justify-between hover:bg-white/10 text-white"
                       activeClassName="bg-primary/20 text-white"
                     >
                       <div className="flex items-center gap-3">
-                        <Icon className="h-4 w-4 shrink-0" />
-                        {!collapsed && <span className="font-medium">{item.label}</span>}
+                        <Icon className="h-4 w-4 shrink-0 text-white" />
+                        {!collapsed && <span className="font-medium text-white">{item.label}</span>}
                       </div>
                       {!collapsed && isPinned && <span className="text-amber-400 text-xs">★</span>}
                     </NavLink>
