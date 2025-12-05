@@ -6,6 +6,7 @@ import { useBoardDataMode } from '@/contexts/BoardDataModeContext';
 import { DataModeLabel, DataModeBadge } from '@/components/board/DataModeToggle';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useState, useEffect } from 'react';
+import { BoardLayout } from '@/components/board/BoardLayout';
 
 const demoRevenueMetrics = [
   { label: 'Total Revenue (MTD)', value: '$156,420', change: '+12.3%', icon: DollarSign },
@@ -38,25 +39,26 @@ export default function BoardRevenueInsights() {
   const revenueByChannel = isDemo ? demoRevenueByChannel : [];
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-6 space-y-8">
-      <Button
-        variant="ghost"
-        className="text-slate-500 hover:text-slate-700 -ml-2"
-        onClick={() => navigate('/board')}
-      >
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Dashboard
-      </Button>
+    <BoardLayout>
+      <div className="space-y-8">
+        <Button
+          variant="ghost"
+          className="text-slate-500 hover:text-slate-700 -ml-2"
+          onClick={() => navigate('/board')}
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Dashboard
+        </Button>
 
-      <div className="flex items-start gap-4">
-        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md">
-          <DollarSign className="w-7 h-7 text-white" />
+        <div className="flex items-start gap-4">
+          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md">
+            <DollarSign className="w-7 h-7 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Revenue Insights</h1>
+            <p className="text-slate-500">Financial performance metrics</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Revenue Insights</h1>
-          <p className="text-slate-500">Financial performance metrics</p>
-        </div>
-      </div>
 
       <DataModeLabel />
 
@@ -150,6 +152,7 @@ export default function BoardRevenueInsights() {
       <p className="text-xs text-slate-400 text-center">
         {isDemo ? 'Viewing demo data' : 'Real data mode'} • Last updated: {new Date().toLocaleDateString()}
       </p>
-    </div>
+      </div>
+    </BoardLayout>
   );
 }

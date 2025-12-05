@@ -34,10 +34,12 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
     const adminPaths = [
       '/cfo-dashboard',
       '/cfo-calculators',
+      '/cfo/',
       '/marketing-gtm',
       '/admin',
       '/investor-portal',
       '/proforma',
+      '/investor',
     ];
     const isAdminPath = adminPaths.some(path => location.pathname.startsWith(path));
     
