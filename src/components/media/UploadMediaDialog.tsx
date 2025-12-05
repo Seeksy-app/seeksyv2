@@ -12,6 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Upload, X, FileVideo, Music, Image as ImageIcon } from "lucide-react";
+import * as tus from "tus-js-client";
 
 interface UploadMediaDialogProps {
   open: boolean;
@@ -72,36 +73,90 @@ export function UploadMediaDialog({
 
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const user = session.user;
 
       for (const file of selectedFiles) {
-        // Upload to storage
         const filePath = `${user.id}/${Date.now()}-${file.name}`;
-        const { error: uploadError, data } = await supabase.storage
-          .from("media-vault")
-          .upload(filePath, file, {
-            cacheControl: "3600",
-            upsert: false,
-          });
+        
+        // Use TUS for files larger than 6MB (Supabase standard upload limit)
+        if (file.size > 6 * 1024 * 1024) {
+          // Use resumable upload (TUS) for large files
+          const projectId = "taxqcioheqdqtlmjeaht";
+          
+          await new Promise<void>((resolve, reject) => {
+            const upload = new tus.Upload(file, {
+              endpoint: `https://${projectId}.supabase.co/storage/v1/upload/resumable`,
+              retryDelays: [0, 3000, 5000, 10000, 20000],
+              headers: {
+                authorization: `Bearer ${session.access_token}`,
+                "x-upsert": "false",
+              },
+              uploadDataDuringCreation: true,
+              removeFingerprintOnSuccess: true,
+              metadata: {
+                bucketName: "media-vault",
+                objectName: filePath,
+                contentType: file.type,
+                cacheControl: "3600",
+              },
+              chunkSize: 6 * 1024 * 1024, // 6MB chunks
+              onError: (error) => {
+                console.error("TUS upload error:", error);
+                reject(error);
+              },
+              onProgress: (bytesUploaded, bytesTotal) => {
+                const fileProgress = (bytesUploaded / bytesTotal) * 100;
+                setProgress(((uploaded + fileProgress / 100) / totalFiles) * 100);
+              },
+              onSuccess: () => {
+                resolve();
+              },
+            });
 
-        if (uploadError) throw uploadError;
+            upload.findPreviousUploads().then((previousUploads) => {
+              if (previousUploads.length) {
+                upload.resumeFromPreviousUpload(previousUploads[0]);
+              }
+              upload.start();
+            });
+          });
+        } else {
+          // Use standard upload for smaller files
+          const { error: uploadError } = await supabase.storage
+            .from("media-vault")
+            .upload(filePath, file, {
+              cacheControl: "3600",
+              upsert: false,
+            });
+
+          if (uploadError) throw uploadError;
+        }
 
         // Get public URL
         const {
           data: { publicUrl },
         } = supabase.storage.from("media-vault").getPublicUrl(filePath);
 
+        // Determine file type
+        let fileType = 'other';
+        if (file.type.startsWith('video/')) fileType = 'video';
+        else if (file.type.startsWith('audio/')) fileType = 'audio';
+        else if (file.type.startsWith('image/')) fileType = 'image';
+
         // Create media_files record
         const { error: insertError } = await supabase.from("media_files").insert({
           user_id: user.id,
           file_url: publicUrl,
-          file_type: file.type,
+          file_type: fileType,
           file_name: file.name,
           file_size_bytes: file.size,
           folder_id: folderId,
           source: "upload",
+          storage_path: filePath,
         });
 
         if (insertError) throw insertError;
