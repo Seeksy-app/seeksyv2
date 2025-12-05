@@ -271,14 +271,14 @@ export default function SWOTAnalysis() {
 
   if (isLoading) {
     return (
-      <div className="w-full max-w-none px-10 pt-8 pb-16 flex items-center justify-center min-h-[400px]">
+      <div className="mx-auto max-w-7xl px-6 py-6 flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-none px-10 pt-8 pb-16 mx-auto flex flex-col gap-8 items-stretch">
+    <div className="mx-auto max-w-7xl px-6 py-6 flex flex-col gap-8 items-stretch">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

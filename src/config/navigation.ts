@@ -216,11 +216,18 @@ export const NAVIGATION_CONFIG: {
           "roles": ["admin", "super_admin", "cfo"]
         },
         {
-          "id": "admin_cfo_models",
-          "label": "CFO Models",
-          "icon": "calculator",
-          "path": "/admin/financial-models/combined",
-          "roles": ["admin", "super_admin", "cfo"]
+          "id": "admin_proforma_combined",
+          "label": "3-Year Pro Forma (Combined)",
+          "icon": "line-chart",
+          "path": "/cfo/proforma/combined",
+          "roles": ["admin", "super_admin", "cfo", "board_member"]
+        },
+        {
+          "id": "admin_proforma_events",
+          "label": "3-Year Pro Forma (Events)",
+          "icon": "trophy",
+          "path": "/cfo/proforma/events-awards",
+          "roles": ["admin", "super_admin", "cfo", "board_member"]
         },
         {
           "id": "admin_swot",

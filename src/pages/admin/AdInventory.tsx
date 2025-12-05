@@ -197,7 +197,7 @@ export default function AdInventory() {
   }, [inventory]);
 
   return (
-    <div className="px-10 pt-8 pb-16 flex flex-col items-start w-full space-y-6">
+    <div className="mx-auto max-w-7xl px-6 py-6 flex flex-col items-start w-full space-y-6">
       {/* Header */}
       <div className="text-left">
         <h1 className="text-2xl font-bold text-foreground">Ad Inventory</h1>
