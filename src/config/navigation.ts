@@ -226,7 +226,7 @@ export const NAVIGATION_CONFIG: {
           "id": "admin_proforma_combined",
           "label": "3-Year Pro Forma (Combined)",
           "icon": "line-chart",
-          "path": "/investor",
+          "path": "/cfo/proforma/combined",
           "roles": ["admin", "super_admin", "cfo", "board_member"]
         },
         {
