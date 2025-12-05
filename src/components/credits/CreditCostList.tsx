@@ -9,6 +9,7 @@ import {
   FileText,
   Mic
 } from "lucide-react";
+import { CREDIT_USAGE, FREE_LIMITS } from "@/lib/config/creditConfig";
 
 interface CreditCost {
   action: string;
@@ -23,7 +24,7 @@ export const CREDIT_COSTS: CreditCost[] = [
   // Time-Based Usage
   {
     action: "Recording",
-    cost: "1",
+    cost: String(CREDIT_USAGE.recording_per_min),
     unit: "per minute",
     icon: Video,
     description: "Audio or video recording in Studio",
@@ -31,7 +32,7 @@ export const CREDIT_COSTS: CreditCost[] = [
   },
   {
     action: "Livestreaming",
-    cost: "1.5",
+    cost: String(CREDIT_USAGE.streaming_per_min),
     unit: "per minute",
     icon: Radio,
     description: "Live streaming to platforms",
@@ -39,17 +40,17 @@ export const CREDIT_COSTS: CreditCost[] = [
   },
   {
     action: "Extra Storage",
-    cost: "10",
+    cost: String(CREDIT_USAGE.extra_storage_per_gb),
     unit: "per GB",
     icon: HardDrive,
-    description: "Storage beyond your free 25 GB",
+    description: `Storage beyond your free ${FREE_LIMITS.storage_gb} GB`,
     category: "Time-Based Usage"
   },
   
   // AI Features
   {
     action: "AI Clip Generation",
-    cost: "3",
+    cost: String(CREDIT_USAGE.ai_clips),
     unit: "per clip",
     icon: Scissors,
     description: "Generate highlight clips with AI",
@@ -57,7 +58,7 @@ export const CREDIT_COSTS: CreditCost[] = [
   },
   {
     action: "AI Enhancements",
-    cost: "2",
+    cost: String(CREDIT_USAGE.ai_enhancements),
     unit: "per action",
     icon: Sparkles,
     description: "Noise removal, filler words, B-roll generation",
@@ -65,7 +66,7 @@ export const CREDIT_COSTS: CreditCost[] = [
   },
   {
     action: "Transcription",
-    cost: "1",
+    cost: String(CREDIT_USAGE.transcription_per_10min),
     unit: "per 10 minutes",
     icon: FileText,
     description: "Auto-transcribe audio/video content",
@@ -73,7 +74,7 @@ export const CREDIT_COSTS: CreditCost[] = [
   },
   {
     action: "Voice Cloning",
-    cost: "5",
+    cost: String(CREDIT_USAGE.voice_cloning),
     unit: "per clone",
     icon: Mic,
     description: "Create AI voice profile",
@@ -81,15 +82,15 @@ export const CREDIT_COSTS: CreditCost[] = [
   },
 ];
 
-// Credit cost rates for programmatic use
+// Credit cost rates for programmatic use (re-exported from central config)
 export const CREDIT_RATES = {
-  RECORDING_PER_MINUTE: 1,
-  STREAMING_PER_MINUTE: 1.5,
-  STORAGE_PER_GB: 10,
-  AI_CLIP_GENERATION: 3,
-  AI_ENHANCEMENT: 2,
-  TRANSCRIPTION_PER_10_MIN: 1,
-  VOICE_CLONING: 5,
+  RECORDING_PER_MINUTE: CREDIT_USAGE.recording_per_min,
+  STREAMING_PER_MINUTE: CREDIT_USAGE.streaming_per_min,
+  STORAGE_PER_GB: CREDIT_USAGE.extra_storage_per_gb,
+  AI_CLIP_GENERATION: CREDIT_USAGE.ai_clips,
+  AI_ENHANCEMENT: CREDIT_USAGE.ai_enhancements,
+  TRANSCRIPTION_PER_10_MIN: CREDIT_USAGE.transcription_per_10min,
+  VOICE_CLONING: CREDIT_USAGE.voice_cloning,
 };
 
 export function CreditCostList() {
@@ -118,15 +119,15 @@ export function CreditCostList() {
           </h3>
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div className="text-center p-3 rounded-lg bg-background">
-              <div className="text-2xl font-bold text-primary">25 GB</div>
+              <div className="text-2xl font-bold text-primary">{FREE_LIMITS.storage_gb} GB</div>
               <div className="text-muted-foreground">Storage</div>
             </div>
             <div className="text-center p-3 rounded-lg bg-background">
-              <div className="text-2xl font-bold text-primary">10 hrs</div>
+              <div className="text-2xl font-bold text-primary">{Math.round(FREE_LIMITS.recording_minutes / 60)} hrs</div>
               <div className="text-muted-foreground">Recording</div>
             </div>
             <div className="text-center p-3 rounded-lg bg-background">
-              <div className="text-2xl font-bold text-primary">5 hrs</div>
+              <div className="text-2xl font-bold text-primary">{Math.round(FREE_LIMITS.streaming_minutes / 60)} hrs</div>
               <div className="text-muted-foreground">Streaming</div>
             </div>
           </div>
