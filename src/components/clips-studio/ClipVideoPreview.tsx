@@ -1,11 +1,11 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { ClipData, SourceMedia } from "@/pages/ClipsStudio";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { 
   Play, Pause, SkipBack, SkipForward, Maximize2, Volume2, VolumeX,
-  Smartphone, Monitor, Square, RectangleHorizontal, Scissors, RotateCcw
+  Smartphone, Monitor, Square, RectangleHorizontal, Scissors, AlertCircle, Youtube
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -22,6 +22,20 @@ const aspectRatios = [
   { id: "4:5", label: "4:5", icon: RectangleHorizontal, platforms: "Instagram Portrait" },
 ];
 
+// Extract YouTube video ID from various URL formats
+function getYouTubeVideoId(url: string): string | null {
+  if (!url) return null;
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\s?#]+)/,
+    /^([a-zA-Z0-9_-]{11})$/
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+}
+
 export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -32,17 +46,29 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
 
   const clipDuration = clip ? (clip.end_seconds - clip.start_seconds) : 0;
 
+  // Check if source is YouTube
+  const isYouTubeSource = sourceMedia.source === 'youtube' || 
+    (sourceMedia.file_url && sourceMedia.file_url.includes('youtube.com'));
+  const youtubeVideoId = useMemo(() => 
+    isYouTubeSource ? getYouTubeVideoId(sourceMedia.file_url) : null,
+    [sourceMedia.file_url, isYouTubeSource]
+  );
+  
+  // Check if we have a playable video URL (Cloudflare or direct file)
+  const hasPlayableVideo = !!sourceMedia.cloudflare_download_url || 
+    (sourceMedia.file_url && !isYouTubeSource);
+
   useEffect(() => {
-    if (videoRef.current && clip) {
+    if (videoRef.current && clip && hasPlayableVideo) {
       videoRef.current.currentTime = clip.start_seconds;
       setCurrentTime(0);
       setIsPlaying(false);
     }
-  }, [clip?.id]);
+  }, [clip?.id, hasPlayableVideo]);
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !clip) return;
+    if (!video || !clip || !hasPlayableVideo) return;
 
     const handleTimeUpdate = () => {
       const relativeTime = video.currentTime - clip.start_seconds;
@@ -58,7 +84,7 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
 
     video.addEventListener('timeupdate', handleTimeUpdate);
     return () => video.removeEventListener('timeupdate', handleTimeUpdate);
-  }, [clip, clipDuration, isPlaying]);
+  }, [clip, clipDuration, isPlaying, hasPlayableVideo]);
 
   const togglePlay = () => {
     const video = videoRef.current;
@@ -150,27 +176,77 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
             )}
             style={{ width: dimensions.width, height: dimensions.height }}
           >
-            <video
-              ref={videoRef}
-              src={sourceMedia.cloudflare_download_url || sourceMedia.file_url}
-              className="w-full h-full object-cover"
-              muted={isMuted}
-              playsInline
-            />
-            
-            {/* Caption overlay preview */}
-            {clip.suggested_caption && (
-              <div className="absolute bottom-12 left-4 right-4">
-                <div className="bg-black/70 backdrop-blur-sm px-4 py-3 rounded-xl">
-                  <p className="text-white text-center text-base font-semibold leading-relaxed">
-                    {clip.suggested_caption}
-                  </p>
+            {/* YouTube embed for YouTube sources */}
+            {isYouTubeSource && youtubeVideoId ? (
+              <div className="w-full h-full flex flex-col">
+                <iframe
+                  src={`https://www.youtube.com/embed/${youtubeVideoId}?start=${clip.start_seconds}&end=${clip.end_seconds}&autoplay=0`}
+                  className="w-full flex-1"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+                {/* Overlay info for YouTube */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+                  <div className="flex items-center gap-2 text-white/80 text-xs mb-2">
+                    <Youtube className="h-4 w-4 text-red-500" />
+                    <span>YouTube Source • Clip: {formatTime(clip.start_seconds)} - {formatTime(clip.end_seconds)}</span>
+                  </div>
+                  {clip.suggested_caption && (
+                    <p className="text-white text-sm font-medium">{clip.suggested_caption}</p>
+                  )}
                 </div>
+              </div>
+            ) : hasPlayableVideo ? (
+              <>
+                <video
+                  ref={videoRef}
+                  src={sourceMedia.cloudflare_download_url || sourceMedia.file_url}
+                  className="w-full h-full object-cover"
+                  muted={isMuted}
+                  playsInline
+                />
+                
+                {/* Caption overlay preview */}
+                {clip.suggested_caption && (
+                  <div className="absolute bottom-12 left-4 right-4">
+                    <div className="bg-black/70 backdrop-blur-sm px-4 py-3 rounded-xl">
+                      <p className="text-white text-center text-base font-semibold leading-relaxed">
+                        {clip.suggested_caption}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Play button overlay */}
+                {!isPlaying && (
+                  <button
+                    onClick={togglePlay}
+                    className="absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity hover:bg-black/30"
+                  >
+                    <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                      <Play className="w-10 h-10 text-white ml-1" fill="white" />
+                    </div>
+                  </button>
+                )}
+              </>
+            ) : (
+              // No playable source - show message
+              <div className="w-full h-full flex flex-col items-center justify-center text-center p-6">
+                <AlertCircle className="h-12 w-12 text-yellow-500 mb-4" />
+                <p className="text-white font-medium mb-2">Video source not playable</p>
+                <p className="text-white/60 text-sm">
+                  The original video needs to be downloaded before clips can be rendered.
+                </p>
+                {clip.suggested_caption && (
+                  <div className="mt-6 bg-white/10 rounded-lg px-4 py-3">
+                    <p className="text-white/90 text-sm italic">"{clip.suggested_caption}"</p>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Scene markers */}
-            {clip.scenes && clip.scenes.length > 0 && (
+            {/* Scene markers - only for playable videos */}
+            {hasPlayableVideo && clip.scenes && clip.scenes.length > 0 && (
               <div className="absolute top-4 right-4 space-y-2">
                 {clip.scenes.slice(0, 3).map((scene, i) => (
                   <Badge 
@@ -190,27 +266,17 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
               </div>
             )}
 
-            {/* Play button overlay */}
-            {!isPlaying && (
-              <button
-                onClick={togglePlay}
-                className="absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity hover:bg-black/30"
-              >
-                <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <Play className="w-10 h-10 text-white ml-1" fill="white" />
-                </div>
-              </button>
-            )}
-
             {/* Preview badge */}
             <Badge className="absolute top-4 left-4 bg-black/60 text-white border-0 text-xs">
               PREVIEW
             </Badge>
 
-            {/* Time indicator */}
-            <div className="absolute top-4 right-4 bg-black/60 px-2 py-1 rounded-lg text-xs text-white font-mono">
-              {formatTime(currentTime)} / {formatTime(clipDuration)}
-            </div>
+            {/* Time indicator - only for non-YouTube sources */}
+            {!isYouTubeSource && (
+              <div className="absolute top-12 left-4 bg-black/60 px-2 py-1 rounded-lg text-xs text-white font-mono">
+                {formatTime(currentTime)} / {formatTime(clipDuration)}
+              </div>
+            )}
           </div>
         </motion.div>
       </div>
