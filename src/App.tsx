@@ -988,6 +988,7 @@ const AppContent = () => {
           <Route path="/admin/financials/key-metrics" element={<BoardKeyMetrics />} />
           <Route path="/admin/financials/roi-calculator" element={<BoardROICalculator />} />
           <Route path="/admin/financials/revenue-insights" element={<BoardRevenueInsights />} />
+          <Route path="/admin/content/media-library" element={<TourModeWrapper><MediaVault /></TourModeWrapper>} />
           <Route path="/admin/ad-inventory" element={<AdInventory />} />
           
           {/* R&D Intelligence */}
