@@ -166,17 +166,21 @@ export default function MeetingsDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-3">
-              <Calendar className="w-8 h-8 text-primary" />
-              Meetings
-            </h1>
-            <p className="text-muted-foreground mt-1">Create meeting types, share your link, and manage bookings.</p>
-          </div>
+    <div className="mx-auto max-w-7xl px-6 py-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            <Calendar className="w-8 h-8 text-primary" />
+            Meetings
+          </h1>
+          <p className="text-muted-foreground mt-1">Create meeting types, share your link, and manage bookings.</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate('/creator/meetings/availability')}>
+            <Clock className="w-4 h-4 mr-2" />
+            Availability
+          </Button>
           <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
             <DialogTrigger asChild>
               <Button>

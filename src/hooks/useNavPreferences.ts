@@ -93,12 +93,15 @@ export const NAV_ITEMS: NavItem[] = [
   { 
     id: 'meetings', 
     label: 'Meetings', 
-    path: '/meetings',
+    path: '/creator/meetings',
     moduleId: 'meetings',
     subItems: [
-      { id: 'meetings_upcoming', label: 'Upcoming Meetings', path: '/meetings' },
-      { id: 'meetings_types', label: 'Meeting Types', path: '/meetings/types' },
-      { id: 'meetings_history', label: 'Past Meetings', path: '/meetings/history' },
+      { id: 'meetings_dashboard', label: 'Dashboard', path: '/creator/meetings' },
+      { id: 'meetings_types', label: 'Meeting Types', path: '/creator/meetings/types' },
+      { id: 'meetings_booking_links', label: 'Booking Links', path: '/creator/meetings/booking-links' },
+      { id: 'meetings_scheduled', label: 'Scheduled Meetings', path: '/creator/meetings/scheduled' },
+      { id: 'meetings_availability', label: 'Availability', path: '/creator/meetings/availability' },
+      { id: 'meetings_settings', label: 'Settings', path: '/creator/meetings/settings' },
     ]
   },
   { 

@@ -49,6 +49,11 @@ import SeeksyMeetingStudio from "./pages/meetings/SeeksyMeetingStudio";
 import MeetingDetails from "./pages/MeetingDetails";
 import MeetingRSVP from "./pages/MeetingRSVP";
 import MeetingsDashboard from "./pages/creator/MeetingsDashboard";
+import CreatorMeetingTypes from "./pages/creator/meetings/CreatorMeetingTypes";
+import CreatorBookingLinks from "./pages/creator/meetings/CreatorBookingLinks";
+import CreatorScheduledMeetings from "./pages/creator/meetings/CreatorScheduledMeetings";
+import CreatorAvailability from "./pages/creator/meetings/CreatorAvailability";
+import CreatorMeetingSettings from "./pages/creator/meetings/CreatorMeetingSettings";
 import ScheduleMeeting from "./pages/meetings/ScheduleMeeting";
 import PublicBookingPage from "./pages/public/PublicBookingPage";
 import AdminMeetings from "./pages/admin/AdminMeetings";
@@ -813,6 +818,11 @@ const AppContent = () => {
               
               {/* Creator Meetings Routes */}
               <Route path="/creator/meetings" element={<MeetingsDashboard />} />
+              <Route path="/creator/meetings/types" element={<CreatorMeetingTypes />} />
+              <Route path="/creator/meetings/booking-links" element={<CreatorBookingLinks />} />
+              <Route path="/creator/meetings/scheduled" element={<CreatorScheduledMeetings />} />
+              <Route path="/creator/meetings/availability" element={<CreatorAvailability />} />
+              <Route path="/creator/meetings/settings" element={<CreatorMeetingSettings />} />
               <Route path="/m/:slug" element={<PublicBookingPage />} />
               
               <Route path="/profile/edit" element={<MyPageBuilderV2 />} />
