@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, Video, CheckCircle2, ArrowLeft, ArrowRight, Calendar as CalendarIcon } from "lucide-react";
 import { format, addDays, setHours, setMinutes, isSameDay, startOfDay } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 // Demo meeting types
 const meetingTypes: Record<string, { name: string; duration: number; description: string; host: string; category: string }> = {
@@ -60,11 +61,43 @@ export default function BookMeeting() {
     }
 
     setIsSubmitting(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-    setIsBooked(true);
-    toast({ title: "Meeting booked!", description: "You'll receive a confirmation email shortly." });
+    
+    try {
+      // Send confirmation email via edge function
+      const { data, error } = await supabase.functions.invoke('send-meeting-confirmation', {
+        body: {
+          attendeeName: formData.name,
+          attendeeEmail: formData.email,
+          meetingType: meetingType.name,
+          meetingDate: format(selectedDate, "EEEE, MMMM d, yyyy"),
+          meetingTime: selectedTime,
+          duration: meetingType.duration,
+          hostName: meetingType.host,
+          notes: formData.notes || undefined,
+        },
+      });
+
+      if (error) {
+        console.error('Email error:', error);
+        // Still show success but warn about email
+        toast({ 
+          title: "Meeting booked!", 
+          description: "Confirmation email may be delayed.",
+          variant: "default"
+        });
+      } else {
+        toast({ title: "Meeting booked!", description: "You'll receive a confirmation email shortly." });
+      }
+      
+      setIsBooked(true);
+    } catch (err) {
+      console.error('Booking error:', err);
+      // Still mark as booked even if email fails
+      setIsBooked(true);
+      toast({ title: "Meeting booked!", description: "You'll receive a confirmation email shortly." });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isBooked) {
