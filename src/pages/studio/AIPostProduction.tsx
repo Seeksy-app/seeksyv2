@@ -197,8 +197,12 @@ export default function AIPostProduction() {
             if (step < PROCESSING_STEPS.length - 1) {
               setProcessingStatus(PROCESSING_STEPS[step + 1].label + '...');
               return step + 1;
+            } else {
+              // Last step complete - stop processing
+              setIsStudioActive(false);
+              setProcessingStatus('Complete!');
+              return step;
             }
-            return step;
           });
           return 0;
         }
