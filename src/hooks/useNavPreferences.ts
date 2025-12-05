@@ -31,6 +31,8 @@ export interface NavItem {
   subItems?: NavSubItem[];
   /** Module ID required for this nav item to be visible (for module activation) */
   moduleId?: string;
+  /** Navigation level: 0 = top-level (left-justified), 1 = sub-item (indented) */
+  level: 0 | 1;
 }
 
 const DEFAULT_NAV_CONFIG: NavConfig = {
@@ -74,16 +76,17 @@ const DEFAULT_LANDING_ROUTE = '/my-day';
  * 13. Settings
  */
 export const NAV_ITEMS: NavItem[] = [
-  { id: 'my_day', label: 'My Day', path: '/my-day', isHome: true },
-  { id: 'dashboard', label: 'Dashboard', path: '/dashboard', isHome: true },
-  { id: 'creator_hub', label: 'Creator Hub', path: '/creator-hub', isHome: true },
-  { id: 'my_streaming_channel', label: 'My Streaming Channel', path: '/mypage', moduleId: 'my-page-streaming' },
-  { id: 'my_workspaces', label: 'My Workspaces', path: '/apps?category=my-workspaces' },
+  { id: 'my_day', label: 'My Day', path: '/my-day', isHome: true, level: 0 },
+  { id: 'dashboard', label: 'Dashboard', path: '/dashboard', isHome: true, level: 0 },
+  { id: 'creator_hub', label: 'Creator Hub', path: '/creator-hub', isHome: true, level: 0 },
+  { id: 'my_streaming_channel', label: 'My Streaming Channel', path: '/mypage', moduleId: 'my-page-streaming', level: 0 },
+  { id: 'my_workspaces', label: 'My Workspaces', path: '/apps?category=my-workspaces', level: 0 },
   {
     id: 'meetings', 
     label: 'Meetings', 
     path: '/creator/meetings',
     moduleId: 'meetings',
+    level: 0,
     subItems: [
       { id: 'meetings_dashboard', label: 'Dashboard', path: '/creator/meetings' },
       { id: 'meetings_types', label: 'Meeting Types', path: '/creator/meetings/types' },
@@ -98,6 +101,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Studio', 
     path: '/studio',
     moduleId: 'studio',
+    level: 0,
     subItems: [
       { id: 'video_studio', label: 'Video Studio', path: '/studio/video' },
       { id: 'audio_studio', label: 'Audio Studio', path: '/studio/audio' },
@@ -110,12 +114,14 @@ export const NAV_ITEMS: NavItem[] = [
     id: 'social_analytics', 
     label: 'Social Analytics', 
     path: '/social-analytics',
-    moduleId: 'social-analytics'
+    moduleId: 'social-analytics',
+    level: 0
   },
   { 
     id: 'media_content', 
     label: 'Media & Content', 
     path: '/media',
+    level: 0,
     subItems: [
       { id: 'content_library', label: 'Content Library', path: '/media' },
       { id: 'content_transcripts', label: 'Transcripts', path: '/transcripts' },
@@ -127,17 +133,19 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Monetization', 
     path: '/monetization',
     moduleId: 'revenue-tracking',
+    level: 0,
     subItems: [
       { id: 'monetization_hub', label: 'Monetization Hub', path: '/monetization' },
       { id: 'monetization_brand_campaigns', label: 'Brand Campaigns', path: '/creator-campaigns' },
       { id: 'monetization_revenue', label: 'Revenue Tracking', path: '/monetization' },
     ]
   },
-  { id: 'seekies', label: 'Seekies & Apps', path: '/apps' },
+  { id: 'seekies', label: 'Seekies & Apps', path: '/apps', level: 0 },
   { 
     id: 'email', 
     label: 'Email', 
     path: '/email/inbox',
+    level: 0,
     subItems: [
       { id: 'email_inbox', label: 'Inbox', path: '/email/inbox' },
       { id: 'email_scheduled', label: 'Scheduled', path: '/email/scheduled' },
@@ -149,6 +157,7 @@ export const NAV_ITEMS: NavItem[] = [
     id: 'media_distribution', 
     label: 'Media', 
     path: '/studio',
+    level: 0,
     subItems: [
       { id: 'media_studio_hub', label: 'Studio Hub', path: '/studio' },
       { id: 'media_podcasts', label: 'Podcasts', path: '/podcasts' },
@@ -159,6 +168,7 @@ export const NAV_ITEMS: NavItem[] = [
     id: 'marketing', 
     label: 'Marketing', 
     path: '/contacts',
+    level: 0,
     subItems: [
       { id: 'marketing_audience', label: 'Contacts & Audience', path: '/contacts' },
       { id: 'marketing_segments', label: 'Segments', path: '/marketing/segments' },
@@ -167,7 +177,7 @@ export const NAV_ITEMS: NavItem[] = [
       { id: 'marketing_automations', label: 'Automations', path: '/marketing/automations' },
     ]
   },
-  { id: 'settings', label: 'Settings', path: '/settings' },
+  { id: 'settings', label: 'Settings', path: '/settings', level: 0 },
 ];
 
 export const LANDING_OPTIONS = [

@@ -299,39 +299,16 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
       <SidebarContent className="pb-6">
         {/* Creator nav items - ONLY for non-admin users */}
         {!isAdmin && (
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
+          <SidebarGroup className="px-0">
+            <SidebarGroupContent className="px-0">
+              <SidebarMenu className="px-0">
                 {userNavItems.map((item) => {
                   const Icon = ICON_MAP[item.id] || LayoutDashboard;
                   const isPinned = navConfig.pinned.includes(item.id);
                   const hasSubItems = item.subItems && item.subItems.length > 0;
+                  const isLevel0 = item.level === 0;
                   
-                  // Section title items (standalone without sub-items) - styled as left-justified headers
-                  const isSectionTitle = ['my_day', 'dashboard', 'settings', 'seekies', 'social_analytics', 'creator_hub', 'my_streaming_channel', 'my_workspaces'].includes(item.id);
-                  
-                  // Section titles render as left-justified links
-                  if (isSectionTitle && !hasSubItems) {
-                    return (
-                      <SidebarMenuItem key={item.id}>
-                        <SidebarMenuButton asChild>
-                          <NavLink
-                            to={item.path}
-                            className="flex items-center gap-3 transition-all duration-150 text-white hover:bg-white/10 w-full"
-                            activeClassName="nav-active"
-                          >
-                            {Icon && <Icon className="h-4 w-4 shrink-0 text-white" />}
-                            {!collapsed && <span className="truncate text-white">{item.label}</span>}
-                            {!collapsed && isPinned && (
-                              <span className="text-amber-400 text-xs ml-auto shrink-0">★</span>
-                            )}
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  }
-                  
-                  // Items with sub-items render as collapsible
+                  // Level 0 items with sub-items render as collapsible
                   if (hasSubItems && !collapsed) {
                     const isOpen = openGroups[item.id] ?? false;
                     const subItemConfigs = navConfig.subItems?.[item.id] || [];
@@ -346,12 +323,12 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                         open={isOpen}
                         onOpenChange={() => toggleGroup(item.id)}
                       >
-                        <SidebarMenuItem>
+                        <SidebarMenuItem className="px-0">
                           <CollapsibleTrigger asChild>
-                            <SidebarMenuButton className="w-full flex items-center justify-between transition-all duration-150 cursor-pointer hover:bg-white/10 text-white">
+                            <SidebarMenuButton className="w-full flex items-center justify-between transition-all duration-150 cursor-pointer hover:bg-white/10 text-white px-3 py-2">
                               <div className="flex items-center gap-3 min-w-0">
                                 <Icon className="h-4 w-4 shrink-0 text-white" />
-                                <span className="truncate text-white">{item.label}</span>
+                                <span className="truncate text-white font-medium">{item.label}</span>
                               </div>
                               <div className="flex items-center gap-2 ml-auto shrink-0">
                                 {isPinned && <span className="pinned-star text-amber-400 text-xs">★</span>}
@@ -360,7 +337,8 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                             </SidebarMenuButton>
                           </CollapsibleTrigger>
                           <CollapsibleContent>
-                            <SidebarMenu className="ml-4 mt-1 space-y-0.5 border-l border-white/20 pl-2">
+                            {/* Sub-items (level 1) get indentation */}
+                            <SidebarMenu className="ml-6 mt-1 space-y-0.5 border-l border-white/20 pl-3">
                               {visibleSubItems.map((subItem) => (
                                 <SidebarMenuItem key={subItem.id}>
                                   <SidebarMenuButton asChild>
@@ -381,39 +359,18 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                     );
                   }
                   
-                  // Section title items - styled as headers with right-justified elements
-                  if (isSectionTitle && !collapsed) {
-                    return (
-                      <SidebarMenuItem key={item.id}>
-                        <SidebarMenuButton asChild tooltip={collapsed ? item.label : undefined}>
-                          <NavLink
-                            to={item.path}
-                            className="flex items-center justify-between transition-all duration-150 text-white hover:bg-white/10 w-full"
-                            activeClassName="nav-active"
-                          >
-                            <div className="flex items-center gap-3 min-w-0">
-                              <Icon className="h-4 w-4 shrink-0 text-white" />
-                              <span className="truncate text-white">{item.label}</span>
-                            </div>
-                            {isPinned && <span className="pinned-star text-amber-400 text-xs ml-auto shrink-0">★</span>}
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  }
-                  
-                  // Regular items without sub-items (collapsed mode fallback)
+                  // Level 0 items without sub-items - left-justified, no indent
                   return (
-                    <SidebarMenuItem key={item.id}>
+                    <SidebarMenuItem key={item.id} className="px-0">
                       <SidebarMenuButton asChild tooltip={collapsed ? item.label : undefined}>
                         <NavLink
                           to={item.path}
-                          className="flex items-center justify-between transition-all duration-150 text-white hover:bg-white/10 w-full"
+                          className="flex items-center justify-between transition-all duration-150 text-white hover:bg-white/10 w-full px-3 py-2"
                           activeClassName="nav-active"
                         >
                           <div className="flex items-center gap-3 min-w-0">
                             <Icon className="h-4 w-4 shrink-0 text-white" />
-                            {!collapsed && <span className="truncate text-white">{item.label}</span>}
+                            {!collapsed && <span className="truncate text-white font-medium">{item.label}</span>}
                           </div>
                           {!collapsed && isPinned && <span className="pinned-star text-amber-400 text-xs ml-auto shrink-0">★</span>}
                         </NavLink>
