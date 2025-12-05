@@ -8,7 +8,7 @@ export function StudioToolsWidget() {
   const tools = [
     { label: "Create New Studio", icon: Video, path: "/studio", primary: true },
     { label: "Upload Media", icon: Upload, path: "/media/library" },
-    { label: "Generate Clips", icon: Scissors, path: "/studio/clips" },
+    { label: "Generate Clips", icon: Scissors, path: "/clips-studio" },
     { label: "Media Library", icon: FolderOpen, path: "/media/library" },
   ];
 
