@@ -32,11 +32,11 @@ const Index = () => {
   const navigate = useNavigate();
   const moduleBuilderRef = useRef<ModuleBuilderHandle>(null);
   
-  // Lead magnet popup - triggers at 60% scroll or 45 seconds
+  // Lead magnet popup - disabled
   const { isOpen: isLeadMagnetOpen, openModal: openLeadMagnet, closeModal: closeLeadMagnet } = useLeadMagnetPopup({
     scrollThreshold: 60,
     timeDelay: 45,
-    enabled: true,
+    enabled: false,
   });
 
   useEffect(() => {
