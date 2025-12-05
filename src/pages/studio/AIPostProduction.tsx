@@ -17,7 +17,7 @@ import {
   Wand2, Scissors, ArrowLeft, Play, Pause, Clock, FileVideo, FileAudio, 
   Sparkles, Volume2, Type, Layers, Image, Upload, Check, Loader2, 
   AlertCircle, Film, Mic, Palette, Sun, X, RefreshCw, Download, Eye,
-  ChevronRight, Zap, RotateCcw, ImagePlus
+  ChevronRight, Zap, RotateCcw, ImagePlus, Minimize2, Maximize2
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -85,6 +85,7 @@ export default function AIPostProduction() {
   
   // Processing state
   const [isStudioActive, setIsStudioActive] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [stepProgress, setStepProgress] = useState(0);
   const [processingStatus, setProcessingStatus] = useState('');
@@ -404,7 +405,7 @@ export default function AIPostProduction() {
         </Card>
 
         {/* Processing Studio (Pic-in-Pic) */}
-        {isStudioActive && selectedMedia && (
+        {isStudioActive && selectedMedia && !isMinimized && (
           <Card className="mb-8 border-primary" id="processing-studio">
             <CardHeader className="bg-primary/5">
               <div className="flex items-center justify-between">
@@ -412,17 +413,26 @@ export default function AIPostProduction() {
                   <Loader2 className="h-5 w-5 animate-spin text-primary" />
                   Processing Studio
                 </CardTitle>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => {
-                    setIsStudioActive(false);
-                    toast({ title: "Processing continues in background" });
-                  }}
-                >
-                  <X className="h-4 w-4 mr-1" />
-                  Minimize
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setIsMinimized(true)}
+                  >
+                    <Minimize2 className="h-4 w-4 mr-1" />
+                    Minimize
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => {
+                      setIsStudioActive(false);
+                      setIsMinimized(false);
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="pt-6">
@@ -523,6 +533,23 @@ export default function AIPostProduction() {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Floating Restore Button when Minimized */}
+        {isStudioActive && isMinimized && (
+          <div className="fixed bottom-6 right-6 z-50">
+            <Button 
+              onClick={() => setIsMinimized(false)}
+              className="bg-primary hover:bg-primary/90 shadow-lg rounded-full px-4 py-3 flex items-center gap-2"
+            >
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Processing Studio</span>
+              <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">
+                {Math.round((currentStep / PROCESSING_STEPS.length) * 100 + (stepProgress / PROCESSING_STEPS.length))}%
+              </span>
+              <Maximize2 className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
         )}
 
         {/* Failed Job Banner */}
