@@ -110,11 +110,11 @@ export function HeroSectionNew() {
             <Button
               size="lg"
               variant="outline"
-              onClick={() => window.open("https://calendly.com/seeksy-demo", "_blank")}
-              className="text-lg px-8 py-7 h-auto font-semibold transition-all duration-300 hover:scale-105 group"
+              onClick={() => navigate("/meetings/schedule?type=demo")}
+              className="bg-yellow-500 hover:bg-yellow-400 border-2 border-yellow-500 text-slate-900 text-lg px-8 py-7 h-auto font-semibold transition-all duration-300 hover:scale-105 group"
             >
-              <Play className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
-              Watch Demo
+              <Calendar className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
+              Schedule a Demo
             </Button>
           </motion.div>
 
