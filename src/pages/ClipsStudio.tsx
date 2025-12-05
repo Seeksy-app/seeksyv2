@@ -21,6 +21,8 @@ export interface ClipData {
   suggested_caption?: string;
   transcript_snippet?: string;
   storage_path?: string;
+  thumbnail_url?: string;
+  vertical_url?: string;
   status: string;
   aspect_ratio: string;
   template_id: string;
