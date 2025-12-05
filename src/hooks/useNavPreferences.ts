@@ -87,7 +87,6 @@ export const NAV_ITEMS: NavItem[] = [
       { id: 'ai_post_production', label: 'AI Post-Production', path: '/studio/ai-post-production' },
       { id: 'ai_clip_generation', label: 'AI Clips Studio', path: '/clips-studio' },
       { id: 'content_library', label: 'Content Library', path: '/studio/media' },
-      { id: 'blog_posts', label: 'Blog Posts', path: '/blog' },
       { id: 'podcasts', label: 'Podcasts', path: '/podcasts' },
     ]
   },
@@ -112,6 +111,8 @@ export const NAV_ITEMS: NavItem[] = [
     level: 0,
     moduleId: 'marketing',
     subItems: [
+      { id: 'marketing_blog', label: 'Blog', path: '/marketing/blog' },
+      { id: 'marketing_newsletters', label: 'Newsletters', path: '/marketing/newsletters' },
       { id: 'marketing_audience', label: 'Contacts & Audience', path: '/contacts' },
       { id: 'marketing_segments', label: 'Segments', path: '/marketing/segments' },
       { id: 'marketing_campaigns', label: 'Campaigns', path: '/marketing/campaigns' },
