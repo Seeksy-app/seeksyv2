@@ -154,6 +154,22 @@ export default {
             opacity: "0.25",
             transform: "scale(1.1)"
           }
+        },
+        "scan": {
+          "0%": {
+            transform: "translateY(-100%)"
+          },
+          "100%": {
+            transform: "translateY(100%)"
+          }
+        },
+        "spin-slow": {
+          "0%": {
+            transform: "rotate(0deg)"
+          },
+          "100%": {
+            transform: "rotate(360deg)"
+          }
         }
       },
       animation: {
@@ -163,6 +179,8 @@ export default {
         "float": "float 3s ease-in-out infinite",
         "wave": "wave 1.2s ease-in-out",
         "holiday-glow": "holiday-glow 2.5s ease-in-out infinite",
+        "scan": "scan 2s linear infinite",
+        "spin-slow": "spin-slow 3s linear infinite",
       },
     },
   },

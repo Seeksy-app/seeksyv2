@@ -12,6 +12,7 @@ import { UploadMediaDialog } from "@/components/media/UploadMediaDialog";
 import { MediaSourceSelector, MediaSource } from "@/components/studio/MediaSourceSelector";
 import { SelectedMediaHeader } from "@/components/studio/SelectedMediaHeader";
 import { ProcessingAnalyticsPanel, DurationComparisonBanner } from "@/components/studio/ProcessingAnalyticsPanel";
+import { FastForwardVideoPlayer } from "@/components/studio/FastForwardVideoPlayer";
 import { CompletionSuccessPage } from "@/components/studio/CompletionSuccessPage";
 import { VideoComparisonModal } from "@/components/studio/VideoComparisonModal";
 import { formatDistanceToNow } from "date-fns";
@@ -87,9 +88,7 @@ export default function AIPostProduction() {
   const [stepProgress, setStepProgress] = useState(0);
   const [processingStatus, setProcessingStatus] = useState('');
   
-  // Video preview state
-  const [videoError, setVideoError] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
+  
   
   // AI Analytics state
   const [aiAnalytics, setAiAnalytics] = useState({
@@ -384,8 +383,6 @@ export default function AIPostProduction() {
   const handleMediaSelect = (media: MediaFile) => {
     setSelectedMedia(media);
     setShowMediaSelector(false);
-    setVideoError(false);
-    setRetryCount(0);
   };
 
   const handleChangeMedia = () => {
@@ -394,15 +391,6 @@ export default function AIPostProduction() {
     setCurrentStep(0);
     setStepProgress(0);
     setIsImporting(false);
-  };
-
-  const handleVideoError = () => {
-    if (retryCount < 3) {
-      setRetryCount(prev => prev + 1);
-      setTimeout(() => setVideoError(false), 2000);
-    } else {
-      setVideoError(true);
-    }
   };
 
   const latestFailedJob = processingJobs?.find(j => j.status === 'failed');
@@ -584,70 +572,19 @@ export default function AIPostProduction() {
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6">
-                  {/* Video Preview */}
-                  <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
-                    {/* YouTube embed for YouTube videos */}
-                    {isYouTube && youTubeEmbedUrl && (
-                      <iframe
-                        src={youTubeEmbedUrl}
-                        className="w-full h-full"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        title="Video preview"
-                      />
-                    )}
-                    
-                    {/* Video element for non-YouTube sources */}
-                    {!isYouTube && videoUrl && !videoError && (
-                      <video 
-                        src={videoUrl} 
-                        className="w-full h-full object-cover" 
-                        autoPlay 
-                        muted 
-                        loop 
-                        playsInline
-                        onError={handleVideoError}
-                      />
-                    )}
-                    
-                    {/* Fallback when no video */}
-                    {!isYouTube && (!videoUrl || videoError) && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <FileVideo className="h-16 w-16 text-white/20 mb-2" />
-                        <p className="text-white/50 text-sm">
-                          {retryCount > 0 && retryCount < 3 ? 'Retrying preview...' : 'Preview not available'}
-                        </p>
-                        {retryCount >= 3 && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="mt-2 text-white/70"
-                            onClick={() => { setRetryCount(0); setVideoError(false); }}
-                          >
-                            <RefreshCw className="h-3 w-3 mr-1" />
-                            Try Again
-                          </Button>
-                        )}
-                      </div>
-                    )}
-                    
-                    {/* Processing Overlay - only show for non-YouTube to avoid blocking iframe */}
-                    {!isYouTube && (
-                      <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center backdrop-blur-[1px]">
-                        <div className="relative">
-                          <div className="w-16 h-16 rounded-full border-4 border-[#2C6BED]/40 bg-black/50 flex items-center justify-center">
-                            {(() => {
-                              const StepIcon = PROCESSING_STEPS[currentStep]?.icon || Wand2;
-                              return <StepIcon className="h-7 w-7 text-[#2C6BED] animate-pulse" />;
-                            })()}
-                          </div>
-                          <div className="absolute inset-0 rounded-full border-2 border-[#2C6BED]/50 animate-ping" />
-                        </div>
-                        <p className="mt-3 text-white font-medium drop-shadow-md">{processingStatus}</p>
-                        <p className="text-white/70 text-sm drop-shadow-md">Step {currentStep + 1} of {PROCESSING_STEPS.length}</p>
-                      </div>
-                    )}
-                  </div>
+                  {/* Fast-Forward Video Preview */}
+                  <FastForwardVideoPlayer
+                    videoUrl={videoUrl}
+                    thumbnailUrl={selectedMedia.thumbnail_url}
+                    youTubeEmbedUrl={youTubeEmbedUrl}
+                    isYouTube={isYouTube}
+                    isProcessing={true}
+                    currentStep={currentStep}
+                    totalSteps={PROCESSING_STEPS.length}
+                    stepProgress={stepProgress}
+                    processingStatus={processingStatus}
+                    StepIcon={PROCESSING_STEPS[currentStep]?.icon || Wand2}
+                  />
 
                   {/* Step Progress */}
                   <div className="space-y-2">
