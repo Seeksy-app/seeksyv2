@@ -27,7 +27,7 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
       '/privacy', '/terms', '/cookies', '/security', '/about', '/apps-and-tools',
       '/advertiser', '/advertiser/signup', '/demo'
     ];
-    const isPublicPath = publicPaths.some(path => location.pathname === path || location.pathname.startsWith('/c/') || location.pathname.startsWith('/book/'));
+    const isPublicPath = publicPaths.some(path => location.pathname === path || location.pathname.startsWith('/c/') || location.pathname.startsWith('/book/') || location.pathname.startsWith('/proforma/'));
     const isBoardPath = location.pathname.startsWith('/board');
     
     // Admin-only paths that should NEVER show onboarding (CFO, GTM, Financial Models, Admin)
