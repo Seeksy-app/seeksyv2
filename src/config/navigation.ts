@@ -350,6 +350,14 @@ export const NAVIGATION_CONFIG: {
           "icon": "folder",
           "path": "/admin/content/media-library",
           "roles": ["admin", "super_admin", "cco"]
+        },
+        {
+          "id": "admin_demo_videos",
+          "label": "Demo Videos",
+          "icon": "video",
+          "path": "/demo-videos",
+          "roles": ["admin", "super_admin", "cco"],
+          "description": "Board-ready demo videos for investors"
         }
       ]
     },
