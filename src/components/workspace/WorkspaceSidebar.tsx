@@ -540,16 +540,26 @@ export function WorkspaceSidebar() {
         {/* Sticky Footer - always visible even when scrolling */}
         <SidebarFooter className="p-3 pt-2 border-t border-sidebar-border bg-sidebar mt-auto">
           <SidebarMenu>
-            {/* AI Agent / Ask Spark - Opens chat panel */}
+            {/* AI Agent / Ask Spark - Opens chat panel - Large pill style */}
             <SidebarMenuItem>
-              <SidebarMenuButton
+              <button
                 onClick={() => document.dispatchEvent(new Event('open-spark-assistant'))}
-                tooltip="Ask Spark"
-                className="text-sidebar-foreground hover:bg-sidebar-accent"
+                className={cn(
+                  "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
+                  "bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/30 dark:hover:bg-amber-900/50",
+                  "border border-amber-200 dark:border-amber-800",
+                  isCollapsed && "justify-center px-2"
+                )}
               >
-                <SparkIcon variant="holiday" size={20} className="text-amber-500" />
-                {!isCollapsed && <span className="text-amber-600 font-medium">Ask Spark</span>}
-              </SidebarMenuButton>
+                <div className="bg-amber-500 rounded-lg p-2 flex-shrink-0">
+                  <SparkIcon variant="holiday" size={20} className="text-white" />
+                </div>
+                {!isCollapsed && (
+                  <span className="text-amber-800 dark:text-amber-200 font-semibold text-base">
+                    Ask Spark
+                  </span>
+                )}
+              </button>
             </SidebarMenuItem>
             
             {/* Settings */}

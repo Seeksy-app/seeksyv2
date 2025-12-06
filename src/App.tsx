@@ -120,6 +120,7 @@ import SubscriptionSettings from "./pages/SubscriptionSettings";
 // Holiday features completely disabled - removed all imports
 import { CommandPaletteProvider } from "./components/command/CommandPaletteProvider";
 import { AIAssistantProvider } from "./components/ai/AIAssistantProvider";
+import { AIAssistantPanel } from "./components/ai/AIAssistantPanel";
 import { CommandPalette } from "./components/command/CommandPalette";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import AdminSettings from "./pages/admin/Settings";
@@ -1160,6 +1161,7 @@ const App = () => (
             <CommandPaletteProvider>
               <AIAssistantProvider>
                 <AppContent />
+                <AIAssistantPanel />
               </AIAssistantProvider>
             </CommandPaletteProvider>
           </BrowserRouter>
