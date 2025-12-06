@@ -170,7 +170,7 @@ export function GlobalTopNav() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full text-[hsl(var(--header-foreground))] hover:bg-white/10 p-0">
                   <Avatar className="h-8 w-8 border-2 border-white/20">
-                    <AvatarImage src={avatarUrl || undefined} alt="Profile" />
+                    <AvatarImage src={avatarUrl ? `${avatarUrl}?t=${Date.now()}` : undefined} alt="Profile" />
                     <AvatarFallback className="bg-primary/20 text-[hsl(var(--header-foreground))] text-xs font-medium">
                       {userInitials}
                     </AvatarFallback>
