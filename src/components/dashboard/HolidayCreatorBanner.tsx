@@ -1,18 +1,44 @@
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Calendar, Video } from "lucide-react";
+import { Sparkles, Calendar, Video, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface HolidayCreatorBannerProps {
   firstName?: string;
 }
 
+const HOLIDAY_BANNER_DISMISSED_KEY = "holiday-banner-dismissed-2024";
+
 export const HolidayCreatorBanner = ({ firstName = "Creator" }: HolidayCreatorBannerProps) => {
   const navigate = useNavigate();
+  const [isDismissed, setIsDismissed] = useState(false);
+
+  useEffect(() => {
+    const dismissed = localStorage.getItem(HOLIDAY_BANNER_DISMISSED_KEY);
+    if (dismissed === "true") {
+      setIsDismissed(true);
+    }
+  }, []);
+
+  const handleDismiss = () => {
+    localStorage.setItem(HOLIDAY_BANNER_DISMISSED_KEY, "true");
+    setIsDismissed(true);
+  };
+
+  if (isDismissed) return null;
 
   return (
     <Card className="p-6 mb-6 bg-gradient-to-r from-red-600/20 via-green-600/20 to-red-600/20 border-2 border-red-500/30 relative overflow-hidden">
+      {/* Close button */}
+      <button
+        onClick={handleDismiss}
+        className="absolute top-3 right-3 p-1.5 rounded-full bg-black/10 hover:bg-black/20 transition-colors z-20"
+        aria-label="Dismiss holiday banner"
+      >
+        <X className="h-4 w-4 text-foreground/70" />
+      </button>
       
       <div className="relative z-10">
         <div className="flex items-center gap-2 mb-3">
@@ -49,7 +75,7 @@ export const HolidayCreatorBanner = ({ firstName = "Creator" }: HolidayCreatorBa
         <div className="flex items-center gap-2 text-sm text-foreground bg-gradient-to-r from-white/70 to-white/50 p-3 rounded-lg">
           <Sparkles className="h-4 w-4 text-yellow-500" />
           <span>
-            <strong>Not sure where to start?</strong> Ask Spark to build a holiday content plan for your next 3 weeks.
+            <strong>Not sure where to start?</strong> Ask Seeksy to build a holiday content plan for your next 3 weeks.
           </span>
         </div>
       </div>
