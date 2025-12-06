@@ -1,11 +1,12 @@
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { BoardLayout } from '@/components/board/BoardLayout';
 import { WelcomeBanner } from '@/components/board/WelcomeBanner';
 import { useBoardDataMode } from '@/contexts/BoardDataModeContext';
 import { DataModeBadge } from '@/components/board/DataModeToggle';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 import {
   Building2,
   Target,
@@ -18,8 +19,13 @@ import {
   Activity,
   Percent,
   Mic,
+  Play,
+  ExternalLink,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const quickLinks = [
   {
@@ -42,13 +48,6 @@ const quickLinks = [
     icon: TrendingUp,
     path: '/board/forecasts',
     gradient: 'from-amber-500 to-orange-600',
-  },
-  {
-    title: 'Investor Videos',
-    description: 'Product demos & presentations',
-    icon: Video,
-    path: '/board/videos',
-    gradient: 'from-purple-500 to-pink-600',
   },
   {
     title: 'Documents',
@@ -89,11 +88,48 @@ const realMetrics = [
   { id: '4', metric_key: 'growth_rate', metric_label: 'MoM Growth', metric_value: '—' },
 ];
 
+// Placeholder video for demo
+const placeholderVideo = {
+  id: 'placeholder-1',
+  title: "Seeksy Overview — Creator's Engine",
+  description: 'Overview of the platform, business model, and growth strategy.',
+  video_url: 'https://taxqcioheqdqtlmjeaht.supabase.co/storage/v1/object/public/demo-videos/Seeksy_%20Creator%27s%20Engine.mp4',
+  thumbnail_url: null,
+  duration_seconds: 192,
+  category: 'Overview',
+};
+
+const categoryColors: Record<string, string> = {
+  Overview: 'bg-blue-100 text-blue-700',
+  Product: 'bg-purple-100 text-purple-700',
+  Financials: 'bg-emerald-100 text-emerald-700',
+  GTM: 'bg-amber-100 text-amber-700',
+};
+
 export default function BoardDashboard() {
   const navigate = useNavigate();
   const { isDemo } = useBoardDataMode();
   const [firstName, setFirstName] = useState<string>('');
   const [metricsLoading, setMetricsLoading] = useState(true);
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Fetch demo videos from database
+  const { data: dbVideos } = useQuery({
+    queryKey: ['boardDashboardVideos'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('demo_videos')
+        .select('*')
+        .order('order_index')
+        .limit(1);
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const featuredVideo = dbVideos && dbVideos.length > 0 ? dbVideos[0] : placeholderVideo;
 
   useEffect(() => {
     const fetchUserName = async () => {
@@ -115,6 +151,13 @@ export default function BoardDashboard() {
   }, []);
 
   const metrics = isDemo ? demoMetrics : realMetrics;
+
+  const formatDuration = (seconds: number | null) => {
+    if (!seconds) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   return (
     <BoardLayout>
@@ -151,6 +194,83 @@ export default function BoardDashboard() {
             })
           )}
         </div>
+
+        {/* Featured Investor Video */}
+        <Card className="bg-white border-slate-100 shadow-sm rounded-xl overflow-hidden">
+          <CardHeader className="border-b border-slate-100 py-4 px-5">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-slate-900 flex items-center gap-2 text-base">
+                <Video className="w-4 h-4 text-purple-500" />
+                Featured Investor Video
+              </CardTitle>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-blue-600 hover:text-blue-700"
+                onClick={() => navigate('/board/videos')}
+              >
+                View All Videos <ExternalLink className="w-3 h-3 ml-1" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="grid lg:grid-cols-3">
+              {/* Video Player */}
+              <div className="lg:col-span-2 bg-slate-900">
+                <div className="aspect-video relative">
+                  {isVideoLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-slate-900 z-10">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-12 h-12 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin" />
+                        <p className="text-slate-400 text-sm">Loading video...</p>
+                      </div>
+                    </div>
+                  )}
+                  {featuredVideo.video_url ? (
+                    <video
+                      ref={videoRef}
+                      src={featuredVideo.video_url}
+                      controls
+                      className="w-full h-full"
+                      poster={featuredVideo.thumbnail_url || undefined}
+                      onLoadedData={() => setIsVideoLoading(false)}
+                      onCanPlay={() => setIsVideoLoading(false)}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                      <Play className="w-16 h-16 mb-4" />
+                      <p className="text-sm">No video available yet</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Video Info */}
+              <div className="p-5 bg-slate-50 border-l border-slate-100">
+                <Badge className={cn('text-xs mb-3', categoryColors[featuredVideo.category] || 'bg-slate-100 text-slate-600')}>
+                  {featuredVideo.category}
+                </Badge>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                  {featuredVideo.title}
+                </h3>
+                <p className="text-sm text-slate-500 mb-4">
+                  {featuredVideo.description}
+                </p>
+                <div className="flex items-center gap-2 text-xs text-slate-400 mb-4">
+                  <Video className="w-3 h-3" />
+                  <span>{formatDuration(featuredVideo.duration_seconds)}</span>
+                </div>
+                <Button 
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700"
+                  onClick={() => navigate('/board/videos')}
+                >
+                  <Play className="w-4 h-4 mr-2" />
+                  Watch All Videos
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Quick Links Grid */}
         <div>
