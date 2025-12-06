@@ -314,3 +314,6 @@ verify_jwt = true
 
 [functions.import-riverside-session]
 verify_jwt = true
+
+[functions.migrate-user-workspaces]
+verify_jwt = false
