@@ -192,23 +192,31 @@ I help you run your workspace: record in the Studio, create clips, plan events, 
           );
         }
       }
-      // Bold section headers (lines starting with emoji or **text**)
-      if (line.match(/^(🎙️|🎥|✂️|📊|✨|\*\*)/)) {
+      // Bold section headers (lines starting with emoji or **text**) - NO markdown symbols
+      if (line.match(/^(🎙️|🎥|✂️|📊|✨|\*\*|###|##)/)) {
+        const cleanLine = line.replace(/\*\*/g, "").replace(/^###?\s*/, "");
         return (
-          <p key={idx} className="font-semibold text-foreground mt-3 mb-1">
-            {line.replace(/\*\*/g, "")}
+          <p key={idx} className="font-semibold text-foreground mt-4 mb-2">
+            {cleanLine}
           </p>
         );
       }
-      // Regular bullet points
-      if (line.trim().startsWith("•") || line.trim().startsWith("-")) {
+      // Regular bullet points with better spacing
+      if (line.trim().startsWith("•") || line.trim().startsWith("-") || line.trim().startsWith("*")) {
+        const cleanBullet = line.replace(/^\s*[\*\-•]\s*/, "• ").replace(/\*\*/g, "");
         return (
-          <p key={idx} className="text-muted-foreground ml-2">
-            {line}
+          <p key={idx} className="text-foreground ml-2 mb-2">
+            {cleanBullet}
           </p>
         );
       }
-      return <p key={idx}>{line}</p>;
+      // Empty lines create spacing
+      if (line.trim() === "") {
+        return <div key={idx} className="h-3" />;
+      }
+      // Regular text with clean markdown removal
+      const cleanText = line.replace(/\*\*/g, "");
+      return <p key={idx} className="mb-2">{cleanText}</p>;
     });
   };
 

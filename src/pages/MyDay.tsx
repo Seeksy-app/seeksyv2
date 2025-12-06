@@ -5,10 +5,11 @@ import { User } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { 
   Calendar, 
   CheckSquare, 
-  Mail, 
+  Mail,
   Bell,
   Shield,
   ArrowRight, 
@@ -20,6 +21,8 @@ import {
   Sparkles,
   BarChart3,
   Settings,
+  Eye,
+  MousePointer,
 } from "lucide-react";
 
 // Import the colorful dashboard widgets
@@ -59,6 +62,12 @@ interface DailyStats {
   alerts: number;
 }
 
+interface TrackingStats {
+  opens: number;
+  clicks: number;
+  total: number;
+}
+
 interface DashboardStats {
   profileViews: number;
   profileViewsThisWeek: number;
@@ -95,6 +104,11 @@ export default function MyDay() {
     meetingsToday: 0,
     tasksDue: 0,
     alerts: 0,
+  });
+  const [trackingStats, setTrackingStats] = useState<TrackingStats>({
+    opens: 0,
+    clicks: 0,
+    total: 0,
   });
   const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
     profileViews: 0,
@@ -142,8 +156,31 @@ export default function MyDay() {
       loadUserData();
       loadDailyStats();
       loadDashboardStats();
+      loadTrackingStats();
     }
   }, [user]);
+
+  const loadTrackingStats = async () => {
+    if (!user) return;
+    try {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      
+      const { data } = await supabase
+        .from("signature_tracking_events")
+        .select("event_type")
+        .eq("user_id", user.id)
+        .gte("created_at", todayStart.toISOString());
+
+      if (data) {
+        const opens = data.filter(e => e.event_type === "open").length;
+        const clicks = data.filter(e => ["banner_click", "social_click", "link_click"].includes(e.event_type)).length;
+        setTrackingStats({ opens, clicks, total: opens + clicks });
+      }
+    } catch (error) {
+      console.error("Error loading tracking stats:", error);
+    }
+  };
 
   const loadUserData = async () => {
     if (!user) return;
@@ -306,6 +343,24 @@ export default function MyDay() {
               <Calendar className="h-4 w-4 mr-2" />
               Schedule Meeting
             </Button>
+            {/* Signature Tracking Badge */}
+            {trackingStats.total > 0 && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigate("/signatures")}
+                className="relative"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Tracking
+                <Badge 
+                  variant="default" 
+                  className="ml-2 h-5 min-w-[20px] px-1.5 text-xs bg-primary"
+                >
+                  {trackingStats.total}
+                </Badge>
+              </Button>
+            )}
           </div>
         </div>
 

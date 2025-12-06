@@ -84,14 +84,9 @@ export function GlobalTopNav() {
             {/* Spark Mascot + Seeksy branding */}
             <div className="flex items-center gap-2">
               <SparkMascot size="sm" animate />
-              <div className="flex items-center gap-1.5">
-                <div className="w-6 h-6 rounded bg-white/20 flex items-center justify-center">
-                  <Layers className="h-4 w-4 text-[hsl(var(--header-foreground))]" />
-                </div>
-                <span className="font-semibold text-[hsl(var(--header-foreground))] hidden sm:inline">
-                  Seeksy
-                </span>
-              </div>
+              <span className="font-semibold text-[hsl(var(--header-foreground))] hidden sm:inline">
+                Seeksy
+              </span>
             </div>
           </div>
 

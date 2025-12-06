@@ -3,13 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Mail, BarChart3, Settings, Download } from "lucide-react";
+import { Plus, Mail, BarChart3, Settings, Download, Activity } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SignatureEditor } from "@/components/signatures/SignatureEditor";
 import { SignatureList } from "@/components/signatures/SignatureList";
 import { SignatureAnalytics } from "@/components/signatures/SignatureAnalytics";
 import { SignatureSettings } from "@/components/signatures/SignatureSettings";
+import { SignatureActivityLog } from "@/components/signatures/SignatureActivityLog";
 
 export default function SignatureBuilder() {
   const navigate = useNavigate();
@@ -161,6 +162,10 @@ export default function SignatureBuilder() {
               <Settings className="h-4 w-4" />
               Editor
             </TabsTrigger>
+            <TabsTrigger value="activity" className="gap-2">
+              <Activity className="h-4 w-4" />
+              Activity Log
+            </TabsTrigger>
             <TabsTrigger value="analytics" className="gap-2">
               <BarChart3 className="h-4 w-4" />
               Analytics
@@ -212,6 +217,10 @@ export default function SignatureBuilder() {
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          <TabsContent value="activity">
+            <SignatureActivityLog signatures={signatures} />
           </TabsContent>
 
           <TabsContent value="analytics">
