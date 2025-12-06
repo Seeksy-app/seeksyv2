@@ -38,6 +38,20 @@ export const NAVIGATION_CONFIG: {
   ],
   "navigation": [
     {
+      "group": "Dashboard",
+      "description": "Admin overview and quick access",
+      "collapsible": false,
+      "items": [
+        {
+          "id": "admin_dashboard",
+          "label": "Dashboard",
+          "icon": "layout-dashboard",
+          "path": "/admin",
+          "roles": ["admin", "super_admin", "cfo", "cmo", "cco", "manager"]
+        }
+      ]
+    },
+    {
       "group": "Advertising and Sales",
       "description": "Advertising, campaigns, sales, and revenue management",
       "collapsible": true,
