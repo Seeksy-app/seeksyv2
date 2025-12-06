@@ -16,35 +16,28 @@ interface SignatureListProps {
 export function SignatureList({ signatures, onSelect, onDelete }: SignatureListProps) {
   const { toast } = useToast();
 
-  const handleSetActive = async (signature: any) => {
+  const handleToggleActive = async (signature: any) => {
     try {
-      // First, deactivate all signatures for this user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
+      // Toggle active state - allow multiple active signatures
+      const newActiveState = !signature.is_active;
+      
       await supabase
         .from("email_signatures")
-        .update({ is_active: false })
-        .eq("user_id", user.id);
-
-      // Then activate the selected one
-      await supabase
-        .from("email_signatures")
-        .update({ is_active: true })
+        .update({ is_active: newActiveState })
         .eq("id", signature.id);
 
       toast({
-        title: "Signature activated",
-        description: `"${signature.name}" is now your active signature`,
+        title: newActiveState ? "Signature activated" : "Signature deactivated",
+        description: `"${signature.name}" is now ${newActiveState ? "active" : "inactive"}`,
       });
 
       // Refresh the page to show updated state
       window.location.reload();
     } catch (error) {
-      console.error("Error setting active signature:", error);
+      console.error("Error toggling active signature:", error);
       toast({
         title: "Error",
-        description: "Failed to set active signature",
+        description: "Failed to update signature",
         variant: "destructive",
       });
     }
@@ -121,12 +114,10 @@ export function SignatureList({ signatures, onSelect, onDelete }: SignatureListP
                       <Pencil className="h-4 w-4 mr-2" />
                       Edit
                     </DropdownMenuItem>
-                    {!signature.is_active && (
-                      <DropdownMenuItem onClick={() => handleSetActive(signature)}>
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Set as Active
-                      </DropdownMenuItem>
-                    )}
+                    <DropdownMenuItem onClick={() => handleToggleActive(signature)}>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      {signature.is_active ? "Deactivate" : "Set as Active"}
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleDuplicate(signature)}>
                       <Copy className="h-4 w-4 mr-2" />
                       Duplicate

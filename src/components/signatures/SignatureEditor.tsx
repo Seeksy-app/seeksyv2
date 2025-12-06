@@ -61,9 +61,12 @@ export function SignatureEditor({ signature, onUpdate }: SignatureEditorProps) {
     banner_cta_url: signature.banner_cta_url || "",
     banner_alt_text: signature.banner_alt_text || "",
     font_family: signature.font_family || "Arial, sans-serif",
+    font_size: signature.font_size || "medium",
     primary_color: signature.primary_color || "#000000",
     secondary_color: signature.secondary_color || "#666666",
     link_color: signature.link_color || "#0066cc",
+    profile_image_size: signature.profile_image_size || "medium",
+    social_icon_size: signature.social_icon_size || "medium",
     blocks: signature.blocks || [],
   });
 
@@ -84,9 +87,12 @@ export function SignatureEditor({ signature, onUpdate }: SignatureEditorProps) {
       banner_cta_url: signature.banner_cta_url || "",
       banner_alt_text: signature.banner_alt_text || "",
       font_family: signature.font_family || "Arial, sans-serif",
+      font_size: signature.font_size || "medium",
       primary_color: signature.primary_color || "#000000",
       secondary_color: signature.secondary_color || "#666666",
       link_color: signature.link_color || "#0066cc",
+      profile_image_size: signature.profile_image_size || "medium",
+      social_icon_size: signature.social_icon_size || "medium",
       blocks: signature.blocks || [],
     });
   }, [signature]);
@@ -545,21 +551,69 @@ export function SignatureEditor({ signature, onUpdate }: SignatureEditorProps) {
             </TabsContent>
 
             <TabsContent value="style" className="space-y-4">
-              <div>
-                <Label htmlFor="font_family">Font Family</Label>
-                <select
-                  id="font_family"
-                  value={formData.font_family}
-                  onChange={(e) => handleChange("font_family", e.target.value)}
-                  className="w-full h-10 rounded-md border border-input bg-background px-3 py-2"
-                >
-                  <option value="Arial, sans-serif">Arial</option>
-                  <option value="Helvetica, sans-serif">Helvetica</option>
-                  <option value="Georgia, serif">Georgia</option>
-                  <option value="'Times New Roman', serif">Times New Roman</option>
-                  <option value="Verdana, sans-serif">Verdana</option>
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="font_family">Font Family</Label>
+                  <select
+                    id="font_family"
+                    value={formData.font_family}
+                    onChange={(e) => handleChange("font_family", e.target.value)}
+                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2"
+                  >
+                    <option value="Arial, sans-serif">Arial</option>
+                    <option value="Helvetica, sans-serif">Helvetica</option>
+                    <option value="Georgia, serif">Georgia</option>
+                    <option value="'Times New Roman', serif">Times New Roman</option>
+                    <option value="Verdana, sans-serif">Verdana</option>
+                  </select>
+                </div>
+                <div>
+                  <Label htmlFor="font_size">Font Size</Label>
+                  <select
+                    id="font_size"
+                    value={formData.font_size}
+                    onChange={(e) => handleChange("font_size", e.target.value)}
+                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2"
+                  >
+                    <option value="small">Small (12px)</option>
+                    <option value="medium">Medium (14px)</option>
+                    <option value="large">Large (16px)</option>
+                  </select>
+                </div>
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="profile_image_size">Profile Photo Size</Label>
+                  <select
+                    id="profile_image_size"
+                    value={formData.profile_image_size}
+                    onChange={(e) => handleChange("profile_image_size", e.target.value)}
+                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2"
+                  >
+                    <option value="small">Small (40px)</option>
+                    <option value="medium">Medium (60px)</option>
+                    <option value="large">Large (80px)</option>
+                  </select>
+                </div>
+                <div>
+                  <Label htmlFor="social_icon_size">Social Icon Size</Label>
+                  <select
+                    id="social_icon_size"
+                    value={formData.social_icon_size}
+                    onChange={(e) => handleChange("social_icon_size", e.target.value)}
+                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2"
+                  >
+                    <option value="small">Small</option>
+                    <option value="medium">Medium</option>
+                    <option value="large">Large</option>
+                  </select>
+                </div>
+              </div>
+
+              <Separator className="my-4" />
+              <p className="text-sm font-medium text-muted-foreground">Colors</p>
+
               <div>
                 <Label htmlFor="primary_color">Primary Color</Label>
                 <div className="flex gap-2">
@@ -665,13 +719,22 @@ export function SignatureEditor({ signature, onUpdate }: SignatureEditorProps) {
   );
 }
 
+// Size mappings
+const PROFILE_IMAGE_SIZES: Record<string, number> = { small: 40, medium: 60, large: 80 };
+const FONT_SIZES: Record<string, number> = { small: 12, medium: 14, large: 16 };
+const SOCIAL_ICON_SIZES: Record<string, number> = { small: 12, medium: 14, large: 16 };
+
 // Helper functions to generate signature HTML/text
 function generateHtmlSignature(formData: any, signatureId: string): string {
   const baseUrl = "https://taxqcioheqdqtlmjeaht.supabase.co/functions/v1";
   const trackingPixelUrl = `${baseUrl}/signature-tracking-pixel/${signatureId}.png`;
   const clickTrackingBase = `${baseUrl}/signature-click-tracking/${signatureId}`;
 
-  let html = `<table cellpadding="0" cellspacing="0" border="0" style="font-family: ${formData.font_family}; font-size: 14px; color: ${formData.primary_color};">`;
+  const fontSize = FONT_SIZES[formData.font_size] || FONT_SIZES.medium;
+  const profileImageSize = PROFILE_IMAGE_SIZES[formData.profile_image_size] || PROFILE_IMAGE_SIZES.medium;
+  const socialIconSize = SOCIAL_ICON_SIZES[formData.social_icon_size] || SOCIAL_ICON_SIZES.medium;
+
+  let html = `<table cellpadding="0" cellspacing="0" border="0" style="font-family: ${formData.font_family}; font-size: ${fontSize}px; color: ${formData.primary_color};">`;
 
   // Quote block
   if (formData.quote_text) {
@@ -695,13 +758,13 @@ function generateHtmlSignature(formData: any, signatureId: string): string {
       html += `
               <td style="padding-right: 12px; vertical-align: top;">
                 <img src="${formData.profile_photo_url}" alt="${formData.profile_name}" 
-                     style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;" />
+                     style="width: ${profileImageSize}px; height: ${profileImageSize}px; border-radius: 50%; object-fit: cover;" />
               </td>`;
     }
     
     html += `
               <td style="vertical-align: middle;">
-                ${formData.profile_name ? `<div style="font-weight: bold; font-size: 16px;">${formData.profile_name}</div>` : ""}
+                ${formData.profile_name ? `<div style="font-weight: bold; font-size: ${fontSize + 2}px;">${formData.profile_name}</div>` : ""}
                 ${formData.profile_title ? `<div style="color: ${formData.secondary_color};">${formData.profile_title}</div>` : ""}
               </td>
             </tr>
@@ -737,15 +800,18 @@ function generateHtmlSignature(formData: any, signatureId: string): string {
 
   // Social icons block - using small icon images for email compatibility
   const socialLinks = Object.entries(formData.social_links || {}).filter(([_, url]) => url);
+  const socialIconSizePx = SOCIAL_ICON_SIZES[formData.social_icon_size] || 14;
+  const socialIconImgSize = socialIconSizePx <= 12 ? 20 : socialIconSizePx <= 14 ? 24 : 28;
+  
   if (socialLinks.length > 0) {
     html += `
       <tr>
-        <td style="padding: 8px 0;">`;
+        <td style="padding: 8px 0; font-size: ${socialIconSizePx}px;">`;
     
     for (const [platform, url] of socialLinks) {
       const trackUrl = `${clickTrackingBase}/social/${platform}?url=${encodeURIComponent(url as string)}`;
       const iconUrl = getSocialIconUrl(platform);
-      html += `<a href="${trackUrl}" style="margin-right: 8px; text-decoration: none;"><img src="${iconUrl}" alt="${platform}" style="width: 24px; height: 24px; vertical-align: middle;" /></a>`;
+      html += `<a href="${trackUrl}" style="margin-right: 8px; text-decoration: none;"><img src="${iconUrl}" alt="${platform}" style="width: ${socialIconImgSize}px; height: ${socialIconImgSize}px; vertical-align: middle;" /></a>`;
     }
     
     html += `

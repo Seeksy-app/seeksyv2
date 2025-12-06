@@ -3,11 +3,34 @@ interface SignaturePreviewProps {
   signatureId: string;
 }
 
+// Size mappings
+const PROFILE_IMAGE_SIZES = {
+  small: { width: 40, height: 40 },
+  medium: { width: 60, height: 60 },
+  large: { width: 80, height: 80 },
+};
+
+const FONT_SIZES = {
+  small: 12,
+  medium: 14,
+  large: 16,
+};
+
+const SOCIAL_ICON_SIZES = {
+  small: "text-xs",
+  medium: "text-sm",
+  large: "text-base",
+};
+
 export function SignaturePreview({ formData, signatureId }: SignaturePreviewProps) {
+  const fontSize = FONT_SIZES[formData.font_size as keyof typeof FONT_SIZES] || FONT_SIZES.medium;
+  const profileSize = PROFILE_IMAGE_SIZES[formData.profile_image_size as keyof typeof PROFILE_IMAGE_SIZES] || PROFILE_IMAGE_SIZES.medium;
+  const socialIconClass = SOCIAL_ICON_SIZES[formData.social_icon_size as keyof typeof SOCIAL_ICON_SIZES] || SOCIAL_ICON_SIZES.medium;
+
   return (
     <div 
       className="bg-white rounded-md p-4 border"
-      style={{ fontFamily: formData.font_family }}
+      style={{ fontFamily: formData.font_family, fontSize: `${fontSize}px` }}
     >
       {/* Quote */}
       {formData.quote_text && (
@@ -22,7 +45,11 @@ export function SignaturePreview({ formData, signatureId }: SignaturePreviewProp
           <img 
             src={formData.profile_photo_url} 
             alt={formData.profile_name}
-            className="w-14 h-14 rounded-full object-cover"
+            className="rounded-full object-cover"
+            style={{ 
+              width: profileSize.width, 
+              height: profileSize.height 
+            }}
           />
         )}
         <div>
@@ -41,7 +68,7 @@ export function SignaturePreview({ formData, signatureId }: SignaturePreviewProp
 
       {/* Company */}
       {(formData.company_name || formData.company_phone || formData.company_website) && (
-        <div className="mb-3 text-sm" style={{ color: formData.secondary_color }}>
+        <div className="mb-3" style={{ color: formData.secondary_color }}>
           {formData.company_name && <div className="font-semibold">{formData.company_name}</div>}
           {formData.company_phone && <div>{formData.company_phone}</div>}
           {formData.company_website && (
@@ -62,7 +89,7 @@ export function SignaturePreview({ formData, signatureId }: SignaturePreviewProp
             <a 
               key={platform}
               href="#"
-              className="text-sm hover:underline"
+              className={`hover:underline ${socialIconClass}`}
               style={{ color: formData.link_color }}
             >
               {getSocialLabel(platform)}
