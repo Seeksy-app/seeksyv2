@@ -243,33 +243,70 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Add to workspace_modules table
-      const { data: insertedModule, error: moduleError } = await supabase
-        .from('workspace_modules')
-        .insert({
-          workspace_id: currentWorkspace.id,
-          module_id: moduleId,
-          position: workspaceModules.length,
-        })
-        .select()
-        .single();
+      // Check if this module belongs to a group as a primary module
+      // If so, also add all other primary modules from that group
+      const { data: groupData } = await supabase
+        .from('module_group_modules')
+        .select('group_id, relationship_type')
+        .eq('module_key', moduleId)
+        .eq('relationship_type', 'primary')
+        .maybeSingle();
 
-      if (moduleError) throw moduleError;
+      let modulesToAdd = [moduleId];
+
+      if (groupData?.group_id) {
+        // Fetch all primary modules in this group
+        const { data: groupModules } = await supabase
+          .from('module_group_modules')
+          .select('module_key')
+          .eq('group_id', groupData.group_id)
+          .eq('relationship_type', 'primary')
+          .order('sort_order');
+
+        if (groupModules) {
+          const existingIds = new Set(workspaceModules.map(wm => wm.module_id));
+          modulesToAdd = groupModules
+            .map(gm => gm.module_key)
+            .filter(key => !existingIds.has(key));
+        }
+      }
+
+      // Add all modules to workspace_modules table
+      const insertedModules: WorkspaceModule[] = [];
+      for (let i = 0; i < modulesToAdd.length; i++) {
+        const modId = modulesToAdd[i];
+        const { data: insertedModule, error: moduleError } = await supabase
+          .from('workspace_modules')
+          .insert({
+            workspace_id: currentWorkspace.id,
+            module_id: modId,
+            position: workspaceModules.length + i,
+          })
+          .select()
+          .single();
+
+        if (moduleError) {
+          // Skip duplicates silently
+          if (moduleError.code !== '23505') throw moduleError;
+        } else if (insertedModule) {
+          insertedModules.push({
+            id: insertedModule.id,
+            workspace_id: insertedModule.workspace_id,
+            module_id: insertedModule.module_id,
+            position: insertedModule.position,
+            settings: (insertedModule.settings as Record<string, unknown>) || {},
+            is_pinned: insertedModule.is_pinned || false,
+          });
+        }
+      }
 
       // Optimistically update local state immediately
-      if (insertedModule) {
-        setWorkspaceModules(prev => [...prev, {
-          id: insertedModule.id,
-          workspace_id: insertedModule.workspace_id,
-          module_id: insertedModule.module_id,
-          position: insertedModule.position,
-          settings: (insertedModule.settings as Record<string, unknown>) || {},
-          is_pinned: insertedModule.is_pinned || false,
-        }]);
+      if (insertedModules.length > 0) {
+        setWorkspaceModules(prev => [...prev, ...insertedModules]);
       }
 
       // Also update the legacy modules array
-      const updatedModules = [...(currentWorkspace.modules || []), moduleId];
+      const updatedModules = [...new Set([...(currentWorkspace.modules || []), ...modulesToAdd])];
       await supabase
         .from('custom_packages')
         .update({ modules: updatedModules, updated_at: new Date().toISOString() })
