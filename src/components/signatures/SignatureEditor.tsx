@@ -150,6 +150,33 @@ export function SignatureEditor({ signature, onUpdate }: SignatureEditorProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleCopyRichText = async () => {
+    const html = generateHtmlSignature(formData, signature.id);
+    try {
+      // Copy as rich text (formatted) so it pastes directly into Gmail
+      const blob = new Blob([html], { type: "text/html" });
+      const clipboardItem = new ClipboardItem({
+        "text/html": blob,
+        "text/plain": new Blob([generatePlainTextSignature(formData)], { type: "text/plain" }),
+      });
+      await navigator.clipboard.write([clipboardItem]);
+      setCopied(true);
+      toast({
+        title: "Signature copied!",
+        description: "Paste directly into Gmail signature settings",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      // Fallback for browsers that don't support ClipboardItem
+      await navigator.clipboard.writeText(html);
+      toast({
+        title: "HTML copied",
+        description: "Your browser doesn't support rich text copy. Paste the HTML code.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleCopyPlainText = async () => {
     const text = generatePlainTextSignature(formData);
     await navigator.clipboard.writeText(text);
@@ -520,12 +547,19 @@ export function SignatureEditor({ signature, onUpdate }: SignatureEditorProps) {
           </CardHeader>
           <CardContent className="space-y-3">
             <Button 
+              onClick={handleCopyRichText} 
+              className="w-full justify-start gap-2"
+            >
+              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              Copy for Gmail (Recommended)
+            </Button>
+            <Button 
               onClick={handleCopyHtml} 
               variant="outline" 
               className="w-full justify-start gap-2"
             >
-              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              Copy HTML Signature
+              <Copy className="h-4 w-4" />
+              Copy Raw HTML
             </Button>
             <Button 
               onClick={handleCopyPlainText} 
@@ -536,7 +570,7 @@ export function SignatureEditor({ signature, onUpdate }: SignatureEditorProps) {
               Copy Plain Text
             </Button>
             <p className="text-xs text-muted-foreground">
-              Paste the HTML into Gmail Settings → Signature to enable tracking.
+              Use "Copy for Gmail" and paste directly into Gmail Settings → Signature.
             </p>
           </CardContent>
         </Card>
