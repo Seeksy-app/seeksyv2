@@ -80,11 +80,12 @@ import {
   Copy,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { MODULE_GROUP_FAMILIES } from "@/components/modules/moduleData";
+import { useModuleGroups } from "@/hooks/useModuleGroups";
 
 // Icon mapping for modules
 const MODULE_ICONS: Record<string, React.ElementType> = {
   'studio': Mic,
+  'studio-recording': Mic,
   'podcasts': Podcast,
   'clips': Scissors,
   'ai-clips': Scissors,
@@ -121,9 +122,11 @@ const MODULE_ICONS: Record<string, React.ElementType> = {
   'audience-insights': BarChart3,
   'social-connect': Instagram,
   'cloning': Copy,
+  'podcast-rss': Podcast,
+  'podcast-hosting': Podcast,
 };
 
-// Correct module groupings based on Seeksy structure
+// Fallback module groupings (used when DB config is loading or empty)
 const MODULE_GROUPS: Record<string, { name: string; modules: string[] }> = {
   'studio': { 
     name: 'Creator Studio',
@@ -131,7 +134,7 @@ const MODULE_GROUPS: Record<string, { name: string; modules: string[] }> = {
   },
   'podcasts': { 
     name: 'Podcasting',
-    modules: [] // Podcast is standalone, other modules belong to Studio
+    modules: [] 
   },
   'campaigns': { 
     name: 'Campaigns',

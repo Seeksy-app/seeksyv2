@@ -13518,6 +13518,77 @@ export type Database = {
         }
         Relationships: []
       }
+      module_group_modules: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          module_key: string
+          relationship_type: Database["public"]["Enums"]["module_relationship_type"]
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          module_key: string
+          relationship_type?: Database["public"]["Enums"]["module_relationship_type"]
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          module_key?: string
+          relationship_type?: Database["public"]["Enums"]["module_relationship_type"]
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_group_modules_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "module_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      module_groups: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_system: boolean
+          key: string
+          label: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_system?: boolean
+          key: string
+          label: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_system?: boolean
+          key?: string
+          label?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       module_purchases: {
         Row: {
           amount_paid: number
@@ -20969,6 +21040,7 @@ export type Database = {
         | "custom"
         | "seeksy_studio"
       meeting_status: "scheduled" | "completed" | "cancelled"
+      module_relationship_type: "primary" | "associated"
       nominee_status: "pending" | "approved" | "rejected"
       voice_cert_status: "pending" | "verified" | "revoked" | "failed"
       voting_method: "public" | "jury" | "hybrid" | "ranked_choice"
@@ -21158,6 +21230,7 @@ export const Constants = {
         "seeksy_studio",
       ],
       meeting_status: ["scheduled", "completed", "cancelled"],
+      module_relationship_type: ["primary", "associated"],
       nominee_status: ["pending", "approved", "rejected"],
       voice_cert_status: ["pending", "verified", "revoked", "failed"],
       voting_method: ["public", "jury", "hybrid", "ranked_choice"],
