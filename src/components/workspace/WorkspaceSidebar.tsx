@@ -82,7 +82,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useModuleGroups } from "@/hooks/useModuleGroups";
 
-// Icon mapping for modules
+// Icon mapping for modules - ensure correct icons for each module
 const MODULE_ICONS: Record<string, React.ElementType> = {
   'studio': Mic,
   'studio-recording': Mic,
@@ -91,10 +91,11 @@ const MODULE_ICONS: Record<string, React.ElementType> = {
   'ai-clips': Scissors,
   'ai-post-production': Wand2,
   'spark-ai': BrainCircuit,
+  'ai-agent': BrainCircuit,
   'blog': Newspaper,
   'newsletters': Mail,
-  'newsletter': Share2,
-  'campaigns': Megaphone,
+  'newsletter': Mail,
+  'campaigns': Megaphone, // Marketing campaigns - NOT email
   'automations': Zap,
   'ai-automation': Bot,
   'crm': Building2,
@@ -104,7 +105,7 @@ const MODULE_ICONS: Record<string, React.ElementType> = {
   'projects': FolderOpen,
   'project-management': FolderOpen,
   'meetings': CalendarClock,
-  'events': Calendar,
+  'events': Calendar, // Events - calendar icon
   'awards': Trophy,
   'proposals': FileText,
   'deals': DollarSign,
@@ -112,7 +113,7 @@ const MODULE_ICONS: Record<string, React.ElementType> = {
   'polls': Vote,
   'media-library': Image,
   'video-editor': Clapperboard,
-  'email': Mail,
+  'email': Mail, // Email inbox
   'sms': MessageCircle,
   'identity': Shield,
   'identity-verification': Shield,
@@ -127,6 +128,7 @@ const MODULE_ICONS: Record<string, React.ElementType> = {
 };
 
 // Fallback module groupings (used when DB config is loading or empty)
+// Each primary module acts as a collapsible group header
 const MODULE_GROUPS: Record<string, { name: string; modules: string[] }> = {
   'studio': { 
     name: 'Creator Studio',
@@ -134,19 +136,23 @@ const MODULE_GROUPS: Record<string, { name: string; modules: string[] }> = {
   },
   'podcasts': { 
     name: 'Podcasting',
-    modules: [] 
+    modules: ['podcast-rss', 'podcast-hosting'] 
   },
   'campaigns': { 
-    name: 'Campaigns',
-    modules: ['email', 'newsletter', 'automations', 'sms', 'segments', 'blog'] 
+    name: 'Marketing', // Marketing hub - NOT email
+    modules: ['newsletters', 'automations', 'blog'] 
   },
   'events': { 
-    name: 'Events',
+    name: 'Events & Meetings',
     modules: ['meetings', 'forms', 'polls', 'awards'] 
   },
   'crm': { 
     name: 'CRM & Business',
-    modules: ['contacts', 'project-management', 'tasks', 'proposals', 'deals'] 
+    modules: ['contacts', 'projects', 'tasks', 'proposals'] 
+  },
+  'email': {
+    name: 'Email',
+    modules: []
   },
 };
 
@@ -248,11 +254,10 @@ export function WorkspaceSidebar() {
             .map(id => modules.find(m => m.id === id))
             .filter(Boolean) as (ModuleRegistryItem & { is_standalone: boolean })[];
           
-          if (associatedModules.length > 0 || groupConfig.modules.length === 0) {
-            grouped.set(primaryId, { primary: primaryModule, groupName: groupConfig.name, associated: associatedModules });
-            usedIds.add(primaryId);
-            associatedModules.forEach(m => usedIds.add(m.id));
-          }
+          // Always add the primary module as a group, even if no associated modules
+          grouped.set(primaryId, { primary: primaryModule, groupName: groupConfig.name, associated: associatedModules });
+          usedIds.add(primaryId);
+          associatedModules.forEach(m => usedIds.add(m.id));
 
           // If primary is marked standalone, also add to pinned list
           if (primaryModule.is_standalone) {
