@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { ModuleCenterModal } from "@/components/modules";
 import { SparkMascot } from "@/components/myday/SparkMascot";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Bell,
   MoreHorizontal,
@@ -32,6 +33,34 @@ export function GlobalTopNav() {
   const navigate = useNavigate();
   const [showModuleCenter, setShowModuleCenter] = useState(false);
   const [showAIChat, setShowAIChat] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [userInitials, setUserInitials] = useState("U");
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('avatar_url, full_name, username')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile) {
+          setAvatarUrl(profile.avatar_url);
+          const name = profile.full_name || profile.username || user.email || '';
+          const initials = name
+            .split(' ')
+            .map((n: string) => n[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2) || 'U';
+          setUserInitials(initials);
+        }
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -139,10 +168,13 @@ export function GlobalTopNav() {
             {/* User menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full text-[hsl(var(--header-foreground))] hover:bg-white/10">
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                    <User className="h-4 w-4" />
-                  </div>
+                <Button variant="ghost" size="icon" className="rounded-full text-[hsl(var(--header-foreground))] hover:bg-white/10 p-0">
+                  <Avatar className="h-8 w-8 border-2 border-white/20">
+                    <AvatarImage src={avatarUrl || undefined} alt="Profile" />
+                    <AvatarFallback className="bg-primary/20 text-[hsl(var(--header-foreground))] text-xs font-medium">
+                      {userInitials}
+                    </AvatarFallback>
+                  </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-popover border shadow-lg z-50">
