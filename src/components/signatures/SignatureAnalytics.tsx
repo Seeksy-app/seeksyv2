@@ -272,6 +272,7 @@ export function SignatureAnalytics({ signatures }: SignatureAnalyticsProps) {
         <TabsList className="mb-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="clicks">Clicks</TabsTrigger>
+          <TabsTrigger value="activity">Activity</TabsTrigger>
           <TabsTrigger value="delivery">Delivery</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
         </TabsList>
@@ -477,6 +478,67 @@ export function SignatureAnalytics({ signatures }: SignatureAnalyticsProps) {
                     <TableRow>
                       <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
                         No click activity yet
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Activity Tab */}
+        <TabsContent value="activity">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-base">All Activity</CardTitle>
+                <CardDescription>Complete activity log of all email events</CardDescription>
+              </div>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Download className="h-4 w-4" />
+                Export CSV
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Event</TableHead>
+                    <TableHead>Signature</TableHead>
+                    <TableHead>Device</TableHead>
+                    <TableHead>Details</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {events.slice(0, 30).map((event) => {
+                    const sig = signatures.find(s => s.id === event.signature_id);
+                    return (
+                      <TableRow key={event.id}>
+                        <TableCell className="text-sm">
+                          {format(new Date(event.created_at), "MMM d @ h:mm a")}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={event.event_type === "open" ? "secondary" : "default"}>
+                            {formatEventType(event.event_type)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{sig?.name || "Unknown"}</TableCell>
+                        <TableCell className="flex items-center gap-1.5">
+                          {getDeviceIcon(event.device_type || "unknown")}
+                          <span className="capitalize text-sm">{event.device_type || "unknown"}</span>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground truncate max-w-[200px]">
+                          {event.target_url || event.email_client || "—"}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                  {events.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        No activity yet
                       </TableCell>
                     </TableRow>
                   )}

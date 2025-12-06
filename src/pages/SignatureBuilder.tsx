@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Mail, BarChart3, Settings, Download, Activity } from "lucide-react";
+import { Plus, Mail, Settings, Download, Activity } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SignatureEditor } from "@/components/signatures/SignatureEditor";
@@ -151,8 +151,11 @@ export default function SignatureBuilder() {
           </Button>
         </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        {/* Analytics shown immediately */}
+        <SignatureAnalytics signatures={signatures} />
+
+        {/* Tabs for management */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-8">
           <TabsList className="mb-6">
             <TabsTrigger value="signatures" className="gap-2">
               <Mail className="h-4 w-4" />
@@ -165,10 +168,6 @@ export default function SignatureBuilder() {
             <TabsTrigger value="activity" className="gap-2">
               <Activity className="h-4 w-4" />
               Activity Log
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Analytics
             </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Download className="h-4 w-4" />
@@ -221,10 +220,6 @@ export default function SignatureBuilder() {
 
           <TabsContent value="activity">
             <SignatureActivityLog signatures={signatures} />
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <SignatureAnalytics signatures={signatures} />
           </TabsContent>
 
           <TabsContent value="settings">
