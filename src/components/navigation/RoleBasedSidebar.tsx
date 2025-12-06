@@ -551,11 +551,11 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
             >
               <SidebarGroup>
                   <CollapsibleTrigger asChild>
-                    <SidebarGroupLabel className="cursor-pointer hover:bg-muted/50 rounded-md transition-colors flex items-center justify-between text-white font-semibold text-sm px-3 py-2 w-full">
+                    <SidebarGroupLabel className="cursor-pointer hover:bg-sidebar-accent/50 rounded-md transition-colors flex items-center justify-between text-sidebar-foreground font-semibold text-sm px-3 py-2 w-full">
                       <span className="truncate">{group.group}</span>
                       {!collapsed && (
                         <ChevronDown 
-                          className={`h-4 w-4 shrink-0 text-white/70 transition-transform duration-200 ml-auto ${
+                          className={`h-4 w-4 shrink-0 text-sidebar-foreground/70 transition-transform duration-200 ml-auto ${
                             isOpen ? 'rotate-0' : '-rotate-90'
                           }`} 
                         />
@@ -576,9 +576,9 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                               <SidebarMenuButton 
                                 tooltip={collapsed ? item.label : undefined}
                                 onClick={() => window.dispatchEvent(new Event('openSparkChat'))}
-                                className="flex items-center gap-3 transition-all duration-150 cursor-pointer"
+                                className="flex items-center gap-3 transition-all duration-150 cursor-pointer text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
                               >
-                                <Icon className="h-4 w-4 shrink-0" />
+                                <Icon className="h-4 w-4 shrink-0 text-sidebar-foreground" />
                                 {!collapsed && <span className="truncate">{item.label}</span>}
                               </SidebarMenuButton>
                             </SidebarMenuItem>
@@ -590,8 +590,8 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                             <SidebarMenuButton asChild tooltip={collapsed ? item.label : undefined}>
                               <NavLink
                                 to={item.path}
-                                className="flex items-center gap-3 transition-all duration-150"
-                                activeClassName="nav-active"
+                                className="flex items-center gap-3 transition-all duration-150 text-sidebar-foreground hover:bg-sidebar-accent"
+                                activeClassName="bg-sidebar-primary/15 text-sidebar-primary font-medium border-l-2 border-sidebar-primary"
                               >
                                 <Icon className="h-4 w-4 shrink-0" />
                                 {!collapsed && <span className="truncate">{item.label}</span>}

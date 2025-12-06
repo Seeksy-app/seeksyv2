@@ -39,6 +39,46 @@ serve(async (req) => {
       console.log("User is admin:", isAdmin);
     }
 
+    // Get relevant knowledge base entries based on the last user message
+    let knowledgeContext = "";
+    const lastUserMessage = messages.filter((m: any) => m.role === "user").pop();
+    
+    if (lastUserMessage?.content) {
+      const query = lastUserMessage.content.toLowerCase();
+      
+      // Search knowledge base with simple keyword matching
+      const { data: kbEntries } = await supabase
+        .from("ai_knowledge_base")
+        .select("title, content, category")
+        .eq("is_active", true)
+        .order("priority", { ascending: false })
+        .limit(5);
+      
+      if (kbEntries && kbEntries.length > 0) {
+        // Score and filter entries based on query relevance
+        const scoredEntries = kbEntries
+          .map(entry => {
+            let score = 0;
+            const searchText = `${entry.title} ${entry.content} ${entry.category}`.toLowerCase();
+            const queryWords = query.split(/\s+/).filter((w: string) => w.length > 2);
+            
+            for (const word of queryWords) {
+              if (searchText.includes(word)) score += 1;
+            }
+            return { ...entry, score };
+          })
+          .filter(e => e.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 3);
+        
+        if (scoredEntries.length > 0) {
+          knowledgeContext = "\n\n**Seeksy Platform Knowledge:**\n" + 
+            scoredEntries.map(e => `- **${e.title}**: ${e.content}`).join("\n");
+          console.log("Added KB context with", scoredEntries.length, "entries");
+        }
+      }
+    }
+
     // Define system prompts based on user type
     const creatorSystemPrompt = `You are Seeksy AI. Get straight to the point and help creators take action quickly.
 
@@ -71,6 +111,7 @@ You: "Head to /marketing to compose and send emails to your contacts. Need help 
 
 User: "I need help" or "Something isn't working"
 You: "I'll help you create a support ticket. I need your name, email, phone, and a description of the issue."
+${knowledgeContext}
 
 Keep it brief. Take them where they need to go.`;
 
@@ -113,6 +154,7 @@ You: "Head to /admin/analytics/podcasts to see detailed podcast performance metr
 
 Admin: "I need to check creator accounts"
 You: "Visit /admin/creators to view and manage all creator accounts on the platform."
+${knowledgeContext}
 
 Keep responses brief and focused on admin workflows.`;
 

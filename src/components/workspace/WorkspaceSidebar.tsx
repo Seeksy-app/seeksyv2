@@ -565,6 +565,20 @@ export function WorkspaceSidebar() {
 
         <SidebarFooter className="p-3 pt-0">
           <SidebarMenu>
+            {/* AI Agent / Ask Seeksy */}
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => navigate('/assistant')}
+                isActive={isActive('/assistant')}
+                tooltip="AI Agent"
+                className="text-sidebar-foreground hover:bg-sidebar-accent"
+              >
+                <Sparkles className="h-4 w-4 text-primary" />
+                {!isCollapsed && <span>AI Agent</span>}
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            
+            {/* Settings */}
             <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={() => navigate('/settings')}
