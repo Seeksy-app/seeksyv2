@@ -498,10 +498,10 @@ export const NAVIGATION_CONFIG: {
       "collapsible": true,
       "items": [
         {
-          "id": "admin_ask_spark",
+          "id": "admin_ask_seeksy",
           "label": "Ask Seeksy",
           "icon": "sparkles",
-          "path": "#ask-spark",
+          "path": "#ask-seeksy",
           "roles": ["admin", "super_admin", "cfo", "cmo", "cco", "manager"]
         },
         {

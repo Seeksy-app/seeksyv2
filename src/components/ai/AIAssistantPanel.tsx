@@ -254,7 +254,7 @@ I help you run your workspace: record in the Studio, create clips, plan events, 
               </div>
               <div>
                 <SheetTitle className="flex items-center gap-2 text-xl font-semibold">
-                  Ask Spark
+                  Ask Seeksy
                   <Badge variant="secondary" className="text-xs bg-[hsl(45,90%,85%)] text-[hsl(45,90%,25%)] border-0 px-2 py-0.5">
                     ✨ AI Copilot
                   </Badge>
@@ -354,7 +354,7 @@ I help you run your workspace: record in the Studio, create clips, plan events, 
                   <div className="bg-[hsl(45,100%,97%)] border border-[hsl(45,90%,85%)] rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm">
                     <div className="flex items-center gap-3">
                       <Loader2 className="h-5 w-5 animate-spin text-[hsl(45,90%,45%)]" />
-                      <span className="text-[15px] text-muted-foreground">Spark is thinking...</span>
+                      <span className="text-[15px] text-muted-foreground">Seeksy is thinking...</span>
                     </div>
                   </div>
                 </div>
@@ -375,7 +375,7 @@ I help you run your workspace: record in the Studio, create clips, plan events, 
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask Spark anything..."
+              placeholder="Ask Seeksy anything..."
               disabled={loading}
               className="flex-1 h-12 text-[15px] rounded-xl border-border/60 focus-visible:ring-[hsl(45,90%,50%)]"
             />

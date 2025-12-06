@@ -540,7 +540,7 @@ export function WorkspaceSidebar() {
         {/* Sticky Footer - always visible even when scrolling */}
         <SidebarFooter className="p-3 pt-2 border-t border-sidebar-border bg-sidebar mt-auto">
           <SidebarMenu>
-            {/* AI Agent / Ask Spark - Opens chat panel - Brand blue style */}
+            {/* AI Agent / Ask Seeksy - Opens chat panel - Brand blue style */}
             <SidebarMenuItem>
               <button
                 onClick={() => document.dispatchEvent(new Event('open-spark-assistant'))}
@@ -556,7 +556,7 @@ export function WorkspaceSidebar() {
                 </div>
                 {!isCollapsed && (
                   <span className="text-white font-semibold text-base">
-                    Ask Spark
+                    Ask Seeksy
                   </span>
                 )}
               </button>

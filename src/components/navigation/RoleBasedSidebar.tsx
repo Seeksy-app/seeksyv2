@@ -569,8 +569,8 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                       {group.items.map((item) => {
                         const Icon = ICON_MAP[item.icon] || Grid3x3;
                         
-                        // Special handling for Ask Spark - opens AI panel
-                        if (item.path === '#ask-spark') {
+                        // Special handling for Ask Seeksy - opens AI panel
+                        if (item.path === '#ask-seeksy') {
                           return (
                             <SidebarMenuItem key={item.id}>
                               <SidebarMenuButton 
@@ -615,12 +615,12 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton 
-              tooltip={collapsed ? "Ask Spark" : undefined}
+              tooltip={collapsed ? "Ask Seeksy" : undefined}
               onClick={() => document.dispatchEvent(new Event('open-spark-assistant'))}
               className="flex items-center gap-3 transition-all duration-150 cursor-pointer text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
             >
               <SparkIcon variant="holiday" size={20} className="shrink-0" />
-              {!collapsed && <span className="truncate text-amber-600 font-medium">Ask Spark</span>}
+              {!collapsed && <span className="truncate text-amber-600 font-medium">Ask Seeksy</span>}
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
