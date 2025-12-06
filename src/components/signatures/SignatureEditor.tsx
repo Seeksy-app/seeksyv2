@@ -312,16 +312,104 @@ export function SignatureEditor({ signature, onUpdate }: SignatureEditorProps) {
 
             <TabsContent value="banner" className="space-y-4">
               <p className="text-sm text-muted-foreground mb-4">
-                Add a promotional banner with a clickable CTA. Supports JPG, PNG, and animated GIFs.
+                Add a promotional banner (600×200px recommended). Supports JPG, PNG, and animated GIFs.
               </p>
+              
+              {/* Banner Upload */}
               <div>
-                <Label htmlFor="banner_image_url">Banner Image URL</Label>
-                <Input
-                  id="banner_image_url"
-                  value={formData.banner_image_url}
-                  onChange={(e) => handleChange("banner_image_url", e.target.value)}
-                  placeholder="https://... (max width 600px recommended)"
-                />
+                <Label>Banner Image</Label>
+                <div className="mt-2 space-y-3">
+                  {formData.banner_image_url && (
+                    <div className="relative rounded-lg overflow-hidden border">
+                      <img 
+                        src={formData.banner_image_url} 
+                        alt="Banner preview" 
+                        className="w-full h-auto max-h-32 object-contain bg-muted"
+                      />
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={() => handleChange("banner_image_url", "")}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  )}
+                  
+                  <div className="flex gap-2">
+                    <label className="flex-1">
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/gif"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          
+                          if (file.size > 2 * 1024 * 1024) {
+                            toast({
+                              title: "File too large",
+                              description: "Max file size is 2MB",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          
+                          try {
+                            const fileExt = file.name.split('.').pop();
+                            const fileName = `banner_${signature.id}_${Date.now()}.${fileExt}`;
+                            
+                            const { data, error } = await supabase.storage
+                              .from('signature-banners')
+                              .upload(fileName, file, { upsert: true });
+                            
+                            if (error) throw error;
+                            
+                            const { data: urlData } = supabase.storage
+                              .from('signature-banners')
+                              .getPublicUrl(fileName);
+                            
+                            handleChange("banner_image_url", urlData.publicUrl);
+                            toast({
+                              title: "Banner uploaded",
+                              description: "Your banner image has been uploaded",
+                            });
+                          } catch (error) {
+                            console.error("Upload error:", error);
+                            toast({
+                              title: "Upload failed",
+                              description: "Could not upload banner image",
+                              variant: "destructive",
+                            });
+                          }
+                        }}
+                      />
+                      <Button variant="outline" className="w-full gap-2" asChild>
+                        <span>
+                          <Upload className="h-4 w-4" />
+                          Upload Banner
+                        </span>
+                      </Button>
+                    </label>
+                  </div>
+                  
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">or paste URL</span>
+                    </div>
+                  </div>
+                  
+                  <Input
+                    id="banner_image_url"
+                    value={formData.banner_image_url}
+                    onChange={(e) => handleChange("banner_image_url", e.target.value)}
+                    placeholder="https://..."
+                  />
+                </div>
               </div>
               <div>
                 <Label htmlFor="banner_cta_url">CTA Link (tracked)</Label>
