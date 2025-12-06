@@ -77,13 +77,18 @@ export function ModuleCenterModal({ isOpen, onClose }: ModuleCenterModalProps) {
     }
     
     if (activeFilter === "recommended") {
-      result = result.filter(m => (m.downloads || 0) > 50000);
+      result = result.filter(m => m.isNew || m.isAIPowered);
     }
     
     if (sortBy === "name") {
       result.sort((a, b) => a.name.localeCompare(b.name));
     } else if (sortBy === "popular") {
-      result.sort((a, b) => (b.downloads || 0) - (a.downloads || 0));
+      // Sort AI-powered and new modules first
+      result.sort((a, b) => {
+        const aScore = (a.isAIPowered ? 2 : 0) + (a.isNew ? 1 : 0);
+        const bScore = (b.isAIPowered ? 2 : 0) + (b.isNew ? 1 : 0);
+        return bScore - aScore;
+      });
     } else if (sortBy === "newest") {
       result = result.filter(m => m.isNew).concat(result.filter(m => !m.isNew));
     }

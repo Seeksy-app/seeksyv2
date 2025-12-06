@@ -406,6 +406,7 @@ import AdvertiserIntegrations from "./pages/advertiser/AdvertiserIntegrations";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { OnboardingGuard } from "./components/OnboardingGuard";
 import MyDay from "./pages/MyDay";
+import Recents from "./pages/Recents";
 import Audience from "./pages/Audience";
 import ContentHub from "./pages/ContentHub";
 import MonetizationHub from "./pages/MonetizationHub";
@@ -607,6 +608,7 @@ const AppContent = () => {
               
               {/* My Day OS Routes */}
               <Route path="/my-day" element={<MyDay />} />
+              <Route path="/recents" element={<Recents />} />
               <Route path="/inbox" element={<EmailHome />} />
               <Route path="/audience" element={<Audience />} />
               <Route path="/content" element={<ContentHub />} />

@@ -155,13 +155,13 @@ export function WorkspaceSelector() {
       .map(wm => wm.module_id);
 
     const newWorkspace = await createWorkspace(
-      `${workspace.name} (Copy)`,
+      `${workspace.name} (Clone)`,
       moduleIds.length > 0 ? moduleIds : workspace.modules
     );
 
     if (newWorkspace) {
       setCurrentWorkspace(newWorkspace);
-      toast.success("Workspace duplicated", {
+      toast.success("Workspace cloned", {
         description: `Created "${newWorkspace.name}"`,
       });
     }
@@ -285,7 +285,7 @@ export function WorkspaceSelector() {
                         }}
                       >
                         <Copy className="h-4 w-4 mr-2" />
-                        Duplicate
+                        Clone Workspace
                       </DropdownMenuItem>
                       {!workspace.is_default && (
                         <DropdownMenuItem
