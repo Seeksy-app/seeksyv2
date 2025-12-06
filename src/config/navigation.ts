@@ -355,7 +355,7 @@ export const NAVIGATION_CONFIG: {
           "id": "admin_demo_videos",
           "label": "Demo Videos",
           "icon": "video",
-          "path": "/demo-videos",
+          "path": "/admin/demo-videos",
           "roles": ["admin", "super_admin", "cco"],
           "description": "Board-ready demo videos for investors"
         }
