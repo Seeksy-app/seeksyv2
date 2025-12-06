@@ -453,6 +453,7 @@ export const SEEKSY_MODULES: SeeksyModule[] = [
     icon: Newspaper,
     category: "content",
     route: "/my-blog",
+    primaryGroup: "campaigns",
     integrations: ["newsletter", "social-analytics"],
     bgGradient: "bg-gradient-to-br from-slate-100 via-gray-50 to-zinc-100",
     iconBg: "bg-white shadow-lg",

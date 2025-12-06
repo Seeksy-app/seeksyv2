@@ -135,7 +135,7 @@ const MODULE_GROUPS: Record<string, { name: string; modules: string[] }> = {
   },
   'campaigns': { 
     name: 'Campaigns',
-    modules: ['email', 'newsletter', 'automations', 'sms', 'segments'] 
+    modules: ['email', 'newsletter', 'automations', 'sms', 'segments', 'blog'] 
   },
   'events': { 
     name: 'Events',
