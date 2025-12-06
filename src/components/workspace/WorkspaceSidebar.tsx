@@ -76,8 +76,11 @@ import {
   Bot,
   CalendarClock,
   Newspaper,
+  Building2,
+  Copy,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { MODULE_GROUP_FAMILIES } from "@/components/modules/moduleData";
 
 // Icon mapping for modules
 const MODULE_ICONS: Record<string, React.ElementType> = {
@@ -87,13 +90,13 @@ const MODULE_ICONS: Record<string, React.ElementType> = {
   'ai-clips': Scissors,
   'ai-post-production': Wand2,
   'spark-ai': BrainCircuit,
-  'blog': FileText,
+  'blog': Newspaper,
   'newsletters': Mail,
   'newsletter': Share2,
   'campaigns': Megaphone,
   'automations': Zap,
   'ai-automation': Bot,
-  'crm': Users,
+  'crm': Building2,
   'contacts': Users,
   'segments': Target,
   'tasks': CheckSquare,
@@ -117,15 +120,31 @@ const MODULE_ICONS: Record<string, React.ElementType> = {
   'social-analytics': PieChart,
   'audience-insights': BarChart3,
   'social-connect': Instagram,
+  'cloning': Copy,
 };
 
-// Module groupings for primary app + associated apps pattern
-const MODULE_GROUPS: Record<string, string[]> = {
-  'crm': ['contacts', 'project-management', 'tasks', 'meetings', 'proposals', 'email', 'studio'],
-  'podcasts': ['studio', 'ai-post-production', 'ai-clips', 'media-library'],
-  'studio': ['ai-post-production', 'ai-clips', 'media-library', 'video-editor'],
-  'campaigns': ['email', 'sms', 'newsletter', 'automations', 'segments'],
-  'events': ['meetings', 'forms', 'polls', 'awards'],
+// Correct module groupings based on Seeksy structure
+const MODULE_GROUPS: Record<string, { name: string; modules: string[] }> = {
+  'studio': { 
+    name: 'Creator Studio',
+    modules: ['ai-clips', 'ai-post-production', 'media-library', 'video-editor', 'cloning'] 
+  },
+  'podcasts': { 
+    name: 'Podcasting',
+    modules: [] // Podcast is standalone, other modules belong to Studio
+  },
+  'campaigns': { 
+    name: 'Campaigns',
+    modules: ['email', 'newsletter', 'automations', 'sms', 'segments'] 
+  },
+  'events': { 
+    name: 'Events',
+    modules: ['meetings', 'forms', 'polls', 'awards'] 
+  },
+  'crm': { 
+    name: 'CRM & Business',
+    modules: ['contacts', 'project-management', 'tasks', 'proposals', 'deals'] 
+  },
 };
 
 interface ModuleRegistryItem {
@@ -147,7 +166,7 @@ export function WorkspaceSidebar() {
   const [moduleRegistry, setModuleRegistry] = useState<ModuleRegistryItem[]>([]);
   const [showModuleCenter, setShowModuleCenter] = useState(false);
   const [removingModule, setRemovingModule] = useState<string | null>(null);
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['studio', 'campaigns', 'events', 'crm']));
 
   // Fetch module registry
   useEffect(() => {
@@ -167,49 +186,53 @@ export function WorkspaceSidebar() {
 
   const isCollapsed = state === 'collapsed';
 
-  // Get modules for current workspace, organized with groups
-  const { primaryModules, groupedModules, standaloneModules } = useMemo(() => {
+  // Get modules for current workspace, organized with correct groups
+  const { groupedModules, standaloneModules } = useMemo(() => {
     const moduleIds = workspaceModules.map(wm => wm.module_id);
     const modules = workspaceModules
       .sort((a, b) => a.position - b.position)
       .map(wm => moduleRegistry.find(mr => mr.id === wm.module_id))
       .filter(Boolean) as ModuleRegistryItem[];
 
-    // Find primary modules (ones that have associated modules also in workspace)
-    const primaries: ModuleRegistryItem[] = [];
-    const grouped: Map<string, ModuleRegistryItem[]> = new Map();
+    const grouped: Map<string, { primary: ModuleRegistryItem; associated: ModuleRegistryItem[] }> = new Map();
     const standalone: ModuleRegistryItem[] = [];
     const usedIds = new Set<string>();
 
-    // First pass: identify primary modules
-    for (const module of modules) {
-      const associatedIds = MODULE_GROUPS[module.id];
-      if (associatedIds) {
-        const presentAssociated = associatedIds.filter(id => 
-          moduleIds.includes(id) && id !== module.id
-        );
-        if (presentAssociated.length > 0) {
-          primaries.push(module);
-          usedIds.add(module.id);
-          
-          const associatedModules = presentAssociated
-            .map(id => modules.find(m => m.id === id))
-            .filter(Boolean) as ModuleRegistryItem[];
-          
-          grouped.set(module.id, associatedModules);
+    // First pass: identify primary modules and their groups
+    for (const [primaryId, groupConfig] of Object.entries(MODULE_GROUPS)) {
+      const primaryModule = modules.find(m => m.id === primaryId);
+      if (primaryModule) {
+        const associatedModules = groupConfig.modules
+          .filter(id => moduleIds.includes(id))
+          .map(id => modules.find(m => m.id === id))
+          .filter(Boolean) as ModuleRegistryItem[];
+        
+        if (associatedModules.length > 0 || groupConfig.modules.length === 0) {
+          grouped.set(primaryId, { primary: primaryModule, associated: associatedModules });
+          usedIds.add(primaryId);
           associatedModules.forEach(m => usedIds.add(m.id));
         }
       }
     }
 
-    // Second pass: standalone modules
+    // Second pass: standalone modules (not in any group)
     for (const module of modules) {
       if (!usedIds.has(module.id)) {
+        // Check if this module belongs to a group but the primary isn't installed
+        let belongsToGroup = false;
+        for (const [primaryId, groupConfig] of Object.entries(MODULE_GROUPS)) {
+          if (groupConfig.modules.includes(module.id)) {
+            belongsToGroup = true;
+            break;
+          }
+        }
+        
+        // If it belongs to a group but primary not installed, show as standalone
         standalone.push(module);
       }
     }
 
-    return { primaryModules: primaries, groupedModules: grouped, standaloneModules: standalone };
+    return { groupedModules: grouped, standaloneModules: standalone };
   }, [workspaceModules, moduleRegistry]);
 
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
@@ -377,41 +400,46 @@ export function WorkspaceSidebar() {
             {currentWorkspace && (
               <div className="px-3 py-1">
                 <SidebarMenu>
-                  {/* Primary modules with groups */}
-                  {primaryModules.map((primary) => {
+                  {/* Grouped modules with primary app headers */}
+                  {Array.from(groupedModules.entries()).map(([primaryId, { primary, associated }]) => {
                     const Icon = MODULE_ICONS[primary.id] || FolderOpen;
-                    const associated = groupedModules.get(primary.id) || [];
-                    const isExpanded = expandedGroups.has(primary.id);
+                    const isExpanded = expandedGroups.has(primaryId);
+                    const groupConfig = MODULE_GROUPS[primaryId];
                     
                     return (
                       <Collapsible
                         key={primary.id}
                         open={isExpanded}
-                        onOpenChange={() => toggleGroup(primary.id)}
+                        onOpenChange={() => toggleGroup(primaryId)}
                       >
                         <SidebarMenuItem className="group/item relative">
                           <div className="flex items-center w-full">
-                            <CollapsibleTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 p-0 mr-1 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-transparent"
-                              >
-                                {isExpanded ? (
-                                  <ChevronDown className="h-3.5 w-3.5" />
-                                ) : (
-                                  <ChevronRight className="h-3.5 w-3.5" />
-                                )}
-                              </Button>
-                            </CollapsibleTrigger>
+                            {associated.length > 0 && (
+                              <CollapsibleTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 p-0 mr-1 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-transparent"
+                                >
+                                  {isExpanded ? (
+                                    <ChevronDown className="h-3.5 w-3.5" />
+                                  ) : (
+                                    <ChevronRight className="h-3.5 w-3.5" />
+                                  )}
+                                </Button>
+                              </CollapsibleTrigger>
+                            )}
                             <SidebarMenuButton
                               onClick={() => primary.route && navigate(primary.route)}
                               isActive={primary.route ? isActive(primary.route) : false}
-                              tooltip={primary.name}
-                              className="flex-1 text-sidebar-foreground hover:bg-sidebar-accent pr-8"
+                              tooltip={groupConfig?.name || primary.name}
+                              className={cn(
+                                "flex-1 text-sidebar-foreground hover:bg-sidebar-accent pr-8",
+                                associated.length === 0 && "ml-6"
+                              )}
                             >
                               <Icon className="h-4 w-4" />
-                              {!isCollapsed && <span className="font-medium">{primary.name}</span>}
+                              {!isCollapsed && <span className="font-medium">{groupConfig?.name || primary.name}</span>}
                             </SidebarMenuButton>
                           </div>
                           
@@ -487,32 +515,11 @@ export function WorkspaceSidebar() {
                 </SidebarMenu>
               </div>
             )}
-
-            {!currentWorkspace && !isCollapsed && (
-              <div className="px-4 py-8 text-center">
-                <p className="text-sm text-sidebar-foreground/70 mb-2">
-                  No workspace selected
-                </p>
-                <p className="text-xs text-sidebar-foreground/50 mb-4">
-                  Select or create a workspace to get started.
-                </p>
-              </div>
-            )}
           </ScrollArea>
         </SidebarContent>
 
-        <SidebarFooter className="p-3">
+        <SidebarFooter className="p-3 pt-0">
           <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => setShowModuleCenter(true)}
-                tooltip="App Store"
-                className="text-sidebar-foreground hover:bg-sidebar-accent"
-              >
-                <Sparkles className="h-4 w-4" />
-                {!isCollapsed && <span>App Store</span>}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={() => navigate('/settings')}
@@ -527,7 +534,7 @@ export function WorkspaceSidebar() {
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
-
+      
       {/* Module Center Modal */}
       <ModuleCenterModal 
         isOpen={showModuleCenter} 
