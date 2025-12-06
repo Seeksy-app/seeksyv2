@@ -14,6 +14,7 @@ import { GlobalSearch } from "@/components/GlobalSearch";
 import { ModuleCenterModal } from "@/components/modules";
 import { SparkMascot } from "@/components/myday/SparkMascot";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAIAssistant } from "@/components/ai/AIAssistantProvider";
 import {
   Bell,
   MoreHorizontal,
@@ -32,9 +33,9 @@ import { toast } from "sonner";
 export function GlobalTopNav() {
   const navigate = useNavigate();
   const [showModuleCenter, setShowModuleCenter] = useState(false);
-  const [showAIChat, setShowAIChat] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [userInitials, setUserInitials] = useState("U");
+  const { open: openAIChat } = useAIAssistant();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -101,7 +102,7 @@ export function GlobalTopNav() {
             <Button 
               variant="ghost" 
               size="sm"
-              onClick={() => setShowAIChat(true)}
+              onClick={openAIChat}
               className="text-[hsl(var(--header-foreground))] hover:bg-white/10 gap-2 hidden sm:flex"
             >
               <MessageCircle className="h-4 w-4" />
@@ -112,7 +113,7 @@ export function GlobalTopNav() {
             <Button 
               variant="ghost" 
               size="icon"
-              onClick={() => setShowAIChat(true)}
+              onClick={openAIChat}
               className="text-[hsl(var(--header-foreground))] hover:bg-white/10 sm:hidden"
             >
               <MessageCircle className="h-5 w-5" />
@@ -197,29 +198,6 @@ export function GlobalTopNav() {
         isOpen={showModuleCenter} 
         onClose={() => setShowModuleCenter(false)} 
       />
-      
-      {/* AI Chat - using Sheet pattern */}
-      {showAIChat && (
-        <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowAIChat(false)} />
-          <div className="absolute right-0 top-0 h-full w-full max-w-md bg-background shadow-2xl animate-slide-in-right">
-            <div className="p-4 border-b flex items-center justify-between">
-              <div>
-                <h2 className="font-semibold">Ask Seeksy</h2>
-                <p className="text-xs text-muted-foreground">Your AI co-pilot</p>
-              </div>
-              <Button variant="ghost" size="icon" onClick={() => setShowAIChat(false)}>
-                <span className="sr-only">Close</span>
-                ×
-              </Button>
-            </div>
-            <div className="p-6 text-center text-muted-foreground">
-              <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-20" />
-              <p>AI Assistant coming soon</p>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
