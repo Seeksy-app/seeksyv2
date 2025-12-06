@@ -89,6 +89,7 @@ export default function MyDay() {
   const [firstName, setFirstName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isCustomizing, setIsCustomizing] = useState(false);
   const [dailyStats, setDailyStats] = useState<DailyStats>({
     unreadEmails: 0,
     meetingsToday: 0,
@@ -265,8 +266,6 @@ export default function MyDay() {
       </div>
     );
   }
-
-  const [isCustomizing, setIsCustomizing] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">
