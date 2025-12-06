@@ -42,7 +42,7 @@ export function GlobalTopNav() {
 
   return (
     <header className="sticky top-0 z-40 bg-[hsl(var(--header-background))] border-b border-white/10">
-      <div className="flex items-center justify-between h-12 px-4">
+      <div className="flex items-center justify-between h-14 px-4">
         {/* Left section - Logo & Trigger */}
         <div className="flex items-center gap-3">
           <SidebarTrigger className="text-[hsl(var(--header-foreground))] hover:bg-white/10" />

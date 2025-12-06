@@ -236,7 +236,7 @@ export function GlobalSearch() {
             setIsOpen(true);
           }}
           onFocus={() => setIsOpen(true)}
-          className="pl-9 pr-9 bg-muted/50 rounded-full border-0 focus-visible:ring-1 focus-visible:ring-primary transition-all focus-visible:shadow-inner"
+          className="pl-9 pr-9 bg-white text-foreground rounded-full border-0 focus-visible:ring-2 focus-visible:ring-white/50 transition-all shadow-sm"
         />
         {isLoading && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
