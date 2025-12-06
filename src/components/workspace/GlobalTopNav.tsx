@@ -11,6 +11,7 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { ModuleCenterModal } from "@/components/modules";
 import { cn } from "@/lib/utils";
 import {
   Home,
@@ -60,6 +61,7 @@ export function GlobalTopNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const [showSearch, setShowSearch] = useState(false);
+  const [showModuleCenter, setShowModuleCenter] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -127,7 +129,7 @@ export function GlobalTopNav() {
                 <HelpCircle className="h-4 w-4 mr-2" />
                 Help Center
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/module-center')}>
+              <DropdownMenuItem onClick={() => setShowModuleCenter(true)}>
                 <Layers className="h-4 w-4 mr-2" />
                 Module Center
               </DropdownMenuItem>
@@ -177,6 +179,12 @@ export function GlobalTopNav() {
           </DropdownMenu>
         </div>
       </div>
+      
+      {/* Module Center Modal */}
+      <ModuleCenterModal 
+        isOpen={showModuleCenter} 
+        onClose={() => setShowModuleCenter(false)} 
+      />
     </header>
   );
 }
