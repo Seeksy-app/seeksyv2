@@ -8009,12 +8009,14 @@ export type Database = {
           created_at: string | null
           description: string | null
           estimated_monthly_credits: number | null
+          icon_color: string | null
           id: string
           is_default: boolean | null
           modules: Json | null
           name: string
           recommended_bundle: string | null
           settings: Json | null
+          slug: string | null
           updated_at: string | null
           user_id: string
         }
@@ -8022,12 +8024,14 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           estimated_monthly_credits?: number | null
+          icon_color?: string | null
           id?: string
           is_default?: boolean | null
           modules?: Json | null
           name: string
           recommended_bundle?: string | null
           settings?: Json | null
+          slug?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -8035,12 +8039,14 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           estimated_monthly_credits?: number | null
+          icon_color?: string | null
           id?: string
           is_default?: boolean | null
           modules?: Json | null
           name?: string
           recommended_bundle?: string | null
           settings?: Json | null
+          slug?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -13549,6 +13555,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      module_registry: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          route: string | null
+          scope: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id: string
+          is_active?: boolean | null
+          name: string
+          route?: string | null
+          scope?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          route?: string | null
+          scope?: string
+        }
+        Relationships: []
       }
       module_tooltips: {
         Row: {
@@ -20612,6 +20657,47 @@ export type Database = {
           workspace_id?: string | null
         }
         Relationships: []
+      }
+      workspace_modules: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_pinned: boolean | null
+          module_id: string
+          position: number | null
+          settings: Json | null
+          updated_at: string | null
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          module_id: string
+          position?: number | null
+          settings?: Json | null
+          updated_at?: string | null
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          module_id?: string
+          position?: number | null
+          settings?: Json | null
+          updated_at?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_modules_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "custom_packages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       youtube_oauth_sessions: {
         Row: {
