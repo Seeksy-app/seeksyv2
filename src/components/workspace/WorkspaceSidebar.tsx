@@ -551,9 +551,7 @@ export function WorkspaceSidebar() {
                   isCollapsed && "justify-center px-2"
                 )}
               >
-                <div className="bg-white/20 rounded-lg p-2 flex-shrink-0">
-                  <SparkIcon variant="holiday" size={20} className="text-white" />
-                </div>
+                <SparkIcon variant="holiday" size={24} className="flex-shrink-0" />
                 {!isCollapsed && (
                   <span className="text-white font-semibold text-base">
                     Ask Seeksy
