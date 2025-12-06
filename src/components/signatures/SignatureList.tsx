@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Pencil, Trash2, Copy, CheckCircle } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, Copy, CheckCircle, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -79,6 +79,31 @@ export function SignatureList({ signatures, onSelect, onDelete }: SignatureListP
     }
   };
 
+  const handleToggleUsage = async (signature: any, field: 'use_in_gmail' | 'use_in_seeksy_mail') => {
+    try {
+      const newValue = !signature[field];
+      
+      await supabase
+        .from("email_signatures")
+        .update({ [field]: newValue })
+        .eq("id", signature.id);
+
+      toast({
+        title: "Usage updated",
+        description: `Signature ${newValue ? "enabled" : "disabled"} for ${field === 'use_in_gmail' ? 'Gmail' : 'Seeksy Mail'}`,
+      });
+
+      window.location.reload();
+    } catch (error) {
+      console.error("Error updating signature usage:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update signature",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {signatures.map((signature) => (
@@ -118,6 +143,14 @@ export function SignatureList({ signatures, onSelect, onDelete }: SignatureListP
                       <CheckCircle className="h-4 w-4 mr-2" />
                       {signature.is_active ? "Deactivate" : "Set as Active"}
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleToggleUsage(signature, 'use_in_gmail')}>
+                      <Mail className="h-4 w-4 mr-2" />
+                      {signature.use_in_gmail !== false ? "Disable in Gmail" : "Enable in Gmail"}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleToggleUsage(signature, 'use_in_seeksy_mail')}>
+                      <Mail className="h-4 w-4 mr-2" />
+                      {signature.use_in_seeksy_mail !== false ? "Disable in Seeksy Mail" : "Enable in Seeksy Mail"}
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleDuplicate(signature)}>
                       <Copy className="h-4 w-4 mr-2" />
                       Duplicate
@@ -135,6 +168,15 @@ export function SignatureList({ signatures, onSelect, onDelete }: SignatureListP
             </div>
           </CardHeader>
           <CardContent>
+            {/* Usage badges */}
+            <div className="flex gap-1 mb-2">
+              {signature.use_in_gmail !== false && (
+                <Badge variant="outline" className="text-xs">Gmail</Badge>
+              )}
+              {signature.use_in_seeksy_mail !== false && (
+                <Badge variant="outline" className="text-xs">Seeksy Mail</Badge>
+              )}
+            </div>
             {/* Mini preview */}
             <div 
               className="bg-muted/30 rounded-md p-3 text-xs space-y-1 cursor-pointer"

@@ -8938,6 +8938,8 @@ export type Database = {
           secondary_color: string | null
           social_links: Json | null
           updated_at: string | null
+          use_in_gmail: boolean | null
+          use_in_seeksy_mail: boolean | null
           user_id: string
           workspace_id: string | null
         }
@@ -8968,6 +8970,8 @@ export type Database = {
           secondary_color?: string | null
           social_links?: Json | null
           updated_at?: string | null
+          use_in_gmail?: boolean | null
+          use_in_seeksy_mail?: boolean | null
           user_id: string
           workspace_id?: string | null
         }
@@ -8998,6 +9002,8 @@ export type Database = {
           secondary_color?: string | null
           social_links?: Json | null
           updated_at?: string | null
+          use_in_gmail?: boolean | null
+          use_in_seeksy_mail?: boolean | null
           user_id?: string
           workspace_id?: string | null
         }
@@ -16367,6 +16373,7 @@ export type Database = {
       }
       signature_notification_settings: {
         Row: {
+          auto_create_contact: boolean | null
           created_at: string | null
           digest_mode: boolean | null
           id: string
@@ -16379,11 +16386,14 @@ export type Database = {
           notify_via_email: boolean | null
           quiet_hours_end: string | null
           quiet_hours_start: string | null
+          show_create_contact_action: boolean | null
+          show_create_task_action: boolean | null
           updated_at: string | null
           user_id: string
           workspace_id: string | null
         }
         Insert: {
+          auto_create_contact?: boolean | null
           created_at?: string | null
           digest_mode?: boolean | null
           id?: string
@@ -16396,11 +16406,14 @@ export type Database = {
           notify_via_email?: boolean | null
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
+          show_create_contact_action?: boolean | null
+          show_create_task_action?: boolean | null
           updated_at?: string | null
           user_id: string
           workspace_id?: string | null
         }
         Update: {
+          auto_create_contact?: boolean | null
           created_at?: string | null
           digest_mode?: boolean | null
           id?: string
@@ -16413,6 +16426,8 @@ export type Database = {
           notify_via_email?: boolean | null
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
+          show_create_contact_action?: boolean | null
+          show_create_task_action?: boolean | null
           updated_at?: string | null
           user_id?: string
           workspace_id?: string | null
