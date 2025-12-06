@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { MODULE_CATEGORIES, SEEKSY_MODULES, type SeeksyModule } from "./moduleData";
 import { ModuleCard } from "./ModuleCard";
+import { ModuleDetailDrawer } from "./ModuleDetailDrawer";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -40,6 +41,8 @@ export function ModuleCenterModal({ isOpen, onClose }: ModuleCenterModalProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>("default");
   const [installingModules, setInstallingModules] = useState<Set<string>>(new Set());
+  const [selectedModule, setSelectedModule] = useState<SeeksyModule | null>(null);
+  const [showDetailDrawer, setShowDetailDrawer] = useState(false);
 
   // Get installed module IDs for current workspace
   const installedModuleIds = useMemo(() => {
@@ -302,6 +305,17 @@ export function ModuleCenterModal({ isOpen, onClose }: ModuleCenterModalProps) {
                       isInstalling={installingModules.has(module.id)}
                       onInstall={() => handleInstallModule(module)}
                       onOpen={() => handleOpenModule(module)}
+                      onBadgeClick={(integrationId) => {
+                        const integrationModule = SEEKSY_MODULES.find(m => m.id === integrationId);
+                        if (integrationModule) {
+                          setSelectedModule(integrationModule);
+                          setShowDetailDrawer(true);
+                        }
+                      }}
+                      onCardClick={() => {
+                        setSelectedModule(module);
+                        setShowDetailDrawer(true);
+                      }}
                     />
                   ))}
                 </div>
@@ -320,6 +334,29 @@ export function ModuleCenterModal({ isOpen, onClose }: ModuleCenterModalProps) {
           </div>
         </div>
       </div>
+      
+      {/* Module Detail Drawer */}
+      <ModuleDetailDrawer
+        module={selectedModule}
+        isOpen={showDetailDrawer}
+        onClose={() => {
+          setShowDetailDrawer(false);
+          setSelectedModule(null);
+        }}
+        isInstalled={selectedModule ? installedModuleIds.has(selectedModule.id) : false}
+        isInstalling={selectedModule ? installingModules.has(selectedModule.id) : false}
+        onInstall={() => {
+          if (selectedModule) {
+            handleInstallModule(selectedModule);
+          }
+        }}
+        onOpen={() => {
+          if (selectedModule) {
+            handleOpenModule(selectedModule);
+            setShowDetailDrawer(false);
+          }
+        }}
+      />
     </div>
   );
 }

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { type SeeksyModule, INTEGRATION_ICONS } from "./moduleData";
-import { MODULE_CUSTOM_ICONS, CATEGORY_GRADIENTS } from "./ModuleIcons";
+import { ModulePreview } from "./ModulePreview";
 
 interface ModuleCardProps {
   module: SeeksyModule;
@@ -17,88 +17,42 @@ interface ModuleCardProps {
   isInstalling?: boolean;
   onInstall: () => void;
   onOpen?: () => void;
+  onBadgeClick?: (integrationId: string) => void;
+  onCardClick?: () => void;
 }
 
-export function ModuleCard({ module, isInstalled, isInstalling, onInstall, onOpen }: ModuleCardProps) {
-  const LucideIcon = module.icon;
-  const CustomIcon = MODULE_CUSTOM_ICONS[module.id];
-  const categoryGradient = CATEGORY_GRADIENTS[module.category];
-  
-  // Use category-based gradient or module-specific one
-  const bgGradient = categoryGradient?.bg || module.bgGradient || "bg-gradient-to-br from-slate-100 to-slate-50";
-  const iconRing = categoryGradient?.iconRing || "ring-white/50";
+export function ModuleCard({ 
+  module, 
+  isInstalled, 
+  isInstalling, 
+  onInstall, 
+  onOpen,
+  onBadgeClick,
+  onCardClick,
+}: ModuleCardProps) {
+  const maxVisibleBadges = 3;
+  const integrations = module.integrations || [];
+  const visibleIntegrations = integrations.slice(0, maxVisibleBadges);
+  const remainingCount = integrations.length - maxVisibleBadges;
   
   return (
     <div 
       className={cn(
-        "group relative rounded-xl border border-border/40 transition-all duration-300 bg-card overflow-hidden",
+        "group relative rounded-xl border border-border/40 transition-all duration-300 bg-card overflow-hidden cursor-pointer",
         "hover:border-primary/50 hover:shadow-2xl hover:-translate-y-1.5",
         "shadow-lg shadow-black/5"
       )}
+      onClick={onCardClick}
     >
-      {/* Preview Area with enhanced gradient background */}
-      <div 
-        className={cn(
-          "h-40 relative overflow-hidden flex items-center justify-center",
-          bgGradient
-        )}
-      >
-        {/* Enhanced decorative pattern */}
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-4 left-4 w-20 h-3 rounded-full bg-white/60" />
-          <div className="absolute top-9 left-4 w-28 h-2.5 rounded-full bg-white/40" />
-          <div className="absolute top-4 right-4 w-14 h-14 rounded-xl bg-white/30 rotate-12" />
-          <div className="absolute bottom-4 left-8 w-24 h-24 rounded-xl bg-white/20 -rotate-6" />
-          <div className="absolute bottom-10 right-10 w-10 h-10 rounded-full bg-white/40" />
-          <div className="absolute top-1/2 left-1/3 w-6 h-6 rounded-full bg-white/20" />
-        </div>
-        
-        {/* Main Icon in enhanced white circle with glow effect */}
-        <div 
-          className={cn(
-            "relative z-10 w-20 h-20 rounded-full flex items-center justify-center",
-            "bg-white shadow-xl ring-4",
-            iconRing,
-            "group-hover:scale-105 transition-transform duration-300 ease-out",
-            // Inner shadow for tactile feel
-            "before:absolute before:inset-1 before:rounded-full before:shadow-inner before:shadow-black/5"
-          )}
-        >
-          {/* Subtle glow effect */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white to-transparent opacity-50" />
-          
-          {/* Icon - use custom or fallback to lucide */}
-          {CustomIcon ? (
-            <div className={cn("relative z-10 w-12 h-12", module.iconColor || "text-primary")}>
-              <CustomIcon />
-            </div>
-          ) : (
-            <LucideIcon className={cn("relative z-10 h-9 w-9", module.iconColor || "text-primary")} />
-          )}
-        </div>
-        
-        {/* Top-left Badges - Enhanced styling */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-          {module.isAIPowered && (
-            <Badge className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-600 hover:to-purple-600 text-white border-0 text-[10px] font-bold shadow-lg shadow-purple-500/30 gap-1 px-2.5 py-0.5">
-              <span className="text-xs">✨</span> AI Powered
-            </Badge>
-          )}
-          {module.isNew && (
-            <Badge className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-500 hover:to-green-500 text-white border-0 text-[10px] font-bold shadow-lg shadow-green-500/30 px-2.5 py-0.5">
-              New
-            </Badge>
-          )}
-        </div>
-      </div>
+      {/* Preview Area with screenshot-like pattern */}
+      <ModulePreview module={module} size="md" />
       
       {/* Content */}
       <div className="p-4 space-y-3">
         {/* Title & Author */}
         <div>
           <h3 
-            className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors cursor-pointer text-base"
-            onClick={onOpen}
+            className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors text-base"
           >
             {module.name}
           </h3>
@@ -110,16 +64,16 @@ export function ModuleCard({ module, isInstalled, isInstalling, onInstall, onOpe
           {module.description}
         </p>
         
-        {/* Footer with enhanced integration badges */}
+        {/* Footer with integration badges */}
         <div className="flex items-center justify-between pt-1">
-          {/* Spacer for layout balance */}
+          {/* Spacer */}
           <div className="flex-1" />
           
-          {/* Integration Icons with enhanced styling */}
-          {module.integrations && module.integrations.length > 0 && (
+          {/* Integration Icons - clickable */}
+          {integrations.length > 0 && (
             <TooltipProvider delayDuration={100}>
               <div className="flex items-center gap-1.5">
-                {module.integrations.slice(0, 4).map((integration, i) => {
+                {visibleIntegrations.map((integration, i) => {
                   const IntegrationData = INTEGRATION_ICONS[integration];
                   if (!IntegrationData) {
                     return (
@@ -134,34 +88,44 @@ export function ModuleCard({ module, isInstalled, isInstalling, onInstall, onOpe
                   return (
                     <Tooltip key={i}>
                       <TooltipTrigger asChild>
-                        <div 
+                        <button 
                           className={cn(
-                            "w-7 h-7 rounded-lg flex items-center justify-center text-white text-[11px] font-bold shadow-md cursor-default",
-                            "ring-2 ring-white/30 transition-transform hover:scale-110",
+                            "w-7 h-7 rounded-lg flex items-center justify-center text-white text-[11px] font-bold shadow-md",
+                            "ring-2 ring-white/30 transition-all hover:scale-110 hover:ring-white/50",
                             IntegrationData.bg
                           )}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onBadgeClick?.(integration);
+                          }}
                           aria-label={IntegrationData.name}
                         >
                           {IntegrationData.icon}
-                        </div>
+                        </button>
                       </TooltipTrigger>
                       <TooltipContent side="bottom" className="text-xs font-medium">
-                        Works with {IntegrationData.name}
+                        {IntegrationData.name}
                       </TooltipContent>
                     </Tooltip>
                   );
                 })}
-                {module.integrations.length > 4 && (
+                {remainingCount > 0 && (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="w-7 h-7 rounded-lg bg-muted/80 flex items-center justify-center border border-border/50 cursor-default ring-2 ring-white/20">
+                      <button 
+                        className="w-7 h-7 rounded-lg bg-muted/80 flex items-center justify-center border border-border/50 ring-2 ring-white/20 hover:ring-white/40 transition-all hover:scale-105"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onCardClick?.();
+                        }}
+                      >
                         <span className="text-[11px] font-bold text-muted-foreground">
-                          +{module.integrations.length - 4}
+                          +{remainingCount}
                         </span>
-                      </div>
+                      </button>
                     </TooltipTrigger>
                     <TooltipContent side="bottom" className="text-xs font-medium">
-                      {module.integrations.length - 4} more integrations
+                      {remainingCount} more integrations
                     </TooltipContent>
                   </Tooltip>
                 )}
@@ -188,7 +152,10 @@ export function ModuleCard({ module, isInstalled, isInstalling, onInstall, onOpe
                   variant="outline"
                   size="sm"
                   className="gap-1.5 text-xs font-medium"
-                  onClick={onOpen}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpen?.();
+                  }}
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                   Open
