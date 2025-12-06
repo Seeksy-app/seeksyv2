@@ -165,7 +165,7 @@ export function WorkspaceSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { state } = useSidebar();
-  const { currentWorkspace, workspaceModules, removeModule } = useWorkspace();
+  const { currentWorkspace, workspaceModules, removeModule, toggleStandalone } = useWorkspace();
   const [moduleRegistry, setModuleRegistry] = useState<ModuleRegistryItem[]>([]);
   const [showModuleCenter, setShowModuleCenter] = useState(false);
   const [removingModule, setRemovingModule] = useState<string | null>(null);
@@ -190,15 +190,19 @@ export function WorkspaceSidebar() {
   const isCollapsed = state === 'collapsed';
 
   // Get modules for current workspace, organized with correct groups
-  const { groupedModules, standaloneModules } = useMemo(() => {
+  const { groupedModules, standaloneModules, pinnedStandaloneModules } = useMemo(() => {
     const moduleIds = workspaceModules.map(wm => wm.module_id);
     const modules = workspaceModules
       .sort((a, b) => a.position - b.position)
-      .map(wm => moduleRegistry.find(mr => mr.id === wm.module_id))
-      .filter(Boolean) as ModuleRegistryItem[];
+      .map(wm => ({
+        ...moduleRegistry.find(mr => mr.id === wm.module_id),
+        is_standalone: wm.is_standalone,
+      }))
+      .filter(m => m.id) as (ModuleRegistryItem & { is_standalone: boolean })[];
 
-    const grouped: Map<string, { primary: ModuleRegistryItem; associated: ModuleRegistryItem[] }> = new Map();
-    const standalone: ModuleRegistryItem[] = [];
+    const grouped: Map<string, { primary: ModuleRegistryItem & { is_standalone: boolean }; associated: (ModuleRegistryItem & { is_standalone: boolean })[] }> = new Map();
+    const standalone: (ModuleRegistryItem & { is_standalone: boolean })[] = [];
+    const pinnedStandalone: (ModuleRegistryItem & { is_standalone: boolean })[] = [];
     const usedIds = new Set<string>();
 
     // First pass: identify primary modules and their groups
@@ -208,34 +212,36 @@ export function WorkspaceSidebar() {
         const associatedModules = groupConfig.modules
           .filter(id => moduleIds.includes(id))
           .map(id => modules.find(m => m.id === id))
-          .filter(Boolean) as ModuleRegistryItem[];
+          .filter(Boolean) as (ModuleRegistryItem & { is_standalone: boolean })[];
         
         if (associatedModules.length > 0 || groupConfig.modules.length === 0) {
           grouped.set(primaryId, { primary: primaryModule, associated: associatedModules });
           usedIds.add(primaryId);
           associatedModules.forEach(m => usedIds.add(m.id));
         }
+
+        // If primary is marked standalone, also add to pinned list
+        if (primaryModule.is_standalone) {
+          pinnedStandalone.push(primaryModule);
+        }
+      }
+    }
+
+    // Check associated modules for standalone flag
+    for (const module of modules) {
+      if (module.is_standalone && !pinnedStandalone.find(p => p.id === module.id)) {
+        pinnedStandalone.push(module);
       }
     }
 
     // Second pass: standalone modules (not in any group)
     for (const module of modules) {
       if (!usedIds.has(module.id)) {
-        // Check if this module belongs to a group but the primary isn't installed
-        let belongsToGroup = false;
-        for (const [primaryId, groupConfig] of Object.entries(MODULE_GROUPS)) {
-          if (groupConfig.modules.includes(module.id)) {
-            belongsToGroup = true;
-            break;
-          }
-        }
-        
-        // If it belongs to a group but primary not installed, show as standalone
         standalone.push(module);
       }
     }
 
-    return { groupedModules: grouped, standaloneModules: standalone };
+    return { groupedModules: grouped, standaloneModules: standalone, pinnedStandaloneModules: pinnedStandalone };
   }, [workspaceModules, moduleRegistry]);
 
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
@@ -266,8 +272,10 @@ export function WorkspaceSidebar() {
     });
   };
 
-  const renderModuleItem = (module: ModuleRegistryItem, indented = false) => {
+  const renderModuleItem = (module: ModuleRegistryItem & { is_standalone?: boolean }, indented = false) => {
     const Icon = MODULE_ICONS[module.id] || FolderOpen;
+    const isStandalone = module.is_standalone || false;
+    
     return (
       <SidebarMenuItem key={module.id} className="group/item relative">
         <SidebarMenuButton
@@ -308,24 +316,26 @@ export function WorkspaceSidebar() {
                 <Trash2 className="h-4 w-4 mr-2" />
                 Remove
               </DropdownMenuItem>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toast.success("Module added as standalone", {
-                        description: `${module.name} is now a standalone menu item.`,
-                      });
-                    }}
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Standalone
-                  </DropdownMenuItem>
-                </TooltipTrigger>
-                <TooltipContent side="left">
-                  <p>Add to menu as a standalone module</p>
-                </TooltipContent>
-              </Tooltip>
+              <DropdownMenuItem
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  try {
+                    await toggleStandalone(module.id);
+                    toast.success(
+                      isStandalone ? "Removed from standalone" : "Module added as standalone",
+                      { description: isStandalone 
+                        ? `${module.name} removed from standalone menu.`
+                        : `${module.name} is now a standalone menu item.` 
+                      }
+                    );
+                  } catch (err) {
+                    toast.error("Failed to update module");
+                  }
+                }}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                {isStandalone ? "Remove Standalone" : "Standalone"}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )}
@@ -387,6 +397,36 @@ export function WorkspaceSidebar() {
         <SidebarContent>
           <ScrollArea className="flex-1">
             <Separator className="my-1 bg-sidebar-border" />
+
+            {/* Pinned Standalone Modules Section */}
+            {pinnedStandaloneModules.length > 0 && (
+              <div className="px-3 py-1">
+                {!isCollapsed && (
+                  <span className="text-xs font-medium text-sidebar-foreground/70 px-2">
+                    Pinned
+                  </span>
+                )}
+                <SidebarMenu className="mt-1">
+                  {pinnedStandaloneModules.map(module => {
+                    const Icon = MODULE_ICONS[module.id] || FolderOpen;
+                    return (
+                      <SidebarMenuItem key={`pinned-${module.id}`}>
+                        <SidebarMenuButton
+                          onClick={() => module.route && navigate(module.route)}
+                          isActive={module.route ? isActive(module.route) : false}
+                          tooltip={module.name}
+                          className="text-sidebar-foreground hover:bg-sidebar-accent"
+                        >
+                          <Icon className="h-4 w-4" />
+                          {!isCollapsed && <span>{module.name}</span>}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+                <Separator className="my-2 bg-sidebar-border" />
+              </div>
+            )}
 
             {/* Modules Section Header */}
             <div className="px-3 py-2">
@@ -471,24 +511,26 @@ export function WorkspaceSidebar() {
                                   <Trash2 className="h-4 w-4 mr-2" />
                                   Remove
                                 </DropdownMenuItem>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <DropdownMenuItem
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        toast.success("Module added as standalone", {
-                                          description: `${primary.name} is now a standalone menu item.`,
-                                        });
-                                      }}
-                                    >
-                                      <ExternalLink className="h-4 w-4 mr-2" />
-                                      Standalone
-                                    </DropdownMenuItem>
-                                  </TooltipTrigger>
-                                  <TooltipContent side="left">
-                                    <p>Add to menu as a standalone module</p>
-                                  </TooltipContent>
-                                </Tooltip>
+                                <DropdownMenuItem
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    try {
+                                      await toggleStandalone(primary.id);
+                                      toast.success(
+                                        primary.is_standalone ? "Removed from standalone" : "Module added as standalone",
+                                        { description: primary.is_standalone 
+                                          ? `${primary.name} removed from standalone menu.`
+                                          : `${primary.name} is now a standalone menu item.` 
+                                        }
+                                      );
+                                    } catch (err) {
+                                      toast.error("Failed to update module");
+                                    }
+                                  }}
+                                >
+                                  <ExternalLink className="h-4 w-4 mr-2" />
+                                  {primary.is_standalone ? "Remove Standalone" : "Standalone"}
+                                </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           )}

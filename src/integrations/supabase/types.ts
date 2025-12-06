@@ -13518,6 +13518,27 @@ export type Database = {
         }
         Relationships: []
       }
+      module_bundle_relations: {
+        Row: {
+          bundle_module_id: string
+          created_at: string
+          id: string
+          related_module_id: string
+        }
+        Insert: {
+          bundle_module_id: string
+          created_at?: string
+          id?: string
+          related_module_id: string
+        }
+        Update: {
+          bundle_module_id?: string
+          created_at?: string
+          id?: string
+          related_module_id?: string
+        }
+        Relationships: []
+      }
       module_group_modules: {
         Row: {
           created_at: string
@@ -20761,6 +20782,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_pinned: boolean | null
+          is_standalone: boolean | null
           module_id: string
           position: number | null
           settings: Json | null
@@ -20771,6 +20793,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_pinned?: boolean | null
+          is_standalone?: boolean | null
           module_id: string
           position?: number | null
           settings?: Json | null
@@ -20781,6 +20804,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_pinned?: boolean | null
+          is_standalone?: boolean | null
           module_id?: string
           position?: number | null
           settings?: Json | null

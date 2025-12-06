@@ -21,6 +21,7 @@ export interface WorkspaceModule {
   position: number;
   settings: Record<string, unknown>;
   is_pinned: boolean;
+  is_standalone: boolean;
 }
 
 interface WorkspaceContextType {
@@ -34,6 +35,7 @@ interface WorkspaceContextType {
   deleteWorkspace: (id: string) => Promise<void>;
   addModule: (moduleId: string) => Promise<void>;
   removeModule: (moduleId: string) => Promise<void>;
+  toggleStandalone: (moduleId: string) => Promise<void>;
   reorderModules: (moduleIds: string[]) => Promise<void>;
   refreshWorkspaces: () => Promise<void>;
 }
@@ -112,6 +114,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         position: m.position,
         settings: (m.settings as Record<string, unknown>) || {},
         is_pinned: m.is_pinned || false,
+        is_standalone: m.is_standalone || false,
       })));
     } catch (err) {
       console.error('Error fetching workspace modules:', err);
@@ -243,31 +246,44 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Check if this module belongs to a group as a primary module
-      // If so, also add all other primary modules from that group
-      const { data: groupData } = await supabase
-        .from('module_group_modules')
-        .select('group_id, relationship_type')
-        .eq('module_key', moduleId)
-        .eq('relationship_type', 'primary')
-        .maybeSingle();
+      // First check module_bundle_relations for bundled integrations
+      const { data: bundleRelations } = await supabase
+        .from('module_bundle_relations')
+        .select('related_module_id')
+        .eq('bundle_module_id', moduleId);
 
       let modulesToAdd = [moduleId];
 
-      if (groupData?.group_id) {
-        // Fetch all primary modules in this group
-        const { data: groupModules } = await supabase
+      // If this is a bundle root, also add its related modules
+      if (bundleRelations && bundleRelations.length > 0) {
+        const existingIds = new Set(workspaceModules.map(wm => wm.module_id));
+        const relatedModules = bundleRelations
+          .map(r => r.related_module_id)
+          .filter(id => !existingIds.has(id));
+        modulesToAdd = [moduleId, ...relatedModules];
+      } else {
+        // Fallback: Check if this module belongs to a group as a primary module
+        const { data: groupData } = await supabase
           .from('module_group_modules')
-          .select('module_key')
-          .eq('group_id', groupData.group_id)
+          .select('group_id, relationship_type')
+          .eq('module_key', moduleId)
           .eq('relationship_type', 'primary')
-          .order('sort_order');
+          .maybeSingle();
 
-        if (groupModules) {
-          const existingIds = new Set(workspaceModules.map(wm => wm.module_id));
-          modulesToAdd = groupModules
-            .map(gm => gm.module_key)
-            .filter(key => !existingIds.has(key));
+        if (groupData?.group_id) {
+          const { data: groupModules } = await supabase
+            .from('module_group_modules')
+            .select('module_key')
+            .eq('group_id', groupData.group_id)
+            .eq('relationship_type', 'primary')
+            .order('sort_order');
+
+          if (groupModules) {
+            const existingIds = new Set(workspaceModules.map(wm => wm.module_id));
+            modulesToAdd = groupModules
+              .map(gm => gm.module_key)
+              .filter(key => !existingIds.has(key));
+          }
         }
       }
 
@@ -286,7 +302,6 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
           .single();
 
         if (moduleError) {
-          // Skip duplicates silently
           if (moduleError.code !== '23505') throw moduleError;
         } else if (insertedModule) {
           insertedModules.push({
@@ -296,23 +311,21 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
             position: insertedModule.position,
             settings: (insertedModule.settings as Record<string, unknown>) || {},
             is_pinned: insertedModule.is_pinned || false,
+            is_standalone: insertedModule.is_standalone || false,
           });
         }
       }
 
-      // Optimistically update local state immediately
       if (insertedModules.length > 0) {
         setWorkspaceModules(prev => [...prev, ...insertedModules]);
       }
 
-      // Also update the legacy modules array
       const updatedModules = [...new Set([...(currentWorkspace.modules || []), ...modulesToAdd])];
       await supabase
         .from('custom_packages')
         .update({ modules: updatedModules, updated_at: new Date().toISOString() })
         .eq('id', currentWorkspace.id);
 
-      // Update current workspace state
       setCurrentWorkspaceState(prev => prev ? { ...prev, modules: updatedModules } : null);
       setWorkspaces(prev => prev.map(w => w.id === currentWorkspace.id ? { ...w, modules: updatedModules } : w));
     } catch (err) {
@@ -380,6 +393,33 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const toggleStandalone = async (moduleId: string) => {
+    if (!currentWorkspace) return;
+
+    try {
+      const existingModule = workspaceModules.find(wm => wm.module_id === moduleId);
+      if (!existingModule) return;
+
+      const newStandaloneValue = !existingModule.is_standalone;
+
+      // Update in database
+      await supabase
+        .from('workspace_modules')
+        .update({ is_standalone: newStandaloneValue })
+        .eq('id', existingModule.id);
+
+      // Update local state
+      setWorkspaceModules(prev => prev.map(wm => 
+        wm.id === existingModule.id 
+          ? { ...wm, is_standalone: newStandaloneValue }
+          : wm
+      ));
+    } catch (err) {
+      console.error('Error toggling standalone:', err);
+      throw err;
+    }
+  };
+
   useEffect(() => {
     fetchWorkspaces();
   }, [fetchWorkspaces]);
@@ -397,6 +437,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         deleteWorkspace,
         addModule,
         removeModule,
+        toggleStandalone,
         reorderModules,
         refreshWorkspaces: fetchWorkspaces,
       }}
