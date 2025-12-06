@@ -168,35 +168,103 @@ I help you run your workspace: record in the Studio, create clips, plan events, 
     }
   };
 
+  // Parse action links like [Action Text](route) or ➡️ patterns
+  const parseActionLinks = (text: string) => {
+    // Match patterns like [Action Text](route) or ➡️ Action Text
+    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)|➡️\s*([^➡️\n]+)/g;
+    const parts: (string | { text: string; route: string })[] = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = linkRegex.exec(text)) !== null) {
+      // Add text before this match
+      if (match.index > lastIndex) {
+        parts.push(text.slice(lastIndex, match.index));
+      }
+      
+      if (match[1] && match[2]) {
+        // [Action Text](route) format
+        parts.push({ text: match[1], route: match[2] });
+      } else if (match[3]) {
+        // ➡️ Action Text format - find route
+        const actionText = match[3].trim();
+        const normalizedAction = actionText.toLowerCase();
+        let route = "";
+        for (const [key, r] of Object.entries(ACTION_ROUTES)) {
+          if (normalizedAction.includes(key)) {
+            route = r;
+            break;
+          }
+        }
+        parts.push({ text: actionText, route });
+      }
+      
+      lastIndex = match.index + match[0].length;
+    }
+    
+    // Add remaining text
+    if (lastIndex < text.length) {
+      parts.push(text.slice(lastIndex));
+    }
+    
+    return parts.length > 0 ? parts : [text];
+  };
+
   // Render message with action buttons
   const renderMessage = (content: string) => {
     // Find ➡️ patterns and make them clickable
     const lines = content.split("\n");
     return lines.map((line, idx) => {
-      if (line.includes("➡️")) {
-        const actionMatch = line.match(/➡️\s*(.+)/);
-        if (actionMatch) {
-          const actionText = actionMatch[1].trim();
-          return (
-            <div key={idx} className="my-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleActionClick(actionText)}
-                className="text-sm font-medium bg-[hsl(217,100%,97%)] hover:bg-[hsl(217,100%,94%)] border-[hsl(217,80%,85%)] text-[hsl(217,80%,35%)]"
-              >
-                <Zap className="h-3.5 w-3.5 mr-2" />
-                {actionText}
-              </Button>
-            </div>
-          );
-        }
+      // Check for action links in this line
+      const parts = parseActionLinks(line);
+      const hasActions = parts.some(p => typeof p === 'object');
+      
+      if (hasActions) {
+        return (
+          <div key={idx} className="my-2 flex flex-wrap gap-2">
+            {parts.map((part, partIdx) => {
+              if (typeof part === 'object' && part.route) {
+                return (
+                  <Button
+                    key={partIdx}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      close();
+                      navigate(part.route);
+                    }}
+                    className="text-sm font-medium bg-[hsl(217,100%,97%)] hover:bg-[hsl(217,100%,94%)] border-[hsl(217,80%,85%)] text-[hsl(217,80%,35%)]"
+                  >
+                    <Zap className="h-3.5 w-3.5 mr-2" />
+                    {part.text}
+                  </Button>
+                );
+              } else if (typeof part === 'object') {
+                // Action without route - still show as button
+                return (
+                  <Button
+                    key={partIdx}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleActionClick(part.text)}
+                    className="text-sm font-medium bg-[hsl(217,100%,97%)] hover:bg-[hsl(217,100%,94%)] border-[hsl(217,80%,85%)] text-[hsl(217,80%,35%)]"
+                  >
+                    <Zap className="h-3.5 w-3.5 mr-2" />
+                    {part.text}
+                  </Button>
+                );
+              }
+              return null; // Skip text parts in action rows
+            })}
+          </div>
+        );
       }
+
       // Bold section headers (lines starting with emoji or **text**) - NO markdown symbols
       if (line.match(/^(🎙️|🎥|✂️|📊|✨|\*\*|###|##)/)) {
         const cleanLine = line.replace(/\*\*/g, "").replace(/^###?\s*/, "");
         return (
-          <p key={idx} className="font-semibold text-foreground mt-4 mb-2">
+          <p key={idx} className="font-semibold text-foreground mt-4 mb-2 break-words">
             {cleanLine}
           </p>
         );
@@ -205,7 +273,7 @@ I help you run your workspace: record in the Studio, create clips, plan events, 
       if (line.trim().startsWith("•") || line.trim().startsWith("-") || line.trim().startsWith("*")) {
         const cleanBullet = line.replace(/^\s*[\*\-•]\s*/, "• ").replace(/\*\*/g, "");
         return (
-          <p key={idx} className="text-foreground ml-2 mb-2">
+          <p key={idx} className="text-foreground ml-2 mb-2 break-words">
             {cleanBullet}
           </p>
         );
@@ -216,7 +284,7 @@ I help you run your workspace: record in the Studio, create clips, plan events, 
       }
       // Regular text with clean markdown removal
       const cleanText = line.replace(/\*\*/g, "");
-      return <p key={idx} className="mb-2">{cleanText}</p>;
+      return <p key={idx} className="mb-2 break-words">{cleanText}</p>;
     });
   };
 
@@ -249,17 +317,17 @@ I help you run your workspace: record in the Studio, create clips, plan events, 
         <SheetHeader className="px-6 py-6 border-b bg-gradient-to-r from-[hsl(45,100%,97%)] to-[hsl(217,100%,97%)]">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-[hsl(45,90%,90%)] shadow-md">
+              <div className="shrink-0">
                 <SparkIcon variant="holiday" size={40} animated />
               </div>
-              <div>
-                <SheetTitle className="flex items-center gap-2 text-xl font-semibold">
+              <div className="min-w-0 flex-1">
+                <SheetTitle className="flex items-center gap-2 text-xl font-semibold flex-wrap">
                   Ask Seeksy
                   <Badge variant="secondary" className="text-xs bg-[hsl(45,90%,85%)] text-[hsl(45,90%,25%)] border-0 px-2 py-0.5">
                     ✨ AI Copilot
                   </Badge>
                 </SheetTitle>
-                <SheetDescription className="text-sm text-muted-foreground mt-1">
+                <SheetDescription className="text-sm text-muted-foreground mt-1 break-words">
                   Your personal productivity engine for Seeksy
                 </SheetDescription>
               </div>
@@ -333,14 +401,14 @@ I help you run your workspace: record in the Studio, create clips, plan events, 
                     </div>
                   )}
                   <div
-                    className={`rounded-2xl px-5 py-4 max-w-[85%] shadow-sm ${
+                    className={`rounded-2xl px-5 py-4 max-w-[85%] shadow-sm overflow-hidden ${
                       msg.role === "user"
                         ? "bg-primary text-primary-foreground rounded-br-sm"
                         : "bg-[hsl(45,100%,97%)] border border-[hsl(45,90%,85%)] rounded-tl-sm"
                     }`}
                   >
-                    <div className="text-[15px] leading-relaxed">
-                      {msg.role === "assistant" ? renderMessage(msg.content) : msg.content}
+                    <div className="text-[15px] leading-relaxed overflow-hidden">
+                      {msg.role === "assistant" ? renderMessage(msg.content) : <p className="break-words">{msg.content}</p>}
                     </div>
                   </div>
                 </div>
