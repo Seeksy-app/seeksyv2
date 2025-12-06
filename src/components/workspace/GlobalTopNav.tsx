@@ -86,7 +86,7 @@ export function GlobalTopNav() {
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setShowModuleCenter(true)}>
                 <Layers className="h-4 w-4 mr-2" />
-                Module Center
+                App Store
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate('/settings')}>
                 <Settings className="h-4 w-4 mr-2" />

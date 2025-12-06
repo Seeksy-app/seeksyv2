@@ -17,17 +17,27 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { 
   ChevronDown, 
   Search, 
   Plus, 
-  Settings, 
   Check,
   Layers,
   MoreHorizontal,
   Pencil,
   Trash2,
-  Star
+  Star,
+  Copy
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -67,6 +77,7 @@ export function WorkspaceSelector() {
   const { 
     workspaces, 
     currentWorkspace, 
+    workspaceModules,
     setCurrentWorkspace, 
     createWorkspace,
     updateWorkspace,
@@ -121,10 +132,40 @@ export function WorkspaceSelector() {
   const handleDeleteWorkspace = async () => {
     if (!workspaceToEdit) return;
 
+    // Prevent deleting the last workspace
+    if (workspaces.length <= 1) {
+      toast.error("Cannot delete the last workspace", {
+        description: "You must have at least one workspace.",
+      });
+      setShowDeleteDialog(false);
+      setWorkspaceToEdit(null);
+      return;
+    }
+
     await deleteWorkspace(workspaceToEdit.id);
     toast.success("Workspace deleted");
     setShowDeleteDialog(false);
     setWorkspaceToEdit(null);
+  };
+
+  const handleDuplicateWorkspace = async (workspace: Workspace) => {
+    // Get current workspace's modules
+    const moduleIds = workspaceModules
+      .filter(wm => wm.workspace_id === workspace.id)
+      .map(wm => wm.module_id);
+
+    const newWorkspace = await createWorkspace(
+      `${workspace.name} (Copy)`,
+      moduleIds.length > 0 ? moduleIds : workspace.modules
+    );
+
+    if (newWorkspace) {
+      setCurrentWorkspace(newWorkspace);
+      toast.success("Workspace duplicated", {
+        description: `Created "${newWorkspace.name}"`,
+      });
+    }
+    setIsOpen(false);
   };
 
   const handleSetDefault = async (workspace: Workspace) => {
@@ -225,7 +266,7 @@ export function WorkspaceSelector() {
                         <MoreHorizontal className="h-3 w-3" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-40 bg-popover border shadow-lg z-50">
+                    <DropdownMenuContent align="end" className="w-44 bg-popover border shadow-lg z-[60]">
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
@@ -236,6 +277,15 @@ export function WorkspaceSelector() {
                       >
                         <Pencil className="h-4 w-4 mr-2" />
                         Rename
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDuplicateWorkspace(workspace);
+                        }}
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        Duplicate
                       </DropdownMenuItem>
                       {!workspace.is_default && (
                         <DropdownMenuItem
@@ -256,6 +306,7 @@ export function WorkspaceSelector() {
                           setWorkspaceToEdit(workspace);
                           setShowDeleteDialog(true);
                         }}
+                        disabled={workspaces.length <= 1}
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Delete
@@ -366,25 +417,26 @@ export function WorkspaceSelector() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Dialog */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete workspace</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete "{workspaceToEdit?.name}"? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteWorkspace}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete workspace?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove the workspace layout for "{workspaceToEdit?.name}" but will <strong>not</strong> delete your actual data (clips, campaigns, contacts, etc.). You can always recreate the workspace later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteWorkspace}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete workspace
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
