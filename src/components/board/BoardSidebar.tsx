@@ -233,7 +233,7 @@ export function BoardSidebar() {
   );
 
   return (
-    <Sidebar className="border-r border-slate-700/50 bg-slate-900">
+    <Sidebar collapsible="none" className="border-r border-slate-700/50 bg-slate-900 w-[16rem] flex-shrink-0">
       <SidebarHeader className="p-4 border-b border-slate-700/50">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">

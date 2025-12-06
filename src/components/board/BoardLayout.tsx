@@ -27,13 +27,13 @@ export function BoardLayout({ children }: BoardLayoutProps) {
 
   return (
     <BoardDataModeProvider>
-      <SidebarProvider>
+      <SidebarProvider defaultOpen={true}>
         <div className="flex w-full min-h-screen">
           {/* Dark sidebar */}
           <BoardSidebar />
           
-          {/* Light content area - no left margin or gap */}
-          <div className="flex-1 flex flex-col min-w-0 bg-white h-screen overflow-hidden">
+          {/* Light content area - ensure no extra margins */}
+          <div className="flex-1 flex flex-col min-w-0 bg-white h-screen overflow-hidden ml-0">
             <BoardTopNav />
             <main className="flex-1 bg-slate-50 overflow-auto relative">
               <motion.div
