@@ -276,6 +276,7 @@ import ManageInvestorSpreadsheets from "./pages/ManageInvestorSpreadsheets";
 import ModuleSelector from "./pages/ModuleSelector";
 import Modules from "./pages/Modules";
 import Apps from "./pages/Apps";
+import ModuleCenter from "./pages/ModuleCenter";
 import WorkspaceDashboard from "./pages/WorkspaceDashboard";
 import RoleSettings from "./pages/RoleSettings";
 import InfluenceHub from "./pages/InfluenceHub";
@@ -800,6 +801,7 @@ const AppContent = () => {
           <Route path="/module-selector" element={<ModuleSelector />} />
           <Route path="/modules" element={<Modules />} />
           <Route path="/apps" element={<Apps />} />
+          <Route path="/module-center" element={<ModuleCenter />} />
           <Route path="/workspace" element={<WorkspaceDashboard />} />
           <Route path="/influencehub" element={<InfluenceHub />} />
           <Route path="/influencehub/connect" element={<InfluenceHubConnect />} />
