@@ -540,65 +540,82 @@ export default function ModuleOrganizer() {
                 {paletteModules.map((module) => {
                   const Icon = module.icon;
                   const isAssigned = assignedModuleKeys.has(module.id);
-                  const assignedGroup = localGroups.find(
-                    (g) =>
-                      g.primaryModules.some((m) => m.module_key === module.id) ||
-                      g.associatedModules.some((m) => m.module_key === module.id)
-                  );
 
-                  return (
-                    <div
-                      key={module.id}
-                      className={cn(
-                        "flex items-center gap-2 p-2.5 rounded-lg border transition-colors cursor-pointer",
-                        isAssigned
-                          ? "bg-muted/50 border-border/50 opacity-60"
-                          : "bg-card hover:bg-accent border-border"
-                      )}
-                      onClick={() => {
-                        if (!isAssigned && selectedGroup) {
-                          addModuleToSelectedGroup(module.id, "primary");
-                        }
-                      }}
-                    >
-                      <Icon className="h-4 w-4 text-primary shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{module.name}</p>
-                        {assignedGroup && (
-                          <p className="text-xs text-muted-foreground truncate">
-                            In: {assignedGroup.label}
-                          </p>
+                    // Check if module is already in the SELECTED group
+                    const isInSelectedGroup = selectedGroup && (
+                      selectedGroup.primaryModules.some((m) => m.module_key === module.id) ||
+                      selectedGroup.associatedModules.some((m) => m.module_key === module.id)
+                    );
+
+                    // Get all groups this module is in
+                    const assignedGroups = localGroups.filter(
+                      (g) =>
+                        g.primaryModules.some((m) => m.module_key === module.id) ||
+                        g.associatedModules.some((m) => m.module_key === module.id)
+                    );
+
+                    return (
+                      <div
+                        key={module.id}
+                        className={cn(
+                          "flex items-center gap-2 p-2.5 rounded-lg border transition-colors cursor-pointer",
+                          isInSelectedGroup
+                            ? "bg-primary/10 border-primary/30"
+                            : isAssigned
+                            ? "bg-card hover:bg-accent border-border"
+                            : "bg-card hover:bg-accent border-border"
+                        )}
+                        onClick={() => {
+                          // Allow adding to selected group even if in other groups
+                          if (!isInSelectedGroup && selectedGroup) {
+                            addModuleToSelectedGroup(module.id, "primary");
+                          }
+                        }}
+                      >
+                        <Icon className="h-4 w-4 text-primary shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{module.name}</p>
+                          {assignedGroups.length > 0 && (
+                            <p className="text-xs text-muted-foreground truncate">
+                              In: {assignedGroups.map(g => g.label).join(', ')}
+                            </p>
+                          )}
+                        </div>
+                        {selectedGroup && (
+                          <div className="flex gap-1">
+                            {isInSelectedGroup ? (
+                              <Badge variant="secondary" className="text-xs">Added</Badge>
+                            ) : (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 text-xs px-2"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    addModuleToSelectedGroup(module.id, "primary");
+                                  }}
+                                >
+                                  Primary
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 text-xs px-2"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    addModuleToSelectedGroup(module.id, "associated");
+                                  }}
+                                >
+                                  Assoc.
+                                </Button>
+                              </>
+                            )}
+                          </div>
                         )}
                       </div>
-                      {!isAssigned && selectedGroup && (
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 text-xs px-2"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              addModuleToSelectedGroup(module.id, "primary");
-                            }}
-                          >
-                            Primary
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 text-xs px-2"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              addModuleToSelectedGroup(module.id, "associated");
-                            }}
-                          >
-                            Assoc.
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                    );
+                  })}
               </div>
             </ScrollArea>
           </CardContent>
