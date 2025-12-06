@@ -19492,6 +19492,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_myday_layouts: {
+        Row: {
+          created_at: string
+          id: string
+          layout_json: Json
+          updated_at: string
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          layout_json?: Json
+          updated_at?: string
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          layout_json?: Json
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           auto_transcribe_enabled: boolean | null

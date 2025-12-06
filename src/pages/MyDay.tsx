@@ -9,7 +9,8 @@ import {
   Calendar, 
   CheckSquare, 
   Mail, 
-  Bell, 
+  Bell,
+  Shield,
   ArrowRight, 
   Sun,
   Sunrise,
@@ -18,6 +19,7 @@ import {
   Clock,
   Sparkles,
   BarChart3,
+  Settings,
 } from "lucide-react";
 
 // Import the colorful dashboard widgets
@@ -264,10 +266,12 @@ export default function MyDay() {
     );
   }
 
+  const [isCustomizing, setIsCustomizing] = useState(false);
+
   return (
     <div className="min-h-screen bg-background">
       <main className="px-6 lg:px-10 pt-8 pb-16 flex flex-col items-start w-full">
-        {/* Header with Avatar - matching old Dashboard style */}
+        {/* Header with Avatar - friendlier greeting */}
         <div className="w-full mb-8 flex items-start justify-between">
           <div className="flex items-center gap-4">
             {avatarUrl && (
@@ -285,22 +289,39 @@ export default function MyDay() {
                   {greeting.text}{firstName ? `, ${firstName}` : ""}!
                 </h1>
               </div>
-              <p className="text-muted-foreground mt-1">{today} — Here's what's happening with your account.</p>
+              <p className="text-muted-foreground mt-1">
+                Here's what's happening across your shows, campaigns, and events today.
+              </p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={() => navigate("/meetings/create")}>
-            <Calendar className="h-4 w-4 mr-2" />
-            Schedule Meeting
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant={isCustomizing ? "secondary" : "outline"} 
+              size="sm" 
+              onClick={() => setIsCustomizing(!isCustomizing)}
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              {isCustomizing ? "Done" : "Customize"}
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate("/meetings/create")}>
+              <Calendar className="h-4 w-4 mr-2" />
+              Schedule Meeting
+            </Button>
+          </div>
         </div>
 
-        {/* Identity & Content Cards Row */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-8 w-full">
-          <IdentityStatusCard />
-          <CertifiedClipsCard />
-          <MediaVaultCard />
-          <AdvertiserAccessCard />
-          <QuickCreateCard />
+        {/* Identity & Rights Section */}
+        <div className="space-y-4 w-full mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Shield className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold">Identity & Rights</h2>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <IdentityStatusCard />
+            <CertifiedClipsCard />
+            <MediaVaultCard />
+            <AdvertiserAccessCard />
+          </div>
         </div>
 
         {/* My Page Analytics - Colorful widgets */}
