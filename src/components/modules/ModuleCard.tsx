@@ -1,8 +1,14 @@
-import { Download, Plus, Check, ExternalLink } from "lucide-react";
+import { Plus, Check, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { type SeeksyModule, INTEGRATION_ICONS, formatDownloads } from "./moduleData";
+import { type SeeksyModule, INTEGRATION_ICONS } from "./moduleData";
 
 interface ModuleCardProps {
   module: SeeksyModule;
@@ -52,7 +58,7 @@ export function ModuleCard({ module, isInstalled, isInstalling, onInstall, onOpe
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
           {module.isAIPowered && (
             <Badge className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-600 hover:to-purple-600 text-white border-0 text-[10px] font-semibold shadow-md gap-1 px-2">
-              <span>✨</span> AI Powered
+              <span>✨</span> AI
             </Badge>
           )}
           {module.isNew && (
@@ -81,49 +87,61 @@ export function ModuleCard({ module, isInstalled, isInstalling, onInstall, onOpe
           {module.description}
         </p>
         
-        {/* Footer with downloads and integrations */}
+        {/* Footer with integrations only (no download counts) */}
         <div className="flex items-center justify-between pt-1">
-          <div className="flex items-center gap-1.5 text-muted-foreground">
-            <Download className="h-3.5 w-3.5" />
-            <span className="text-xs font-medium">{formatDownloads(module.downloads || 0)}</span>
-          </div>
+          {/* Spacer for layout balance */}
+          <div className="flex-1" />
           
-          {/* Integration Icons */}
+          {/* Integration Icons with Tooltips */}
           {module.integrations && module.integrations.length > 0 && (
-            <div className="flex items-center gap-0.5">
-              {module.integrations.slice(0, 4).map((integration, i) => {
-                const IntegrationData = INTEGRATION_ICONS[integration];
-                if (!IntegrationData) {
+            <TooltipProvider delayDuration={100}>
+              <div className="flex items-center gap-1">
+                {module.integrations.slice(0, 4).map((integration, i) => {
+                  const IntegrationData = INTEGRATION_ICONS[integration];
+                  if (!IntegrationData) {
+                    return (
+                      <div 
+                        key={i} 
+                        className="w-6 h-6 rounded-md bg-muted flex items-center justify-center border border-border/50"
+                      >
+                        <div className="w-3 h-3 rounded-sm bg-muted-foreground/30" />
+                      </div>
+                    );
+                  }
                   return (
-                    <div 
-                      key={i} 
-                      className="w-5 h-5 rounded bg-muted flex items-center justify-center"
-                    >
-                      <div className="w-2.5 h-2.5 rounded-sm bg-muted-foreground/30" />
-                    </div>
+                    <Tooltip key={i}>
+                      <TooltipTrigger asChild>
+                        <div 
+                          className={cn(
+                            "w-6 h-6 rounded-md flex items-center justify-center text-white text-[10px] font-bold shadow-sm cursor-default",
+                            IntegrationData.bg
+                          )}
+                        >
+                          {IntegrationData.icon}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="text-xs">
+                        {IntegrationData.name}
+                      </TooltipContent>
+                    </Tooltip>
                   );
-                }
-                return (
-                  <div 
-                    key={i}
-                    className={cn(
-                      "w-5 h-5 rounded flex items-center justify-center text-white text-[9px] font-bold",
-                      IntegrationData.bg
-                    )}
-                    title={IntegrationData.name}
-                  >
-                    {IntegrationData.icon}
-                  </div>
-                );
-              })}
-              {module.integrations.length > 4 && (
-                <div className="w-5 h-5 rounded bg-muted flex items-center justify-center">
-                  <span className="text-[9px] font-medium text-muted-foreground">
-                    +{module.integrations.length - 4}
-                  </span>
-                </div>
-              )}
-            </div>
+                })}
+                {module.integrations.length > 4 && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="w-6 h-6 rounded-md bg-muted flex items-center justify-center border border-border/50 cursor-default">
+                        <span className="text-[10px] font-medium text-muted-foreground">
+                          +{module.integrations.length - 4}
+                        </span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-xs">
+                      {module.integrations.length - 4} more integrations
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+            </TooltipProvider>
           )}
         </div>
         
@@ -134,7 +152,7 @@ export function ModuleCard({ module, isInstalled, isInstalling, onInstall, onOpe
               <Button
                 variant="secondary"
                 size="sm"
-                className="flex-1 gap-1.5 text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-0"
+                className="flex-1 gap-1.5 text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-0 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50"
                 disabled
               >
                 <Check className="h-3.5 w-3.5" />

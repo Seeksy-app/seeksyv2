@@ -236,16 +236,37 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     if (!currentWorkspace) return;
 
     try {
+      // Check if module already exists to prevent duplicates
+      const existingModule = workspaceModules.find(wm => wm.module_id === moduleId);
+      if (existingModule) {
+        console.log('Module already exists in workspace');
+        return;
+      }
+
       // Add to workspace_modules table
-      const { error: moduleError } = await supabase
+      const { data: insertedModule, error: moduleError } = await supabase
         .from('workspace_modules')
         .insert({
           workspace_id: currentWorkspace.id,
           module_id: moduleId,
           position: workspaceModules.length,
-        });
+        })
+        .select()
+        .single();
 
       if (moduleError) throw moduleError;
+
+      // Optimistically update local state immediately
+      if (insertedModule) {
+        setWorkspaceModules(prev => [...prev, {
+          id: insertedModule.id,
+          workspace_id: insertedModule.workspace_id,
+          module_id: insertedModule.module_id,
+          position: insertedModule.position,
+          settings: (insertedModule.settings as Record<string, unknown>) || {},
+          is_pinned: insertedModule.is_pinned || false,
+        }]);
+      }
 
       // Also update the legacy modules array
       const updatedModules = [...(currentWorkspace.modules || []), moduleId];
@@ -254,10 +275,12 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         .update({ modules: updatedModules, updated_at: new Date().toISOString() })
         .eq('id', currentWorkspace.id);
 
-      await fetchWorkspaces();
-      await fetchWorkspaceModules(currentWorkspace.id);
+      // Update current workspace state
+      setCurrentWorkspaceState(prev => prev ? { ...prev, modules: updatedModules } : null);
+      setWorkspaces(prev => prev.map(w => w.id === currentWorkspace.id ? { ...w, modules: updatedModules } : w));
     } catch (err) {
       console.error('Error adding module:', err);
+      throw err;
     }
   };
 
@@ -265,6 +288,9 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     if (!currentWorkspace) return;
 
     try {
+      // Optimistically update local state immediately
+      setWorkspaceModules(prev => prev.filter(wm => wm.module_id !== moduleId));
+
       // Remove from workspace_modules table
       await supabase
         .from('workspace_modules')
@@ -279,10 +305,14 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         .update({ modules: updatedModules, updated_at: new Date().toISOString() })
         .eq('id', currentWorkspace.id);
 
-      await fetchWorkspaces();
-      await fetchWorkspaceModules(currentWorkspace.id);
+      // Update current workspace state
+      setCurrentWorkspaceState(prev => prev ? { ...prev, modules: updatedModules } : null);
+      setWorkspaces(prev => prev.map(w => w.id === currentWorkspace.id ? { ...w, modules: updatedModules } : w));
     } catch (err) {
       console.error('Error removing module:', err);
+      // Revert optimistic update on error
+      await fetchWorkspaceModules(currentWorkspace.id);
+      throw err;
     }
   };
 
