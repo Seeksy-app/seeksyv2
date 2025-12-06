@@ -348,6 +348,7 @@ import SystemTools from "./pages/admin/SystemTools";
 import DemoVideos from "./pages/DemoVideos";
 import MarketingGTMPlan from "./pages/MarketingGTMPlan";
 import RevenueReports from "./pages/admin/RevenueReports";
+import InstallApp from "./pages/InstallApp";
 import Billing from "./pages/admin/Billing";
 import Payments from "./pages/admin/Payments";
 import AdFinancialModels from "./pages/admin/AdFinancialModels";
@@ -701,6 +702,7 @@ const AppContent = () => {
               <Route path="/security" element={<SecurityPublic />} />
               <Route path="/about" element={<About />} />
               <Route path="/apps-and-tools" element={<AppsAndTools />} />
+              <Route path="/install" element={<InstallApp />} />
               
               {/* Lead Magnet Landing Pages */}
               <Route path="/blueprint" element={<LeadMagnetLanding />} />
