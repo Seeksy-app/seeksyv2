@@ -66,6 +66,7 @@ export function SignatureEditor({ signature, onUpdate }: SignatureEditorProps) {
     secondary_color: signature.secondary_color || "#666666",
     link_color: signature.link_color || "#0066cc",
     profile_image_size: signature.profile_image_size || "medium",
+    profile_image_shape: signature.profile_image_shape || "circle",
     social_icon_size: signature.social_icon_size || "medium",
     blocks: signature.blocks || [],
   });
@@ -92,6 +93,7 @@ export function SignatureEditor({ signature, onUpdate }: SignatureEditorProps) {
       secondary_color: signature.secondary_color || "#666666",
       link_color: signature.link_color || "#0066cc",
       profile_image_size: signature.profile_image_size || "medium",
+      profile_image_shape: signature.profile_image_shape || "circle",
       social_icon_size: signature.social_icon_size || "medium",
       blocks: signature.blocks || [],
     });
@@ -263,7 +265,7 @@ export function SignatureEditor({ signature, onUpdate }: SignatureEditorProps) {
                       <img 
                         src={formData.profile_photo_url} 
                         alt="Profile preview" 
-                        className="w-20 h-20 rounded-full object-cover border"
+                        className={`w-20 h-20 object-cover border ${formData.profile_image_shape === 'square' ? 'rounded-md' : 'rounded-full'}`}
                       />
                       <Button
                         variant="destructive"
@@ -275,6 +277,33 @@ export function SignatureEditor({ signature, onUpdate }: SignatureEditorProps) {
                       </Button>
                     </div>
                   )}
+                  
+                  {/* Shape + Size selectors */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs">Shape</Label>
+                      <select
+                        value={formData.profile_image_shape}
+                        onChange={(e) => handleChange("profile_image_shape", e.target.value)}
+                        className="w-full h-9 text-sm rounded-md border border-input bg-background px-2"
+                      >
+                        <option value="circle">Circle</option>
+                        <option value="square">Square</option>
+                      </select>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Size</Label>
+                      <select
+                        value={formData.profile_image_size}
+                        onChange={(e) => handleChange("profile_image_size", e.target.value)}
+                        className="w-full h-9 text-sm rounded-md border border-input bg-background px-2"
+                      >
+                        <option value="small">Small (40px)</option>
+                        <option value="medium">Medium (60px)</option>
+                        <option value="large">Large (80px)</option>
+                      </select>
+                    </div>
+                  </div>
                   
                   <div className="flex gap-2">
                     <label className="flex-1">
@@ -400,13 +429,99 @@ export function SignatureEditor({ signature, onUpdate }: SignatureEditorProps) {
                 />
               </div>
               <div>
-                <Label htmlFor="company_logo_url">Company Logo URL</Label>
-                <Input
-                  id="company_logo_url"
-                  value={formData.company_logo_url}
-                  onChange={(e) => handleChange("company_logo_url", e.target.value)}
-                  placeholder="https://..."
-                />
+                <Label>Company Logo</Label>
+                <div className="mt-2 space-y-3">
+                  {formData.company_logo_url && (
+                    <div className="relative w-24 h-12">
+                      <img 
+                        src={formData.company_logo_url} 
+                        alt="Company logo preview" 
+                        className="h-12 w-auto object-contain border rounded"
+                      />
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-1 -right-1 h-5 w-5"
+                        onClick={() => handleChange("company_logo_url", "")}
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  )}
+                  
+                  <div className="flex gap-2">
+                    <label className="flex-1">
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          
+                          if (file.size > 2 * 1024 * 1024) {
+                            toast({
+                              title: "File too large",
+                              description: "Max file size is 2MB",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          
+                          try {
+                            const fileExt = file.name.split('.').pop();
+                            const fileName = `logo_${signature.id}_${Date.now()}.${fileExt}`;
+                            
+                            const { data, error } = await supabase.storage
+                              .from('signature-banners')
+                              .upload(fileName, file, { upsert: true });
+                            
+                            if (error) throw error;
+                            
+                            const { data: urlData } = supabase.storage
+                              .from('signature-banners')
+                              .getPublicUrl(fileName);
+                            
+                            handleChange("company_logo_url", urlData.publicUrl);
+                            toast({
+                              title: "Logo uploaded",
+                              description: "Your company logo has been uploaded",
+                            });
+                          } catch (error) {
+                            console.error("Upload error:", error);
+                            toast({
+                              title: "Upload failed",
+                              description: "Could not upload company logo",
+                              variant: "destructive",
+                            });
+                          }
+                        }}
+                      />
+                      <Button variant="outline" className="w-full gap-2" asChild>
+                        <span>
+                          <Upload className="h-4 w-4" />
+                          Upload Logo
+                        </span>
+                      </Button>
+                    </label>
+                  </div>
+                  
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">or paste URL</span>
+                    </div>
+                  </div>
+                  
+                  <Input
+                    id="company_logo_url"
+                    value={formData.company_logo_url}
+                    onChange={(e) => handleChange("company_logo_url", e.target.value)}
+                    placeholder="https://..."
+                  />
+                </div>
               </div>
             </TabsContent>
 
@@ -582,33 +697,18 @@ export function SignatureEditor({ signature, onUpdate }: SignatureEditorProps) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="profile_image_size">Profile Photo Size</Label>
-                  <select
-                    id="profile_image_size"
-                    value={formData.profile_image_size}
-                    onChange={(e) => handleChange("profile_image_size", e.target.value)}
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2"
-                  >
-                    <option value="small">Small (40px)</option>
-                    <option value="medium">Medium (60px)</option>
-                    <option value="large">Large (80px)</option>
-                  </select>
-                </div>
-                <div>
-                  <Label htmlFor="social_icon_size">Social Icon Size</Label>
-                  <select
-                    id="social_icon_size"
-                    value={formData.social_icon_size}
-                    onChange={(e) => handleChange("social_icon_size", e.target.value)}
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2"
-                  >
-                    <option value="small">Small</option>
-                    <option value="medium">Medium</option>
-                    <option value="large">Large</option>
-                  </select>
-                </div>
+              <div>
+                <Label htmlFor="social_icon_size">Social Icon Size</Label>
+                <select
+                  id="social_icon_size"
+                  value={formData.social_icon_size}
+                  onChange={(e) => handleChange("social_icon_size", e.target.value)}
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 py-2"
+                >
+                  <option value="small">Small</option>
+                  <option value="medium">Medium</option>
+                  <option value="large">Large</option>
+                </select>
               </div>
 
               <Separator className="my-4" />

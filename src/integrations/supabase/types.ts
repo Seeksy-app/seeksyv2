@@ -8924,6 +8924,7 @@ export type Database = {
           created_at: string | null
           custom_fields: Json | null
           font_family: string | null
+          font_size: string | null
           html_signature: string | null
           id: string
           is_active: boolean | null
@@ -8931,11 +8932,14 @@ export type Database = {
           name: string
           plain_text_signature: string | null
           primary_color: string | null
+          profile_image_shape: string | null
+          profile_image_size: string | null
           profile_name: string | null
           profile_photo_url: string | null
           profile_title: string | null
           quote_text: string | null
           secondary_color: string | null
+          social_icon_size: string | null
           social_links: Json | null
           updated_at: string | null
           use_in_gmail: boolean | null
@@ -8956,6 +8960,7 @@ export type Database = {
           created_at?: string | null
           custom_fields?: Json | null
           font_family?: string | null
+          font_size?: string | null
           html_signature?: string | null
           id?: string
           is_active?: boolean | null
@@ -8963,11 +8968,14 @@ export type Database = {
           name?: string
           plain_text_signature?: string | null
           primary_color?: string | null
+          profile_image_shape?: string | null
+          profile_image_size?: string | null
           profile_name?: string | null
           profile_photo_url?: string | null
           profile_title?: string | null
           quote_text?: string | null
           secondary_color?: string | null
+          social_icon_size?: string | null
           social_links?: Json | null
           updated_at?: string | null
           use_in_gmail?: boolean | null
@@ -8988,6 +8996,7 @@ export type Database = {
           created_at?: string | null
           custom_fields?: Json | null
           font_family?: string | null
+          font_size?: string | null
           html_signature?: string | null
           id?: string
           is_active?: boolean | null
@@ -8995,11 +9004,14 @@ export type Database = {
           name?: string
           plain_text_signature?: string | null
           primary_color?: string | null
+          profile_image_shape?: string | null
+          profile_image_size?: string | null
           profile_name?: string | null
           profile_photo_url?: string | null
           profile_title?: string | null
           quote_text?: string | null
           secondary_color?: string | null
+          social_icon_size?: string | null
           social_links?: Json | null
           updated_at?: string | null
           use_in_gmail?: boolean | null

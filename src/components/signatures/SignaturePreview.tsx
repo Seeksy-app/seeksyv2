@@ -22,10 +22,22 @@ const SOCIAL_ICON_SIZES = {
   large: "text-base",
 };
 
+// Social icons using simple text/emoji that work in email
+const SOCIAL_ICONS: Record<string, string> = {
+  facebook: "📘",
+  twitter: "𝕏",
+  instagram: "📷",
+  linkedin: "💼",
+  youtube: "▶️",
+  tiktok: "🎵",
+  pinterest: "📌",
+};
+
 export function SignaturePreview({ formData, signatureId }: SignaturePreviewProps) {
   const fontSize = FONT_SIZES[formData.font_size as keyof typeof FONT_SIZES] || FONT_SIZES.medium;
   const profileSize = PROFILE_IMAGE_SIZES[formData.profile_image_size as keyof typeof PROFILE_IMAGE_SIZES] || PROFILE_IMAGE_SIZES.medium;
   const socialIconClass = SOCIAL_ICON_SIZES[formData.social_icon_size as keyof typeof SOCIAL_ICON_SIZES] || SOCIAL_ICON_SIZES.medium;
+  const isSquare = formData.profile_image_shape === 'square';
 
   return (
     <div 
@@ -45,7 +57,7 @@ export function SignaturePreview({ formData, signatureId }: SignaturePreviewProp
           <img 
             src={formData.profile_photo_url} 
             alt={formData.profile_name}
-            className="rounded-full object-cover"
+            className={`object-cover ${isSquare ? 'rounded-md' : 'rounded-full'}`}
             style={{ 
               width: profileSize.width, 
               height: profileSize.height 
@@ -67,8 +79,15 @@ export function SignaturePreview({ formData, signatureId }: SignaturePreviewProp
       </div>
 
       {/* Company */}
-      {(formData.company_name || formData.company_phone || formData.company_website) && (
+      {(formData.company_name || formData.company_phone || formData.company_website || formData.company_logo_url) && (
         <div className="mb-3" style={{ color: formData.secondary_color }}>
+          {formData.company_logo_url && (
+            <img 
+              src={formData.company_logo_url} 
+              alt={formData.company_name || "Company logo"}
+              className="h-8 w-auto mb-2"
+            />
+          )}
           {formData.company_name && <div className="font-semibold">{formData.company_name}</div>}
           {formData.company_phone && <div>{formData.company_phone}</div>}
           {formData.company_website && (
@@ -85,14 +104,15 @@ export function SignaturePreview({ formData, signatureId }: SignaturePreviewProp
       {/* Social */}
       {Object.entries(formData.social_links || {}).filter(([_, url]) => url).length > 0 && (
         <div className="flex gap-3 mb-3 flex-wrap">
-          {Object.entries(formData.social_links).filter(([_, url]) => url).map(([platform]) => (
+          {Object.entries(formData.social_links).filter(([_, url]) => url).map(([platform, url]) => (
             <a 
               key={platform}
-              href="#"
+              href={url as string}
               className={`hover:underline ${socialIconClass}`}
               style={{ color: formData.link_color }}
+              title={platform.charAt(0).toUpperCase() + platform.slice(1)}
             >
-              {getSocialLabel(platform)}
+              {SOCIAL_ICONS[platform] || platform}
             </a>
           ))}
         </div>
@@ -111,18 +131,4 @@ export function SignaturePreview({ formData, signatureId }: SignaturePreviewProp
       )}
     </div>
   );
-}
-
-// Text labels for social platforms (matches HTML export)
-function getSocialLabel(platform: string): string {
-  const labels: Record<string, string> = {
-    facebook: "Facebook",
-    twitter: "𝕏",
-    instagram: "Instagram",
-    linkedin: "LinkedIn",
-    youtube: "YouTube",
-    tiktok: "TikTok",
-    pinterest: "Pinterest",
-  };
-  return labels[platform] || platform;
 }
