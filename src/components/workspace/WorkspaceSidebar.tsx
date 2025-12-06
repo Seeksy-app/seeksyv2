@@ -34,12 +34,12 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { SparkIcon } from "@/components/spark/SparkIcon";
 import { 
   CalendarDays, 
   Clock, 
   Plus,
   Settings,
-  Sparkles,
   MoreHorizontal,
   Trash2,
   ChevronDown,
@@ -607,8 +607,8 @@ export function WorkspaceSidebar() {
                 tooltip="Ask Spark"
                 className="text-sidebar-foreground hover:bg-sidebar-accent"
               >
-                <Sparkles className="h-4 w-4 text-primary" />
-                {!isCollapsed && <span>Ask Spark</span>}
+                <SparkIcon variant="holiday" size={20} className="text-amber-500" />
+                {!isCollapsed && <span className="text-amber-600 font-medium">Ask Spark</span>}
               </SidebarMenuButton>
             </SidebarMenuItem>
             

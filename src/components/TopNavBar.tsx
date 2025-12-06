@@ -14,7 +14,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, RefreshCw, User, Settings, Sparkles } from "lucide-react";
+import { LogOut, RefreshCw, Settings } from "lucide-react";
+import { SparkIcon } from "@/components/spark/SparkIcon";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -87,15 +88,15 @@ export function TopNavBar() {
           <GlobalSearch />
           
           <div className="flex items-center gap-2">
-            {/* Ask Spark Button */}
+            {/* Ask Spark Button - Santa mascot with gold styling */}
             <Button
               variant="ghost"
               size="icon"
               onClick={openAIChat}
               title="Ask Spark"
-              className="text-[hsl(var(--header-foreground))] hover:bg-white/10"
+              className="hover:bg-white/10 p-1"
             >
-              <Sparkles className="h-4 w-4" />
+              <SparkIcon variant="holiday" size={28} animated />
             </Button>
             
             <StartOnboardingButton />
