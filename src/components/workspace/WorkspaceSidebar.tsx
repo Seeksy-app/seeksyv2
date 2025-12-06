@@ -312,7 +312,7 @@ export function WorkspaceSidebar() {
           tooltip={module.name}
           className={cn(
             "text-sidebar-foreground hover:bg-sidebar-accent pr-8",
-            indented && "pl-7"
+            indented && "pl-10 text-sm"
           )}
         >
           <Icon className="h-4 w-4" />
@@ -478,43 +478,44 @@ export function WorkspaceSidebar() {
                     const firstModule = allModules[0];
                     const GroupIcon = firstModule ? (MODULE_ICONS[firstModule.id] || FolderOpen) : FolderOpen;
                     
-                    return (
-                      <Collapsible
-                        key={groupKey}
-                        open={isExpanded}
-                        onOpenChange={() => toggleGroup(groupKey)}
-                      >
-                        <SidebarMenuItem className="group/item relative">
-                          <div className="flex items-center w-full">
-                            <CollapsibleTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 p-0 mr-1 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-transparent"
+                      return (
+                        <Collapsible
+                          key={groupKey}
+                          open={isExpanded}
+                          onOpenChange={() => toggleGroup(groupKey)}
+                          className="mb-3"
+                        >
+                          <SidebarMenuItem className="group/item relative">
+                            <div className="flex items-center w-full">
+                              <CollapsibleTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 p-0 mr-1 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-transparent"
+                                >
+                                  {isExpanded ? (
+                                    <ChevronDown className="h-3.5 w-3.5" />
+                                  ) : (
+                                    <ChevronRight className="h-3.5 w-3.5" />
+                                  )}
+                                </Button>
+                              </CollapsibleTrigger>
+                              <SidebarMenuButton
+                                tooltip={groupName}
+                                className="flex-1 text-sidebar-foreground hover:bg-sidebar-accent"
+                                onClick={() => toggleGroup(groupKey)}
                               >
-                                {isExpanded ? (
-                                  <ChevronDown className="h-3.5 w-3.5" />
-                                ) : (
-                                  <ChevronRight className="h-3.5 w-3.5" />
-                                )}
-                              </Button>
-                            </CollapsibleTrigger>
-                            <SidebarMenuButton
-                              tooltip={groupName}
-                              className="flex-1 text-sidebar-foreground hover:bg-sidebar-accent"
-                              onClick={() => toggleGroup(groupKey)}
-                            >
-                              <GroupIcon className="h-4 w-4" />
-                              {!isCollapsed && <span className="font-medium">{groupName}</span>}
-                            </SidebarMenuButton>
-                          </div>
-                        </SidebarMenuItem>
-                        
-                        <CollapsibleContent>
-                          {allModules.map(module => renderModuleItem(module, true))}
-                        </CollapsibleContent>
-                      </Collapsible>
-                    );
+                                <GroupIcon className="h-4 w-4" />
+                                {!isCollapsed && <span className="font-semibold">{groupName}</span>}
+                              </SidebarMenuButton>
+                            </div>
+                          </SidebarMenuItem>
+                          
+                          <CollapsibleContent className="mt-0.5">
+                            {allModules.map(module => renderModuleItem(module, true))}
+                          </CollapsibleContent>
+                        </Collapsible>
+                      );
                   })}
 
                   {/* Standalone modules */}
