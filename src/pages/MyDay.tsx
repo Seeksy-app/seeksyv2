@@ -1,31 +1,24 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { 
   Calendar, 
-  CheckSquare, 
-  Mail,
-  Bell,
-  Shield,
-  ArrowRight, 
   Sun,
   Sunrise,
   Sunset,
   Moon,
-  Clock,
-  Sparkles,
-  BarChart3,
   Settings,
   Eye,
-  MousePointer,
+  BarChart3,
 } from "lucide-react";
 
-// Import the colorful dashboard widgets
+import { useToast } from "@/hooks/use-toast";
+import { useMyPageEnabled } from "@/hooks/useMyPageEnabled";
+import { DashboardCustomizer, WidgetConfig } from "@/components/dashboard/DashboardCustomizer";
 import {
   ProfileViewsWidget,
   LinkClicksWidget,
@@ -34,32 +27,59 @@ import {
   MeetingsWidget,
   PollsWidget,
   PodcastsWidget,
+  RevenueWidget,
   MediaWidget,
-  SignupSheetsWidget,
   EmailsSentWidget,
   EmailsOpenedWidget,
   EmailClicksWidget,
-  StreamAnalyticsWidget,
+  SignupSheetsWidget,
+  ClicksByTypeWidget,
+  TopLinksWidget,
   QuickActionsWidget,
+  StreamAnalyticsWidget,
 } from "@/components/dashboard/widgets";
+import { SocialAccountsBanner } from "@/components/creator/SocialAccountsBanner";
+import { SocialMediaAnalytics } from "@/components/dashboard/widgets/SocialMediaAnalytics";
 import { IdentityStatusCard } from "@/components/dashboard/IdentityStatusCard";
 import { CertifiedClipsCard } from "@/components/dashboard/CertifiedClipsCard";
 import { MediaVaultCard } from "@/components/dashboard/MediaVaultCard";
 import { AdvertiserAccessCard } from "@/components/dashboard/AdvertiserAccessCard";
 import { QuickCreateCard } from "@/components/dashboard/QuickCreateCard";
-import { DashboardWidget } from "@/components/dashboard/DashboardWidget";
+import { HolidayCreatorBanner } from "@/components/dashboard/HolidayCreatorBanner";
+import { useHolidaySettings } from "@/hooks/useHolidaySettings";
+import { useRole } from "@/contexts/RoleContext";
 
-/**
- * MY DAY - Daily Control Center + Dashboard Overview
- * 
- * Uses the original colorful Dashboard layout with brand-colored widgets
- */
+interface DashboardStats {
+  totalEvents: number;
+  publishedEvents: number;
+  totalMeetings: number;
+  upcomingMeetings: number;
+  totalSignupSheets: number;
+  totalPolls: number;
+  publishedPolls: number;
+  totalEmailsSent: number;
+  profileViews: number;
+  linkClicks: number;
+  profileViewsThisWeek: number;
+  linkClicksThisWeek: number;
+  totalPodcasts: number;
+  totalEpisodes: number;
+  totalRevenue: number;
+  totalImpressions: number;
+  mediaFiles: number;
+  engagementRate: number;
+}
 
-interface DailyStats {
-  unreadEmails: number;
-  meetingsToday: number;
-  tasksDue: number;
-  alerts: number;
+interface LinkClickBreakdown {
+  link_type: string;
+  count: number;
+  title?: string;
+}
+
+interface TopLink {
+  link_url: string;
+  link_type: string;
+  count: number;
 }
 
 interface TrackingStats {
@@ -68,21 +88,27 @@ interface TrackingStats {
   total: number;
 }
 
-interface DashboardStats {
-  profileViews: number;
-  profileViewsThisWeek: number;
-  linkClicks: number;
-  linkClicksThisWeek: number;
-  totalEvents: number;
-  publishedEvents: number;
-  upcomingMeetings: number;
-  publishedPolls: number;
-  totalPodcasts: number;
-  totalEpisodes: number;
-  totalSignupSheets: number;
-  mediaFiles: number;
-  engagementRate: number;
-}
+const DEFAULT_WIDGETS: WidgetConfig[] = [
+  { id: "profile-views", label: "Profile Visits", enabled: true, category: "mypage" },
+  { id: "link-clicks", label: "Link Clicks", enabled: true, category: "mypage" },
+  { id: "engagement", label: "Engagement Rate", enabled: true, category: "mypage" },
+  { id: "stream-analytics", label: "My Page Streaming", enabled: true, category: "mypage" },
+  { id: "clicks-by-type", label: "Clicks by Type", enabled: true, category: "mypage" },
+  { id: "top-links", label: "Top Performing Links", enabled: true, category: "mypage" },
+  { id: "social-media", label: "Social Media Analytics", enabled: true, category: "engagement" },
+  { id: "emails-sent", label: "Emails Sent", enabled: true, category: "email" },
+  { id: "emails-opened", label: "Emails Opened", enabled: true, category: "email" },
+  { id: "email-clicks", label: "Email Link Clicks", enabled: true, category: "email" },
+  { id: "events", label: "Events Created", enabled: true, category: "seekies" },
+  { id: "meetings", label: "Meetings Scheduled", enabled: true, category: "seekies" },
+  { id: "polls", label: "Polls & Voting", enabled: true, category: "seekies" },
+  { id: "signup-sheets", label: "Sign-Up Sheets", enabled: true, category: "seekies" },
+  { id: "quick-actions", label: "Quick Actions", enabled: true, category: "seekies" },
+  { id: "podcasts", label: "Total Podcasts", enabled: true, category: "media" },
+  { id: "media", label: "Media Library Files", enabled: true, category: "media" },
+  { id: "revenue", label: "Ad Revenue Earnings", enabled: true, category: "revenue" },
+  { id: "impressions", label: "Total Ad Impressions", enabled: true, category: "revenue" },
+];
 
 function getGreeting(): { text: string; icon: React.ReactNode } {
   const hour = new Date().getHours();
@@ -94,43 +120,44 @@ function getGreeting(): { text: string; icon: React.ReactNode } {
 
 export default function MyDay() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [firstName, setFirstName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isCustomizing, setIsCustomizing] = useState(false);
-  const [dailyStats, setDailyStats] = useState<DailyStats>({
-    unreadEmails: 0,
-    meetingsToday: 0,
-    tasksDue: 0,
-    alerts: 0,
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [clickBreakdown, setClickBreakdown] = useState<LinkClickBreakdown[]>([]);
+  const [topLinks, setTopLinks] = useState<TopLink[]>([]);
+  const [trackingStats, setTrackingStats] = useState<TrackingStats>({ opens: 0, clicks: 0, total: 0 });
+  const [widgets, setWidgets] = useState<WidgetConfig[]>(() => {
+    const saved = localStorage.getItem("myday-widgets");
+    if (saved) {
+      const savedWidgets = JSON.parse(saved);
+      return DEFAULT_WIDGETS.map(defaultWidget => {
+        const savedWidget = savedWidgets.find((w: WidgetConfig) => w.id === defaultWidget.id);
+        return savedWidget || defaultWidget;
+      });
+    }
+    return DEFAULT_WIDGETS;
   });
-  const [trackingStats, setTrackingStats] = useState<TrackingStats>({
-    opens: 0,
-    clicks: 0,
-    total: 0,
-  });
-  const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
-    profileViews: 0,
-    profileViewsThisWeek: 0,
-    linkClicks: 0,
-    linkClicksThisWeek: 0,
-    totalEvents: 0,
-    publishedEvents: 0,
-    upcomingMeetings: 0,
-    publishedPolls: 0,
-    totalPodcasts: 0,
-    totalEpisodes: 0,
-    totalSignupSheets: 0,
-    mediaFiles: 0,
-    engagementRate: 0,
-  });
+  
+  const { data: myPageEnabled } = useMyPageEnabled();
+  const { currentRole } = useRole();
+  const { data: holidaySettings } = useHolidaySettings();
   const greeting = getGreeting();
-  const today = new Date().toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    month: 'long', 
-    day: 'numeric' 
-  });
+
+  const showHolidayBanner = (currentRole === 'creator' || currentRole === 'influencer' || currentRole === 'agency') && 
+                             (holidaySettings?.holidayMode || (new Date().getMonth() === 11));
+
+  const handleWidgetsSave = (newWidgets: WidgetConfig[]) => {
+    setWidgets(newWidgets);
+    localStorage.setItem("myday-widgets", JSON.stringify(newWidgets));
+    toast({
+      title: "Dashboard customized!",
+      description: "Your preferences have been saved.",
+      duration: 2000,
+    });
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -146,19 +173,32 @@ export default function MyDay() {
       if (!session) navigate("/auth");
     });
 
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   useEffect(() => {
     if (user) {
       loadUserData();
-      loadDailyStats();
-      loadDashboardStats();
+      loadStats();
       loadTrackingStats();
     }
   }, [user]);
+
+  const loadUserData = async () => {
+    if (!user) return;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("account_full_name, account_avatar_url")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.account_full_name) {
+      setFirstName(profile.account_full_name.split(" ")[0]);
+    }
+    if (profile?.account_avatar_url) {
+      setAvatarUrl(profile.account_avatar_url);
+    }
+  };
 
   const loadTrackingStats = async () => {
     if (!user) return;
@@ -182,115 +222,158 @@ export default function MyDay() {
     }
   };
 
-  const loadUserData = async () => {
-    if (!user) return;
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("account_full_name, account_avatar_url")
-      .eq("id", user.id)
-      .single();
-
-    if (profile?.account_full_name) {
-      setFirstName(profile.account_full_name.split(" ")[0]);
-    }
-    if (profile?.account_avatar_url) {
-      setAvatarUrl(profile.account_avatar_url);
-    }
-  };
-
-  const loadDailyStats = async () => {
-    if (!user) return;
+  const loadStats = async () => {
     try {
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
-      const todayEnd = new Date();
-      todayEnd.setHours(23, 59, 59, 999);
-
-      let meetingsCount = 0;
-      let tasksCount = 0;
-
-      try {
-        const { count } = await (supabase.from("meetings") as any)
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user.id)
-          .gte("start_time", todayStart.toISOString())
-          .lte("start_time", todayEnd.toISOString());
-        meetingsCount = count || 0;
-      } catch {}
-
-      try {
-        const { count } = await (supabase.from("tasks") as any)
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user.id)
-          .eq("status", "pending");
-        tasksCount = count || 0;
-      } catch {}
-
-      setDailyStats({
-        unreadEmails: 0,
-        meetingsToday: meetingsCount,
-        tasksDue: tasksCount,
-        alerts: 0,
-      });
-    } catch (error) {
-      console.error("Error loading daily stats:", error);
-    }
-  };
-
-  const loadDashboardStats = async () => {
-    if (!user) return;
-    setLoading(true);
-    try {
+      if (!user) return;
+      setLoading(true);
+      
       const now = new Date();
       const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", user.id)
+        .single();
+
+      const profileId = profileData?.id || user.id;
+
       const [
-        { count: profileViews },
-        { count: profileViewsThisWeek },
-        { count: linkClicks },
-        { count: linkClicksThisWeek },
         { count: totalEvents },
         { count: publishedEvents },
+        { count: totalMeetings },
         { count: upcomingMeetings },
-        { count: publishedPolls },
-        { count: totalPodcasts },
         { count: totalSignupSheets },
+        { count: totalPolls },
+        { count: publishedPolls },
+        { count: totalEmailsSent },
+        { count: profileViews },
+        { count: linkClicks },
+        { count: profileViewsThisWeek },
+        { count: linkClicksThisWeek },
+        { count: totalPodcasts },
+        { count: totalEpisodes },
         { count: mediaFiles },
       ] = await Promise.all([
-        supabase.from("profile_views").select("*", { count: "exact", head: true }).eq("profile_id", user.id),
-        supabase.from("profile_views").select("*", { count: "exact", head: true }).eq("profile_id", user.id).gte("viewed_at", weekAgo.toISOString()),
-        supabase.from("link_clicks").select("*", { count: "exact", head: true }).eq("profile_id", user.id),
-        supabase.from("link_clicks").select("*", { count: "exact", head: true }).eq("profile_id", user.id).gte("clicked_at", weekAgo.toISOString()),
         supabase.from("events").select("*", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("is_published", true),
+        supabase.from("meetings").select("*", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("meetings").select("*", { count: "exact", head: true }).eq("user_id", user.id).gte("start_time", now.toISOString()),
-        supabase.from("polls").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("is_published", true),
-        supabase.from("podcasts").select("*", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("signup_sheets").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("polls").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("polls").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("is_published", true),
+        supabase.from("email_logs").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("profile_views").select("*", { count: "exact", head: true }).eq("profile_id", profileId),
+        supabase.from("link_clicks").select("*", { count: "exact", head: true }).eq("profile_id", profileId),
+        supabase.from("profile_views").select("*", { count: "exact", head: true }).eq("profile_id", profileId).gte("viewed_at", weekAgo.toISOString()),
+        supabase.from("link_clicks").select("*", { count: "exact", head: true }).eq("profile_id", profileId).gte("clicked_at", weekAgo.toISOString()),
+        supabase.from("podcasts").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("episodes").select("podcast_id", { count: "exact", head: true }).in("podcast_id", 
+          (await supabase.from("podcasts").select("id").eq("user_id", user.id)).data?.map(p => p.id) || []
+        ),
         supabase.from("media_files").select("*", { count: "exact", head: true }).eq("user_id", user.id),
       ]);
+
+      const { data: earnings } = await supabase
+        .from("creator_earnings")
+        .select("creator_share, total_impressions")
+        .eq("user_id", user.id);
+      
+      const totalRevenue = earnings?.reduce((sum, e) => sum + (e.creator_share || 0), 0) || 0;
+      const totalImpressions = earnings?.reduce((sum, e) => sum + (e.total_impressions || 0), 0) || 0;
 
       const engagementRate = profileViews && profileViews > 0 
         ? ((linkClicks || 0) / profileViews) * 100 
         : 0;
 
-      setDashboardStats({
-        profileViews: profileViews || 0,
-        profileViewsThisWeek: profileViewsThisWeek || 0,
-        linkClicks: linkClicks || 0,
-        linkClicksThisWeek: linkClicksThisWeek || 0,
+      setStats({
         totalEvents: totalEvents || 0,
         publishedEvents: publishedEvents || 0,
+        totalMeetings: totalMeetings || 0,
         upcomingMeetings: upcomingMeetings || 0,
-        publishedPolls: publishedPolls || 0,
-        totalPodcasts: totalPodcasts || 0,
-        totalEpisodes: 0,
         totalSignupSheets: totalSignupSheets || 0,
+        totalPolls: totalPolls || 0,
+        publishedPolls: publishedPolls || 0,
+        totalEmailsSent: totalEmailsSent || 0,
+        profileViews: profileViews || 0,
+        linkClicks: linkClicks || 0,
+        profileViewsThisWeek: profileViewsThisWeek || 0,
+        linkClicksThisWeek: linkClicksThisWeek || 0,
+        totalPodcasts: totalPodcasts || 0,
+        totalEpisodes: totalEpisodes || 0,
+        totalRevenue,
+        totalImpressions,
         mediaFiles: mediaFiles || 0,
         engagementRate,
       });
-    } catch (error) {
-      console.error("Error loading dashboard stats:", error);
+
+      // Load click breakdown
+      const { data: breakdown } = await supabase
+        .from("link_clicks")
+        .select("link_type, link_url")
+        .eq("profile_id", profileId);
+
+      if (breakdown) {
+        const typeCounts = breakdown.reduce((acc: Record<string, number>, click) => {
+          if (click.link_type !== 'custom_link') {
+            acc[click.link_type] = (acc[click.link_type] || 0) + 1;
+          }
+          return acc;
+        }, {});
+
+        const customClicks = breakdown.filter(c => c.link_type === 'custom_link');
+        const customUrlCounts = customClicks.reduce((acc: Record<string, number>, click) => {
+          acc[click.link_url] = (acc[click.link_url] || 0) + 1;
+          return acc;
+        }, {});
+
+        const { data: customLinks } = await supabase
+          .from('custom_links')
+          .select('url, title')
+          .eq('profile_id', profileId);
+
+        const regularBreakdown = Object.entries(typeCounts)
+          .map(([link_type, count]) => ({ link_type, count: count as number }));
+
+        const customBreakdown = Object.entries(customUrlCounts).map(([url, count]) => {
+          const link = customLinks?.find(l => l.url === url);
+          return {
+            link_type: 'custom_link',
+            title: link?.title || url,
+            count: count as number,
+          };
+        });
+
+        setClickBreakdown(
+          [...regularBreakdown, ...customBreakdown].sort((a, b) => b.count - a.count)
+        );
+      }
+
+      // Load top links
+      const { data: links } = await supabase
+        .from("link_clicks")
+        .select("link_url, link_type")
+        .eq("profile_id", profileId);
+
+      if (links) {
+        const linkCounts = links.reduce((acc: Record<string, { type: string; count: number }>, click) => {
+          const key = click.link_url;
+          if (!acc[key]) {
+            acc[key] = { type: click.link_type, count: 0 };
+          }
+          acc[key].count++;
+          return acc;
+        }, {});
+
+        setTopLinks(
+          Object.entries(linkCounts)
+            .map(([link_url, data]) => ({ link_url, link_type: data.type, count: data.count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5)
+        );
+      }
+    } catch (error: any) {
+      console.error("Error loading stats:", error);
     } finally {
       setLoading(false);
     }
@@ -307,7 +390,7 @@ export default function MyDay() {
   return (
     <div className="min-h-screen bg-background">
       <main className="px-6 lg:px-10 pt-8 pb-16 flex flex-col items-start w-full">
-        {/* Header with Avatar - friendlier greeting */}
+        {/* My Day Header with Avatar, Greeting, and Action Buttons */}
         <div className="w-full mb-8 flex items-start justify-between">
           <div className="flex items-center gap-4">
             {avatarUrl && (
@@ -331,19 +414,11 @@ export default function MyDay() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button 
-              variant={isCustomizing ? "secondary" : "outline"} 
-              size="sm" 
-              onClick={() => setIsCustomizing(!isCustomizing)}
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              {isCustomizing ? "Done" : "Customize"}
-            </Button>
+            <DashboardCustomizer widgets={widgets} onSave={handleWidgetsSave} />
             <Button variant="outline" size="sm" onClick={() => navigate("/meetings/create")}>
               <Calendar className="h-4 w-4 mr-2" />
               Schedule Meeting
             </Button>
-            {/* Signature Tracking Badge */}
             {trackingStats.total > 0 && (
               <Button 
                 variant="outline" 
@@ -364,180 +439,154 @@ export default function MyDay() {
           </div>
         </div>
 
-        {/* Identity & Rights Section */}
-        <div className="space-y-4 w-full mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Shield className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">Identity & Rights</h2>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <IdentityStatusCard />
-            <CertifiedClipsCard />
-            <MediaVaultCard />
-            <AdvertiserAccessCard />
-          </div>
+        {/* Social Accounts Banner */}
+        <SocialAccountsBanner />
+
+        {/* Holiday Banner */}
+        {showHolidayBanner && (
+          <HolidayCreatorBanner firstName={firstName} />
+        )}
+
+        {/* Identity & Content Dashboard Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-8 w-full">
+          <IdentityStatusCard />
+          <CertifiedClipsCard />
+          <MediaVaultCard />
+          <AdvertiserAccessCard />
+          <QuickCreateCard />
         </div>
 
-        {/* My Page Analytics - Colorful widgets */}
-        <div className="space-y-6 w-full mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <BarChart3 className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">My Page Analytics</h2>
-          </div>
-          
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <ProfileViewsWidget data={dashboardStats} />
-            <LinkClicksWidget data={dashboardStats} />
-            <EngagementWidget data={dashboardStats} />
-            <StreamAnalyticsWidget />
-          </div>
-        </div>
-
-        {/* Email Analytics Section */}
-        <div className="space-y-4 w-full mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Mail className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">Email Analytics</h2>
-          </div>
-          
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <EmailsSentWidget />
-            <EmailsOpenedWidget />
-            <EmailClicksWidget />
-          </div>
-        </div>
-
-        {/* Seekies & Content Section */}
-        <div className="space-y-4 w-full mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">Seekies & Content</h2>
-          </div>
-          
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <EventsWidget data={dashboardStats} />
-            <MeetingsWidget data={dashboardStats} />
-            <PollsWidget data={dashboardStats} />
-            <SignupSheetsWidget data={dashboardStats} />
-          </div>
-        </div>
-
-        {/* Media & Podcasts Section */}
-        <div className="space-y-4 w-full mb-8">
-          <div className="grid gap-4 md:grid-cols-2">
-            <PodcastsWidget data={dashboardStats} />
-            <MediaWidget data={dashboardStats} />
-          </div>
-        </div>
-
-        {/* Today's Focus Section */}
-        <div className="space-y-4 w-full mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Clock className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">Today's Focus</h2>
-          </div>
-
-          {/* Daily Action Cards with brand colors */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div onClick={() => navigate("/inbox")} className="cursor-pointer">
-              <DashboardWidget title="Emails" icon={<Mail className="h-5 w-5" />} brandColor="red">
-                <div className="text-4xl font-bold tracking-tight mb-2">
-                  {dailyStats.unreadEmails}
+        {/* Customizable Widgets */}
+        {stats && (
+          <div className="space-y-6 mb-8 w-full">
+            {/* MY PAGE SECTION */}
+            {myPageEnabled && (
+              <div className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {widgets.filter(w => w.enabled && ['profile-views', 'link-clicks', 'engagement', 'stream-analytics'].includes(w.id)).map(widget => {
+                    switch (widget.id) {
+                      case "profile-views":
+                        return <ProfileViewsWidget key={widget.id} data={stats} />;
+                      case "link-clicks":
+                        return <LinkClicksWidget key={widget.id} data={stats} />;
+                      case "engagement":
+                        return <EngagementWidget key={widget.id} data={stats} />;
+                      case "stream-analytics":
+                        return <StreamAnalyticsWidget key={widget.id} />;
+                      default:
+                        return null;
+                    }
+                  })}
                 </div>
-                <p className="text-sm text-muted-foreground font-medium">Unread messages</p>
-              </DashboardWidget>
-            </div>
 
-            <div onClick={() => navigate("/meetings")} className="cursor-pointer">
-              <DashboardWidget title="Meetings" icon={<Calendar className="h-5 w-5" />} brandColor="blue">
-                <div className="text-4xl font-bold tracking-tight mb-2">
-                  {dailyStats.meetingsToday}
-                </div>
-                <p className="text-sm text-muted-foreground font-medium">Scheduled today</p>
-              </DashboardWidget>
-            </div>
-
-            <div onClick={() => navigate("/tasks")} className="cursor-pointer">
-              <DashboardWidget title="Tasks" icon={<CheckSquare className="h-5 w-5" />} brandColor="gold">
-                <div className="text-4xl font-bold tracking-tight mb-2">
-                  {dailyStats.tasksDue}
-                </div>
-                <p className="text-sm text-muted-foreground font-medium">Due today</p>
-              </DashboardWidget>
-            </div>
-
-            <div onClick={() => navigate("/notifications")} className="cursor-pointer">
-              <DashboardWidget title="Alerts" icon={<Bell className="h-5 w-5" />} brandColor="navy">
-                <div className="text-4xl font-bold tracking-tight mb-2">
-                  {dailyStats.alerts}
-                </div>
-                <p className="text-sm text-muted-foreground font-medium">Notifications</p>
-              </DashboardWidget>
-            </div>
-          </div>
-
-          {/* Schedule & Tasks */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <Card className="transition-all duration-300 hover:shadow-lg border-border/50 bg-gradient-to-br from-card via-card to-brand-blue/5">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-brand-blue" />
-                  Upcoming Meetings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="h-48 flex items-center justify-center text-muted-foreground">
-                {dailyStats.meetingsToday > 0 ? (
-                  <div className="text-center">
-                    <p className="text-sm">You have {dailyStats.meetingsToday} meeting(s) today</p>
-                    <Button variant="link" onClick={() => navigate("/meetings")}>
-                      View all meetings <ArrowRight className="h-3 w-3 ml-1" />
-                    </Button>
-                  </div>
-                ) : (
-                <div className="text-center">
-                    <Clock className="h-12 w-12 mx-auto mb-2 opacity-20" />
-                    <p className="text-sm">No meetings scheduled today</p>
-                    <Button variant="link" onClick={() => navigate("/meetings/create")}>
-                      Schedule a meeting <ArrowRight className="h-3 w-3 ml-1" />
-                    </Button>
+                {stats.linkClicks > 0 && (widgets.find(w => w.id === 'clicks-by-type' && w.enabled) || widgets.find(w => w.id === 'top-links' && w.enabled)) && (
+                  <div className="grid gap-6 md:grid-cols-2">
+                    {widgets.find(w => w.id === 'clicks-by-type' && w.enabled) && (
+                      <ClicksByTypeWidget clickBreakdown={clickBreakdown} totalClicks={stats.linkClicks} />
+                    )}
+                    {widgets.find(w => w.id === 'top-links' && w.enabled) && (
+                      <TopLinksWidget topLinks={topLinks} />
+                    )}
                   </div>
                 )}
-              </CardContent>
-            </Card>
 
-            <Card className="transition-all duration-300 hover:shadow-lg border-border/50 bg-gradient-to-br from-card via-card to-brand-gold/5">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CheckSquare className="h-5 w-5 text-brand-gold" />
-                  Today's Key Tasks
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="h-48 flex items-center justify-center text-muted-foreground">
-                {dailyStats.tasksDue > 0 ? (
-                  <div className="text-center">
-                    <p className="text-sm">You have {dailyStats.tasksDue} pending task(s)</p>
-                    <Button variant="link" onClick={() => navigate("/tasks")}>
-                      View all tasks <ArrowRight className="h-3 w-3 ml-1" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <CheckSquare className="h-12 w-12 mx-auto mb-2 opacity-20" />
-                    <p className="text-sm">No pending tasks</p>
-                    <Button variant="link" onClick={() => navigate("/tasks")}>
-                      Create a task <ArrowRight className="h-3 w-3 ml-1" />
-                    </Button>
+                {widgets.find(w => w.id === 'social-media' && w.enabled) && (
+                  <div>
+                    <SocialMediaAnalytics />
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+              </div>
+            )}
 
-        {/* Quick Actions */}
-        <div className="w-full">
-          <QuickActionsWidget />
-        </div>
+            {/* EMAIL ANALYTICS SECTION */}
+            {widgets.some(w => w.enabled && ['emails-sent', 'emails-opened', 'email-clicks'].includes(w.id)) && (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {widgets.filter(w => w.enabled && ['emails-sent', 'emails-opened', 'email-clicks'].includes(w.id)).map(widget => {
+                  switch (widget.id) {
+                    case "emails-sent":
+                      return <EmailsSentWidget key={widget.id} />;
+                    case "emails-opened":
+                      return <EmailsOpenedWidget key={widget.id} />;
+                    case "email-clicks":
+                      return <EmailClicksWidget key={widget.id} />;
+                    default:
+                      return null;
+                  }
+                })}
+              </div>
+            )}
+
+            {/* SEEKIES & CONTENT SECTION */}
+            {widgets.some(w => w.enabled && ['events', 'meetings', 'polls', 'signup-sheets'].includes(w.id)) && (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {widgets.filter(w => w.enabled && ['events', 'meetings', 'polls', 'signup-sheets'].includes(w.id)).map(widget => {
+                  switch (widget.id) {
+                    case "events":
+                      return <EventsWidget key={widget.id} data={stats} />;
+                    case "meetings":
+                      return <MeetingsWidget key={widget.id} data={stats} />;
+                    case "polls":
+                      return <PollsWidget key={widget.id} data={stats} />;
+                    case "signup-sheets":
+                      return <SignupSheetsWidget key={widget.id} data={stats} />;
+                    default:
+                      return null;
+                  }
+                })}
+              </div>
+            )}
+
+            {/* MEDIA & PODCASTS SECTION */}
+            {widgets.some(w => w.enabled && ['podcasts', 'media'].includes(w.id)) && (
+              <div className="grid gap-4 md:grid-cols-2">
+                {widgets.filter(w => w.enabled && ['podcasts', 'media'].includes(w.id)).map(widget => {
+                  switch (widget.id) {
+                    case "podcasts":
+                      return <PodcastsWidget key={widget.id} data={stats} />;
+                    case "media":
+                      return <MediaWidget key={widget.id} data={stats} />;
+                    default:
+                      return null;
+                  }
+                })}
+              </div>
+            )}
+
+            {/* REVENUE SECTION */}
+            {widgets.some(w => w.enabled && ['revenue', 'impressions'].includes(w.id)) && (
+              <div className="grid gap-4 md:grid-cols-2">
+                {widgets.filter(w => w.enabled && ['revenue', 'impressions'].includes(w.id)).map(widget => {
+                  switch (widget.id) {
+                    case "revenue":
+                      return <RevenueWidget key={widget.id} data={stats} />;
+                    case "impressions":
+                      return (
+                        <div key={widget.id} className="cursor-pointer" onClick={() => navigate("/podcast-revenue")}>
+                          <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-sm font-medium text-muted-foreground">Total Ad Impressions</h3>
+                              <BarChart3 className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                            <div className="space-y-2">
+                              <div className="text-3xl font-bold">{stats.totalImpressions.toLocaleString()}</div>
+                              <p className="text-xs text-muted-foreground">Across all campaigns</p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    default:
+                      return null;
+                  }
+                })}
+              </div>
+            )}
+
+            {/* Quick Actions */}
+            {widgets.find(w => w.id === 'quick-actions' && w.enabled) && (
+              <QuickActionsWidget />
+            )}
+          </div>
+        )}
       </main>
     </div>
   );
