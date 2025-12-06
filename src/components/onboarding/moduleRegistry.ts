@@ -178,6 +178,13 @@ export const MODULE_REGISTRY: Record<string, RecommendedModule> = {
     category: "integrations",
     priority: "core",
   },
+  "email-signatures": {
+    id: "email-signatures",
+    name: "Email Signatures",
+    description: "Smart signatures with open/click tracking",
+    category: "marketing",
+    priority: "recommended",
+  },
 };
 
 // User type to module mapping

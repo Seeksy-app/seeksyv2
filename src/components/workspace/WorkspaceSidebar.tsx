@@ -96,6 +96,8 @@ const MODULE_ICONS: Record<string, React.ElementType> = {
   'newsletters': Mail,
   'newsletter': Mail,
   'campaigns': Megaphone, // Marketing campaigns - NOT email
+  'email-signatures': Mail,
+  'signatures': Mail,
   'automations': Zap,
   'ai-automation': Bot,
   'crm': Building2,

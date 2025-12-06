@@ -219,7 +219,7 @@ export default function SignatureBuilder() {
           </TabsContent>
 
           <TabsContent value="settings">
-            <SignatureSettings />
+            <SignatureSettings signatures={signatures} />
           </TabsContent>
         </Tabs>
       </div>

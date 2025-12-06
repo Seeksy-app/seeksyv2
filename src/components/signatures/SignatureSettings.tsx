@@ -5,17 +5,24 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Download, Key, Copy, Check } from "lucide-react";
+import { Key, Copy, Check, Bell, AlertCircle } from "lucide-react";
+import { ChromeExtensionDownload } from "./ChromeExtensionDownload";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-export function SignatureSettings() {
+interface SignatureSettingsProps {
+  signatures: any[];
+}
+
+export function SignatureSettings({ signatures }: SignatureSettingsProps) {
   const { toast } = useToast();
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
     notify_on_open: true,
     notify_on_click: true,
     notify_via_email: true,
-    notify_via_browser: true,
+    notify_via_browser: false,
   });
 
   useEffect(() => {
@@ -59,9 +66,15 @@ export function SignatureSettings() {
 
     const newKey = `sk_${crypto.randomUUID().replace(/-/g, "")}`;
 
+    // Deactivate existing keys
+    await supabase
+      .from("signature_extension_keys")
+      .update({ is_active: false })
+      .eq("user_id", user.id);
+
     const { error } = await supabase
       .from("signature_extension_keys")
-      .upsert({
+      .insert({
         user_id: user.id,
         api_key: newKey,
         is_active: true,
@@ -83,32 +96,31 @@ export function SignatureSettings() {
     }
   };
 
+  const saveNotificationSettings = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    setSaving(true);
+    const { error } = await supabase
+      .from("signature_notification_settings")
+      .upsert({
+        user_id: user.id,
+        ...settings,
+      });
+
+    setSaving(false);
+
+    if (error) {
+      toast({ title: "Error", description: "Failed to save settings", variant: "destructive" });
+    } else {
+      toast({ title: "Settings saved", description: "Notification preferences updated" });
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Chrome Extension */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Download className="h-5 w-5" />
-            Chrome Extension
-          </CardTitle>
-          <CardDescription>
-            Install the Seeksy Gmail extension to auto-inject signatures with tracking
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Button variant="outline" className="gap-2">
-            <Download className="h-4 w-4" />
-            Download Extension (ZIP)
-          </Button>
-          <p className="text-sm text-muted-foreground">
-            1. Download and unzip the extension<br/>
-            2. Go to chrome://extensions<br/>
-            3. Enable "Developer mode"<br/>
-            4. Click "Load unpacked" and select the folder
-          </p>
-        </CardContent>
-      </Card>
+      {/* Chrome Extension Download */}
+      <ChromeExtensionDownload signatures={signatures} apiKey={apiKey} />
 
       {/* API Key */}
       <Card>
@@ -117,6 +129,9 @@ export function SignatureSettings() {
             <Key className="h-5 w-5" />
             Extension API Key
           </CardTitle>
+          <CardDescription>
+            Required for the Chrome extension to authenticate
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {apiKey ? (
@@ -126,6 +141,9 @@ export function SignatureSettings() {
               </code>
               <Button variant="outline" size="icon" onClick={copyApiKey}>
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              </Button>
+              <Button variant="outline" onClick={generateApiKey}>
+                Regenerate
               </Button>
             </div>
           ) : (
@@ -137,26 +155,66 @@ export function SignatureSettings() {
       {/* Notification Settings */}
       <Card>
         <CardHeader>
-          <CardTitle>Notifications</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Bell className="h-5 w-5" />
+            Notifications
+          </CardTitle>
           <CardDescription>Get notified when your emails are opened or clicked</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label>Notify on email opens</Label>
-            <Switch checked={settings.notify_on_open} onCheckedChange={(v) => setSettings(s => ({ ...s, notify_on_open: v }))} />
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Notifications are saved for Phase 2. Email and browser alerts coming soon.
+            </AlertDescription>
+          </Alert>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Notify on email opens</Label>
+                <p className="text-sm text-muted-foreground">When someone views your email</p>
+              </div>
+              <Switch 
+                checked={settings.notify_on_open} 
+                onCheckedChange={(v) => setSettings(s => ({ ...s, notify_on_open: v }))} 
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Notify on link clicks</Label>
+                <p className="text-sm text-muted-foreground">When someone clicks a link in your signature</p>
+              </div>
+              <Switch 
+                checked={settings.notify_on_click} 
+                onCheckedChange={(v) => setSettings(s => ({ ...s, notify_on_click: v }))} 
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Email notifications</Label>
+                <p className="text-sm text-muted-foreground">Receive alerts via email</p>
+              </div>
+              <Switch 
+                checked={settings.notify_via_email} 
+                onCheckedChange={(v) => setSettings(s => ({ ...s, notify_via_email: v }))} 
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Browser notifications</Label>
+                <p className="text-sm text-muted-foreground">Chrome extension push notifications</p>
+              </div>
+              <Switch 
+                checked={settings.notify_via_browser} 
+                onCheckedChange={(v) => setSettings(s => ({ ...s, notify_via_browser: v }))} 
+              />
+            </div>
           </div>
-          <div className="flex items-center justify-between">
-            <Label>Notify on link clicks</Label>
-            <Switch checked={settings.notify_on_click} onCheckedChange={(v) => setSettings(s => ({ ...s, notify_on_click: v }))} />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label>Send email notifications</Label>
-            <Switch checked={settings.notify_via_email} onCheckedChange={(v) => setSettings(s => ({ ...s, notify_via_email: v }))} />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label>Browser notifications</Label>
-            <Switch checked={settings.notify_via_browser} onCheckedChange={(v) => setSettings(s => ({ ...s, notify_via_browser: v }))} />
-          </div>
+
+          <Button onClick={saveNotificationSettings} disabled={saving}>
+            {saving ? "Saving..." : "Save Preferences"}
+          </Button>
         </CardContent>
       </Card>
     </div>

@@ -311,6 +311,7 @@ import EmailDrafts from "./pages/email/EmailDrafts";
 import EmailSent from "./pages/email/EmailSent";
 import EmailAnalytics from "./pages/email/EmailAnalytics";
 import EmailHistory from "./pages/EmailHistory";
+import SignatureBuilder from "./pages/SignatureBuilder";
 import ContactProfile from "./pages/ContactProfile";
 import ClientTickets from "./pages/ClientTickets";
 import Proposals from "./pages/Proposals";
@@ -1054,6 +1055,7 @@ const AppContent = () => {
           <Route path="/media/library" element={<TourModeWrapper><MediaVault /></TourModeWrapper>} />
           <Route path="/media-library-legacy" element={<MediaLibrary />} />
           <Route path="/clips" element={<TourModeWrapper><ClipsLibrary /></TourModeWrapper>} />
+          <Route path="/signatures" element={<SignatureBuilder />} />
           <Route path="/social-analytics" element={<SocialAnalytics />} />
           <Route path="/update-media-durations" element={<UpdateMediaDurations />} />
           <Route path="/post-production-studio" element={<PostProductionStudio />} />

@@ -317,3 +317,9 @@ verify_jwt = true
 
 [functions.migrate-user-workspaces]
 verify_jwt = false
+
+[functions.signature-tracking-pixel]
+verify_jwt = false
+
+[functions.signature-click-tracking]
+verify_jwt = false
