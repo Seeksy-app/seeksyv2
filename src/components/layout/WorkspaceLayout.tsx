@@ -25,6 +25,7 @@ const LEGACY_NAV_ROUTES = [
   '/sales',
   '/cfo',
   '/helpdesk',
+  '/demo-videos',
 ];
 
 // Check if current route should use legacy navigation
@@ -64,6 +65,7 @@ function WorkspaceLayoutInner({
     '/cookies',
     '/security',
     '/apps-and-tools',
+    '/demo-videos',
   ].some(route => location.pathname === route || location.pathname.startsWith('/public'));
 
   // Mark as complete once we have workspaces
