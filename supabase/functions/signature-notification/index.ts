@@ -65,19 +65,23 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Get user email
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("email, first_name")
-      .eq("id", userId)
-      .single();
-
-    if (!profile?.email) {
-      console.log("[Signature Notification] No email found for user");
+    // Get user email from auth.users (since profiles doesn't have email column)
+    const { data: authData, error: authError } = await supabase.auth.admin.getUserById(userId);
+    
+    const userEmail = authData?.user?.email;
+    if (!userEmail) {
+      console.log("[Signature Notification] No email found for user", authError);
       return new Response(JSON.stringify({ success: false, error: "No email" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Get user's first name from profiles
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("first_name")
+      .eq("id", userId)
+      .single();
 
     // Get signature details
     const { data: signature } = await supabase
@@ -225,7 +229,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const emailResponse = await resend.emails.send({
       from: `Seeksy <${senderEmail}>`,
-      to: [profile.email],
+      to: [userEmail],
       subject: subject,
       html: bodyHtml,
     });

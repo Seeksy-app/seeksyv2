@@ -16,6 +16,7 @@ export function RecommendedActionsWidget({ completedSteps = [] }: Props) {
   const navigate = useNavigate();
 
   const actions: Action[] = [
+    { id: "email-tracking", text: "Add Email Tracking + Signature", path: "/signatures", completed: completedSteps.includes("email-tracking") },
     { id: "studio-setup", text: "Finish completing your Studio Setup", path: "/studio", completed: completedSteps.includes("studio-setup") },
     { id: "first-episode", text: "Upload your first podcast episode", path: "/podcasts", completed: completedSteps.includes("first-episode") },
     { id: "connect-youtube", text: "Connect YouTube for publishing", path: "/social-hub", completed: completedSteps.includes("connect-youtube") },
