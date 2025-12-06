@@ -137,17 +137,17 @@ export function WorkspaceSelector() {
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
           <Button
-            variant="ghost"
-            className="w-full justify-between gap-2 px-3 py-2 h-auto hover:bg-muted/50"
+            variant="outline"
+            className="w-full justify-between gap-2 px-3 py-2 h-10 bg-background border-border hover:bg-muted/50 text-foreground"
           >
             <div className="flex items-center gap-2 min-w-0">
               <div
                 className="w-6 h-6 rounded-md flex items-center justify-center text-white text-xs font-bold shrink-0"
-                style={{ backgroundColor: currentWorkspace?.icon_color || '#2C6BED' }}
+                style={{ backgroundColor: currentWorkspace?.icon_color || '#10B981' }}
               >
                 {currentWorkspace?.name?.charAt(0).toUpperCase() || 'W'}
               </div>
-              <span className="font-medium truncate">
+              <span className="font-medium truncate text-sm">
                 {currentWorkspace?.name || 'Select Workspace'}
               </span>
             </div>
