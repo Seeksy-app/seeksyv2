@@ -114,14 +114,6 @@ export const NAVIGATION_CONFIG: {
       "collapsible": true,
       "items": [
         {
-          "id": "admin_help_desk",
-          "label": "Help Desk",
-          "icon": "headphones",
-          "path": "/helpdesk",
-          "roles": ["admin", "super_admin", "support_admin", "support_agent", "manager"],
-          "description": "Customer support ticket management"
-        },
-        {
           "id": "admin_users",
           "label": "All Users",
           "icon": "users",
@@ -358,6 +350,21 @@ export const NAVIGATION_CONFIG: {
           "path": "/admin/demo-videos",
           "roles": ["admin", "super_admin", "cco"],
           "description": "Board-ready demo videos for investors"
+        },
+        {
+          "id": "admin_personas",
+          "label": "AI Personas",
+          "icon": "bot",
+          "path": "/admin/personas",
+          "roles": ["admin", "super_admin", "cco"]
+        },
+        {
+          "id": "admin_help_desk",
+          "label": "Help Desk",
+          "icon": "headphones",
+          "path": "/helpdesk",
+          "roles": ["admin", "super_admin", "support_admin", "support_agent", "cco"],
+          "description": "Customer support ticket management"
         }
       ]
     },
@@ -462,20 +469,6 @@ export const NAVIGATION_CONFIG: {
           "roles": ["admin", "super_admin"]
         },
         {
-          "id": "admin_personas",
-          "label": "AI Personas",
-          "icon": "bot",
-          "path": "/admin/personas",
-          "roles": ["admin", "super_admin"]
-        },
-        {
-          "id": "admin_system_tools",
-          "label": "System Tools",
-          "icon": "wrench",
-          "path": "/admin/system-tools",
-          "roles": ["admin", "super_admin"]
-        },
-        {
           "id": "admin_system_status",
           "label": "System Status",
           "icon": "activity",
@@ -494,39 +487,47 @@ export const NAVIGATION_CONFIG: {
 
     {
       "group": "Support",
-      "description": "Help and settings",
+      "description": "Help resources",
       "collapsible": true,
       "items": [
-        {
-          "id": "admin_ask_seeksy",
-          "label": "Ask Seeksy",
-          "icon": "sparkles",
-          "path": "#ask-seeksy",
-          "roles": ["admin", "super_admin", "cfo", "cmo", "cco", "manager"]
-        },
         {
           "id": "admin_help_center",
           "label": "Help Center",
           "icon": "help-circle",
           "path": "/help",
           "roles": ["admin", "super_admin", "cfo", "cmo", "cco", "manager"]
+        }
+      ]
+    },
+
+    {
+      "group": "Admin Settings",
+      "description": "System configuration and administration",
+      "collapsible": true,
+      "items": [
+        {
+          "id": "admin_module_organizer",
+          "label": "Module Organizer",
+          "icon": "layout-grid",
+          "path": "/admin/module-organizer",
+          "roles": ["admin", "super_admin"]
         },
         {
-          "id": "admin_contact",
-          "label": "Contact Seeksy",
-          "icon": "mail",
-          "path": "/contact",
-          "roles": ["admin", "super_admin", "cfo", "cmo", "cco", "manager"]
-        },
-        {
-          "id": "admin_settings",
-          "label": "Admin Settings",
+          "id": "admin_global_settings",
+          "label": "Global Settings",
           "icon": "settings",
           "path": "/admin/settings",
           "roles": ["admin", "super_admin"]
         },
         {
-          "id": "admin_settings_team",
+          "id": "admin_system_tools",
+          "label": "System Tools",
+          "icon": "wrench",
+          "path": "/admin/system-tools",
+          "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_team_roles",
           "label": "Team & Roles",
           "icon": "users",
           "path": "/admin/settings/team",
