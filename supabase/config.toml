@@ -326,3 +326,6 @@ verify_jwt = false
 
 [functions.signature-notification]
 verify_jwt = false
+
+[functions.signature-tracking-action]
+verify_jwt = false

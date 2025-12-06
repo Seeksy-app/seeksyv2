@@ -10,6 +10,7 @@ const corsHeaders = {
 interface NotificationRequest {
   userId: string;
   signatureId: string;
+  eventId: string;
   eventType: "open" | "link_click" | "banner_click" | "social_click";
   targetUrl?: string;
   linkId?: string;
@@ -24,7 +25,7 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const payload: NotificationRequest = await req.json();
-    const { userId, signatureId, eventType, targetUrl, linkId, deviceType, emailClient } = payload;
+    const { userId, signatureId, eventId, eventType, targetUrl, linkId, deviceType, emailClient } = payload;
 
     console.log("[Signature Notification] Received:", payload);
 
@@ -65,7 +66,7 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Get user email from auth.users (since profiles doesn't have email column)
+    // Get user email from auth.users
     const { data: authData, error: authError } = await supabase.auth.admin.getUserById(userId);
     
     const userEmail = authData?.user?.email;
@@ -104,11 +105,28 @@ const handler = async (req: Request): Promise<Response> => {
       hour12: true,
     });
 
+    // Build action URLs
+    const actionBaseUrl = `${supabaseUrl}/functions/v1/signature-tracking-action`;
+    const createContactUrl = eventId 
+      ? `${actionBaseUrl}?action=create_contact&eventId=${eventId}&userId=${userId}`
+      : null;
+    const createTaskUrl = eventId 
+      ? `${actionBaseUrl}?action=create_task&eventId=${eventId}&userId=${userId}`
+      : null;
+
     // Build subject and body based on event type
     let subject = "";
     let bodyHtml = "";
-    const deviceInfo = deviceType ? ` on ${deviceType}` : "";
-    const clientInfo = emailClient && emailClient !== "unknown" ? ` using ${emailClient}` : "";
+
+    const actionButtonsHtml = (createContactUrl && createTaskUrl) ? `
+      <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+        <p style="font-size: 14px; color: #64748b; margin: 0 0 16px; text-align: center;">Take action on this lead:</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <a href="${createContactUrl}" style="display: inline-block; background: #3b82f6; color: white; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500;">➕ Create Contact</a>
+          <a href="${createTaskUrl}" style="display: inline-block; background: #8b5cf6; color: white; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500;">📋 Create Task</a>
+        </div>
+      </div>
+    ` : "";
 
     if (eventType === "open") {
       subject = `Someone opened your email`;
@@ -153,7 +171,8 @@ const handler = async (req: Request): Promise<Response> => {
                 ` : ""}
               </table>
             </div>
-            <p style="font-size: 13px; color: #94a3b8; margin: 0; text-align: center;">
+            ${actionButtonsHtml}
+            <p style="font-size: 13px; color: #94a3b8; margin: 20px 0 0; text-align: center;">
               View all your signature analytics in your Seeksy dashboard.
             </p>
           </div>
@@ -206,7 +225,8 @@ const handler = async (req: Request): Promise<Response> => {
                 ` : ""}
               </table>
             </div>
-            <p style="font-size: 13px; color: #94a3b8; margin: 0; text-align: center;">
+            ${actionButtonsHtml}
+            <p style="font-size: 13px; color: #94a3b8; margin: 20px 0 0; text-align: center;">
               View all your signature analytics in your Seeksy dashboard.
             </p>
           </div>
