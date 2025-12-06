@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Key, Copy, Check, Bell, AlertCircle } from "lucide-react";
+import { Key, Copy, Check, Bell, AlertCircle, UserPlus, ListTodo } from "lucide-react";
 import { ChromeExtensionDownload } from "./ChromeExtensionDownload";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -23,6 +23,9 @@ export function SignatureSettings({ signatures }: SignatureSettingsProps) {
     notify_on_click: true,
     notify_via_email: true,
     notify_via_browser: false,
+    auto_create_contact: false,
+    show_create_contact_action: true,
+    show_create_task_action: true,
   });
 
   useEffect(() => {
@@ -52,10 +55,13 @@ export function SignatureSettings({ signatures }: SignatureSettingsProps) {
 
     if (settingsData) {
       setSettings({
-        notify_on_open: settingsData.notify_on_open,
-        notify_on_click: settingsData.notify_on_click,
-        notify_via_email: settingsData.notify_via_email,
-        notify_via_browser: settingsData.notify_via_browser,
+        notify_on_open: settingsData.notify_on_open ?? true,
+        notify_on_click: settingsData.notify_on_click ?? true,
+        notify_via_email: settingsData.notify_via_email ?? true,
+        notify_via_browser: settingsData.notify_via_browser ?? false,
+        auto_create_contact: settingsData.auto_create_contact ?? false,
+        show_create_contact_action: settingsData.show_create_contact_action ?? true,
+        show_create_task_action: settingsData.show_create_task_action ?? true,
       });
     }
   };
@@ -162,13 +168,6 @@ export function SignatureSettings({ signatures }: SignatureSettingsProps) {
           <CardDescription>Get notified when your emails are opened or clicked</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Notifications are saved for Phase 2. Email and browser alerts coming soon.
-            </AlertDescription>
-          </Alert>
-
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
@@ -208,6 +207,57 @@ export function SignatureSettings({ signatures }: SignatureSettingsProps) {
               <Switch 
                 checked={settings.notify_via_browser} 
                 onCheckedChange={(v) => setSettings(s => ({ ...s, notify_via_browser: v }))} 
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tracking Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <UserPlus className="h-5 w-5" />
+            Tracking Actions
+          </CardTitle>
+          <CardDescription>Choose what actions appear in your tracking notification emails</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Auto-create contact on open</Label>
+                <p className="text-sm text-muted-foreground">Automatically create a contact when someone opens your email</p>
+              </div>
+              <Switch 
+                checked={settings.auto_create_contact} 
+                onCheckedChange={(v) => setSettings(s => ({ ...s, auto_create_contact: v }))} 
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="flex items-center gap-2">
+                  <UserPlus className="h-4 w-4" />
+                  Show "Create Contact" button
+                </Label>
+                <p className="text-sm text-muted-foreground">Add a quick action button to create contacts from notification emails</p>
+              </div>
+              <Switch 
+                checked={settings.show_create_contact_action} 
+                onCheckedChange={(v) => setSettings(s => ({ ...s, show_create_contact_action: v }))} 
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="flex items-center gap-2">
+                  <ListTodo className="h-4 w-4" />
+                  Show "Create Task" button
+                </Label>
+                <p className="text-sm text-muted-foreground">Add a quick action button to create follow-up tasks from notification emails</p>
+              </div>
+              <Switch 
+                checked={settings.show_create_task_action} 
+                onCheckedChange={(v) => setSettings(s => ({ ...s, show_create_task_action: v }))} 
               />
             </div>
           </div>

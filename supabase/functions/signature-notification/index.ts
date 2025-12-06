@@ -40,18 +40,20 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get user's notification preferences
-    const { data: preferences } = await supabase
-      .from("notification_preferences")
+    // Get user's signature notification preferences
+    const { data: sigNotifSettings } = await supabase
+      .from("signature_notification_settings")
       .select("*")
       .eq("user_id", userId)
-      .eq("notification_type", "signature_tracking")
       .single();
 
     // Check if email notifications are enabled (default to true if no preference set)
-    const emailEnabled = preferences?.email_enabled !== false;
-    const notifyOnOpens = preferences?.channels?.notify_opens !== false;
-    const notifyOnClicks = preferences?.channels?.notify_clicks !== false;
+    const emailEnabled = sigNotifSettings?.notify_via_email !== false;
+    const notifyOnOpens = sigNotifSettings?.notify_on_open !== false;
+    const notifyOnClicks = sigNotifSettings?.notify_on_click !== false;
+    const showContactAction = sigNotifSettings?.show_create_contact_action !== false;
+    const showTaskAction = sigNotifSettings?.show_create_task_action !== false;
+    const autoCreateContact = sigNotifSettings?.auto_create_contact === true;
 
     // Determine if we should send based on event type
     const shouldSendEmail = emailEnabled && (
@@ -64,6 +66,42 @@ const handler = async (req: Request): Promise<Response> => {
       return new Response(JSON.stringify({ success: true, sent: false, reason: "disabled" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Auto-create contact if enabled
+    if (autoCreateContact && eventType === "open" && eventId) {
+      try {
+        // Get event details for contact creation
+        const { data: eventData } = await supabase
+          .from("signature_tracking_events")
+          .select("*")
+          .eq("id", eventId)
+          .single();
+
+        if (eventData && eventData.recipient_email) {
+          // Check if contact already exists
+          const { data: existingContact } = await supabase
+            .from("contacts")
+            .select("id")
+            .eq("user_id", userId)
+            .eq("email", eventData.recipient_email)
+            .single();
+
+          if (!existingContact) {
+            await supabase.from("contacts").insert({
+              user_id: userId,
+              email: eventData.recipient_email,
+              first_name: eventData.device_type || "Email",
+              last_name: "Lead",
+              notes: `Auto-created from email open on ${new Date().toISOString()}. Device: ${eventData.device_type || "unknown"}, Client: ${eventData.email_client || "unknown"}`,
+              source: "email_signature",
+            });
+            console.log("[Signature Notification] Auto-created contact for:", eventData.recipient_email);
+          }
+        }
+      } catch (err) {
+        console.error("[Signature Notification] Auto-create contact error:", err);
+      }
     }
 
     // Get user email from auth.users
@@ -118,15 +156,28 @@ const handler = async (req: Request): Promise<Response> => {
     let subject = "";
     let bodyHtml = "";
 
-    const actionButtonsHtml = (createContactUrl && createTaskUrl) ? `
-      <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
-        <p style="font-size: 14px; color: #64748b; margin: 0 0 16px; text-align: center;">Take action on this lead:</p>
-        <div style="display: flex; gap: 12px; justify-content: center;">
-          <a href="${createContactUrl}" style="display: inline-block; background: #3b82f6; color: white; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500;">➕ Create Contact</a>
-          <a href="${createTaskUrl}" style="display: inline-block; background: #8b5cf6; color: white; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500;">📋 Create Task</a>
-        </div>
-      </div>
-    ` : "";
+    // Build action buttons based on user preferences
+    let actionButtonsHtml = "";
+    if ((showContactAction || showTaskAction) && (createContactUrl || createTaskUrl)) {
+      const contactBtn = showContactAction && createContactUrl
+        ? `<a href="${createContactUrl}" style="display: inline-block; background: #3b82f6; color: white; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500;">➕ Create Contact</a>`
+        : "";
+      const taskBtn = showTaskAction && createTaskUrl
+        ? `<a href="${createTaskUrl}" style="display: inline-block; background: #8b5cf6; color: white; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500;">📋 Create Task</a>`
+        : "";
+      
+      if (contactBtn || taskBtn) {
+        actionButtonsHtml = `
+          <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+            <p style="font-size: 14px; color: #64748b; margin: 0 0 16px; text-align: center;">Take action on this lead:</p>
+            <div style="display: flex; gap: 12px; justify-content: center;">
+              ${contactBtn}
+              ${taskBtn}
+            </div>
+          </div>
+        `;
+      }
+    }
 
     if (eventType === "open") {
       subject = `Someone opened your email`;
