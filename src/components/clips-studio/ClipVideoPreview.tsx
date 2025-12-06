@@ -15,6 +15,13 @@ interface ClipVideoPreviewProps {
   sourceMedia: SourceMedia;
 }
 
+// Interface for transcript word timing
+interface TranscriptWord {
+  word: string;
+  start: number;
+  end: number;
+}
+
 const aspectRatios = [
   { id: "9:16", label: "9:16", icon: Smartphone, platforms: "TikTok, Reels, Shorts" },
   { id: "1:1", label: "1:1", icon: Square, platforms: "Instagram Feed" },
@@ -35,6 +42,40 @@ function getYouTubeVideoId(url: string): string | null {
   return null;
 }
 
+// Extract words with timing from transcript
+function getTranscriptWords(sourceMedia: SourceMedia, clip: ClipData): TranscriptWord[] {
+  const transcript = sourceMedia.edit_transcript;
+  if (!transcript?.words || !Array.isArray(transcript.words)) return [];
+  
+  // Filter words that fall within the clip's time range
+  return transcript.words.filter((word: TranscriptWord) => 
+    word.start >= clip.start_seconds && word.end <= clip.end_seconds
+  );
+}
+
+// Get current caption text based on video time
+function getCurrentCaption(words: TranscriptWord[], currentTime: number, clipStartTime: number): string {
+  if (words.length === 0) return "";
+  
+  const absoluteTime = clipStartTime + currentTime;
+  
+  // Find words within a 2-second window around current time for subtitle display
+  const windowStart = absoluteTime - 0.5;
+  const windowEnd = absoluteTime + 1.5;
+  
+  const visibleWords = words.filter(word => 
+    word.start >= windowStart && word.start <= windowEnd
+  );
+  
+  if (visibleWords.length === 0) return "";
+  
+  // Highlight the current word
+  return visibleWords.map(word => {
+    const isCurrentWord = absoluteTime >= word.start && absoluteTime <= word.end;
+    return isCurrentWord ? word.word.toUpperCase() : word.word;
+  }).join(" ");
+}
+
 export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -42,8 +83,15 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
   const [isMuted, setIsMuted] = useState(false);
   const [selectedRatio, setSelectedRatio] = useState("9:16");
   const [showTrimHandles, setShowTrimHandles] = useState(false);
+  const [currentCaption, setCurrentCaption] = useState("");
 
   const clipDuration = clip ? (clip.end_seconds - clip.start_seconds) : 0;
+
+  // Get transcript words for this clip
+  const transcriptWords = useMemo(() => {
+    if (!clip) return [];
+    return getTranscriptWords(sourceMedia, clip);
+  }, [sourceMedia, clip]);
 
   const isYouTubeSource = sourceMedia.source === 'youtube' || 
     (sourceMedia.file_url && sourceMedia.file_url.includes('youtube.com'));
@@ -71,6 +119,12 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
       const relativeTime = video.currentTime - clip.start_seconds;
       setCurrentTime(Math.max(0, Math.min(relativeTime, clipDuration)));
       
+      // Update caption based on current position in transcript
+      if (transcriptWords.length > 0) {
+        const caption = getCurrentCaption(transcriptWords, relativeTime, clip.start_seconds);
+        setCurrentCaption(caption);
+      }
+      
       if (video.currentTime >= clip.end_seconds) {
         video.currentTime = clip.start_seconds;
         if (!isPlaying) {
@@ -81,7 +135,7 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
 
     video.addEventListener('timeupdate', handleTimeUpdate);
     return () => video.removeEventListener('timeupdate', handleTimeUpdate);
-  }, [clip, clipDuration, isPlaying, hasPlayableVideo]);
+  }, [clip, clipDuration, isPlaying, hasPlayableVideo, transcriptWords]);
 
   const togglePlay = () => {
     const video = videoRef.current;
@@ -219,12 +273,12 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
                   poster={sourceMedia.thumbnail_url}
                 />
                 
-                {/* Caption overlay with text styling */}
-                {clip.suggested_caption && (
+                {/* Dynamic caption overlay - shows transcript text like Opus Clips */}
+                {(currentCaption || clip.transcript_snippet) && (
                   <div className="absolute bottom-12 left-3 right-3">
                     <div className="bg-black/80 backdrop-blur-sm px-4 py-3 rounded-lg border border-white/10">
                       <p className="text-white text-center text-sm font-bold leading-relaxed tracking-wide uppercase">
-                        {clip.suggested_caption}
+                        {currentCaption || clip.transcript_snippet?.split(' ').slice(0, 8).join(' ')}
                       </p>
                     </div>
                   </div>

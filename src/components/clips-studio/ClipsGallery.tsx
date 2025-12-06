@@ -133,6 +133,17 @@ export function ClipsGallery({
                   </div>
                 )}
                 
+                {/* Transcript text overlay on thumbnail - like Opus Clips */}
+                {clip.transcript_snippet && (
+                  <div className="absolute bottom-8 left-1 right-1 pointer-events-none">
+                    <div className="bg-black/70 backdrop-blur-sm px-2 py-1 rounded">
+                      <p className="text-white text-[10px] font-bold text-center uppercase leading-tight line-clamp-2">
+                        {clip.transcript_snippet.split(' ').slice(0, 6).join(' ')}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
                 {/* Play overlay on hover */}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                   <Play className="h-10 w-10 text-white opacity-0 group-hover:opacity-100 transition-opacity fill-white" />
