@@ -211,60 +211,46 @@ export function WorkspaceSidebar() {
       }))
       .filter(m => m.id) as (ModuleRegistryItem & { is_standalone: boolean })[];
 
-    const grouped: Map<string, { primary: ModuleRegistryItem & { is_standalone: boolean }; groupName: string; associated: (ModuleRegistryItem & { is_standalone: boolean })[] }> = new Map();
+    // Map: groupKey -> { groupLabel, allModulesInGroup }
+    const grouped: Map<string, { groupKey: string; groupName: string; allModules: (ModuleRegistryItem & { is_standalone: boolean })[] }> = new Map();
     const standalone: (ModuleRegistryItem & { is_standalone: boolean })[] = [];
     const pinnedStandalone: (ModuleRegistryItem & { is_standalone: boolean })[] = [];
     const usedIds = new Set<string>();
 
-    // Use DB module groups if available, otherwise fall back to hardcoded
+    // Use DB module groups if available
     if (dbModuleGroups && dbModuleGroups.length > 0) {
-      // Build groups from DB configuration
       for (const group of dbModuleGroups) {
-        // Get primary modules for this group that are in the workspace
-        const primaryModuleKeys = group.primaryModules.map(m => m.module_key);
-        const groupPrimaryModules = modules.filter(m => primaryModuleKeys.includes(m.id));
+        // Get all modules (primary + associated) for this group that are in the workspace
+        const allModuleKeys = [
+          ...group.primaryModules.map(m => m.module_key),
+          ...group.associatedModules.map(m => m.module_key),
+        ];
         
-        // Get associated modules for this group that are in the workspace
-        const associatedModuleKeys = group.associatedModules.map(m => m.module_key);
-        const groupAssociatedModules = modules.filter(m => associatedModuleKeys.includes(m.id));
+        const groupModules = modules.filter(m => allModuleKeys.includes(m.id));
         
-        // If we have a primary module for this group, create the group
-        for (const primaryModule of groupPrimaryModules) {
-          if (!grouped.has(primaryModule.id)) {
-            grouped.set(primaryModule.id, { 
-              primary: primaryModule, 
-              groupName: group.label,
-              associated: groupAssociatedModules.filter(m => m.id !== primaryModule.id)
-            });
-            usedIds.add(primaryModule.id);
-            groupAssociatedModules.forEach(m => usedIds.add(m.id));
-          }
-          
-          // If primary is marked standalone, also add to pinned list
-          if (primaryModule.is_standalone) {
-            pinnedStandalone.push(primaryModule);
-          }
+        // Only create group if we have at least one module from it
+        if (groupModules.length > 0) {
+          grouped.set(group.key, {
+            groupKey: group.key,
+            groupName: group.label,
+            allModules: groupModules,
+          });
+          groupModules.forEach(m => usedIds.add(m.id));
         }
       }
     } else {
       // Fallback to hardcoded MODULE_GROUPS
       for (const [primaryId, groupConfig] of Object.entries(MODULE_GROUPS)) {
-        const primaryModule = modules.find(m => m.id === primaryId);
-        if (primaryModule) {
-          const associatedModules = groupConfig.modules
-            .filter(id => moduleIds.includes(id))
-            .map(id => modules.find(m => m.id === id))
-            .filter(Boolean) as (ModuleRegistryItem & { is_standalone: boolean })[];
-          
-          // Always add the primary module as a group, even if no associated modules
-          grouped.set(primaryId, { primary: primaryModule, groupName: groupConfig.name, associated: associatedModules });
-          usedIds.add(primaryId);
-          associatedModules.forEach(m => usedIds.add(m.id));
-
-          // If primary is marked standalone, also add to pinned list
-          if (primaryModule.is_standalone) {
-            pinnedStandalone.push(primaryModule);
-          }
+        const allGroupModuleIds = [primaryId, ...groupConfig.modules];
+        const groupModules = modules.filter(m => allGroupModuleIds.includes(m.id));
+        
+        if (groupModules.length > 0) {
+          grouped.set(primaryId, {
+            groupKey: primaryId,
+            groupName: groupConfig.name,
+            allModules: groupModules,
+          });
+          groupModules.forEach(m => usedIds.add(m.id));
         }
       }
     }
@@ -485,100 +471,47 @@ export function WorkspaceSidebar() {
             {currentWorkspace && (
               <div className="px-3 py-1">
                 <SidebarMenu>
-                  {/* Grouped modules with primary app headers */}
-                  {Array.from(groupedModules.entries()).map(([primaryId, { primary, groupName, associated }]) => {
-                    const Icon = MODULE_ICONS[primary.id] || FolderOpen;
-                    const isExpanded = expandedGroups.has(primaryId);
+                  {/* Grouped modules */}
+                  {Array.from(groupedModules.entries()).map(([groupKey, { groupName, allModules }]) => {
+                    const isExpanded = expandedGroups.has(groupKey);
+                    // Use first module's icon for group header, or a default
+                    const firstModule = allModules[0];
+                    const GroupIcon = firstModule ? (MODULE_ICONS[firstModule.id] || FolderOpen) : FolderOpen;
                     
                     return (
                       <Collapsible
-                        key={primary.id}
+                        key={groupKey}
                         open={isExpanded}
-                        onOpenChange={() => toggleGroup(primaryId)}
+                        onOpenChange={() => toggleGroup(groupKey)}
                       >
                         <SidebarMenuItem className="group/item relative">
                           <div className="flex items-center w-full">
-                            {associated.length > 0 && (
-                              <CollapsibleTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6 p-0 mr-1 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-transparent"
-                                >
-                                  {isExpanded ? (
-                                    <ChevronDown className="h-3.5 w-3.5" />
-                                  ) : (
-                                    <ChevronRight className="h-3.5 w-3.5" />
-                                  )}
-                                </Button>
-                              </CollapsibleTrigger>
-                            )}
+                            <CollapsibleTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 p-0 mr-1 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-transparent"
+                              >
+                                {isExpanded ? (
+                                  <ChevronDown className="h-3.5 w-3.5" />
+                                ) : (
+                                  <ChevronRight className="h-3.5 w-3.5" />
+                                )}
+                              </Button>
+                            </CollapsibleTrigger>
                             <SidebarMenuButton
-                              onClick={() => primary.route && navigate(primary.route)}
-                              isActive={primary.route ? isActive(primary.route) : false}
-                              tooltip={groupName || primary.name}
-                              className={cn(
-                                "flex-1 text-sidebar-foreground hover:bg-sidebar-accent pr-8",
-                                associated.length === 0 && "ml-6"
-                              )}
+                              tooltip={groupName}
+                              className="flex-1 text-sidebar-foreground hover:bg-sidebar-accent"
+                              onClick={() => toggleGroup(groupKey)}
                             >
-                              <Icon className="h-4 w-4" />
-                              {!isCollapsed && <span className="font-medium">{groupName || primary.name}</span>}
+                              <GroupIcon className="h-4 w-4" />
+                              {!isCollapsed && <span className="font-medium">{groupName}</span>}
                             </SidebarMenuButton>
                           </div>
-                          
-                          {/* Module overflow menu */}
-                          {!isCollapsed && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="absolute right-0 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover/item:opacity-100 transition-opacity"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <MoreHorizontal className="h-3.5 w-3.5" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-48 bg-popover border shadow-lg z-50">
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleRemoveModule(primary.id, primary.name);
-                                  }}
-                                  className="text-destructive focus:text-destructive"
-                                  disabled={removingModule === primary.id}
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Remove
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={async (e) => {
-                                    e.stopPropagation();
-                                    try {
-                                      await toggleStandalone(primary.id);
-                                      toast.success(
-                                        primary.is_standalone ? "Removed from standalone" : "Module added as standalone",
-                                        { description: primary.is_standalone 
-                                          ? `${primary.name} removed from standalone menu.`
-                                          : `${primary.name} is now a standalone menu item.` 
-                                        }
-                                      );
-                                    } catch (err) {
-                                      toast.error("Failed to update module");
-                                    }
-                                  }}
-                                >
-                                  <ExternalLink className="h-4 w-4 mr-2" />
-                                  {primary.is_standalone ? "Remove Standalone" : "Standalone"}
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          )}
                         </SidebarMenuItem>
                         
                         <CollapsibleContent>
-                          {associated.map(module => renderModuleItem(module, true))}
+                          {allModules.map(module => renderModuleItem(module, true))}
                         </CollapsibleContent>
                       </Collapsible>
                     );
