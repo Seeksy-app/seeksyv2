@@ -250,13 +250,99 @@ export function SignatureEditor({ signature, onUpdate }: SignatureEditorProps) {
                 />
               </div>
               <div>
-                <Label htmlFor="profile_photo_url">Profile Photo URL</Label>
-                <Input
-                  id="profile_photo_url"
-                  value={formData.profile_photo_url}
-                  onChange={(e) => handleChange("profile_photo_url", e.target.value)}
-                  placeholder="https://..."
-                />
+                <Label>Profile Photo</Label>
+                <div className="mt-2 space-y-3">
+                  {formData.profile_photo_url && (
+                    <div className="relative w-20 h-20">
+                      <img 
+                        src={formData.profile_photo_url} 
+                        alt="Profile preview" 
+                        className="w-20 h-20 rounded-full object-cover border"
+                      />
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-1 -right-1 h-6 w-6"
+                        onClick={() => handleChange("profile_photo_url", "")}
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  )}
+                  
+                  <div className="flex gap-2">
+                    <label className="flex-1">
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/gif,image/webp"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          
+                          if (file.size > 2 * 1024 * 1024) {
+                            toast({
+                              title: "File too large",
+                              description: "Max file size is 2MB",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          
+                          try {
+                            const fileExt = file.name.split('.').pop();
+                            const fileName = `profile_${signature.id}_${Date.now()}.${fileExt}`;
+                            
+                            const { data, error } = await supabase.storage
+                              .from('signature-profiles')
+                              .upload(fileName, file, { upsert: true });
+                            
+                            if (error) throw error;
+                            
+                            const { data: urlData } = supabase.storage
+                              .from('signature-profiles')
+                              .getPublicUrl(fileName);
+                            
+                            handleChange("profile_photo_url", urlData.publicUrl);
+                            toast({
+                              title: "Photo uploaded",
+                              description: "Your profile photo has been uploaded",
+                            });
+                          } catch (error) {
+                            console.error("Upload error:", error);
+                            toast({
+                              title: "Upload failed",
+                              description: "Could not upload profile photo",
+                              variant: "destructive",
+                            });
+                          }
+                        }}
+                      />
+                      <Button variant="outline" className="w-full gap-2" asChild>
+                        <span>
+                          <Upload className="h-4 w-4" />
+                          Upload Photo
+                        </span>
+                      </Button>
+                    </label>
+                  </div>
+                  
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">or paste URL</span>
+                    </div>
+                  </div>
+                  
+                  <Input
+                    id="profile_photo_url"
+                    value={formData.profile_photo_url}
+                    onChange={(e) => handleChange("profile_photo_url", e.target.value)}
+                    placeholder="https://..."
+                  />
+                </div>
               </div>
               <div>
                 <Label htmlFor="quote_text">Quote (optional)</Label>
