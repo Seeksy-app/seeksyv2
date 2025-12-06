@@ -874,6 +874,7 @@ const AppContent = () => {
               <Route path="/admin/system-tools" element={<SystemTools />} />
               <Route path="/admin/security" element={<AdminSecurityOverview />} />
           <Route path="/demo-videos" element={<DemoVideos />} />
+          <Route path="/admin/demo-videos" element={<DemoVideos />} />
           <Route path="/marketing-gtm" element={<MarketingGTMPlan />} />
             <Route path="/admin/hero-generator" element={<HeroImageGeneratorPage />} />
             <Route path="/admin/mascot-generator" element={<MascotGeneratorPage />} />
