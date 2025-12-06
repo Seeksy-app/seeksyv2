@@ -410,6 +410,18 @@ export function WorkspaceSidebar() {
 
             <SidebarMenuItem>
               <SidebarMenuButton
+                onClick={() => navigate('/my-work')}
+                isActive={isActive('/my-work')}
+                tooltip="My Work"
+                className="text-sidebar-foreground hover:bg-sidebar-accent"
+              >
+                <CheckSquare className="h-4 w-4" />
+                {!isCollapsed && <span>My Work</span>}
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
                 onClick={() => navigate('/recents')}
                 isActive={isActive('/recents')}
                 tooltip="Recents"

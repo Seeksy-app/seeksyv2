@@ -17,6 +17,7 @@ import {
   DollarSign,
   Activity,
   Percent,
+  Mic,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -55,6 +56,13 @@ const quickLinks = [
     icon: FileText,
     path: '/board/docs',
     gradient: 'from-rose-500 to-red-600',
+  },
+  {
+    title: 'Creator Studio',
+    description: 'Live recording preview',
+    icon: Mic,
+    path: '/studio',
+    gradient: 'from-cyan-500 to-blue-600',
   },
 ];
 

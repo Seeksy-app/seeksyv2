@@ -284,6 +284,7 @@ import InfluenceHubCreators from "./pages/InfluenceHubCreators";
 import InfluenceHubMedia from "./pages/InfluenceHubMedia";
 import UpdateMediaDurations from "./pages/UpdateMediaDurations";
 import Tasks from "./pages/Tasks";
+import MyWork from "./pages/MyWork";
 import CivicEvents from "./pages/civic/CivicEvents";
 import ConstituentRequests from "./pages/civic/ConstituentRequests";
 import CivicBlog from "./pages/civic/CivicBlog";
@@ -618,6 +619,7 @@ const AppContent = () => {
               <Route path="/content" element={<ContentHub />} />
               <Route path="/monetization" element={<MonetizationHub />} />
               <Route path="/tasks" element={<Tasks />} />
+              <Route path="/my-work" element={<MyWork />} />
               <Route path="/alerts" element={<Alerts />} />
               
               <Route path="/pricing" element={<Pricing />} />
