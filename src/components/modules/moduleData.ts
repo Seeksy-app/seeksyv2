@@ -541,6 +541,22 @@ export const SEEKSY_MODULES: SeeksyModule[] = [
     iconBg: "bg-white shadow-lg",
     iconColor: "text-pink-600",
   },
+  
+  // AI Agent (standalone AI tool)
+  {
+    id: "ai-agent",
+    name: "AI Agent",
+    description: "Your intelligent AI co-pilot for content ideas, scheduling, navigation, and growth strategy",
+    icon: BrainCircuit,
+    category: "ai-tools",
+    route: "/assistant",
+    isNew: true,
+    isAIPowered: true,
+    integrations: ["studio", "campaigns", "meetings", "tasks"],
+    bgGradient: "bg-gradient-to-br from-amber-100 via-yellow-50 to-orange-100",
+    iconBg: "bg-white shadow-lg",
+    iconColor: "text-amber-600",
+  },
 ];
 
 export function formatDownloads(num: number): string {
