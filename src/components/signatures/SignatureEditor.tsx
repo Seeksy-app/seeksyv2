@@ -735,7 +735,7 @@ function generateHtmlSignature(formData: any, signatureId: string): string {
       </tr>`;
   }
 
-  // Social icons block - using text links for email compatibility
+  // Social icons block - using small icon images for email compatibility
   const socialLinks = Object.entries(formData.social_links || {}).filter(([_, url]) => url);
   if (socialLinks.length > 0) {
     html += `
@@ -744,8 +744,8 @@ function generateHtmlSignature(formData: any, signatureId: string): string {
     
     for (const [platform, url] of socialLinks) {
       const trackUrl = `${clickTrackingBase}/social/${platform}?url=${encodeURIComponent(url as string)}`;
-      const label = getSocialLabel(platform);
-      html += `<a href="${trackUrl}" style="margin-right: 12px; text-decoration: none; color: ${formData.link_color}; font-size: 13px;">${label}</a>`;
+      const iconUrl = getSocialIconUrl(platform);
+      html += `<a href="${trackUrl}" style="margin-right: 8px; text-decoration: none;"><img src="${iconUrl}" alt="${platform}" style="width: 24px; height: 24px; vertical-align: middle;" /></a>`;
     }
     
     html += `
@@ -834,4 +834,18 @@ function getSocialLabel(platform: string): string {
     pinterest: "Pinterest",
   };
   return labels[platform] || platform;
+}
+
+// Get social icon URLs - using simple, reliable hosted icons
+function getSocialIconUrl(platform: string): string {
+  const icons: Record<string, string> = {
+    facebook: "https://cdn.simpleicons.org/facebook/1877F2",
+    twitter: "https://cdn.simpleicons.org/x/000000",
+    instagram: "https://cdn.simpleicons.org/instagram/E4405F",
+    linkedin: "https://cdn.simpleicons.org/linkedin/0A66C2",
+    youtube: "https://cdn.simpleicons.org/youtube/FF0000",
+    tiktok: "https://cdn.simpleicons.org/tiktok/000000",
+    pinterest: "https://cdn.simpleicons.org/pinterest/BD081C",
+  };
+  return icons[platform] || `https://cdn.simpleicons.org/${platform}`;
 }
