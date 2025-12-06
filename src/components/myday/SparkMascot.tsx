@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { useHolidaySettings } from "@/hooks/useHolidaySettings";
 
 interface SparkMascotProps {
   className?: string;
@@ -7,6 +8,9 @@ interface SparkMascotProps {
 }
 
 export function SparkMascot({ className, size = "md", animate = true }: SparkMascotProps) {
+  const { data: holidaySettings } = useHolidaySettings();
+  const isHoliday = holidaySettings?.holidayMode;
+  
   const sizeClasses = {
     sm: "w-6 h-6",
     md: "w-8 h-8",
@@ -32,16 +36,33 @@ export function SparkMascot({ className, size = "md", animate = true }: SparkMas
       
       {/* Main mascot SVG */}
       <svg
-        viewBox="0 0 48 48"
+        viewBox="0 0 48 52"
         fill="none"
         className={cn(
           "relative z-10 w-full h-full transition-transform duration-300",
           animate && "group-hover:scale-110 group-hover:rotate-3"
         )}
       >
+        {/* Holiday Santa Hat */}
+        {isHoliday && (
+          <>
+            <path
+              d="M18 4L24 -2L38 8L32 14L18 4Z"
+              fill="#DC2626"
+              stroke="#B91C1C"
+              strokeWidth="0.5"
+            />
+            <circle cx="38" cy="8" r="3" fill="white" />
+            <path
+              d="M16 6C16 6 18 4 24 4C30 4 32 6 32 6L30 10C30 10 28 8 24 8C20 8 18 10 18 10L16 6Z"
+              fill="white"
+            />
+          </>
+        )}
+        
         {/* Body - Friendly rounded star shape */}
         <path
-          d="M24 4L28.5 16.5L42 18L31.5 27L34 40L24 33L14 40L16.5 27L6 18L19.5 16.5L24 4Z"
+          d="M24 8L28.5 20.5L42 22L31.5 31L34 44L24 37L14 44L16.5 31L6 22L19.5 20.5L24 8Z"
           fill="url(#sparkGradient)"
           stroke="#F59E0B"
           strokeWidth="1.5"
@@ -51,16 +72,16 @@ export function SparkMascot({ className, size = "md", animate = true }: SparkMas
         />
         
         {/* Face - Eyes */}
-        <circle cx="19" cy="22" r="2.5" fill="#1E293B" />
-        <circle cx="29" cy="22" r="2.5" fill="#1E293B" />
+        <circle cx="19" cy="26" r="2.5" fill="#1E293B" />
+        <circle cx="29" cy="26" r="2.5" fill="#1E293B" />
         
         {/* Eye shine */}
-        <circle cx="18" cy="21" r="1" fill="white" />
-        <circle cx="28" cy="21" r="1" fill="white" />
+        <circle cx="18" cy="25" r="1" fill="white" />
+        <circle cx="28" cy="25" r="1" fill="white" />
         
         {/* Smile */}
         <path
-          d="M20 28C20 28 22 31 24 31C26 31 28 28 28 28"
+          d="M20 32C20 32 22 35 24 35C26 35 28 32 28 32"
           stroke="#1E293B"
           strokeWidth="2"
           strokeLinecap="round"
@@ -68,16 +89,16 @@ export function SparkMascot({ className, size = "md", animate = true }: SparkMas
         />
         
         {/* Rosy cheeks */}
-        <circle cx="16" cy="26" r="2" fill="#FCA5A5" opacity="0.6" />
-        <circle cx="32" cy="26" r="2" fill="#FCA5A5" opacity="0.6" />
+        <circle cx="16" cy="30" r="2" fill="#FCA5A5" opacity="0.6" />
+        <circle cx="32" cy="30" r="2" fill="#FCA5A5" opacity="0.6" />
         
         {/* Sparkle accents */}
-        <path d="M8 8L9 11L12 12L9 13L8 16L7 13L4 12L7 11L8 8Z" fill="#FBBF24" />
-        <path d="M40 6L41 8L43 9L41 10L40 12L39 10L37 9L39 8L40 6Z" fill="#FBBF24" />
-        <path d="M44 28L45 30L47 31L45 32L44 34L43 32L41 31L43 30L44 28Z" fill="#FBBF24" opacity="0.7" />
+        <path d="M8 12L9 15L12 16L9 17L8 20L7 17L4 16L7 15L8 12Z" fill="#FBBF24" />
+        <path d="M40 10L41 12L43 13L41 14L40 16L39 14L37 13L39 12L40 10Z" fill="#FBBF24" />
+        <path d="M44 32L45 34L47 35L45 36L44 38L43 36L41 35L43 34L44 32Z" fill="#FBBF24" opacity="0.7" />
         
         <defs>
-          <linearGradient id="sparkGradient" x1="24" y1="4" x2="24" y2="40" gradientUnits="userSpaceOnUse">
+          <linearGradient id="sparkGradient" x1="24" y1="8" x2="24" y2="44" gradientUnits="userSpaceOnUse">
             <stop stopColor="#FDE047" />
             <stop offset="1" stopColor="#F59E0B" />
           </linearGradient>

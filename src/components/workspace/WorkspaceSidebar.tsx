@@ -189,7 +189,10 @@ export function WorkspaceSidebar() {
 
   const isCollapsed = state === 'collapsed';
 
-  // Get modules for current workspace, organized with correct groups
+  // Fetch module groupings from DB
+  const { data: dbModuleGroups } = useModuleGroups();
+
+  // Get modules for current workspace, organized with correct groups from DB
   const { groupedModules, standaloneModules, pinnedStandaloneModules } = useMemo(() => {
     const moduleIds = workspaceModules.map(wm => wm.module_id);
     const modules = workspaceModules
@@ -200,29 +203,61 @@ export function WorkspaceSidebar() {
       }))
       .filter(m => m.id) as (ModuleRegistryItem & { is_standalone: boolean })[];
 
-    const grouped: Map<string, { primary: ModuleRegistryItem & { is_standalone: boolean }; associated: (ModuleRegistryItem & { is_standalone: boolean })[] }> = new Map();
+    const grouped: Map<string, { primary: ModuleRegistryItem & { is_standalone: boolean }; groupName: string; associated: (ModuleRegistryItem & { is_standalone: boolean })[] }> = new Map();
     const standalone: (ModuleRegistryItem & { is_standalone: boolean })[] = [];
     const pinnedStandalone: (ModuleRegistryItem & { is_standalone: boolean })[] = [];
     const usedIds = new Set<string>();
 
-    // First pass: identify primary modules and their groups
-    for (const [primaryId, groupConfig] of Object.entries(MODULE_GROUPS)) {
-      const primaryModule = modules.find(m => m.id === primaryId);
-      if (primaryModule) {
-        const associatedModules = groupConfig.modules
-          .filter(id => moduleIds.includes(id))
-          .map(id => modules.find(m => m.id === id))
-          .filter(Boolean) as (ModuleRegistryItem & { is_standalone: boolean })[];
+    // Use DB module groups if available, otherwise fall back to hardcoded
+    if (dbModuleGroups && dbModuleGroups.length > 0) {
+      // Build groups from DB configuration
+      for (const group of dbModuleGroups) {
+        // Get primary modules for this group that are in the workspace
+        const primaryModuleKeys = group.primaryModules.map(m => m.module_key);
+        const groupPrimaryModules = modules.filter(m => primaryModuleKeys.includes(m.id));
         
-        if (associatedModules.length > 0 || groupConfig.modules.length === 0) {
-          grouped.set(primaryId, { primary: primaryModule, associated: associatedModules });
-          usedIds.add(primaryId);
-          associatedModules.forEach(m => usedIds.add(m.id));
+        // Get associated modules for this group that are in the workspace
+        const associatedModuleKeys = group.associatedModules.map(m => m.module_key);
+        const groupAssociatedModules = modules.filter(m => associatedModuleKeys.includes(m.id));
+        
+        // If we have a primary module for this group, create the group
+        for (const primaryModule of groupPrimaryModules) {
+          if (!grouped.has(primaryModule.id)) {
+            grouped.set(primaryModule.id, { 
+              primary: primaryModule, 
+              groupName: group.label,
+              associated: groupAssociatedModules.filter(m => m.id !== primaryModule.id)
+            });
+            usedIds.add(primaryModule.id);
+            groupAssociatedModules.forEach(m => usedIds.add(m.id));
+          }
+          
+          // If primary is marked standalone, also add to pinned list
+          if (primaryModule.is_standalone) {
+            pinnedStandalone.push(primaryModule);
+          }
         }
+      }
+    } else {
+      // Fallback to hardcoded MODULE_GROUPS
+      for (const [primaryId, groupConfig] of Object.entries(MODULE_GROUPS)) {
+        const primaryModule = modules.find(m => m.id === primaryId);
+        if (primaryModule) {
+          const associatedModules = groupConfig.modules
+            .filter(id => moduleIds.includes(id))
+            .map(id => modules.find(m => m.id === id))
+            .filter(Boolean) as (ModuleRegistryItem & { is_standalone: boolean })[];
+          
+          if (associatedModules.length > 0 || groupConfig.modules.length === 0) {
+            grouped.set(primaryId, { primary: primaryModule, groupName: groupConfig.name, associated: associatedModules });
+            usedIds.add(primaryId);
+            associatedModules.forEach(m => usedIds.add(m.id));
+          }
 
-        // If primary is marked standalone, also add to pinned list
-        if (primaryModule.is_standalone) {
-          pinnedStandalone.push(primaryModule);
+          // If primary is marked standalone, also add to pinned list
+          if (primaryModule.is_standalone) {
+            pinnedStandalone.push(primaryModule);
+          }
         }
       }
     }
@@ -234,7 +269,7 @@ export function WorkspaceSidebar() {
       }
     }
 
-    // Second pass: standalone modules (not in any group)
+    // Standalone modules (not in any group)
     for (const module of modules) {
       if (!usedIds.has(module.id)) {
         standalone.push(module);
@@ -242,7 +277,7 @@ export function WorkspaceSidebar() {
     }
 
     return { groupedModules: grouped, standaloneModules: standalone, pinnedStandaloneModules: pinnedStandalone };
-  }, [workspaceModules, moduleRegistry]);
+  }, [workspaceModules, moduleRegistry, dbModuleGroups]);
 
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
 
@@ -444,10 +479,9 @@ export function WorkspaceSidebar() {
               <div className="px-3 py-1">
                 <SidebarMenu>
                   {/* Grouped modules with primary app headers */}
-                  {Array.from(groupedModules.entries()).map(([primaryId, { primary, associated }]) => {
+                  {Array.from(groupedModules.entries()).map(([primaryId, { primary, groupName, associated }]) => {
                     const Icon = MODULE_ICONS[primary.id] || FolderOpen;
                     const isExpanded = expandedGroups.has(primaryId);
-                    const groupConfig = MODULE_GROUPS[primaryId];
                     
                     return (
                       <Collapsible
@@ -475,14 +509,14 @@ export function WorkspaceSidebar() {
                             <SidebarMenuButton
                               onClick={() => primary.route && navigate(primary.route)}
                               isActive={primary.route ? isActive(primary.route) : false}
-                              tooltip={groupConfig?.name || primary.name}
+                              tooltip={groupName || primary.name}
                               className={cn(
                                 "flex-1 text-sidebar-foreground hover:bg-sidebar-accent pr-8",
                                 associated.length === 0 && "ml-6"
                               )}
                             >
                               <Icon className="h-4 w-4" />
-                              {!isCollapsed && <span className="font-medium">{groupConfig?.name || primary.name}</span>}
+                              {!isCollapsed && <span className="font-medium">{groupName || primary.name}</span>}
                             </SidebarMenuButton>
                           </div>
                           

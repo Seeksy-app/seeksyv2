@@ -382,7 +382,7 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-border/50 px-4 py-3">
+      <SidebarHeader className="border-b border-sidebar-border px-4 py-3 bg-sidebar">
         <div className="flex items-center justify-between w-full">
           {!collapsed && (
             <button 
@@ -391,7 +391,7 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
               title="Go to Dashboard"
             >
               <SparkIcon variant="holiday" size={48} animated pose="waving" />
-              <span className="text-white text-2xl font-bold">Seeksy</span>
+              <span className="text-sidebar-foreground text-2xl font-bold">Seeksy</span>
             </button>
           )}
           {collapsed && (
@@ -406,7 +406,7 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
           {/* Customize Nav Icon Button */}
           <button
             onClick={() => window.dispatchEvent(new Event('openNavCustomization'))}
-            className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-all duration-200 border border-white/10 hover:border-white/20 shadow-sm"
+            className="p-2 rounded-lg bg-sidebar-accent hover:bg-sidebar-primary/20 text-sidebar-foreground/80 hover:text-sidebar-foreground transition-all duration-200 border border-sidebar-border shadow-sm"
             title="Customize Navigation"
           >
             <Sliders className="h-4 w-4" />
@@ -414,7 +414,7 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="pb-6">
+      <SidebarContent className="pb-6 bg-sidebar">
         {/* Creator nav items - ONLY for non-admin users */}
         {/* All top-level items are flush-left with identical visual hierarchy */}
         {!isAdmin && (
@@ -432,13 +432,13 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                     <Collapsible open={isOpen} onOpenChange={() => toggleGroup(item.id)}>
                       <CollapsibleTrigger asChild>
                         <SidebarMenuItem>
-                          <SidebarMenuButton className="w-full justify-between hover:bg-white/10 text-white">
+                          <SidebarMenuButton className="w-full justify-between hover:bg-sidebar-accent text-sidebar-foreground">
                             <div className="flex items-center gap-3">
-                              <Icon className="h-4 w-4 shrink-0 text-white" />
-                              {!collapsed && <span className="font-medium text-white">{item.label}</span>}
+                              <Icon className="h-4 w-4 shrink-0 text-sidebar-foreground" />
+                              {!collapsed && <span className="font-medium text-sidebar-foreground">{item.label}</span>}
                             </div>
                             {!collapsed && (
-                              <ChevronDown className={`h-4 w-4 shrink-0 text-white/70 transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`} />
+                              <ChevronDown className={`h-4 w-4 shrink-0 text-sidebar-foreground/70 transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`} />
                             )}
                           </SidebarMenuButton>
                         </SidebarMenuItem>
@@ -450,8 +450,8 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                               <SidebarMenuButton asChild>
                                 <NavLink
                                   to={`/workspace?id=${pkg.id}`}
-                                  className="flex items-center justify-between text-white/80 text-sm py-1.5"
-                                  activeClassName="text-white bg-white/10"
+                                  className="flex items-center justify-between text-sidebar-foreground/80 text-sm py-1.5"
+                                  activeClassName="text-sidebar-foreground bg-sidebar-accent"
                                 >
                                   <span className="truncate">{pkg.name}</span>
                                   {pkg.is_default && <span className="text-amber-400 text-xs">⭐</span>}
@@ -484,13 +484,13 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                     <Collapsible open={isOpen} onOpenChange={() => toggleGroup(item.id)}>
                       <CollapsibleTrigger asChild>
                         <SidebarMenuItem>
-                          <SidebarMenuButton className="w-full justify-between hover:bg-white/10 text-white">
+                          <SidebarMenuButton className="w-full justify-between hover:bg-sidebar-accent text-sidebar-foreground">
                             <div className="flex items-center gap-3">
-                              <Icon className="h-4 w-4 shrink-0 text-white" />
-                              {!collapsed && <span className="font-medium text-white">{item.label}</span>}
+                              <Icon className="h-4 w-4 shrink-0 text-sidebar-foreground" />
+                              {!collapsed && <span className="font-medium text-sidebar-foreground">{item.label}</span>}
                             </div>
                             {!collapsed && (
-                              <ChevronDown className={`h-4 w-4 shrink-0 text-white/70 transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`} />
+                              <ChevronDown className={`h-4 w-4 shrink-0 text-sidebar-foreground/70 transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}`} />
                             )}
                           </SidebarMenuButton>
                         </SidebarMenuItem>
@@ -502,8 +502,8 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                               <SidebarMenuButton asChild>
                                 <NavLink
                                   to={subItem.path}
-                                  className="text-white/80 text-sm py-1.5"
-                                  activeClassName="text-white bg-white/10"
+                                  className="text-sidebar-foreground/80 text-sm py-1.5"
+                                  activeClassName="text-sidebar-foreground bg-sidebar-accent"
                                 >
                                   <span className="truncate">{subItem.label}</span>
                                 </NavLink>
@@ -523,12 +523,12 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.path}
-                      className="flex items-center justify-between hover:bg-white/10 text-white"
-                      activeClassName="bg-primary/20 text-white"
+                      className="flex items-center justify-between hover:bg-sidebar-accent text-sidebar-foreground"
+                      activeClassName="bg-sidebar-primary/20 text-sidebar-foreground"
                     >
                       <div className="flex items-center gap-3">
-                        <Icon className="h-4 w-4 shrink-0 text-white" />
-                        {!collapsed && <span className="font-medium text-white">{item.label}</span>}
+                        <Icon className="h-4 w-4 shrink-0 text-sidebar-foreground" />
+                        {!collapsed && <span className="font-medium text-sidebar-foreground">{item.label}</span>}
                       </div>
                       {!collapsed && isPinned && <span className="text-amber-400 text-xs">★</span>}
                     </NavLink>
