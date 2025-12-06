@@ -72,7 +72,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Log the click event
-    const { error } = await supabase
+    const { data: insertedEvent, error } = await supabase
       .from("signature_tracking_events")
       .insert({
         signature_id: signatureId,
@@ -85,17 +85,18 @@ const handler = async (req: Request): Promise<Response> => {
         user_agent: userAgent,
         device_type: deviceType,
         message_key: messageKey,
-      });
+      })
+      .select("id")
+      .single();
 
     if (error) {
       console.error("[Click Tracking] Failed to log event:", error);
     } else {
-      console.log("[Click Tracking] Click event logged successfully:", eventType);
+      console.log("[Click Tracking] Click event logged successfully:", eventType, insertedEvent?.id);
       
       // Send notification email if user has it enabled
       if (signature?.user_id) {
         try {
-          const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
           const notificationUrl = `${supabaseUrl}/functions/v1/signature-notification`;
           await fetch(notificationUrl, {
             method: "POST",
@@ -106,6 +107,7 @@ const handler = async (req: Request): Promise<Response> => {
             body: JSON.stringify({
               userId: signature.user_id,
               signatureId: signatureId,
+              eventId: insertedEvent?.id,
               eventType: eventType,
               targetUrl: targetUrl,
               linkId: linkType === "social" ? linkId : linkType,

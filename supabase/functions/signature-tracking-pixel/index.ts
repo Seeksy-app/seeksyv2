@@ -75,7 +75,7 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     // Log the open event
-    const { error } = await supabase
+    const { data: insertedEvent, error } = await supabase
       .from("signature_tracking_events")
       .insert({
         signature_id: signatureId,
@@ -87,12 +87,14 @@ const handler = async (req: Request): Promise<Response> => {
         device_type: deviceType,
         email_client: emailClient,
         message_key: messageKey,
-      });
+      })
+      .select("id")
+      .single();
 
     if (error) {
       console.error("[Tracking Pixel] Failed to log event:", error);
     } else {
-      console.log("[Tracking Pixel] Open event logged successfully");
+      console.log("[Tracking Pixel] Open event logged successfully:", insertedEvent?.id);
       
       // Send notification email if user has it enabled
       if (signature?.user_id) {
@@ -107,6 +109,7 @@ const handler = async (req: Request): Promise<Response> => {
             body: JSON.stringify({
               userId: signature.user_id,
               signatureId: signatureId,
+              eventId: insertedEvent?.id,
               eventType: "open",
               deviceType: deviceType,
               emailClient: emailClient,
