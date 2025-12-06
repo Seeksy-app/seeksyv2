@@ -311,65 +311,75 @@ export default function BoardVideos() {
                   const isCompleted = hasRealVideos && videoProgress && videoProgress.seconds_watched >= UNLOCK_THRESHOLD_SECONDS;
                   const isPlaceholder = !video.video_url;
 
-                  return (
-                    <Card
-                      key={video.id}
-                      className={cn(
-                        'border transition-all cursor-pointer',
-                        isSelected
-                          ? 'bg-blue-50 border-blue-300 shadow-sm'
-                          : status === 'locked'
-                          ? 'bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed'
-                          : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm'
-                      )}
-                      onClick={() => handleVideoSelect(video, index)}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-3">
-                          <div className={cn(
-                            'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
-                            isCompleted
-                              ? 'bg-emerald-100 text-emerald-600'
-                              : status === 'locked'
-                              ? 'bg-slate-100 text-slate-400'
-                              : isSelected
-                              ? 'bg-blue-100 text-blue-600'
-                              : 'bg-slate-100 text-slate-500'
-                          )}>
-                            {isCompleted ? (
-                              <Check className="w-4 h-4" />
-                            ) : status === 'locked' ? (
-                              <Lock className="w-4 h-4" />
-                            ) : (
-                              <Play className="w-4 h-4" />
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className={cn(
-                              'font-medium truncate',
-                              isSelected ? 'text-blue-700' : 'text-slate-900'
-                            )}>
-                              {video.title}
-                            </h4>
-                            <div className="flex items-center gap-2 mt-1">
-                              <div className="flex items-center gap-1 text-xs text-slate-400">
-                                <Clock className="w-3 h-3" />
-                                <span>{formatDuration(video.duration_seconds)}</span>
+                    return (
+                      <Card
+                        key={video.id}
+                        className={cn(
+                          'border transition-all cursor-pointer overflow-hidden',
+                          isSelected
+                            ? 'bg-blue-50 border-blue-300 shadow-sm'
+                            : status === 'locked'
+                            ? 'bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed'
+                            : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm'
+                        )}
+                        onClick={() => handleVideoSelect(video, index)}
+                      >
+                        <CardContent className="p-3">
+                          <div className="flex items-start gap-3">
+                            {/* Thumbnail */}
+                            <div className="relative w-24 h-16 flex-shrink-0 rounded-md overflow-hidden bg-slate-200">
+                              {video.thumbnail_url ? (
+                                <img 
+                                  src={video.thumbnail_url} 
+                                  alt={video.title}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-700 to-slate-900">
+                                  <Play className="w-6 h-6 text-white/70" />
+                                </div>
+                              )}
+                              {/* Play overlay */}
+                              <div className={cn(
+                                'absolute inset-0 flex items-center justify-center',
+                                isCompleted ? 'bg-emerald-500/20' : status === 'locked' ? 'bg-slate-900/50' : 'bg-black/20'
+                              )}>
+                                {isCompleted ? (
+                                  <Check className="w-5 h-5 text-white" />
+                                ) : status === 'locked' ? (
+                                  <Lock className="w-5 h-5 text-white" />
+                                ) : isSelected ? (
+                                  <Play className="w-5 h-5 text-white" />
+                                ) : null}
                               </div>
-                              <Badge className={cn('text-[10px] px-1.5 py-0', categoryColors[video.category] || 'bg-slate-100 text-slate-600')}>
-                                {video.category}
-                              </Badge>
+                              {/* Duration badge */}
+                              <div className="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] px-1 rounded">
+                                {formatDuration(video.duration_seconds)}
+                              </div>
                             </div>
-                            {videoProgress && hasRealVideos && (
-                              <span className="text-xs text-slate-400 mt-1 block">
-                                {formatDuration(videoProgress.seconds_watched)} watched
-                              </span>
-                            )}
+                            
+                            <div className="flex-1 min-w-0">
+                              <h4 className={cn(
+                                'font-medium text-sm leading-tight line-clamp-2',
+                                isSelected ? 'text-blue-700' : 'text-slate-900'
+                              )}>
+                                {video.title}
+                              </h4>
+                              <div className="flex items-center gap-2 mt-1.5">
+                                <Badge className={cn('text-[10px] px-1.5 py-0', categoryColors[video.category] || 'bg-slate-100 text-slate-600')}>
+                                  {video.category}
+                                </Badge>
+                              </div>
+                              {videoProgress && hasRealVideos && (
+                                <span className="text-xs text-slate-400 mt-1 block">
+                                  {formatDuration(videoProgress.seconds_watched)} watched
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
+                        </CardContent>
+                      </Card>
+                    );
                 })
               )}
             </div>
