@@ -35,6 +35,13 @@ const folders = [
   { id: "unsubscribed", label: "Unsubscribed", icon: UserX },
 ];
 
+// Action items that appear right after Unsubscribed
+const actionItems = [
+  { id: "tracking", label: "Tracking & Analytics", icon: BarChart3, path: "/email/analytics" },
+  { id: "signature", label: "Signature & Tracking", icon: Signature, path: "/signatures" },
+  { id: "settings", label: "Settings", icon: Settings, path: "/email-settings" },
+];
+
 export function EmailFolderList({ selectedFolder, onFolderSelect, onCompose, counts }: EmailFolderListProps) {
   const navigate = useNavigate();
 
@@ -84,34 +91,24 @@ export function EmailFolderList({ selectedFolder, onFolderSelect, onCompose, cou
             </button>
           );
         })}
+        
+        {/* Action items right after Unsubscribed */}
+        <Separator className="my-2" />
+        {actionItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <button
+              key={item.id}
+              onClick={() => navigate(item.path)}
+              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm hover:bg-muted text-foreground transition-colors"
+            >
+              <Icon className="h-4 w-4" />
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
       </nav>
 
-      <Separator className="my-3" />
-
-      {/* Bottom Actions */}
-      <div className="space-y-0.5">
-        <button
-          onClick={() => navigate("/email/analytics")}
-          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm hover:bg-muted text-foreground transition-colors"
-        >
-          <BarChart3 className="h-4 w-4" />
-          <span>Tracking & Analytics</span>
-        </button>
-        <button
-          onClick={() => navigate("/signatures")}
-          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm hover:bg-muted text-foreground transition-colors"
-        >
-          <Signature className="h-4 w-4" />
-          <span>Signature & Tracking</span>
-        </button>
-        <button
-          onClick={() => navigate("/email-settings")}
-          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm hover:bg-muted text-foreground transition-colors"
-        >
-          <Settings className="h-4 w-4" />
-          <span>Settings</span>
-        </button>
-      </div>
     </div>
   );
 }

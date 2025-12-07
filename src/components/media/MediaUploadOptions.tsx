@@ -9,9 +9,14 @@ import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
 import { 
   Upload, FolderOpen, PlayCircle, Video, AudioWaveform, 
-  Loader2, RefreshCw
+  Loader2, RefreshCw, ThumbsUp, ThumbsDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface ZoomRecording {
   id: string;
@@ -37,6 +42,73 @@ const formatDuration = (seconds: number | null) => {
   const secs = Math.floor(seconds % 60);
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
+
+// Vote popup component for coming soon features
+function ComingSoonVotePopover({ 
+  name, 
+  children 
+}: { 
+  name: string; 
+  children: React.ReactNode;
+}) {
+  const [voted, setVoted] = useState<'yes' | 'no' | null>(null);
+  const [open, setOpen] = useState(false);
+
+  const handleVote = async (vote: 'yes' | 'no') => {
+    setVoted(vote);
+    toast.success(
+      vote === 'yes' 
+        ? `Thanks! We'll prioritize ${name} integration.` 
+        : `Got it! We'll note your feedback.`,
+      { duration: 2000 }
+    );
+    setTimeout(() => setOpen(false), 1500);
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        {children}
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-3" align="center">
+        <div className="space-y-3">
+          <div className="text-center">
+            <p className="font-medium text-sm text-foreground">Coming Soon</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Would you like us to add {name} integration?
+            </p>
+          </div>
+          {voted ? (
+            <p className="text-center text-sm text-primary font-medium">
+              Thanks for your feedback!
+            </p>
+          ) : (
+            <div className="flex gap-2 justify-center">
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                onClick={() => handleVote('yes')}
+              >
+                <ThumbsUp className="h-3.5 w-3.5" />
+                Yes please!
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="gap-1.5 text-muted-foreground"
+                onClick={() => handleVote('no')}
+              >
+                <ThumbsDown className="h-3.5 w-3.5" />
+                Not now
+              </Button>
+            </div>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export function MediaUploadOptions({
   onUploadClick,
@@ -210,6 +282,12 @@ export function MediaUploadOptions({
     ? "w-full justify-start" 
     : "rounded-full px-4 py-2 h-auto gap-2 font-medium";
 
+  // Coming soon button - grey with vote popup
+  const comingSoonButtonClass = cn(
+    buttonClass,
+    "bg-muted text-muted-foreground border-muted hover:bg-muted/80 cursor-pointer"
+  );
+
   return (
     <>
       <div className={cn(
@@ -220,33 +298,30 @@ export function MediaUploadOptions({
       )}>
         {/* Row 1: Upload, Media Library, YouTube */}
         <div className={cn(layout === 'vertical' ? "flex flex-col gap-2 w-full" : "flex flex-wrap gap-3 justify-center")}>
-          {/* Upload Files */}
+          {/* Upload Files - solid yellow */}
           <Button
             onClick={onUploadClick}
-            className={cn(buttonClass, "hover:opacity-90 transition-opacity")}
-            style={{ backgroundColor: '#FFC857', color: '#053877' }}
+            className={cn(buttonClass, "bg-amber-500 text-white hover:bg-amber-600 border-0")}
           >
             <Upload className="h-4 w-4" />
             Upload Files
           </Button>
 
-          {/* From Media Library - optional */}
+          {/* From Media Library - optional - solid blue */}
           {showLibraryButton && onLibraryClick && (
             <Button
               onClick={onLibraryClick}
-              className={cn(buttonClass, "text-white hover:opacity-90 transition-opacity")}
-              style={{ backgroundColor: '#053877' }}
+              className={cn(buttonClass, "bg-primary text-white hover:bg-primary/90 border-0")}
             >
               <FolderOpen className="h-4 w-4" />
               From Media Library
             </Button>
           )}
 
-          {/* Import from YouTube */}
+          {/* Import from YouTube - solid red */}
           <Button
             onClick={() => setShowYouTubeModal(true)}
-            variant="outline"
-            className={cn(buttonClass, "border-red-400 text-red-600 hover:bg-red-50 hover:text-red-700")}
+            className={cn(buttonClass, "bg-red-600 text-white hover:bg-red-700 border-0")}
           >
             <PlayCircle className="h-4 w-4" />
             Import from YouTube
@@ -255,12 +330,11 @@ export function MediaUploadOptions({
 
         {/* Row 2: Zoom, Riverside, Descript */}
         <div className={cn(layout === 'vertical' ? "flex flex-col gap-2 w-full" : "flex flex-wrap gap-3 justify-center")}>
-          {/* Import from Zoom */}
+          {/* Import from Zoom - solid blue */}
           <Button
             onClick={handleZoomClick}
             disabled={isLoadingZoom}
-            className={cn(buttonClass, "text-white hover:opacity-90 transition-opacity")}
-            style={{ backgroundColor: '#2C6BED' }}
+            className={cn(buttonClass, "bg-blue-600 text-white hover:bg-blue-700 border-0")}
           >
             {isLoadingZoom ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -270,58 +344,61 @@ export function MediaUploadOptions({
             Import from Zoom
           </Button>
 
-          {/* Import from Riverside */}
+          {/* Import from Riverside - solid purple */}
           <Button
             onClick={handleRiversideClick}
-            variant="outline"
-            className={cn(buttonClass, "bg-purple-50 text-purple-600 border-purple-300 hover:bg-purple-100")}
+            className={cn(buttonClass, "bg-purple-600 text-white hover:bg-purple-700 border-0")}
           >
             <AudioWaveform className="h-4 w-4" />
             Import from Riverside
           </Button>
 
-          {/* Import from Descript */}
-          <Button
-            onClick={() => toast.info("Coming Soon", { description: "Descript integration is in development" })}
-            variant="outline"
-            className={cn(buttonClass, "bg-green-50 text-green-600 border-green-300 hover:bg-green-100")}
-          >
-            <AudioWaveform className="h-4 w-4" />
-            Import from Descript
-          </Button>
+          {/* Import from Descript - Coming Soon (grey with vote) */}
+          <ComingSoonVotePopover name="Descript">
+            <Button
+              variant="outline"
+              className={comingSoonButtonClass}
+            >
+              <AudioWaveform className="h-4 w-4" />
+              Import from Descript
+            </Button>
+          </ComingSoonVotePopover>
         </div>
 
         {/* Row 3: Squadcast, Zencastr, Google Drive */}
         <div className={cn(layout === 'vertical' ? "flex flex-col gap-2 w-full" : "flex flex-wrap gap-3 justify-center")}>
-          {/* Import from Squadcast */}
-          <Button
-            onClick={() => toast.info("Coming Soon", { description: "Squadcast integration is in development" })}
-            variant="outline"
-            className={cn(buttonClass, "bg-orange-50 text-orange-600 border-orange-300 hover:bg-orange-100")}
-          >
-            <AudioWaveform className="h-4 w-4" />
-            Import from Squadcast
-          </Button>
+          {/* Import from Squadcast - Coming Soon (grey with vote) */}
+          <ComingSoonVotePopover name="Squadcast">
+            <Button
+              variant="outline"
+              className={comingSoonButtonClass}
+            >
+              <AudioWaveform className="h-4 w-4" />
+              Import from Squadcast
+            </Button>
+          </ComingSoonVotePopover>
 
-          {/* Import from Zencastr */}
-          <Button
-            onClick={() => toast.info("Coming Soon", { description: "Zencastr integration is in development" })}
-            variant="outline"
-            className={cn(buttonClass, "bg-indigo-50 text-indigo-600 border-indigo-300 hover:bg-indigo-100")}
-          >
-            <AudioWaveform className="h-4 w-4" />
-            Import from Zencastr
-          </Button>
+          {/* Import from Zencastr - Coming Soon (grey with vote) */}
+          <ComingSoonVotePopover name="Zencastr">
+            <Button
+              variant="outline"
+              className={comingSoonButtonClass}
+            >
+              <AudioWaveform className="h-4 w-4" />
+              Import from Zencastr
+            </Button>
+          </ComingSoonVotePopover>
 
-          {/* Import from Google Drive */}
-          <Button
-            onClick={() => toast.info("Coming Soon", { description: "Google Drive integration is in development" })}
-            variant="outline"
-            className={cn(buttonClass, "bg-blue-50 text-blue-600 border-blue-300 hover:bg-blue-100")}
-          >
-            <FolderOpen className="h-4 w-4" />
-            Import from Google Drive
-          </Button>
+          {/* Import from Google Drive - Coming Soon (grey with vote) */}
+          <ComingSoonVotePopover name="Google Drive">
+            <Button
+              variant="outline"
+              className={comingSoonButtonClass}
+            >
+              <FolderOpen className="h-4 w-4" />
+              Import from Google Drive
+            </Button>
+          </ComingSoonVotePopover>
         </div>
       </div>
 
