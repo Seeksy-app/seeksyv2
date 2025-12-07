@@ -286,6 +286,7 @@ import InfluenceHub from "./pages/InfluenceHub";
 import InfluenceHubConnect from "./pages/InfluenceHubConnect";
 import InfluenceHubCreators from "./pages/InfluenceHubCreators";
 import InfluenceHubMedia from "./pages/InfluenceHubMedia";
+import MyAppearances from "./pages/MyAppearances";
 import UpdateMediaDurations from "./pages/UpdateMediaDurations";
 import Tasks from "./pages/Tasks";
 import MyWork from "./pages/MyWork";
@@ -822,6 +823,7 @@ const AppContent = () => {
           <Route path="/influencehub/connect" element={<InfluenceHubConnect />} />
           <Route path="/influencehub/creators" element={<InfluenceHubCreators />} />
           <Route path="/influencehub/media" element={<InfluenceHubMedia />} />
+          <Route path="/my-appearances" element={<MyAppearances />} />
           <Route path="/tasks" element={<Tasks />} />
               <Route path="/polls" element={<Polls />} />
               <Route path="/create-poll" element={<CreatePoll />} />

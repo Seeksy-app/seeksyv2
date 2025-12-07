@@ -380,3 +380,6 @@ verify_jwt = false
 
 [functions.sync-gmail-inbox]
 verify_jwt = true
+
+[functions.scan-guest-appearances]
+verify_jwt = true
