@@ -51,8 +51,14 @@ export function useBoardViewMode() {
     },
   });
 
-  const toggleBoardView = () => {
-    toggleBoardViewMutation.mutate(!viewMode?.viewAsBoard);
+  const toggleBoardView = (): Promise<boolean> => {
+    const newValue = !viewMode?.viewAsBoard;
+    return new Promise((resolve, reject) => {
+      toggleBoardViewMutation.mutate(newValue, {
+        onSuccess: () => resolve(newValue),
+        onError: (error) => reject(error),
+      });
+    });
   };
 
   return {

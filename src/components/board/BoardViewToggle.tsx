@@ -14,16 +14,18 @@ export function BoardViewToggle() {
 
   if (!canToggleBoardView) return null;
 
-  const handleToggle = () => {
-    toggleBoardView();
-    // Navigate to appropriate dashboard after toggle
-    setTimeout(() => {
-      if (!isViewingAsBoard) {
+  const handleToggle = async () => {
+    try {
+      const newValue = await toggleBoardView();
+      // Navigate after mutation completes
+      if (newValue) {
         navigate('/board');
       } else {
         navigate('/admin');
       }
-    }, 100);
+    } catch (error) {
+      console.error('Failed to toggle board view:', error);
+    }
   };
 
   return (
