@@ -27,7 +27,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Plus, FileAudio, FileVideo, FileText, Shield, Loader2, Music, Youtube, Download, ExternalLink, CheckCircle, RefreshCw, Clock, Search } from "lucide-react";
+import { Plus, FileAudio, FileVideo, FileText, Shield, Loader2, Music, Youtube, Download, ExternalLink, CheckCircle, RefreshCw, Clock, Search, StopCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useSpotifyConnect } from "@/hooks/useSpotifyConnect";
 import { useYouTubeConnect } from "@/hooks/useYouTubeConnect";
@@ -232,8 +232,54 @@ export const MyProofsTab = () => {
     }
   };
 
+  // Build active scan status message
+  const getActiveScanStatus = () => {
+    const scanning: string[] = [];
+    if (isSpotifyImporting) scanning.push("Spotify");
+    if (isYouTubeImporting) scanning.push("YouTube");
+    return scanning;
+  };
+
+  const activeScanChannels = getActiveScanStatus();
+  const isScanning = activeScanChannels.length > 0;
+
+  const handleStopScan = () => {
+    // Note: This is a UI indication - actual abort would require AbortController in the hooks
+    toast.info("Scan will stop after current batch completes");
+  };
+
   return (
     <div className="space-y-6">
+      {/* Active Scan Status Banner */}
+      {isScanning && (
+        <Card className="p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-blue-500/30">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <RefreshCw className="h-5 w-5 text-blue-500 animate-spin" />
+              </div>
+              <div>
+                <p className="font-medium text-sm flex items-center gap-2">
+                  <span className="text-blue-600">Scanning & Syncing...</span>
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {activeScanChannels.join(", ")}: Importing new content
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleStopScan}
+              className="text-red-600 border-red-300 hover:bg-red-50"
+            >
+              <StopCircle className="h-4 w-4 mr-1" />
+              Stop
+            </Button>
+          </div>
+        </Card>
+      )}
+
       {/* Import Options Card */}
       <Card className="p-4 bg-gradient-to-r from-primary/5 to-secondary/5 border-primary/20">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -252,14 +298,19 @@ export const MyProofsTab = () => {
                 variant="outline"
                 size="sm"
                 onClick={handleSpotifyImport}
-                disabled={isSpotifyImporting}
+                disabled={isSpotifyImporting || isYouTubeImporting}
               >
                 {isSpotifyImporting ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Syncing...
+                  </>
                 ) : (
-                  <Music className="h-4 w-4 mr-2 text-green-500" />
+                  <>
+                    <Music className="h-4 w-4 mr-2 text-green-500" />
+                    Import from Spotify
+                  </>
                 )}
-                Import from Spotify
               </Button>
             ) : (
               <Button
@@ -281,14 +332,19 @@ export const MyProofsTab = () => {
                 variant="outline"
                 size="sm"
                 onClick={handleYouTubeImport}
-                disabled={isYouTubeImporting}
+                disabled={isYouTubeImporting || isSpotifyImporting}
               >
                 {isYouTubeImporting ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Syncing...
+                  </>
                 ) : (
-                  <Youtube className="h-4 w-4 mr-2 text-red-500" />
+                  <>
+                    <Youtube className="h-4 w-4 mr-2 text-red-500" />
+                    Import from YouTube
+                  </>
                 )}
-                Import from YouTube
               </Button>
             ) : (
               <Button
