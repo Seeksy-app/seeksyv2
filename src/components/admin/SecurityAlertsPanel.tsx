@@ -1,10 +1,11 @@
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Shield, AlertTriangle, CheckCircle, Clock, ExternalLink } from "lucide-react";
+import { Shield, AlertTriangle, CheckCircle, Clock, ExternalLink, Key, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 
@@ -37,6 +38,7 @@ const severityIcons = {
 
 export function SecurityAlertsPanel() {
   const queryClient = useQueryClient();
+  const [isMigrating, setIsMigrating] = useState(false);
 
   const { data: alerts, isLoading } = useQuery({
     queryKey: ["security-alerts"],
@@ -51,6 +53,36 @@ export function SecurityAlertsPanel() {
       return data as SecurityAlert[];
     },
   });
+
+  const runTokenMigration = async () => {
+    setIsMigrating(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast.error("You must be logged in to run the migration");
+        return;
+      }
+
+      const response = await supabase.functions.invoke("migrate-oauth-tokens", {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (response.error) {
+        throw response.error;
+      }
+
+      const result = response.data;
+      toast.success(`Token migration complete: ${result.migrated} encrypted, ${result.skipped} already encrypted`);
+      queryClient.invalidateQueries({ queryKey: ["security-alerts"] });
+    } catch (error) {
+      console.error("Migration error:", error);
+      toast.error("Failed to run token migration");
+    } finally {
+      setIsMigrating(false);
+    }
+  };
 
   const resolveAlert = useMutation({
     mutationFn: async (alertId: string) => {
@@ -97,7 +129,20 @@ export function SecurityAlertsPanel() {
             <Shield className="h-5 w-5 text-primary" />
             Security Alerts
           </CardTitle>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={runTokenMigration}
+              disabled={isMigrating}
+            >
+              {isMigrating ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Key className="h-4 w-4 mr-2" />
+              )}
+              {isMigrating ? "Migrating..." : "Encrypt Tokens"}
+            </Button>
             {criticalCount > 0 && (
               <Badge variant="destructive" className="animate-pulse">
                 {criticalCount} Critical
