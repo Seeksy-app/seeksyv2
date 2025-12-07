@@ -290,25 +290,20 @@ export default function BoardVideos() {
                         <CardContent className="p-3">
                           <div className="flex items-start gap-3">
                             {/* Thumbnail */}
-                            <div className="relative w-24 h-16 flex-shrink-0 rounded-md overflow-hidden bg-slate-200">
+                            <div className="relative w-24 h-16 flex-shrink-0 rounded-md overflow-hidden bg-gradient-to-br from-slate-700 to-slate-900">
                               {video.thumbnail_url ? (
                                 <img 
                                   src={video.thumbnail_url} 
                                   alt={video.title}
                                   className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                  }}
                                 />
-                              ) : video.video_url ? (
-                                <video 
-                                  src={`${video.video_url}#t=2`}
-                                  muted
-                                  preload="metadata"
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-700 to-slate-900">
-                                  <Play className="w-6 h-6 text-white/70" />
-                                </div>
-                              )}
+                              ) : null}
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <Play className="w-6 h-6 text-white/70" />
+                              </div>
                               {/* Play overlay */}
                               <div className={cn(
                                 'absolute inset-0 flex items-center justify-center',

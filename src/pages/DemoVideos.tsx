@@ -320,25 +320,20 @@ export default function DemoVideos() {
                           >
                             <div className="p-3 space-y-2">
                               {/* Thumbnail */}
-                              <div className="aspect-video bg-muted rounded-md overflow-hidden relative">
+                              <div className="aspect-video bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-900 rounded-md overflow-hidden relative">
                                 {video.thumbnail_url ? (
                                   <img
                                     src={video.thumbnail_url}
                                     alt={video.title}
                                     className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                    }}
                                   />
-                                ) : video.video_url ? (
-                                  <video 
-                                    src={`${video.video_url}#t=2`}
-                                    muted
-                                    preload="metadata"
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center">
-                                    <Play className="h-8 w-8 text-muted-foreground" />
-                                  </div>
-                                )}
+                                ) : null}
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <Play className="h-8 w-8 text-muted-foreground" />
+                                </div>
                                 {video.duration_seconds && (
                                   <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
                                     {formatDuration(video.duration_seconds)}
