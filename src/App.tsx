@@ -158,6 +158,7 @@ import CreateSponsorship from "./pages/CreateSponsorship";
 import AdminConversationalDemo from "./pages/AdminConversationalDemo";
 import AdvertiserPricing from "./pages/AdvertiserPricing";
 import VoiceProtection from "./pages/VoiceProtection";
+import ContentProtectionDashboard from "./pages/content-protection/ContentProtectionDashboard";
 import VoiceCredentials from "./pages/VoiceCredentialsSimple";
 import VoiceCredentialsAdmin from "./pages/admin/VoiceCredentialsAdmin";
 import StudioRecordingNew from "./pages/studio/StudioRecordingNew";
@@ -886,6 +887,7 @@ const AppContent = () => {
               <Route path="/admin/system-tools" element={<SystemTools />} />
               <Route path="/admin/security" element={<AdminSecurityOverview />} />
               <Route path="/admin/data-recovery" element={<DataRecovery />} />
+              <Route path="/content-protection" element={<ContentProtectionDashboard />} />
           <Route path="/demo-videos" element={<DemoVideos />} />
           <Route path="/admin/demo-videos" element={<DemoVideos />} />
           <Route path="/marketing-gtm" element={<MarketingGTMPlan />} />
