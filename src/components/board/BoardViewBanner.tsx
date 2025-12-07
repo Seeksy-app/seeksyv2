@@ -9,11 +9,13 @@ export function BoardViewBanner() {
 
   if (!canToggleBoardView || !isViewingAsBoard) return null;
 
-  const handleReturn = () => {
-    toggleBoardView();
-    setTimeout(() => {
+  const handleReturn = async () => {
+    try {
+      await toggleBoardView();
       navigate('/admin');
-    }, 100);
+    } catch (error) {
+      console.error('Failed to exit board view:', error);
+    }
   };
 
   return (

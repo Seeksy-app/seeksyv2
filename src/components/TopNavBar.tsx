@@ -118,7 +118,11 @@ export function TopNavBar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={() => navigate('/settings')}>
+                <DropdownMenuItem onClick={() => {
+                  // Route to admin settings if on admin routes, otherwise regular settings
+                  const isAdminRoute = location.pathname.startsWith('/admin');
+                  navigate(isAdminRoute ? '/admin/profile-settings' : '/settings');
+                }}>
                   <Settings className="h-4 w-4 mr-2" />
                   Settings
                 </DropdownMenuItem>
