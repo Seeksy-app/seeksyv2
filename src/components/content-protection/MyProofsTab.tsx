@@ -48,7 +48,6 @@ export const MyProofsTab = () => {
         .select("id")
         .eq("user_id", user.id)
         .eq("platform", "spotify")
-        .eq("is_active", true)
         .maybeSingle();
       return result.data as { id: string } | null;
     },
@@ -65,7 +64,6 @@ export const MyProofsTab = () => {
         .select("id")
         .eq("user_id", user.id)
         .eq("platform", "youtube")
-        .eq("is_active", true)
         .maybeSingle();
       return result.data as { id: string } | null;
     },
