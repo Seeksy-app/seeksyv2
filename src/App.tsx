@@ -887,7 +887,6 @@ const AppContent = () => {
               <Route path="/admin/system-tools" element={<SystemTools />} />
               <Route path="/admin/security" element={<AdminSecurityOverview />} />
               <Route path="/admin/data-recovery" element={<DataRecovery />} />
-              <Route path="/broadcast-monitoring" element={<ContentProtectionDashboard />} />
           <Route path="/demo-videos" element={<DemoVideos />} />
           <Route path="/admin/demo-videos" element={<DemoVideos />} />
           <Route path="/marketing-gtm" element={<MarketingGTMPlan />} />
@@ -976,6 +975,7 @@ const AppContent = () => {
           <Route path="/identity" element={<IdentityHub />} />
           <Route path="/identity/voice" element={<MyVoiceIdentity />} />
           <Route path="/identity/rights" element={<IdentityRightsManagement />} />
+          <Route path="/broadcast-monitoring" element={<ContentProtectionDashboard />} />
           <Route path="/certificate/identity/:id" element={<IdentityCertificatePage />} />
           <Route path="/creator/:username/identity" element={<PublicCreatorIdentity />} />
           <Route path="/identity-dashboard" element={<IdentityDashboard />} />
