@@ -2322,6 +2322,36 @@ export type Database = {
         }
         Relationships: []
       }
+      autosave_drafts: {
+        Row: {
+          draft_data: Json
+          expires_at: string | null
+          form_id: string | null
+          form_type: string
+          id: string
+          last_saved_at: string
+          user_id: string
+        }
+        Insert: {
+          draft_data: Json
+          expires_at?: string | null
+          form_id?: string | null
+          form_type: string
+          id?: string
+          last_saved_at?: string
+          user_id: string
+        }
+        Update: {
+          draft_data?: Json
+          expires_at?: string | null
+          form_id?: string | null
+          form_type?: string
+          id?: string
+          last_saved_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       availability_schedules: {
         Row: {
           created_at: string | null
@@ -6331,6 +6361,42 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_history: {
+        Row: {
+          change_type: string
+          changed_fields: string[] | null
+          contact_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          snapshot: Json
+          user_id: string | null
+          version_number: number
+        }
+        Insert: {
+          change_type: string
+          changed_fields?: string[] | null
+          contact_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          snapshot: Json
+          user_id?: string | null
+          version_number?: number
+        }
+        Update: {
+          change_type?: string
+          changed_fields?: string[] | null
+          contact_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          snapshot?: Json
+          user_id?: string | null
+          version_number?: number
+        }
+        Relationships: []
+      }
       contact_list_members: {
         Row: {
           added_at: string | null
@@ -8091,6 +8157,48 @@ export type Database = {
         }
         Relationships: []
       }
+      data_version_history: {
+        Row: {
+          changed_fields: string[] | null
+          created_at: string
+          id: string
+          ip_address: string | null
+          new_data: Json | null
+          old_data: Json | null
+          operation: string
+          record_id: string
+          table_name: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          changed_fields?: string[] | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          operation: string
+          record_id: string
+          table_name: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          changed_fields?: string[] | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          operation?: string
+          record_id?: string
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       decision_simulations: {
         Row: {
           ai_recommendation: string | null
@@ -8139,6 +8247,48 @@ export type Database = {
           scenario_description?: string
           simulated_metrics?: Json | null
           variables?: Json | null
+        }
+        Relationships: []
+      }
+      deleted_items_recovery: {
+        Row: {
+          deleted_at: string
+          deleted_by: string | null
+          deleted_data: Json
+          id: string
+          is_recovered: boolean | null
+          original_id: string
+          original_table: string
+          recovered_at: string | null
+          recovered_by: string | null
+          recovery_expires_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          deleted_at?: string
+          deleted_by?: string | null
+          deleted_data: Json
+          id?: string
+          is_recovered?: boolean | null
+          original_id: string
+          original_table: string
+          recovered_at?: string | null
+          recovered_by?: string | null
+          recovery_expires_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          deleted_at?: string
+          deleted_by?: string | null
+          deleted_data?: Json
+          id?: string
+          is_recovered?: boolean | null
+          original_id?: string
+          original_table?: string
+          recovered_at?: string | null
+          recovered_by?: string | null
+          recovery_expires_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -19472,6 +19622,54 @@ export type Database = {
           },
         ]
       }
+      system_health_log: {
+        Row: {
+          created_at: string
+          error_details: Json | null
+          error_message: string | null
+          event_type: string
+          id: string
+          record_id: string | null
+          resolved: boolean | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          stack_trace: string | null
+          table_name: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_details?: Json | null
+          error_message?: string | null
+          event_type: string
+          id?: string
+          record_id?: string | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: string
+          stack_trace?: string | null
+          table_name?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_details?: Json | null
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          record_id?: string | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          stack_trace?: string | null
+          table_name?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       tab_views: {
         Row: {
           id: string
@@ -21925,6 +22123,7 @@ export type Database = {
         Args: { p_nominee_id: string }
         Returns: number
       }
+      cleanup_expired_autosaves: { Args: never; Returns: number }
       create_meeting_public: {
         Args: {
           p_attendee_email: string
@@ -21953,6 +22152,10 @@ export type Database = {
       generate_rsvp_token: { Args: never; Returns: string }
       generate_support_ticket_number: { Args: never; Returns: string }
       generate_ticket_number: { Args: never; Returns: string }
+      get_contact_version: {
+        Args: { p_contact_id: string; p_version?: number }
+        Returns: Json
+      }
       get_current_usage: {
         Args: { _feature_type: string; _user_id: string }
         Returns: number
@@ -22013,6 +22216,7 @@ export type Database = {
         Returns: boolean
       }
       reset_monthly_usage: { Args: never; Returns: undefined }
+      restore_deleted_item: { Args: { p_recovery_id: string }; Returns: Json }
       restore_media: {
         Args: { media_id: string; media_type: string }
         Returns: boolean
