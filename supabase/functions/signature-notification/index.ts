@@ -16,6 +16,7 @@ interface NotificationRequest {
   linkId?: string;
   deviceType?: string;
   emailClient?: string;
+  recipientEmail?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -25,7 +26,7 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const payload: NotificationRequest = await req.json();
-    const { userId, signatureId, eventId, eventType, targetUrl, linkId, deviceType, emailClient } = payload;
+    const { userId, signatureId, eventId, eventType, targetUrl, linkId, deviceType, emailClient, recipientEmail } = payload;
 
     console.log("[Signature Notification] Received:", payload);
 
@@ -180,7 +181,9 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     if (eventType === "open") {
-      subject = `Someone opened your email`;
+      subject = recipientEmail 
+        ? `${recipientEmail} opened your email`
+        : `Someone opened your email`;
       bodyHtml = `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
@@ -188,7 +191,10 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
           <div style="background: #f8fafc; padding: 30px; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0; border-top: none;">
             <p style="font-size: 16px; color: #334155; margin: 0 0 20px;">
-              Great news! Someone opened your email that uses <strong>"${signatureName}"</strong> signature.
+              ${recipientEmail 
+                ? `<strong>${recipientEmail}</strong> opened your email that uses <strong>"${signatureName}"</strong> signature.`
+                : `Someone opened your email that uses <strong>"${signatureName}"</strong> signature.`
+              }
             </p>
             <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
               <table style="width: 100%; border-collapse: collapse;">
@@ -196,6 +202,12 @@ const handler = async (req: Request): Promise<Response> => {
                   <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Event</td>
                   <td style="padding: 8px 0; color: #1e293b; font-size: 14px; font-weight: 600; text-align: right;">Email Opened</td>
                 </tr>
+                ${recipientEmail ? `
+                <tr>
+                  <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Recipient</td>
+                  <td style="padding: 8px 0; color: #3b82f6; font-size: 14px; font-weight: 600; text-align: right;">${recipientEmail}</td>
+                </tr>
+                ` : ""}
                 <tr>
                   <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Signature</td>
                   <td style="padding: 8px 0; color: #1e293b; font-size: 14px; text-align: right;">${signatureName}</td>
