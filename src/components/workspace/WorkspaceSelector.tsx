@@ -12,7 +12,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -41,37 +40,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-const WORKSPACE_TEMPLATES = [
-  {
-    id: "podcast",
-    name: "Podcast Workspace",
-    description: "For podcast creators",
-    modules: ["studio", "podcasts", "clips", "ai-post-production", "media-library", "blog"],
-    color: "#8B5CF6",
-  },
-  {
-    id: "creator",
-    name: "Creator Workspace",
-    description: "For content creators",
-    modules: ["studio", "clips", "media-library", "my-page", "campaigns", "contacts"],
-    color: "#F59E0B",
-  },
-  {
-    id: "business",
-    name: "Business Workspace",
-    description: "For client services",
-    modules: ["crm", "projects", "tasks", "meetings", "proposals", "email"],
-    color: "#10B981",
-  },
-  {
-    id: "blank",
-    name: "Blank Workspace",
-    description: "Start from scratch",
-    modules: [],
-    color: "#6B7280",
-  },
-];
+import { CreateWorkspaceModal } from "./CreateWorkspaceModal";
 
 export function WorkspaceSelector() {
   const { 
@@ -86,38 +55,15 @@ export function WorkspaceSelector() {
   
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showRenameDialog, setShowRenameDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
   const [workspaceToEdit, setWorkspaceToEdit] = useState<Workspace | null>(null);
 
   const filteredWorkspaces = workspaces.filter(w =>
     w.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const handleCreateWorkspace = async () => {
-    if (!newWorkspaceName.trim()) {
-      toast.error("Please enter a workspace name");
-      return;
-    }
-
-    const template = WORKSPACE_TEMPLATES.find(t => t.id === selectedTemplate);
-    const workspace = await createWorkspace(
-      newWorkspaceName,
-      template?.modules || []
-    );
-
-    if (workspace) {
-      setCurrentWorkspace(workspace);
-      toast.success(`Workspace "${newWorkspaceName}" created`);
-    }
-
-    setShowCreateDialog(false);
-    setNewWorkspaceName("");
-    setSelectedTemplate(null);
-  };
 
   const handleRenameWorkspace = async () => {
     if (!workspaceToEdit || !newWorkspaceName.trim()) return;
@@ -323,7 +269,7 @@ export function WorkspaceSelector() {
           {/* Actions */}
           <DropdownMenuItem 
             onClick={() => {
-              setShowCreateDialog(true);
+              setShowCreateModal(true);
               setIsOpen(false);
             }}
             className="gap-2"
@@ -339,63 +285,11 @@ export function WorkspaceSelector() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Create Workspace Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Create new workspace</DialogTitle>
-            <DialogDescription>
-              Choose a template or start from scratch
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div>
-              <label className="text-sm font-medium">Workspace name</label>
-              <Input
-                value={newWorkspaceName}
-                onChange={(e) => setNewWorkspaceName(e.target.value)}
-                placeholder="My new workspace"
-                className="mt-1.5"
-              />
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium">Choose a template</label>
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                {WORKSPACE_TEMPLATES.map((template) => (
-                  <button
-                    key={template.id}
-                    onClick={() => setSelectedTemplate(template.id)}
-                    className={cn(
-                      "p-3 rounded-lg border text-left transition-colors",
-                      selectedTemplate === template.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    )}
-                  >
-                    <div
-                      className="w-8 h-8 rounded-md mb-2"
-                      style={{ backgroundColor: template.color }}
-                    />
-                    <p className="font-medium text-sm">{template.name}</p>
-                    <p className="text-xs text-muted-foreground">{template.description}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleCreateWorkspace}>
-              Create workspace
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Create Workspace Modal */}
+      <CreateWorkspaceModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+      />
 
       {/* Rename Dialog */}
       <Dialog open={showRenameDialog} onOpenChange={setShowRenameDialog}>
