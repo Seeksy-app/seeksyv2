@@ -16,6 +16,7 @@ import {
   Loader2,
   Shield
 } from "lucide-react";
+import { SecurityAlertsPanel } from "@/components/admin/SecurityAlertsPanel";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -339,6 +340,9 @@ export default function Admin() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Security Alerts */}
+      <SecurityAlertsPanel />
 
       {/* System Status */}
       <Card>
