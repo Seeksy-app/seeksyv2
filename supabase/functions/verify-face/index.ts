@@ -275,6 +275,44 @@ Respond ONLY with valid JSON in this format:
       console.log("→ Created new face identity record");
     }
 
+    // Step 6: Also update/create identity_assets record for the hub to detect
+    const { data: existingAsset } = await supabase
+      .from('identity_assets')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('type', 'face_identity')
+      .maybeSingle();
+
+    if (existingAsset) {
+      await supabase
+        .from('identity_assets')
+        .update({
+          cert_status: 'minted',
+          face_hash: faceHash,
+          cert_explorer_url: `https://polygonscan.com/tx/${faceHash}`,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', existingAsset.id);
+      console.log(`→ Updated identity_asset to minted: ${existingAsset.id}`);
+    } else {
+      const { error: assetError } = await supabase
+        .from('identity_assets')
+        .insert({
+          user_id: user.id,
+          type: 'face_identity',
+          title: 'Face Identity',
+          cert_status: 'minted',
+          face_hash: faceHash,
+          cert_explorer_url: `https://polygonscan.com/tx/${faceHash}`,
+        });
+      
+      if (assetError) {
+        console.error("⚠ Failed to create identity_asset (non-fatal):", assetError);
+      } else {
+        console.log("→ Created identity_asset record");
+      }
+    }
+
     console.log("✓ Face identity verified and saved");
 
     return new Response(
