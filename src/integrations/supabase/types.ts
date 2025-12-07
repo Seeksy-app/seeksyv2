@@ -14134,8 +14134,125 @@ export type Database = {
           },
         ]
       }
+      newsletter_ad_clicks: {
+        Row: {
+          ad_placement_id: string | null
+          campaign_id: string | null
+          clicked_at: string
+          id: string
+          ip_hash: string | null
+          subscriber_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          ad_placement_id?: string | null
+          campaign_id?: string | null
+          clicked_at?: string
+          id?: string
+          ip_hash?: string | null
+          subscriber_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          ad_placement_id?: string | null
+          campaign_id?: string | null
+          clicked_at?: string
+          id?: string
+          ip_hash?: string | null
+          subscriber_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_ad_clicks_ad_placement_id_fkey"
+            columns: ["ad_placement_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_ad_placements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "newsletter_ad_clicks_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "newsletter_ad_clicks_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      newsletter_ad_placements: {
+        Row: {
+          ad_content: Json | null
+          ad_type: string
+          advertiser_id: string | null
+          campaign_id: string | null
+          cpc_rate: number | null
+          cpm_rate: number | null
+          created_at: string
+          flat_rate: number | null
+          id: string
+          is_filled: boolean | null
+          placement_type: string
+          position_index: number
+          updated_at: string
+        }
+        Insert: {
+          ad_content?: Json | null
+          ad_type?: string
+          advertiser_id?: string | null
+          campaign_id?: string | null
+          cpc_rate?: number | null
+          cpm_rate?: number | null
+          created_at?: string
+          flat_rate?: number | null
+          id?: string
+          is_filled?: boolean | null
+          placement_type?: string
+          position_index: number
+          updated_at?: string
+        }
+        Update: {
+          ad_content?: Json | null
+          ad_type?: string
+          advertiser_id?: string | null
+          campaign_id?: string | null
+          cpc_rate?: number | null
+          cpm_rate?: number | null
+          created_at?: string
+          flat_rate?: number | null
+          id?: string
+          is_filled?: boolean | null
+          placement_type?: string
+          position_index?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_ad_placements_advertiser_id_fkey"
+            columns: ["advertiser_id"]
+            isOneToOne: false
+            referencedRelation: "advertisers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "newsletter_ad_placements_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       newsletter_campaigns: {
         Row: {
+          ai_ad_placement_enabled: boolean | null
+          blocks: Json | null
           clicked_count: number | null
           created_at: string
           html_content: string
@@ -14147,11 +14264,14 @@ export type Database = {
           sent_at: string | null
           status: string
           subject: string
+          template_id: string | null
           title: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          ai_ad_placement_enabled?: boolean | null
+          blocks?: Json | null
           clicked_count?: number | null
           created_at?: string
           html_content: string
@@ -14163,11 +14283,14 @@ export type Database = {
           sent_at?: string | null
           status?: string
           subject: string
+          template_id?: string | null
           title: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          ai_ad_placement_enabled?: boolean | null
+          blocks?: Json | null
           clicked_count?: number | null
           created_at?: string
           html_content?: string
@@ -14179,11 +14302,83 @@ export type Database = {
           sent_at?: string | null
           status?: string
           subject?: string
+          template_id?: string | null
           title?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_campaigns_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      newsletter_revenue: {
+        Row: {
+          ad_placement_id: string | null
+          campaign_id: string | null
+          clicks: number | null
+          created_at: string
+          creator_share: number
+          gross_amount: number
+          id: string
+          impressions: number | null
+          period_end: string | null
+          period_start: string | null
+          platform_fee: number
+          revenue_type: string
+          user_id: string
+        }
+        Insert: {
+          ad_placement_id?: string | null
+          campaign_id?: string | null
+          clicks?: number | null
+          created_at?: string
+          creator_share?: number
+          gross_amount?: number
+          id?: string
+          impressions?: number | null
+          period_end?: string | null
+          period_start?: string | null
+          platform_fee?: number
+          revenue_type: string
+          user_id: string
+        }
+        Update: {
+          ad_placement_id?: string | null
+          campaign_id?: string | null
+          clicks?: number | null
+          created_at?: string
+          creator_share?: number
+          gross_amount?: number
+          id?: string
+          impressions?: number | null
+          period_end?: string | null
+          period_start?: string | null
+          platform_fee?: number
+          revenue_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_revenue_ad_placement_id_fkey"
+            columns: ["ad_placement_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_ad_placements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "newsletter_revenue_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       newsletter_sends: {
         Row: {
@@ -14278,6 +14473,39 @@ export type Database = {
           unsubscribed_at?: string | null
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      newsletter_templates: {
+        Row: {
+          blocks: Json
+          created_at: string
+          description: string | null
+          id: string
+          is_default: boolean | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          blocks?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          blocks?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
