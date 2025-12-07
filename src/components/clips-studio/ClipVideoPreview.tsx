@@ -5,7 +5,8 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { 
   Play, Pause, SkipBack, SkipForward, Maximize2, Volume2, VolumeX,
-  Smartphone, Monitor, Square, RectangleHorizontal, Scissors, AlertCircle, Youtube
+  Smartphone, Monitor, Square, RectangleHorizontal, Scissors, AlertCircle, Youtube,
+  Plus, Check
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -13,6 +14,8 @@ import { motion } from "framer-motion";
 interface ClipVideoPreviewProps {
   clip: ClipData | null;
   sourceMedia: SourceMedia;
+  onAddToQueue?: (clipId: string, clipTitle: string, format: string, thumbnailUrl?: string) => void;
+  isInQueue?: (clipId: string, format: string) => boolean;
 }
 
 // Interface for transcript word timing
@@ -76,7 +79,7 @@ function getCurrentCaption(words: TranscriptWord[], currentTime: number, clipSta
   }).join(" ");
 }
 
-export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
+export function ClipVideoPreview({ clip, sourceMedia, onAddToQueue, isInQueue }: ClipVideoPreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -382,23 +385,59 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
           </Button>
         </div>
 
-        {/* Aspect ratio selector */}
+        {/* Aspect ratio selector with Add to Queue */}
         <div className="flex items-center justify-center gap-2">
-          {aspectRatios.map((ratio) => (
-            <button
-              key={ratio.id}
-              onClick={() => setSelectedRatio(ratio.id)}
+          {aspectRatios.map((ratio) => {
+            const inQueue = clip && isInQueue?.(clip.id, ratio.id);
+            return (
+              <button
+                key={ratio.id}
+                onClick={() => setSelectedRatio(ratio.id)}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all text-sm",
+                  selectedRatio === ratio.id
+                    ? "bg-[#053877] text-white shadow-lg"
+                    : "bg-muted hover:bg-muted/80 text-muted-foreground",
+                  inQueue && "ring-2 ring-green-500"
+                )}
+              >
+                <ratio.icon className="h-4 w-4" />
+                <span className="font-medium">{ratio.label}</span>
+                {inQueue && <Check className="h-3 w-3 text-green-400" />}
+              </button>
+            );
+          })}
+          
+          {/* Add to Queue button */}
+          {clip && onAddToQueue && (
+            <Button
+              size="sm"
               className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all text-sm",
-                selectedRatio === ratio.id
-                  ? "bg-[#053877] text-white shadow-lg"
-                  : "bg-muted hover:bg-muted/80 text-muted-foreground"
+                "ml-2",
+                isInQueue?.(clip.id, selectedRatio)
+                  ? "bg-green-600 hover:bg-green-700"
+                  : "bg-[#F5C242] hover:bg-[#F5C242]/90 text-black"
+              )}
+              onClick={() => onAddToQueue(
+                clip.id, 
+                clip.title || "Untitled Clip", 
+                selectedRatio,
+                clip.thumbnail_url || sourceMedia.thumbnail_url || undefined
               )}
             >
-              <ratio.icon className="h-4 w-4" />
-              <span className="font-medium">{ratio.label}</span>
-            </button>
-          ))}
+              {isInQueue?.(clip.id, selectedRatio) ? (
+                <>
+                  <Check className="h-4 w-4 mr-1" />
+                  Added
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add to Queue
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </div>
     </div>
