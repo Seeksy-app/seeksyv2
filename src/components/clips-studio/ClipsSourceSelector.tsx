@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { SourceMedia } from "@/pages/ClipsStudio";
 import { motion } from "framer-motion";
 import * as tus from "tus-js-client";
+import { MediaUploadOptions } from "@/components/media/MediaUploadOptions";
 
 interface ClipsSourceSelectorProps {
   onMediaSelect: (media: SourceMedia) => void;
@@ -330,7 +331,7 @@ export function ClipsSourceSelector({ onMediaSelect, onBack }: ClipsSourceSelect
             </div>
 
             {activeTab === 'upload' ? (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -339,39 +340,32 @@ export function ClipsSourceSelector({ onMediaSelect, onBack }: ClipsSourceSelect
                   onChange={handleFileUpload}
                 />
                 
-                <motion.div 
-                  onClick={() => !isUploading && fileInputRef.current?.click()}
-                  className={cn(
-                    "border-2 border-dashed rounded-xl p-16 text-center cursor-pointer transition-all",
-                    isUploading 
-                      ? "border-[#2C6BED] bg-[#2C6BED]/5" 
-                      : "border-muted-foreground/20 hover:border-[#2C6BED] hover:bg-[#2C6BED]/5"
-                  )}
-                  whileHover={{ scale: isUploading ? 1 : 1.01 }}
-                  whileTap={{ scale: isUploading ? 1 : 0.99 }}
-                >
-                  {isUploading ? (
+                {/* Import Options */}
+                <MediaUploadOptions
+                  onUploadClick={() => !isUploading && fileInputRef.current?.click()}
+                  onImportComplete={() => fetchMediaFiles()}
+                  className="mb-4"
+                />
+
+                {/* Upload Progress */}
+                {isUploading && (
+                  <motion.div 
+                    className="border-2 border-dashed rounded-xl p-8 text-center border-[#2C6BED] bg-[#2C6BED]/5"
+                  >
                     <div className="space-y-4">
-                      <Loader2 className="h-16 w-16 mx-auto text-[#2C6BED] animate-spin" />
+                      <Loader2 className="h-12 w-12 mx-auto text-[#2C6BED] animate-spin" />
                       <div className="space-y-3 max-w-xs mx-auto">
                         <p className="font-semibold text-lg">Uploading video...</p>
                         <Progress value={uploadProgress} className="h-2" />
                         <p className="text-sm text-muted-foreground">{uploadProgress}% complete</p>
                       </div>
                     </div>
-                  ) : (
-                    <>
-                      <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-[#053877] to-[#2C6BED] flex items-center justify-center">
-                        <Upload className="h-10 w-10 text-white" />
-                      </div>
-                      <p className="font-semibold text-xl mb-2">Drop your video here</p>
-                      <p className="text-muted-foreground mb-4">or click to browse</p>
-                      <p className="text-sm text-muted-foreground">
-                        Supports MP4, MOV, WebM up to 2GB
-                      </p>
-                    </>
-                  )}
-                </motion.div>
+                  </motion.div>
+                )}
+
+                <p className="text-center text-sm text-muted-foreground">
+                  Supports MP4, MOV, WebM up to 2GB
+                </p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -397,16 +391,19 @@ export function ClipsSourceSelector({ onMediaSelect, onBack }: ClipsSourceSelect
                     <Loader2 className="h-8 w-8 animate-spin text-[#2C6BED]" />
                   </div>
                 ) : filteredMedia.length === 0 ? (
-                  <div className="text-center py-16">
+                  <div className="text-center py-12">
                     <Film className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
                     <p className="font-semibold text-lg mb-2">No videos found</p>
                     <p className="text-muted-foreground mb-6">
-                      Upload a video to get started with AI clip generation
+                      Upload or import a video to get started with AI clip generation
                     </p>
-                    <Button onClick={() => setActiveTab('upload')} className="bg-[#053877] hover:bg-[#053877]/90">
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload Video
-                    </Button>
+                    <MediaUploadOptions
+                      onUploadClick={() => {
+                        setActiveTab('upload');
+                        setTimeout(() => fileInputRef.current?.click(), 100);
+                      }}
+                      onImportComplete={() => fetchMediaFiles()}
+                    />
                   </div>
                 ) : (
                   <ScrollArea className="h-[400px]">

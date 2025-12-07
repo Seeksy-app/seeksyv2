@@ -31,6 +31,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { UploadMediaDialog } from "@/components/media/UploadMediaDialog";
+import { MediaUploadOptions } from "@/components/media/MediaUploadOptions";
 import { toast } from "sonner";
 
 type MediaFilter = "all" | "audio" | "video" | "clips";
@@ -464,13 +465,14 @@ export default function MediaLibraryHub() {
         {isLoading ? (
           <div className="text-center py-20 text-muted-foreground">Loading...</div>
         ) : filteredItems.length === 0 ? (
-          <div className="text-center py-20">
+          <div className="text-center py-16">
             <FolderOpen className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
             <p className="font-medium text-foreground mb-1">No media files yet</p>
-            <p className="text-sm text-muted-foreground mb-4">Upload or record to get started</p>
-            <Button onClick={() => navigate("/studio")} className="bg-primary hover:bg-primary/90">
-              Go to Studio
-            </Button>
+            <p className="text-sm text-muted-foreground mb-6">Upload or import to get started</p>
+            <MediaUploadOptions
+              onUploadClick={() => setUploadDialogOpen(true)}
+              onImportComplete={() => queryClient.invalidateQueries({ queryKey: ["media-library-hub"] })}
+            />
           </div>
         ) : viewMode === "grid" ? (
           <div className={cn(
