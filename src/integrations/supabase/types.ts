@@ -14817,6 +14817,155 @@ export type Database = {
           },
         ]
       }
+      podcast_agent_conversations: {
+        Row: {
+          created_at: string
+          episode_id: string | null
+          id: string
+          podcast_id: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          episode_id?: string | null
+          id?: string
+          podcast_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          episode_id?: string | null
+          id?: string
+          podcast_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "podcast_agent_conversations_episode_id_fkey"
+            columns: ["episode_id"]
+            isOneToOne: false
+            referencedRelation: "episodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "podcast_agent_conversations_podcast_id_fkey"
+            columns: ["podcast_id"]
+            isOneToOne: false
+            referencedRelation: "podcasts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      podcast_agent_messages: {
+        Row: {
+          action_data: Json | null
+          action_status: string | null
+          action_type: string | null
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          role: string
+        }
+        Insert: {
+          action_data?: Json | null
+          action_status?: string | null
+          action_type?: string | null
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          role: string
+        }
+        Update: {
+          action_data?: Json | null
+          action_status?: string | null
+          action_type?: string | null
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "podcast_agent_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "podcast_agent_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      podcast_agent_tasks: {
+        Row: {
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          linked_task_id: string | null
+          priority: string | null
+          status: string | null
+          task_type: string
+          title: string
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          linked_task_id?: string | null
+          priority?: string | null
+          status?: string | null
+          task_type: string
+          title: string
+          updated_at?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          linked_task_id?: string | null
+          priority?: string | null
+          status?: string | null
+          task_type?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "podcast_agent_tasks_linked_task_id_fkey"
+            columns: ["linked_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "podcast_agent_tasks_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "podcast_episode_workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       podcast_campaign_selections: {
         Row: {
           campaign_id: string
@@ -14902,6 +15051,278 @@ export type Database = {
             columns: ["podcast_id"]
             isOneToOne: false
             referencedRelation: "podcasts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      podcast_episode_outlines: {
+        Row: {
+          created_at: string
+          cta_recommendations: Json | null
+          estimated_duration_minutes: number | null
+          guest_bio_paragraph: string | null
+          id: string
+          intro_script: string | null
+          outro_script: string | null
+          sections: Json | null
+          sponsor_slots: Json | null
+          status: string | null
+          title_suggestions: Json | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          cta_recommendations?: Json | null
+          estimated_duration_minutes?: number | null
+          guest_bio_paragraph?: string | null
+          id?: string
+          intro_script?: string | null
+          outro_script?: string | null
+          sections?: Json | null
+          sponsor_slots?: Json | null
+          status?: string | null
+          title_suggestions?: Json | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          cta_recommendations?: Json | null
+          estimated_duration_minutes?: number | null
+          guest_bio_paragraph?: string | null
+          id?: string
+          intro_script?: string | null
+          outro_script?: string | null
+          sections?: Json | null
+          sponsor_slots?: Json | null
+          status?: string | null
+          title_suggestions?: Json | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "podcast_episode_outlines_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "podcast_episode_workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      podcast_episode_workspaces: {
+        Row: {
+          created_at: string
+          episode_id: string | null
+          guest_invited: boolean | null
+          id: string
+          metadata: Json | null
+          notes: string | null
+          outline_complete: boolean | null
+          podcast_id: string | null
+          recording_scheduled: boolean | null
+          research_complete: boolean | null
+          scheduled_date: string | null
+          status: string
+          title: string
+          topic: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          episode_id?: string | null
+          guest_invited?: boolean | null
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          outline_complete?: boolean | null
+          podcast_id?: string | null
+          recording_scheduled?: boolean | null
+          research_complete?: boolean | null
+          scheduled_date?: string | null
+          status?: string
+          title: string
+          topic?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          episode_id?: string | null
+          guest_invited?: boolean | null
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          outline_complete?: boolean | null
+          podcast_id?: string | null
+          recording_scheduled?: boolean | null
+          research_complete?: boolean | null
+          scheduled_date?: string | null
+          status?: string
+          title?: string
+          topic?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "podcast_episode_workspaces_episode_id_fkey"
+            columns: ["episode_id"]
+            isOneToOne: false
+            referencedRelation: "episodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "podcast_episode_workspaces_podcast_id_fkey"
+            columns: ["podcast_id"]
+            isOneToOne: false
+            referencedRelation: "podcasts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      podcast_guest_outreach: {
+        Row: {
+          created_at: string
+          email_body: string
+          email_subject: string
+          follow_up_count: number | null
+          guest_contact_id: string | null
+          guest_email: string
+          guest_name: string
+          id: string
+          last_follow_up_at: string | null
+          meeting_link: string | null
+          responded_at: string | null
+          sent_at: string | null
+          status: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_body: string
+          email_subject: string
+          follow_up_count?: number | null
+          guest_contact_id?: string | null
+          guest_email: string
+          guest_name: string
+          id?: string
+          last_follow_up_at?: string | null
+          meeting_link?: string | null
+          responded_at?: string | null
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          email_body?: string
+          email_subject?: string
+          follow_up_count?: number | null
+          guest_contact_id?: string | null
+          guest_email?: string
+          guest_name?: string
+          id?: string
+          last_follow_up_at?: string | null
+          meeting_link?: string | null
+          responded_at?: string | null
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "podcast_guest_outreach_guest_contact_id_fkey"
+            columns: ["guest_contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "podcast_guest_outreach_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "podcast_episode_workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      podcast_guest_research: {
+        Row: {
+          background_summary: string | null
+          created_at: string
+          guest_bio: string | null
+          guest_company: string | null
+          guest_contact_id: string | null
+          guest_linkedin: string | null
+          guest_name: string
+          guest_title: string | null
+          guest_website: string | null
+          id: string
+          potential_soundbites: Json | null
+          research_sources: Json | null
+          suggested_questions: Json | null
+          talking_points: Json | null
+          topic_breakdowns: Json | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          background_summary?: string | null
+          created_at?: string
+          guest_bio?: string | null
+          guest_company?: string | null
+          guest_contact_id?: string | null
+          guest_linkedin?: string | null
+          guest_name: string
+          guest_title?: string | null
+          guest_website?: string | null
+          id?: string
+          potential_soundbites?: Json | null
+          research_sources?: Json | null
+          suggested_questions?: Json | null
+          talking_points?: Json | null
+          topic_breakdowns?: Json | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          background_summary?: string | null
+          created_at?: string
+          guest_bio?: string | null
+          guest_company?: string | null
+          guest_contact_id?: string | null
+          guest_linkedin?: string | null
+          guest_name?: string
+          guest_title?: string | null
+          guest_website?: string | null
+          id?: string
+          potential_soundbites?: Json | null
+          research_sources?: Json | null
+          suggested_questions?: Json | null
+          talking_points?: Json | null
+          topic_breakdowns?: Json | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "podcast_guest_research_guest_contact_id_fkey"
+            columns: ["guest_contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "podcast_guest_research_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "podcast_episode_workspaces"
             referencedColumns: ["id"]
           },
         ]
