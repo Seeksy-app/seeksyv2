@@ -206,9 +206,16 @@ Respond ONLY with valid JSON in this format:
       faceData = { summary: faceDescription, confidenceScore: 0.8 };
     }
 
-    if (faceData.isValidFace === false) {
+    // Only reject if OpenAI explicitly says no valid face AND confidence is very low
+    const isValid = faceData.isValidFace !== false;
+    const confidence = faceData.confidenceScore ?? 0.5;
+    
+    if (!isValid && confidence < 0.3) {
       throw new Error("No clear face detected in the image. Please upload a clearer photo.");
     }
+    
+    // If we got any face data, proceed with verification
+    console.log(`→ Face validation: isValid=${isValid}, confidence=${confidence}`);
 
     // Step 3: Generate stable faceHash from embedding
     const hash = createHash('sha256');
