@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { decryptToken, encryptToken } from "../_shared/token-encryption.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -58,11 +59,14 @@ serve(async (req) => {
       try {
         console.log(`Syncing YouTube profile: ${profile.id} (${profile.username})`);
 
-        // Check if token needs refresh
-        let accessToken = profile.access_token;
+        // Decrypt tokens before using
+        let accessToken = await decryptToken(profile.access_token);
+        const refreshToken = profile.refresh_token ? await decryptToken(profile.refresh_token) : null;
         const tokenExpiry = profile.token_expires_at ? new Date(profile.token_expires_at) : null;
         
-        if (tokenExpiry && tokenExpiry < new Date() && profile.refresh_token) {
+        console.log(`Token expiry: ${tokenExpiry}, current: ${new Date()}, has refresh: ${!!refreshToken}`);
+        
+        if (tokenExpiry && tokenExpiry < new Date() && refreshToken) {
           console.log('Token expired, refreshing...');
           const refreshResponse = await fetch('https://oauth2.googleapis.com/token', {
             method: 'POST',
@@ -70,7 +74,7 @@ serve(async (req) => {
             body: new URLSearchParams({
               client_id: Deno.env.get('YOUTUBE_CLIENT_ID') || '',
               client_secret: Deno.env.get('YOUTUBE_CLIENT_SECRET') || '',
-              refresh_token: profile.refresh_token,
+              refresh_token: refreshToken,
               grant_type: 'refresh_token',
             }),
           });
@@ -79,20 +83,23 @@ serve(async (req) => {
             const tokens = await refreshResponse.json();
             accessToken = tokens.access_token;
             
-            // Update stored token
+            // Encrypt and update stored token
+            const encryptedAccessToken = await encryptToken(tokens.access_token);
             await supabase
               .from('social_media_profiles')
               .update({
-                access_token: tokens.access_token,
+                access_token: encryptedAccessToken,
                 token_expires_at: tokens.expires_in 
                   ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
                   : null,
+                sync_status: 'pending',
               })
               .eq('id', profile.id);
             
             console.log('Token refreshed successfully');
           } else {
-            console.error('Token refresh failed');
+            const errorText = await refreshResponse.text();
+            console.error('Token refresh failed:', errorText);
             await supabase
               .from('social_media_profiles')
               .update({ sync_status: 'token_expired' })
