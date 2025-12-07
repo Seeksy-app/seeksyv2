@@ -232,6 +232,7 @@ import OnboardingTest from "./pages/OnboardingTest";
 import OnboardingComplete from "./pages/OnboardingComplete";
 import SalesDashboard from "./pages/SalesDashboard";
 import SalesAdLibrary from "./pages/SalesAdLibrary";
+import DealsPage from "./pages/sales/DealsPage";
 import AdminMasterBlog from "./pages/AdminMasterBlog";
 import HeroImageGeneratorPage from "./pages/admin/HeroImageGeneratorPage";
 import MascotGeneratorPage from "./pages/admin/MascotGeneratorPage";
@@ -1114,6 +1115,7 @@ const AppContent = () => {
             <Route path="/tech-stack" element={<TechStack />} />
             <Route path="/sales-dashboard" element={<SalesDashboard />} />
             <Route path="/sales/ad-library" element={<SalesAdLibrary />} />
+            <Route path="/sales/deals" element={<DealsPage />} />
             <Route path="/creator/campaigns" element={<CreatorCampaignBrowser />} />
             <Route path="/creator/campaign-browser" element={<CreatorCampaignBrowser />} />
             <Route path="/sales/create-campaign" element={<CreateMultiChannelCampaign />} />

@@ -190,7 +190,7 @@ serve(async (req) => {
         user_id: user.id,
         title: video.snippet?.title || 'Untitled Video',
         content_type: 'video',
-        file_url: videoUrl,
+        original_file_url: videoUrl,
         file_hash: fileHash,
         source: 'youtube',
         external_id: video.id,

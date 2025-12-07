@@ -117,8 +117,9 @@ serve(async (req) => {
         refresh_token: encryptedRefreshToken,
         token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
         email: spotifyProfile?.email,
+        purpose: 'analytics',
       }, {
-        onConflict: 'user_id,platform',
+        onConflict: 'user_id,platform,purpose',
       });
 
     if (upsertError) {
