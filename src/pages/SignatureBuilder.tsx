@@ -160,7 +160,7 @@ export default function SignatureBuilder() {
             </TabsTrigger>
             <TabsTrigger value="activity" className="gap-2">
               <Activity className="h-4 w-4" />
-              Activity Log
+              Log
             </TabsTrigger>
             <TabsTrigger value="signatures" className="gap-2">
               <Mail className="h-4 w-4" />
@@ -168,11 +168,7 @@ export default function SignatureBuilder() {
             </TabsTrigger>
             <TabsTrigger value="editor" className="gap-2" disabled={!selectedSignature}>
               <Settings className="h-4 w-4" />
-              Editor
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="gap-2">
-              <Download className="h-4 w-4" />
-              Extension
+              Edit
             </TabsTrigger>
           </TabsList>
 
