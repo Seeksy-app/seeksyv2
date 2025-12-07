@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Copy, ExternalLink, FileText, Mail, ArrowRight, Trash2 } from "lucide-react";
+import { Copy, ExternalLink, FileText, Mail, ArrowRight, Trash2, RotateCcw } from "lucide-react";
 import { Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EmailTrackingPills } from "./EmailTrackingPills";
@@ -83,7 +83,8 @@ export function EmailViewer({
   const queryClient = useQueryClient();
   const [timelinePanelOpen, setTimelinePanelOpen] = useState(false);
 
-  const isTrashed = email?.event_type === "email.trashed";
+  // Check if email is trashed using deleted_at field
+  const isTrashed = !!(email as any)?.deleted_at;
 
   const deleteForeverMutation = useMutation({
     mutationFn: async () => {
@@ -112,10 +113,44 @@ export function EmailViewer({
     },
   });
 
+  const restoreEmailMutation = useMutation({
+    mutationFn: async () => {
+      if (!email) return;
+      
+      // Restore email by clearing deleted_at
+      const { error } = await supabase
+        .from("email_events")
+        .update({ 
+          deleted_at: null,
+          original_event_type: null
+        })
+        .eq("id", email.id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: "Email restored" });
+      queryClient.invalidateQueries({ queryKey: ["email-events"] });
+      queryClient.invalidateQueries({ queryKey: ["email-counts"] });
+      if (onDelete) onDelete(); // Clears selection
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to restore email",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleDeleteForever = () => {
     if (confirm("Permanently delete this email? This action cannot be undone.")) {
       deleteForeverMutation.mutate();
     }
+  };
+
+  const handleRestore = () => {
+    restoreEmailMutation.mutate();
   };
 
   if (!email) {
@@ -163,15 +198,26 @@ export function EmailViewer({
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-2">
           {isTrashed ? (
-            <Button 
-              variant="destructive" 
-              size="sm" 
-              onClick={handleDeleteForever}
-              disabled={deleteForeverMutation.isPending}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete Forever
-            </Button>
+            <>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleRestore}
+                disabled={restoreEmailMutation.isPending}
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Restore
+              </Button>
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                onClick={handleDeleteForever}
+                disabled={deleteForeverMutation.isPending}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Forever
+              </Button>
+            </>
           ) : (
             <>
               <Button variant="outline" size="sm" onClick={onResend}>

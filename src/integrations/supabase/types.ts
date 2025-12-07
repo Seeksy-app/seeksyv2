@@ -8663,6 +8663,7 @@ export type Database = {
           clicked_url: string | null
           contact_id: string | null
           created_at: string | null
+          deleted_at: string | null
           device_type: string | null
           email_subject: string | null
           event_type: string
@@ -8671,6 +8672,7 @@ export type Database = {
           ip_address: string | null
           link_url: string | null
           occurred_at: string | null
+          original_event_type: string | null
           raw_payload: Json | null
           resend_email_id: string | null
           to_email: string
@@ -8684,6 +8686,7 @@ export type Database = {
           clicked_url?: string | null
           contact_id?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           device_type?: string | null
           email_subject?: string | null
           event_type: string
@@ -8692,6 +8695,7 @@ export type Database = {
           ip_address?: string | null
           link_url?: string | null
           occurred_at?: string | null
+          original_event_type?: string | null
           raw_payload?: Json | null
           resend_email_id?: string | null
           to_email: string
@@ -8705,6 +8709,7 @@ export type Database = {
           clicked_url?: string | null
           contact_id?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           device_type?: string | null
           email_subject?: string | null
           event_type?: string
@@ -8713,6 +8718,7 @@ export type Database = {
           ip_address?: string | null
           link_url?: string | null
           occurred_at?: string | null
+          original_event_type?: string | null
           raw_payload?: Json | null
           resend_email_id?: string | null
           to_email?: string

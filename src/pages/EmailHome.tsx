@@ -97,18 +97,22 @@ export default function EmailHome() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      // Apply folder filter
-      if (selectedFolder === "sent") {
-        query = query.eq("event_type", "email.sent");
-      } else if (selectedFolder === "bounced") {
-        query = query.eq("event_type", "email.bounced");
-      } else if (selectedFolder === "unsubscribed") {
-        query = query.eq("event_type", "email.unsubscribed");
-      } else if (selectedFolder === "trash") {
-        query = query.eq("event_type", "email.trashed");
-      } else if (selectedFolder === "inbox") {
-        // Inbox: exclude trash and drafts
-        query = query.not("event_type", "eq", "email.trashed");
+      // Apply folder filter with soft-delete support
+      if (selectedFolder === "trash") {
+        // Trash folder: show emails with deleted_at set
+        query = query.not("deleted_at", "is", null);
+      } else {
+        // All other folders: exclude trashed emails (deleted_at is null)
+        query = query.is("deleted_at", null);
+        
+        if (selectedFolder === "sent") {
+          query = query.eq("event_type", "email.sent");
+        } else if (selectedFolder === "bounced") {
+          query = query.eq("event_type", "email.bounced");
+        } else if (selectedFolder === "unsubscribed") {
+          query = query.eq("event_type", "email.unsubscribed");
+        }
+        // inbox shows all non-trashed emails
       }
 
       // Apply status filter
@@ -168,12 +172,14 @@ export default function EmailHome() {
       if (!user) return null;
 
       const queries = await Promise.all([
-        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).not("event_type", "eq", "email.trashed"),
-        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "email.sent"),
-        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "email.bounced"),
-        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "email.unsubscribed"),
+        // Inbox: non-deleted emails
+        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).is("deleted_at", null),
+        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "email.sent").is("deleted_at", null),
+        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "email.bounced").is("deleted_at", null),
+        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "email.unsubscribed").is("deleted_at", null),
         supabase.from("email_campaigns").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("is_draft", true),
-        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "email.trashed"),
+        // Trash: emails with deleted_at set
+        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).not("deleted_at", "is", null),
       ]);
 
       return {

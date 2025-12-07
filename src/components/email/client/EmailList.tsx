@@ -19,6 +19,8 @@ interface Email {
   from_email?: string;
   reply_count?: number;
   opened?: boolean;
+  deleted_at?: string | null;
+  original_event_type?: string | null;
 }
 
 interface EmailListProps {
@@ -54,9 +56,9 @@ const getStatusColor = (eventType: string) => {
   }
 };
 
-const getStatusLabel = (eventType: string) => {
+const getStatusLabel = (eventType: string, deletedAt?: string | null) => {
+  if (deletedAt) return "Trashed";
   const normalized = eventType.replace("email.", "");
-  if (normalized === "trashed") return "Trashed";
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 };
 
@@ -93,16 +95,22 @@ export function EmailList({
           .eq("id", emailId);
         if (error) throw error;
       } else {
-        // Move to trash by updating status
+        // Soft delete: set deleted_at and preserve original_event_type
         const { error } = await supabase
           .from("email_events")
-          .update({ event_type: "email.trashed" })
+          .update({ 
+            deleted_at: new Date().toISOString(),
+            original_event_type: email?.event_type 
+          })
           .eq("id", emailId);
         if (error) throw error;
       }
     },
     onSuccess: () => {
-      toast({ title: "Email moved to trash" });
+      toast({ 
+        title: "Email moved to trash",
+        description: "The email is still in your Gmail. This only removes it from Seeksy."
+      });
       queryClient.invalidateQueries({ queryKey: ["email-events"] });
       queryClient.invalidateQueries({ queryKey: ["email-counts"] });
     },
@@ -213,10 +221,10 @@ export function EmailList({
                     
                     <div className="flex items-center gap-2 flex-wrap">
                       <Badge 
-                        variant={email.event_type === "email.trashed" ? "destructive" : "secondary"} 
+                        variant={email.deleted_at ? "destructive" : "secondary"} 
                         className="text-xs"
                       >
-                        {getStatusLabel(email.event_type)}
+                        {getStatusLabel(email.event_type, email.deleted_at)}
                       </Badge>
                       {email.campaign_name && (
                         <span className="text-xs text-muted-foreground truncate">
