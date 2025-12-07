@@ -27,16 +27,18 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Plus, FileAudio, FileVideo, FileText, Shield, Loader2, Music, Youtube, Download, ExternalLink, CheckCircle, RefreshCw, Clock, Search, StopCircle } from "lucide-react";
+import { Plus, FileAudio, FileVideo, FileText, Shield, Loader2, Music, Youtube, Download, ExternalLink, CheckCircle, RefreshCw, Clock, Search, StopCircle, Instagram } from "lucide-react";
 import { toast } from "sonner";
 import { useSpotifyConnect } from "@/hooks/useSpotifyConnect";
 import { useYouTubeConnect } from "@/hooks/useYouTubeConnect";
+import { useInstagramConnect } from "@/hooks/useInstagramConnect";
 
 export const MyProofsTab = () => {
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [autoSyncEnabled, setAutoSyncEnabled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [channelFilter, setChannelFilter] = useState("all");
   const [formData, setFormData] = useState({
     title: "",
     contentType: "audio",
@@ -45,6 +47,7 @@ export const MyProofsTab = () => {
 
   const { connectSpotify, importPodcasts, isConnecting: isSpotifyConnecting, isImporting: isSpotifyImporting } = useSpotifyConnect();
   const { connectYouTubeForContentProtection, importVideos, isConnecting: isYouTubeConnecting, isImporting: isYouTubeImporting } = useYouTubeConnect();
+  const { connectInstagram, importMedia: importInstagramMedia, isConnecting: isInstagramConnecting, isImporting: isInstagramImporting } = useInstagramConnect();
 
 
   // Check if Spotify is connected for content protection
@@ -91,6 +94,22 @@ export const MyProofsTab = () => {
         .maybeSingle();
       
       return result.data as { id: string; purpose: string } | null;
+    },
+  });
+
+  // Check if Instagram is connected for content protection
+  const { data: instagramConnection } = useQuery({
+    queryKey: ["instagram-connection-content-protection"],
+    queryFn: async (): Promise<{ id: string } | null> => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) return null;
+      const result = await (supabase
+        .from("social_media_profiles") as any)
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("platform", "instagram")
+        .maybeSingle();
+      return result.data as { id: string } | null;
     },
   });
 
@@ -181,10 +200,15 @@ export const MyProofsTab = () => {
     }
   };
 
-  // Filter content by search
-  const filteredContent = protectedContent?.filter(c => 
-    c.title?.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  // Filter content by search and channel/source
+  const filteredContent = protectedContent?.filter(c => {
+    const matchesSearch = c.title?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSource = channelFilter === "all" || 
+      (channelFilter === "spotify" && c.source === "spotify") ||
+      (channelFilter === "youtube" && c.source === "youtube") ||
+      (channelFilter === "manual" && (!c.source || c.source === "manual"));
+    return matchesSearch && matchesSource;
+  }) || [];
 
   // Count pending items
   const pendingContent = filteredContent.filter(c => !c.blockchain_tx_hash);
@@ -369,6 +393,46 @@ export const MyProofsTab = () => {
                 Connect YouTube
               </Button>
             )}
+            {/* Instagram - Now Active */}
+            {instagramConnection ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  const result = await importInstagramMedia();
+                  if (result) {
+                    queryClient.invalidateQueries({ queryKey: ["protected-content"] });
+                  }
+                }}
+                disabled={isInstagramImporting}
+              >
+                {isInstagramImporting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Syncing...
+                  </>
+                ) : (
+                  <>
+                    <Instagram className="h-4 w-4 mr-2 text-pink-500" />
+                    Import from Instagram
+                  </>
+                )}
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={connectInstagram}
+                disabled={isInstagramConnecting}
+              >
+                {isInstagramConnecting ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Instagram className="h-4 w-4 mr-2 text-pink-500" />
+                )}
+                Connect Instagram
+              </Button>
+            )}
             {/* Coming Soon Platforms */}
             <Button
               variant="outline"
@@ -381,17 +445,6 @@ export const MyProofsTab = () => {
               </svg>
               TikTok (Soon)
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled
-              className="opacity-60"
-            >
-              <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-              </svg>
-              Instagram (Soon)
-            </Button>
           </div>
         </div>
       </Card>
@@ -402,14 +455,27 @@ export const MyProofsTab = () => {
           <p className="text-sm text-muted-foreground">
             Register your content to protect it from unauthorized use
           </p>
-          <div className="relative mt-3 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search content..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
+          <div className="flex items-center gap-3 mt-3">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search content..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={channelFilter} onValueChange={setChannelFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Sources</SelectItem>
+                <SelectItem value="spotify">Spotify</SelectItem>
+                <SelectItem value="youtube">YouTube</SelectItem>
+                <SelectItem value="manual">Manual Upload</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
