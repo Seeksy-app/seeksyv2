@@ -212,8 +212,16 @@ export default function MediaDetail() {
   const processingFailed = aiJobs?.some(j => j.status === 'failed') && !enhancedVideo;
 
   // Determine video source priority: Enhanced > Processed > Cloudflare > Original
-  // NEVER show YouTube iframe - always use our enhanced/processed version
-  const primaryVideoUrl = enhancedVideoUrl || media?.cloudflare_download_url || media?.file_url;
+  // Check if this is a YouTube source without downloaded file
+  const isYouTubeSource = media?.source === 'youtube';
+  const hasDownloadedFile = media?.cloudflare_download_url || (media?.file_url && !media.file_url.includes('youtube.com'));
+  const isYouTubeEmbed = isYouTubeSource && !hasDownloadedFile;
+  
+  // For YouTube embeds, extract video ID
+  const youtubeVideoId = isYouTubeEmbed && media?.external_id ? media.external_id : null;
+  
+  // Primary video URL - don't use YouTube URL directly
+  const primaryVideoUrl = enhancedVideoUrl || (hasDownloadedFile ? (media?.cloudflare_download_url || media?.file_url) : null);
   const primaryThumbnail = enhancedThumbnail || media?.thumbnail_url;
 
   const handleCopyLink = () => {
@@ -326,13 +334,13 @@ export default function MediaDetail() {
             <Card className="overflow-hidden">
               <div className="aspect-video bg-black relative">
                 {/* Processing state */}
-                {isProcessing && !primaryVideoUrl ? (
+                {isProcessing && !primaryVideoUrl && !isYouTubeEmbed ? (
                   <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-[#053877]/20 to-[#2C6BED]/20">
                     <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
                     <p className="text-white font-medium">Processing your video...</p>
                     <p className="text-white/60 text-sm mt-1">AI enhancement in progress</p>
                   </div>
-                ) : processingFailed && !primaryVideoUrl ? (
+                ) : processingFailed && !primaryVideoUrl && !isYouTubeEmbed ? (
                   <div className="flex flex-col items-center justify-center h-full">
                     <AlertCircle className="w-12 h-12 text-destructive mb-4" />
                     <p className="text-white font-medium">Processing failed</p>
@@ -346,6 +354,14 @@ export default function MediaDetail() {
                       Retry AI Enhancement
                     </Button>
                   </div>
+                ) : isYouTubeEmbed && youtubeVideoId ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${youtubeVideoId}`}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title={media?.file_name || "YouTube Video"}
+                  />
                 ) : primaryVideoUrl ? (
                   <video
                     src={primaryVideoUrl}
@@ -420,12 +436,29 @@ export default function MediaDetail() {
                         <Wand2 className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
                         <p className="font-medium mb-1">No AI enhancements yet</p>
                         <p className="text-sm text-muted-foreground mb-4">
-                          Enhance your video with AI-powered post-production
+                          {isYouTubeEmbed 
+                            ? "Generate AI clips from this YouTube video, or enhance it with AI post-production"
+                            : "Enhance your video with AI-powered post-production"
+                          }
                         </p>
-                        <Button onClick={() => navigate(`/studio/ai-post-production?media=${id}`)}>
-                          <Wand2 className="w-4 h-4 mr-2" />
-                          Start AI Enhancement
-                        </Button>
+                        <div className="flex items-center justify-center gap-3">
+                          <Button 
+                            variant="outline"
+                            onClick={() => navigate(`/studio/clips?media=${id}`)}
+                          >
+                            <Scissors className="w-4 h-4 mr-2" />
+                            Generate AI Clips
+                          </Button>
+                          <Button onClick={() => navigate(`/studio/ai-post-production?media=${id}`)}>
+                            <Wand2 className="w-4 h-4 mr-2" />
+                            AI Enhancement
+                          </Button>
+                        </div>
+                        {isYouTubeEmbed && (
+                          <p className="text-xs text-muted-foreground mt-3">
+                            Note: AI enhancement requires downloading the video first
+                          </p>
+                        )}
                       </div>
                     ) : (
                       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

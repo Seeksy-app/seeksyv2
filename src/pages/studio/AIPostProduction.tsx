@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -69,6 +69,8 @@ const formatDuration = (seconds: number | null) => {
 
 export default function AIPostProduction() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const mediaIdFromUrl = searchParams.get('media');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { processVideo, isProcessing } = useVideoProcessing();
@@ -123,6 +125,30 @@ export default function AIPostProduction() {
       return data as MediaFile[];
     }
   });
+
+  // Auto-select media from URL query param
+  useEffect(() => {
+    if (mediaIdFromUrl && mediaFiles && !selectedMedia) {
+      const mediaFromUrl = mediaFiles.find(m => m.id === mediaIdFromUrl);
+      if (mediaFromUrl) {
+        setSelectedMedia(mediaFromUrl);
+      } else {
+        // Media might not be loaded yet, fetch it directly
+        const fetchMedia = async () => {
+          const { data, error } = await supabase
+            .from('media_files')
+            .select('id, file_name, file_type, file_url, cloudflare_download_url, duration_seconds, created_at, thumbnail_url, edit_status, file_size_bytes, source, external_id')
+            .eq('id', mediaIdFromUrl)
+            .single();
+          
+          if (!error && data) {
+            setSelectedMedia(data as MediaFile);
+          }
+        };
+        fetchMedia();
+      }
+    }
+  }, [mediaIdFromUrl, mediaFiles, selectedMedia]);
 
   // Poll for import status when importing external media (YouTube, Zoom, etc.)
   useEffect(() => {
