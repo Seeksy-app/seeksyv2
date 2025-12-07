@@ -289,7 +289,7 @@ Respond ONLY with valid JSON in this format:
         .update({
           cert_status: 'minted',
           face_hash: faceHash,
-          cert_explorer_url: `https://polygonscan.com/tx/${faceHash}`,
+          // Don't set cert_explorer_url - no actual blockchain tx yet
           updated_at: new Date().toISOString(),
         })
         .eq('id', existingAsset.id);
@@ -303,7 +303,7 @@ Respond ONLY with valid JSON in this format:
           title: 'Face Identity',
           cert_status: 'minted',
           face_hash: faceHash,
-          cert_explorer_url: `https://polygonscan.com/tx/${faceHash}`,
+          // Don't set cert_explorer_url - no actual blockchain tx yet
         });
       
       if (assetError) {
