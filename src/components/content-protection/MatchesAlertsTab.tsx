@@ -134,20 +134,31 @@ export const MatchesAlertsTab = () => {
                     </Badge>
                   </div>
 
-                  <p className="text-sm text-muted-foreground mb-2 truncate">
+                  {match.external_channel_name && (
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Channel: {match.external_channel_url ? (
+                        <a href={match.external_channel_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                          {match.external_channel_name}
+                        </a>
+                      ) : match.external_channel_name}
+                    </p>
+                  )}
+
+                  <a 
+                    href={match.external_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-sm text-primary hover:underline mb-2 block break-all"
+                  >
                     {match.external_url}
-                  </p>
+                  </a>
 
                   <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
                     <span>Similarity: {match.similarity_score || "N/A"}%</span>
                     <span>Type: {match.match_type}</span>
                     <span>Detected: {new Date(match.detected_at).toLocaleDateString()}</span>
-                    {(match as any).reviewed_at && (
-                      <span>Reviewed: {new Date((match as any).reviewed_at).toLocaleDateString()}</span>
-                    )}
                   </div>
                 </div>
-
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <Button variant="outline" size="sm" asChild>
                     <a href={match.external_url} target="_blank" rel="noopener noreferrer">
