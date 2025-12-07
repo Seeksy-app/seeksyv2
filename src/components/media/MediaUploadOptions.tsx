@@ -215,65 +215,114 @@ export function MediaUploadOptions({
       <div className={cn(
         layout === 'vertical' 
           ? "flex flex-col gap-2" 
-          : "flex flex-wrap gap-3 justify-center",
+          : "flex flex-col gap-3 items-center",
         className
       )}>
-        {/* Upload Files */}
-        <Button
-          onClick={onUploadClick}
-          className={cn(buttonClass, "hover:opacity-90 transition-opacity")}
-          style={{ backgroundColor: '#FFC857', color: '#053877' }}
-        >
-          <Upload className="h-4 w-4" />
-          Upload Files
-        </Button>
-
-        {/* From Media Library - optional */}
-        {showLibraryButton && onLibraryClick && (
+        {/* Row 1: Upload, Media Library, YouTube */}
+        <div className={cn(layout === 'vertical' ? "flex flex-col gap-2 w-full" : "flex flex-wrap gap-3 justify-center")}>
+          {/* Upload Files */}
           <Button
-            onClick={onLibraryClick}
+            onClick={onUploadClick}
+            className={cn(buttonClass, "hover:opacity-90 transition-opacity")}
+            style={{ backgroundColor: '#FFC857', color: '#053877' }}
+          >
+            <Upload className="h-4 w-4" />
+            Upload Files
+          </Button>
+
+          {/* From Media Library - optional */}
+          {showLibraryButton && onLibraryClick && (
+            <Button
+              onClick={onLibraryClick}
+              className={cn(buttonClass, "text-white hover:opacity-90 transition-opacity")}
+              style={{ backgroundColor: '#053877' }}
+            >
+              <FolderOpen className="h-4 w-4" />
+              From Media Library
+            </Button>
+          )}
+
+          {/* Import from YouTube */}
+          <Button
+            onClick={() => setShowYouTubeModal(true)}
+            variant="outline"
+            className={cn(buttonClass, "border-red-400 text-red-600 hover:bg-red-50 hover:text-red-700")}
+          >
+            <PlayCircle className="h-4 w-4" />
+            Import from YouTube
+          </Button>
+        </div>
+
+        {/* Row 2: Zoom, Riverside, Descript */}
+        <div className={cn(layout === 'vertical' ? "flex flex-col gap-2 w-full" : "flex flex-wrap gap-3 justify-center")}>
+          {/* Import from Zoom */}
+          <Button
+            onClick={handleZoomClick}
+            disabled={isLoadingZoom}
             className={cn(buttonClass, "text-white hover:opacity-90 transition-opacity")}
-            style={{ backgroundColor: '#053877' }}
+            style={{ backgroundColor: '#2C6BED' }}
+          >
+            {isLoadingZoom ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Video className="h-4 w-4" />
+            )}
+            Import from Zoom
+          </Button>
+
+          {/* Import from Riverside */}
+          <Button
+            onClick={handleRiversideClick}
+            variant="outline"
+            className={cn(buttonClass, "bg-purple-50 text-purple-600 border-purple-300 hover:bg-purple-100")}
+          >
+            <AudioWaveform className="h-4 w-4" />
+            Import from Riverside
+          </Button>
+
+          {/* Import from Descript */}
+          <Button
+            onClick={() => toast.info("Coming Soon", { description: "Descript integration is in development" })}
+            variant="outline"
+            className={cn(buttonClass, "bg-green-50 text-green-600 border-green-300 hover:bg-green-100")}
+          >
+            <AudioWaveform className="h-4 w-4" />
+            Import from Descript
+          </Button>
+        </div>
+
+        {/* Row 3: Squadcast, Zencastr, Google Drive */}
+        <div className={cn(layout === 'vertical' ? "flex flex-col gap-2 w-full" : "flex flex-wrap gap-3 justify-center")}>
+          {/* Import from Squadcast */}
+          <Button
+            onClick={() => toast.info("Coming Soon", { description: "Squadcast integration is in development" })}
+            variant="outline"
+            className={cn(buttonClass, "bg-orange-50 text-orange-600 border-orange-300 hover:bg-orange-100")}
+          >
+            <AudioWaveform className="h-4 w-4" />
+            Import from Squadcast
+          </Button>
+
+          {/* Import from Zencastr */}
+          <Button
+            onClick={() => toast.info("Coming Soon", { description: "Zencastr integration is in development" })}
+            variant="outline"
+            className={cn(buttonClass, "bg-indigo-50 text-indigo-600 border-indigo-300 hover:bg-indigo-100")}
+          >
+            <AudioWaveform className="h-4 w-4" />
+            Import from Zencastr
+          </Button>
+
+          {/* Import from Google Drive */}
+          <Button
+            onClick={() => toast.info("Coming Soon", { description: "Google Drive integration is in development" })}
+            variant="outline"
+            className={cn(buttonClass, "bg-blue-50 text-blue-600 border-blue-300 hover:bg-blue-100")}
           >
             <FolderOpen className="h-4 w-4" />
-            From Media Library
+            Import from Google Drive
           </Button>
-        )}
-
-        {/* Import from YouTube */}
-        <Button
-          onClick={() => setShowYouTubeModal(true)}
-          variant="outline"
-          className={cn(buttonClass, "border-red-400 text-red-600 hover:bg-red-50 hover:text-red-700")}
-        >
-          <PlayCircle className="h-4 w-4" />
-          Import from YouTube
-        </Button>
-
-        {/* Import from Zoom */}
-        <Button
-          onClick={handleZoomClick}
-          disabled={isLoadingZoom}
-          className={cn(buttonClass, "text-white hover:opacity-90 transition-opacity")}
-          style={{ backgroundColor: '#2C6BED' }}
-        >
-          {isLoadingZoom ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Video className="h-4 w-4" />
-          )}
-          Import from Zoom
-        </Button>
-
-        {/* Import from Riverside */}
-        <Button
-          onClick={handleRiversideClick}
-          variant="outline"
-          className={cn(buttonClass, "bg-gray-100 text-gray-600 border-gray-300 hover:bg-gray-200")}
-        >
-          <AudioWaveform className="h-4 w-4" />
-          Import from Riverside
-        </Button>
+        </div>
       </div>
 
       {/* YouTube Import Modal */}
