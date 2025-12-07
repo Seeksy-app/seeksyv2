@@ -129,6 +129,7 @@ const MODULE_ICONS: Record<string, React.ElementType> = {
   'cloning': Copy,
   'podcast-rss': Podcast,
   'podcast-hosting': Podcast,
+  'podcast-agent': Bot,
 };
 
 // Fallback module groupings (used when DB config is loading or empty)

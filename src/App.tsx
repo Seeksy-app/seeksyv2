@@ -422,6 +422,7 @@ import CreatorHub from "./pages/CreatorHub";
 import AgencyHub from "./pages/AgencyHub";
 import MyPageStreaming from "./pages/MyPageStreaming";
 import PodcastDashboard from "./pages/PodcastDashboard";
+import PodcastAgent from "./pages/PodcastAgent";
 import Alerts from "./pages/Alerts";
 import BackgroundRemover from "./pages/BackgroundRemover";
 import EpisodeDetails from "./pages/episodes/EpisodeDetails";
@@ -821,6 +822,7 @@ const AppContent = () => {
               <Route path="/podcasts/:podcastId/stats" element={<PodcastStats />} />
               <Route path="/podcasts/:podcastId/episodes/new" element={<NewEpisode />} />
               <Route path="/podcasts/:podcastId/episodes/new-from-studio" element={<NewEpisodeFromStudio />} />
+              <Route path="/podcast-agent" element={<PodcastAgent />} />
               <Route path="/podcasts/:podcastId/episodes/:episodeId" element={<EpisodeDetailPublic />} />
               <Route path="/podcasts/:id/migrate" element={<RSSMigrationPage />} />
               <Route path="/legal/paid-ads-terms" element={<PaidAdsTerms />} />
