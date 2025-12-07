@@ -16378,11 +16378,13 @@ export type Database = {
           content_type: string
           created_at: string
           duration_seconds: number | null
+          external_id: string | null
           file_hash: string
           id: string
           metadata: Json | null
           original_file_url: string | null
           proof_status: string
+          source: string | null
           title: string
           transcript: string | null
           transcript_embedding: Json | null
@@ -16396,11 +16398,13 @@ export type Database = {
           content_type: string
           created_at?: string
           duration_seconds?: number | null
+          external_id?: string | null
           file_hash: string
           id?: string
           metadata?: Json | null
           original_file_url?: string | null
           proof_status?: string
+          source?: string | null
           title: string
           transcript?: string | null
           transcript_embedding?: Json | null
@@ -16414,11 +16418,13 @@ export type Database = {
           content_type?: string
           created_at?: string
           duration_seconds?: number | null
+          external_id?: string | null
           file_hash?: string
           id?: string
           metadata?: Json | null
           original_file_url?: string | null
           proof_status?: string
+          source?: string | null
           title?: string
           transcript?: string | null
           transcript_embedding?: Json | null
