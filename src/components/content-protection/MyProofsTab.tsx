@@ -250,6 +250,14 @@ export const MyProofsTab = () => {
 
   return (
     <div className="space-y-6">
+      {/* Last Scan Info */}
+      {protectedContent && protectedContent.length > 0 && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Clock className="h-3.5 w-3.5" />
+          <span>Last scan: {new Date(protectedContent[0]?.updated_at || protectedContent[0]?.created_at).toLocaleString()}</span>
+        </div>
+      )}
+
       {/* Active Scan Status Banner */}
       {isScanning && (
         <Card className="p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-blue-500/30">
@@ -485,42 +493,37 @@ export const MyProofsTab = () => {
             return (
               <Card 
                 key={content.id} 
-                className={`p-4 transition-all ${isCertified ? 'cursor-pointer hover:border-primary/50 hover:shadow-md' : ''}`}
+                className={`p-3 transition-all ${isCertified ? 'cursor-pointer hover:border-primary/50 hover:shadow-md' : ''}`}
                 onClick={() => handleContentClick(content)}
               >
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-lg bg-primary/10">
-                    <Icon className="h-6 w-6 text-primary" />
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                    <Icon className="h-5 w-5 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <h3 className="font-medium truncate">{content.title}</h3>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-medium text-sm truncate">{content.title}</h3>
                       {isCertified ? (
-                        <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-xs">
+                        <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-xs shrink-0">
                           <CheckCircle className="h-3 w-3 mr-1" />
                           Certified
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="text-xs text-amber-600 border-amber-500/30">
+                        <Badge variant="outline" className="text-xs text-amber-600 border-amber-500/30 shrink-0">
                           <Clock className="h-3 w-3 mr-1" />
                           Pending
                         </Badge>
                       )}
-                      {content.file_hash && (
-                        <Badge variant="outline" className="text-xs">
-                          Fingerprinted
-                        </Badge>
-                      )}
                     </div>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground flex-wrap">
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <span>Type: {content.content_type}</span>
                       <span>
-                        Registered: {new Date(content.created_at).toLocaleDateString()}
+                        {new Date(content.created_at).toLocaleDateString()}
                       </span>
                       {isCertified && (
                         <span className="flex items-center gap-1 text-primary">
                           <ExternalLink className="h-3 w-3" />
-                          View on PolygonScan
+                          View
                         </span>
                       )}
                     </div>
