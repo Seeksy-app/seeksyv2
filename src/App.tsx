@@ -336,6 +336,10 @@ import PublicTicketSubmission from "./pages/PublicTicketSubmission";
 import FieldLeadCapture from "./pages/FieldLeadCapture";
 import PublicTaskSubmission from "./pages/PublicTaskSubmission";
 import HelpCenter from "./pages/HelpCenter";
+import KnowledgeBase from "./pages/public/KnowledgeBase";
+import KBCategory from "./pages/public/KBCategory";
+import KBArticle from "./pages/public/KBArticle";
+import KnowledgeBaseAdmin from "./pages/admin/KnowledgeBaseAdmin";
 import Comparison from "./pages/Comparison";
 import Credits from "./pages/Credits";
 import Certificate from "./pages/Certificate";
@@ -1045,6 +1049,14 @@ const AppContent = () => {
             <Route path="integrations" element={<HelpDeskIntegrations />} />
             <Route path="settings" element={<HelpDeskSettings />} />
           </Route>
+          
+          {/* Knowledge Base - Public */}
+          <Route path="/kb" element={<KnowledgeBase />} />
+          <Route path="/kb/:categorySlug" element={<KBCategory />} />
+          <Route path="/kb/:categorySlug/:articleSlug" element={<KBArticle />} />
+          
+          {/* Knowledge Base - Admin */}
+          <Route path="/admin/knowledge-base" element={<KnowledgeBaseAdmin />} />
           
           {/* CMO Command Center */}
           <Route path="/admin/cmo" element={<CMOCommandCenter />} />

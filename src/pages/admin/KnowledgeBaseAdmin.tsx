@@ -23,7 +23,6 @@ import {
   Search
 } from "lucide-react";
 import { toast } from "sonner";
-import AdminLayout from "@/components/admin/AdminLayout";
 
 export default function KnowledgeBaseAdmin() {
   const queryClient = useQueryClient();
@@ -124,7 +123,7 @@ export default function KnowledgeBaseAdmin() {
   };
 
   return (
-    <AdminLayout>
+    <div className="p-6 space-y-6">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -287,7 +286,7 @@ export default function KnowledgeBaseAdmin() {
           </TabsContent>
         </Tabs>
       </div>
-    </AdminLayout>
+    </div>
   );
 }
 
