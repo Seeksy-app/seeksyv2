@@ -162,29 +162,33 @@ function generateCaptionHTML(
       display: flex;
       align-items: center;
       justify-content: center;
+      width: 100%;
       height: 100%;
       font-family: '${style.fontFamily}', sans-serif;
       font-size: ${style.fontSize}px;
       font-weight: 800;
       text-align: center;
-      line-height: 1.2;
-      padding: 20px;
+      line-height: 1.3;
+      padding: 10px 30px;
+      overflow: hidden;
     }
     .caption {
+      max-width: 100%;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: normal;
       text-shadow: 
         2px 2px 0 #000,
         -2px -2px 0 #000,
         2px -2px 0 #000,
         -2px 2px 0 #000,
         0 4px 8px rgba(0,0,0,0.5);
-      word-spacing: 0.1em;
+      word-spacing: 0.05em;
     }
   </style>
 </head>
 <body>
-  <div class="caption">
-    ${wordSpans.join(' ')}
-  </div>
+  <div class="caption">${wordSpans.join(' ')}</div>
 </body>
 </html>`;
 }
