@@ -18,7 +18,7 @@ const availableModules = [
   { id: "podcast", label: "Podcast Hosting & RSS", icon: Mic, category: "Content", description: "Host your podcast" },
   { id: "rss", label: "RSS Distribution", icon: Rss, category: "Content", description: "Distribute to all platforms" },
   { id: "mypage", label: "My Page (Link-in-bio)", icon: Link2, category: "Social", description: "Your personal landing page" },
-  { id: "email", label: "Email Marketing", icon: Mail, category: "Marketing", description: "Send campaigns & newsletters" },
+  { id: "email", label: "Email Client", icon: Mail, category: "Marketing", description: "Full inbox & email management" },
   { id: "sms", label: "SMS Messaging", icon: MessageSquare, category: "Marketing", description: "Text your audience" },
   { id: "crm", label: "CRM Lite", icon: Users, category: "Business", description: "Manage contacts & leads" },
   { id: "events", label: "Events & Ticketing", icon: Ticket, category: "Business", description: "Create & sell tickets" },

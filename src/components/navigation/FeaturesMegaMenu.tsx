@@ -29,7 +29,7 @@ const MORE_TOOLS: FeatureItem[] = [
   { icon: FileText, label: "Proposals", description: "Professional contracts", href: "/proposals" },
   { icon: CheckSquare, label: "Tasks", description: "Project management", href: "/tasks" },
   { icon: MessageSquare, label: "SMS Campaigns", description: "Text messaging", href: "/sms" },
-  { icon: Mail, label: "Email Marketing", description: "Newsletters & sequences", href: "/email" },
+  { icon: Mail, label: "Email Client", description: "Full inbox & management", href: "/email" },
   { icon: ClipboardList, label: "Forms & Surveys", description: "Collect leads", href: "/forms" },
   { icon: ShieldCheck, label: "Identity Verification", description: "Blockchain-backed", href: "/identity" },
   { icon: Share2, label: "Social Connect", description: "Sync social accounts", href: "/integrations" },
