@@ -195,14 +195,14 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Reduced dimensions to fit in viewport
+  // Smaller dimensions to fit in viewport without scrolling
   const getPreviewDimensions = () => {
     switch (selectedRatio) {
-      case "9:16": return { width: 280, height: 498 };
-      case "1:1": return { width: 380, height: 380 };
-      case "16:9": return { width: 500, height: 281 };
-      case "4:5": return { width: 340, height: 425 };
-      default: return { width: 280, height: 498 };
+      case "9:16": return { width: 240, height: 426 };
+      case "1:1": return { width: 320, height: 320 };
+      case "16:9": return { width: 420, height: 236 };
+      case "4:5": return { width: 280, height: 350 };
+      default: return { width: 240, height: 426 };
     }
   };
 
@@ -214,7 +214,7 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
           <div className="text-center">
             <div 
               className="bg-black rounded-xl mx-auto flex items-center justify-center mb-4"
-              style={{ width: 280, height: 498 }}
+              style={{ width: 240, height: 426 }}
             >
               <div className="text-center">
                 <Scissors className="h-12 w-12 text-white/30 mx-auto mb-3" />
@@ -231,9 +231,9 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
   const dimensions = getPreviewDimensions();
 
   return (
-    <div className="flex-1 flex flex-col bg-muted/5 overflow-hidden">
+    <div className="flex-1 flex flex-col bg-muted/5 overflow-hidden min-h-0">
       {/* Video Preview - Fixed area, no scroll */}
-      <div className="flex-1 flex items-center justify-center p-4 min-h-0">
+      <div className="flex-1 flex items-center justify-center p-2 min-h-0">
         <motion.div 
           className="relative"
           layout
@@ -335,7 +335,7 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
       </div>
 
       {/* Controls - Fixed at bottom */}
-      <div className="flex-shrink-0 border-t bg-card/90 backdrop-blur-sm p-4 space-y-3">
+      <div className="flex-shrink-0 border-t bg-card/90 backdrop-blur-sm p-3 space-y-2">
         {/* Playback controls */}
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={skipBack} className="h-9 w-9">

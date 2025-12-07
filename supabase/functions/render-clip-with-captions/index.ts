@@ -89,26 +89,42 @@ serve(async (req) => {
     console.log("\n=== STEP 1: Whisper Transcription ===");
     let captionSegments: any[] = [];
     let transcriptText = existingTranscript || "";
+    let usedFallback = false;
 
     if (!existingTranscript) {
-      // Call Whisper transcription
-      const whisperResponse = await supabase.functions.invoke('transcribe-whisper', {
-        body: {
-          audio_url: sourceVideoUrl,
-          clip_id: clipId,
-          language: 'en',
-        },
-      });
+      try {
+        // Call Whisper transcription
+        const whisperResponse = await supabase.functions.invoke('transcribe-whisper', {
+          body: {
+            audio_url: sourceVideoUrl,
+            clip_id: clipId,
+            language: 'en',
+          },
+        });
 
-      if (whisperResponse.error) {
-        console.error("Whisper transcription failed:", whisperResponse.error);
-        // Fallback: continue without captions
-        captionSegments = [];
-      } else {
-        transcriptText = whisperResponse.data.text;
-        captionSegments = whisperResponse.data.caption_segments || [];
-        console.log(`✓ Transcribed: ${whisperResponse.data.words?.length || 0} words`);
-        console.log(`✓ Caption segments: ${captionSegments.length}`);
+        if (whisperResponse.error) {
+          console.error("Whisper transcription failed:", whisperResponse.error);
+          usedFallback = true;
+        } else if (whisperResponse.data?.text) {
+          transcriptText = whisperResponse.data.text;
+          captionSegments = whisperResponse.data.caption_segments || [];
+          console.log(`✓ Transcribed: ${whisperResponse.data.words?.length || 0} words`);
+          console.log(`✓ Caption segments: ${captionSegments.length}`);
+        } else {
+          console.warn("Whisper returned empty result");
+          usedFallback = true;
+        }
+      } catch (whisperError) {
+        console.error("Whisper exception:", whisperError);
+        usedFallback = true;
+      }
+
+      // FALLBACK: If Whisper failed, generate placeholder captions from title
+      if (usedFallback || captionSegments.length === 0) {
+        console.log("⚠️ Using fallback caption generation");
+        const fallbackText = title || "Watch this amazing clip!";
+        captionSegments = generateSimpleSegments(fallbackText, duration);
+        transcriptText = fallbackText;
       }
     } else {
       // Generate simple segments from existing transcript
