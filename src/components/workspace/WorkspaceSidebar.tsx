@@ -438,11 +438,11 @@ export function WorkspaceSidebar() {
             {!isCollapsed && (
               <Button
                 size="icon"
-                className="h-9 w-9 shrink-0 bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground"
+                className="h-9 w-9 shrink-0 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                 onClick={() => setShowModuleCenter(true)}
                 title="Add module"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-5 w-5" strokeWidth={2.5} />
               </Button>
             )}
           </div>
