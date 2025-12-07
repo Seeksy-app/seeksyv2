@@ -1,21 +1,54 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Mail, Settings } from "lucide-react";
+import { Plus, Mail, Settings, Clock, CalendarClock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SignatureEditor } from "@/components/signatures/SignatureEditor";
 import { SignatureList } from "@/components/signatures/SignatureList";
+import { format } from "date-fns";
 
 export default function SignatureBuilder() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("analytics");
+  const [activeTab, setActiveTab] = useState("signatures");
   const [signatures, setSignatures] = useState<any[]>([]);
   const [selectedSignature, setSelectedSignature] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Fetch scan settings for next scheduled scan
+  const { data: scanSettings } = useQuery({
+    queryKey: ["scan-settings"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      
+      // Get user's scan settings
+      const { data: settings } = await supabase
+        .from("content_scan_settings")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      
+      // Get next scheduled scan from protected content
+      const { data: nextScan } = await supabase
+        .from("protected_content")
+        .select("next_scan_at")
+        .eq("user_id", user.id)
+        .not("next_scan_at", "is", null)
+        .order("next_scan_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      
+      return {
+        settings,
+        nextScanAt: nextScan?.next_scan_at,
+      };
+    },
+  });
 
   useEffect(() => {
     fetchSignatures();
@@ -135,7 +168,7 @@ export default function SignatureBuilder() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8 px-4 max-w-7xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Email Signatures</h1>
             <p className="text-muted-foreground">
@@ -147,6 +180,23 @@ export default function SignatureBuilder() {
             New Signature
           </Button>
         </div>
+
+        {/* Next Scheduled Scan Info */}
+        {scanSettings?.nextScanAt && (
+          <Card className="mb-6 bg-muted/30">
+            <CardContent className="py-3 px-4">
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <CalendarClock className="h-4 w-4" />
+                  <span>Next Scheduled Scan:</span>
+                </div>
+                <span className="font-medium text-foreground">
+                  {format(new Date(scanSettings.nextScanAt), "MMM d, yyyy 'at' h:mm a")}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Tabs for management - removed analytics, just signatures */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
