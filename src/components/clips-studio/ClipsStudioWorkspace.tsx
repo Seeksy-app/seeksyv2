@@ -91,9 +91,9 @@ export function ClipsStudioWorkspace({
     : 0;
 
   return (
-    <div className="h-[100vh] max-h-[100vh] bg-background flex flex-col overflow-hidden">
+    <div className="h-[calc(100vh-4rem)] max-h-[calc(100vh-4rem)] bg-background flex flex-col overflow-hidden">
       {/* Header - Fixed */}
-      <header className="flex-shrink-0 border-b bg-card/80 backdrop-blur-sm z-50">
+      <header className="flex-shrink-0 border-b bg-card/80 backdrop-blur-sm z-30">
         <div className="flex items-center justify-between h-14 px-4">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={onBack}>
