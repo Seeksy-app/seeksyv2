@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Search, FileCheck, Bell } from "lucide-react";
+import { Shield, Search, FileCheck, Bell, HelpCircle } from "lucide-react";
 import { MyProofsTab } from "@/components/content-protection/MyProofsTab";
 import { MatchesAlertsTab } from "@/components/content-protection/MatchesAlertsTab";
 import { CertificatesTab } from "@/components/content-protection/CertificatesTab";
@@ -166,25 +166,28 @@ interface StatsCardProps {
 }
 
 const StatsCard = ({ icon: Icon, label, value, description, tooltip }: StatsCardProps) => (
-  <Tooltip>
-    <TooltipTrigger asChild>
-      <div className="bg-card border border-border rounded-lg p-4 cursor-help hover:border-primary/30 transition-colors">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <Icon className="h-5 w-5 text-primary" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm text-muted-foreground">{label}</p>
-            <p className="text-2xl font-bold text-foreground">{value}</p>
-            <p className="text-xs text-muted-foreground">{description}</p>
-          </div>
-        </div>
+  <div className="bg-card border border-border rounded-lg p-4 hover:border-primary/30 transition-colors">
+    <div className="flex items-center gap-3">
+      <div className="p-2 rounded-lg bg-primary/10">
+        <Icon className="h-5 w-5 text-primary" />
       </div>
-    </TooltipTrigger>
-    <TooltipContent className="max-w-xs">
-      <p className="text-sm">{tooltip}</p>
-    </TooltipContent>
-  </Tooltip>
+      <div className="flex-1">
+        <div className="flex items-center gap-1">
+          <p className="text-sm text-muted-foreground">{label}</p>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/60" />
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs">
+              <p className="text-sm">{tooltip}</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+        <p className="text-2xl font-bold text-foreground">{value}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </div>
+    </div>
+  </div>
 );
 
 export default ContentProtectionDashboard;
