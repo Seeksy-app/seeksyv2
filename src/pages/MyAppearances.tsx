@@ -77,6 +77,10 @@ export default function MyAppearances() {
   const [playlistDescription, setPlaylistDescription] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [detectionFilter, setDetectionFilter] = useState<string>("all");
+  const [channelFilter, setChannelFilter] = useState<string>("all");
+  const [scanMethod, setScanMethod] = useState<string>("name");
+  const [disclaimerAcknowledged, setDisclaimerAcknowledged] = useState(false);
+  const [showDisclaimerModal, setShowDisclaimerModal] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
@@ -305,6 +309,11 @@ export default function MyAppearances() {
       if (detectionFilter === "voice" && !method.includes("voice")) return false;
     }
     
+    // Channel/platform filter
+    if (channelFilter !== "all") {
+      if (a.platform !== channelFilter) return false;
+    }
+    
     return true;
   });
 
@@ -456,9 +465,66 @@ export default function MyAppearances() {
                   Create Landing Page
                 </Button>
               </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Disclaimer Modal */}
+        <Dialog open={showDisclaimerModal} onOpenChange={setShowDisclaimerModal}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-amber-500" />
+                Important Notice
+              </DialogTitle>
+              <DialogDescription>
+                Please read and acknowledge before scanning
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <Alert className="border-amber-500/50 bg-amber-500/10">
+                <AlertCircle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-sm text-amber-800">
+                  This tool is designed to help you discover and track your own appearances across platforms. 
+                  It should only be used for legitimate purposes such as protecting your likeness, building your portfolio, 
+                  and managing your public presence.
+                </AlertDescription>
+              </Alert>
+              <div className="text-sm text-muted-foreground space-y-2">
+                <p><strong>By using this scanner, you agree that:</strong></p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>You are searching for your own appearances only</li>
+                  <li>Results are a guide to support your likeness protection</li>
+                  <li>Seeksy cannot guarantee the accuracy of search results</li>
+                  <li>You will not use this tool with harmful intent</li>
+                </ul>
+              </div>
+              <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg border bg-muted/50">
+                <Checkbox
+                  checked={disclaimerAcknowledged}
+                  onCheckedChange={(checked) => setDisclaimerAcknowledged(checked === true)}
+                  className="mt-0.5"
+                />
+                <span className="text-sm">
+                  I understand and agree to use this tool responsibly for my own likeness protection only.
+                </span>
+              </label>
+              <Button 
+                onClick={() => {
+                  if (disclaimerAcknowledged) {
+                    setShowDisclaimerModal(false);
+                    scanMutation.mutate();
+                  }
+                }}
+                disabled={!disclaimerAcknowledged}
+                className="w-full"
+              >
+                <Search className="h-4 w-4 mr-2" />
+                Continue to Scan
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
       </div>
 
       {/* Verification Status Cards */}
@@ -608,15 +674,46 @@ export default function MyAppearances() {
               Voice fingerprint verification coming soon for certified users.
             </AlertDescription>
           </Alert>
-          <div className="flex gap-4">
+          <div className="flex gap-4 items-center">
             <Input
               placeholder="Enter YOUR name (e.g., John Smith)"
               value={searchName}
               onChange={(e) => setSearchName(e.target.value)}
               className="flex-1"
             />
+            <Select value={scanMethod} onValueChange={setScanMethod}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Scan method" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name">
+                  <div className="flex items-center gap-2">
+                    <Search className="h-3 w-3" />
+                    Name Search
+                  </div>
+                </SelectItem>
+                <SelectItem value="face" disabled={!faceStatus?.isCertified}>
+                  <div className="flex items-center gap-2">
+                    <ScanFace className="h-3 w-3" />
+                    Face Detection
+                  </div>
+                </SelectItem>
+                <SelectItem value="voice" disabled={!voiceStatus?.isCertified}>
+                  <div className="flex items-center gap-2">
+                    <Mic2 className="h-3 w-3" />
+                    Voice Match
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
             <Button 
-              onClick={() => scanMutation.mutate()}
+              onClick={() => {
+                if (!disclaimerAcknowledged) {
+                  setShowDisclaimerModal(true);
+                } else {
+                  scanMutation.mutate();
+                }
+              }}
               disabled={scanMutation.isPending || !searchName.trim()}
             >
               {scanMutation.isPending ? (
@@ -627,7 +724,7 @@ export default function MyAppearances() {
               ) : (
                 <>
                   <Search className="h-4 w-4 mr-2" />
-                  Scan for My Appearances
+                  Scan
                 </>
               )}
             </Button>
@@ -745,34 +842,65 @@ export default function MyAppearances() {
             <TabsTrigger value="hidden">Hidden</TabsTrigger>
           </TabsList>
           
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Detection:</span>
-            <Select value={detectionFilter} onValueChange={setDetectionFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="All methods" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Methods</SelectItem>
-                <SelectItem value="name">
-                  <div className="flex items-center gap-2">
-                    <Search className="h-3 w-3" />
-                    Name Search
-                  </div>
-                </SelectItem>
-                <SelectItem value="face">
-                  <div className="flex items-center gap-2">
-                    <ScanFace className="h-3 w-3" />
-                    Face Verified
-                  </div>
-                </SelectItem>
-                <SelectItem value="voice">
-                  <div className="flex items-center gap-2">
-                    <Mic2 className="h-3 w-3" />
-                    Voice Verified
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Channel:</span>
+              <Select value={channelFilter} onValueChange={setChannelFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="All channels" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Channels</SelectItem>
+                  <SelectItem value="youtube">
+                    <div className="flex items-center gap-2">
+                      <Youtube className="h-3 w-3 text-red-500" />
+                      YouTube
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="spotify">
+                    <div className="flex items-center gap-2">
+                      <Music2 className="h-3 w-3 text-green-500" />
+                      Spotify
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="instagram">
+                    <div className="flex items-center gap-2">
+                      <Instagram className="h-3 w-3 text-pink-500" />
+                      Instagram
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Detection:</span>
+              <Select value={detectionFilter} onValueChange={setDetectionFilter}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="All methods" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Methods</SelectItem>
+                  <SelectItem value="name">
+                    <div className="flex items-center gap-2">
+                      <Search className="h-3 w-3" />
+                      Name Search
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="face">
+                    <div className="flex items-center gap-2">
+                      <ScanFace className="h-3 w-3" />
+                      Face Verified
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="voice">
+                    <div className="flex items-center gap-2">
+                      <Mic2 className="h-3 w-3" />
+                      Voice Verified
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
