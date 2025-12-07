@@ -36,6 +36,7 @@ interface WorkspaceContextType {
   addModule: (moduleId: string) => Promise<void>;
   removeModule: (moduleId: string) => Promise<void>;
   toggleStandalone: (moduleId: string) => Promise<void>;
+  togglePinned: (moduleId: string) => Promise<void>;
   reorderModules: (moduleIds: string[]) => Promise<void>;
   refreshWorkspaces: () => Promise<void>;
 }
@@ -432,6 +433,33 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const togglePinned = async (moduleId: string) => {
+    if (!currentWorkspace) return;
+
+    try {
+      const existingModule = workspaceModules.find(wm => wm.module_id === moduleId);
+      if (!existingModule) return;
+
+      const newPinnedValue = !existingModule.is_pinned;
+
+      // Update in database
+      await supabase
+        .from('workspace_modules')
+        .update({ is_pinned: newPinnedValue })
+        .eq('id', existingModule.id);
+
+      // Update local state
+      setWorkspaceModules(prev => prev.map(wm => 
+        wm.id === existingModule.id 
+          ? { ...wm, is_pinned: newPinnedValue }
+          : wm
+      ));
+    } catch (err) {
+      console.error('Error toggling pinned:', err);
+      throw err;
+    }
+  };
+
   useEffect(() => {
     fetchWorkspaces();
   }, [fetchWorkspaces]);
@@ -450,6 +478,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         addModule,
         removeModule,
         toggleStandalone,
+        togglePinned,
         reorderModules,
         refreshWorkspaces: fetchWorkspaces,
       }}

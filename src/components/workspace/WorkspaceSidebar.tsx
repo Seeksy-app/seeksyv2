@@ -46,6 +46,7 @@ import {
   ChevronDown,
   ChevronRight,
   ExternalLink,
+  Star,
   // Module icons
   Mic,
   Podcast,
@@ -176,7 +177,7 @@ export function WorkspaceSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { state } = useSidebar();
-  const { currentWorkspace, workspaceModules, removeModule, toggleStandalone } = useWorkspace();
+  const { currentWorkspace, workspaceModules, removeModule, toggleStandalone, togglePinned } = useWorkspace();
   const [moduleRegistry, setModuleRegistry] = useState<ModuleRegistryItem[]>([]);
   const [showModuleCenter, setShowModuleCenter] = useState(false);
   const [removingModule, setRemovingModule] = useState<string | null>(null);
@@ -204,34 +205,42 @@ export function WorkspaceSidebar() {
   const { data: dbModuleGroups } = useModuleGroups();
 
   // Get modules for current workspace, organized with correct groups from DB
-  const { groupedModules, standaloneModules, pinnedStandaloneModules } = useMemo(() => {
-    const moduleIds = workspaceModules.map(wm => wm.module_id);
+  const { groupedModules, standaloneModules, pinnedModules } = useMemo(() => {
     const modules = workspaceModules
       .sort((a, b) => a.position - b.position)
       .map(wm => ({
         ...moduleRegistry.find(mr => mr.id === wm.module_id),
         is_standalone: wm.is_standalone,
+        is_pinned: wm.is_pinned,
       }))
-      .filter(m => m.id) as (ModuleRegistryItem & { is_standalone: boolean })[];
+      .filter(m => m.id) as (ModuleRegistryItem & { is_standalone: boolean; is_pinned: boolean })[];
 
     // Map: groupKey -> { groupLabel, allModulesInGroup }
-    const grouped: Map<string, { groupKey: string; groupName: string; allModules: (ModuleRegistryItem & { is_standalone: boolean })[] }> = new Map();
-    const standalone: (ModuleRegistryItem & { is_standalone: boolean })[] = [];
-    const pinnedStandalone: (ModuleRegistryItem & { is_standalone: boolean })[] = [];
+    const grouped: Map<string, { groupKey: string; groupName: string; allModules: (ModuleRegistryItem & { is_standalone: boolean; is_pinned: boolean })[] }> = new Map();
+    const standalone: (ModuleRegistryItem & { is_standalone: boolean; is_pinned: boolean })[] = [];
+    const pinned: (ModuleRegistryItem & { is_standalone: boolean; is_pinned: boolean })[] = [];
     const usedIds = new Set<string>();
+
+    // Collect pinned modules first (these show in Pinned section)
+    for (const module of modules) {
+      if (module.is_pinned) {
+        pinned.push(module);
+      }
+    }
 
     // Use DB module groups if available
     if (dbModuleGroups && dbModuleGroups.length > 0) {
       for (const group of dbModuleGroups) {
-        // Get all modules (primary + associated) for this group that are in the workspace
         const allModuleKeys = [
           ...group.primaryModules.map(m => m.module_key),
           ...group.associatedModules.map(m => m.module_key),
         ];
         
-        const groupModules = modules.filter(m => allModuleKeys.includes(m.id));
+        // Filter modules: include if in group AND not standalone
+        const groupModules = modules.filter(m => 
+          allModuleKeys.includes(m.id) && !m.is_standalone
+        );
         
-        // Only create group if we have at least one module from it
         if (groupModules.length > 0) {
           grouped.set(group.key, {
             groupKey: group.key,
@@ -245,7 +254,9 @@ export function WorkspaceSidebar() {
       // Fallback to hardcoded MODULE_GROUPS
       for (const [primaryId, groupConfig] of Object.entries(MODULE_GROUPS)) {
         const allGroupModuleIds = [primaryId, ...groupConfig.modules];
-        const groupModules = modules.filter(m => allGroupModuleIds.includes(m.id));
+        const groupModules = modules.filter(m => 
+          allGroupModuleIds.includes(m.id) && !m.is_standalone
+        );
         
         if (groupModules.length > 0) {
           grouped.set(primaryId, {
@@ -258,21 +269,17 @@ export function WorkspaceSidebar() {
       }
     }
 
-    // Check associated modules for standalone flag
+    // Standalone modules: marked as standalone OR not in any group
     for (const module of modules) {
-      if (module.is_standalone && !pinnedStandalone.find(p => p.id === module.id)) {
-        pinnedStandalone.push(module);
+      if (module.is_standalone || !usedIds.has(module.id)) {
+        if (!standalone.find(s => s.id === module.id)) {
+          standalone.push(module);
+          usedIds.add(module.id);
+        }
       }
     }
 
-    // Standalone modules (not in any group)
-    for (const module of modules) {
-      if (!usedIds.has(module.id)) {
-        standalone.push(module);
-      }
-    }
-
-    return { groupedModules: grouped, standaloneModules: standalone, pinnedStandaloneModules: pinnedStandalone };
+    return { groupedModules: grouped, standaloneModules: standalone, pinnedModules: pinned };
   }, [workspaceModules, moduleRegistry, dbModuleGroups]);
 
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
@@ -305,9 +312,10 @@ export function WorkspaceSidebar() {
 
   const queryClient = useQueryClient();
 
-  const renderModuleItem = (module: ModuleRegistryItem & { is_standalone?: boolean }, indented = false, currentGroupKey?: string) => {
+  const renderModuleItem = (module: ModuleRegistryItem & { is_standalone?: boolean; is_pinned?: boolean }, indented = false, currentGroupKey?: string) => {
     const Icon = MODULE_ICONS[module.id] || FolderOpen;
     const isStandalone = module.is_standalone || false;
+    const isPinned = module.is_pinned || false;
     
     return (
       <SidebarMenuItem key={module.id} className="group/item relative">
@@ -338,6 +346,57 @@ export function WorkspaceSidebar() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 bg-popover border shadow-lg z-50">
+              {/* Pin option */}
+              <DropdownMenuItem
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  try {
+                    await togglePinned(module.id);
+                    toast.success(
+                      isPinned ? "Unpinned" : "Pinned to top",
+                      { description: isPinned 
+                        ? `${module.name} removed from pinned.`
+                        : `${module.name} is now pinned to the top.` 
+                      }
+                    );
+                  } catch (err) {
+                    toast.error("Failed to update module");
+                  }
+                }}
+              >
+                <Star className={cn("h-4 w-4 mr-2", isPinned && "fill-amber-500 text-amber-500")} />
+                {isPinned ? "Unpin" : "Pin to top"}
+              </DropdownMenuItem>
+              
+              {/* Standalone option */}
+              <DropdownMenuItem
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  try {
+                    await toggleStandalone(module.id);
+                    toast.success(
+                      isStandalone ? "Moved to collection" : "Made standalone",
+                      { description: isStandalone 
+                        ? `${module.name} moved back to collection.`
+                        : `${module.name} is now outside collections.` 
+                      }
+                    );
+                  } catch (err) {
+                    toast.error("Failed to update module");
+                  }
+                }}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                {isStandalone ? "Move to collection" : "Make standalone"}
+              </DropdownMenuItem>
+              
+              <MoveToSectionMenu
+                moduleId={module.id}
+                moduleName={module.name}
+                currentGroupKey={currentGroupKey}
+                onMoved={() => queryClient.invalidateQueries({ queryKey: ['module-groups'] })}
+              />
+              
               <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
@@ -347,34 +406,8 @@ export function WorkspaceSidebar() {
                 disabled={removingModule === module.id}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                Remove
+                Remove from workspace
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  try {
-                    await toggleStandalone(module.id);
-                    toast.success(
-                      isStandalone ? "Removed from standalone" : "Module added as standalone",
-                      { description: isStandalone 
-                        ? `${module.name} removed from standalone menu.`
-                        : `${module.name} is now a standalone menu item.` 
-                      }
-                    );
-                  } catch (err) {
-                    toast.error("Failed to update module");
-                  }
-                }}
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                {isStandalone ? "Remove Standalone" : "Standalone"}
-              </DropdownMenuItem>
-              <MoveToSectionMenu
-                moduleId={module.id}
-                moduleName={module.name}
-                currentGroupKey={currentGroupKey}
-                onMoved={() => queryClient.invalidateQueries({ queryKey: ['module-groups'] })}
-              />
             </DropdownMenuContent>
           </DropdownMenu>
         )}
@@ -451,7 +484,7 @@ export function WorkspaceSidebar() {
         <SidebarContent>
           <ScrollArea className="flex-1">
             {/* Pinned Standalone Modules Section */}
-            {pinnedStandaloneModules.length > 0 && (
+            {pinnedModules.length > 0 && (
               <div className="px-3 py-1">
                 {!isCollapsed && (
                   <span className="text-xs font-medium text-sidebar-foreground/70 px-2">
@@ -459,7 +492,7 @@ export function WorkspaceSidebar() {
                   </span>
                 )}
                 <SidebarMenu className="mt-1">
-                  {pinnedStandaloneModules.map(module => {
+                  {pinnedModules.map(module => {
                     const Icon = MODULE_ICONS[module.id] || FolderOpen;
                     return (
                       <SidebarMenuItem key={`pinned-${module.id}`}>
