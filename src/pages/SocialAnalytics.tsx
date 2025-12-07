@@ -601,66 +601,65 @@ export default function SocialAnalytics() {
               </Card>
             </div>
 
-            {/* YouTube Setup Checklist + Valuation */}
+            {/* YouTube Valuation + Checklist */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-4">
-                <SocialOnboardingChecklist />
+              <SocialOnboardingChecklist />
+              <div className="md:col-span-2">
                 <CreatorValuationCard profileId={youtubeProfile.id} platform="youtube" />
               </div>
-              <div className="md:col-span-2">
-                {/* Top Videos */}
-                {topYoutubeVideos && topYoutubeVideos.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Top Performing Videos</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {topYoutubeVideos.slice(0, 5).map(video => (
-                          <a 
-                            key={video.id}
-                            href={video.permalink || '#'}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors"
-                          >
-                            {video.media_url ? (
-                              <img 
-                                src={video.media_url} 
-                                alt={video.caption?.slice(0, 30) || 'Video'}
-                                className="w-24 h-14 object-cover rounded"
-                              />
-                            ) : (
-                              <div className="w-24 h-14 bg-muted rounded flex items-center justify-center">
-                                <Video className="h-6 w-6 text-muted-foreground" />
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium truncate">{video.caption || 'Untitled'}</p>
-                              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                                <span className="flex items-center gap-1">
-                                  <Eye className="h-3 w-3" />
-                                  {formatNumber(video.views_count || 0)}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <Heart className="h-3 w-3" />
-                                  {formatNumber(video.like_count)}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <MessageCircle className="h-3 w-3" />
-                                  {formatNumber(video.comment_count)}
-                                </span>
-                              </div>
-                            </div>
-                            <Badge variant="secondary">{video.engagement_rate.toFixed(2)}%</Badge>
-                          </a>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
             </div>
+
+            {/* Top Videos */}
+            {topYoutubeVideos && topYoutubeVideos.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Top Performing Videos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {topYoutubeVideos.slice(0, 5).map(video => (
+                      <a 
+                        key={video.id}
+                        href={video.permalink || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors"
+                      >
+                        {video.media_url ? (
+                          <img 
+                            src={video.media_url} 
+                            alt={video.caption?.slice(0, 30) || 'Video'}
+                            className="w-24 h-14 object-cover rounded"
+                          />
+                        ) : (
+                          <div className="w-24 h-14 bg-muted rounded flex items-center justify-center">
+                            <Video className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{video.caption || 'Untitled'}</p>
+                          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Eye className="h-3 w-3" />
+                              {formatNumber(video.views_count || 0)}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Heart className="h-3 w-3" />
+                              {formatNumber(video.like_count)}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <MessageCircle className="h-3 w-3" />
+                              {formatNumber(video.comment_count)}
+                            </span>
+                          </div>
+                        </div>
+                        <Badge variant="secondary">{video.engagement_rate.toFixed(2)}%</Badge>
+                      </a>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         )}
 
@@ -775,62 +774,61 @@ export default function SocialAnalytics() {
               </Card>
             </div>
 
-            {/* Facebook Setup Checklist + Valuation */}
+            {/* Facebook Valuation + Checklist */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-4">
-                <SocialOnboardingChecklist platform="facebook" />
+              <SocialOnboardingChecklist platform="facebook" />
+              <div className="md:col-span-2">
                 <CreatorValuationCard profileId={facebookProfile.id} platform="facebook" />
               </div>
-              <div className="md:col-span-2">
-                {/* Top Posts */}
-                {topFacebookPosts && topFacebookPosts.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Top Performing Posts</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {topFacebookPosts.slice(0, 5).map(post => (
-                          <a 
-                            key={post.id}
-                            href={post.permalink || '#'}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors"
-                          >
-                            {post.media_url ? (
-                              <img 
-                                src={post.media_url} 
-                                alt={post.caption?.slice(0, 30) || 'Post'}
-                                className="w-16 h-16 object-cover rounded"
-                              />
-                            ) : (
-                              <div className="w-16 h-16 bg-muted rounded flex items-center justify-center">
-                                <Image className="h-6 w-6 text-muted-foreground" />
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium truncate">{post.caption || 'No caption'}</p>
-                              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                                <span className="flex items-center gap-1">
-                                  <Heart className="h-3 w-3" />
-                                  {formatNumber(post.like_count)}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <MessageCircle className="h-3 w-3" />
-                                  {formatNumber(post.comment_count)}
-                                </span>
-                              </div>
-                            </div>
-                            <Badge variant="secondary">{post.engagement_rate.toFixed(2)}%</Badge>
-                          </a>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
             </div>
+
+            {/* Top Posts */}
+            {topFacebookPosts && topFacebookPosts.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Top Performing Posts</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {topFacebookPosts.slice(0, 5).map(post => (
+                      <a 
+                        key={post.id}
+                        href={post.permalink || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors"
+                      >
+                        {post.media_url ? (
+                          <img 
+                            src={post.media_url} 
+                            alt={post.caption?.slice(0, 30) || 'Post'}
+                            className="w-16 h-16 object-cover rounded"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 bg-muted rounded flex items-center justify-center">
+                            <Image className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{post.caption || 'No caption'}</p>
+                          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Heart className="h-3 w-3" />
+                              {formatNumber(post.like_count)}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <MessageCircle className="h-3 w-3" />
+                              {formatNumber(post.comment_count)}
+                            </span>
+                          </div>
+                        </div>
+                        <Badge variant="secondary">{post.engagement_rate.toFixed(2)}%</Badge>
+                      </a>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         )}
       </Tabs>
