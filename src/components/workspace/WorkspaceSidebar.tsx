@@ -364,6 +364,15 @@ export function WorkspaceSidebar() {
                 <ExternalLink className="h-4 w-4 mr-2" />
                 {isStandalone ? "Remove Standalone" : "Standalone"}
               </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toast.info("Move to section - Coming soon!");
+                }}
+              >
+                <FolderOpen className="h-4 w-4 mr-2" />
+                Move to...
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )}
