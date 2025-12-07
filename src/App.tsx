@@ -240,6 +240,8 @@ import MetaOAuthCallback from "./pages/MetaOAuthCallback";
 import SeeksyArchitecture from "./pages/SeeksyArchitecture";
 import SupportDesk from "./pages/admin/SupportDesk";
 import SupportDeskCRM from "./pages/admin/support/SupportDeskCRM";
+import DataRecovery from "./pages/admin/DataRecovery";
+import { SeeksyTVHome, SeeksyTVChannel, SeeksyTVWatch } from "./pages/tv";
 // Help Desk (Zendesk-style support system)
 import HelpDeskLayout from "./pages/helpdesk/HelpDeskLayout";
 import TicketsInbox from "./pages/helpdesk/TicketsInbox";
@@ -708,6 +710,12 @@ const AppContent = () => {
               <Route path="/apps-and-tools" element={<AppsAndTools />} />
               <Route path="/install" element={<InstallApp />} />
               
+              {/* Seeksy TV - Public Video Hub */}
+              <Route path="/tv" element={<SeeksyTVHome />} />
+              <Route path="/tv/channel/:channelId" element={<SeeksyTVChannel />} />
+              <Route path="/tv/watch/:videoId" element={<SeeksyTVWatch />} />
+              <Route path="/tv/clip/:clipId" element={<SeeksyTVWatch />} />
+              
               {/* Lead Magnet Landing Pages */}
               <Route path="/blueprint" element={<LeadMagnetLanding />} />
               <Route path="/roi-playbook" element={<LeadMagnetLanding />} />
@@ -877,6 +885,7 @@ const AppContent = () => {
               <Route path="/admin/screen-capture" element={<ScreenCapture />} />
               <Route path="/admin/system-tools" element={<SystemTools />} />
               <Route path="/admin/security" element={<AdminSecurityOverview />} />
+              <Route path="/admin/data-recovery" element={<DataRecovery />} />
           <Route path="/demo-videos" element={<DemoVideos />} />
           <Route path="/admin/demo-videos" element={<DemoVideos />} />
           <Route path="/marketing-gtm" element={<MarketingGTMPlan />} />

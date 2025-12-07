@@ -481,6 +481,13 @@ export const NAVIGATION_CONFIG: {
           "icon": "shield-check",
           "path": "/admin/security",
           "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_data_recovery",
+          "label": "Data Recovery",
+          "icon": "database-backup",
+          "path": "/admin/data-recovery",
+          "roles": ["admin", "super_admin"]
         }
       ]
     },
