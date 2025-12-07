@@ -51,45 +51,8 @@ interface DemoVideo {
   category: string;
 }
 
-// Placeholder videos for layout
-const placeholderVideos: DemoVideo[] = [
-  {
-    id: 'placeholder-1',
-    title: 'Seeksy Overview — Creator\'s Engine',
-    description: 'Overview of the platform, business model, and growth strategy.',
-    video_url: 'https://taxqcioheqdqtlmjeaht.supabase.co/storage/v1/object/public/demo-videos/Seeksy_%20Creator%27s%20Engine.mp4',
-    thumbnail_url: null,
-    duration_seconds: 192,
-    category: 'Overview',
-  },
-  {
-    id: 'placeholder-2',
-    title: 'Product Tour: Creator Workflow',
-    description: 'Walk through the creator dashboard and tools',
-    video_url: '',
-    thumbnail_url: null,
-    duration_seconds: 285,
-    category: 'Product',
-  },
-  {
-    id: 'placeholder-3',
-    title: 'Financial Model & Projections',
-    description: 'Deep dive into our revenue model and forecasts',
-    video_url: '',
-    thumbnail_url: null,
-    duration_seconds: 330,
-    category: 'Financials',
-  },
-  {
-    id: 'placeholder-4',
-    title: 'Go-to-Market & Ad Revenue Engine',
-    description: 'How we acquire creators and monetize',
-    video_url: '',
-    thumbnail_url: null,
-    duration_seconds: 245,
-    category: 'GTM',
-  },
-];
+// Empty placeholder - will use DB videos
+const placeholderVideos: DemoVideo[] = [];
 
 const categoryColors: Record<string, string> = {
   Overview: 'bg-blue-100 text-blue-700',
