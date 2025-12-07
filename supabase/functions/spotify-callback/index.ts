@@ -112,10 +112,11 @@ serve(async (req) => {
         platform: 'spotify',
         platform_user_id: spotifyProfile?.id || 'unknown',
         username: spotifyProfile?.display_name || spotifyProfile?.id,
-        profile_picture_url: spotifyProfile?.images?.[0]?.url,
+        profile_picture: spotifyProfile?.images?.[0]?.url,
         access_token: encryptedAccessToken,
         refresh_token: encryptedRefreshToken,
         token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
+        email: spotifyProfile?.email,
       }, {
         onConflict: 'user_id,platform',
       });
