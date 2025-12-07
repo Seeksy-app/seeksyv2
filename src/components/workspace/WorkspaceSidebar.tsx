@@ -389,23 +389,7 @@ export function WorkspaceSidebar() {
         collapsible="icon"
       >
         <SidebarHeader className="p-3 pb-2">
-          {/* Workspace Selector at top - Monday style */}
-          <div className="flex items-center gap-2 mb-2">
-            <div className="flex-1">
-              <WorkspaceSelector />
-            </div>
-            {!isCollapsed && (
-              <Button
-                size="icon"
-                className="h-9 w-9 shrink-0 bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground"
-                onClick={() => setShowModuleCenter(true)}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-
-          {/* Global Navigation - Monday style */}
+          {/* Global Navigation first - My Day, My Work, Recents */}
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
@@ -443,12 +427,29 @@ export function WorkspaceSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
+
+          <Separator className="my-2 bg-sidebar-border" />
+
+          {/* Workspace Selector below global nav - Monday style */}
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <WorkspaceSelector />
+            </div>
+            {!isCollapsed && (
+              <Button
+                size="icon"
+                className="h-9 w-9 shrink-0 bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground"
+                onClick={() => setShowModuleCenter(true)}
+                title="Add module"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </SidebarHeader>
 
         <SidebarContent>
           <ScrollArea className="flex-1">
-            <Separator className="my-1 bg-sidebar-border" />
-
             {/* Pinned Standalone Modules Section */}
             {pinnedStandaloneModules.length > 0 && (
               <div className="px-3 py-1">
