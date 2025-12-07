@@ -21,7 +21,6 @@ const LEGACY_NAV_ROUTES = [
   '/admin',
   '/board',
   '/advertiser',
-  '/sales',
   '/cfo',
   '/helpdesk',
   '/demo-videos',
