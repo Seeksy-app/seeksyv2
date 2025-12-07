@@ -327,6 +327,13 @@ export default function DemoVideos() {
                                     alt={video.title}
                                     className="w-full h-full object-cover"
                                   />
+                                ) : video.video_url ? (
+                                  <video 
+                                    src={`${video.video_url}#t=2`}
+                                    muted
+                                    preload="metadata"
+                                    className="w-full h-full object-cover"
+                                  />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center">
                                     <Play className="h-8 w-8 text-muted-foreground" />
