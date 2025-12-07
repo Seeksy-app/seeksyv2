@@ -107,6 +107,8 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
     }
   }, [draftId, open, accounts]);
 
+  const [currentDraftId, setCurrentDraftId] = useState<string | null>(draftId || null);
+
   const sendEmailMutation = useMutation({
     mutationFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -124,11 +126,19 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
       });
 
       if (error) throw error;
+      
+      // Delete draft after successful send
+      if (currentDraftId) {
+        await supabase.from("email_campaigns").delete().eq("id", currentDraftId);
+      }
+      
       return data;
     },
     onSuccess: () => {
       toast({ title: "✅ Email sent successfully" });
       queryClient.invalidateQueries({ queryKey: ["email-events"] });
+      queryClient.invalidateQueries({ queryKey: ["email-drafts"] });
+      setCurrentDraftId(null);
       resetForm();
       onClose();
     },
@@ -149,7 +159,7 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
 
       const draftData = { fromAccountId, to, cc, bcc };
 
-      if (draftId) {
+      if (currentDraftId) {
         const { error } = await supabase
           .from("email_campaigns")
           .update({
@@ -158,11 +168,12 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
             draft_data: draftData,
             updated_at: new Date().toISOString(),
           })
-          .eq("id", draftId);
+          .eq("id", currentDraftId);
         
         if (error) throw error;
-      } else {
-        const { error } = await supabase
+      } else if (to || subject || body) {
+        // Only create new draft if there's content
+        const { data, error } = await supabase
           .from("email_campaigns")
           .insert({
             campaign_name: subject || "Untitled Draft",
@@ -173,9 +184,12 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
             draft_status: "draft",
             user_id: user.id,
             from_email_account_id: fromAccountId || null,
-          });
+          })
+          .select()
+          .single();
         
         if (error) throw error;
+        if (data) setCurrentDraftId(data.id);
       }
     },
     onSuccess: () => {

@@ -28,16 +28,57 @@ export default function EmailSent() {
     queryFn: async () => {
       if (!user) return [];
       
-      // Get all sent email events for this user
-      const { data, error } = await supabase
-        .from("email_events")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("event_type", "email.sent")
-        .order("occurred_at", { ascending: false });
+      // Get sent emails from email_campaigns that were sent (not drafts)
+      // Also check email_events for any sent emails
+      const [campaignsResult, eventsResult] = await Promise.all([
+        supabase
+          .from("email_campaigns")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("is_draft", false)
+          .order("sent_at", { ascending: false }),
+        supabase
+          .from("email_events")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("event_type", "email.sent")
+          .order("occurred_at", { ascending: false })
+      ]);
       
-      if (error) throw error;
-      return data as SentEmail[];
+      const campaigns = campaignsResult.data || [];
+      const events = eventsResult.data || [];
+      
+      // Combine and deduplicate - prefer campaign data if available
+      const emailMap = new Map();
+      
+      // Add campaign emails first
+      campaigns.forEach(c => {
+        const campaignId = c.id;
+        emailMap.set(campaignId, {
+          id: c.id,
+          to_email: (c.draft_data as any)?.to || c.subject || "",
+          email_subject: c.subject,
+          from_email: null,
+          occurred_at: c.sent_at || c.updated_at,
+          resend_email_id: null,
+        });
+      });
+      
+      // Add events that don't have matching campaigns
+      events.forEach(e => {
+        if (!emailMap.has(e.resend_email_id)) {
+          emailMap.set(e.id, {
+            id: e.id,
+            to_email: e.to_email,
+            email_subject: e.email_subject,
+            from_email: e.from_email,
+            occurred_at: e.occurred_at,
+            resend_email_id: e.resend_email_id,
+          });
+        }
+      });
+      
+      return Array.from(emailMap.values()) as SentEmail[];
     },
     enabled: !!user,
   });

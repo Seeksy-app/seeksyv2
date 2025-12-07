@@ -37,7 +37,6 @@ const folders = [
 
 // Action items that appear right after Unsubscribed
 const actionItems = [
-  { id: "tracking", label: "Tracking & Analytics", icon: BarChart3, path: "/email/analytics" },
   { id: "signature", label: "Signature & Tracking", icon: Signature, path: "/signatures" },
   { id: "settings", label: "Settings", icon: Settings, path: "/email-settings" },
 ];
