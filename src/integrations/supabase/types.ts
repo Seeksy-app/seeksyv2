@@ -17151,6 +17151,57 @@ export type Database = {
         }
         Relationships: []
       }
+      security_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string | null
+          description: string | null
+          endpoint: string | null
+          id: string
+          is_resolved: boolean | null
+          metadata: Json | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          source_ip: string | null
+          title: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string | null
+          description?: string | null
+          endpoint?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          metadata?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: string
+          source_ip?: string | null
+          title: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string | null
+          description?: string | null
+          endpoint?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          metadata?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          source_ip?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       segment_filters: {
         Row: {
           created_at: string | null
@@ -22351,6 +22402,7 @@ export type Database = {
         Returns: number
       }
       cleanup_expired_autosaves: { Args: never; Returns: number }
+      cleanup_old_rate_limit_logs: { Args: never; Returns: undefined }
       create_meeting_public: {
         Args: {
           p_attendee_email: string
@@ -22426,6 +22478,19 @@ export type Database = {
       is_team_owner: {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
+      }
+      log_security_alert: {
+        Args: {
+          p_alert_type: string
+          p_description?: string
+          p_endpoint?: string
+          p_metadata?: Json
+          p_severity: string
+          p_source_ip?: string
+          p_title: string
+          p_user_id?: string
+        }
+        Returns: string
       }
       log_user_activity: {
         Args: {

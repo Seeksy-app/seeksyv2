@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encryptToken } from "../_shared/token-encryption.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -99,6 +100,10 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
+    // Encrypt tokens before storing
+    const encryptedAccessToken = await encryptToken(tokens.access_token);
+    const encryptedRefreshToken = await encryptToken(tokens.refresh_token);
+
     // Upsert the Spotify connection
     const { error: upsertError } = await supabase
       .from('social_media_profiles')
@@ -108,8 +113,8 @@ serve(async (req) => {
         platform_user_id: spotifyProfile?.id || 'unknown',
         username: spotifyProfile?.display_name || spotifyProfile?.id,
         profile_picture_url: spotifyProfile?.images?.[0]?.url,
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token,
+        access_token: encryptedAccessToken,
+        refresh_token: encryptedRefreshToken,
         token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
         metadata: {
           email: spotifyProfile?.email,

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { checkRateLimit, getClientIP, sanitizeHtml } from "../_shared/security.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,8 +31,44 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const body: MeetingRequest = await req.json();
-    console.log("Creating public meeting:", body);
+    // Rate limiting
+    const clientIP = getClientIP(req);
+    const { allowed } = await checkRateLimit(supabase, clientIP, "create-public-meeting");
+    
+    if (!allowed) {
+      console.log("Rate limit exceeded for IP:", clientIP);
+      return new Response(
+        JSON.stringify({ error: "Too many requests. Please try again later." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const rawBody: MeetingRequest = await req.json();
+    
+    // Sanitize user inputs
+    const body: MeetingRequest = {
+      title: sanitizeHtml(rawBody.title?.slice(0, 200) || ""),
+      description: sanitizeHtml(rawBody.description?.slice(0, 2000) || ""),
+      startTime: rawBody.startTime,
+      endTime: rawBody.endTime,
+      locationType: rawBody.locationType,
+      attendeeName: sanitizeHtml(rawBody.attendeeName?.slice(0, 100) || ""),
+      attendeeEmail: rawBody.attendeeEmail?.trim().toLowerCase().slice(0, 255) || "",
+      attendeePhone: rawBody.attendeePhone ? sanitizeHtml(rawBody.attendeePhone.slice(0, 20)) : undefined,
+      hostName: sanitizeHtml(rawBody.hostName?.slice(0, 100) || ""),
+      meetingTypeName: sanitizeHtml(rawBody.meetingTypeName?.slice(0, 100) || ""),
+    };
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(body.attendeeEmail)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid email address" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("Creating public meeting:", { attendeeEmail: body.attendeeEmail, title: body.title });
 
     // Get a default host user for demo meetings (first admin/super_admin)
     const { data: adminUser } = await supabase

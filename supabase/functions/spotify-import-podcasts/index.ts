@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { decryptToken, encryptToken } from "../_shared/token-encryption.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -63,8 +64,7 @@ serve(async (req) => {
       .select('*')
       .eq('user_id', user.id)
       .eq('platform', 'spotify')
-      .eq('is_active', true)
-      .single();
+      .maybeSingle();
 
     if (connectionError || !spotifyConnection) {
       return new Response(
@@ -73,13 +73,14 @@ serve(async (req) => {
       );
     }
 
-    // Check if token needs refresh
-    let accessToken = spotifyConnection.access_token;
+    // Decrypt tokens
+    let accessToken = await decryptToken(spotifyConnection.access_token);
+    const refreshToken = await decryptToken(spotifyConnection.refresh_token);
     const tokenExpiry = new Date(spotifyConnection.token_expires_at);
     
     if (tokenExpiry <= new Date()) {
       console.log('Spotify token expired, refreshing...');
-      accessToken = await refreshSpotifyToken(spotifyConnection.refresh_token, serviceClient, user.id);
+      accessToken = await refreshSpotifyToken(refreshToken, serviceClient, user.id);
     }
 
     // Fetch user's saved shows (podcasts)
@@ -199,12 +200,16 @@ async function refreshSpotifyToken(refreshToken: string, supabase: any, userId: 
 
   const tokens = await response.json();
 
+  // Encrypt new tokens before storing
+  const encryptedAccessToken = await encryptToken(tokens.access_token);
+  const encryptedRefreshToken = await encryptToken(tokens.refresh_token || refreshToken);
+
   // Update tokens in database
   await supabase
     .from('social_media_profiles')
     .update({
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token || refreshToken,
+      access_token: encryptedAccessToken,
+      refresh_token: encryptedRefreshToken,
       token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
     })
     .eq('user_id', userId)

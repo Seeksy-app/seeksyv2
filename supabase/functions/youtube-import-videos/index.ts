@@ -43,8 +43,7 @@ serve(async (req) => {
       .select('*')
       .eq('user_id', user.id)
       .eq('platform', 'youtube')
-      .eq('is_active', true)
-      .single();
+      .maybeSingle();
 
     if (profileError || !youtubeProfile) {
       console.error('[youtube-import-videos] No YouTube connection found');

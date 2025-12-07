@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { checkRateLimit, getClientIP, sanitizeHtml } from "../_shared/security.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -45,10 +46,32 @@ serve(async (req: Request): Promise<Response> => {
     const resend = new Resend(resendApiKey);
     const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
 
+    // Rate limiting
+    const clientIP = getClientIP(req);
+    const { allowed, remaining } = await checkRateLimit(supabase, clientIP, "send-lead-magnet");
+    
+    if (!allowed) {
+      logStep("Rate limit exceeded", { ip: clientIP });
+      return new Response(
+        JSON.stringify({ error: "Too many requests. Please try again later." }),
+        { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     const body: LeadMagnetRequest = await req.json();
     logStep("Received request", { email: body.email, persona: body.persona, offerId: body.offerId });
 
-    const { name, email, company, persona, offerId, offerTitle, pdfPath, purpose, source, bullets } = body;
+    // Sanitize user inputs
+    const name = body.name ? sanitizeHtml(body.name.slice(0, 100)) : undefined;
+    const email = body.email?.trim().toLowerCase().slice(0, 255);
+    const company = body.company ? sanitizeHtml(body.company.slice(0, 100)) : undefined;
+    const persona = body.persona;
+    const offerId = body.offerId;
+    const offerTitle = body.offerTitle ? sanitizeHtml(body.offerTitle) : body.offerTitle;
+    const pdfPath = body.pdfPath;
+    const purpose = body.purpose ? sanitizeHtml(body.purpose.slice(0, 500)) : undefined;
+    const source = body.source;
+    const bullets = body.bullets?.map(b => sanitizeHtml(b.slice(0, 200))).slice(0, 10);
 
     // Validate required fields
     if (!email || !persona || !offerId || !offerTitle || !pdfPath) {
@@ -243,11 +266,11 @@ serve(async (req: Request): Promise<Response> => {
       logStep("Internal notification failed (non-critical)", { error: String(notifError) });
     }
 
+    // Don't expose signed URL in API response - only sent via email
     return new Response(
       JSON.stringify({
         success: true,
         message: "Lead magnet sent successfully",
-        downloadUrl,
       }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );

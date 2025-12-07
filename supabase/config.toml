@@ -353,3 +353,6 @@ verify_jwt = true
 
 [functions.youtube-import-videos]
 verify_jwt = true
+
+[functions.security-alert]
+verify_jwt = false
