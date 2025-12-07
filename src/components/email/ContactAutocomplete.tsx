@@ -24,21 +24,26 @@ export function ContactAutocomplete({ value, onChange, placeholder, className }:
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Debounce search query
+  // Only show dropdown when actively typing a partial name (not a complete email)
   useEffect(() => {
     const timer = setTimeout(() => {
       if (value && value.length > 0) {
         const lastEmail = value.split(",").pop()?.trim() || "";
-        if (lastEmail.length > 0 && !lastEmail.includes("@")) {
+        // Only show suggestions if:
+        // 1. There's a partial entry without @ (searching by name)
+        // 2. Entry has at least 2 characters
+        if (lastEmail.length >= 2 && !lastEmail.includes("@")) {
           setSearchQuery(lastEmail);
           setShowDropdown(true);
-        } else if (lastEmail.length === 0) {
+        } else {
           setShowDropdown(false);
+          setSearchQuery("");
         }
       } else {
         setShowDropdown(false);
+        setSearchQuery("");
       }
-    }, 250);
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [value]);
@@ -69,7 +74,17 @@ export function ContactAutocomplete({ value, onChange, placeholder, className }:
   }, [contacts]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!showDropdown || contacts.length === 0) return;
+    // Allow Tab to close dropdown and move to next field
+    if (e.key === "Tab") {
+      setShowDropdown(false);
+      return;
+    }
+
+    // If dropdown is not shown or no contacts, allow normal typing
+    if (!showDropdown || contacts.length === 0) {
+      // Allow Enter to submit the form when dropdown is closed
+      return;
+    }
 
     switch (e.key) {
       case "ArrowDown":
@@ -81,10 +96,12 @@ export function ContactAutocomplete({ value, onChange, placeholder, className }:
         setSelectedIndex((prev) => Math.max(prev - 1, 0));
         break;
       case "Enter":
-        e.preventDefault();
-        if (contacts[selectedIndex]) {
+        // Only select contact if dropdown is visible and there are suggestions
+        if (showDropdown && contacts[selectedIndex]) {
+          e.preventDefault();
           selectContact(contacts[selectedIndex]);
         }
+        // Otherwise let Enter propagate normally
         break;
       case "Escape":
         e.preventDefault();
