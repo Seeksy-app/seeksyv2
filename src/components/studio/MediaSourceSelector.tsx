@@ -70,6 +70,8 @@ export function MediaSourceSelector({
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [youtubeError, setYoutubeError] = useState('');
   const [isImportingYouTube, setIsImportingYouTube] = useState(false);
+  const [youtubeImportStep, setYoutubeImportStep] = useState<'input' | 'fetching' | 'downloading' | 'processing' | 'analyzing' | 'complete' | 'error'>('input');
+  const [youtubeImportMediaId, setYoutubeImportMediaId] = useState<string | null>(null);
   
   // Zoom state
   const [zoomRecordings, setZoomRecordings] = useState<ZoomRecording[]>([]);
@@ -143,9 +145,13 @@ export function MediaSourceSelector({
     
     setYoutubeError('');
     setIsImportingYouTube(true);
+    setYoutubeImportStep('fetching');
     setCurrentImportStatus('importing');
     
     try {
+      // Simulate step progression for better UX
+      setTimeout(() => setYoutubeImportStep('downloading'), 2000);
+      
       const { data, error } = await supabase.functions.invoke('import-youtube-video', {
         body: { youtube_url: youtubeUrl }
       });
@@ -156,29 +162,73 @@ export function MediaSourceSelector({
         throw new Error(data.message);
       }
       
-      toast({
-        title: "Import Started",
-        description: "Your YouTube video is being imported. This may take a few minutes.",
-      });
+      setYoutubeImportStep('processing');
+      setYoutubeImportMediaId(data.media_file_id);
       
-      // Start polling for this media
+      // Start polling for this media (keep modal open)
       setPollingMediaId(data.media_file_id);
       onMediaSelected(data.media_file_id, 'youtube');
-      setShowYouTubeModal(false);
-      setYoutubeUrl('');
+      
     } catch (error) {
       console.error('YouTube import error:', error);
       setCurrentImportStatus('error');
+      setYoutubeImportStep('error');
       const message = error instanceof Error ? error.message : 'Could not import the YouTube video.';
       setYoutubeError(message);
-      toast({
-        title: "Import Failed",
-        description: message,
-        variant: "destructive"
-      });
     } finally {
       setIsImportingYouTube(false);
     }
+  };
+
+  // Poll YouTube import status and update modal
+  useEffect(() => {
+    if (!youtubeImportMediaId || youtubeImportStep === 'complete' || youtubeImportStep === 'error') return;
+
+    const pollYouTubeStatus = async () => {
+      const { data, error } = await supabase
+        .from('media_files')
+        .select('id, status, file_name, thumbnail_url, duration_seconds, error_message')
+        .eq('id', youtubeImportMediaId)
+        .single();
+
+      if (error) {
+        console.error('YouTube polling error:', error);
+        return;
+      }
+
+      if (data.status === 'processing') {
+        setYoutubeImportStep('analyzing');
+      } else if (data.status === 'ready') {
+        setYoutubeImportStep('complete');
+        setCurrentImportStatus('ready');
+        toast({
+          title: "Import Complete!",
+          description: `"${data.file_name}" is ready for AI processing.`,
+        });
+        // Auto-close after showing success
+        setTimeout(() => {
+          setShowYouTubeModal(false);
+          setYoutubeUrl('');
+          setYoutubeImportStep('input');
+          setYoutubeImportMediaId(null);
+        }, 1500);
+      } else if (data.status === 'error') {
+        setYoutubeImportStep('error');
+        setCurrentImportStatus('error');
+        setYoutubeError(data.error_message || 'Import failed. Please try again.');
+      }
+    };
+
+    const interval = setInterval(pollYouTubeStatus, 2000);
+    return () => clearInterval(interval);
+  }, [youtubeImportMediaId, youtubeImportStep, toast]);
+
+  const resetYouTubeModal = () => {
+    setYoutubeUrl('');
+    setYoutubeError('');
+    setYoutubeImportStep('input');
+    setYoutubeImportMediaId(null);
+    setIsImportingYouTube(false);
   };
 
   const handleZoomClick = async () => {
@@ -463,62 +513,155 @@ export function MediaSourceSelector({
       </div>
 
       {/* YouTube Import Modal */}
-      <Dialog open={showYouTubeModal} onOpenChange={setShowYouTubeModal}>
+      <Dialog open={showYouTubeModal} onOpenChange={(open) => {
+        if (!open && youtubeImportStep !== 'input') {
+          // Don't close while importing unless error
+          if (youtubeImportStep === 'error' || youtubeImportStep === 'complete') {
+            resetYouTubeModal();
+            setShowYouTubeModal(false);
+          }
+          return;
+        }
+        setShowYouTubeModal(open);
+        if (!open) resetYouTubeModal();
+      }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <PlayCircle className="h-5 w-5 text-red-500" />
               Import from YouTube
             </DialogTitle>
-            <DialogDescription>
-              Paste a YouTube video URL to import it for AI post-production
-            </DialogDescription>
+            {youtubeImportStep === 'input' && (
+              <DialogDescription>
+                Paste a YouTube video URL to import it for AI post-production
+              </DialogDescription>
+            )}
           </DialogHeader>
-          <div className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <Label htmlFor="youtube-url">YouTube URL</Label>
-              <Input
-                id="youtube-url"
-                placeholder="https://www.youtube.com/watch?v=..."
-                value={youtubeUrl}
-                onChange={(e) => {
-                  setYoutubeUrl(e.target.value);
-                  setYoutubeError('');
-                }}
-                className={cn(youtubeError && "border-destructive")}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !isImportingYouTube) {
-                    handleYouTubeImport();
-                  }
-                }}
-              />
-              {youtubeError && (
-                <p className="text-sm text-destructive">{youtubeError}</p>
-              )}
-              <p className="text-xs text-muted-foreground">
-                This may take a few minutes while we fetch your video.
+          
+          {youtubeImportStep === 'input' ? (
+            <div className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label htmlFor="youtube-url">YouTube URL</Label>
+                <Input
+                  id="youtube-url"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  value={youtubeUrl}
+                  onChange={(e) => {
+                    setYoutubeUrl(e.target.value);
+                    setYoutubeError('');
+                  }}
+                  className={cn(youtubeError && "border-destructive")}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !isImportingYouTube) {
+                      handleYouTubeImport();
+                    }
+                  }}
+                />
+                {youtubeError && (
+                  <p className="text-sm text-destructive">{youtubeError}</p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  This may take a few minutes while we fetch your video.
+                </p>
+              </div>
+              <div className="flex gap-3 justify-end">
+                <Button variant="outline" onClick={() => setShowYouTubeModal(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleYouTubeImport}
+                  disabled={isImportingYouTube}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Import from YouTube
+                </Button>
+              </div>
+            </div>
+          ) : youtubeImportStep === 'error' ? (
+            <div className="space-y-4 pt-4">
+              <div className="flex flex-col items-center gap-3 py-6">
+                <div className="h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                  <AlertCircle className="h-6 w-6 text-destructive" />
+                </div>
+                <p className="text-sm text-destructive font-medium">Import Failed</p>
+                <p className="text-sm text-muted-foreground text-center">{youtubeError}</p>
+              </div>
+              <div className="flex gap-3 justify-center">
+                <Button variant="outline" onClick={() => {
+                  resetYouTubeModal();
+                  setShowYouTubeModal(false);
+                }}>
+                  Close
+                </Button>
+                <Button onClick={resetYouTubeModal}>
+                  Try Again
+                </Button>
+              </div>
+            </div>
+          ) : youtubeImportStep === 'complete' ? (
+            <div className="flex flex-col items-center gap-3 py-8">
+              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                <Check className="h-6 w-6 text-green-600" />
+              </div>
+              <p className="text-sm font-medium text-green-600">Import Complete!</p>
+              <p className="text-sm text-muted-foreground">Your video is ready for AI processing</p>
+            </div>
+          ) : (
+            <div className="space-y-6 pt-4 pb-2">
+              {/* Progress Steps */}
+              <div className="space-y-3">
+                {[
+                  { key: 'fetching', label: 'Fetching video info', icon: RefreshCw },
+                  { key: 'downloading', label: 'Downloading video', icon: Video },
+                  { key: 'processing', label: 'Processing media', icon: Clock },
+                  { key: 'analyzing', label: 'Analyzing content', icon: Loader2 },
+                ].map((step, index) => {
+                  const stepOrder = ['fetching', 'downloading', 'processing', 'analyzing'];
+                  const currentIndex = stepOrder.indexOf(youtubeImportStep);
+                  const stepIndex = stepOrder.indexOf(step.key);
+                  const isActive = step.key === youtubeImportStep;
+                  const isComplete = stepIndex < currentIndex;
+                  const isPending = stepIndex > currentIndex;
+
+                  return (
+                    <div key={step.key} className={cn(
+                      "flex items-center gap-3 p-3 rounded-lg transition-all",
+                      isActive && "bg-primary/5 border border-primary/20",
+                      isComplete && "opacity-60",
+                      isPending && "opacity-40"
+                    )}>
+                      <div className={cn(
+                        "h-8 w-8 rounded-full flex items-center justify-center",
+                        isComplete && "bg-green-100",
+                        isActive && "bg-primary/10",
+                        isPending && "bg-muted"
+                      )}>
+                        {isComplete ? (
+                          <Check className="h-4 w-4 text-green-600" />
+                        ) : isActive ? (
+                          <step.icon className="h-4 w-4 text-primary animate-spin" />
+                        ) : (
+                          <step.icon className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </div>
+                      <span className={cn(
+                        "text-sm font-medium",
+                        isActive && "text-foreground",
+                        isComplete && "text-muted-foreground",
+                        isPending && "text-muted-foreground"
+                      )}>
+                        {step.label}
+                        {isActive && "..."}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-center text-muted-foreground">
+                Please wait, this may take a few minutes...
               </p>
             </div>
-            <div className="flex gap-3 justify-end">
-              <Button variant="outline" onClick={() => setShowYouTubeModal(false)}>
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleYouTubeImport}
-                disabled={isImportingYouTube}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                {isImportingYouTube ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Importing...
-                  </>
-                ) : (
-                  'Import from YouTube'
-                )}
-              </Button>
-            </div>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
 
