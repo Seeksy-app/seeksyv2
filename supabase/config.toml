@@ -329,3 +329,6 @@ verify_jwt = false
 
 [functions.signature-tracking-action]
 verify_jwt = false
+
+[functions.resend-inbound-email]
+verify_jwt = false
