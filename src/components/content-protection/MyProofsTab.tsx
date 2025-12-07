@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, FileAudio, FileVideo, FileText, Shield, Loader2, Music, Youtube, Download } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Plus, FileAudio, FileVideo, FileText, Shield, Loader2, Music, Youtube, Download, ExternalLink, CheckCircle, RefreshCw, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { useSpotifyConnect } from "@/hooks/useSpotifyConnect";
 import { useYouTubeConnect } from "@/hooks/useYouTubeConnect";
@@ -28,6 +35,7 @@ import { useYouTubeConnect } from "@/hooks/useYouTubeConnect";
 export const MyProofsTab = () => {
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [autoSyncEnabled, setAutoSyncEnabled] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     contentType: "audio",
@@ -36,6 +44,7 @@ export const MyProofsTab = () => {
 
   const { connectSpotify, importPodcasts, isConnecting: isSpotifyConnecting, isImporting: isSpotifyImporting } = useSpotifyConnect();
   const { connectYouTubeForContentProtection, importVideos, isConnecting: isYouTubeConnecting, isImporting: isYouTubeImporting } = useYouTubeConnect();
+
 
   // Check if Spotify is connected for content protection
   const { data: spotifyConnection } = useQuery({
@@ -133,6 +142,25 @@ export const MyProofsTab = () => {
     },
   });
 
+  // Certify pending content mutation
+  const certifyMutation = useMutation({
+    mutationFn: async (contentIds: string[]) => {
+      const { data, error } = await supabase.functions.invoke('certify-protected-content', {
+        body: { content_ids: contentIds },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["protected-content"] });
+      queryClient.invalidateQueries({ queryKey: ["content-protection-stats"] });
+      toast.success(`Certified ${data.certified} of ${data.total} items on blockchain`);
+    },
+    onError: (error) => {
+      toast.error("Certification failed: " + error.message);
+    },
+  });
+
   const generateHash = async (input: string): Promise<string> => {
     const encoder = new TextEncoder();
     const data = encoder.encode(input + Date.now());
@@ -149,6 +177,25 @@ export const MyProofsTab = () => {
         return FileVideo;
       default:
         return FileText;
+    }
+  };
+
+  // Count pending items
+  const pendingContent = protectedContent?.filter(c => !c.blockchain_tx_hash) || [];
+  const certifiedContent = protectedContent?.filter(c => c.blockchain_tx_hash) || [];
+
+  const handleCertifyAll = () => {
+    if (pendingContent.length === 0) {
+      toast.info("No pending content to certify");
+      return;
+    }
+    const ids = pendingContent.map(c => c.id);
+    certifyMutation.mutate(ids);
+  };
+
+  const handleContentClick = (content: any) => {
+    if (content.blockchain_tx_hash) {
+      window.open(`https://polygonscan.com/tx/${content.blockchain_tx_hash}`, '_blank');
     }
   };
 
@@ -251,7 +298,7 @@ export const MyProofsTab = () => {
         </div>
       </Card>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-xl font-semibold">My Protected Content</h2>
           <p className="text-sm text-muted-foreground">
@@ -259,99 +306,147 @@ export const MyProofsTab = () => {
           </p>
         </div>
 
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Protect Content
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Register Content for Protection</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Title</Label>
-                <Input
-                  placeholder="Episode title, video name, etc."
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Content Type</Label>
-                <Select
-                  value={formData.contentType}
-                  onValueChange={(value) => setFormData({ ...formData, contentType: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="audio">Audio (Podcast, Music)</SelectItem>
-                    <SelectItem value="video">Video</SelectItem>
-                    <SelectItem value="transcript">Transcript</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>File URL (optional)</Label>
-                <Input
-                  placeholder="https://..."
-                  value={formData.fileUrl}
-                  onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })}
-                />
-              </div>
-
-              <Button
-                className="w-full"
-                onClick={() => addContentMutation.mutate(formData)}
-                disabled={!formData.title || addContentMutation.isPending}
-              >
-                {addContentMutation.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Registering...
-                  </>
-                ) : (
-                  <>
-                    <Shield className="h-4 w-4 mr-2" />
-                    Register & Protect
-                  </>
-                )}
+        <div className="flex gap-2 flex-wrap">
+          {pendingContent.length > 0 && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleCertifyAll}
+                    disabled={certifyMutation.isPending}
+                  >
+                    {certifyMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                    )}
+                    Certify All ({pendingContent.length})
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Create blockchain certificates for all pending content</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Protect Content
               </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Register Content for Protection</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>Title</Label>
+                  <Input
+                    placeholder="Episode title, video name, etc."
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Content Type</Label>
+                  <Select
+                    value={formData.contentType}
+                    onValueChange={(value) => setFormData({ ...formData, contentType: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="audio">Audio (Podcast, Music)</SelectItem>
+                      <SelectItem value="video">Video</SelectItem>
+                      <SelectItem value="transcript">Transcript</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>File URL (optional)</Label>
+                  <Input
+                    placeholder="https://..."
+                    value={formData.fileUrl}
+                    onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })}
+                  />
+                </div>
+
+                <Button
+                  className="w-full"
+                  onClick={() => addContentMutation.mutate(formData)}
+                  disabled={!formData.title || addContentMutation.isPending}
+                >
+                  {addContentMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Registering...
+                    </>
+                  ) : (
+                    <>
+                      <Shield className="h-4 w-4 mr-2" />
+                      Register & Protect
+                    </>
+                  )}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {protectedContent && protectedContent.length > 0 ? (
         <div className="grid gap-4">
           {protectedContent.map((content) => {
             const Icon = getContentTypeIcon(content.content_type);
+            const isCertified = !!content.blockchain_tx_hash;
             return (
-              <Card key={content.id} className="p-4">
+              <Card 
+                key={content.id} 
+                className={`p-4 transition-all ${isCertified ? 'cursor-pointer hover:border-primary/50 hover:shadow-md' : ''}`}
+                onClick={() => handleContentClick(content)}
+              >
                 <div className="flex items-start gap-4">
                   <div className="p-3 rounded-lg bg-primary/10">
                     <Icon className="h-6 w-6 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <h3 className="font-medium truncate">{content.title}</h3>
+                      {isCertified ? (
+                        <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-xs">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Certified
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-xs text-amber-600 border-amber-500/30">
+                          <Clock className="h-3 w-3 mr-1" />
+                          Pending
+                        </Badge>
+                      )}
                       {content.file_hash && (
                         <Badge variant="outline" className="text-xs">
                           Fingerprinted
                         </Badge>
                       )}
                     </div>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground flex-wrap">
                       <span>Type: {content.content_type}</span>
                       <span>
                         Registered: {new Date(content.created_at).toLocaleDateString()}
                       </span>
+                      {isCertified && (
+                        <span className="flex items-center gap-1 text-primary">
+                          <ExternalLink className="h-3 w-3" />
+                          View on PolygonScan
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
