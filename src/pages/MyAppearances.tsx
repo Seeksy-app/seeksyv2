@@ -46,7 +46,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { FaceScanCard } from "@/components/identity/FaceScanCard";
+
 
 interface GuestAppearance {
   id: string;
@@ -641,16 +641,7 @@ export default function MyAppearances() {
         </CardContent>
       </Card>
 
-      {/* Face Scan for Video Appearances */}
-      {user && (
-        <FaceScanCard
-          userId={user.id}
-          isFaceCertified={faceStatus?.isCertified || false}
-          onScanComplete={() => queryClient.invalidateQueries({ queryKey: ["guest-appearances"] })}
-        />
-      )}
-
-      {/* Search Panel */}
+      {/* Unified Search Panel */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -658,149 +649,218 @@ export default function MyAppearances() {
             Scan for Your Appearances
           </CardTitle>
           <CardDescription>
-            Search for YOUR podcast appearances by name. Results are added to your personal library for verification.
+            Find your podcast, video, and social media appearances across platforms.
             {voiceStatus?.isCertified && (
-              <span className="block mt-1 text-green-600">
-                ✓ Voice certified - you can fingerprint verify appearances
-              </span>
+              <span className="ml-2 text-green-600">✓ Voice certified</span>
+            )}
+            {faceStatus?.isCertified && (
+              <span className="ml-2 text-green-600">✓ Face verified</span>
             )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Alert className="border-muted bg-muted/50">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-sm">
-              <strong>Note:</strong> This searches by name in episode titles/descriptions. Only search for YOUR name to find YOUR appearances. 
-              Voice fingerprint verification coming soon for certified users.
-            </AlertDescription>
-          </Alert>
-          <div className="flex gap-4 items-center">
-            <Input
-              placeholder="Enter YOUR name (e.g., John Smith)"
-              value={searchName}
-              onChange={(e) => setSearchName(e.target.value)}
-              className="flex-1"
-            />
-            <Select value={scanMethod} onValueChange={setScanMethod}>
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Scan method" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name">
-                  <div className="flex items-center gap-2">
-                    <Search className="h-3 w-3" />
-                    Name Search
-                  </div>
-                </SelectItem>
-                <SelectItem value="face" disabled={!faceStatus?.isCertified}>
-                  <div className="flex items-center gap-2">
-                    <ScanFace className="h-3 w-3" />
-                    Face Detection
-                  </div>
-                </SelectItem>
-                <SelectItem value="voice" disabled={!voiceStatus?.isCertified}>
-                  <div className="flex items-center gap-2">
-                    <Mic2 className="h-3 w-3" />
-                    Voice Match
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <Button 
-              onClick={() => {
-                if (!disclaimerAcknowledged) {
-                  setShowDisclaimerModal(true);
-                } else {
-                  scanMutation.mutate();
-                }
-              }}
-              disabled={scanMutation.isPending || !searchName.trim()}
+          {/* Scan Method Tabs */}
+          <div className="flex items-center gap-2 p-1 bg-muted rounded-lg w-fit">
+            <Button
+              variant={scanMethod === "name" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setScanMethod("name")}
+              className="gap-2"
             >
-              {scanMutation.isPending ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Scanning...
-                </>
-              ) : (
-                <>
-                  <Search className="h-4 w-4 mr-2" />
-                  Scan
-                </>
-              )}
+              <Search className="h-4 w-4" />
+              Name Search
+            </Button>
+            <Button
+              variant={scanMethod === "face" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setScanMethod("face")}
+              disabled={!faceStatus?.isCertified}
+              className="gap-2"
+            >
+              <ScanFace className="h-4 w-4" />
+              Face Detection
+              {!faceStatus?.isCertified && <Badge variant="outline" className="text-xs ml-1">Requires Verification</Badge>}
+            </Button>
+            <Button
+              variant={scanMethod === "voice" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setScanMethod("voice")}
+              disabled={!voiceStatus?.isCertified}
+              className="gap-2"
+            >
+              <Mic2 className="h-4 w-4" />
+              Voice Match
+              {!voiceStatus?.isCertified && <Badge variant="outline" className="text-xs ml-1">Requires Certification</Badge>}
             </Button>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 md:gap-6">
-            <span className="text-sm font-medium">Platforms:</span>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <Checkbox
-                checked={selectedPlatforms.includes("youtube")}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    setSelectedPlatforms([...selectedPlatforms, "youtube"]);
-                  } else {
-                    setSelectedPlatforms(selectedPlatforms.filter(p => p !== "youtube"));
-                  }
-                }}
-              />
-              <Youtube className="h-4 w-4 text-red-500" />
-              <span className="text-sm">YouTube</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <Checkbox
-                checked={selectedPlatforms.includes("spotify")}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    setSelectedPlatforms([...selectedPlatforms, "spotify"]);
-                  } else {
-                    setSelectedPlatforms(selectedPlatforms.filter(p => p !== "spotify"));
-                  }
-                }}
-              />
-              <Music2 className="h-4 w-4 text-green-500" />
-              <span className="text-sm">Spotify</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer opacity-60">
-              <Checkbox
-                checked={selectedPlatforms.includes("instagram")}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    setSelectedPlatforms([...selectedPlatforms, "instagram"]);
-                  } else {
-                    setSelectedPlatforms(selectedPlatforms.filter(p => p !== "instagram"));
-                  }
-                }}
-              />
-              <Instagram className="h-4 w-4 text-pink-500" />
-              <span className="text-sm">Instagram</span>
-              <Badge variant="outline" className="text-xs">Face R&D</Badge>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer opacity-60">
-              <Checkbox
-                checked={selectedPlatforms.includes("tiktok")}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    setSelectedPlatforms([...selectedPlatforms, "tiktok"]);
-                  } else {
-                    setSelectedPlatforms(selectedPlatforms.filter(p => p !== "tiktok"));
-                  }
-                }}
-              />
-              <Video className="h-4 w-4 text-foreground" />
-              <span className="text-sm">TikTok</span>
-              <Badge variant="outline" className="text-xs">Face R&D</Badge>
-            </label>
-          </div>
-          
-          {(selectedPlatforms.includes("instagram") || selectedPlatforms.includes("tiktok")) && (
-            <Alert className="border-blue-500/50 bg-blue-500/10 mt-4">
-              <ScanFace className="h-4 w-4 text-blue-600" />
-              <AlertTitle className="text-blue-700">Face Detection (R&D)</AlertTitle>
-              <AlertDescription className="text-blue-600">
-                Face-based detection uses your verified identity to scan video content for your appearances. 
-                Requires identity certification for accurate matching.
-              </AlertDescription>
-            </Alert>
+          {/* Dynamic Input Based on Method */}
+          {scanMethod === "name" && (
+            <>
+              <Alert className="border-muted bg-muted/50">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="text-sm">
+                  Searches by name in episode titles/descriptions. Only search for YOUR name to find YOUR appearances.
+                </AlertDescription>
+              </Alert>
+              <div className="flex gap-3 items-center">
+                <Input
+                  placeholder="Enter YOUR name (e.g., John Smith)"
+                  value={searchName}
+                  onChange={(e) => setSearchName(e.target.value)}
+                  className="flex-1"
+                />
+                <Button 
+                  onClick={() => {
+                    if (!disclaimerAcknowledged) {
+                      setShowDisclaimerModal(true);
+                    } else {
+                      scanMutation.mutate();
+                    }
+                  }}
+                  disabled={scanMutation.isPending || !searchName.trim()}
+                >
+                  {scanMutation.isPending ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Scanning...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="h-4 w-4 mr-2" />
+                      Scan
+                    </>
+                  )}
+                </Button>
+              </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <span className="text-sm font-medium">Platforms:</span>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={selectedPlatforms.includes("youtube")}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedPlatforms([...selectedPlatforms, "youtube"]);
+                      } else {
+                        setSelectedPlatforms(selectedPlatforms.filter(p => p !== "youtube"));
+                      }
+                    }}
+                  />
+                  <Youtube className="h-4 w-4 text-red-500" />
+                  <span className="text-sm">YouTube</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={selectedPlatforms.includes("spotify")}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedPlatforms([...selectedPlatforms, "spotify"]);
+                      } else {
+                        setSelectedPlatforms(selectedPlatforms.filter(p => p !== "spotify"));
+                      }
+                    }}
+                  />
+                  <Music2 className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">Spotify</span>
+                </label>
+              </div>
+            </>
+          )}
+
+          {scanMethod === "face" && (
+            <>
+              <Alert className="border-blue-500/50 bg-blue-500/10">
+                <ScanFace className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-sm text-blue-700">
+                  AI face detection scans video thumbnails and frames to find your appearances.
+                </AlertDescription>
+              </Alert>
+              <div className="flex gap-3 items-center">
+                <Input
+                  placeholder="Paste YouTube video URL (e.g., youtube.com/watch?v=...)"
+                  value={searchName}
+                  onChange={(e) => setSearchName(e.target.value)}
+                  className="flex-1"
+                />
+                <Button 
+                  onClick={async () => {
+                    if (!disclaimerAcknowledged) {
+                      setShowDisclaimerModal(true);
+                      return;
+                    }
+                    if (!searchName.trim()) {
+                      toast.error("Please enter a YouTube video URL");
+                      return;
+                    }
+                    const isVideoUrl = searchName.includes('watch?v=') || searchName.includes('youtu.be/');
+                    if (!isVideoUrl) {
+                      toast.error("Please enter a YouTube video URL (not a channel)");
+                      return;
+                    }
+                    try {
+                      const { data, error } = await supabase.functions.invoke("scan-face-youtube", {
+                        body: { videoUrl: searchName.trim() },
+                      });
+                      if (error) throw error;
+                      if (data?.matchFound) {
+                        toast.success(`Face match found in "${data.videoTitle}"!`);
+                        queryClient.invalidateQueries({ queryKey: ["guest-appearances"] });
+                      } else {
+                        toast.info("No face match found in this video");
+                      }
+                    } catch (error) {
+                      toast.error("Failed to scan video");
+                    }
+                  }}
+                  disabled={!searchName.trim()}
+                >
+                  <ScanFace className="h-4 w-4 mr-2" />
+                  Scan Video
+                </Button>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-sm font-medium">Scan by platform:</span>
+                <Badge variant="outline" className="gap-2 py-1.5 px-3">
+                  <Youtube className="h-4 w-4 text-red-500" />
+                  YouTube Video
+                </Badge>
+                <Badge variant="outline" className="gap-2 py-1.5 px-3 opacity-50">
+                  <Instagram className="h-4 w-4 text-pink-500" />
+                  Instagram (Soon)
+                </Badge>
+                <Badge variant="outline" className="gap-2 py-1.5 px-3 opacity-50">
+                  <Video className="h-4 w-4" />
+                  TikTok (Soon)
+                </Badge>
+              </div>
+            </>
+          )}
+
+          {scanMethod === "voice" && (
+            <>
+              <Alert className="border-purple-500/50 bg-purple-500/10">
+                <Mic2 className="h-4 w-4 text-purple-600" />
+                <AlertDescription className="text-sm text-purple-700">
+                  Voice fingerprint matching compares audio to your certified voice signature. Coming soon!
+                </AlertDescription>
+              </Alert>
+              <div className="flex gap-3 items-center">
+                <Input
+                  placeholder="Paste podcast episode URL..."
+                  value={searchName}
+                  onChange={(e) => setSearchName(e.target.value)}
+                  className="flex-1"
+                  disabled
+                />
+                <Button disabled>
+                  <Mic2 className="h-4 w-4 mr-2" />
+                  Scan Audio
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Voice matching is in development. Your voice is certified and ready for when this feature launches.
+              </p>
+            </>
           )}
         </CardContent>
       </Card>
