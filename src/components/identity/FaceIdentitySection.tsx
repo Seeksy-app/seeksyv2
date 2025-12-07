@@ -230,11 +230,14 @@ export function FaceIdentitySection({ asset }: FaceIdentitySectionProps) {
                 <Shield className="h-4 w-4 mr-2" />
                 View Certificate
               </Button>
-              {asset.cert_explorer_url && (
+              {(asset.cert_explorer_url || asset.face_hash) && (
                 <Button 
                   className="w-full" 
                   variant="outline"
-                  onClick={() => window.open(asset.cert_explorer_url, "_blank")}
+                  onClick={() => {
+                    const url = asset.cert_explorer_url || `https://polygonscan.com/tx/${asset.face_hash}`;
+                    window.open(url, "_blank");
+                  }}
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
                   View on Polygon
