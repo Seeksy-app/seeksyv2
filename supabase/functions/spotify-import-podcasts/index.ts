@@ -121,36 +121,47 @@ serve(async (req) => {
           .from('protected_content')
           .select('id')
           .eq('user_id', user.id)
-          .eq('source_platform', 'spotify')
-          .eq('source_id', episode.id)
-          .single();
+          .eq('source', 'spotify')
+          .eq('external_id', episode.id)
+          .maybeSingle();
 
         if (!existingContent) {
+          // Generate file hash for uniqueness
+          const hashInput = `spotify-${episode.id}-${episode.name}`;
+          const encoder = new TextEncoder();
+          const hashData = encoder.encode(hashInput);
+          const hashBuffer = await crypto.subtle.digest('SHA-256', hashData);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          const fileHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
           const { data: newContent, error: insertError } = await serviceClient
             .from('protected_content')
             .insert({
               user_id: user.id,
               content_type: 'audio',
               title: episode.name,
-              description: episode.description,
-              source_platform: 'spotify',
-              source_id: episode.id,
-              source_url: episode.external_urls.spotify,
-              thumbnail_url: episode.images?.[0]?.url || show.images?.[0]?.url,
+              source: 'spotify',
+              external_id: episode.id,
+              original_file_url: episode.external_urls.spotify,
+              file_hash: fileHash,
               duration_seconds: Math.floor(episode.duration_ms / 1000),
-              published_at: episode.release_date,
+              proof_status: 'pending',
               metadata: {
                 show_id: show.id,
                 show_name: show.name,
                 publisher: show.publisher,
+                description: episode.description,
+                release_date: episode.release_date,
                 audio_preview_url: episode.audio_preview_url,
+                thumbnail: episode.images?.[0]?.url || show.images?.[0]?.url,
               },
-              protection_status: 'pending',
             })
             .select()
             .single();
 
-          if (!insertError && newContent) {
+          if (insertError) {
+            console.error(`Failed to import episode ${episode.name}:`, insertError);
+          } else if (newContent) {
             importedContent.push(newContent);
             console.log(`Imported episode: ${episode.name}`);
           }
