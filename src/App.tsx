@@ -887,7 +887,7 @@ const AppContent = () => {
               <Route path="/admin/system-tools" element={<SystemTools />} />
               <Route path="/admin/security" element={<AdminSecurityOverview />} />
               <Route path="/admin/data-recovery" element={<DataRecovery />} />
-              <Route path="/content-protection" element={<ContentProtectionDashboard />} />
+              <Route path="/broadcast-monitoring" element={<ContentProtectionDashboard />} />
           <Route path="/demo-videos" element={<DemoVideos />} />
           <Route path="/admin/demo-videos" element={<DemoVideos />} />
           <Route path="/marketing-gtm" element={<MarketingGTMPlan />} />

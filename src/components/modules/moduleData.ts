@@ -426,7 +426,7 @@ export const SEEKSY_MODULES: SeeksyModule[] = [
     description: "Monitor platforms for unauthorized use of your voice and content with AI-powered detection",
     icon: Eye,
     category: "identity",
-    route: "/content-protection",
+    route: "/broadcast-monitoring",
     isNew: true,
     isAIPowered: true,
     bgGradient: "bg-gradient-to-br from-violet-100 via-purple-50 to-indigo-100",
