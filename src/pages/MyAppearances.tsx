@@ -25,10 +25,18 @@ import {
   Mic2,
   Shield,
   AlertCircle,
-  Fingerprint
+  Fingerprint,
+  Instagram,
+  List,
+  Share2,
+  Video,
+  ScanFace
 } from "lucide-react";
 import { format } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface GuestAppearance {
   id: string;
@@ -54,12 +62,15 @@ export default function MyAppearances() {
   const [searchName, setSearchName] = useState("");
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(["youtube", "spotify"]);
   const [activeTab, setActiveTab] = useState("all");
+  const [playlistDialogOpen, setPlaylistDialogOpen] = useState(false);
+  const [playlistName, setPlaylistName] = useState("My Guest Appearances");
+  const [playlistDescription, setPlaylistDescription] = useState("");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
   }, []);
 
-  // Check voice certification status
+  // Check voice certification status - using voice_blockchain_certificates table
   const [voiceStatus, setVoiceStatus] = useState<{
     isCertified: boolean;
     hasFingerprint: boolean;
@@ -71,23 +82,29 @@ export default function MyAppearances() {
     
     const checkVoiceStatus = async () => {
       try {
-        // Check for voice profile with certified status
-        const profileResult = await (supabase as any)
-          .from("creator_voice_profiles")
-          .select("id, status")
-          .eq("user_id", user.id)
-          .eq("status", "certified");
+        // Check for active blockchain certificate with verified status
+        const certResult = await supabase
+          .from("voice_blockchain_certificates")
+          .select("id, certification_status, is_active, voice_fingerprint_hash")
+          .eq("creator_id", user.id)
+          .eq("is_active", true)
+          .eq("certification_status", "verified")
+          .limit(1);
 
-        // Check for voice fingerprint
-        const fingerprintResult = await (supabase as any)
-          .from("creator_voice_fingerprints")
-          .select("id, is_primary")
-          .eq("user_id", user.id);
+        // Check for voice identity record
+        const identityResult = await supabase
+          .from("voice_identity")
+          .select("id, fingerprint, certification_status")
+          .eq("creator_id", user.id)
+          .limit(1);
+
+        const hasCert = certResult.data && certResult.data.length > 0;
+        const hasIdentity = identityResult.data && identityResult.data.length > 0;
 
         setVoiceStatus({
-          isCertified: profileResult.data && profileResult.data.length > 0,
-          hasFingerprint: fingerprintResult.data && fingerprintResult.data.length > 0,
-          certificate: profileResult.data?.[0] || null
+          isCertified: !!hasCert,
+          hasFingerprint: !!(hasCert || (hasIdentity && identityResult.data[0].fingerprint)),
+          certificate: certResult.data?.[0] || null
         });
       } catch (error) {
         console.error("Error checking voice status:", error);
@@ -212,15 +229,90 @@ export default function MyAppearances() {
     spotify: appearances?.filter(a => a.platform === "spotify" && !a.is_hidden).length || 0,
   };
 
+  const verifiedAppearances = appearances?.filter(a => a.is_verified && !a.is_hidden) || [];
+
+  const handleBuildPlaylist = async () => {
+    if (verifiedAppearances.length === 0) {
+      toast.error("No verified appearances to create playlist from");
+      return;
+    }
+
+    // For now, we'll create a shareable page URL
+    const playlistData = {
+      name: playlistName,
+      description: playlistDescription,
+      appearances: verifiedAppearances.map(a => ({
+        id: a.id,
+        title: a.title,
+        show_name: a.show_name,
+        platform: a.platform,
+        external_url: a.external_url,
+        thumbnail_url: a.thumbnail_url,
+        published_at: a.published_at
+      }))
+    };
+
+    // Store in localStorage for now, can be expanded to database
+    localStorage.setItem("guest_appearances_playlist", JSON.stringify(playlistData));
+    
+    toast.success("Playlist landing page created!");
+    setPlaylistDialogOpen(false);
+    navigate("/my-appearances/playlist");
+  };
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">My Appearances</h1>
+          <h1 className="text-3xl font-bold">Guest Appearance Scanner</h1>
           <p className="text-muted-foreground">
             Track your podcast and video guest appearances across platforms
           </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Dialog open={playlistDialogOpen} onOpenChange={setPlaylistDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" disabled={verifiedAppearances.length === 0}>
+                <List className="h-4 w-4 mr-2" />
+                Build Playlist Page
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create Playlist Landing Page</DialogTitle>
+                <DialogDescription>
+                  Create a shareable landing page showcasing your verified podcast appearances
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>Playlist Name</Label>
+                  <Input
+                    value={playlistName}
+                    onChange={(e) => setPlaylistName(e.target.value)}
+                    placeholder="My Guest Appearances"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Description (optional)</Label>
+                  <Textarea
+                    value={playlistDescription}
+                    onChange={(e) => setPlaylistDescription(e.target.value)}
+                    placeholder="A collection of podcasts and videos I've appeared on..."
+                    rows={3}
+                  />
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {verifiedAppearances.length} verified appearance{verifiedAppearances.length !== 1 ? "s" : ""} will be included
+                </div>
+                <Button onClick={handleBuildPlaylist} className="w-full">
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Create Landing Page
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -291,7 +383,7 @@ export default function MyAppearances() {
             </Button>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center gap-4 md:gap-6">
             <span className="text-sm font-medium">Platforms:</span>
             <label className="flex items-center gap-2 cursor-pointer">
               <Checkbox
@@ -321,7 +413,48 @@ export default function MyAppearances() {
               <Music2 className="h-4 w-4 text-green-500" />
               <span className="text-sm">Spotify</span>
             </label>
+            <label className="flex items-center gap-2 cursor-pointer opacity-60">
+              <Checkbox
+                checked={selectedPlatforms.includes("instagram")}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setSelectedPlatforms([...selectedPlatforms, "instagram"]);
+                  } else {
+                    setSelectedPlatforms(selectedPlatforms.filter(p => p !== "instagram"));
+                  }
+                }}
+              />
+              <Instagram className="h-4 w-4 text-pink-500" />
+              <span className="text-sm">Instagram</span>
+              <Badge variant="outline" className="text-xs">Face R&D</Badge>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer opacity-60">
+              <Checkbox
+                checked={selectedPlatforms.includes("tiktok")}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setSelectedPlatforms([...selectedPlatforms, "tiktok"]);
+                  } else {
+                    setSelectedPlatforms(selectedPlatforms.filter(p => p !== "tiktok"));
+                  }
+                }}
+              />
+              <Video className="h-4 w-4 text-foreground" />
+              <span className="text-sm">TikTok</span>
+              <Badge variant="outline" className="text-xs">Face R&D</Badge>
+            </label>
           </div>
+          
+          {(selectedPlatforms.includes("instagram") || selectedPlatforms.includes("tiktok")) && (
+            <Alert className="border-blue-500/50 bg-blue-500/10 mt-4">
+              <ScanFace className="h-4 w-4 text-blue-600" />
+              <AlertTitle className="text-blue-700">Face Detection (R&D)</AlertTitle>
+              <AlertDescription className="text-blue-600">
+                Face-based detection uses your verified identity to scan video content for your appearances. 
+                Requires identity certification for accurate matching.
+              </AlertDescription>
+            </Alert>
+          )}
         </CardContent>
       </Card>
 
