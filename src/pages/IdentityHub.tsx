@@ -7,6 +7,7 @@ import { useIdentityStatus } from "@/hooks/useIdentityStatus";
 import { IdentityLayout } from "@/components/identity/IdentityLayout";
 import { IdentityPromiseBanner } from "@/components/identity/IdentityPromiseBanner";
 import { IdentityActivityLog } from "@/components/identity/IdentityActivityLog";
+import { ImpersonationScanner } from "@/components/identity/ImpersonationScanner";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AskAIButton } from "@/components/ai/AskAIButton";
@@ -192,6 +193,11 @@ export default function IdentityHub() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Impersonation Detection - Only show if face is verified */}
+        {faceVerified && (
+          <ImpersonationScanner />
+        )}
 
         {/* Seeksy Identity Promise */}
         <IdentityPromiseBanner />
