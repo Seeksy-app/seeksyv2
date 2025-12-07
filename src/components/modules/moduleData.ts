@@ -389,7 +389,7 @@ export const SEEKSY_MODULES: SeeksyModule[] = [
     description: "Track deals through your sales pipeline with stages, values, and forecasting",
     icon: DollarSign,
     category: "crm-business",
-    route: "/sales/deals",
+    route: "/deals",
     primaryGroup: "crm-business",
     bgGradient: "bg-gradient-to-br from-green-100 via-emerald-50 to-lime-100",
     iconBg: "bg-white shadow-lg",

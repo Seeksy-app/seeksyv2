@@ -1127,6 +1127,7 @@ const AppContent = () => {
             <Route path="/tech-stack" element={<TechStack />} />
             <Route path="/sales-dashboard" element={<SalesDashboard />} />
             <Route path="/sales/ad-library" element={<SalesAdLibrary />} />
+            <Route path="/deals" element={<DealsPage />} />
             <Route path="/sales/deals" element={<DealsPage />} />
             <Route path="/creator/campaigns" element={<CreatorCampaignBrowser />} />
             <Route path="/creator/campaign-browser" element={<CreatorCampaignBrowser />} />
