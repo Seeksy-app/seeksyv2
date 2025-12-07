@@ -78,7 +78,7 @@ export function useAutosave<T extends Record<string, unknown>>({
           user_id: user.id,
           form_type: formType,
           form_id: formId || "",
-          draft_data: newData as unknown as Record<string, unknown>,
+          draft_data: JSON.parse(JSON.stringify(newData)),
           last_saved_at: new Date().toISOString(),
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
         });
