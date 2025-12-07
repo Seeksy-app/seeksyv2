@@ -4,6 +4,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // 1x1 transparent PNG as base64
 const TRANSPARENT_PIXEL_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
 
+// Deduplication window in minutes
+const DEDUP_WINDOW_MINUTES = 5;
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -15,41 +18,73 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Helper to return pixel
+  const returnPixel = () => {
+    const pixelBuffer = Uint8Array.from(atob(TRANSPARENT_PIXEL_BASE64), c => c.charCodeAt(0));
+    return new Response(pixelBuffer, {
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "image/png",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+      },
+    });
+  };
+
   try {
     const url = new URL(req.url);
     const pathParts = url.pathname.split("/").filter(Boolean);
     
     // Expected path: /signature-tracking-pixel/{signatureId}.png
     // or /signature-tracking-pixel/{signatureId}/{messageKey}.png
+    // messageKey can be base64-encoded recipient email
     let signatureId: string | null = null;
     let messageKey: string | null = null;
+    let recipientEmail: string | null = null;
 
     if (pathParts.length >= 2) {
       const lastPart = pathParts[pathParts.length - 1];
       signatureId = lastPart.replace(".png", "");
       
-      // Check if there's a message key
+      // Check if there's a message key (recipient email encoded)
       if (pathParts.length >= 3) {
         signatureId = pathParts[pathParts.length - 2];
         messageKey = lastPart.replace(".png", "");
+        
+        // Try to decode messageKey as base64 email
+        try {
+          const decoded = atob(messageKey);
+          if (decoded.includes("@")) {
+            recipientEmail = decoded;
+          }
+        } catch {
+          // Not base64, keep as messageKey
+        }
       }
     }
 
-    console.log("[Tracking Pixel] Request received:", { signatureId, messageKey });
+    // Also check query param for recipient
+    const queryRecipient = url.searchParams.get("r") || url.searchParams.get("recipient");
+    if (queryRecipient && !recipientEmail) {
+      try {
+        const decoded = atob(queryRecipient);
+        if (decoded.includes("@")) {
+          recipientEmail = decoded;
+        }
+      } catch {
+        // Not base64, try as plain email
+        if (queryRecipient.includes("@")) {
+          recipientEmail = queryRecipient;
+        }
+      }
+    }
+
+    console.log("[Tracking Pixel] Request received:", { signatureId, messageKey, recipientEmail });
 
     if (!signatureId) {
       console.log("[Tracking Pixel] Missing signature ID");
-      // Still return the pixel even if no signature ID
-      const pixelBuffer = Uint8Array.from(atob(TRANSPARENT_PIXEL_BASE64), c => c.charCodeAt(0));
-      return new Response(pixelBuffer, {
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "image/png",
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          "Pragma": "no-cache",
-          "Expires": "0",
-        },
-      });
+      return returnPixel();
     }
 
     // Parse user agent for device info
@@ -67,6 +102,22 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // DEDUPLICATION CHECK: Skip if same signature + IP opened within last X minutes
+    const dedupTime = new Date(Date.now() - DEDUP_WINDOW_MINUTES * 60 * 1000).toISOString();
+    const { data: recentEvents } = await supabase
+      .from("signature_tracking_events")
+      .select("id")
+      .eq("signature_id", signatureId)
+      .eq("ip_address", ipAddress)
+      .eq("event_type", "open")
+      .gte("created_at", dedupTime)
+      .limit(1);
+
+    if (recentEvents && recentEvents.length > 0) {
+      console.log("[Tracking Pixel] Duplicate open ignored (within dedup window):", { signatureId, ipAddress });
+      return returnPixel();
+    }
+
     // Get signature details to find user_id and workspace_id
     const { data: signature } = await supabase
       .from("email_signatures")
@@ -74,7 +125,7 @@ const handler = async (req: Request): Promise<Response> => {
       .eq("id", signatureId)
       .single();
 
-    // Log the open event
+    // Log the open event with recipient email
     const { data: insertedEvent, error } = await supabase
       .from("signature_tracking_events")
       .insert({
@@ -87,6 +138,7 @@ const handler = async (req: Request): Promise<Response> => {
         device_type: deviceType,
         email_client: emailClient,
         message_key: messageKey,
+        recipient_email: recipientEmail,
       })
       .select("id")
       .single();
@@ -94,7 +146,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (error) {
       console.error("[Tracking Pixel] Failed to log event:", error);
     } else {
-      console.log("[Tracking Pixel] Open event logged successfully:", insertedEvent?.id);
+      console.log("[Tracking Pixel] Open event logged successfully:", insertedEvent?.id, "recipient:", recipientEmail);
       
       // Send notification email if user has it enabled
       if (signature?.user_id) {
@@ -113,6 +165,7 @@ const handler = async (req: Request): Promise<Response> => {
               eventType: "open",
               deviceType: deviceType,
               emailClient: emailClient,
+              recipientEmail: recipientEmail,
             }),
           });
         } catch (notifError) {
@@ -121,27 +174,10 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Return the transparent pixel
-    const pixelBuffer = Uint8Array.from(atob(TRANSPARENT_PIXEL_BASE64), c => c.charCodeAt(0));
-    return new Response(pixelBuffer, {
-      headers: {
-        ...corsHeaders,
-        "Content-Type": "image/png",
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        "Pragma": "no-cache",
-        "Expires": "0",
-      },
-    });
+    return returnPixel();
   } catch (error) {
     console.error("[Tracking Pixel] Error:", error);
-    // Still return pixel even on error
-    const pixelBuffer = Uint8Array.from(atob(TRANSPARENT_PIXEL_BASE64), c => c.charCodeAt(0));
-    return new Response(pixelBuffer, {
-      headers: {
-        ...corsHeaders,
-        "Content-Type": "image/png",
-      },
-    });
+    return returnPixel();
   }
 };
 
