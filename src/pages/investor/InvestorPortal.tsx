@@ -436,7 +436,7 @@ export default function InvestorPortal() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Video className="w-5 h-5 text-blue-600" />
-                    Investor Videos
+                    Platform Videos
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
