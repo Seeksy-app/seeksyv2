@@ -297,6 +297,13 @@ export default function BoardVideos() {
                                   alt={video.title}
                                   className="w-full h-full object-cover"
                                 />
+                              ) : video.video_url ? (
+                                <video 
+                                  src={`${video.video_url}#t=2`}
+                                  muted
+                                  preload="metadata"
+                                  className="w-full h-full object-cover"
+                                />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-700 to-slate-900">
                                   <Play className="w-6 h-6 text-white/70" />
