@@ -6,7 +6,6 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -21,8 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, FileAudio, FileVideo, FileText, Shield, Loader2 } from "lucide-react";
+import { Plus, FileAudio, FileVideo, FileText, Shield, Loader2, Music, Youtube, Download } from "lucide-react";
 import { toast } from "sonner";
+import { useSpotifyConnect } from "@/hooks/useSpotifyConnect";
+import { useYouTubeConnect } from "@/hooks/useYouTubeConnect";
 
 export const MyProofsTab = () => {
   const queryClient = useQueryClient();
@@ -31,6 +32,26 @@ export const MyProofsTab = () => {
     title: "",
     contentType: "audio",
     fileUrl: "",
+  });
+
+  const { connectSpotify, importPodcasts, isConnecting: isSpotifyConnecting, isImporting: isSpotifyImporting } = useSpotifyConnect();
+  const { connectYouTube, isConnecting: isYouTubeConnecting } = useYouTubeConnect();
+
+  // Check if Spotify is connected
+  const { data: spotifyConnection } = useQuery({
+    queryKey: ["spotify-connection"],
+    queryFn: async (): Promise<{ id: string } | null> => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) return null;
+      const result = await (supabase
+        .from("social_media_profiles") as any)
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("platform", "spotify")
+        .eq("is_active", true)
+        .maybeSingle();
+      return result.data as { id: string } | null;
+    },
   });
 
   const { data: protectedContent, isLoading } = useQuery({
@@ -109,8 +130,74 @@ export const MyProofsTab = () => {
     );
   }
 
+  const handleSpotifyImport = async () => {
+    const result = await importPodcasts();
+    if (result) {
+      queryClient.invalidateQueries({ queryKey: ["protected-content"] });
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* Import Options Card */}
+      <Card className="p-4 bg-gradient-to-r from-primary/5 to-secondary/5 border-primary/20">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div>
+            <h3 className="font-medium flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              Import Content for Protection
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Connect your accounts to auto-import podcasts and videos
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {spotifyConnection ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSpotifyImport}
+                disabled={isSpotifyImporting}
+              >
+                {isSpotifyImporting ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Music className="h-4 w-4 mr-2 text-green-500" />
+                )}
+                Import from Spotify
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={connectSpotify}
+                disabled={isSpotifyConnecting}
+              >
+                {isSpotifyConnecting ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Music className="h-4 w-4 mr-2 text-green-500" />
+                )}
+                Connect Spotify
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={connectYouTube}
+              disabled={isYouTubeConnecting}
+            >
+              {isYouTubeConnecting ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Youtube className="h-4 w-4 mr-2 text-red-500" />
+              )}
+              Connect YouTube
+            </Button>
+          </div>
+        </div>
+      </Card>
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold">My Protected Content</h2>
