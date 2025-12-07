@@ -115,13 +115,14 @@ export default function MyAppearances() {
     checkVoiceStatus();
   }, [user]);
 
-  // Fetch appearances
+  // Fetch appearances - only for this user
   const { data: appearances, isLoading } = useQuery({
     queryKey: ["guest-appearances", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("guest_appearance_scans")
         .select("*")
+        .eq("user_id", user!.id)
         .order("published_at", { ascending: false });
       
       if (error) throw error;
@@ -351,16 +352,28 @@ export default function MyAppearances() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Search className="h-5 w-5" />
-            Scan for Appearances
+            Scan for Your Appearances
           </CardTitle>
           <CardDescription>
-            Enter your name to search YouTube and Spotify for podcast episodes where you appeared
+            Search for YOUR podcast appearances by name. Results are added to your personal library for verification.
+            {voiceStatus?.isCertified && (
+              <span className="block mt-1 text-green-600">
+                ✓ Voice certified - you can fingerprint verify appearances
+              </span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <Alert className="border-muted bg-muted/50">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="text-sm">
+              <strong>Note:</strong> This searches by name in episode titles/descriptions. Only search for YOUR name to find YOUR appearances. 
+              Voice fingerprint verification coming soon for certified users.
+            </AlertDescription>
+          </Alert>
           <div className="flex gap-4">
             <Input
-              placeholder="Enter your name (e.g., John Smith)"
+              placeholder="Enter YOUR name (e.g., John Smith)"
               value={searchName}
               onChange={(e) => setSearchName(e.target.value)}
               className="flex-1"
@@ -377,7 +390,7 @@ export default function MyAppearances() {
               ) : (
                 <>
                   <Search className="h-4 w-4 mr-2" />
-                  Scan Platforms
+                  Scan for My Appearances
                 </>
               )}
             </Button>
