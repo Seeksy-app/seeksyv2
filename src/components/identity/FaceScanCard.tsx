@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Youtube, ScanFace, Loader2, AlertCircle, Search, Filter } from "lucide-react";
+import { Youtube, ScanFace, Loader2, AlertCircle, Search, Filter, Instagram } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Select,
@@ -14,6 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
+import { useInstagramConnect } from "@/hooks/useInstagramConnect";
 
 interface FaceScanCardProps {
   userId: string;
@@ -25,6 +27,21 @@ export function FaceScanCard({ userId, isFaceCertified, onScanComplete }: FaceSc
   const [youtubeChannel, setYoutubeChannel] = useState("");
   const [isScanning, setIsScanning] = useState(false);
   const [channelFilter, setChannelFilter] = useState<string>("all");
+  const { connectInstagram, isConnecting } = useInstagramConnect();
+
+  // Check for existing Instagram connection
+  const { data: instagramConnection } = useQuery({
+    queryKey: ['instagram-connection-face', userId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('social_media_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('platform', 'instagram')
+        .maybeSingle();
+      return data;
+    },
+  });
 
   // Mock list of previously scanned channels for filter
   const scannedChannels = [
@@ -153,13 +170,18 @@ export function FaceScanCard({ userId, isFaceCertified, onScanComplete }: FaceSc
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 opacity-50">
-          <div className="flex items-center gap-2 p-2 rounded border">
-            <div className="w-5 h-5 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded" />
-            <span className="text-sm">Instagram</span>
-            <Badge variant="outline" className="text-xs ml-auto">Soon</Badge>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded border">
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            variant="outline"
+            className="justify-start"
+            onClick={connectInstagram}
+            disabled={isConnecting}
+          >
+            <Instagram className="h-4 w-4 mr-2 text-pink-500" />
+            {instagramConnection ? 'Scan Instagram' : 'Connect Instagram'}
+            {isConnecting && <Loader2 className="h-4 w-4 ml-2 animate-spin" />}
+          </Button>
+          <div className="flex items-center gap-2 p-2 rounded border opacity-50">
             <div className="w-5 h-5 bg-foreground rounded" />
             <span className="text-sm">TikTok</span>
             <Badge variant="outline" className="text-xs ml-auto">Soon</Badge>
