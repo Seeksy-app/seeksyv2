@@ -55,7 +55,7 @@ export function MoveToSectionMenu({
           relationship_type: 'associated',
           sort_order: targetGroup.associatedModules.length,
         }, {
-          onConflict: 'group_id,module_key'
+          onConflict: 'group_id,module_key,relationship_type'
         });
 
       if (error) throw error;
