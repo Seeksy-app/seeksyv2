@@ -395,3 +395,6 @@ verify_jwt = false
 
 [functions.scan-profile-images]
 verify_jwt = true
+
+[functions.search-social-profiles]
+verify_jwt = true
