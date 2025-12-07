@@ -365,3 +365,9 @@ verify_jwt = false
 
 [functions.migrate-oauth-tokens]
 verify_jwt = true
+
+[functions.certify-protected-content]
+verify_jwt = true
+
+[functions.sync-protected-content]
+verify_jwt = false
