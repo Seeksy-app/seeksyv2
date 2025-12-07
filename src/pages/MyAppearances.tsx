@@ -30,8 +30,17 @@ import {
   List,
   Share2,
   Video,
-  ScanFace
+  ScanFace,
+  Link2,
+  Settings
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { format } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -67,6 +76,7 @@ export default function MyAppearances() {
   const [playlistName, setPlaylistName] = useState("My Guest Appearances");
   const [playlistDescription, setPlaylistDescription] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [detectionFilter, setDetectionFilter] = useState<string>("all");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
@@ -238,9 +248,20 @@ export default function MyAppearances() {
   };
 
   const filteredAppearances = appearances?.filter(a => {
-    if (activeTab === "verified") return a.is_verified && !a.is_hidden;
-    if (activeTab === "hidden") return a.is_hidden;
-    return !a.is_hidden;
+    // Tab filter
+    if (activeTab === "verified" && (!a.is_verified || a.is_hidden)) return false;
+    if (activeTab === "hidden" && !a.is_hidden) return false;
+    if (activeTab === "all" && a.is_hidden) return false;
+    
+    // Detection method filter
+    if (detectionFilter !== "all") {
+      const method = a.detection_method?.toLowerCase() || "";
+      if (detectionFilter === "name" && !method.includes("name")) return false;
+      if (detectionFilter === "face" && !method.includes("face")) return false;
+      if (detectionFilter === "voice" && !method.includes("voice")) return false;
+    }
+    
+    return true;
   });
 
   const stats = {
@@ -426,6 +447,50 @@ export default function MyAppearances() {
         </Alert>
       )}
 
+      {/* Connect Channels for Auto-Scan */}
+      <Card className="border-primary/20 bg-primary/5">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Link2 className="h-5 w-5 text-primary" />
+              <div>
+                <CardTitle className="text-base">Connect Channels for Auto-Scan</CardTitle>
+                <CardDescription>
+                  Connected channels are automatically scanned every 30 days for new appearances
+                </CardDescription>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => navigate("/integrations")}>
+              <Settings className="h-4 w-4 mr-2" />
+              Manage Integrations
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" size="sm" onClick={() => navigate("/integrations?connect=youtube")}>
+              <Youtube className="h-4 w-4 mr-2 text-red-500" />
+              Connect YouTube
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate("/integrations?connect=spotify")}>
+              <Music2 className="h-4 w-4 mr-2 text-green-500" />
+              Connect Spotify
+            </Button>
+            <Button variant="outline" size="sm" disabled className="opacity-50">
+              <Instagram className="h-4 w-4 mr-2 text-pink-500" />
+              Instagram (Soon)
+            </Button>
+            <Button variant="outline" size="sm" disabled className="opacity-50">
+              <Video className="h-4 w-4 mr-2" />
+              TikTok (Soon)
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            Without connected channels, you can still search by name or scan individual videos for face/voice matches.
+          </p>
+        </CardContent>
+      </Card>
+
       {/* Face Scan for Video Appearances */}
       {user && (
         <FaceScanCard
@@ -589,11 +654,43 @@ export default function MyAppearances() {
 
       {/* Appearances List */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="all">All ({stats.total})</TabsTrigger>
-          <TabsTrigger value="verified">Verified ({stats.verified})</TabsTrigger>
-          <TabsTrigger value="hidden">Hidden</TabsTrigger>
-        </TabsList>
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <TabsList>
+            <TabsTrigger value="all">All ({stats.total})</TabsTrigger>
+            <TabsTrigger value="verified">Verified ({stats.verified})</TabsTrigger>
+            <TabsTrigger value="hidden">Hidden</TabsTrigger>
+          </TabsList>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Detection:</span>
+            <Select value={detectionFilter} onValueChange={setDetectionFilter}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="All methods" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Methods</SelectItem>
+                <SelectItem value="name">
+                  <div className="flex items-center gap-2">
+                    <Search className="h-3 w-3" />
+                    Name Search
+                  </div>
+                </SelectItem>
+                <SelectItem value="face">
+                  <div className="flex items-center gap-2">
+                    <ScanFace className="h-3 w-3" />
+                    Face Verified
+                  </div>
+                </SelectItem>
+                <SelectItem value="voice">
+                  <div className="flex items-center gap-2">
+                    <Mic2 className="h-3 w-3" />
+                    Voice Verified
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
         <TabsContent value={activeTab} className="mt-4">
           {/* Bulk Actions Bar */}
