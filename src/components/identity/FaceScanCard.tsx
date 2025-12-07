@@ -24,7 +24,7 @@ interface FaceScanCardProps {
 }
 
 export function FaceScanCard({ userId, isFaceCertified, onScanComplete }: FaceScanCardProps) {
-  const [youtubeChannel, setYoutubeChannel] = useState("");
+  const [youtubeUrl, setYoutubeUrl] = useState("");
   const [isScanning, setIsScanning] = useState(false);
   const [channelFilter, setChannelFilter] = useState<string>("all");
   const { connectInstagram, isConnecting } = useInstagramConnect();
@@ -50,8 +50,15 @@ export function FaceScanCard({ userId, isFaceCertified, onScanComplete }: FaceSc
   ];
 
   const handleScanYouTube = async () => {
-    if (!youtubeChannel.trim()) {
-      toast.error("Please enter a YouTube channel URL or ID");
+    if (!youtubeUrl.trim()) {
+      toast.error("Please enter a YouTube video URL");
+      return;
+    }
+
+    // Validate it's a video URL, not a channel
+    const isVideoUrl = youtubeUrl.includes('watch?v=') || youtubeUrl.includes('youtu.be/');
+    if (!isVideoUrl) {
+      toast.error("Please enter a YouTube video URL (not a channel). Channel scanning coming soon!");
       return;
     }
 
@@ -59,22 +66,30 @@ export function FaceScanCard({ userId, isFaceCertified, onScanComplete }: FaceSc
     try {
       const { data, error } = await supabase.functions.invoke("scan-face-youtube", {
         body: { 
-          channelUrl: youtubeChannel.trim(),
-          maxVideos: 10
+          videoUrl: youtubeUrl.trim(),
         },
       });
 
       if (error) throw error;
 
-      if (data.matchCount > 0) {
-        toast.success(`Found ${data.matchCount} videos with your face!`);
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
+
+      if (data?.matchFound) {
+        toast.success(`Face match found in "${data.videoTitle}"!`, {
+          description: `Confidence: ${Math.round((data.confidenceScore || 0) * 100)}%`
+        });
         onScanComplete();
       } else {
-        toast.info("No face matches found in the scanned videos");
+        toast.info("No face match found in this video", {
+          description: data?.matchDetails || "Try scanning a video where you appear more prominently"
+        });
       }
     } catch (error) {
       console.error("Face scan error:", error);
-      toast.error("Failed to scan for face matches. Please try again.");
+      toast.error("Failed to scan video. Please check the URL and try again.");
     } finally {
       setIsScanning(false);
     }
@@ -140,20 +155,20 @@ export function FaceScanCard({ userId, isFaceCertified, onScanComplete }: FaceSc
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Youtube className="h-5 w-5 text-red-500" />
-            <span className="font-medium">YouTube Channel</span>
+            <span className="font-medium">YouTube Video</span>
             <Badge variant="outline" className="text-xs">Active</Badge>
           </div>
           
           <div className="flex gap-2">
             <Input
-              placeholder="Enter YouTube channel URL or @handle"
-              value={youtubeChannel}
-              onChange={(e) => setYoutubeChannel(e.target.value)}
+              placeholder="Paste YouTube video URL (e.g., youtube.com/watch?v=...)"
+              value={youtubeUrl}
+              onChange={(e) => setYoutubeUrl(e.target.value)}
               className="flex-1"
             />
             <Button
               onClick={handleScanYouTube}
-              disabled={isScanning || !youtubeChannel.trim()}
+              disabled={isScanning || !youtubeUrl.trim()}
             >
               {isScanning ? (
                 <>
