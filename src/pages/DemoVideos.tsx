@@ -1,13 +1,18 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Play, Clock, Upload, Sparkles, ChevronUp, ChevronDown, ImageIcon, Loader2, Trash2 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { 
+  Play, Clock, Upload, Sparkles, ChevronUp, ChevronDown, ImageIcon, 
+  Loader2, Trash2, Video, ArrowLeft, Lock, Check
+} from "lucide-react";
 import { DemoVideoUpload } from "@/components/demo-videos/DemoVideoUpload";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface DemoVideo {
   id: string;
@@ -22,7 +27,52 @@ interface DemoVideo {
   created_at: string;
 }
 
+// Video Player component with loading state
+function VideoPlayer({ 
+  videoRef, 
+  video 
+}: { 
+  videoRef: React.RefObject<HTMLVideoElement>; 
+  video: DemoVideo;
+}) {
+  const [isLoading, setIsLoading] = useState(true);
+
+  return (
+    <div className="relative w-full h-full">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-12 h-12 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin" />
+            <p className="text-slate-400 text-sm">Loading video...</p>
+          </div>
+        </div>
+      )}
+      <video
+        ref={videoRef}
+        key={video.id}
+        src={video.video_url}
+        controls
+        className="w-full h-full"
+        poster={video.thumbnail_url || undefined}
+        onLoadedData={() => setIsLoading(false)}
+        onCanPlay={() => setIsLoading(false)}
+      />
+    </div>
+  );
+}
+
+const categoryColors: Record<string, string> = {
+  'Creator Tools': 'bg-blue-100 text-blue-700',
+  'Advertiser Tools': 'bg-purple-100 text-purple-700',
+  'Monetization': 'bg-green-100 text-green-700',
+  'Onboarding': 'bg-amber-100 text-amber-700',
+  'AI Features': 'bg-pink-100 text-pink-700',
+  'Platform Overview': 'bg-cyan-100 text-cyan-700',
+};
+
 export default function DemoVideos() {
+  const navigate = useNavigate();
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [selectedVideo, setSelectedVideo] = useState<DemoVideo | null>(null);
   const [showUpload, setShowUpload] = useState(false);
   const [generatingThumbnailId, setGeneratingThumbnailId] = useState<string | null>(null);
@@ -52,26 +102,17 @@ export default function DemoVideos() {
   });
 
   // Auto-select first video if none selected
-  useState(() => {
+  useEffect(() => {
     if (!selectedVideo && videos.length > 0) {
       setSelectedVideo(videos[0]);
     }
-  });
+  }, [videos, selectedVideo]);
 
   const formatDuration = (seconds: number | null) => {
-    if (!seconds) return null;
+    if (!seconds) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const categoryColors: Record<string, string> = {
-    'Creator Tools': 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-    'Advertiser Tools': 'bg-purple-500/10 text-purple-500 border-purple-500/20',
-    'Monetization': 'bg-green-500/10 text-green-500 border-green-500/20',
-    'Onboarding': 'bg-amber-500/10 text-amber-500 border-amber-500/20',
-    'AI Features': 'bg-pink-500/10 text-pink-500 border-pink-500/20',
-    'Platform Overview': 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20',
   };
 
   // Reorder mutation
@@ -86,7 +127,6 @@ export default function DemoVideos() {
       const currentVideo = videos[currentIndex];
       const swapVideo = videos[swapIndex];
 
-      // Swap order_index values
       await supabase.from('demo_videos').update({ order_index: swapVideo.order_index }).eq('id', currentVideo.id);
       await supabase.from('demo_videos').update({ order_index: currentVideo.order_index }).eq('id', swapVideo.id);
     },
@@ -136,12 +176,10 @@ export default function DemoVideos() {
       if (ctx) {
         ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
         
-        // Convert to blob
         const blob = await new Promise<Blob>((resolve) => {
           canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.85);
         });
 
-        // Upload to storage
         const fileName = `thumb_${Date.now()}_${video.id}.jpg`;
         const { error: uploadError } = await supabase.storage
           .from('demo-videos')
@@ -153,7 +191,6 @@ export default function DemoVideos() {
           .from('demo-videos')
           .getPublicUrl(fileName);
 
-        // Update database
         await supabase.from('demo_videos').update({ thumbnail_url: publicUrl }).eq('id', video.id);
         
         queryClient.invalidateQueries({ queryKey: ['demo-videos'] });
@@ -170,17 +207,27 @@ export default function DemoVideos() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="container mx-auto p-6">
+        {/* Breadcrumb */}
+        <Button
+          variant="ghost"
+          className="text-muted-foreground hover:text-foreground mb-6 -ml-2"
+          onClick={() => navigate('/admin')}
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Dashboard
+        </Button>
+
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold flex items-center gap-3">
-              <Sparkles className="h-8 w-8 text-primary" />
-              Demo Video Library
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              Board-ready product demos and feature showcases
-            </p>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-md">
+              <Video className="w-7 h-7 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold">Demo Video Library</h1>
+              <p className="text-muted-foreground">Board-ready product demos and feature showcases</p>
+            </div>
           </div>
           {user && (
             <Button
@@ -196,7 +243,9 @@ export default function DemoVideos() {
 
         {/* Upload Section (Admin Only) */}
         {showUpload && user && (
-          <DemoVideoUpload onSuccess={() => setShowUpload(false)} />
+          <div className="mb-6">
+            <DemoVideoUpload onSuccess={() => setShowUpload(false)} />
+          </div>
         )}
 
         {isLoading ? (
@@ -218,198 +267,193 @@ export default function DemoVideos() {
           </Card>
         ) : (
           <div className="grid lg:grid-cols-3 gap-6">
-            {/* Main Player */}
-            <div className="lg:col-span-2 space-y-4">
-              <Card className="overflow-hidden">
-                <CardContent className="p-0">
-                  {selectedVideo && (
-                    <>
-                      {/* Video Player */}
-                      <div className="aspect-video bg-black relative group">
-                        <video
-                          key={selectedVideo.id}
-                          src={selectedVideo.video_url}
-                          controls
-                          autoPlay
-                          className="w-full h-full"
-                          poster={selectedVideo.thumbnail_url || undefined}
+            {/* Video Player - Board style */}
+            <div className="lg:col-span-2">
+              <Card className="border-border shadow-sm overflow-hidden">
+                <div className="aspect-video bg-slate-900 relative">
+                  {selectedVideo?.video_url ? (
+                    <VideoPlayer
+                      videoRef={videoRef}
+                      video={selectedVideo}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                      <Play className="w-16 h-16 mb-4" />
+                      <p className="text-sm">Select a video to play</p>
+                    </div>
+                  )}
+                </div>
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="text-xl font-semibold">
+                      {selectedVideo?.title || 'Select a video'}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      {selectedVideo?.category && (
+                        <Badge className={cn('text-xs', categoryColors[selectedVideo.category] || 'bg-slate-100 text-slate-600')}>
+                          {selectedVideo.category}
+                        </Badge>
+                      )}
+                      {user && selectedVideo && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            if (confirm('Delete this video?')) {
+                              deleteMutation.mutate(selectedVideo.id);
+                            }
+                          }}
                         >
-                          Your browser does not support the video tag.
-                        </video>
-                      </div>
-
-                      {/* Video Info */}
-                      <div className="p-6 space-y-4">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <h2 className="text-2xl font-bold mb-2">{selectedVideo.title}</h2>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <Badge 
-                                variant="outline" 
-                                className={categoryColors[selectedVideo.category] || ''}
-                              >
-                                {selectedVideo.category}
-                              </Badge>
-                              {selectedVideo.duration_seconds && (
-                                <Badge variant="secondary" className="gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  {formatDuration(selectedVideo.duration_seconds)}
-                                </Badge>
-                              )}
-                              {selectedVideo.is_featured && (
-                                <Badge variant="default" className="gap-1">
-                                  <Sparkles className="h-3 w-3" />
-                                  Featured
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                          {user && (
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => {
-                                if (confirm('Delete this video?')) {
-                                  deleteMutation.mutate(selectedVideo.id);
-                                }
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-
-                        {selectedVideo.description && (
-                          <div>
-                            <h3 className="text-sm font-semibold text-muted-foreground mb-2">Description</h3>
-                            <p className="text-sm leading-relaxed">{selectedVideo.description}</p>
-                          </div>
-                        )}
-                      </div>
-                    </>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-muted-foreground">
+                    {selectedVideo?.description || 'Choose a video from the playlist to begin.'}
+                  </p>
+                  {selectedVideo?.duration_seconds && (
+                    <div className="flex items-center gap-2 mt-3 text-sm text-muted-foreground">
+                      <Clock className="h-4 w-4" />
+                      {formatDuration(selectedVideo.duration_seconds)}
+                      {selectedVideo.is_featured && (
+                        <Badge variant="default" className="gap-1 ml-2">
+                          <Sparkles className="h-3 w-3" />
+                          Featured
+                        </Badge>
+                      )}
+                    </div>
                   )}
                 </CardContent>
               </Card>
             </div>
 
-            {/* Playlist */}
-            <div className="lg:col-span-1">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Playlist</CardTitle>
-                  <CardDescription>
-                    {videos.length} {videos.length === 1 ? 'video' : 'videos'} available
-                    {user && <span className="block text-xs mt-1">Use arrows to reorder</span>}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[600px] pr-4">
-                    <div className="space-y-3">
-                      {videos.map((video, index) => (
-                        <div
-                          key={video.id}
-                          className={`rounded-lg border transition-all ${
-                            selectedVideo?.id === video.id
-                              ? 'border-primary bg-accent/50'
-                              : 'border-border hover:bg-accent'
-                          }`}
-                        >
-                          <button
-                            onClick={() => setSelectedVideo(video)}
-                            className="w-full text-left"
-                          >
-                            <div className="p-3 space-y-2">
-                              {/* Thumbnail */}
-                              <div className="aspect-video bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-900 rounded-md overflow-hidden relative">
-                                {video.thumbnail_url ? (
-                                  <img
-                                    src={video.thumbnail_url}
-                                    alt={video.title}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                      e.currentTarget.style.display = 'none';
-                                    }}
-                                  />
-                                ) : null}
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <Play className="h-8 w-8 text-muted-foreground" />
-                                </div>
-                                {video.duration_seconds && (
-                                  <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
-                                    {formatDuration(video.duration_seconds)}
-                                  </div>
-                                )}
-                                {selectedVideo?.id === video.id && (
-                                  <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                                    <div className="bg-primary text-primary-foreground rounded-full p-2">
-                                      <Play className="h-6 w-6" />
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Info */}
-                              <div>
-                                <h4 className="font-medium text-sm line-clamp-2 mb-1">
-                                  {video.title}
-                                </h4>
-                                <Badge 
-                                  variant="outline" 
-                                  className={`text-xs ${categoryColors[video.category] || ''}`}
-                                >
-                                  {video.category}
-                                </Badge>
-                              </div>
+            {/* Playlist - Board style horizontal cards */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Playlist</h3>
+              <div className="space-y-3">
+                {videos.map((video, index) => {
+                  const isSelected = selectedVideo?.id === video.id;
+                  
+                  return (
+                    <Card
+                      key={video.id}
+                      className={cn(
+                        'border transition-all cursor-pointer overflow-hidden',
+                        isSelected
+                          ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-300 dark:border-blue-700 shadow-sm'
+                          : 'bg-card border-border hover:border-primary/50 hover:shadow-sm'
+                      )}
+                      onClick={() => setSelectedVideo(video)}
+                    >
+                      <CardContent className="p-3">
+                        <div className="flex items-start gap-3">
+                          {/* Thumbnail */}
+                          <div className="relative w-24 h-16 flex-shrink-0 rounded-md overflow-hidden bg-gradient-to-br from-slate-700 to-slate-900">
+                            {video.thumbnail_url ? (
+                              <img 
+                                src={video.thumbnail_url} 
+                                alt={video.title}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                            ) : null}
+                            {/* Play overlay */}
+                            <div className={cn(
+                              'absolute inset-0 flex items-center justify-center',
+                              isSelected ? 'bg-blue-500/30' : 'bg-black/30'
+                            )}>
+                              <Play className={cn(
+                                "w-5 h-5",
+                                isSelected ? "text-white" : "text-white/70"
+                              )} />
                             </div>
-                          </button>
-
-                          {/* Admin controls */}
-                          {user && (
-                            <div className="flex items-center justify-between px-3 pb-3 pt-1 border-t">
-                              <div className="flex gap-1">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-7 w-7"
-                                  onClick={() => reorderMutation.mutate({ videoId: video.id, direction: 'up' })}
-                                  disabled={index === 0}
-                                >
-                                  <ChevronUp className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-7 w-7"
-                                  onClick={() => reorderMutation.mutate({ videoId: video.id, direction: 'down' })}
-                                  disabled={index === videos.length - 1}
-                                >
-                                  <ChevronDown className="h-4 w-4" />
-                                </Button>
+                            {/* Duration badge */}
+                            {video.duration_seconds && (
+                              <div className="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] px-1 rounded">
+                                {formatDuration(video.duration_seconds)}
                               </div>
-                              {!video.thumbnail_url && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-7 text-xs"
-                                  onClick={() => generateThumbnail(video)}
-                                  disabled={generatingThumbnailId === video.id}
-                                >
-                                  {generatingThumbnailId === video.id ? (
-                                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                  ) : (
-                                    <ImageIcon className="h-3 w-3 mr-1" />
-                                  )}
-                                  Gen Thumb
-                                </Button>
-                              )}
+                            )}
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <h4 className={cn(
+                              'font-medium text-sm leading-tight line-clamp-2',
+                              isSelected ? 'text-blue-700 dark:text-blue-300' : ''
+                            )}>
+                              {video.title}
+                            </h4>
+                            <div className="flex items-center gap-2 mt-1.5">
+                              <Badge className={cn('text-[10px] px-1.5 py-0', categoryColors[video.category] || 'bg-slate-100 text-slate-600')}>
+                                {video.category}
+                              </Badge>
                             </div>
-                          )}
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
+
+                        {/* Admin controls */}
+                        {user && (
+                          <div className="flex items-center justify-between mt-3 pt-2 border-t border-border">
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  reorderMutation.mutate({ videoId: video.id, direction: 'up' });
+                                }}
+                                disabled={index === 0}
+                              >
+                                <ChevronUp className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  reorderMutation.mutate({ videoId: video.id, direction: 'down' });
+                                }}
+                                disabled={index === videos.length - 1}
+                              >
+                                <ChevronDown className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            {!video.thumbnail_url && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 text-xs"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  generateThumbnail(video);
+                                }}
+                                disabled={generatingThumbnailId === video.id}
+                              >
+                                {generatingThumbnailId === video.id ? (
+                                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                ) : (
+                                  <ImageIcon className="h-3 w-3 mr-1" />
+                                )}
+                                Gen Thumb
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              {videos.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-4 text-center">
+                  {videos.length} {videos.length === 1 ? 'video' : 'videos'} in playlist
+                </p>
+              )}
             </div>
           </div>
         )}
