@@ -6759,6 +6759,176 @@ export type Database = {
           },
         ]
       }
+      content_matches: {
+        Row: {
+          confidence_level: string | null
+          created_at: string
+          detected_at: string
+          external_channel_name: string | null
+          external_channel_url: string | null
+          external_title: string | null
+          external_url: string
+          id: string
+          match_type: string
+          metadata: Json | null
+          notes: string | null
+          notification_sent: boolean | null
+          platform: string
+          protected_content_id: string | null
+          similarity_score: number | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confidence_level?: string | null
+          created_at?: string
+          detected_at?: string
+          external_channel_name?: string | null
+          external_channel_url?: string | null
+          external_title?: string | null
+          external_url: string
+          id?: string
+          match_type: string
+          metadata?: Json | null
+          notes?: string | null
+          notification_sent?: boolean | null
+          platform: string
+          protected_content_id?: string | null
+          similarity_score?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confidence_level?: string | null
+          created_at?: string
+          detected_at?: string
+          external_channel_name?: string | null
+          external_channel_url?: string | null
+          external_title?: string | null
+          external_url?: string
+          id?: string
+          match_type?: string
+          metadata?: Json | null
+          notes?: string | null
+          notification_sent?: boolean | null
+          platform?: string
+          protected_content_id?: string | null
+          similarity_score?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_matches_protected_content_id_fkey"
+            columns: ["protected_content_id"]
+            isOneToOne: false
+            referencedRelation: "protected_content"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_monitoring_sources: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          label: string | null
+          last_scanned_at: string | null
+          platform: string
+          platform_account_id: string | null
+          platform_account_url: string | null
+          scan_frequency_hours: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          label?: string | null
+          last_scanned_at?: string | null
+          platform: string
+          platform_account_id?: string | null
+          platform_account_url?: string | null
+          scan_frequency_hours?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          label?: string | null
+          last_scanned_at?: string | null
+          platform?: string
+          platform_account_id?: string | null
+          platform_account_url?: string | null
+          scan_frequency_hours?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      content_scan_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          job_type: string
+          monitoring_source_id: string | null
+          protected_content_id: string | null
+          results_count: number | null
+          started_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          job_type: string
+          monitoring_source_id?: string | null
+          protected_content_id?: string | null
+          results_count?: number | null
+          started_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          job_type?: string
+          monitoring_source_id?: string | null
+          protected_content_id?: string | null
+          results_count?: number | null
+          started_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_scan_jobs_monitoring_source_id_fkey"
+            columns: ["monitoring_source_id"]
+            isOneToOne: false
+            referencedRelation: "content_monitoring_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_scan_jobs_protected_content_id_fkey"
+            columns: ["protected_content_id"]
+            isOneToOne: false
+            referencedRelation: "protected_content"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversational_ad_charges: {
         Row: {
           advertiser_id: string
@@ -16199,6 +16369,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      protected_content: {
+        Row: {
+          audio_fingerprint_id: string | null
+          blockchain_certificate_url: string | null
+          blockchain_tx_hash: string | null
+          content_type: string
+          created_at: string
+          duration_seconds: number | null
+          file_hash: string
+          id: string
+          metadata: Json | null
+          original_file_url: string | null
+          proof_status: string
+          title: string
+          transcript: string | null
+          transcript_embedding: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          audio_fingerprint_id?: string | null
+          blockchain_certificate_url?: string | null
+          blockchain_tx_hash?: string | null
+          content_type: string
+          created_at?: string
+          duration_seconds?: number | null
+          file_hash: string
+          id?: string
+          metadata?: Json | null
+          original_file_url?: string | null
+          proof_status?: string
+          title: string
+          transcript?: string | null
+          transcript_embedding?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          audio_fingerprint_id?: string | null
+          blockchain_certificate_url?: string | null
+          blockchain_tx_hash?: string | null
+          content_type?: string
+          created_at?: string
+          duration_seconds?: number | null
+          file_hash?: string
+          id?: string
+          metadata?: Json | null
+          original_file_url?: string | null
+          proof_status?: string
+          title?: string
+          transcript?: string | null
+          transcript_embedding?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       qr_codes: {
         Row: {
