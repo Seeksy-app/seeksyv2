@@ -63,8 +63,17 @@ export default function EmailHome() {
     },
   });
 
+  // Sync inbox on mount
+  const syncInbox = async () => {
+    try {
+      await supabase.functions.invoke("sync-gmail-inbox");
+    } catch (error) {
+      console.error("Error syncing inbox:", error);
+    }
+  };
+
   // Fetch all emails for the selected folder
-  const { data: emails = [] } = useQuery({
+  const { data: emails = [], refetch: refetchEmails } = useQuery({
     queryKey: ["email-events", user?.id, selectedFolder, filter],
     queryFn: async () => {
       if (!user) return [];
@@ -88,9 +97,37 @@ export default function EmailHome() {
           from_email: "",
           campaign_name: draft.campaign_name,
           reply_count: 0,
+          is_inbox: false,
+        }));
+      }
+
+      // Inbox shows received emails from inbox_messages
+      if (selectedFolder === "inbox") {
+        const { data: inboxData } = await supabase
+          .from("inbox_messages")
+          .select("*")
+          .eq("user_id", user.id)
+          .is("deleted_at", null)
+          .order("received_at", { ascending: false });
+
+        return (inboxData || []).map(msg => ({
+          id: msg.id,
+          to_email: msg.to_address,
+          from_email: msg.from_address,
+          from_name: msg.from_name,
+          email_subject: msg.subject,
+          event_type: "received",
+          created_at: msg.received_at,
+          snippet: msg.snippet,
+          is_read: msg.is_read,
+          is_starred: msg.is_starred,
+          reply_count: 0,
+          is_inbox: true,
+          gmail_message_id: msg.gmail_message_id,
         }));
       }
       
+      // Sent and other folders use email_events table
       let query = supabase
         .from("email_events")
         .select("*, email_campaigns(campaign_name)")
@@ -112,7 +149,6 @@ export default function EmailHome() {
         } else if (selectedFolder === "unsubscribed") {
           query = query.eq("event_type", "email.unsubscribed");
         }
-        // inbox shows all non-trashed emails
       }
 
       // Apply status filter
@@ -140,10 +176,11 @@ export default function EmailHome() {
         return emailEvents.map(email => ({
           ...email,
           reply_count: replyCountMap[email.id] || 0,
+          is_inbox: false,
         }));
       }
       
-      return emailEvents || [];
+      return (emailEvents || []).map(e => ({ ...e, is_inbox: false }));
     },
     enabled: !!user,
   });

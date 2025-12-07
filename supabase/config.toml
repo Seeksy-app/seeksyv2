@@ -377,3 +377,6 @@ verify_jwt = false
 
 [functions.acrcloud-scan]
 verify_jwt = false
+
+[functions.sync-gmail-inbox]
+verify_jwt = true

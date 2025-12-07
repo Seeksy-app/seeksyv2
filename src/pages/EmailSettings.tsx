@@ -103,13 +103,23 @@ export default function EmailSettings() {
     });
     
     try {
-      await supabase.functions.invoke("sync-gmail-replies");
+      // Sync both inbox and replies
+      const [inboxResult, repliesResult] = await Promise.all([
+        supabase.functions.invoke("sync-gmail-inbox"),
+        supabase.functions.invoke("sync-gmail-replies"),
+      ]);
+      
       queryClient.invalidateQueries({ queryKey: ["email-events"] });
+      
+      const newEmails = inboxResult.data?.newEmails || 0;
       toast({
         title: "Sync complete",
-        description: "Your emails are up to date",
+        description: newEmails > 0 
+          ? `Synced ${newEmails} new emails` 
+          : "Your emails are up to date",
       });
     } catch (error) {
+      console.error("Sync error:", error);
       toast({
         title: "Sync failed",
         description: "Could not sync emails",

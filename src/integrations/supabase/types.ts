@@ -11502,6 +11502,75 @@ export type Database = {
         }
         Relationships: []
       }
+      inbox_messages: {
+        Row: {
+          body_html: string | null
+          body_text: string | null
+          created_at: string
+          deleted_at: string | null
+          email_account: string | null
+          from_address: string
+          from_name: string | null
+          gmail_message_id: string
+          gmail_thread_id: string | null
+          id: string
+          is_archived: boolean
+          is_read: boolean
+          is_starred: boolean
+          labels: string[] | null
+          received_at: string
+          snippet: string | null
+          subject: string
+          to_address: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body_html?: string | null
+          body_text?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          email_account?: string | null
+          from_address: string
+          from_name?: string | null
+          gmail_message_id: string
+          gmail_thread_id?: string | null
+          id?: string
+          is_archived?: boolean
+          is_read?: boolean
+          is_starred?: boolean
+          labels?: string[] | null
+          received_at?: string
+          snippet?: string | null
+          subject?: string
+          to_address?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body_html?: string | null
+          body_text?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          email_account?: string | null
+          from_address?: string
+          from_name?: string | null
+          gmail_message_id?: string
+          gmail_thread_id?: string | null
+          id?: string
+          is_archived?: boolean
+          is_read?: boolean
+          is_starred?: boolean
+          labels?: string[] | null
+          received_at?: string
+          snippet?: string | null
+          subject?: string
+          to_address?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       influencehub_creators: {
         Row: {
           agency_user_id: string
