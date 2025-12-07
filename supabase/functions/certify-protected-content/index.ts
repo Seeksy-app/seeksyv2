@@ -94,7 +94,7 @@ serve(async (req) => {
           .update({
             blockchain_tx_hash: txHash,
             blockchain_certificate_url: certificateUrl,
-            proof_status: 'certified',
+            proof_status: 'verified',
             updated_at: new Date().toISOString(),
           })
           .eq("id", content.id);
