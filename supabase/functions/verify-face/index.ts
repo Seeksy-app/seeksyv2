@@ -242,7 +242,7 @@ Respond ONLY with valid JSON in this format:
           face_hash: faceHash,
           embedding_data: faceData,
           verification_status: 'verified',
-          verification_method: 'openai_vision',
+          verification_method: 'photos',
           metadata_uri: metadataUri,
           confidence_score: faceData.confidenceScore || 0.9,
           verified_at: new Date().toISOString(),
@@ -260,7 +260,7 @@ Respond ONLY with valid JSON in this format:
           face_hash: faceHash,
           embedding_data: faceData,
           verification_status: 'verified',
-          verification_method: 'openai_vision',
+          verification_method: 'photos',
           source_images: cleanedImages.slice(0, 3), // Store first 3 images
           metadata_uri: metadataUri,
           confidence_score: faceData.confidenceScore || 0.9,
