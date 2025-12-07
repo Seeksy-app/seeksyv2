@@ -1,12 +1,57 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Search, FileCheck, Bell } from "lucide-react";
 import { MyProofsTab } from "@/components/content-protection/MyProofsTab";
 import { MatchesAlertsTab } from "@/components/content-protection/MatchesAlertsTab";
 import { CertificatesTab } from "@/components/content-protection/CertificatesTab";
+import { supabase } from "@/integrations/supabase/client";
 
 const ContentProtectionDashboard = () => {
   const [activeTab, setActiveTab] = useState("proofs");
+
+  // Fetch stats
+  const { data: stats } = useQuery({
+    queryKey: ["content-protection-stats"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) return { protected: 0, scans: 0, matches: 0, certificates: 0 };
+
+      // Fetch protected content count
+      const { count: protectedCount } = await supabase
+        .from("protected_content")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id);
+
+      // Fetch active scans count
+      const { count: scansCount } = await supabase
+        .from("content_scan_jobs")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("status", "running");
+
+      // Fetch matches count (pending review)
+      const { count: matchesCount } = await supabase
+        .from("content_matches")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("status", "pending");
+
+      // Fetch certificates count (content with blockchain proof)
+      const { count: certificatesCount } = await supabase
+        .from("protected_content")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .not("blockchain_tx_hash", "is", null);
+
+      return {
+        protected: protectedCount || 0,
+        scans: scansCount || 0,
+        matches: matchesCount || 0,
+        certificates: certificatesCount || 0,
+      };
+    },
+  });
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
@@ -33,25 +78,25 @@ const ContentProtectionDashboard = () => {
           <StatsCard
             icon={FileCheck}
             label="Protected Content"
-            value="0"
+            value={String(stats?.protected || 0)}
             description="Registered items"
           />
           <StatsCard
             icon={Search}
             label="Active Scans"
-            value="0"
+            value={String(stats?.scans || 0)}
             description="Monitoring platforms"
           />
           <StatsCard
             icon={Bell}
             label="Matches Found"
-            value="0"
+            value={String(stats?.matches || 0)}
             description="Pending review"
           />
           <StatsCard
             icon={Shield}
             label="Certificates"
-            value="0"
+            value={String(stats?.certificates || 0)}
             description="Issued proofs"
           />
         </div>
