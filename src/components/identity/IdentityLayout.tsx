@@ -87,7 +87,7 @@ export function IdentityLayout({ children }: IdentityLayoutProps) {
           <div className="flex gap-2 flex-wrap">
             <Button
               onClick={() => navigate("/identity")}
-              variant={isActive("/identity") && !isActive("/identity/voice") && !isActive("/identity/rights") && !isActive("/content-protection") ? "default" : "ghost"}
+              variant={isActive("/identity") && !isActive("/identity/voice") && !isActive("/identity/rights") && !isActive("/broadcast-monitoring") ? "default" : "ghost"}
               size="sm"
               className="gap-2"
             >
@@ -113,8 +113,8 @@ export function IdentityLayout({ children }: IdentityLayoutProps) {
               Rights
             </Button>
             <Button
-              onClick={() => navigate("/content-protection")}
-              variant={isActive("/content-protection") ? "default" : "ghost"}
+              onClick={() => navigate("/broadcast-monitoring")}
+              variant={isActive("/broadcast-monitoring") ? "default" : "ghost"}
               size="sm"
               className="gap-2"
             >
