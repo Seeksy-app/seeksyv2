@@ -231,7 +231,7 @@ export default function BoardVideos() {
             <Video className="w-7 h-7 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Investor Videos</h1>
+            <h1 className="text-3xl font-bold text-slate-900">Platform Videos</h1>
             <p className="text-slate-500">Product demos & presentations</p>
           </div>
         </div>

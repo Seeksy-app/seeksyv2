@@ -43,7 +43,7 @@ const overviewItems = [
   },
   {
     id: 'videos',
-    label: 'Investor Videos',
+    label: 'Platform Videos',
     icon: Video,
     path: '/board/videos',
   },

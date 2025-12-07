@@ -93,7 +93,7 @@ export function SendInvestorEmailModal({
     'business-model': 'Business Model',
     gtm: 'GTM Strategy',
     forecasts: '3-Year Forecasts',
-    videos: 'Investor Videos',
+    videos: 'Platform Videos',
     documents: 'Documents',
   };
 

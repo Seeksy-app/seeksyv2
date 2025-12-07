@@ -23,7 +23,7 @@ const scopeOptions = [
   { id: 'business-model', label: 'Business Model' },
   { id: 'gtm', label: 'GTM Strategy' },
   { id: 'forecasts', label: '3-Year Forecasts' },
-  { id: 'videos', label: 'Investor Videos' },
+  { id: 'videos', label: 'Platform Videos' },
   { id: 'documents', label: 'Documents' },
 ];
 
