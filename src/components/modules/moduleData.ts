@@ -4,7 +4,7 @@ import {
   Trophy, Layout, Shield, PieChart, BarChart3, Instagram, FileText, 
   Video, Radio, Headphones, Clapperboard, Share2, Lightbulb, Newspaper,
   Bot, Wand2, BrainCircuit, Palette, Globe, Briefcase, DollarSign, Building2,
-  Copy,
+  Copy, Eye,
   type LucideIcon
 } from "lucide-react";
 
@@ -58,6 +58,7 @@ export const INTEGRATION_ICONS: Record<string, { name: string; icon: string; bg:
   "proposals": { name: "Proposals", icon: "P", bg: "bg-teal-600" },
   "deals": { name: "Deals", icon: "D", bg: "bg-green-700" },
   "identity": { name: "Identity", icon: "I", bg: "bg-emerald-700" },
+  "broadcast-monitoring": { name: "Broadcast Monitoring", icon: "B", bg: "bg-violet-600" },
   "spark-ai": { name: "Spark AI", icon: "S", bg: "bg-amber-500" },
   "blog": { name: "Blog", icon: "B", bg: "bg-slate-600" },
   "social-analytics": { name: "Social Analytics", icon: "S", bg: "bg-blue-500" },
@@ -418,6 +419,19 @@ export const SEEKSY_MODULES: SeeksyModule[] = [
     bgGradient: "bg-gradient-to-br from-emerald-100 via-teal-50 to-cyan-100",
     iconBg: "bg-white shadow-lg",
     iconColor: "text-emerald-600",
+  },
+  {
+    id: "broadcast-monitoring",
+    name: "Broadcast Monitoring",
+    description: "Monitor platforms for unauthorized use of your voice and content with AI-powered detection",
+    icon: Eye,
+    category: "identity",
+    route: "/content-protection",
+    isNew: true,
+    isAIPowered: true,
+    bgGradient: "bg-gradient-to-br from-violet-100 via-purple-50 to-indigo-100",
+    iconBg: "bg-white shadow-lg",
+    iconColor: "text-violet-600",
   },
   
   // Content
