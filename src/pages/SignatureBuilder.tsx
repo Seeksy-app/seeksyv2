@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Mail, Settings, Download, Activity } from "lucide-react";
+import { Plus, Mail, Settings, Download, Activity, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SignatureEditor } from "@/components/signatures/SignatureEditor";
@@ -162,6 +162,10 @@ export default function SignatureBuilder() {
               <Settings className="h-4 w-4" />
               Editor
             </TabsTrigger>
+            <TabsTrigger value="analytics" className="gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Analytics
+            </TabsTrigger>
             <TabsTrigger value="activity" className="gap-2">
               <Activity className="h-4 w-4" />
               Activity Log
@@ -213,6 +217,10 @@ export default function SignatureBuilder() {
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <SignatureAnalytics signatures={signatures} />
           </TabsContent>
 
           <TabsContent value="activity">
