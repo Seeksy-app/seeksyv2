@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import { 
   Search, 
   RefreshCw, 
@@ -21,9 +22,13 @@ import {
   Eye,
   EyeOff,
   Trash2,
-  Mic2
+  Mic2,
+  Shield,
+  AlertCircle,
+  Fingerprint
 } from "lucide-react";
 import { format } from "date-fns";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface GuestAppearance {
   id: string;
@@ -45,6 +50,7 @@ interface GuestAppearance {
 export default function MyAppearances() {
   const [user, setUser] = useState<User | null>(null);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [searchName, setSearchName] = useState("");
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(["youtube", "spotify"]);
   const [activeTab, setActiveTab] = useState("all");
@@ -52,6 +58,45 @@ export default function MyAppearances() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
   }, []);
+
+  // Check voice certification status
+  const [voiceStatus, setVoiceStatus] = useState<{
+    isCertified: boolean;
+    hasFingerprint: boolean;
+    certificate: any;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    
+    const checkVoiceStatus = async () => {
+      try {
+        // Check for voice profile with certified status
+        const profileResult = await (supabase as any)
+          .from("creator_voice_profiles")
+          .select("id, status")
+          .eq("user_id", user.id)
+          .eq("status", "certified");
+
+        // Check for voice fingerprint
+        const fingerprintResult = await (supabase as any)
+          .from("creator_voice_fingerprints")
+          .select("id, is_primary")
+          .eq("user_id", user.id);
+
+        setVoiceStatus({
+          isCertified: profileResult.data && profileResult.data.length > 0,
+          hasFingerprint: fingerprintResult.data && fingerprintResult.data.length > 0,
+          certificate: profileResult.data?.[0] || null
+        });
+      } catch (error) {
+        console.error("Error checking voice status:", error);
+        setVoiceStatus({ isCertified: false, hasFingerprint: false, certificate: null });
+      }
+    };
+
+    checkVoiceStatus();
+  }, [user]);
 
   // Fetch appearances
   const { data: appearances, isLoading } = useQuery({
@@ -178,6 +223,36 @@ export default function MyAppearances() {
           </p>
         </div>
       </div>
+
+      {/* Voice Certification Status */}
+      {voiceStatus?.isCertified ? (
+        <Alert className="border-green-500/50 bg-green-500/10">
+          <Shield className="h-4 w-4 text-green-600" />
+          <AlertTitle className="text-green-700">Voice Certified</AlertTitle>
+          <AlertDescription className="text-green-600">
+            Your voice is blockchain-certified. You can now fingerprint and verify your appearances with cryptographic proof.
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <Alert className="border-amber-500/50 bg-amber-500/10">
+          <AlertCircle className="h-4 w-4 text-amber-600" />
+          <AlertTitle className="text-amber-700">Voice Certification Required</AlertTitle>
+          <AlertDescription className="flex items-center justify-between">
+            <span className="text-amber-600">
+              Certify your voice to enable fingerprint verification of your appearances and prove authenticity.
+            </span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate("/voice-certification")}
+              className="ml-4 border-amber-500 text-amber-700 hover:bg-amber-500/20"
+            >
+              <Fingerprint className="h-4 w-4 mr-2" />
+              Certify Your Voice
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Search Panel */}
       <Card>
