@@ -5,8 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Youtube, ScanFace, Loader2, AlertCircle, Search } from "lucide-react";
+import { Youtube, ScanFace, Loader2, AlertCircle, Search, Filter } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface FaceScanCardProps {
   userId: string;
@@ -17,6 +24,13 @@ interface FaceScanCardProps {
 export function FaceScanCard({ userId, isFaceCertified, onScanComplete }: FaceScanCardProps) {
   const [youtubeChannel, setYoutubeChannel] = useState("");
   const [isScanning, setIsScanning] = useState(false);
+  const [channelFilter, setChannelFilter] = useState<string>("all");
+
+  // Mock list of previously scanned channels for filter
+  const scannedChannels = [
+    { id: "all", name: "All Channels" },
+    { id: "recent", name: "Recently Scanned" },
+  ];
 
   const handleScanYouTube = async () => {
     if (!youtubeChannel.trim()) {
@@ -78,13 +92,30 @@ export function FaceScanCard({ userId, isFaceCertified, onScanComplete }: FaceSc
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center gap-3">
-          <ScanFace className="h-6 w-6 text-primary" />
-          <div>
-            <CardTitle>Scan for Face Appearances</CardTitle>
-            <CardDescription>
-              Find videos where your face appears using AI detection
-            </CardDescription>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <ScanFace className="h-6 w-6 text-primary" />
+            <div>
+              <CardTitle>Scan for Face Appearances</CardTitle>
+              <CardDescription>
+                Find videos where your face appears using AI detection
+              </CardDescription>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select value={channelFilter} onValueChange={setChannelFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by channel" />
+              </SelectTrigger>
+              <SelectContent>
+                {scannedChannels.map((channel) => (
+                  <SelectItem key={channel.id} value={channel.id}>
+                    {channel.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </CardHeader>
