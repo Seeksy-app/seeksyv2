@@ -5,9 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
 import { 
   Search, Shield, AlertTriangle, CheckCircle, ExternalLink,
-  Instagram, Music, RefreshCw, Eye, Flag, X, Loader2
+  Instagram, Music, RefreshCw, Eye, Flag, X, Loader2, UserSearch
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
@@ -38,10 +39,22 @@ interface Scan {
   completed_at: string;
 }
 
+interface LookedUpProfile {
+  username: string;
+  full_name: string;
+  profile_pic_url: string;
+  follower_count: number;
+  is_verified: boolean;
+  biography: string;
+}
+
 export function ImpersonationScanner() {
   const queryClient = useQueryClient();
   const [isScanning, setIsScanning] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<ProfileMatch | null>(null);
+  const [usernameInput, setUsernameInput] = useState('');
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [lookedUpProfile, setLookedUpProfile] = useState<LookedUpProfile | null>(null);
 
   // Fetch recent scans
   const { data: scans = [] } = useQuery({
@@ -67,6 +80,37 @@ export function ImpersonationScanner() {
         .order('detected_at', { ascending: false });
       if (error) throw error;
       return data as ProfileMatch[];
+    },
+  });
+
+  // Username lookup mutation
+  const lookupMutation = useMutation({
+    mutationFn: async (username: string) => {
+      setIsLookingUp(true);
+      const { data, error } = await supabase.functions.invoke('search-social-profiles', {
+        body: { username, platform: 'instagram' },
+      });
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error);
+      return data.profile;
+    },
+    onSuccess: (profile) => {
+      setLookedUpProfile(profile);
+      toast({
+        title: 'Profile Found',
+        description: `Found @${profile.username} with ${profile.follower_count.toLocaleString()} followers`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Lookup Failed',
+        description: error.message || 'Could not find profile',
+        variant: 'destructive',
+      });
+      setLookedUpProfile(null);
+    },
+    onSettled: () => {
+      setIsLookingUp(false);
     },
   });
 
@@ -97,6 +141,47 @@ export function ImpersonationScanner() {
     },
     onSettled: () => {
       setIsScanning(false);
+    },
+  });
+
+  // Compare profile with user's face
+  const compareProfileMutation = useMutation({
+    mutationFn: async (profile: LookedUpProfile) => {
+      const { data, error } = await supabase.functions.invoke('scan-profile-images', {
+        body: { 
+          platform: 'instagram',
+          singleProfile: {
+            username: profile.username,
+            profile_pic_url: profile.profile_pic_url,
+          }
+        },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data.match_found) {
+        toast({
+          title: 'Potential Match Detected!',
+          description: `This profile may be using your face (${data.confidence}% confidence)`,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'No Match',
+          description: 'This profile does not appear to be using your face',
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ['profile-matches'] });
+      setLookedUpProfile(null);
+      setUsernameInput('');
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Comparison Failed',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
   });
 
@@ -144,6 +229,12 @@ export function ImpersonationScanner() {
   const newMatches = matches.filter(m => m.status === 'new');
   const reviewedMatches = matches.filter(m => m.status !== 'new');
 
+  const handleLookup = () => {
+    if (usernameInput.trim()) {
+      lookupMutation.mutate(usernameInput.trim());
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -154,41 +245,93 @@ export function ImpersonationScanner() {
             Impersonation Detection
           </CardTitle>
           <CardDescription>
-            Scan Instagram and TikTok for profiles using your face without permission
+            Look up Instagram profiles by username and compare with your verified face
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-4">
-            <Button
-              onClick={() => startScanMutation.mutate('instagram')}
-              disabled={isScanning}
-              className="flex-1"
-            >
-              {isScanning ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Instagram className="h-4 w-4 mr-2" />
-              )}
-              Scan Instagram
-            </Button>
-            <Button
-              onClick={() => startScanMutation.mutate('tiktok')}
-              disabled={isScanning}
-              variant="outline"
-              className="flex-1"
-            >
-              {isScanning ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Music className="h-4 w-4 mr-2" />
-              )}
-              Scan TikTok
-            </Button>
+        <CardContent className="space-y-6">
+          {/* Username Lookup */}
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Enter Instagram username..."
+                  value={usernameInput}
+                  onChange={(e) => setUsernameInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleLookup()}
+                  className="pl-10"
+                />
+              </div>
+              <Button onClick={handleLookup} disabled={isLookingUp || !usernameInput.trim()}>
+                {isLookingUp ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <UserSearch className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+
+            {/* Looked Up Profile */}
+            {lookedUpProfile && (
+              <div className="p-4 border rounded-lg space-y-4">
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-16 w-16 border-2">
+                    <AvatarImage src={lookedUpProfile.profile_pic_url} />
+                    <AvatarFallback>{lookedUpProfile.username[0].toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold">@{lookedUpProfile.username}</p>
+                      {lookedUpProfile.is_verified && (
+                        <Badge variant="secondary" className="text-xs">Verified</Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">{lookedUpProfile.full_name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {lookedUpProfile.follower_count.toLocaleString()} followers
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      asChild
+                    >
+                      <a 
+                        href={`https://instagram.com/${lookedUpProfile.username}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1" />
+                        View
+                      </a>
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => compareProfileMutation.mutate(lookedUpProfile)}
+                      disabled={compareProfileMutation.isPending}
+                    >
+                      {compareProfileMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                      ) : (
+                        <Search className="h-4 w-4 mr-1" />
+                      )}
+                      Compare Face
+                    </Button>
+                  </div>
+                </div>
+                {lookedUpProfile.biography && (
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {lookedUpProfile.biography}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Recent Scans Summary */}
           {scans.length > 0 && (
-            <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+            <div className="p-4 bg-muted/50 rounded-lg">
               <p className="text-sm text-muted-foreground">
                 Last scan: {new Date(scans[0].completed_at || scans[0].started_at).toLocaleDateString()} 
                 {' · '}{scans[0].profiles_scanned} profiles scanned
