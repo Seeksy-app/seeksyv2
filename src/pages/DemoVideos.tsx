@@ -1,12 +1,13 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Play, Clock, Upload, Sparkles } from "lucide-react";
+import { Play, Clock, Upload, Sparkles, ChevronUp, ChevronDown, ImageIcon, Loader2, Trash2 } from "lucide-react";
 import { DemoVideoUpload } from "@/components/demo-videos/DemoVideoUpload";
+import { useToast } from "@/hooks/use-toast";
 
 interface DemoVideo {
   id: string;
@@ -24,6 +25,9 @@ interface DemoVideo {
 export default function DemoVideos() {
   const [selectedVideo, setSelectedVideo] = useState<DemoVideo | null>(null);
   const [showUpload, setShowUpload] = useState(false);
+  const [generatingThumbnailId, setGeneratingThumbnailId] = useState<string | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: videos = [], isLoading } = useQuery({
     queryKey: ['demo-videos'],
@@ -69,6 +73,100 @@ export default function DemoVideos() {
     'AI Features': 'bg-pink-500/10 text-pink-500 border-pink-500/20',
     'Platform Overview': 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20',
   };
+
+  // Reorder mutation
+  const reorderMutation = useMutation({
+    mutationFn: async ({ videoId, direction }: { videoId: string; direction: 'up' | 'down' }) => {
+      const currentIndex = videos.findIndex(v => v.id === videoId);
+      if (currentIndex === -1) return;
+      
+      const swapIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+      if (swapIndex < 0 || swapIndex >= videos.length) return;
+
+      const currentVideo = videos[currentIndex];
+      const swapVideo = videos[swapIndex];
+
+      // Swap order_index values
+      await supabase.from('demo_videos').update({ order_index: swapVideo.order_index }).eq('id', currentVideo.id);
+      await supabase.from('demo_videos').update({ order_index: currentVideo.order_index }).eq('id', swapVideo.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['demo-videos'] });
+      queryClient.invalidateQueries({ queryKey: ['boardVideos'] });
+      toast({ title: "Order updated" });
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (videoId: string) => {
+      const { error } = await supabase.from('demo_videos').delete().eq('id', videoId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['demo-videos'] });
+      queryClient.invalidateQueries({ queryKey: ['boardVideos'] });
+      toast({ title: "Video deleted" });
+      setSelectedVideo(null);
+    },
+  });
+
+  // Generate thumbnail from video
+  const generateThumbnail = useCallback(async (video: DemoVideo) => {
+    setGeneratingThumbnailId(video.id);
+    try {
+      const videoEl = document.createElement('video');
+      videoEl.crossOrigin = 'anonymous';
+      videoEl.preload = 'metadata';
+      videoEl.muted = true;
+      videoEl.src = video.video_url;
+
+      await new Promise((resolve, reject) => {
+        videoEl.onloadedmetadata = () => {
+          videoEl.currentTime = Math.min(2, videoEl.duration * 0.1);
+        };
+        videoEl.onseeked = resolve;
+        videoEl.onerror = reject;
+      });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 1280;
+      canvas.height = 720;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+        
+        // Convert to blob
+        const blob = await new Promise<Blob>((resolve) => {
+          canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.85);
+        });
+
+        // Upload to storage
+        const fileName = `thumb_${Date.now()}_${video.id}.jpg`;
+        const { error: uploadError } = await supabase.storage
+          .from('demo-videos')
+          .upload(fileName, blob, { contentType: 'image/jpeg' });
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('demo-videos')
+          .getPublicUrl(fileName);
+
+        // Update database
+        await supabase.from('demo_videos').update({ thumbnail_url: publicUrl }).eq('id', video.id);
+        
+        queryClient.invalidateQueries({ queryKey: ['demo-videos'] });
+        queryClient.invalidateQueries({ queryKey: ['boardVideos'] });
+        toast({ title: "Thumbnail generated!" });
+      }
+    } catch (error) {
+      console.error('Thumbnail generation failed:', error);
+      toast({ variant: "destructive", title: "Failed to generate thumbnail" });
+    } finally {
+      setGeneratingThumbnailId(null);
+    }
+  }, [queryClient, toast]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -166,6 +264,19 @@ export default function DemoVideos() {
                               )}
                             </div>
                           </div>
+                          {user && (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => {
+                                if (confirm('Delete this video?')) {
+                                  deleteMutation.mutate(selectedVideo.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
 
                         {selectedVideo.description && (
@@ -188,63 +299,110 @@ export default function DemoVideos() {
                   <CardTitle>Playlist</CardTitle>
                   <CardDescription>
                     {videos.length} {videos.length === 1 ? 'video' : 'videos'} available
+                    {user && <span className="block text-xs mt-1">Use arrows to reorder</span>}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ScrollArea className="h-[600px] pr-4">
                     <div className="space-y-3">
-                      {videos.map((video) => (
-                        <button
+                      {videos.map((video, index) => (
+                        <div
                           key={video.id}
-                          onClick={() => setSelectedVideo(video)}
-                          className={`w-full text-left rounded-lg border transition-all hover:bg-accent ${
+                          className={`rounded-lg border transition-all ${
                             selectedVideo?.id === video.id
                               ? 'border-primary bg-accent/50'
-                              : 'border-border'
+                              : 'border-border hover:bg-accent'
                           }`}
                         >
-                          <div className="p-3 space-y-2">
-                            {/* Thumbnail */}
-                            <div className="aspect-video bg-muted rounded-md overflow-hidden relative">
-                              {video.thumbnail_url ? (
-                                <img
-                                  src={video.thumbnail_url}
-                                  alt={video.title}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <Play className="h-8 w-8 text-muted-foreground" />
-                                </div>
-                              )}
-                              {video.duration_seconds && (
-                                <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
-                                  {formatDuration(video.duration_seconds)}
-                                </div>
-                              )}
-                              {selectedVideo?.id === video.id && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                                  <div className="bg-primary text-primary-foreground rounded-full p-2">
-                                    <Play className="h-6 w-6" />
+                          <button
+                            onClick={() => setSelectedVideo(video)}
+                            className="w-full text-left"
+                          >
+                            <div className="p-3 space-y-2">
+                              {/* Thumbnail */}
+                              <div className="aspect-video bg-muted rounded-md overflow-hidden relative">
+                                {video.thumbnail_url ? (
+                                  <img
+                                    src={video.thumbnail_url}
+                                    alt={video.title}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <Play className="h-8 w-8 text-muted-foreground" />
                                   </div>
-                                </div>
+                                )}
+                                {video.duration_seconds && (
+                                  <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+                                    {formatDuration(video.duration_seconds)}
+                                  </div>
+                                )}
+                                {selectedVideo?.id === video.id && (
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                                    <div className="bg-primary text-primary-foreground rounded-full p-2">
+                                      <Play className="h-6 w-6" />
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Info */}
+                              <div>
+                                <h4 className="font-medium text-sm line-clamp-2 mb-1">
+                                  {video.title}
+                                </h4>
+                                <Badge 
+                                  variant="outline" 
+                                  className={`text-xs ${categoryColors[video.category] || ''}`}
+                                >
+                                  {video.category}
+                                </Badge>
+                              </div>
+                            </div>
+                          </button>
+
+                          {/* Admin controls */}
+                          {user && (
+                            <div className="flex items-center justify-between px-3 pb-3 pt-1 border-t">
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  onClick={() => reorderMutation.mutate({ videoId: video.id, direction: 'up' })}
+                                  disabled={index === 0}
+                                >
+                                  <ChevronUp className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  onClick={() => reorderMutation.mutate({ videoId: video.id, direction: 'down' })}
+                                  disabled={index === videos.length - 1}
+                                >
+                                  <ChevronDown className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              {!video.thumbnail_url && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 text-xs"
+                                  onClick={() => generateThumbnail(video)}
+                                  disabled={generatingThumbnailId === video.id}
+                                >
+                                  {generatingThumbnailId === video.id ? (
+                                    <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                  ) : (
+                                    <ImageIcon className="h-3 w-3 mr-1" />
+                                  )}
+                                  Gen Thumb
+                                </Button>
                               )}
                             </div>
-
-                            {/* Info */}
-                            <div>
-                              <h4 className="font-medium text-sm line-clamp-2 mb-1">
-                                {video.title}
-                              </h4>
-                              <Badge 
-                                variant="outline" 
-                                className={`text-xs ${categoryColors[video.category] || ''}`}
-                              >
-                                {video.category}
-                              </Badge>
-                            </div>
-                          </div>
-                        </button>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </ScrollArea>
