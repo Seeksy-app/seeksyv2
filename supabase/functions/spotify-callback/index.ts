@@ -116,12 +116,6 @@ serve(async (req) => {
         access_token: encryptedAccessToken,
         refresh_token: encryptedRefreshToken,
         token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
-        metadata: {
-          email: spotifyProfile?.email,
-          country: spotifyProfile?.country,
-          product: spotifyProfile?.product,
-          connected_at: new Date().toISOString(),
-        },
       }, {
         onConflict: 'user_id,platform',
       });
