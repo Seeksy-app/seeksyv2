@@ -465,6 +465,57 @@ export function WorkspaceSidebar() {
             </SidebarMenuItem>
           </SidebarMenu>
 
+          {/* Favorites Section - Right under Recents */}
+          {pinnedModules.length > 0 && (
+            <>
+              <Separator className="my-2 bg-sidebar-border" />
+              {!isCollapsed && (
+                <span className="text-xs font-medium text-sidebar-foreground/70 px-2 mb-1 block">
+                  Favorites
+                </span>
+              )}
+              <SidebarMenu>
+                {pinnedModules.map(module => {
+                  const Icon = MODULE_ICONS[module.id] || FolderOpen;
+                  return (
+                    <SidebarMenuItem key={`fav-${module.id}`} className="group/item relative">
+                      <SidebarMenuButton
+                        onClick={() => module.route && navigate(module.route)}
+                        isActive={module.route ? isActive(module.route) : false}
+                        tooltip={module.name}
+                        className="text-sidebar-foreground hover:bg-sidebar-accent pr-8"
+                      >
+                        <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                        {!isCollapsed && <span>{module.name}</span>}
+                      </SidebarMenuButton>
+                      
+                      {/* Quick unpin button */}
+                      {!isCollapsed && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="absolute right-0 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover/item:opacity-100 transition-opacity"
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                await togglePinned(module.id);
+                                toast.success("Removed from favorites");
+                              }}
+                            >
+                              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="right">Unpin</TooltipContent>
+                        </Tooltip>
+                      )}
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </>
+          )}
+
           <Separator className="my-2 bg-sidebar-border" />
 
           {/* Workspace Selector below global nav - Monday style */}
@@ -486,36 +537,6 @@ export function WorkspaceSidebar() {
 
         <SidebarContent>
           <ScrollArea className="flex-1">
-            {/* Pinned Standalone Modules Section */}
-            {pinnedModules.length > 0 && (
-              <div className="px-3 py-1">
-                {!isCollapsed && (
-                  <span className="text-xs font-medium text-sidebar-foreground/70 px-2">
-                    Pinned
-                  </span>
-                )}
-                <SidebarMenu className="mt-1">
-                  {pinnedModules.map(module => {
-                    const Icon = MODULE_ICONS[module.id] || FolderOpen;
-                    return (
-                      <SidebarMenuItem key={`pinned-${module.id}`}>
-                        <SidebarMenuButton
-                          onClick={() => module.route && navigate(module.route)}
-                          isActive={module.route ? isActive(module.route) : false}
-                          tooltip={module.name}
-                          className="text-sidebar-foreground hover:bg-sidebar-accent"
-                        >
-                          <Icon className="h-4 w-4" />
-                          {!isCollapsed && <span>{module.name}</span>}
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-                <Separator className="my-2 bg-sidebar-border" />
-              </div>
-            )}
-
             {/* Modules Section Header */}
             <div className="px-3 py-2">
               {!isCollapsed && (
