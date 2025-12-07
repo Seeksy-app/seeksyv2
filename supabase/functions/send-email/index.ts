@@ -31,19 +31,25 @@ serve(async (req) => {
     if (!subject) throw new Error("Subject is required");
     if (!htmlContent) throw new Error("Email content is required");
 
-    // Get from email account
-    let fromEmail = Deno.env.get("SENDER_EMAIL_HELLO") || "hello@seeksy.io";
+    // Get user's email for Reply-To header
+    let userEmail = user.email || "";
+    let userName = user.user_metadata?.full_name || "Seeksy User";
+    
     if (fromAccountId) {
       const { data: account } = await supabase
         .from("email_accounts")
-        .select("email_address")
+        .select("email_address, display_name")
         .eq("id", fromAccountId)
         .single();
       
       if (account?.email_address) {
-        fromEmail = account.email_address;
+        userEmail = account.email_address;
+        userName = account.display_name || userName;
       }
     }
+
+    // Always send FROM verified Seeksy domain, but set Reply-To as user's email
+    const fromEmail = `${userName} via Seeksy <hello@seeksy.io>`;
 
     // Initialize Resend
     const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
@@ -56,13 +62,14 @@ serve(async (req) => {
     // Send email via Resend
     const { data: emailData, error: sendError } = await resend.emails.send({
       from: fromEmail,
+      replyTo: userEmail, // Replies go to user's actual email
       to: recipients,
       cc: ccRecipients,
       bcc: bccRecipients,
       subject: subject,
       html: htmlContent,
       headers: {
-        'X-Entity-Ref-ID': user.id, // For tracking
+        'X-Entity-Ref-ID': user.id,
       },
     });
 

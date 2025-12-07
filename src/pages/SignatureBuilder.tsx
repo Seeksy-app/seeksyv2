@@ -2,15 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Mail, Settings, Download, Activity, BarChart3 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Plus, Mail, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SignatureEditor } from "@/components/signatures/SignatureEditor";
 import { SignatureList } from "@/components/signatures/SignatureList";
-import { SignatureAnalytics } from "@/components/signatures/SignatureAnalytics";
-import { SignatureSettings } from "@/components/signatures/SignatureSettings";
-import { SignatureActivityLog } from "@/components/signatures/SignatureActivityLog";
 
 export default function SignatureBuilder() {
   const navigate = useNavigate();
@@ -136,13 +133,13 @@ export default function SignatureBuilder() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-6 px-4 max-w-7xl">
+      <div className="container mx-auto py-8 px-4 max-w-7xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Email Signatures & Tracking</h1>
+            <h1 className="text-2xl font-bold text-foreground">Email Signatures</h1>
             <p className="text-muted-foreground">
-              Create trackable signatures for Gmail with analytics
+              Create professional signatures for Gmail
             </p>
           </div>
           <Button onClick={createNewSignature} className="gap-2">
@@ -151,17 +148,9 @@ export default function SignatureBuilder() {
           </Button>
         </div>
 
-        {/* Tabs for management */}
+        {/* Tabs for management - removed analytics, just signatures */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6">
-            <TabsTrigger value="analytics" className="gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="activity" className="gap-2">
-              <Activity className="h-4 w-4" />
-              Log
-            </TabsTrigger>
+          <TabsList className="mb-8">
             <TabsTrigger value="signatures" className="gap-2">
               <Mail className="h-4 w-4" />
               Signatures
@@ -172,7 +161,7 @@ export default function SignatureBuilder() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="signatures">
+          <TabsContent value="signatures" className="mt-6">
             {loading ? (
               <div className="flex items-center justify-center h-64">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -183,7 +172,7 @@ export default function SignatureBuilder() {
                   <Mail className="h-12 w-12 text-muted-foreground mb-4" />
                   <h3 className="text-lg font-semibold mb-2">No signatures yet</h3>
                   <p className="text-muted-foreground text-center mb-4">
-                    Create your first trackable email signature
+                    Create your first email signature
                   </p>
                   <Button onClick={createNewSignature} className="gap-2">
                     <Plus className="h-4 w-4" />
@@ -200,7 +189,7 @@ export default function SignatureBuilder() {
             )}
           </TabsContent>
 
-          <TabsContent value="editor">
+          <TabsContent value="editor" className="mt-6">
             {selectedSignature ? (
               <SignatureEditor 
                 signature={selectedSignature}
@@ -213,18 +202,6 @@ export default function SignatureBuilder() {
                 </CardContent>
               </Card>
             )}
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <SignatureAnalytics signatures={signatures} />
-          </TabsContent>
-
-          <TabsContent value="activity">
-            <SignatureActivityLog signatures={signatures} />
-          </TabsContent>
-
-          <TabsContent value="settings">
-            <SignatureSettings signatures={signatures} />
           </TabsContent>
         </Tabs>
       </div>
