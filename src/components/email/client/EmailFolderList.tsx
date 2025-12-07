@@ -98,7 +98,7 @@ export function EmailFolderList({ selectedFolder, onFolderSelect, onCompose, cou
           <span>Tracking & Analytics</span>
         </button>
         <button
-          onClick={() => navigate("/email/settings")}
+          onClick={() => navigate("/email-settings")}
           className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-sm hover:bg-muted text-foreground transition-colors"
         >
           <Settings className="h-4 w-4" />
