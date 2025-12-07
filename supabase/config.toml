@@ -383,3 +383,6 @@ verify_jwt = true
 
 [functions.scan-guest-appearances]
 verify_jwt = true
+
+[functions.scan-face-youtube]
+verify_jwt = true

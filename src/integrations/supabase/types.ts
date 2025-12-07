@@ -10520,6 +10520,162 @@ export type Database = {
           },
         ]
       }
+      face_identity: {
+        Row: {
+          cert_explorer_url: string | null
+          cert_tx_hash: string | null
+          confidence_score: number | null
+          created_at: string
+          embedding_data: Json | null
+          face_hash: string | null
+          id: string
+          metadata_uri: string | null
+          source_images: string[] | null
+          updated_at: string
+          user_id: string
+          verification_method: string | null
+          verification_status: string
+          verified_at: string | null
+        }
+        Insert: {
+          cert_explorer_url?: string | null
+          cert_tx_hash?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          embedding_data?: Json | null
+          face_hash?: string | null
+          id?: string
+          metadata_uri?: string | null
+          source_images?: string[] | null
+          updated_at?: string
+          user_id: string
+          verification_method?: string | null
+          verification_status?: string
+          verified_at?: string | null
+        }
+        Update: {
+          cert_explorer_url?: string | null
+          cert_tx_hash?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          embedding_data?: Json | null
+          face_hash?: string | null
+          id?: string
+          metadata_uri?: string | null
+          source_images?: string[] | null
+          updated_at?: string
+          user_id?: string
+          verification_method?: string | null
+          verification_status?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
+      face_matches: {
+        Row: {
+          appearance_id: string | null
+          confidence_score: number | null
+          created_at: string
+          frame_image_url: string | null
+          id: string
+          is_verified: boolean | null
+          platform: string
+          scan_job_id: string | null
+          thumbnail_url: string | null
+          timestamp_seconds: number | null
+          user_id: string
+          video_title: string | null
+          video_url: string | null
+        }
+        Insert: {
+          appearance_id?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          frame_image_url?: string | null
+          id?: string
+          is_verified?: boolean | null
+          platform: string
+          scan_job_id?: string | null
+          thumbnail_url?: string | null
+          timestamp_seconds?: number | null
+          user_id: string
+          video_title?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          appearance_id?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          frame_image_url?: string | null
+          id?: string
+          is_verified?: boolean | null
+          platform?: string
+          scan_job_id?: string | null
+          thumbnail_url?: string | null
+          timestamp_seconds?: number | null
+          user_id?: string
+          video_title?: string | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "face_matches_appearance_id_fkey"
+            columns: ["appearance_id"]
+            isOneToOne: false
+            referencedRelation: "guest_appearance_scans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "face_matches_scan_job_id_fkey"
+            columns: ["scan_job_id"]
+            isOneToOne: false
+            referencedRelation: "face_scan_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      face_scan_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          matches_found: number | null
+          platform: string
+          source_url: string | null
+          started_at: string | null
+          status: string
+          total_frames_scanned: number | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          matches_found?: number | null
+          platform: string
+          source_url?: string | null
+          started_at?: string | null
+          status?: string
+          total_frames_scanned?: number | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          matches_found?: number | null
+          platform?: string
+          source_url?: string | null
+          started_at?: string | null
+          status?: string
+          total_frames_scanned?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       facebook_oauth_sessions: {
         Row: {
           access_token: string

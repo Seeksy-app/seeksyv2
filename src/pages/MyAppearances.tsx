@@ -65,6 +65,7 @@ export default function MyAppearances() {
   const [playlistDialogOpen, setPlaylistDialogOpen] = useState(false);
   const [playlistName, setPlaylistName] = useState("My Guest Appearances");
   const [playlistDescription, setPlaylistDescription] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
@@ -231,6 +232,65 @@ export default function MyAppearances() {
   };
 
   const verifiedAppearances = appearances?.filter(a => a.is_verified && !a.is_hidden) || [];
+
+  // Bulk actions
+  const toggleSelectAll = () => {
+    if (!filteredAppearances) return;
+    if (selectedIds.size === filteredAppearances.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredAppearances.map(a => a.id)));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    const newSet = new Set(selectedIds);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setSelectedIds(newSet);
+  };
+
+  const bulkVerify = async () => {
+    const ids = Array.from(selectedIds);
+    for (const id of ids) {
+      await supabase
+        .from("guest_appearance_scans")
+        .update({ is_verified: true })
+        .eq("id", id);
+    }
+    queryClient.invalidateQueries({ queryKey: ["guest-appearances"] });
+    setSelectedIds(new Set());
+    toast.success(`Verified ${ids.length} appearances`);
+  };
+
+  const bulkDelete = async () => {
+    const ids = Array.from(selectedIds);
+    for (const id of ids) {
+      await supabase
+        .from("guest_appearance_scans")
+        .delete()
+        .eq("id", id);
+    }
+    queryClient.invalidateQueries({ queryKey: ["guest-appearances"] });
+    setSelectedIds(new Set());
+    toast.success(`Deleted ${ids.length} appearances`);
+  };
+
+  const bulkHide = async () => {
+    const ids = Array.from(selectedIds);
+    for (const id of ids) {
+      await supabase
+        .from("guest_appearance_scans")
+        .update({ is_hidden: true })
+        .eq("id", id);
+    }
+    queryClient.invalidateQueries({ queryKey: ["guest-appearances"] });
+    setSelectedIds(new Set());
+    toast.success(`Hidden ${ids.length} appearances`);
+  };
 
   const handleBuildPlaylist = async () => {
     if (verifiedAppearances.length === 0) {
@@ -508,6 +568,36 @@ export default function MyAppearances() {
         </TabsList>
 
         <TabsContent value={activeTab} className="mt-4">
+          {/* Bulk Actions Bar */}
+          {filteredAppearances && filteredAppearances.length > 0 && (
+            <div className="flex items-center gap-4 mb-4 p-3 bg-muted/50 rounded-lg">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox
+                  checked={selectedIds.size === filteredAppearances.length && filteredAppearances.length > 0}
+                  onCheckedChange={toggleSelectAll}
+                />
+                <span className="text-sm">Select All</span>
+              </label>
+              {selectedIds.size > 0 && (
+                <div className="flex items-center gap-2 ml-auto">
+                  <span className="text-sm text-muted-foreground">{selectedIds.size} selected</span>
+                  <Button size="sm" variant="outline" onClick={bulkVerify}>
+                    <CheckCircle2 className="h-4 w-4 mr-1" />
+                    Verify
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={bulkHide}>
+                    <EyeOff className="h-4 w-4 mr-1" />
+                    Hide
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={bulkDelete}>
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+          
           {isLoading ? (
             <div className="text-center py-12 text-muted-foreground">Loading...</div>
           ) : filteredAppearances?.length === 0 ? (
@@ -530,6 +620,13 @@ export default function MyAppearances() {
                 <Card key={appearance.id} className={appearance.is_verified ? "border-green-500/50" : ""}>
                   <CardContent className="p-4">
                     <div className="flex gap-4">
+                      {/* Checkbox */}
+                      <Checkbox
+                        checked={selectedIds.has(appearance.id)}
+                        onCheckedChange={() => toggleSelect(appearance.id)}
+                        className="mt-1"
+                      />
+                      
                       {/* Thumbnail */}
                       {appearance.thumbnail_url && (
                         <img

@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -20,15 +21,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Shield, Search, ExternalLink, User, Calendar, Award, Filter } from "lucide-react";
+import { Shield, Search, ExternalLink, User, Calendar, Award, Filter, Trash2, CheckCircle2, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function VoiceCertificationPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const { data: certificates, isLoading } = useQuery({
     queryKey: ["voice-certifications-admin", statusFilter, dateFilter, searchQuery],
@@ -98,6 +102,65 @@ export default function VoiceCertificationPage() {
         {status}
       </Badge>
     );
+  };
+
+  // Bulk actions
+  const toggleSelectAll = () => {
+    if (!certificates) return;
+    if (selectedIds.size === certificates.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(certificates.map((c: any) => c.id)));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    const newSet = new Set(selectedIds);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setSelectedIds(newSet);
+  };
+
+  const bulkVerify = async () => {
+    const ids = Array.from(selectedIds);
+    for (const id of ids) {
+      await supabase
+        .from("voice_blockchain_certificates")
+        .update({ certification_status: "verified" })
+        .eq("id", id);
+    }
+    queryClient.invalidateQueries({ queryKey: ["voice-certifications-admin"] });
+    setSelectedIds(new Set());
+    toast.success(`Updated ${ids.length} certificates to verified`);
+  };
+
+  const bulkRevoke = async () => {
+    const ids = Array.from(selectedIds);
+    for (const id of ids) {
+      await supabase
+        .from("voice_blockchain_certificates")
+        .update({ certification_status: "failed", is_active: false })
+        .eq("id", id);
+    }
+    queryClient.invalidateQueries({ queryKey: ["voice-certifications-admin"] });
+    setSelectedIds(new Set());
+    toast.success(`Revoked ${ids.length} certificates`);
+  };
+
+  const bulkDelete = async () => {
+    const ids = Array.from(selectedIds);
+    for (const id of ids) {
+      await supabase
+        .from("voice_blockchain_certificates")
+        .delete()
+        .eq("id", id);
+    }
+    queryClient.invalidateQueries({ queryKey: ["voice-certifications-admin"] });
+    setSelectedIds(new Set());
+    toast.success(`Deleted ${ids.length} certificates`);
   };
 
   return (
@@ -204,9 +267,37 @@ export default function VoiceCertificationPage() {
             </div>
           ) : (
             <div className="border rounded-lg overflow-hidden">
+              {/* Bulk Actions Bar */}
+              <div className="flex items-center gap-4 p-3 bg-muted/50 border-b">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={selectedIds.size === certificates.length && certificates.length > 0}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                  <span className="text-sm">Select All</span>
+                </label>
+                {selectedIds.size > 0 && (
+                  <div className="flex items-center gap-2 ml-auto">
+                    <span className="text-sm text-muted-foreground">{selectedIds.size} selected</span>
+                    <Button size="sm" variant="outline" onClick={bulkVerify}>
+                      <CheckCircle2 className="h-4 w-4 mr-1" />
+                      Verify
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={bulkRevoke}>
+                      <XCircle className="h-4 w-4 mr-1" />
+                      Revoke
+                    </Button>
+                    <Button size="sm" variant="destructive" onClick={bulkDelete}>
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete
+                    </Button>
+                  </div>
+                )}
+              </div>
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12"></TableHead>
                     <TableHead>Creator</TableHead>
                     <TableHead>Token ID</TableHead>
                     <TableHead>Voice Hash</TableHead>
@@ -218,6 +309,12 @@ export default function VoiceCertificationPage() {
                 <TableBody>
                   {certificates.map((cert: any) => (
                     <TableRow key={cert.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.has(cert.id)}
+                          onCheckedChange={() => toggleSelect(cert.id)}
+                        />
+                      </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
                           <span className="font-medium">
