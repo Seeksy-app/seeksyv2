@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { WorkspaceSelector } from "./WorkspaceSelector";
+import { MoveToSectionMenu } from "./MoveToSectionMenu";
 import { ModuleCenterModal } from "@/components/modules";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -81,6 +82,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useModuleGroups } from "@/hooks/useModuleGroups";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Icon mapping for modules - ensure correct icons for each module
 const MODULE_ICONS: Record<string, React.ElementType> = {
@@ -300,7 +302,9 @@ export function WorkspaceSidebar() {
     });
   };
 
-  const renderModuleItem = (module: ModuleRegistryItem & { is_standalone?: boolean }, indented = false) => {
+  const queryClient = useQueryClient();
+
+  const renderModuleItem = (module: ModuleRegistryItem & { is_standalone?: boolean }, indented = false, currentGroupKey?: string) => {
     const Icon = MODULE_ICONS[module.id] || FolderOpen;
     const isStandalone = module.is_standalone || false;
     
@@ -364,15 +368,12 @@ export function WorkspaceSidebar() {
                 <ExternalLink className="h-4 w-4 mr-2" />
                 {isStandalone ? "Remove Standalone" : "Standalone"}
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toast.info("Move to section - Coming soon!");
-                }}
-              >
-                <FolderOpen className="h-4 w-4 mr-2" />
-                Move to...
-              </DropdownMenuItem>
+              <MoveToSectionMenu
+                moduleId={module.id}
+                moduleName={module.name}
+                currentGroupKey={currentGroupKey}
+                onMoved={() => queryClient.invalidateQueries({ queryKey: ['module-groups'] })}
+              />
             </DropdownMenuContent>
           </DropdownMenu>
         )}
@@ -533,7 +534,7 @@ export function WorkspaceSidebar() {
                           </SidebarMenuItem>
                           
                           <CollapsibleContent className="mt-0.5">
-                            {allModules.map(module => renderModuleItem(module, true))}
+                            {allModules.map(module => renderModuleItem(module, true, groupKey))}
                           </CollapsibleContent>
                         </Collapsible>
                       );
