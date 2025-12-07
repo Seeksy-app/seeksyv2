@@ -12,6 +12,7 @@ interface InstagramProfile {
   profile_pic_url: string;
   follower_count: number;
   is_verified: boolean;
+  biography: string;
   external_url: string | null;
 }
 
@@ -21,7 +22,7 @@ serve(async (req) => {
   }
 
   try {
-    console.log('[search-social-profiles] Starting profile search');
+    console.log('[search-social-profiles] Starting profile lookup');
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -40,10 +41,10 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { searchQuery, platform = 'instagram' } = await req.json();
+    const { username, platform = 'instagram' } = await req.json();
 
-    if (!searchQuery) {
-      throw new Error('Search query is required');
+    if (!username) {
+      throw new Error('Username is required');
     }
 
     const RAPIDAPI_KEY = Deno.env.get('RAPIDAPI_KEY');
@@ -51,13 +52,13 @@ serve(async (req) => {
       throw new Error('RAPIDAPI_KEY not configured');
     }
 
-    console.log(`[search-social-profiles] Searching ${platform} for: ${searchQuery}`);
+    console.log(`[search-social-profiles] Looking up ${platform} profile: ${username}`);
 
-    let profiles: InstagramProfile[] = [];
+    let profile: InstagramProfile | null = null;
 
     if (platform === 'instagram') {
-      // Search Instagram profiles using RapidAPI
-      const response = await fetch('https://instagram120.p.rapidapi.com/api/instagram/user/search', {
+      // Fetch Instagram profile using RapidAPI
+      const response = await fetch('https://instagram120.p.rapidapi.com/api/instagram/userinfo', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,7 +66,7 @@ serve(async (req) => {
           'X-RapidAPI-Key': RAPIDAPI_KEY,
         },
         body: JSON.stringify({
-          query: searchQuery,
+          username: username.replace('@', ''),
         }),
       });
 
@@ -76,34 +77,38 @@ serve(async (req) => {
       }
 
       const data = await response.json();
-      console.log('[search-social-profiles] Instagram response:', JSON.stringify(data).substring(0, 500));
+      console.log('[search-social-profiles] Instagram response keys:', Object.keys(data));
 
-      // Parse Instagram results - adjust based on actual API response structure
-      if (data.users || data.data || Array.isArray(data)) {
-        const users = data.users || data.data || data;
-        profiles = users.slice(0, 10).map((u: any) => ({
-          username: u.username || u.user?.username,
-          full_name: u.full_name || u.user?.full_name || '',
-          profile_pic_url: u.profile_pic_url || u.user?.profile_pic_url || '',
-          follower_count: u.follower_count || u.user?.follower_count || 0,
-          is_verified: u.is_verified || u.user?.is_verified || false,
-          external_url: u.external_url || null,
-        }));
+      // Parse Instagram user info - adjust based on actual API response
+      const userData = data.user || data.result?.user || data;
+      if (userData) {
+        profile = {
+          username: userData.username || username,
+          full_name: userData.full_name || '',
+          profile_pic_url: userData.profile_pic_url || userData.profile_pic_url_hd || '',
+          follower_count: userData.follower_count || userData.edge_followed_by?.count || 0,
+          is_verified: userData.is_verified || false,
+          biography: userData.biography || '',
+          external_url: userData.external_url || null,
+        };
       }
     } else if (platform === 'tiktok') {
-      // TikTok search - requires different API
-      // Placeholder for TikTok integration
-      console.log('[search-social-profiles] TikTok search not yet implemented');
+      // TikTok profile lookup - would need different API
+      console.log('[search-social-profiles] TikTok lookup not yet implemented');
+      throw new Error('TikTok lookup not yet supported');
     }
 
-    console.log(`[search-social-profiles] Found ${profiles.length} profiles`);
+    if (!profile) {
+      throw new Error('Profile not found');
+    }
+
+    console.log(`[search-social-profiles] Found profile: @${profile.username}`);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        profiles,
+        profile,
         platform,
-        query: searchQuery 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
