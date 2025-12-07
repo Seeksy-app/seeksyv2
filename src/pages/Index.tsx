@@ -14,6 +14,7 @@ import { FAQSection } from "@/components/homepage/FAQSection";
 import { CTASection } from "@/components/homepage/CTASection";
 import { FooterSection } from "@/components/homepage/FooterSection";
 import { LeadMagnetModal, useLeadMagnetPopup } from "@/components/lead-magnet";
+import { VisitorChatWidget } from "@/components/homepage/VisitorChatWidget";
 
 // Map persona IDs to module IDs in ModuleBuilder
 const personaModuleMapping: Record<string, string[]> = {
@@ -130,6 +131,9 @@ const Index = () => {
         <FooterSection />
       </main>
       <CookieConsent />
+      
+      {/* Visitor AI Chat Widget */}
+      <VisitorChatWidget />
       
       {/* Lead Magnet Modal */}
       <LeadMagnetModal
