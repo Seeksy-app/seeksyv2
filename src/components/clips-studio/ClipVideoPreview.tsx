@@ -195,14 +195,14 @@ export function ClipVideoPreview({ clip, sourceMedia }: ClipVideoPreviewProps) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Smaller dimensions to fit in viewport without scrolling
+  // Larger dimensions for better preview, optimized to fit viewport
   const getPreviewDimensions = () => {
     switch (selectedRatio) {
-      case "9:16": return { width: 240, height: 426 };
-      case "1:1": return { width: 320, height: 320 };
-      case "16:9": return { width: 420, height: 236 };
-      case "4:5": return { width: 280, height: 350 };
-      default: return { width: 240, height: 426 };
+      case "9:16": return { width: 320, height: 568 };
+      case "1:1": return { width: 400, height: 400 };
+      case "16:9": return { width: 560, height: 315 };
+      case "4:5": return { width: 360, height: 450 };
+      default: return { width: 320, height: 568 };
     }
   };
 

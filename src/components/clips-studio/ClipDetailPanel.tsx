@@ -115,7 +115,7 @@ export function ClipDetailPanel({ clip, sourceMedia, onUpdate }: ClipDetailPanel
 
   if (!clip) {
     return (
-      <div className="w-80 border-l bg-card/30 flex items-center justify-center">
+      <div className="w-72 border-l bg-card/30 flex items-center justify-center">
         <div className="text-center p-8">
           <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
             <Sparkles className="h-8 w-8 text-muted-foreground" />
@@ -128,7 +128,7 @@ export function ClipDetailPanel({ clip, sourceMedia, onUpdate }: ClipDetailPanel
   }
 
   return (
-    <div className="w-80 border-l bg-card/30 flex flex-col overflow-hidden min-h-0">
+    <div className="w-72 border-l bg-card/30 flex flex-col overflow-hidden min-h-0">
       {/* Clip score summary */}
       <div className="p-4 border-b bg-gradient-to-r from-[#053877]/10 to-[#2C6BED]/10">
         <div className="flex items-center justify-between mb-3">

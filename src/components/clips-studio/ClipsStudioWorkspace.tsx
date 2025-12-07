@@ -106,7 +106,11 @@ export function ClipsStudioWorkspace({
               <Download className="h-4 w-4 mr-2" />
               Export All
             </Button>
-            <Button size="sm" className="bg-[#053877] hover:bg-[#053877]/90">
+            <Button 
+              size="sm" 
+              className="bg-[#053877] hover:bg-[#053877]/90"
+              onClick={() => window.location.href = `/studio/media/${sourceMedia.id}`}
+            >
               <Share2 className="h-4 w-4 mr-2" />
               Publish
             </Button>

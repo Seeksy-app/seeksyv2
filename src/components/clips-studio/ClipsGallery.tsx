@@ -69,7 +69,7 @@ export function ClipsGallery({
   };
 
   return (
-    <div className="w-80 border-r bg-card/30 flex flex-col h-full overflow-hidden">
+    <div className="w-64 border-r bg-card/30 flex flex-col h-full overflow-hidden">
       {/* Header - fixed */}
       <div className="flex-shrink-0 p-4 border-b bg-card/50">
         <div className="flex items-center justify-between mb-2">
@@ -103,8 +103,8 @@ export function ClipsGallery({
                   : "border-border hover:border-[#2C6BED]/50 hover:bg-muted/30"
               )}
             >
-              {/* Thumbnail with overlays */}
-              <div className="relative aspect-video bg-black">
+              {/* Thumbnail with overlays - smaller for compact cards */}
+              <div className="relative aspect-[4/3] bg-black">
                 {getThumbnailUrl(clip) ? (
                   <img
                     src={getThumbnailUrl(clip)!}
@@ -180,42 +180,38 @@ export function ClipsGallery({
                 </div>
               </div>
 
-              {/* Content */}
-              <div className="p-3">
+              {/* Content - compact */}
+              <div className="p-2">
                 {/* Title */}
-                <p className="font-medium text-sm line-clamp-2 mb-3">
+                <p className="font-medium text-xs line-clamp-1 mb-2">
                   {clip.title || `Clip ${index + 1}`}
                 </p>
 
-                {/* Score grid */}
-                <div className="grid grid-cols-4 gap-1.5">
-                  <div className="text-center p-1.5 rounded-lg bg-muted/50">
-                    <Zap className="h-3.5 w-3.5 mx-auto mb-0.5 text-yellow-500" />
-                    <p className={cn("text-xs font-bold", getScoreColor(clip.hook_score || clip.virality_score || 0))}>
+                {/* Score grid - compact */}
+                <div className="grid grid-cols-4 gap-1">
+                  <div className="text-center p-1 rounded bg-muted/50">
+                    <Zap className="h-3 w-3 mx-auto text-yellow-500" />
+                    <p className={cn("text-[10px] font-bold", getScoreColor(clip.hook_score || clip.virality_score || 0))}>
                       {clip.hook_score || clip.virality_score || 0}
                     </p>
-                    <p className="text-[9px] text-muted-foreground">Hook</p>
                   </div>
-                  <div className="text-center p-1.5 rounded-lg bg-muted/50">
-                    <BarChart3 className="h-3.5 w-3.5 mx-auto mb-0.5 text-blue-500" />
-                    <p className={cn("text-xs font-bold", getScoreColor(clip.flow_score || clip.virality_score || 0))}>
+                  <div className="text-center p-1 rounded bg-muted/50">
+                    <BarChart3 className="h-3 w-3 mx-auto text-blue-500" />
+                    <p className={cn("text-[10px] font-bold", getScoreColor(clip.flow_score || clip.virality_score || 0))}>
                       {clip.flow_score || clip.virality_score || 0}
                     </p>
-                    <p className="text-[9px] text-muted-foreground">Flow</p>
                   </div>
-                  <div className="text-center p-1.5 rounded-lg bg-muted/50">
-                    <TrendingUp className="h-3.5 w-3.5 mx-auto mb-0.5 text-green-500" />
-                    <p className={cn("text-xs font-bold", getScoreColor(clip.value_score || clip.virality_score || 0))}>
+                  <div className="text-center p-1 rounded bg-muted/50">
+                    <TrendingUp className="h-3 w-3 mx-auto text-green-500" />
+                    <p className={cn("text-[10px] font-bold", getScoreColor(clip.value_score || clip.virality_score || 0))}>
                       {clip.value_score || clip.virality_score || 0}
                     </p>
-                    <p className="text-[9px] text-muted-foreground">Value</p>
                   </div>
-                  <div className="text-center p-1.5 rounded-lg bg-muted/50">
-                    <Flame className="h-3.5 w-3.5 mx-auto mb-0.5 text-orange-500" />
-                    <p className={cn("text-xs font-bold", getScoreColor(clip.trend_score || clip.virality_score || 0))}>
+                  <div className="text-center p-1 rounded bg-muted/50">
+                    <Flame className="h-3 w-3 mx-auto text-orange-500" />
+                    <p className={cn("text-[10px] font-bold", getScoreColor(clip.trend_score || clip.virality_score || 0))}>
                       {clip.trend_score || clip.virality_score || 0}
                     </p>
-                    <p className="text-[9px] text-muted-foreground">Trend</p>
                   </div>
                 </div>
               </div>
