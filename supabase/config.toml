@@ -398,3 +398,9 @@ verify_jwt = true
 
 [functions.search-social-profiles]
 verify_jwt = true
+
+[functions.transcribe-whisper]
+verify_jwt = true
+
+[functions.render-clip-with-captions]
+verify_jwt = true

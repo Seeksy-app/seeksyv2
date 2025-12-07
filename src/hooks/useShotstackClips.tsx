@@ -8,12 +8,37 @@ interface CreateShotstackClipParams {
   start?: number;
   length: number;
   orientation?: 'vertical' | 'horizontal';
+  templateName?: string;
+  enableCertification?: boolean;
+}
+
+interface RenderWithCaptionsParams {
+  clipId: string;
+  sourceVideoUrl: string;
+  startTime: number;
+  duration: number;
+  title?: string;
+  existingTranscript?: string;
+  orientation?: 'vertical' | 'horizontal';
+  captionStyle?: {
+    fontFamily?: string;
+    fontSize?: number;
+    fontColor?: string;
+    highlightColor?: string;
+    position?: 'bottom' | 'center' | 'top';
+    animation?: 'pop' | 'fade' | 'bounce' | 'none';
+  };
+  enableCertification?: boolean;
 }
 
 export const useShotstackClips = () => {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const { toast } = useToast();
 
+  /**
+   * Submit a basic Shotstack render (legacy method)
+   */
   const submitShotstackRender = async (params: CreateShotstackClipParams) => {
     setIsProcessing(true);
 
@@ -26,7 +51,7 @@ export const useShotstackClips = () => {
 
       toast({
         title: "Clip render started",
-        description: "Your clip is being processed by Shotstack. You'll be notified when it's ready.",
+        description: "Your clip is being processed. You'll be notified when it's ready.",
       });
 
       return data;
@@ -43,6 +68,78 @@ export const useShotstackClips = () => {
       throw error;
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  /**
+   * NEW: Render clip with word-by-word animated captions (OpusClip-style)
+   * Uses Whisper for transcription + Shotstack for rendering
+   */
+  const renderWithDynamicCaptions = async (params: RenderWithCaptionsParams) => {
+    setIsProcessing(true);
+    setIsTranscribing(true);
+
+    try {
+      toast({
+        title: "Processing clip",
+        description: "Transcribing audio and generating animated captions...",
+      });
+
+      const { data, error } = await supabase.functions.invoke('render-clip-with-captions', {
+        body: params,
+      });
+
+      if (error) throw error;
+
+      setIsTranscribing(false);
+
+      toast({
+        title: "Clip rendering",
+        description: `Generating clip with ${data.captionSegments || 0} caption segments...`,
+      });
+
+      return data;
+    } catch (error) {
+      console.error("Render with captions error:", error);
+
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+
+      toast({
+        title: "Caption render failed",
+        description: `${errorMessage}. Falling back to basic render...`,
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setIsProcessing(false);
+      setIsTranscribing(false);
+    }
+  };
+
+  /**
+   * Transcribe audio using Whisper with word-level timestamps
+   */
+  const transcribeWithWhisper = async (audioUrl: string, mediaId?: string, clipId?: string) => {
+    setIsTranscribing(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('transcribe-whisper', {
+        body: {
+          audio_url: audioUrl,
+          media_id: mediaId,
+          clip_id: clipId,
+          language: 'en',
+        },
+      });
+
+      if (error) throw error;
+
+      return data;
+    } catch (error) {
+      console.error("Whisper transcription error:", error);
+      throw error;
+    } finally {
+      setIsTranscribing(false);
     }
   };
 
@@ -105,9 +202,16 @@ export const useShotstackClips = () => {
   };
 
   return {
+    // Legacy method
     submitShotstackRender,
+    // NEW: Word-by-word captions
+    renderWithDynamicCaptions,
+    transcribeWithWhisper,
+    // Status methods
     getClipStatus,
     pollClipStatus,
+    // State
     isProcessing,
+    isTranscribing,
   };
 };
