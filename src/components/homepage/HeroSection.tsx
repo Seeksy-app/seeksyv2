@@ -78,7 +78,7 @@ export function HeroSection() {
           >
             <Button
               size="lg"
-              onClick={() => navigate("/auth?mode=signup")}
+              onClick={() => navigate("/onboarding")}
               className="bg-gradient-to-r from-brand-gold to-brand-orange hover:from-brand-orange hover:to-brand-gold text-slate-900 text-lg px-8 py-7 h-auto font-bold shadow-lg shadow-brand-gold/30 hover:shadow-brand-gold/50 hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-100"
             >
               Get Started Free
