@@ -37,13 +37,27 @@ serve(async (req) => {
     // Use service role for database operations
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Get YouTube connection
-    const { data: youtubeProfile, error: profileError } = await supabase
+    // Get YouTube connection for content protection (prefer content_protection purpose)
+    let { data: youtubeProfile, error: profileError } = await supabase
       .from('social_media_profiles')
       .select('*')
       .eq('user_id', user.id)
       .eq('platform', 'youtube')
+      .eq('purpose', 'content_protection')
       .maybeSingle();
+
+    // If no content_protection connection, try analytics connection
+    if (!youtubeProfile) {
+      const { data: analyticsProfile } = await supabase
+        .from('social_media_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('platform', 'youtube')
+        .eq('purpose', 'analytics')
+        .maybeSingle();
+      
+      youtubeProfile = analyticsProfile;
+    }
 
     if (profileError || !youtubeProfile) {
       console.error('[youtube-import-videos] No YouTube connection found');
@@ -52,6 +66,8 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('[youtube-import-videos] Using YouTube profile:', youtubeProfile.id, 'purpose:', youtubeProfile.purpose);
 
     // Decrypt and refresh token if needed
     let accessToken: string;

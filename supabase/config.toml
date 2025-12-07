@@ -6,6 +6,12 @@ verify_jwt = true
 [functions.youtube-callback]
 verify_jwt = false
 
+[functions.youtube-auth-content-protection]
+verify_jwt = true
+
+[functions.youtube-callback-content-protection]
+verify_jwt = false
+
 [functions.youtube-connect-channel]
 verify_jwt = true
 

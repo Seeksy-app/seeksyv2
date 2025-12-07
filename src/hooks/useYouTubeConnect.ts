@@ -6,6 +6,7 @@ export function useYouTubeConnect() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
 
+  // Connect YouTube for Analytics (default flow)
   const connectYouTube = async () => {
     setIsConnecting(true);
     try {
@@ -22,7 +23,6 @@ export function useYouTubeConnect() {
       }
 
       if (data?.authUrl) {
-        // Redirect to YouTube OAuth
         window.location.href = data.authUrl;
       } else {
         toast({
@@ -33,6 +33,43 @@ export function useYouTubeConnect() {
       }
     } catch (err) {
       console.error('YouTube connect error:', err);
+      toast({
+        title: 'Connection Failed',
+        description: 'An unexpected error occurred.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  // Connect YouTube specifically for Content Protection (different account allowed)
+  const connectYouTubeForContentProtection = async () => {
+    setIsConnecting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('youtube-auth-content-protection');
+      
+      if (error) {
+        console.error('YouTube auth (content protection) error:', error);
+        toast({
+          title: 'Connection Failed',
+          description: 'Failed to start YouTube connection. Please try again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (data?.authUrl) {
+        window.location.href = data.authUrl;
+      } else {
+        toast({
+          title: 'Connection Failed',
+          description: 'No authentication URL received.',
+          variant: 'destructive',
+        });
+      }
+    } catch (err) {
+      console.error('YouTube connect (content protection) error:', err);
       toast({
         title: 'Connection Failed',
         description: 'An unexpected error occurred.',
@@ -111,6 +148,7 @@ export function useYouTubeConnect() {
 
   return {
     connectYouTube,
+    connectYouTubeForContentProtection,
     importVideos,
     syncYouTube,
     isConnecting,

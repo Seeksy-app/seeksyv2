@@ -35,11 +35,11 @@ export const MyProofsTab = () => {
   });
 
   const { connectSpotify, importPodcasts, isConnecting: isSpotifyConnecting, isImporting: isSpotifyImporting } = useSpotifyConnect();
-  const { connectYouTube, importVideos, isConnecting: isYouTubeConnecting, isImporting: isYouTubeImporting } = useYouTubeConnect();
+  const { connectYouTubeForContentProtection, importVideos, isConnecting: isYouTubeConnecting, isImporting: isYouTubeImporting } = useYouTubeConnect();
 
-  // Check if Spotify is connected
+  // Check if Spotify is connected for content protection
   const { data: spotifyConnection } = useQuery({
-    queryKey: ["spotify-connection"],
+    queryKey: ["spotify-connection-content-protection"],
     queryFn: async (): Promise<{ id: string } | null> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.id) return null;
@@ -53,19 +53,34 @@ export const MyProofsTab = () => {
     },
   });
 
-  // Check if YouTube is connected
+  // Check if YouTube is connected for content protection (either purpose)
   const { data: youtubeConnection } = useQuery({
-    queryKey: ["youtube-connection"],
-    queryFn: async (): Promise<{ id: string } | null> => {
+    queryKey: ["youtube-connection-content-protection"],
+    queryFn: async (): Promise<{ id: string; purpose: string } | null> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.id) return null;
-      const result = await (supabase
+      
+      // First check for content_protection specific connection
+      let result = await (supabase
         .from("social_media_profiles") as any)
-        .select("id")
+        .select("id, purpose")
         .eq("user_id", user.id)
         .eq("platform", "youtube")
+        .eq("purpose", "content_protection")
         .maybeSingle();
-      return result.data as { id: string } | null;
+      
+      if (result.data) return result.data as { id: string; purpose: string };
+      
+      // Fallback to analytics connection
+      result = await (supabase
+        .from("social_media_profiles") as any)
+        .select("id, purpose")
+        .eq("user_id", user.id)
+        .eq("platform", "youtube")
+        .eq("purpose", "analytics")
+        .maybeSingle();
+      
+      return result.data as { id: string; purpose: string } | null;
     },
   });
 
@@ -221,7 +236,7 @@ export const MyProofsTab = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={connectYouTube}
+                onClick={connectYouTubeForContentProtection}
                 disabled={isYouTubeConnecting}
               >
                 {isYouTubeConnecting ? (
