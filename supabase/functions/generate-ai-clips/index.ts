@@ -319,17 +319,21 @@ async function analyzeForClips(
   durationSeconds: number,
   options: any
 ): Promise<ClipSegment[]> {
+  // Ensure we have a valid duration - if 0 or null, assume 60 seconds for short-form content
+  const actualDuration = durationSeconds > 0 ? durationSeconds : 60;
+  console.log(`Analyzing video with duration: ${actualDuration}s`);
+  
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   
   if (!LOVABLE_API_KEY) {
     console.log("No Lovable API key - using fallback segment detection");
-    return generateFallbackSegments(durationSeconds);
+    return generateFallbackSegments(actualDuration);
   }
 
   try {
     const analysisContext = transcript 
-      ? `Analyze this video transcript and identify 3-5 viral-worthy clips:\n\n${transcript}`
-      : `Suggest 3-5 clip segments for a ${durationSeconds}-second video.`;
+      ? `Analyze this video transcript and identify 3-5 viral-worthy clips. The video is exactly ${actualDuration} seconds long - ALL timestamps must be within 0 to ${actualDuration}:\n\n${transcript}`
+      : `Suggest 3-5 clip segments for a ${actualDuration}-second video. IMPORTANT: The video is ONLY ${actualDuration} seconds long, so all clips must start and end within 0-${actualDuration} seconds.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -344,9 +348,11 @@ async function analyzeForClips(
             role: "system",
             content: `You are an expert at finding viral-worthy moments in video content for TikTok, Instagram Reels, and YouTube Shorts.
 
+CRITICAL: The video is EXACTLY ${actualDuration} seconds long. All clip timestamps MUST be between 0 and ${actualDuration}.
+
 You identify clips that:
 - Have a strong hook in the first 3 seconds
-- Tell a complete micro-story (15-60 seconds)
+- Tell a complete micro-story (15-60 seconds max, or shorter if video is short)
 - Have emotional impact or surprising moments
 - Are self-contained and don't need context
 - Have natural start/end points
@@ -355,7 +361,7 @@ ${options?.autoHookDetection ? "Focus on attention-grabbing openers." : ""}
 ${options?.speakerDetection ? "Look for speaker changes as natural cut points." : ""}
 ${options?.highEnergyMoments ? "Prioritize high-energy, dynamic moments." : ""}
 
-Return clips ordered by virality potential.`,
+Return clips ordered by virality potential. Ensure ALL timestamps fit within the ${actualDuration}-second video length.`,
           },
           {
             role: "user",
@@ -376,8 +382,8 @@ Return clips ordered by virality potential.`,
                     items: {
                       type: "object",
                       properties: {
-                        startTime: { type: "number", description: "Start time in seconds" },
-                        endTime: { type: "number", description: "End time in seconds" },
+                        startTime: { type: "number", description: `Start time in seconds (0 to ${actualDuration})` },
+                        endTime: { type: "number", description: `End time in seconds (must be <= ${actualDuration})` },
                         title: { type: "string", description: "Catchy 5-8 word title" },
                         description: { type: "string", description: "Why this is viral-worthy" },
                         viralityScore: { type: "number", description: "Score 0-100" },
@@ -399,48 +405,94 @@ Return clips ordered by virality potential.`,
 
     if (!response.ok) {
       console.error("AI API error:", response.status);
-      return generateFallbackSegments(durationSeconds);
+      return generateFallbackSegments(actualDuration);
     }
 
     const data = await response.json();
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
 
     if (!toolCall) {
-      return generateFallbackSegments(durationSeconds);
+      return generateFallbackSegments(actualDuration);
     }
 
     const result = JSON.parse(toolCall.function.arguments);
-    return result.clips.map((clip: any) => ({
-      startTime: clip.startTime || clip.start_time || 0,
-      endTime: clip.endTime || clip.end_time || 30,
-      title: clip.title || "Viral Moment",
-      description: clip.description || "",
-      viralityScore: clip.viralityScore || clip.virality_score || 80,
-      hook: clip.hook || clip.title || "",
-      transcriptSnippet: clip.transcriptSnippet || clip.transcript_snippet || "",
-    }));
+    
+    // CRITICAL: Clamp all timestamps to actual video duration
+    return result.clips.map((clip: any) => {
+      const startTime = Math.max(0, Math.min(clip.startTime || clip.start_time || 0, actualDuration - 5));
+      const endTime = Math.max(startTime + 5, Math.min(clip.endTime || clip.end_time || startTime + 30, actualDuration));
+      
+      return {
+        startTime,
+        endTime,
+        title: clip.title || "Viral Moment",
+        description: clip.description || "",
+        viralityScore: clip.viralityScore || clip.virality_score || 80,
+        hook: clip.hook || clip.title || "",
+        transcriptSnippet: clip.transcriptSnippet || clip.transcript_snippet || "",
+      };
+    });
   } catch (error) {
     console.error("AI analysis error:", error);
-    return generateFallbackSegments(durationSeconds);
+    return generateFallbackSegments(actualDuration);
   }
 }
 
 function generateFallbackSegments(durationSeconds: number): ClipSegment[] {
-  // Generate 3 evenly spaced segments
-  const segmentDuration = 30; // 30 seconds each
-  const numSegments = Math.min(3, Math.floor(durationSeconds / segmentDuration));
+  // Ensure valid duration
+  const duration = durationSeconds > 0 ? durationSeconds : 60;
+  
+  // For short videos (< 60s), create 1-2 clips covering most of the video
+  if (duration <= 30) {
+    return [{
+      startTime: 0,
+      endTime: duration,
+      title: "Full Clip",
+      description: "Complete video",
+      viralityScore: 85,
+      hook: "Watch this!",
+      transcriptSnippet: "",
+    }];
+  }
+  
+  if (duration <= 60) {
+    return [
+      {
+        startTime: 0,
+        endTime: Math.min(30, duration),
+        title: "Opening Moment",
+        description: "Strong opener",
+        viralityScore: 88,
+        hook: "Check this out!",
+        transcriptSnippet: "",
+      },
+      {
+        startTime: Math.max(0, duration - 30),
+        endTime: duration,
+        title: "Best Moment",
+        description: "Highlight",
+        viralityScore: 85,
+        hook: "You won't believe this!",
+        transcriptSnippet: "",
+      }
+    ];
+  }
+  
+  // For longer videos, create 3-4 evenly spaced clips
+  const segmentDuration = Math.min(30, Math.floor(duration / 4));
+  const numSegments = Math.min(4, Math.floor(duration / segmentDuration));
   const segments: ClipSegment[] = [];
 
   for (let i = 0; i < numSegments; i++) {
-    const startTime = i * Math.floor(durationSeconds / numSegments);
-    const endTime = Math.min(startTime + segmentDuration, durationSeconds);
+    const startTime = i * Math.floor(duration / numSegments);
+    const endTime = Math.min(startTime + segmentDuration, duration);
 
     segments.push({
       startTime,
       endTime,
       title: `Highlight ${i + 1}`,
       description: "Auto-detected segment",
-      viralityScore: 80 - i * 5,
+      viralityScore: 88 - i * 3,
       hook: "Check this out!",
       transcriptSnippet: "",
     });
@@ -542,9 +594,17 @@ async function createTimeFragmentClip(
   const baseUrl = sourceMedia.cloudflare_download_url || sourceMedia.file_url;
   const fragmentUrl = `${baseUrl}#t=${clip.start_seconds},${clip.end_seconds}`;
   
-  const thumbnailUrl = sourceMedia.cloudflare_uid
-    ? `https://customer-typiggwc4l6lm7r2.cloudflarestream.com/${sourceMedia.cloudflare_uid}/thumbnails/thumbnail.jpg?time=${clip.start_seconds + 1}s`
-    : sourceMedia.thumbnail_url;
+  // Generate thumbnail URL - prefer Cloudflare, fallback to source thumbnail, or generate placeholder
+  let thumbnailUrl = sourceMedia.thumbnail_url;
+  
+  if (sourceMedia.cloudflare_uid) {
+    // Use Cloudflare thumbnail at clip start time
+    thumbnailUrl = `https://customer-typiggwc4l6lm7r2.cloudflarestream.com/${sourceMedia.cloudflare_uid}/thumbnails/thumbnail.jpg?time=${clip.start_seconds + 1}s`;
+  } else if (!thumbnailUrl && sourceMedia.file_url) {
+    // For videos without Cloudflare, use a frame-grab service or placeholder
+    // Since we can't generate thumbnails without FFmpeg, use a gradient placeholder with clip info
+    thumbnailUrl = `https://placehold.co/1080x1920/1e3a5f/ffffff?text=${encodeURIComponent(clip.title || 'Clip')}`;
+  }
 
   await supabase
     .from("clips")
@@ -556,6 +616,6 @@ async function createTimeFragmentClip(
     })
     .eq("id", clip.id);
 
-  console.log(`✓ Created time-fragment clip ${clip.id}`);
+  console.log(`✓ Created time-fragment clip ${clip.id} with thumbnail: ${thumbnailUrl ? 'yes' : 'no'}`);
   return { success: true, url: fragmentUrl };
 }
