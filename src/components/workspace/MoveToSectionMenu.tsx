@@ -70,41 +70,38 @@ export function MoveToSectionMenu({
     }
   };
 
-  if (isLoading || !moduleGroups || moduleGroups.length === 0) {
-    return (
-      <DropdownMenuItem disabled>
-        <FolderOpen className="h-4 w-4 mr-2" />
-        Move to...
-      </DropdownMenuItem>
-    );
-  }
-
   return (
     <DropdownMenuSub>
-      <DropdownMenuSubTrigger>
+      <DropdownMenuSubTrigger className="cursor-pointer">
         <FolderOpen className="h-4 w-4 mr-2" />
         Move to...
       </DropdownMenuSubTrigger>
-      <DropdownMenuSubContent className="w-48">
-        {moduleGroups.map((group) => {
-          const isCurrentGroup = group.key === currentGroupKey;
-          return (
-            <DropdownMenuItem
-              key={group.id}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!isCurrentGroup) {
-                  handleMoveToSection(group.key, group.label);
-                }
-              }}
-              disabled={isCurrentGroup || isMoving}
-              className="flex items-center justify-between"
-            >
-              <span>{group.label}</span>
-              {isCurrentGroup && <Check className="h-4 w-4 text-primary" />}
-            </DropdownMenuItem>
-          );
-        })}
+      <DropdownMenuSubContent className="w-48 bg-popover border border-border shadow-lg z-50">
+        {isLoading ? (
+          <DropdownMenuItem disabled>Loading sections...</DropdownMenuItem>
+        ) : !moduleGroups || moduleGroups.length === 0 ? (
+          <DropdownMenuItem disabled>No sections available</DropdownMenuItem>
+        ) : (
+          moduleGroups.map((group) => {
+            const isCurrentGroup = group.key === currentGroupKey;
+            return (
+              <DropdownMenuItem
+                key={group.id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!isCurrentGroup) {
+                    handleMoveToSection(group.key, group.label);
+                  }
+                }}
+                disabled={isCurrentGroup || isMoving}
+                className="flex items-center justify-between cursor-pointer"
+              >
+                <span>{group.label}</span>
+                {isCurrentGroup && <Check className="h-4 w-4 text-primary" />}
+              </DropdownMenuItem>
+            );
+          })
+        )}
       </DropdownMenuSubContent>
     </DropdownMenuSub>
   );
