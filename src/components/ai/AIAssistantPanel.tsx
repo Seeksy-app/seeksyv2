@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, Loader2, RefreshCw, Mic, Video, Calendar, Users, DollarSign, Layout, Zap, FileText, Target, BarChart3 } from "lucide-react";
+import { Send, Loader2, RefreshCw, Mic, Video, Calendar, Users, DollarSign, Layout, Zap, FileText, Target, BarChart3, HelpCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation, useNavigate } from "react-router-dom";
 import { SparkIcon } from "@/components/spark/SparkIcon";
@@ -21,13 +21,13 @@ interface Message {
 const QUICK_STARTERS = [
   { text: "Give me my weekly focus", icon: Target },
   { text: "Help me design my Seeksy workspace", icon: Layout },
+  { text: "Search the Help Center for guides", icon: HelpCircle },
   { text: "Plan a content funnel around my next event", icon: Calendar },
   { text: "Generate 5 clip ideas from my last recording", icon: Video },
   { text: "Help me create my podcast setup checklist", icon: Mic },
   { text: "Show me how to grow my audience this month", icon: Users },
   { text: "Help me set up Monetization", icon: DollarSign },
   { text: "Draft a post promoting my next episode", icon: FileText },
-  { text: "Help me organize my contacts", icon: Users },
   { text: "Analyze my last meeting + next steps", icon: BarChart3 },
 ];
 
@@ -55,6 +55,9 @@ const ACTION_ROUTES: Record<string, string> = {
   "open dashboard": "/dashboard",
   "open settings": "/settings",
   "open analytics": "/social-analytics",
+  "open help center": "/kb",
+  "search help": "/kb",
+  "help center": "/kb",
 };
 
 export function AIAssistantPanel() {

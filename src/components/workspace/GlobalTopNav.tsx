@@ -118,6 +118,17 @@ export function GlobalTopNav() {
             >
               <MessageCircle className="h-5 w-5" />
             </Button>
+
+            {/* Help / Knowledge Base */}
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => navigate('/kb')}
+              className="text-[hsl(var(--header-foreground))] hover:bg-white/10"
+              title="Help Center"
+            >
+              <HelpCircle className="h-5 w-5" />
+            </Button>
             
             {/* Notifications */}
             <Button variant="ghost" size="icon" className="text-[hsl(var(--header-foreground))] hover:bg-white/10">
