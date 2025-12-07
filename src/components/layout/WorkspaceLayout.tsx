@@ -1,10 +1,9 @@
 import { User } from "@supabase/supabase-js";
 import { useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { WorkspaceProvider, useWorkspace } from "@/contexts/WorkspaceContext";
 import { WorkspaceSidebar } from "@/components/workspace/WorkspaceSidebar";
 import { GlobalTopNav } from "@/components/workspace/GlobalTopNav";
-import { WorkspaceOnboarding } from "@/components/workspace/WorkspaceOnboarding";
 import { RoleBasedSidebar } from "@/components/navigation/RoleBasedSidebar";
 import { AdvertiserSidebarNav } from "@/components/advertiser/AdvertiserSidebarNav";
 import { TopNavBar } from "@/components/TopNavBar";
@@ -47,14 +46,11 @@ function WorkspaceLayoutInner({
   shouldShowTopNav 
 }: WorkspaceLayoutProps) {
   const location = useLocation();
-  const { workspaces, isLoading, currentWorkspace } = useWorkspace();
+  const { workspaces, isLoading, currentWorkspace, createWorkspace, setCurrentWorkspace } = useWorkspace();
   const useLegacyNav = useShouldUseLegacyNav();
   const isAdvertiserRoute = location.pathname.startsWith('/advertiser');
-  const [hasCompletedWorkspaceOnboarding, setHasCompletedWorkspaceOnboarding] = useState(() => {
-    return localStorage.getItem('workspaceOnboardingComplete') === 'true';
-  });
 
-  // Public routes that don't need workspace onboarding
+  // Public routes that don't need workspace check
   const isPublicRoute = [
     '/',
     '/auth',
@@ -66,46 +62,25 @@ function WorkspaceLayoutInner({
     '/security',
     '/apps-and-tools',
     '/demo-videos',
-  ].some(route => location.pathname === route || location.pathname.startsWith('/public'));
+    '/onboarding',
+  ].some(route => location.pathname === route || location.pathname.startsWith('/public') || location.pathname.startsWith('/onboarding'));
 
-  // Mark as complete once we have workspaces
+  // Auto-create default workspace if user has none (instead of showing old popup)
   useEffect(() => {
-    if (workspaces.length > 0 && !hasCompletedWorkspaceOnboarding) {
-      localStorage.setItem('workspaceOnboardingComplete', 'true');
-      setHasCompletedWorkspaceOnboarding(true);
-    }
-  }, [workspaces, hasCompletedWorkspaceOnboarding]);
-
-  // Handler for when workspace onboarding completes
-  const handleWorkspaceOnboardingComplete = () => {
-    localStorage.setItem('workspaceOnboardingComplete', 'true');
-    setHasCompletedWorkspaceOnboarding(true);
-  };
-
-  // Show workspace onboarding only if:
-  // - Not loading
-  // - User exists
-  // - No workspaces
-  // - Haven't previously completed workspace onboarding
-  // - Not on legacy/public/onboarding routes
-  const needsWorkspaceOnboarding = !isLoading && 
-    user && 
-    workspaces.length === 0 && 
-    !hasCompletedWorkspaceOnboarding &&
-    !useLegacyNav &&
-    !isPublicRoute &&
-    !location.pathname.startsWith('/onboarding') &&
-    !location.pathname.startsWith('/auth');
-
-  if (needsWorkspaceOnboarding) {
-    return (
-      <div className="min-h-screen flex w-full bg-background">
-        <div className="flex-1 flex flex-col min-h-screen overflow-auto">
-          <WorkspaceOnboarding onComplete={handleWorkspaceOnboardingComplete} />
-        </div>
-      </div>
-    );
-  }
+    const autoCreateWorkspace = async () => {
+      if (!isLoading && user && workspaces.length === 0 && !useLegacyNav && !isPublicRoute) {
+        try {
+          const newWorkspace = await createWorkspace("My Workspace", []);
+          if (newWorkspace) {
+            setCurrentWorkspace(newWorkspace);
+          }
+        } catch (error) {
+          console.error("Error auto-creating workspace:", error);
+        }
+      }
+    };
+    autoCreateWorkspace();
+  }, [isLoading, user, workspaces.length, useLegacyNav, isPublicRoute, createWorkspace, setCurrentWorkspace]);
 
   // Use legacy navigation for admin/board/advertiser routes
   if (useLegacyNav || isPublicRoute || !user) {
