@@ -1619,57 +1619,174 @@ export type Database = {
         }
         Relationships: []
       }
+      agencies: {
+        Row: {
+          company_size: string | null
+          created_at: string
+          description: string | null
+          id: string
+          industry: string | null
+          logo_url: string | null
+          name: string
+          owner_id: string
+          status: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          company_size?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          industry?: string | null
+          logo_url?: string | null
+          name: string
+          owner_id: string
+          status?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          company_size?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          industry?: string | null
+          logo_url?: string | null
+          name?: string
+          owner_id?: string
+          status?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      agency_creator_invites: {
+        Row: {
+          agency_id: string | null
+          created_at: string
+          discovery_profile_id: string | null
+          email: string | null
+          id: string
+          invite_token: string | null
+          message: string | null
+          platform: string | null
+          responded_at: string | null
+          sent_at: string | null
+          status: string | null
+          username: string | null
+        }
+        Insert: {
+          agency_id?: string | null
+          created_at?: string
+          discovery_profile_id?: string | null
+          email?: string | null
+          id?: string
+          invite_token?: string | null
+          message?: string | null
+          platform?: string | null
+          responded_at?: string | null
+          sent_at?: string | null
+          status?: string | null
+          username?: string | null
+        }
+        Update: {
+          agency_id?: string | null
+          created_at?: string
+          discovery_profile_id?: string | null
+          email?: string | null
+          id?: string
+          invite_token?: string | null
+          message?: string | null
+          platform?: string | null
+          responded_at?: string | null
+          sent_at?: string | null
+          status?: string | null
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_creator_invites_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_creator_invites_discovery_profile_id_fkey"
+            columns: ["discovery_profile_id"]
+            isOneToOne: false
+            referencedRelation: "agency_discovery_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agency_discovery_profiles: {
         Row: {
           created_at: string
           email: string | null
           engagement_rate: number
           estimated_value_per_post: number
+          face_verified: boolean | null
           followers: number
           id: string
+          is_seeksy_verified: boolean | null
           last_refreshed_at: string | null
           linked_profile_id: string | null
           location: string | null
           niche_tags: string[] | null
           platform: string
           profile_picture_url: string | null
+          seeksy_user_id: string | null
           source: string
           updated_at: string
           username: string
+          verification_date: string | null
+          voice_verified: boolean | null
         }
         Insert: {
           created_at?: string
           email?: string | null
           engagement_rate?: number
           estimated_value_per_post?: number
+          face_verified?: boolean | null
           followers?: number
           id?: string
+          is_seeksy_verified?: boolean | null
           last_refreshed_at?: string | null
           linked_profile_id?: string | null
           location?: string | null
           niche_tags?: string[] | null
           platform?: string
           profile_picture_url?: string | null
+          seeksy_user_id?: string | null
           source?: string
           updated_at?: string
           username: string
+          verification_date?: string | null
+          voice_verified?: boolean | null
         }
         Update: {
           created_at?: string
           email?: string | null
           engagement_rate?: number
           estimated_value_per_post?: number
+          face_verified?: boolean | null
           followers?: number
           id?: string
+          is_seeksy_verified?: boolean | null
           last_refreshed_at?: string | null
           linked_profile_id?: string | null
           location?: string | null
           niche_tags?: string[] | null
           platform?: string
           profile_picture_url?: string | null
+          seeksy_user_id?: string | null
           source?: string
           updated_at?: string
           username?: string
+          verification_date?: string | null
+          voice_verified?: boolean | null
         }
         Relationships: [
           {
@@ -1677,6 +1794,48 @@ export type Database = {
             columns: ["linked_profile_id"]
             isOneToOne: false
             referencedRelation: "social_media_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agency_saved_creators: {
+        Row: {
+          agency_id: string | null
+          created_at: string
+          discovery_profile_id: string | null
+          id: string
+          list_name: string | null
+          notes: string | null
+        }
+        Insert: {
+          agency_id?: string | null
+          created_at?: string
+          discovery_profile_id?: string | null
+          id?: string
+          list_name?: string | null
+          notes?: string | null
+        }
+        Update: {
+          agency_id?: string | null
+          created_at?: string
+          discovery_profile_id?: string | null
+          id?: string
+          list_name?: string | null
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_saved_creators_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_saved_creators_discovery_profile_id_fkey"
+            columns: ["discovery_profile_id"]
+            isOneToOne: false
+            referencedRelation: "agency_discovery_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -16340,6 +16499,104 @@ export type Database = {
           id?: string
           min_deposit?: number
           name?: string
+        }
+        Relationships: []
+      }
+      profile_image_matches: {
+        Row: {
+          created_at: string
+          detected_at: string
+          id: string
+          match_confidence: number | null
+          match_type: string | null
+          notes: string | null
+          platform: string
+          profile_image_url: string | null
+          profile_url: string | null
+          reviewed_at: string | null
+          scan_id: string | null
+          status: string | null
+          user_id: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          detected_at?: string
+          id?: string
+          match_confidence?: number | null
+          match_type?: string | null
+          notes?: string | null
+          platform: string
+          profile_image_url?: string | null
+          profile_url?: string | null
+          reviewed_at?: string | null
+          scan_id?: string | null
+          status?: string | null
+          user_id: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          detected_at?: string
+          id?: string
+          match_confidence?: number | null
+          match_type?: string | null
+          notes?: string | null
+          platform?: string
+          profile_image_url?: string | null
+          profile_url?: string | null
+          reviewed_at?: string | null
+          scan_id?: string | null
+          status?: string | null
+          user_id?: string
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_image_matches_scan_id_fkey"
+            columns: ["scan_id"]
+            isOneToOne: false
+            referencedRelation: "profile_image_scans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profile_image_scans: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          matches_found: number | null
+          platform: string
+          profiles_scanned: number | null
+          scan_status: string
+          started_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          matches_found?: number | null
+          platform: string
+          profiles_scanned?: number | null
+          scan_status?: string
+          started_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          matches_found?: number | null
+          platform?: string
+          profiles_scanned?: number | null
+          scan_status?: string
+          started_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }

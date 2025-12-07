@@ -392,3 +392,6 @@ verify_jwt = true
 
 [functions.instagram-callback]
 verify_jwt = false
+
+[functions.scan-profile-images]
+verify_jwt = true
