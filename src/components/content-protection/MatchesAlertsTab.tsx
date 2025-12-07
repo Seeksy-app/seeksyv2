@@ -1,10 +1,9 @@
-import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Search, AlertTriangle, CheckCircle, Clock, Loader2 } from "lucide-react";
+import { ExternalLink, Search, ShieldCheck, ShieldX, Clock, Loader2, ThumbsUp, ThumbsDown } from "lucide-react";
 import { toast } from "sonner";
 
 export const MatchesAlertsTab = () => {
@@ -35,28 +34,42 @@ export const MatchesAlertsTab = () => {
 
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["content-matches"] });
-      toast.success("Match status updated");
+      const message = variables.status === "authorized" 
+        ? "Marked as authorized use" 
+        : "Marked as unauthorized - you may take action";
+      toast.success(message);
     },
   });
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "confirmed":
-        return <AlertTriangle className="h-4 w-4 text-red-500" />;
-      case "dismissed":
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case "unauthorized":
+        return <ShieldX className="h-4 w-4 text-red-500" />;
+      case "authorized":
+        return <ShieldCheck className="h-4 w-4 text-green-500" />;
       default:
         return <Clock className="h-4 w-4 text-yellow-500" />;
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "unauthorized":
+        return "Unauthorized";
+      case "authorized":
+        return "Authorized";
+      default:
+        return "Pending Review";
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "confirmed":
+      case "unauthorized":
         return "bg-red-500/10 text-red-600 border-red-200";
-      case "dismissed":
+      case "authorized":
         return "bg-green-500/10 text-green-600 border-green-200";
       default:
         return "bg-yellow-500/10 text-yellow-600 border-yellow-200";
@@ -69,6 +82,10 @@ export const MatchesAlertsTab = () => {
         return "bg-red-500/10 text-red-600";
       case "spotify":
         return "bg-green-500/10 text-green-600";
+      case "instagram":
+        return "bg-pink-500/10 text-pink-600";
+      case "facebook":
+        return "bg-blue-500/10 text-blue-600";
       default:
         return "bg-muted text-muted-foreground";
     }
@@ -87,9 +104,18 @@ export const MatchesAlertsTab = () => {
       <div>
         <h2 className="text-xl font-semibold">Matches & Alerts</h2>
         <p className="text-sm text-muted-foreground">
-          Review detected matches and suspected unauthorized use
+          Review detected content matches and mark as authorized or unauthorized
         </p>
       </div>
+
+      {/* Info Card */}
+      <Card className="p-4 bg-primary/5 border-primary/20">
+        <p className="text-sm text-muted-foreground">
+          <strong>How it works:</strong> Our system detects when your content appears on other platforms. 
+          Review each match and mark it as <strong>Authorized</strong> (you gave permission) or 
+          <strong> Unauthorized</strong> (potential infringement). Unauthorized matches can be used as evidence for takedown requests.
+        </p>
+      </Card>
 
       {matches && matches.length > 0 ? (
         <div className="grid gap-4">
@@ -99,12 +125,12 @@ export const MatchesAlertsTab = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     {getStatusIcon(match.status)}
-                    <h3 className="font-medium">{match.external_title || "Unknown"}</h3>
+                    <h3 className="font-medium">{match.external_title || "Unknown Content"}</h3>
                     <Badge className={getPlatformColor(match.platform)}>
                       {match.platform}
                     </Badge>
                     <Badge className={getStatusColor(match.status)}>
-                      {match.status?.replace("_", " ")}
+                      {getStatusLabel(match.status)}
                     </Badge>
                   </div>
 
@@ -112,14 +138,17 @@ export const MatchesAlertsTab = () => {
                     {match.external_url}
                   </p>
 
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
                     <span>Similarity: {match.similarity_score || "N/A"}%</span>
                     <span>Type: {match.match_type}</span>
                     <span>Detected: {new Date(match.detected_at).toLocaleDateString()}</span>
+                    {(match as any).reviewed_at && (
+                      <span>Reviewed: {new Date((match as any).reviewed_at).toLocaleDateString()}</span>
+                    )}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <Button variant="outline" size="sm" asChild>
                     <a href={match.external_url} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="h-4 w-4 mr-1" />
@@ -127,23 +156,38 @@ export const MatchesAlertsTab = () => {
                     </a>
                   </Button>
 
-                  {match.status === "pending_review" && (
+                  {match.status === "pending_review" ? (
                     <>
                       <Button
                         size="sm"
-                        variant="destructive"
-                        onClick={() => updateStatusMutation.mutate({ matchId: match.id, status: "confirmed" })}
+                        variant="outline"
+                        className="text-green-600 border-green-200 hover:bg-green-50"
+                        onClick={() => updateStatusMutation.mutate({ matchId: match.id, status: "authorized" })}
+                        disabled={updateStatusMutation.isPending}
                       >
-                        Confirm
+                        <ThumbsUp className="h-4 w-4 mr-1" />
+                        Authorized
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => updateStatusMutation.mutate({ matchId: match.id, status: "dismissed" })}
+                        className="text-red-600 border-red-200 hover:bg-red-50"
+                        onClick={() => updateStatusMutation.mutate({ matchId: match.id, status: "unauthorized" })}
+                        disabled={updateStatusMutation.isPending}
                       >
-                        Dismiss
+                        <ThumbsDown className="h-4 w-4 mr-1" />
+                        Unauthorized
                       </Button>
                     </>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => updateStatusMutation.mutate({ matchId: match.id, status: "pending_review" })}
+                      disabled={updateStatusMutation.isPending}
+                    >
+                      Reset
+                    </Button>
                   )}
                 </div>
               </div>
@@ -155,7 +199,8 @@ export const MatchesAlertsTab = () => {
           <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="font-medium mb-2">No Matches Found</h3>
           <p className="text-sm text-muted-foreground">
-            We haven't detected any unauthorized use of your content yet.
+            We haven't detected any use of your content on external platforms yet.
+            Register your content in "My Proofs" to start monitoring.
           </p>
         </Card>
       )}

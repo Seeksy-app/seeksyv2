@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Shield, Mic, Lock, ShieldCheck, XCircle } from "lucide-react";
+import { Shield, Mic, Lock, ShieldCheck, XCircle, Eye } from "lucide-react";
 import { useIdentityStatus } from "@/hooks/useIdentityStatus";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -84,10 +84,10 @@ export function IdentityLayout({ children }: IdentityLayoutProps) {
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button
               onClick={() => navigate("/identity")}
-              variant={isActive("/identity") && !isActive("/identity/voice") && !isActive("/identity/rights") ? "default" : "ghost"}
+              variant={isActive("/identity") && !isActive("/identity/voice") && !isActive("/identity/rights") && !isActive("/content-protection") ? "default" : "ghost"}
               size="sm"
               className="gap-2"
             >
@@ -111,6 +111,15 @@ export function IdentityLayout({ children }: IdentityLayoutProps) {
             >
               <Lock className="h-4 w-4" />
               Rights
+            </Button>
+            <Button
+              onClick={() => navigate("/content-protection")}
+              variant={isActive("/content-protection") ? "default" : "ghost"}
+              size="sm"
+              className="gap-2"
+            >
+              <Eye className="h-4 w-4" />
+              Content Protection
             </Button>
           </div>
         </div>
