@@ -5119,6 +5119,45 @@ export type Database = {
         }
         Relationships: []
       }
+      cfo_assumptions: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          metric_key: string
+          notes: string | null
+          source: string
+          unit: string | null
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          metric_key: string
+          notes?: string | null
+          source?: string
+          unit?: string | null
+          updated_at?: string
+          value: number
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          metric_key?: string
+          notes?: string | null
+          source?: string
+          unit?: string | null
+          updated_at?: string
+          value?: number
+        }
+        Relationships: []
+      }
       cfo_swot: {
         Row: {
           ai_last_summary: string | null
@@ -17084,6 +17123,39 @@ export type Database = {
         }
         Relationships: []
       }
+      proforma_versions: {
+        Row: {
+          assumptions_snapshot: Json | null
+          created_at: string
+          created_by: string | null
+          forecast_payload: Json
+          id: string
+          label: string
+          scenario_key: string
+          summary: string | null
+        }
+        Insert: {
+          assumptions_snapshot?: Json | null
+          created_at?: string
+          created_by?: string | null
+          forecast_payload: Json
+          id?: string
+          label: string
+          scenario_key: string
+          summary?: string | null
+        }
+        Update: {
+          assumptions_snapshot?: Json | null
+          created_at?: string
+          created_by?: string | null
+          forecast_payload?: Json
+          id?: string
+          label?: string
+          scenario_key?: string
+          summary?: string | null
+        }
+        Relationships: []
+      }
       proof_of_play: {
         Row: {
           created_at: string
@@ -18111,11 +18183,13 @@ export type Database = {
           cac_multiplier: number
           churn_multiplier: number
           cpm_multiplier: number
+          description: string | null
           fill_rate_multiplier: number
           id: string
           impressions_multiplier: number
           is_active: boolean | null
           label: string
+          margin_multiplier: number | null
           market_adoption_multiplier: number
           platform_revshare_adjustment: number
           revenue_growth_multiplier: number
@@ -18126,11 +18200,13 @@ export type Database = {
           cac_multiplier?: number
           churn_multiplier?: number
           cpm_multiplier?: number
+          description?: string | null
           fill_rate_multiplier?: number
           id?: string
           impressions_multiplier?: number
           is_active?: boolean | null
           label: string
+          margin_multiplier?: number | null
           market_adoption_multiplier?: number
           platform_revshare_adjustment?: number
           revenue_growth_multiplier?: number
@@ -18141,11 +18217,13 @@ export type Database = {
           cac_multiplier?: number
           churn_multiplier?: number
           cpm_multiplier?: number
+          description?: string | null
           fill_rate_multiplier?: number
           id?: string
           impressions_multiplier?: number
           is_active?: boolean | null
           label?: string
+          margin_multiplier?: number | null
           market_adoption_multiplier?: number
           platform_revshare_adjustment?: number
           revenue_growth_multiplier?: number
