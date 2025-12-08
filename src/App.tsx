@@ -621,7 +621,7 @@ const AppContent = () => {
               <Route path="/seekies" element={<Apps />} />
               
               {/* Integrations */}
-              <Route path="/dropbox-callback" element={<DropboxCallback />} />
+              <Route path="/dropbox/callback" element={<DropboxCallback />} />
               <Route path="/integrations" element={<SocialMediaHub />} />
               <Route path="/integrations/meta" element={<MetaIntegration />} />
               <Route path="/integrations/social" element={<SocialConnections />} />
