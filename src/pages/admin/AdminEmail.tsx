@@ -328,7 +328,7 @@ export default function AdminEmail() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg">Recent Sent Emails</CardTitle>
-              <Button variant="outline" size="sm" onClick={() => navigate("/email")}>
+              <Button variant="outline" size="sm" onClick={() => navigate("/admin/email-client")}>
                 <ExternalLink className="w-4 h-4 mr-2" />
                 Open Full Inbox
               </Button>

@@ -12,7 +12,18 @@ serve(async (req) => {
   }
 
   try {
-    const { action, code, redirectUri } = await req.json();
+    // Handle empty body gracefully (GET requests or empty POST)
+    let body: { action?: string; code?: string; redirectUri?: string } = {};
+    try {
+      const text = await req.text();
+      if (text) {
+        body = JSON.parse(text);
+      }
+    } catch {
+      // No body or invalid JSON
+    }
+    
+    const { action, code, redirectUri } = body;
     
     const appKey = Deno.env.get('DROPBOX_APP_KEY');
     const appSecret = Deno.env.get('DROPBOX_APP_SECRET');
@@ -22,6 +33,9 @@ serve(async (req) => {
     }
 
     if (action === 'get_auth_url') {
+      if (!redirectUri) {
+        throw new Error('redirectUri is required');
+      }
       // Generate OAuth URL for Dropbox
       console.log('Generating Dropbox auth URL with redirect_uri:', redirectUri);
       const authUrl = `https://www.dropbox.com/oauth2/authorize?client_id=${appKey}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&token_access_type=offline`;
@@ -34,6 +48,9 @@ serve(async (req) => {
     }
 
     if (action === 'exchange_code') {
+      if (!code || !redirectUri) {
+        throw new Error('code and redirectUri are required');
+      }
       // Exchange code for access token
       const tokenResponse = await fetch('https://api.dropboxapi.com/oauth2/token', {
         method: 'POST',
