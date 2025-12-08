@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Settings, User, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,12 +13,9 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { DataModeToggle } from './DataModeToggle';
-import { InvestorShareModal } from './InvestorShareModal';
-import { GenerateLinkModal } from './investor/GenerateLinkModal';
 
 export function BoardTopNav() {
   const navigate = useNavigate();
-  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -52,7 +48,7 @@ export function BoardTopNav() {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => setShareModalOpen(true)}
+              onClick={() => navigate('/board/generate-investor-link')}
               className="text-slate-600 hidden md:flex"
             >
               <Share2 className="w-4 h-4 mr-2" />
@@ -95,8 +91,6 @@ export function BoardTopNav() {
           </div>
         </div>
       </header>
-
-      <GenerateLinkModal open={shareModalOpen} onOpenChange={setShareModalOpen} />
     </TooltipProvider>
   );
 }
