@@ -7,9 +7,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FloatingEmailComposer } from "@/components/email/client/FloatingEmailComposer";
+import { SendTestEmailDialog } from "@/components/admin/email/SendTestEmailDialog";
 import { 
   Mail, Send, Inbox, FileText, BarChart3, 
-  Eye, MousePointer, RefreshCw, ExternalLink, PenTool, Plus, Trash2, Edit
+  Eye, MousePointer, RefreshCw, ExternalLink, PenTool, Plus, Trash2, Edit, SendHorizontal
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
@@ -30,6 +31,7 @@ export default function AdminEmail() {
   const { toast } = useToast();
   const [composerOpen, setComposerOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [testEmailOpen, setTestEmailOpen] = useState(false);
   const [signatureModalOpen, setSignatureModalOpen] = useState(false);
   const [editingSignature, setEditingSignature] = useState<any>(null);
   const [signatureForm, setSignatureForm] = useState({
@@ -102,7 +104,7 @@ export default function AdminEmail() {
     },
   });
 
-  // Fetch admin signatures
+  // Fetch admin signatures (role = 'admin')
   const { data: signatures = [], refetch: refetchSignatures } = useQuery({
     queryKey: ["admin-email-signatures"],
     queryFn: async () => {
@@ -113,6 +115,7 @@ export default function AdminEmail() {
         .from("email_signatures")
         .select("*")
         .eq("user_id", user.id)
+        .eq("role", "admin")
         .order("created_at", { ascending: false });
       
       return data || [];
@@ -172,6 +175,7 @@ export default function AdminEmail() {
           .insert({
             ...signatureForm,
             user_id: user.id,
+            role: "admin", // Mark as admin signature
           });
       }
 
@@ -231,6 +235,10 @@ export default function AdminEmail() {
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
             Sync Inbox
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setTestEmailOpen(true)}>
+            <SendHorizontal className="w-4 h-4 mr-2" />
+            Send Test
           </Button>
           <Button onClick={() => setComposerOpen(true)}>
             <Send className="w-4 h-4 mr-2" />
@@ -408,18 +416,25 @@ export default function AdminEmail() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg">Email Signatures</CardTitle>
-              <Button size="sm" onClick={() => openSignatureModal()}>
-                <Plus className="w-4 h-4 mr-2" />
-                New Signature
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => navigate("/admin/signatures")}>
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Full Signature Builder
+                </Button>
+                <Button size="sm" onClick={() => openSignatureModal()}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Quick Add
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {signatures.length === 0 ? (
                 <div className="text-center py-8 text-slate-500">
                   <PenTool className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-                  <p>No signatures yet</p>
-                  <Button variant="outline" size="sm" className="mt-3" onClick={() => openSignatureModal()}>
-                    Create First Signature
+                  <p>No admin signatures yet</p>
+                  <p className="text-sm text-slate-400 mt-1">Create signatures with photos, social links, banners and more</p>
+                  <Button variant="outline" size="sm" className="mt-3" onClick={() => navigate("/admin/signatures")}>
+                    Open Signature Builder
                   </Button>
                 </div>
               ) : (
@@ -614,6 +629,13 @@ export default function AdminEmail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Send Test Email Dialog */}
+      <SendTestEmailDialog 
+        open={testEmailOpen} 
+        onOpenChange={setTestEmailOpen}
+        signatures={signatures}
+      />
 
       {/* Floating Composer */}
       <FloatingEmailComposer

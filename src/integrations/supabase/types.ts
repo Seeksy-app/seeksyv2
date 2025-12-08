@@ -9504,6 +9504,7 @@ export type Database = {
           profile_photo_url: string | null
           profile_title: string | null
           quote_text: string | null
+          role: string | null
           secondary_color: string | null
           social_icon_size: string | null
           social_links: Json | null
@@ -9540,6 +9541,7 @@ export type Database = {
           profile_photo_url?: string | null
           profile_title?: string | null
           quote_text?: string | null
+          role?: string | null
           secondary_color?: string | null
           social_icon_size?: string | null
           social_links?: Json | null
@@ -9576,6 +9578,7 @@ export type Database = {
           profile_photo_url?: string | null
           profile_title?: string | null
           quote_text?: string | null
+          role?: string | null
           secondary_color?: string | null
           social_icon_size?: string | null
           social_links?: Json | null

@@ -490,6 +490,7 @@ import AgentTrainingDashboard from "./pages/admin/AgentTrainingDashboard";
 import Permissions from "./pages/admin/Permissions";
 import AdminIntegrations from "./pages/admin/AdminIntegrations";
 import AdminEmail from "./pages/admin/AdminEmail";
+import AdminSignatures from "./pages/admin/AdminSignatures";
 import Webhooks from "./pages/admin/Webhooks";
 import Logs from "./pages/admin/Logs";
 import MarketIntelligence from "./pages/admin/MarketIntelligence";
@@ -947,6 +948,7 @@ const AppContent = () => {
               <Route path="/admin/permissions" element={<Permissions />} />
               <Route path="/admin/integrations" element={<AdminIntegrations />} />
               <Route path="/admin/email" element={<AdminEmail />} />
+              <Route path="/admin/signatures" element={<AdminSignatures />} />
               <Route path="/admin/webhooks" element={<Webhooks />} />
               <Route path="/admin/logs" element={<Logs />} />
               <Route path="/admin/market-intelligence" element={<MarketIntelligence />} />
