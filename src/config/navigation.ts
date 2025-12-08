@@ -323,6 +323,14 @@ export const NAVIGATION_CONFIG: {
       "collapsible": true,
       "items": [
         {
+          "id": "admin_seeksy_tv",
+          "label": "Seeksy TV",
+          "icon": "tv",
+          "path": "/admin/seeksy-tv",
+          "roles": ["admin", "super_admin", "cco"],
+          "description": "Manage Seeksy TV content and imports"
+        },
+        {
           "id": "admin_master_blog",
           "label": "Articles / Blog",
           "icon": "book-open",
