@@ -102,7 +102,7 @@ const stateOfCompanyContent = {
 
 export default function BoardDashboard() {
   const navigate = useNavigate();
-  const { isDemo, isReal } = useBoardDataMode();
+  const { isDemo, isLive, isCFO } = useBoardDataMode();
   const [firstName, setFirstName] = useState<string>('');
   const [metricsLoading, setMetricsLoading] = useState(true);
   const [isVideoLoading, setIsVideoLoading] = useState(true);
