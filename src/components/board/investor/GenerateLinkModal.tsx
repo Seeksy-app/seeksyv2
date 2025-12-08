@@ -217,7 +217,7 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-2xl max-h-[95vh]">
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           {step === 'configure' && (
             <>
               <DialogHeader>
