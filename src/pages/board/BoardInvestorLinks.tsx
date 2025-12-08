@@ -14,7 +14,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { GenerateLinkModal } from '@/components/board/investor/GenerateLinkModal';
+
 import { SendInvestorEmailModal } from '@/components/board/investor/SendInvestorEmailModal';
 import { ActivityLogModal } from '@/components/board/investor/ActivityLogModal';
 import { InvestorAnalyticsCards } from '@/components/board/investor/InvestorAnalyticsCards';
@@ -38,7 +38,6 @@ interface InvestorLink {
 export default function BoardInvestorLinks() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [generateModalOpen, setGenerateModalOpen] = useState(false);
   const [sendEmailModal, setSendEmailModal] = useState<{ open: boolean; link: InvestorLink | null }>({ open: false, link: null });
   const [activityModal, setActivityModal] = useState<{ open: boolean; link: InvestorLink | null }>({ open: false, link: null });
   const [revokeDialogOpen, setRevokeDialogOpen] = useState(false);
@@ -110,7 +109,7 @@ export default function BoardInvestorLinks() {
               <p className="text-slate-500">Create and manage secure investor access links</p>
             </div>
           </div>
-          <Button onClick={() => setGenerateModalOpen(true)}>
+          <Button onClick={() => window.open('/board/generate-investor-link', '_blank')}>
             <Plus className="w-4 h-4 mr-2" />
             Generate New Link
           </Button>
@@ -137,7 +136,7 @@ export default function BoardInvestorLinks() {
                   <div className="p-8 text-center">
                     <Link2 className="w-12 h-12 text-slate-300 mx-auto mb-4" />
                     <p className="text-slate-500">No investor links created yet.</p>
-                    <Button className="mt-4" onClick={() => setGenerateModalOpen(true)}>
+                    <Button className="mt-4" onClick={() => window.open('/board/generate-investor-link', '_blank')}>
                       Create Your First Link
                     </Button>
                   </div>
@@ -223,12 +222,6 @@ export default function BoardInvestorLinks() {
           </TabsContent>
         </Tabs>
       </div>
-
-      <GenerateLinkModal 
-        open={generateModalOpen} 
-        onOpenChange={setGenerateModalOpen}
-        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['investorLinks'] })}
-      />
 
       {sendEmailModal.link && (
         <SendInvestorEmailModal

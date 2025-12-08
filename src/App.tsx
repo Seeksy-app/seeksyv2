@@ -466,6 +466,7 @@ import BoardForecasts from "./pages/board/BoardForecasts";
 import BoardVideos from "./pages/board/BoardVideos";
 import BoardDocs from "./pages/board/BoardDocs";
 import BoardInvestorLinks from "./pages/board/BoardInvestorLinks";
+import BoardGenerateInvestorLink from "./pages/board/BoardGenerateInvestorLink";
 import BoardShare from "./pages/board/BoardShare";
 import BoardCEOPlan from "./pages/board/BoardCEOPlan";
 import BoardCEOVTO from "./pages/board/BoardCEOVTO";
@@ -1035,6 +1036,7 @@ const AppContent = () => {
             <Route path="videos" element={<BoardVideos />} />
             <Route path="docs" element={<BoardDocs />} />
             <Route path="investor-links" element={<BoardInvestorLinks />} />
+            <Route path="generate-investor-link" element={<BoardGenerateInvestorLink />} />
             <Route path="share" element={<BoardShare />} />
             <Route path="research" element={<BoardResearch />} />
             <Route path="revenue-insights" element={<BoardRevenueInsights />} />
