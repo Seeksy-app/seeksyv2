@@ -9,6 +9,7 @@ import {
   Calendar, Star, TrendingUp, Clock, ChevronRight,
   Mic, Video, Sparkles
 } from "lucide-react";
+import { TVFooter } from "@/components/tv/TVFooter";
 
 // Mock data for demo
 const featuredCreators = [
@@ -371,22 +372,7 @@ export default function SeeksyTVHome() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-white/10 py-8">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-amber-600 rounded-lg flex items-center justify-center">
-                <Tv className="h-4 w-4 text-white" />
-              </div>
-              <span className="font-bold text-gray-400">Seeksy TV</span>
-            </div>
-            <p className="text-sm text-gray-500">
-              © 2024 Seeksy. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <TVFooter />
     </div>
   );
 }
