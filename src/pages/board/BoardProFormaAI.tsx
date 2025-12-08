@@ -6,18 +6,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   TrendingUp, ArrowLeft, Calendar, RefreshCw, Download, FileSpreadsheet,
-  Sparkles, Target, TrendingDown, Check, Loader2
+  Sparkles, Target, TrendingDown, Check, Loader2, Save, Share2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useBoardDataMode } from '@/contexts/BoardDataModeContext';
 import { DataModeLabel, DataModeBadge } from '@/components/board/DataModeToggle';
-import { useProFormaForecast, ScenarioKey } from '@/hooks/useProFormaForecast';
-import { CFOAssumptionsPanel } from '@/components/cfo/proforma/CFOAssumptionsPanel';
+import { useProFormaForecast, ScenarioKey, ForecastResult } from '@/hooks/useProFormaForecast';
+import { useProFormaVersions, ProFormaVersion } from '@/hooks/useProFormaVersions';
+import { useCFOAssumptions } from '@/hooks/useCFOAssumptions';
+import { CFOAssumptionsReadOnlyPanel } from '@/components/cfo/proforma/CFOAssumptionsReadOnlyPanel';
 import { AdRevenueBreakdown } from '@/components/cfo/proforma/AdRevenueBreakdown';
 import { ProFormaSummary } from '@/components/cfo/proforma/ProFormaSummary';
+import { SaveVersionDialog } from '@/components/board/SaveVersionDialog';
+import { VersionSelector } from '@/components/board/VersionSelector';
+import { ShareWithInvestorsDialog } from '@/components/board/ShareWithInvestorsDialog';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, Legend, Cell
+  BarChart, Bar, Legend,
 } from 'recharts';
 import { cn } from '@/lib/utils';
 
@@ -53,6 +58,11 @@ export default function BoardProFormaAI() {
   const { isDemo, isReal } = useBoardDataMode();
   const [useCustomOverrides, setUseCustomOverrides] = useState(false);
   const [selectedYear, setSelectedYear] = useState(2025);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [viewingVersion, setViewingVersion] = useState<ProFormaVersion | null>(null);
+  
+  const { rdCount, cfoOverrideCount } = useCFOAssumptions();
   
   const {
     selectedScenario,
@@ -69,11 +79,40 @@ export default function BoardProFormaAI() {
     clearCfoOverrides,
   } = useProFormaForecast();
 
-  // Parse forecast data for display - prefer generated forecast for immediate display
+  const {
+    versions,
+    saveVersion,
+    deleteVersion,
+    isSaving,
+  } = useProFormaVersions();
+
+  // Determine if we're in live mode (no historical version selected)
+  const isLiveMode = viewingVersion === null;
+
+  // Parse forecast data for display - prefer viewed version, then generated, then stored
   const forecastData = useMemo(() => {
+    // If viewing a historical version
+    if (viewingVersion?.forecast_payload?.years) {
+      return viewingVersion.forecast_payload.years.map((y) => ({
+        year: y.year,
+        revenue: y.revenue,
+        expenses: y.expenses,
+        adBreakdown: y.revenue?.advertising,
+        summary: {
+          ebitda: y.ebitda,
+          ebitdaMargin: y.ebitdaMargin,
+          creatorCount: y.creatorCount,
+          subscriberCount: y.subscriberCount,
+          churnRate: y.churnRate,
+          cac: y.cac,
+          ltv: y.ltv,
+        },
+        commentary: viewingVersion.forecast_payload.commentary,
+      }));
+    }
+
     // If we have a freshly generated forecast, use it directly
     if (generatedForecast?.years) {
-      console.log('[BoardProFormaAI] Using generated forecast:', generatedForecast.years.length, 'years');
       return generatedForecast.years.map((y) => ({
         year: y.year,
         revenue: y.revenue,
@@ -94,11 +133,9 @@ export default function BoardProFormaAI() {
     
     // Fall back to stored forecasts from database
     if (!storedForecasts || storedForecasts.length === 0) {
-      console.log('[BoardProFormaAI] No forecast data available');
       return null;
     }
     
-    console.log('[BoardProFormaAI] Using stored forecasts:', storedForecasts.length, 'rows');
     const yearlyData = storedForecasts.map((f: any) => ({
       year: f.forecast_year,
       revenue: f.revenue_data,
@@ -109,7 +146,7 @@ export default function BoardProFormaAI() {
     }));
     
     return yearlyData;
-  }, [storedForecasts, generatedForecast]);
+  }, [storedForecasts, generatedForecast, viewingVersion]);
 
   // Get current year data
   const currentYearData = useMemo(() => {
@@ -230,11 +267,25 @@ export default function BoardProFormaAI() {
   }, [forecastData]);
 
   const handleGenerateForecast = () => {
+    setViewingVersion(null); // Switch to live mode
     generateForecast({
       scenarioKey: selectedScenario,
       years: [2025, 2026, 2027],
       overrides: useCustomOverrides ? cfoOverrides : {},
     });
+  };
+
+  const handleSaveVersion = ({ label, summary }: { label: string; summary: string }) => {
+    if (!generatedForecast) return;
+    
+    saveVersion({
+      scenario_key: selectedScenario,
+      label,
+      summary,
+      forecast: generatedForecast,
+      assumptions: cfoOverrides,
+    });
+    setSaveDialogOpen(false);
   };
 
   const handleExportCSV = () => {
@@ -303,24 +354,44 @@ export default function BoardProFormaAI() {
           </div>
           <div>
             <h1 className="text-3xl font-bold text-slate-900">AI-Powered 3-Year Pro Forma</h1>
-            <p className="text-slate-500">Financial projections powered by R&D benchmarks and AI</p>
+            <p className="text-slate-500">
+              Financial projections powered by {cfoOverrideCount} CFO assumptions and {rdCount} R&D benchmarks
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <VersionSelector
+            versions={versions}
+            selectedVersion={viewingVersion}
+            onSelectVersion={setViewingVersion}
+            onDeleteVersion={deleteVersion}
+            isLiveMode={isLiveMode}
+          />
           <div className="flex items-center gap-2 text-slate-400">
             <Calendar className="w-4 h-4" />
             <span className="text-sm">Updated: {new Date().toLocaleDateString()}</span>
           </div>
-          <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={!forecastData}>
-            <Download className="w-4 h-4 mr-2" />
-            Export CSV
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleExportAdBreakdown} disabled={!adChannelData.length}>
-            <FileSpreadsheet className="w-4 h-4 mr-2" />
-            Ad Breakdown
-          </Button>
         </div>
       </div>
+
+      {/* Historical Version Banner */}
+      {!isLiveMode && viewingVersion && (
+        <Alert className="border-amber-200 bg-amber-50">
+          <AlertDescription className="text-amber-800 flex items-center justify-between">
+            <span>
+              <strong>Viewing Saved Version:</strong> {viewingVersion.label}
+              {viewingVersion.summary && ` — ${viewingVersion.summary}`}
+            </span>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setViewingVersion(null)}
+            >
+              Return to Live Mode
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <DataModeLabel />
 
@@ -390,11 +461,11 @@ export default function BoardProFormaAI() {
         })}
       </div>
 
-      {/* Generate Button */}
-      <div className="flex items-center justify-center gap-4">
+      {/* Action Buttons */}
+      <div className="flex items-center justify-center gap-4 flex-wrap">
         <Button 
           onClick={handleGenerateForecast} 
-          disabled={isGenerating || !scenarios}
+          disabled={isGenerating || !scenarios || !isLiveMode}
           className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
         >
           {isGenerating ? (
@@ -409,12 +480,34 @@ export default function BoardProFormaAI() {
             </>
           )}
         </Button>
-        <span className="text-sm text-muted-foreground">
-          Using {benchmarks?.length || 0} R&D benchmarks
-        </span>
+        
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => setSaveDialogOpen(true)} 
+          disabled={!generatedForecast || !isLiveMode}
+        >
+          <Save className="w-4 h-4 mr-2" />
+          Save Version
+        </Button>
+        
+        <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={!forecastData}>
+          <Download className="w-4 h-4 mr-2" />
+          Export CSV
+        </Button>
+        
+        <Button variant="outline" size="sm" onClick={handleExportAdBreakdown} disabled={!adChannelData.length}>
+          <FileSpreadsheet className="w-4 h-4 mr-2" />
+          Ad Breakdown
+        </Button>
+        
+        <Button variant="outline" size="sm" onClick={() => setShareDialogOpen(true)}>
+          <Share2 className="w-4 h-4 mr-2" />
+          Share with Investors
+        </Button>
       </div>
 
-      {/* Year Selector */}
+      {/* Year Selector with Scenario Label */}
       {forecastData && (
         <div className="flex items-center justify-center gap-2">
           {[2025, 2026, 2027].map((year) => (
@@ -423,8 +516,14 @@ export default function BoardProFormaAI() {
               variant={selectedYear === year ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSelectedYear(year)}
+              className="gap-2"
             >
-              Year {year}
+              {year}
+              {selectedYear === year && (
+                <Badge variant="secondary" className="text-xs">
+                  {viewingVersion?.scenario_key || currentScenarioConfig?.label || 'Base'}
+                </Badge>
+              )}
             </Button>
           ))}
         </div>
@@ -451,7 +550,7 @@ export default function BoardProFormaAI() {
           {forecastData ? (
             <ProFormaSummary
               metrics={summaryMetrics}
-              scenario={currentScenarioConfig?.label || 'Base'}
+              scenario={viewingVersion?.scenario_key || currentScenarioConfig?.label || 'Base'}
               aiCommentary={currentYearData?.commentary || null}
               isGenerating={isGenerating}
               year={selectedYear}
@@ -471,7 +570,7 @@ export default function BoardProFormaAI() {
           {adChannelData.length > 0 ? (
             <AdRevenueBreakdown
               data={adChannelData}
-              scenario={currentScenarioConfig?.label || 'Base'}
+              scenario={viewingVersion?.scenario_key || currentScenarioConfig?.label || 'Base'}
               year={selectedYear}
               isLoading={isGenerating}
             />
@@ -550,7 +649,12 @@ export default function BoardProFormaAI() {
                         <tr className="border-b">
                           <th className="text-left p-2">Metric</th>
                           {revenueTrendData.map((d: any) => (
-                            <th key={d.year} className="text-right p-2">{d.year}</th>
+                            <th key={d.year} className="text-right p-2">
+                              {d.year}
+                              <Badge variant="outline" className="ml-2 text-xs">
+                                {viewingVersion?.scenario_key || currentScenarioConfig?.label || 'Base'}
+                              </Badge>
+                            </th>
                           ))}
                         </tr>
                       </thead>
@@ -608,27 +712,23 @@ export default function BoardProFormaAI() {
         </TabsContent>
 
         <TabsContent value="assumptions">
-          {benchmarks && benchmarks.length > 0 ? (
-            <CFOAssumptionsPanel
-              benchmarks={benchmarks}
-              overrides={cfoOverrides}
-              onOverrideChange={updateCfoOverride}
-              onClearOverrides={clearCfoOverrides}
-              useCustomOverrides={useCustomOverrides}
-              onToggleOverrides={setUseCustomOverrides}
-              isLoading={isGenerating}
-            />
-          ) : (
-            <Card className="p-8 text-center">
-              <RefreshCw className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Loading Benchmarks...</h3>
-              <p className="text-muted-foreground">
-                R&D benchmarks are being loaded from the database.
-              </p>
-            </Card>
-          )}
+          <CFOAssumptionsReadOnlyPanel />
         </TabsContent>
       </Tabs>
+
+      {/* Dialogs */}
+      <SaveVersionDialog
+        open={saveDialogOpen}
+        onOpenChange={setSaveDialogOpen}
+        onSave={handleSaveVersion}
+        scenarioLabel={currentScenarioConfig?.label || 'Base'}
+        isSaving={isSaving}
+      />
+      
+      <ShareWithInvestorsDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+      />
     </div>
   );
 }

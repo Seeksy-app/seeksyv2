@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { useBoardDataMode } from '@/contexts/BoardDataModeContext';
+import { useCFOAssumptions } from '@/hooks/useCFOAssumptions';
 import { motion } from 'framer-motion';
 import {
   Calculator,
@@ -14,17 +15,31 @@ import {
   TrendingUp,
   Bot,
   RefreshCw,
+  Database,
 } from 'lucide-react';
 
 export default function BoardROICalculator() {
   const { isDemo } = useBoardDataMode();
+  const { getEffectiveValue, cfoOverrideCount, rdCount } = useCFOAssumptions();
 
-  // Input state
+  // Initialize from CFO assumptions
+  const defaultCac = getEffectiveValue('creator_cac_paid', 45);
+  const defaultArpu = getEffectiveValue('pro_arpu', 29);
+  const defaultChurn = getEffectiveValue('creator_monthly_churn_rate', 5);
+
+  // Input state - seeded from CFO assumptions
   const [monthlyBudget, setMonthlyBudget] = useState(10000);
-  const [cac, setCac] = useState(50);
-  const [arpu, setArpu] = useState(35);
-  const [churnRate, setChurnRate] = useState(4);
+  const [cac, setCac] = useState(defaultCac);
+  const [arpu, setArpu] = useState(defaultArpu);
+  const [churnRate, setChurnRate] = useState(defaultChurn);
   const [timeHorizon, setTimeHorizon] = useState(12);
+
+  // Sync with CFO assumptions when they load
+  useEffect(() => {
+    setCac(defaultCac);
+    setArpu(defaultArpu);
+    setChurnRate(defaultChurn);
+  }, [defaultCac, defaultArpu, defaultChurn]);
 
   // Calculations
   const newCustomersPerMonth = Math.floor(monthlyBudget / cac);
@@ -244,7 +259,11 @@ Provide insights on:
 
         {/* Benchmark Note */}
         <Card className="border-slate-200 shadow-sm bg-slate-50">
-          <CardContent className="p-4">
+          <CardContent className="p-4 space-y-2">
+            <div className="flex items-center gap-2 text-sm text-blue-700">
+              <Database className="w-4 h-4" />
+              <span>Using {cfoOverrideCount} CFO assumptions and {rdCount} R&D benchmarks</span>
+            </div>
             <p className="text-sm text-slate-600">
               <strong>Industry Benchmarks:</strong> SaaS companies typically target LTV/CAC ratio of 3:1 or higher.
               Payback period under 12 months is considered healthy. Churn rates below 5% monthly indicate strong retention.

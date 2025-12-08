@@ -71,6 +71,14 @@ export default function BoardKeyMetrics() {
           <DataModeBadge />
         </div>
 
+        {/* Pro Forma Connection Note */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-800">
+            <strong>How these metrics connect to the Pro Forma:</strong> Creators, active campaigns, events, and MRR are the operational drivers 
+            that feed into the 3-Year Pro Forma. This page shows the operating KPIs that roll up into our long-term financial forecast.
+          </p>
+        </div>
+
         {/* Metrics Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {metricConfig.map(({ key, icon: Icon, color }, idx) => {
