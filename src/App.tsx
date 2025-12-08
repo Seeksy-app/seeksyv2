@@ -1034,7 +1034,7 @@ const AppContent = () => {
           <Route path="/board/swot" element={<BoardSWOT />} />
           <Route path="/board/market-intel" element={<BoardMarketIntel />} />
           <Route path="/board/inventory" element={<BoardInventory />} />
-          <Route path="/board/proforma/combined" element={<CombinedProForma />} />
+          <Route path="/board/proforma/combined" element={<InvestorPortal />} />
           <Route path="/board/proforma/events-awards" element={<EventsAwardsProForma />} />
           <Route path="/investor/:token" element={<BoardInvestorPortal />} />
           
