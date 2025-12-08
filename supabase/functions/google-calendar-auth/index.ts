@@ -43,7 +43,7 @@ serve(async (req) => {
       `&response_type=code` +
       `&scope=${encodeURIComponent(scopes)}` +
       `&access_type=offline` +
-      `&prompt=consent` +
+      `&prompt=consent%20select_account` +
       `&state=${user.id}`;
 
     console.log('Generated auth URL for user:', user.id);

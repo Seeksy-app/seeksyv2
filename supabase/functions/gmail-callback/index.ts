@@ -123,10 +123,14 @@ serve(async (req) => {
 
     console.log('Successfully stored encrypted Gmail account for user:', state);
 
-    // Redirect to seeksy.io/email-settings
+    // Redirect - check referrer to determine admin or user flow
+    const referrer = req.headers.get('referer') || '';
+    const isAdmin = referrer.includes('/admin/');
+    const redirectPath = isAdmin ? '/admin/integrations' : '/email-settings';
+    
     return new Response(null, {
       status: 302,
-      headers: { Location: `https://seeksy.io/email-settings?success=gmail_connected` }
+      headers: { Location: `https://seeksy.io${redirectPath}?success=gmail_connected` }
     });
   } catch (error) {
     console.error('Error in gmail-callback:', error);
