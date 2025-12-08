@@ -18,6 +18,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { LivestreamControls } from "@/components/studio/LivestreamControls";
 
 // Studio card component
 function StudioCard({ 
@@ -481,6 +482,19 @@ export default function StudioHubPremium() {
 
           {/* Right Column */}
           <div className="space-y-6">
+            {/* Livestream Channels */}
+            <Card className="bg-card border-border">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Radio className="w-5 h-5 text-red-500" />
+                  Livestreaming
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <LivestreamControls />
+              </CardContent>
+            </Card>
+
             {/* Scheduled Streams */}
             <Card className="bg-card border-border">
               <CardHeader className="pb-3">
