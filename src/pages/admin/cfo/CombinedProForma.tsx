@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Download, Share2, Copy, Check } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -11,12 +11,17 @@ import ProFormaFinancialTables from "@/components/cfo/proforma/ProFormaFinancial
 import ProFormaCharts from "@/components/cfo/proforma/ProFormaCharts";
 import ProFormaAssumptions from "@/components/cfo/proforma/ProFormaAssumptions";
 import { useProFormaData, ProFormaAssumptions as AssumptionsType } from "@/hooks/useProFormaData";
+import { BoardLayout } from "@/components/board/BoardLayout";
 
 const CombinedProForma = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const contentRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   const [exporting, setExporting] = useState(false);
+  
+  // Check if we're on a board route to use BoardLayout
+  const isBoardRoute = location.pathname.startsWith('/board');
 
   const { financialData, assumptions, updateAssumptions } = useProFormaData();
 
@@ -66,15 +71,15 @@ const CombinedProForma = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  return (
+  const content = (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl px-6 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate("/admin")}>
+            <Button variant="ghost" onClick={() => navigate(isBoardRoute ? "/board" : "/admin")}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to CFO
+              {isBoardRoute ? "Back to Board" : "Back to CFO"}
             </Button>
           </div>
           <div className="flex items-center gap-3">
@@ -195,6 +200,13 @@ const CombinedProForma = () => {
       </div>
     </div>
   );
+
+  // Wrap with BoardLayout if on board route
+  if (isBoardRoute) {
+    return <BoardLayout>{content}</BoardLayout>;
+  }
+
+  return content;
 };
 
 export default CombinedProForma;
