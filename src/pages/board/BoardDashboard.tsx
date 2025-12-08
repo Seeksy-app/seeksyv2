@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
-import { BoardLayout } from '@/components/board/BoardLayout';
 import { WelcomeBanner } from '@/components/board/WelcomeBanner';
 import { useBoardDataMode } from '@/contexts/BoardDataModeContext';
 import { DataModeBadge } from '@/components/board/DataModeToggle';
@@ -155,8 +154,7 @@ export default function BoardDashboard() {
   };
 
   return (
-    <BoardLayout>
-      <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto">
         {/* Welcome Banner */}
         <WelcomeBanner firstName={firstName} />
 
@@ -340,7 +338,6 @@ export default function BoardDashboard() {
             </div>
           </CardContent>
         </Card>
-      </div>
-    </BoardLayout>
+    </div>
   );
 }
