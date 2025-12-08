@@ -13,44 +13,27 @@ import { TVFooter } from "@/components/tv/TVFooter";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-// Mock data for demo
-const featuredCreators = [
-  { id: "1", name: "The Daily Tech", avatar: "/placeholder.svg", followers: "125K", category: "Technology" },
-  { id: "2", name: "Creative Minds", avatar: "/placeholder.svg", followers: "89K", category: "Design" },
-  { id: "3", name: "Business Insider Pod", avatar: "/placeholder.svg", followers: "203K", category: "Business" },
-  { id: "4", name: "Health & Wellness", avatar: "/placeholder.svg", followers: "156K", category: "Health" },
-  { id: "5", name: "True Crime Weekly", avatar: "/placeholder.svg", followers: "312K", category: "True Crime" },
-];
+// Helper to format duration
+const formatDuration = (seconds: number) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  if (mins >= 60) {
+    const hrs = Math.floor(mins / 60);
+    const remainingMins = mins % 60;
+    return `${hrs}:${remainingMins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  }
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+};
 
-const liveNow = [
-  { id: "1", title: "Morning Tech Roundup", creator: "The Daily Tech", viewers: "2.3K", thumbnail: "/placeholder.svg" },
-  { id: "2", title: "Design Systems Workshop", creator: "Creative Minds", viewers: "1.1K", thumbnail: "/placeholder.svg" },
-];
-
-const latestEpisodes = [
-  { id: "1", title: "The Future of AI in 2025", creator: "The Daily Tech", duration: "45:32", thumbnail: "/placeholder.svg", views: "15K" },
-  { id: "2", title: "Building a Brand from Scratch", creator: "Business Insider Pod", duration: "38:15", thumbnail: "/placeholder.svg", views: "12K" },
-  { id: "3", title: "Meditation for Beginners", creator: "Health & Wellness", duration: "22:45", thumbnail: "/placeholder.svg", views: "8.5K" },
-  { id: "4", title: "The Missing Evidence", creator: "True Crime Weekly", duration: "52:18", thumbnail: "/placeholder.svg", views: "28K" },
-  { id: "5", title: "Remote Work Best Practices", creator: "Business Insider Pod", duration: "41:05", thumbnail: "/placeholder.svg", views: "9.2K" },
-  { id: "6", title: "Color Theory Deep Dive", creator: "Creative Minds", duration: "35:20", thumbnail: "/placeholder.svg", views: "6.8K" },
-];
-
-const aiClips = [
-  { id: "1", title: "The AI Moment That Changed Everything", creator: "The Daily Tech", duration: "0:58", thumbnail: "/placeholder.svg", views: "45K" },
-  { id: "2", title: "This One Habit...", creator: "Health & Wellness", duration: "1:15", thumbnail: "/placeholder.svg", views: "32K" },
-  { id: "3", title: "The Suspect's Confession", creator: "True Crime Weekly", duration: "0:45", thumbnail: "/placeholder.svg", views: "67K" },
-  { id: "4", title: "Design Hack in 60 Seconds", creator: "Creative Minds", duration: "1:00", thumbnail: "/placeholder.svg", views: "28K" },
-];
+// Helper to format view counts
+const formatViews = (views: number) => {
+  if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M`;
+  if (views >= 1000) return `${(views / 1000).toFixed(1)}K`;
+  return views.toString();
+};
 
 const categories = [
   "All", "Podcasts", "Interviews", "AI Clips", "Events", "Live", "Technology", "Business", "Health", "True Crime", "Design"
-];
-
-const trendingCreators = [
-  { id: "1", name: "Rising Star Pod", avatar: "/placeholder.svg", growth: "+245%", category: "Entertainment" },
-  { id: "2", name: "The Mindset Show", avatar: "/placeholder.svg", growth: "+180%", category: "Self-Help" },
-  { id: "3", name: "Startup Stories", avatar: "/placeholder.svg", growth: "+156%", category: "Business" },
 ];
 
 export default function SeeksyTVHome() {
@@ -68,13 +51,94 @@ export default function SeeksyTVHome() {
           *,
           videos:tv_content(id, title, thumbnail_url, duration_seconds, view_count)
         `)
-        .eq('tv_content.is_published', true)
-        .order('created_at', { ascending: false });
+        .eq('is_active', true)
+        .order('follower_count', { ascending: false })
+        .limit(8);
       
       if (error) throw error;
-      return data?.filter(c => c.videos && c.videos.length > 0) || [];
+      return data || [];
     }
   });
+
+  // Fetch featured creators (channels with most followers)
+  const { data: featuredCreators } = useQuery({
+    queryKey: ['tv-featured-creators'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tv_channels')
+        .select('id, name, slug, avatar_url, follower_count, category')
+        .eq('is_active', true)
+        .order('follower_count', { ascending: false })
+        .limit(6);
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Fetch latest episodes (full-length content)
+  const { data: latestEpisodes } = useQuery({
+    queryKey: ['tv-latest-episodes', selectedCategory],
+    queryFn: async () => {
+      let query = supabase
+        .from('tv_content')
+        .select(`
+          id, title, description, thumbnail_url, duration_seconds, view_count, category,
+          channel:tv_channels(name, slug)
+        `)
+        .eq('is_published', true)
+        .in('content_type', ['episode', 'spotlight'])
+        .order('published_at', { ascending: false })
+        .limit(8);
+      
+      if (selectedCategory !== "All") {
+        query = query.eq('category', selectedCategory);
+      }
+      
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Fetch AI clips (short-form content)
+  const { data: aiClips } = useQuery({
+    queryKey: ['tv-ai-clips'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tv_content')
+        .select(`
+          id, title, thumbnail_url, duration_seconds, view_count,
+          channel:tv_channels(name, slug)
+        `)
+        .eq('is_published', true)
+        .eq('content_type', 'clip')
+        .order('view_count', { ascending: false })
+        .limit(8);
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Fetch trending creators (by total views)
+  const { data: trendingCreators } = useQuery({
+    queryKey: ['tv-trending-creators'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tv_channels')
+        .select('id, name, slug, avatar_url, category, total_views, follower_count')
+        .eq('is_active', true)
+        .order('total_views', { ascending: false })
+        .limit(3);
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Check if we have any content
+  const hasContent = (latestEpisodes?.length ?? 0) > 0 || (aiClips?.length ?? 0) > 0 || (channels?.length ?? 0) > 0;
 
   return (
     <div className="min-h-screen bg-[#0a0a14] text-white">
@@ -231,220 +295,223 @@ export default function SeeksyTVHome() {
         </section>
       )}
 
-      {/* Live Now Section */}
-      {liveNow.length > 0 && (
+      {/* Featured Creators */}
+      {featuredCreators && featuredCreators.length > 0 && (
         <section className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-              <h2 className="text-2xl font-bold text-white">Live Now</h2>
+            <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
+              <Star className="h-6 w-6 text-amber-400" />
+              Featured Creators
+            </h2>
+            <Button variant="ghost" className="text-amber-400 hover:text-amber-300">
+              Browse all <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+          
+          <ScrollArea className="w-full">
+            <div className="flex gap-4 pb-4">
+              {featuredCreators.map((creator) => (
+                <div
+                  key={creator.id}
+                  className="shrink-0 w-48 group cursor-pointer"
+                  onClick={() => navigate(`/tv/channel/${creator.slug || creator.id}`)}
+                >
+                  <div className="relative w-48 h-48 rounded-xl overflow-hidden mb-3 bg-gradient-to-br from-primary/20 to-primary/40">
+                    {creator.avatar_url ? (
+                      <img src={creator.avatar_url} alt={creator.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-white/60">
+                        {creator.name.charAt(0)}
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <h3 className="font-semibold group-hover:text-amber-400 transition-colors truncate">
+                    {creator.name}
+                  </h3>
+                  <p className="text-sm text-gray-400">{formatViews(creator.follower_count || 0)} followers</p>
+                  {creator.category && (
+                    <Badge variant="outline" className="mt-2 text-xs border-gray-600 text-gray-400">
+                      {creator.category}
+                    </Badge>
+                  )}
+                </div>
+              ))}
             </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </section>
+      )}
+
+      {/* Latest Episodes */}
+      {latestEpisodes && latestEpisodes.length > 0 && (
+        <section className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
+              <Radio className="h-6 w-6 text-amber-400" />
+              Latest Episodes
+            </h2>
             <Button variant="ghost" className="text-amber-400 hover:text-amber-300">
               See all <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {liveNow.map((stream) => (
-              <div
-                key={stream.id}
-                className="group relative rounded-xl overflow-hidden cursor-pointer"
-                onClick={() => navigate(`/tv/watch/${stream.id}`)}
-              >
-                <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900">
-                  <img src={stream.thumbnail} alt="" className="w-full h-full object-cover opacity-80" />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                <div className="absolute top-3 left-3">
-                  <Badge className="bg-red-600 text-white text-xs">
-                    <span className="animate-pulse mr-1">●</span> LIVE
-                  </Badge>
-                </div>
-                <div className="absolute top-3 right-3">
-                  <Badge variant="secondary" className="bg-black/50 text-white text-xs">
-                    {stream.viewers} watching
-                  </Badge>
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <h3 className="font-semibold text-lg mb-1 text-white group-hover:text-amber-400 transition-colors">
-                    {stream.title}
-                  </h3>
-                  <p className="text-sm text-gray-400">{stream.creator}</p>
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="w-16 h-16 rounded-full bg-amber-500/90 flex items-center justify-center">
-                    <Play className="h-8 w-8 text-white fill-current ml-1" />
+          <ScrollArea className="w-full">
+            <div className="flex gap-4 pb-4">
+              {latestEpisodes.map((episode) => (
+                <div
+                  key={episode.id}
+                  className="shrink-0 w-72 group cursor-pointer"
+                  onClick={() => navigate(`/tv/watch/${episode.id}`)}
+                >
+                  <div className="relative aspect-video rounded-xl overflow-hidden mb-3 bg-gradient-to-br from-gray-800 to-gray-900">
+                    {episode.thumbnail_url ? (
+                      <img src={episode.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Radio className="h-12 w-12 text-gray-600" />
+                      </div>
+                    )}
+                    <div className="absolute bottom-2 right-2">
+                      <Badge variant="secondary" className="bg-black/70 text-white text-xs">
+                        {formatDuration(episode.duration_seconds || 0)}
+                      </Badge>
+                    </div>
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
+                      <div className="w-14 h-14 rounded-full bg-amber-500/90 flex items-center justify-center">
+                        <Play className="h-6 w-6 text-white fill-current ml-1" />
+                      </div>
+                    </div>
                   </div>
+                  <h3 className="font-semibold group-hover:text-amber-400 transition-colors line-clamp-2 mb-1">
+                    {episode.title}
+                  </h3>
+                  <p className="text-sm text-gray-400">{episode.channel?.name || "Unknown Creator"}</p>
+                  <p className="text-xs text-gray-500 mt-1">{formatViews(episode.view_count || 0)} views</p>
                 </div>
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </section>
+      )}
+
+      {/* AI Clips */}
+      {aiClips && aiClips.length > 0 && (
+        <section className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
+              <Sparkles className="h-6 w-6 text-amber-400" />
+              AI-Generated Clips
+            </h2>
+            <Button variant="ghost" className="text-amber-400 hover:text-amber-300">
+              Explore clips <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+          
+          <ScrollArea className="w-full">
+            <div className="flex gap-4 pb-4">
+              {aiClips.map((clip) => (
+                <div
+                  key={clip.id}
+                  className="shrink-0 w-44 group cursor-pointer"
+                  onClick={() => navigate(`/tv/clip/${clip.id}`)}
+                >
+                  <div className="relative aspect-[9/16] rounded-xl overflow-hidden mb-3 bg-gradient-to-br from-purple-900 to-pink-900">
+                    {clip.thumbnail_url ? (
+                      <img src={clip.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Sparkles className="h-8 w-8 text-purple-400" />
+                      </div>
+                    )}
+                    <div className="absolute top-2 left-2">
+                      <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs">
+                        <Scissors className="h-3 w-3 mr-1" /> AI Clip
+                      </Badge>
+                    </div>
+                    <div className="absolute bottom-2 right-2">
+                      <Badge variant="secondary" className="bg-black/70 text-white text-xs">
+                        {formatDuration(clip.duration_seconds || 0)}
+                      </Badge>
+                    </div>
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
+                      <div className="w-12 h-12 rounded-full bg-amber-500/90 flex items-center justify-center">
+                        <Play className="h-5 w-5 text-white fill-current ml-0.5" />
+                      </div>
+                    </div>
+                  </div>
+                  <h3 className="font-medium text-sm group-hover:text-amber-400 transition-colors line-clamp-2">
+                    {clip.title}
+                  </h3>
+                  <p className="text-xs text-gray-400 mt-1">{formatViews(clip.view_count || 0)} views</p>
+                </div>
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </section>
+      )}
+
+      {/* Trending Creators */}
+      {trendingCreators && trendingCreators.length > 0 && (
+        <section className="container mx-auto px-4 py-6 mb-12">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
+              <TrendingUp className="h-6 w-6 text-amber-400" />
+              Trending This Week
+            </h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {trendingCreators.map((creator, index) => (
+              <div
+                key={creator.id}
+                className="flex items-center gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                onClick={() => navigate(`/tv/channel/${creator.slug || creator.id}`)}
+              >
+                <span className="text-3xl font-bold text-gray-600">#{index + 1}</span>
+                <div className="w-16 h-16 rounded-full overflow-hidden shrink-0 bg-gradient-to-br from-primary/20 to-primary/40">
+                  {creator.avatar_url ? (
+                    <img src={creator.avatar_url} alt={creator.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-xl font-bold text-white/60">
+                      {creator.name.charAt(0)}
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold truncate">{creator.name}</h3>
+                  <p className="text-sm text-gray-400">{creator.category}</p>
+                </div>
+                <Badge className="bg-green-500/20 text-green-400 border-0">
+                  {formatViews(creator.total_views || 0)} views
+                </Badge>
               </div>
             ))}
           </div>
         </section>
       )}
 
-      {/* Featured Creators */}
-      <section className="container mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
-            <Star className="h-6 w-6 text-amber-400" />
-            Featured Creators
-          </h2>
-          <Button variant="ghost" className="text-amber-400 hover:text-amber-300">
-            Browse all <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
-        </div>
-        
-        <ScrollArea className="w-full">
-          <div className="flex gap-4 pb-4">
-            {featuredCreators.map((creator) => (
-              <div
-                key={creator.id}
-                className="shrink-0 w-48 group cursor-pointer"
-                onClick={() => navigate(`/tv/channel/${creator.id}`)}
-              >
-                <div className="relative w-48 h-48 rounded-xl overflow-hidden mb-3">
-                  <img src={creator.avatar} alt={creator.name} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-                <h3 className="font-semibold group-hover:text-amber-400 transition-colors truncate">
-                  {creator.name}
-                </h3>
-                <p className="text-sm text-gray-400">{creator.followers} followers</p>
-                <Badge variant="outline" className="mt-2 text-xs border-gray-600 text-gray-400">
-                  {creator.category}
-                </Badge>
-              </div>
-            ))}
-          </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
-      </section>
-
-      {/* Latest Episodes */}
-      <section className="container mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
-            <Radio className="h-6 w-6 text-amber-400" />
-            Latest Episodes
-          </h2>
-          <Button variant="ghost" className="text-amber-400 hover:text-amber-300">
-            See all <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
-        </div>
-        
-        <ScrollArea className="w-full">
-          <div className="flex gap-4 pb-4">
-            {latestEpisodes.map((episode) => (
-              <div
-                key={episode.id}
-                className="shrink-0 w-72 group cursor-pointer"
-                onClick={() => navigate(`/tv/watch/${episode.id}`)}
-              >
-                <div className="relative aspect-video rounded-xl overflow-hidden mb-3 bg-gradient-to-br from-gray-800 to-gray-900">
-                  <img src={episode.thumbnail} alt="" className="w-full h-full object-cover" />
-                  <div className="absolute bottom-2 right-2">
-                    <Badge variant="secondary" className="bg-black/70 text-white text-xs">
-                      {episode.duration}
-                    </Badge>
-                  </div>
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
-                    <div className="w-14 h-14 rounded-full bg-amber-500/90 flex items-center justify-center">
-                      <Play className="h-6 w-6 text-white fill-current ml-1" />
-                    </div>
-                  </div>
-                </div>
-                <h3 className="font-semibold group-hover:text-amber-400 transition-colors line-clamp-2 mb-1">
-                  {episode.title}
-                </h3>
-                <p className="text-sm text-gray-400">{episode.creator}</p>
-                <p className="text-xs text-gray-500 mt-1">{episode.views} views</p>
-              </div>
-            ))}
-          </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
-      </section>
-
-      {/* AI Clips */}
-      <section className="container mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
-            <Sparkles className="h-6 w-6 text-amber-400" />
-            AI-Generated Clips
-          </h2>
-          <Button variant="ghost" className="text-amber-400 hover:text-amber-300">
-            Explore clips <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
-        </div>
-        
-        <ScrollArea className="w-full">
-          <div className="flex gap-4 pb-4">
-            {aiClips.map((clip) => (
-              <div
-                key={clip.id}
-                className="shrink-0 w-44 group cursor-pointer"
-                onClick={() => navigate(`/tv/clip/${clip.id}`)}
-              >
-                <div className="relative aspect-[9/16] rounded-xl overflow-hidden mb-3 bg-gradient-to-br from-purple-900 to-pink-900">
-                  <img src={clip.thumbnail} alt="" className="w-full h-full object-cover" />
-                  <div className="absolute top-2 left-2">
-                    <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs">
-                      <Scissors className="h-3 w-3 mr-1" /> AI Clip
-                    </Badge>
-                  </div>
-                  <div className="absolute bottom-2 right-2">
-                    <Badge variant="secondary" className="bg-black/70 text-white text-xs">
-                      {clip.duration}
-                    </Badge>
-                  </div>
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
-                    <div className="w-12 h-12 rounded-full bg-amber-500/90 flex items-center justify-center">
-                      <Play className="h-5 w-5 text-white fill-current ml-0.5" />
-                    </div>
-                  </div>
-                </div>
-                <h3 className="font-medium text-sm group-hover:text-amber-400 transition-colors line-clamp-2">
-                  {clip.title}
-                </h3>
-                <p className="text-xs text-gray-400 mt-1">{clip.views} views</p>
-              </div>
-            ))}
-          </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
-      </section>
-
-      {/* Trending Creators */}
-      <section className="container mx-auto px-4 py-6 mb-12">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
-            <TrendingUp className="h-6 w-6 text-amber-400" />
-            Trending This Week
-          </h2>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {trendingCreators.map((creator, index) => (
-            <div
-              key={creator.id}
-              className="flex items-center gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
-              onClick={() => navigate(`/tv/channel/${creator.id}`)}
+      {/* Empty State */}
+      {!hasContent && (
+        <section className="container mx-auto px-4 py-24 text-center">
+          <div className="max-w-md mx-auto">
+            <Tv className="h-16 w-16 text-amber-400 mx-auto mb-6" />
+            <h2 className="text-2xl font-bold text-white mb-4">No Content Yet</h2>
+            <p className="text-gray-400 mb-6">
+              Seeksy TV is ready for content! Start by creating channels and uploading videos.
+            </p>
+            <Button 
+              onClick={() => navigate('/admin/tv-seeder')} 
+              className="bg-amber-500 hover:bg-amber-600"
             >
-              <span className="text-3xl font-bold text-gray-600">#{index + 1}</span>
-              <div className="w-16 h-16 rounded-full overflow-hidden shrink-0">
-                <img src={creator.avatar} alt={creator.name} className="w-full h-full object-cover" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold truncate">{creator.name}</h3>
-                <p className="text-sm text-gray-400">{creator.category}</p>
-              </div>
-              <Badge className="bg-green-500/20 text-green-400 border-0">
-                {creator.growth}
-              </Badge>
-            </div>
-          ))}
-        </div>
-      </section>
+              <Sparkles className="h-4 w-4 mr-2" />
+              Seed Demo Content
+            </Button>
+          </div>
+        </section>
+      )}
 
       <TVFooter />
     </div>
