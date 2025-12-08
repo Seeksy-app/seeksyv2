@@ -92,10 +92,9 @@ const handler = async (req: Request): Promise<Response> => {
             await supabase.from("contacts").insert({
               user_id: userId,
               email: eventData.recipient_email,
-              first_name: eventData.device_type || "Email",
-              last_name: "Lead",
+              name: eventData.recipient_email?.split('@')[0] || "Email Lead",
               notes: `Auto-created from email open on ${new Date().toISOString()}. Device: ${eventData.device_type || "unknown"}, Client: ${eventData.email_client || "unknown"}`,
-              source: "email_signature",
+              lead_source: "email_signature",
             });
             console.log("[Signature Notification] Auto-created contact for:", eventData.recipient_email);
           }
@@ -116,10 +115,10 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Get user's first name from profiles
+    // Get user's full name from profiles
     const { data: profile } = await supabase
       .from("profiles")
-      .select("first_name")
+      .select("full_name")
       .eq("id", userId)
       .single();
 
