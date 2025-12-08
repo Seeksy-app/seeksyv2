@@ -354,22 +354,17 @@ export default function BoardProFormaAI() {
             <h1 className="text-3xl font-bold text-slate-900">AI-Powered 3-Year Pro Forma</h1>
             <p className="text-slate-500">
               {hasCFOAssumptions 
-                ? `Powered by ${cfoOverrideCount} CFO assumption${cfoOverrideCount !== 1 ? 's' : ''} with ${rdCount} R&D benchmarks.`
-                : 'Using R&D benchmark defaults — no CFO assumptions published yet.'}
+                ? `CFO-controlled model with ${cfoOverrideCount} assumption${cfoOverrideCount !== 1 ? 's' : ''}. Base scenario = pure CFO values.`
+                : 'No CFO assumptions yet — using R&D benchmark defaults.'}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {/* Data Source Status Badge */}
-          {hasCFOAssumptions ? (
+          {/* Data Source Status Badge - only show CFO badge when assumptions exist */}
+          {hasCFOAssumptions && (
             <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 flex items-center gap-1.5">
               <Shield className="w-3.5 h-3.5" />
-              CFO-Controlled Financial Model
-            </Badge>
-          ) : (
-            <Badge className="bg-amber-100 text-amber-700 border-amber-200 flex items-center gap-1.5">
-              <Shield className="w-3.5 h-3.5" />
-              Using R&D Benchmarks
+              CFO-Controlled Model
             </Badge>
           )}
           {isLocked && (
@@ -453,7 +448,9 @@ export default function BoardProFormaAI() {
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <Icon className={cn('h-5 w-5', style.iconColor)} />
-                    <span className="font-semibold">{scenario.label}</span>
+                    <span className="font-semibold">
+                      {key === 'base' && hasCFOAssumptions ? 'Base (CFO Baseline)' : scenario.label}
+                    </span>
                   </div>
                   {isSelected && <Check className="h-5 w-5 text-primary" />}
                 </div>
@@ -499,12 +496,12 @@ export default function BoardProFormaAI() {
           {isGenerating ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Generating {currentScenarioConfig?.label} Forecast...
+              Generating {selectedScenario === 'base' && hasCFOAssumptions ? 'CFO Baseline' : currentScenarioConfig?.label} Forecast...
             </>
           ) : (
             <>
               <Sparkles className="w-4 h-4 mr-2" />
-              Generate {currentScenarioConfig?.label || 'Base'} Forecast
+              Generate {selectedScenario === 'base' && hasCFOAssumptions ? 'CFO Baseline' : (currentScenarioConfig?.label || 'Base')} Forecast
             </>
           )}
         </Button>
@@ -538,22 +535,29 @@ export default function BoardProFormaAI() {
       {/* Year Selector with Scenario Label */}
       {forecastData && (
         <div className="flex items-center justify-center gap-2">
-          {[2025, 2026, 2027].map((year) => (
-            <Button
-              key={year}
-              variant={selectedYear === year ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedYear(year)}
-              className="gap-2"
-            >
-              {year}
-              {selectedYear === year && (
-                <Badge variant="secondary" className="text-xs">
-                  {viewingVersion?.scenario_key || currentScenarioConfig?.label || 'Base'}
-                </Badge>
-              )}
-            </Button>
-          ))}
+          {[2025, 2026, 2027].map((year) => {
+            const scenarioLabel = viewingVersion?.scenario_key || selectedScenario;
+            const displayLabel = scenarioLabel === 'base' && hasCFOAssumptions 
+              ? 'CFO Baseline' 
+              : (currentScenarioConfig?.label || 'Base');
+            
+            return (
+              <Button
+                key={year}
+                variant={selectedYear === year ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedYear(year)}
+                className="gap-2"
+              >
+                {year}
+                {selectedYear === year && (
+                  <Badge variant="secondary" className="text-xs">
+                    {displayLabel}
+                  </Badge>
+                )}
+              </Button>
+            );
+          })}
         </div>
       )}
 
@@ -578,7 +582,11 @@ export default function BoardProFormaAI() {
           {forecastData ? (
             <ProFormaSummary
               metrics={summaryMetrics}
-              scenario={viewingVersion?.scenario_key || currentScenarioConfig?.label || 'Base'}
+              scenario={
+                (viewingVersion?.scenario_key || selectedScenario) === 'base' && hasCFOAssumptions
+                  ? 'Base (CFO Baseline)'
+                  : (viewingVersion?.scenario_key || currentScenarioConfig?.label || 'Base')
+              }
               aiCommentary={currentYearData?.commentary || null}
               isGenerating={isGenerating}
               year={selectedYear}

@@ -434,14 +434,16 @@ export default function CFOProForma() {
                 )}
                 onClick={() => setSelectedScenario(key)}
               >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Icon className={cn('h-5 w-5', style.iconColor)} />
-                      <span className="font-semibold">{scenario.label}</span>
-                    </div>
-                    {isSelected && <Check className="h-5 w-5 text-primary" />}
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Icon className={cn('h-5 w-5', style.iconColor)} />
+                    <span className="font-semibold">
+                      {key === 'base' && hasCFOAssumptions ? 'Base (CFO Baseline)' : scenario.label}
+                    </span>
                   </div>
+                  {isSelected && <Check className="h-5 w-5 text-primary" />}
+                </div>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Revenue:</span>
