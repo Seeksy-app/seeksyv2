@@ -392,8 +392,8 @@ export default function CFOProForma() {
         <Alert className="border-indigo-200 bg-indigo-50">
           <Info className="w-4 h-4 text-indigo-600" />
           <AlertDescription className="text-indigo-800">
-            <strong>CFO Preview Mode</strong> — This is the same 3-year forecast view that the Board uses. 
-            Base scenario uses pure CFO assumptions; Conservative and Aggressive apply percentage multipliers on top.
+            <strong>CFO Preview Mode</strong> — Base scenario uses your CFO assumptions exactly, with no additional multipliers. 
+            Aggressive and Conservative apply percentage adjustments on top of the CFO baseline (e.g., +30% revenue or −25% churn).
           </AlertDescription>
         </Alert>
 
@@ -435,38 +435,46 @@ export default function CFOProForma() {
                 onClick={() => setSelectedScenario(key)}
               >
               <CardContent className="p-4">
-                <div className="flex items-start justify-between mb-3">
+                <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <Icon className={cn('h-5 w-5', style.iconColor)} />
                     <span className="font-semibold">
-                      {key === 'base' && hasCFOAssumptions ? 'Base (CFO Baseline)' : scenario.label}
+                      {key === 'base' ? 'Base (CFO Baseline)' : scenario.label}
                     </span>
                   </div>
                   {isSelected && <Check className="h-5 w-5 text-primary" />}
                 </div>
+                
+                {/* Baseline badge for Base scenario */}
+                {key === 'base' && (
+                  <p className="text-xs text-muted-foreground mb-3" title="Base uses your CFO assumptions exactly, with no additional multipliers.">
+                    Pure CFO assumptions — no multipliers applied
+                  </p>
+                )}
+                
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Revenue:</span>
                       <Badge variant="outline" className={cn('text-xs', style.badgeColor)}>
-                        {((scenario.revenue_growth_multiplier - 1) * 100).toFixed(0)}%
+                        {key === 'base' ? '0% (Baseline)' : `${((scenario.revenue_growth_multiplier - 1) * 100).toFixed(0)}%`}
                       </Badge>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">CPM:</span>
                       <Badge variant="outline" className={cn('text-xs', style.badgeColor)}>
-                        {((scenario.cpm_multiplier - 1) * 100).toFixed(0)}%
+                        {key === 'base' ? '0% (Baseline)' : `${((scenario.cpm_multiplier - 1) * 100).toFixed(0)}%`}
                       </Badge>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Fill Rate:</span>
                       <Badge variant="outline" className={cn('text-xs', style.badgeColor)}>
-                        {((scenario.fill_rate_multiplier - 1) * 100).toFixed(0)}%
+                        {key === 'base' ? '0% (Baseline)' : `${((scenario.fill_rate_multiplier - 1) * 100).toFixed(0)}%`}
                       </Badge>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Churn:</span>
                       <Badge variant="outline" className={cn('text-xs', style.badgeColor)}>
-                        {((scenario.churn_multiplier - 1) * 100).toFixed(0)}%
+                        {key === 'base' ? '0% (Baseline)' : `${((scenario.churn_multiplier - 1) * 100).toFixed(0)}%`}
                       </Badge>
                     </div>
                   </div>
