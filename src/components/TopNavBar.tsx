@@ -31,21 +31,48 @@ export function TopNavBar() {
     const fetchProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        // Try avatar_url first, then fall back to account_avatar_url
         const { data: profile } = await supabase
           .from('profiles')
-          .select('avatar_url, full_name')
+          .select('avatar_url, account_avatar_url, full_name, account_full_name')
           .eq('id', user.id)
           .single();
         
         if (profile) {
-          setAvatarUrl(profile.avatar_url);
-          const initials = profile.full_name?.[0]?.toUpperCase() || 
+          // Use whichever avatar is available
+          const avatar = profile.avatar_url || profile.account_avatar_url;
+          setAvatarUrl(avatar);
+          const name = profile.full_name || profile.account_full_name;
+          const initials = name?.[0]?.toUpperCase() || 
             user.email?.[0]?.toUpperCase() || 'U';
           setUserInitials(initials);
         }
       }
     };
     fetchProfile();
+
+    // Listen for profile updates
+    const handleProfileUpdate = () => {
+      fetchProfile();
+    };
+    window.addEventListener('profile-updated', handleProfileUpdate);
+
+    // Subscribe to realtime changes on profiles table
+    const channel = supabase
+      .channel('profile-changes')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'profiles' },
+        () => {
+          fetchProfile();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      window.removeEventListener('profile-updated', handleProfileUpdate);
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleLogout = async () => {

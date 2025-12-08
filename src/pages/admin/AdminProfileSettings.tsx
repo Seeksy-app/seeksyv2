@@ -83,6 +83,8 @@ export default function AdminProfileSettings() {
       .update({
         full_name: profile.full_name,
         avatar_url: profile.avatar_url,
+        account_avatar_url: profile.avatar_url, // Sync both columns
+        account_full_name: profile.full_name, // Sync both columns
       })
       .eq("id", user.id);
 
@@ -93,6 +95,8 @@ export default function AdminProfileSettings() {
       return;
     }
 
+    // Dispatch event to notify TopNavBar to refresh
+    window.dispatchEvent(new Event('profile-updated'));
     toast.success("Profile updated");
   };
 
