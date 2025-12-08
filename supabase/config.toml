@@ -404,3 +404,6 @@ verify_jwt = true
 
 [functions.render-clip-with-captions]
 verify_jwt = true
+
+[functions.send-proforma-share]
+verify_jwt = true
