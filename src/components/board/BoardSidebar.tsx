@@ -15,25 +15,19 @@ import {
   Building2,
   Target,
   TrendingUp,
-  Video,
-  FileText,
   LogOut,
   BarChart3,
   Calculator,
   DollarSign,
   Sword,
   ChartPie,
-  Globe,
-  Sparkles,
-  Briefcase,
-  Users,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useBoardViewMode } from '@/hooks/useBoardViewMode';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-// OVERVIEW section
+// OVERVIEW section - simplified
 const overviewItems = [
   {
     id: 'dashboard',
@@ -41,21 +35,9 @@ const overviewItems = [
     icon: LayoutDashboard,
     path: '/board',
   },
-  {
-    id: 'videos',
-    label: 'Platform Videos',
-    icon: Video,
-    path: '/board/videos',
-  },
-  {
-    id: 'contacts',
-    label: 'Board Contacts',
-    icon: Users,
-    path: '/board/contacts',
-  },
 ];
 
-// BUSINESS STRATEGY section
+// BUSINESS STRATEGY section - cleaned up, Market Intelligence merged into GTM
 const businessItems = [
   {
     id: 'business-model',
@@ -70,12 +52,6 @@ const businessItems = [
     path: '/board/gtm',
   },
   {
-    id: 'market-intel',
-    label: 'Market Intelligence',
-    icon: Globe,
-    path: '/board/market-intel',
-  },
-  {
     id: 'competitive',
     label: 'Competitive Landscape',
     icon: Sword,
@@ -87,22 +63,9 @@ const businessItems = [
     icon: ChartPie,
     path: '/board/swot',
   },
-  {
-    id: 'ceo-vto',
-    label: 'CEO VTO',
-    icon: Briefcase,
-    path: '/board/vto',
-    external: true,
-  },
-  {
-    id: 'docs',
-    label: 'Documents',
-    icon: FileText,
-    path: '/board/docs',
-  },
 ];
 
-// FINANCIALS section
+// FINANCIALS section - single Pro Forma entry
 const financialItems = [
   {
     id: 'proforma',
@@ -127,17 +90,6 @@ const financialItems = [
     label: 'Key Metrics',
     icon: BarChart3,
     path: '/board/key-metrics',
-  },
-];
-
-// TOOLS section
-const toolsItems = [
-  {
-    id: 'ai-analyst',
-    label: 'Board AI Analyst',
-    icon: Sparkles,
-    path: '/board/ai-analyst',
-    isAI: true,
   },
 ];
 
@@ -176,7 +128,6 @@ export function BoardSidebar() {
 
   const isItemActive = (item: NavItem) => {
     if (!item.path) return false;
-    // Handle proforma route matching for any proforma sub-routes
     if (item.path === '/board/proforma' && location.pathname.startsWith('/board/proforma')) {
       return true;
     }
@@ -238,7 +189,6 @@ export function BoardSidebar() {
         {renderSection('Overview', overviewItems)}
         {renderSection('Business Strategy', businessItems, 'mt-0.5')}
         {renderSection('Financials', financialItems, 'mt-0.5')}
-        {renderSection('Tools', toolsItems, 'mt-0.5')}
       </SidebarContent>
 
       <SidebarFooter className="p-2 border-t border-slate-700/50 space-y-0.5">

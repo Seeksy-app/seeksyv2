@@ -1,8 +1,10 @@
-
+import { useState } from 'react';
 import { MarkdownRenderer } from '@/components/board/MarkdownRenderer';
 import { useBoardContent } from '@/hooks/useBoardContent';
 import { useBoardDataMode } from '@/contexts/BoardDataModeContext';
 import { DataModeLabel, DataModeBadge } from '@/components/board/DataModeToggle';
+import { BoardFloatingAIButton } from '@/components/board/BoardFloatingAIButton';
+import { BoardAISlidePanel } from '@/components/board/BoardAISlidePanel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building2, ArrowLeft, DollarSign, TrendingUp, Layers, Podcast, Sparkles, Building, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -112,6 +114,7 @@ export default function BoardBusinessModel() {
   const navigate = useNavigate();
   const { content, isLoading } = useBoardContent('business-model');
   const { isDemo } = useBoardDataMode();
+  const [isAIPanelOpen, setIsAIPanelOpen] = useState(false);
 
   return (
     <div className="w-full space-y-6">
@@ -332,6 +335,9 @@ export default function BoardBusinessModel() {
             Last updated: {new Date(content.updated_at).toLocaleDateString()}
           </p>
         )}
+
+        <BoardFloatingAIButton onClick={() => setIsAIPanelOpen(true)} />
+        <BoardAISlidePanel isOpen={isAIPanelOpen} onClose={() => setIsAIPanelOpen(false)} />
     </div>
   );
 }
