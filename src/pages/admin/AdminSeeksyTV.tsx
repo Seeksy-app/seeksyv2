@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tv, Upload, FolderSync, Play, Clock, Eye, Radio, MoreVertical, ExternalLink, Pencil, Trash2 } from "lucide-react";
+import { Tv, Upload, FolderSync, Play, Clock, Eye, Radio, MoreVertical, ExternalLink, Pencil, Trash2, Plus, Settings } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DropboxImportDialog } from "@/components/tv/DropboxImportDialog";
@@ -111,6 +111,10 @@ const AdminSeeksyTV = () => {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate('/admin/seeksy-tv/channels')}>
+            <Settings className="h-4 w-4 mr-2" />
+            Manage Channels
+          </Button>
           <Button variant="outline" onClick={() => setDropboxOpen(true)}>
             <FolderSync className="h-4 w-4 mr-2" />
             Import from Dropbox
@@ -175,16 +179,22 @@ const AdminSeeksyTV = () => {
       </div>
 
       {/* Channels Section */}
-      {channels && channels.length > 0 && (
-        <Card>
-          <CardHeader>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <div>
             <CardTitle className="flex items-center gap-2">
               <Radio className="h-5 w-5" />
               TV Channels
             </CardTitle>
             <CardDescription>Your Seeksy TV channels</CardDescription>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <Button size="sm" onClick={() => navigate('/admin/seeksy-tv/channels')}>
+            <Plus className="h-4 w-4 mr-1" />
+            Create Channel
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {channels && channels.length > 0 ? (
             <div className="flex flex-wrap gap-3">
               {channels.map((channel) => (
                 <div
@@ -205,9 +215,14 @@ const AdminSeeksyTV = () => {
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <div className="text-center py-6 text-muted-foreground">
+              <Radio className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p>No channels yet. Create your first channel to organize content.</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Recent Import Jobs */}
       {importJobs && importJobs.length > 0 && (

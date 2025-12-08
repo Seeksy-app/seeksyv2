@@ -21841,17 +21841,22 @@ export type Database = {
         Row: {
           avatar_url: string | null
           category: string | null
+          cover_image_url: string | null
           cover_url: string | null
           created_at: string
           description: string | null
           follower_count: number | null
           id: string
           is_active: boolean | null
+          is_featured: boolean | null
           is_verified: boolean | null
           name: string
+          owner_id: string | null
           slug: string
           social_links: Json | null
+          subscriber_count: number | null
           tags: string[] | null
+          thumbnail_url: string | null
           total_views: number | null
           updated_at: string
           user_id: string
@@ -21859,17 +21864,22 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           category?: string | null
+          cover_image_url?: string | null
           cover_url?: string | null
           created_at?: string
           description?: string | null
           follower_count?: number | null
           id?: string
           is_active?: boolean | null
+          is_featured?: boolean | null
           is_verified?: boolean | null
           name: string
+          owner_id?: string | null
           slug: string
           social_links?: Json | null
+          subscriber_count?: number | null
           tags?: string[] | null
+          thumbnail_url?: string | null
           total_views?: number | null
           updated_at?: string
           user_id: string
@@ -21877,17 +21887,22 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           category?: string | null
+          cover_image_url?: string | null
           cover_url?: string | null
           created_at?: string
           description?: string | null
           follower_count?: number | null
           id?: string
           is_active?: boolean | null
+          is_featured?: boolean | null
           is_verified?: boolean | null
           name?: string
+          owner_id?: string | null
           slug?: string
           social_links?: Json | null
+          subscriber_count?: number | null
           tags?: string[] | null
+          thumbnail_url?: string | null
           total_views?: number | null
           updated_at?: string
           user_id?: string
