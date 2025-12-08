@@ -131,9 +131,10 @@ export default function BoardForecasts() {
         <DataModeLabel />
 
         {isReal && (
-          <Alert className="mt-4 mb-6 border-amber-200 bg-amber-50">
-            <AlertDescription className="text-amber-800">
-              Real data wiring in progress. Showing placeholder values for real mode.
+          <Alert className="mt-4 mb-6 border-blue-200 bg-blue-50">
+            <AlertDescription className="text-blue-800">
+              <strong>Real Mode Active:</strong> Forecast projections are based on demo assumptions. 
+              As platform data grows, forecasts will incorporate actual metrics.
             </AlertDescription>
           </Alert>
         )}

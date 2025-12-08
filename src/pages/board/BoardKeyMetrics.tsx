@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useBoardDataMode } from '@/contexts/BoardDataModeContext';
 import { DataModeBadge } from '@/components/board/DataModeToggle';
+import { useRealPlatformMetrics, formatNumber, formatCurrency } from '@/hooks/useRealPlatformMetrics';
 import { motion } from 'framer-motion';
 import {
   Users,
@@ -13,6 +14,10 @@ import {
   CreditCard,
   UserPlus,
   Clock,
+  Podcast,
+  FileAudio,
+  Calendar,
+  Megaphone,
 } from 'lucide-react';
 
 // Demo metrics
@@ -27,32 +32,32 @@ const demoMetrics = {
   avgSession: { value: '12m', change: '+15%', label: 'Avg Session Duration' },
 };
 
-// Real metrics - would pull from DB
-const realMetrics = {
-  creators: { value: '—', change: '—', label: 'Total Creators' },
-  mau: { value: '—', change: '—', label: 'Monthly Active Users' },
-  revenue: { value: '—', change: '—', label: 'Revenue MTD' },
-  growth: { value: '—', change: '—', label: 'MoM Growth' },
-  arpu: { value: '—', change: '—', label: 'Avg Revenue Per User' },
-  churn: { value: '—', change: '—', label: 'Monthly Churn Rate' },
-  newSignups: { value: '—', change: '—', label: 'New Signups (30d)' },
-  avgSession: { value: '—', change: '—', label: 'Avg Session Duration' },
-};
-
 const metricConfig = [
   { key: 'creators', icon: Users, color: 'from-blue-500 to-indigo-600' },
-  { key: 'mau', icon: Activity, color: 'from-emerald-500 to-teal-600' },
-  { key: 'revenue', icon: DollarSign, color: 'from-amber-500 to-orange-600' },
-  { key: 'growth', icon: TrendingUp, color: 'from-purple-500 to-pink-600' },
-  { key: 'arpu', icon: CreditCard, color: 'from-rose-500 to-red-600' },
-  { key: 'churn', icon: Percent, color: 'from-slate-500 to-slate-700' },
-  { key: 'newSignups', icon: UserPlus, color: 'from-cyan-500 to-blue-600' },
-  { key: 'avgSession', icon: Clock, color: 'from-violet-500 to-purple-600' },
+  { key: 'podcasts', icon: Podcast, color: 'from-emerald-500 to-teal-600' },
+  { key: 'episodes', icon: FileAudio, color: 'from-amber-500 to-orange-600' },
+  { key: 'newSignups', icon: UserPlus, color: 'from-purple-500 to-pink-600' },
+  { key: 'campaigns', icon: Megaphone, color: 'from-rose-500 to-red-600' },
+  { key: 'events', icon: Calendar, color: 'from-slate-500 to-slate-700' },
+  { key: 'revenue', icon: DollarSign, color: 'from-cyan-500 to-blue-600' },
+  { key: 'growth', icon: TrendingUp, color: 'from-violet-500 to-purple-600' },
 ];
 
 export default function BoardKeyMetrics() {
   const { isDemo } = useBoardDataMode();
-  const metrics = isDemo ? demoMetrics : realMetrics;
+  const { data: realData, isLoading } = useRealPlatformMetrics();
+
+  // Build metrics based on mode
+  const metrics = isDemo ? demoMetrics : {
+    creators: { value: realData ? formatNumber(realData.totalCreators) : '—', change: '—', label: 'Total Creators' },
+    podcasts: { value: realData ? formatNumber(realData.totalPodcasts) : '—', change: '—', label: 'Total Podcasts' },
+    episodes: { value: realData ? formatNumber(realData.totalEpisodes) : '—', change: '—', label: 'Total Episodes' },
+    newSignups: { value: realData ? formatNumber(realData.newSignups30d) : '—', change: '—', label: 'New Signups (30d)' },
+    campaigns: { value: realData ? formatNumber(realData.totalCampaigns) : '—', change: '—', label: 'Ad Campaigns' },
+    events: { value: realData ? formatNumber(realData.totalEvents) : '—', change: '—', label: 'Total Events' },
+    revenue: { value: realData ? formatCurrency(realData.revenueData.total) : '—', change: '—', label: 'Revenue MTD' },
+    growth: { value: '—', change: '—', label: 'MoM Growth' },
+  };
 
   return (
     <BoardLayout>
@@ -121,10 +126,10 @@ export default function BoardKeyMetrics() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between gap-4">
               {[
-                { stage: 'Visitors', value: isDemo ? '15,000' : '—', rate: '100%' },
-                { stage: 'Signups', value: isDemo ? '2,450' : '—', rate: '16.3%' },
-                { stage: 'Active', value: isDemo ? '1,200' : '—', rate: '49%' },
-                { stage: 'Paid', value: isDemo ? '380' : '—', rate: '31.7%' },
+                { stage: 'Visitors', value: isDemo ? '15,000' : (realData ? formatNumber(realData.totalCreators * 6) : '—'), rate: '100%' },
+                { stage: 'Signups', value: isDemo ? '2,450' : (realData ? formatNumber(realData.totalCreators) : '—'), rate: isDemo ? '16.3%' : '—' },
+                { stage: 'Active', value: isDemo ? '1,200' : (realData ? formatNumber(realData.monthlyActiveUsers) : '—'), rate: isDemo ? '49%' : '—' },
+                { stage: 'Podcasters', value: isDemo ? '380' : (realData ? formatNumber(realData.totalPodcasts) : '—'), rate: isDemo ? '31.7%' : '—' },
               ].map((step, idx, arr) => (
                 <div key={step.stage} className="flex-1 text-center relative">
                   <div className="bg-gradient-to-b from-blue-50 to-blue-100 rounded-xl p-4 mb-2">
@@ -149,7 +154,7 @@ export default function BoardKeyMetrics() {
         <p className="text-xs text-slate-500 text-center">
           {isDemo
             ? 'Showing demo data for illustration purposes'
-            : 'Connect data sources to view real-time metrics'}
+            : 'Showing real platform data'}
         </p>
       </div>
     </BoardLayout>

@@ -7,6 +7,7 @@ import { DataModeBadge } from '@/components/board/DataModeToggle';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { useRealPlatformMetrics, formatNumber, formatCurrency } from '@/hooks/useRealPlatformMetrics';
 import {
   Building2,
   Target,
@@ -80,14 +81,6 @@ const demoMetrics = [
   { id: '4', metric_key: 'growth_rate', metric_label: 'MoM Growth', metric_value: '+18%' },
 ];
 
-// Real metrics placeholders
-const realMetrics = [
-  { id: '1', metric_key: 'total_creators', metric_label: 'Total Creators', metric_value: '—' },
-  { id: '2', metric_key: 'monthly_active', metric_label: 'Monthly Active', metric_value: '—' },
-  { id: '3', metric_key: 'revenue_mtd', metric_label: 'Revenue MTD', metric_value: '—' },
-  { id: '4', metric_key: 'growth_rate', metric_label: 'MoM Growth', metric_value: '—' },
-];
-
 // No placeholder - will use DB videos only
 const placeholderVideo = null;
 
@@ -100,13 +93,16 @@ const categoryColors: Record<string, string> = {
 
 export default function BoardDashboard() {
   const navigate = useNavigate();
-  const { isDemo } = useBoardDataMode();
+  const { isDemo, isReal } = useBoardDataMode();
   const [firstName, setFirstName] = useState<string>('');
   const [metricsLoading, setMetricsLoading] = useState(true);
   const [isVideoLoading, setIsVideoLoading] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Fetch demo videos from database
+  // Fetch real platform metrics
+  const { data: realData, isLoading: realLoading } = useRealPlatformMetrics();
+
+  // Fetch demo videos from database (only in demo mode)
   const { data: dbVideos } = useQuery({
     queryKey: ['boardDashboardVideos'],
     queryFn: async () => {
@@ -119,9 +115,10 @@ export default function BoardDashboard() {
       if (error) throw error;
       return data;
     },
+    enabled: isDemo, // Only fetch in demo mode
   });
 
-  const featuredVideo = dbVideos && dbVideos.length > 0 ? dbVideos[0] : null;
+  const featuredVideo = isDemo && dbVideos && dbVideos.length > 0 ? dbVideos[0] : null;
 
   useEffect(() => {
     const fetchUserName = async () => {
@@ -142,7 +139,13 @@ export default function BoardDashboard() {
     fetchUserName();
   }, []);
 
-  const metrics = isDemo ? demoMetrics : realMetrics;
+  // Build metrics based on mode
+  const metrics = isDemo ? demoMetrics : [
+    { id: '1', metric_key: 'total_creators', metric_label: 'Total Creators', metric_value: realData ? formatNumber(realData.totalCreators) : '—' },
+    { id: '2', metric_key: 'monthly_active', metric_label: 'Total Podcasts', metric_value: realData ? formatNumber(realData.totalPodcasts) : '—' },
+    { id: '3', metric_key: 'revenue_mtd', metric_label: 'Total Episodes', metric_value: realData ? formatNumber(realData.totalEpisodes) : '—' },
+    { id: '4', metric_key: 'growth_rate', metric_label: 'New Signups (30d)', metric_value: realData ? formatNumber(realData.newSignups30d) : '—' },
+  ];
 
   const formatDuration = (seconds: number | null) => {
     if (!seconds) return '0:00';
