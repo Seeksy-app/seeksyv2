@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Download, Share2, Copy, Check } from "lucide-react";
+import { ArrowLeft, Download, Share2, Copy, Check, ExternalLink } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
@@ -11,6 +11,7 @@ import ProFormaFinancialTables from "@/components/cfo/proforma/ProFormaFinancial
 import ProFormaCharts from "@/components/cfo/proforma/ProFormaCharts";
 import ProFormaAssumptions from "@/components/cfo/proforma/ProFormaAssumptions";
 import { useProFormaData, ProFormaAssumptions as AssumptionsType } from "@/hooks/useProFormaData";
+import { ProFormaShareModal } from "@/components/cfo/proforma/ProFormaShareModal";
 
 const EventsAwardsProForma = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const EventsAwardsProForma = () => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   
   // Check if we're on a board route for navigation
   const isBoardRoute = location.pathname.startsWith('/board');
@@ -84,19 +86,11 @@ const EventsAwardsProForma = () => {
           <div className="flex items-center gap-3">
             <Button 
               variant="outline" 
-              onClick={handleCopyShareLink}
-              className="gap-2"
-            >
-              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              {copied ? "Copied!" : "Copy Share Link"}
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => navigate("/proforma/events-awards/share")}
+              onClick={() => setShareModalOpen(true)}
               className="gap-2"
             >
               <Share2 className="h-4 w-4" />
-              Preview Share Page
+              Share Pro Forma
             </Button>
             <Button 
               onClick={handleExportPDF} 
@@ -109,14 +103,23 @@ const EventsAwardsProForma = () => {
           </div>
         </div>
 
-        {/* Title */}
+        {/* Title with VPA Link */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-[#053877] mb-2">
             Awards Pro Forma
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mb-3">
             Financial projections for the Seeksy Events & Awards platform
           </p>
+          <a 
+            href="https://veteranpodcastawards.com/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-[#053877] hover:underline text-sm font-medium"
+          >
+            <ExternalLink className="w-4 h-4" />
+            View the Veteran Podcast Awards site
+          </a>
         </div>
 
         {/* Main Content */}
@@ -317,7 +320,12 @@ const EventsAwardsProForma = () => {
     </div>
   );
 
-  return content;
+  return (
+    <>
+      {content}
+      <ProFormaShareModal open={shareModalOpen} onOpenChange={setShareModalOpen} />
+    </>
+  );
 };
 
 export default EventsAwardsProForma;

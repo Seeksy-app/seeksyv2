@@ -97,6 +97,7 @@ import EventsAwardsProForma from "./pages/admin/cfo/EventsAwardsProForma";
 import CombinedProForma from "./pages/admin/cfo/CombinedProForma";
 import BoardProForma from "./pages/board/BoardProForma";
 import ProFormaSharePage from "./pages/public/ProFormaSharePage";
+import ProFormaPublicView from "./pages/public/ProFormaPublicView";
 import AdminLegal from "./pages/AdminLegal";
 import Settings from "./pages/Settings";
 import SettingsBilling from "./pages/SettingsBilling";
@@ -1141,6 +1142,7 @@ const AppContent = () => {
             <Route path="/cfo/proforma/events-awards" element={<EventsAwardsProForma />} />
             <Route path="/cfo/proforma/combined" element={<CombinedProForma />} />
             <Route path="/proforma/events-awards/share" element={<ProFormaSharePage />} />
+            <Route path="/proforma/events-awards/view/:token" element={<ProFormaPublicView />} />
             <Route path="/proforma/combined/share" element={<ProFormaSharePage />} />
             <Route path="/tech-stack" element={<TechStack />} />
             <Route path="/sales-dashboard" element={<SalesDashboard />} />

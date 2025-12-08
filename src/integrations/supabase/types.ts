@@ -16889,6 +16889,54 @@ export type Database = {
         }
         Relationships: []
       }
+      proforma_share_links: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          last_viewed_at: string | null
+          passcode: string
+          proforma_type: string
+          recipient_email: string | null
+          recipient_name: string | null
+          status: string
+          token: string
+          updated_at: string
+          views: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          passcode: string
+          proforma_type?: string
+          recipient_email?: string | null
+          recipient_name?: string | null
+          status?: string
+          token: string
+          updated_at?: string
+          views?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          passcode?: string
+          proforma_type?: string
+          recipient_email?: string | null
+          recipient_name?: string | null
+          status?: string
+          token?: string
+          updated_at?: string
+          views?: number | null
+        }
+        Relationships: []
+      }
       proof_of_play: {
         Row: {
           created_at: string
