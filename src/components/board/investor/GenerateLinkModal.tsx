@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -55,6 +56,8 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
 
   // Form state
   const [investorName, setInvestorName] = useState('');
+  const [investorEmail, setInvestorEmail] = useState('');
+  const [personalMessage, setPersonalMessage] = useState('');
   const [scope, setScope] = useState<string[]>(['dashboard', 'gtm', 'forecasts']);
   const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
   const [showVideoSelector, setShowVideoSelector] = useState(false);
@@ -65,6 +68,7 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
   const [allowPDF, setAllowPDF] = useState(false);
   const [maskFinancials, setMaskFinancials] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
+  const [sendEmail, setSendEmail] = useState(true); // Default to sending email
   
   // New Image 3 options
   const [overallAdjustment, setOverallAdjustment] = useState<'+' | '-'>('+');
@@ -97,6 +101,8 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
   const resetForm = () => {
     setStep('configure');
     setInvestorName('');
+    setInvestorEmail('');
+    setPersonalMessage('');
     setScope(['dashboard', 'gtm', 'forecasts']);
     setSelectedVideos([]);
     setShowVideoSelector(false);
@@ -114,6 +120,7 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
     setUseRealTimeFinancials(false);
     setAllowSpreadsheetView(true);
     setAllowDownload(false);
+    setSendEmail(true);
   };
 
   const toggleVideo = (videoId: string) => {
@@ -196,8 +203,39 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
 
       const url = `${window.location.origin}/investor/${token}`;
       setGeneratedData({ id: data.id, url, passcode, token });
+
+      // If email is provided and sendEmail is true, send the email automatically
+      if (sendEmail && investorEmail) {
+        try {
+          // Get board member info
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', user.id)
+            .single();
+          
+          const boardMemberName = profile?.full_name || user.email?.split('@')[0] || 'Board Member';
+
+          await supabase.functions.invoke('send-investor-email', {
+            body: {
+              linkId: data.id,
+              investorEmail,
+              investorName,
+              message: personalMessage,
+              boardMemberName,
+              boardMemberEmail: user.email,
+            },
+          });
+          toast.success('Link created and email sent to investor');
+        } catch (emailError) {
+          console.error('Error sending email:', emailError);
+          toast.warning('Link created but failed to send email');
+        }
+      } else {
+        toast.success('Investor link created');
+      }
+
       setStep('success');
-      toast.success('Investor link created');
       onSuccess?.();
     } catch (error) {
       console.error('Error creating link:', error);
@@ -228,13 +266,57 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
               </DialogHeader>
 
               <div className="space-y-5 py-4">
+                {/* Investor Contact Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Investor Name (optional)</Label>
+                    <Input
+                      value={investorName}
+                      onChange={(e) => setInvestorName(e.target.value)}
+                      placeholder="e.g., Sequoia Capital"
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <Label>Investor Email</Label>
+                    <Input
+                      type="email"
+                      value={investorEmail}
+                      onChange={(e) => setInvestorEmail(e.target.value)}
+                      placeholder="investor@example.com"
+                      className="mt-1.5"
+                    />
+                  </div>
+                </div>
+
+                {/* Personal Message */}
                 <div>
-                  <Label>Investor Name (optional)</Label>
-                  <Input
-                    value={investorName}
-                    onChange={(e) => setInvestorName(e.target.value)}
-                    placeholder="e.g., Sequoia Capital"
+                  <Label>Personal Message (optional)</Label>
+                  <Textarea
+                    value={personalMessage}
+                    onChange={(e) => setPersonalMessage(e.target.value)}
+                    placeholder="Add a personal note to include in the email invitation..."
                     className="mt-1.5"
+                    rows={3}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    This message will be included in the email along with the link and access code.
+                  </p>
+                </div>
+
+                {/* Send Email Toggle */}
+                <div className="p-3 bg-blue-50 rounded-lg flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-blue-600" />
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">Send Email Invitation</div>
+                      <p className="text-xs text-slate-500">Automatically send the link and access code to the investor</p>
+                    </div>
+                  </div>
+                  <Switch 
+                    checked={sendEmail} 
+                    onCheckedChange={setSendEmail}
+                    disabled={!investorEmail}
                   />
                 </div>
 
@@ -536,11 +618,18 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2 text-emerald-600">
                   <Check className="w-5 h-5" />
-                  Link Created Successfully
+                  {sendEmail && investorEmail ? 'Link Created & Email Sent' : 'Link Created Successfully'}
                 </DialogTitle>
               </DialogHeader>
 
               <div className="py-4 space-y-4">
+                {sendEmail && investorEmail && (
+                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm text-emerald-700 flex items-center gap-2">
+                    <Mail className="w-4 h-4" />
+                    <span>Email sent to <b>{investorEmail}</b> with link and access code.</span>
+                  </div>
+                )}
+
                 <div>
                   <Label className="text-xs text-slate-500">Investor Link</Label>
                   <div className="flex gap-2 mt-1">
@@ -572,18 +661,21 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
                     <Copy className="w-4 h-4 mr-2" />
                     Copy Link + Code
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    className="flex-1"
-                    onClick={() => setSendEmailOpen(true)}
-                  >
-                    <Mail className="w-4 h-4 mr-2" />
-                    Send Email
-                  </Button>
+                  {/* Only show Send Email button if we didn't already send one */}
+                  {!(sendEmail && investorEmail) && (
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => setSendEmailOpen(true)}
+                    >
+                      <Mail className="w-4 h-4 mr-2" />
+                      Send Email
+                    </Button>
+                  )}
                 </div>
 
                 <div className="p-3 bg-blue-50 rounded-lg text-xs text-blue-700">
-                  <b>Quick Actions:</b> Copy the link to share manually, or send an email invitation directly.
+                  <b>Quick Actions:</b> Copy the link to share manually{!(sendEmail && investorEmail) && ', or send an email invitation directly'}.
                 </div>
               </div>
 
