@@ -223,9 +223,9 @@ export const NAVIGATION_CONFIG: {
         },
         {
           "id": "admin_cfo_assumptions",
-          "label": "CFO Assumptions",
+          "label": "CFO Assumption Studio",
           "icon": "sliders",
-          "path": "/cfo-dashboard#assumptions",
+          "path": "/cfo/assumptions",
           "roles": ["admin", "super_admin", "cfo"]
         },
         {
