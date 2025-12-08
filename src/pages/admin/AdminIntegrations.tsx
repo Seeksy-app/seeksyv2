@@ -245,28 +245,57 @@ export default function AdminIntegrations() {
     enabled: !!user,
   });
 
-  // Handle OAuth success redirects
+  // Handle OAuth callbacks and success redirects
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const success = params.get("success");
-    const error = params.get("error");
+    const handleDropboxCallback = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+      const success = params.get("success");
+      const error = params.get("error");
 
-    if (success === "gmail_connected") {
-      toast.success("Gmail account connected successfully!");
-      queryClient.invalidateQueries({ queryKey: ["admin-email-accounts"] });
-      window.history.replaceState({}, "", "/admin/integrations");
-    } else if (success === "calendar_connected") {
-      toast.success("Google Calendar connected successfully!");
-      queryClient.invalidateQueries({ queryKey: ["admin-social-profiles"] });
-      window.history.replaceState({}, "", "/admin/integrations");
-    } else if (success === "dropbox_connected") {
-      toast.success("Dropbox connected successfully!");
-      queryClient.invalidateQueries({ queryKey: ["admin-social-profiles"] });
-      window.history.replaceState({}, "", "/admin/integrations");
-    } else if (error) {
-      toast.error("Connection failed. Please try again.");
-      window.history.replaceState({}, "", "/admin/integrations");
-    }
+      // Handle Dropbox OAuth callback (returns with ?code=...)
+      if (code && !success) {
+        const redirectUri = sessionStorage.getItem('dropbox_redirect') || `${window.location.origin}/admin/integrations`;
+        try {
+          const { data, error: exchangeError } = await supabase.functions.invoke('dropbox-auth', {
+            body: { action: 'exchange_code', code, redirectUri }
+          });
+          
+          if (exchangeError) throw exchangeError;
+          
+          if (data?.success) {
+            toast.success("Dropbox connected successfully!");
+            queryClient.invalidateQueries({ queryKey: ["admin-social-profiles"] });
+          }
+        } catch (err) {
+          console.error("Dropbox token exchange failed:", err);
+          toast.error("Failed to connect Dropbox");
+        }
+        sessionStorage.removeItem('dropbox_redirect');
+        window.history.replaceState({}, "", "/admin/integrations");
+        return;
+      }
+
+      // Handle success messages from other OAuth flows
+      if (success === "gmail_connected") {
+        toast.success("Gmail account connected successfully!");
+        queryClient.invalidateQueries({ queryKey: ["admin-email-accounts"] });
+        window.history.replaceState({}, "", "/admin/integrations");
+      } else if (success === "calendar_connected") {
+        toast.success("Google Calendar connected successfully!");
+        queryClient.invalidateQueries({ queryKey: ["admin-social-profiles"] });
+        window.history.replaceState({}, "", "/admin/integrations");
+      } else if (success === "dropbox_connected") {
+        toast.success("Dropbox connected successfully!");
+        queryClient.invalidateQueries({ queryKey: ["admin-social-profiles"] });
+        window.history.replaceState({}, "", "/admin/integrations");
+      } else if (error) {
+        toast.error("Connection failed. Please try again.");
+        window.history.replaceState({}, "", "/admin/integrations");
+      }
+    };
+
+    handleDropboxCallback();
   }, [queryClient]);
 
   // Compute dynamic integration statuses
@@ -311,11 +340,26 @@ export default function AdminIntegrations() {
 
     setConnectingId(integration.id);
     try {
-      const { data, error } = await supabase.functions.invoke(integration.oauthEndpoint);
+      let authUrl: string | undefined;
+
+      if (integration.id === 'dropbox') {
+        // Dropbox uses different OAuth flow with action parameter
+        const redirectUri = `${window.location.origin}/admin/integrations`;
+        const { data, error } = await supabase.functions.invoke(integration.oauthEndpoint, {
+          body: { action: 'get_auth_url', redirectUri }
+        });
+        if (error) throw error;
+        authUrl = data?.authUrl;
+        
+        // Store redirect info for callback
+        sessionStorage.setItem('dropbox_redirect', redirectUri);
+      } else {
+        // Standard OAuth flow for Gmail, Google Calendar
+        const { data, error } = await supabase.functions.invoke(integration.oauthEndpoint);
+        if (error) throw error;
+        authUrl = data?.authUrl || data?.url;
+      }
       
-      if (error) throw error;
-      
-      const authUrl = data?.authUrl || data?.url;
       if (!authUrl) throw new Error('No auth URL returned');
 
       window.location.href = authUrl;
