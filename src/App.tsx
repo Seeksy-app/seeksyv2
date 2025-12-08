@@ -218,6 +218,7 @@ import AwardsJudgesPortal from "./pages/AwardsJudgesPortal";
 import AwardsAdminTally from "./pages/AwardsAdminTally";
 import PurchaseSponsorship from "./pages/PurchaseSponsorship";
 import TeamChat from "./pages/TeamChat";
+import DropboxCallback from "./pages/DropboxCallback";
 import Team from "./pages/Team";
 import AdminInternalChat from "./pages/AdminInternalChat";
 import SupportChat from "./pages/SupportChat";
@@ -619,6 +620,7 @@ const AppContent = () => {
               <Route path="/seekies" element={<Apps />} />
               
               {/* Integrations */}
+              <Route path="/dropbox-callback" element={<DropboxCallback />} />
               <Route path="/integrations" element={<SocialMediaHub />} />
               <Route path="/integrations/meta" element={<MetaIntegration />} />
               <Route path="/integrations/social" element={<SocialConnections />} />

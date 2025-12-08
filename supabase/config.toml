@@ -407,3 +407,12 @@ verify_jwt = true
 
 [functions.send-proforma-share]
 verify_jwt = true
+
+[functions.dropbox-auth]
+verify_jwt = true
+
+[functions.dropbox-list-files]
+verify_jwt = true
+
+[functions.dropbox-import-videos]
+verify_jwt = true

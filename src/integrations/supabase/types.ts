@@ -8950,6 +8950,51 @@ export type Database = {
         }
         Relationships: []
       }
+      dropbox_import_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          failed_files: number | null
+          files: Json | null
+          folder_path: string | null
+          id: string
+          processed_files: number | null
+          series_name: string | null
+          status: string | null
+          total_files: number | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          failed_files?: number | null
+          files?: Json | null
+          folder_path?: string | null
+          id?: string
+          processed_files?: number | null
+          series_name?: string | null
+          status?: string | null
+          total_files?: number | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          failed_files?: number | null
+          files?: Json | null
+          folder_path?: string | null
+          id?: string
+          processed_files?: number | null
+          series_name?: string | null
+          status?: string | null
+          total_files?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_account_health: {
         Row: {
           account_id: string
@@ -21519,6 +21564,75 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           word_timestamps?: Json | null
+        }
+        Relationships: []
+      }
+      tv_content: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          duration_seconds: number | null
+          episode_number: number | null
+          id: string
+          is_published: boolean | null
+          metadata: Json | null
+          published_at: string | null
+          season_number: number | null
+          series_name: string | null
+          source: string | null
+          source_id: string | null
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
+          user_id: string | null
+          video_url: string
+          view_count: number | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          episode_number?: number | null
+          id?: string
+          is_published?: boolean | null
+          metadata?: Json | null
+          published_at?: string | null
+          season_number?: number | null
+          series_name?: string | null
+          source?: string | null
+          source_id?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
+          user_id?: string | null
+          video_url: string
+          view_count?: number | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          episode_number?: number | null
+          id?: string
+          is_published?: boolean | null
+          metadata?: Json | null
+          published_at?: string | null
+          season_number?: number | null
+          series_name?: string | null
+          source?: string | null
+          source_id?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string | null
+          video_url?: string
+          view_count?: number | null
         }
         Relationships: []
       }
