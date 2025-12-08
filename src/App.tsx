@@ -921,6 +921,7 @@ const AppContent = () => {
               <Route path="/admin/financial-models/combined" element={<CombinedFinancialModels />} />
               <Route path="/admin/financials/swot" element={<SWOTAnalysis />} />
               <Route path="/admin/team-members" element={<TeamMembers />} />
+              <Route path="/admin/settings/team" element={<TeamMembers />} />
               <Route path="/admin/advertising/rate-desk" element={<AdminRateDesk />} />
               <Route path="/admin/advertising/advertisers" element={<AdminAdvertisersList />} />
               <Route path="/admin/advertising/campaigns/create" element={<AdminCreateCampaign />} />
