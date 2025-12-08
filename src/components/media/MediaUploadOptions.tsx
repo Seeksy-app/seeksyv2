@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
 import { 
   Upload, FolderOpen, PlayCircle, Video, AudioWaveform, 
-  Loader2, RefreshCw, ThumbsUp, ThumbsDown
+  Loader2, RefreshCw, ThumbsUp, ThumbsDown, CloudDownload
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -17,6 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { DropboxImportDialog } from "@/components/tv/DropboxImportDialog";
 
 interface ZoomRecording {
   id: string;
@@ -125,6 +126,7 @@ export function MediaUploadOptions({
   const [showZoomModal, setShowZoomModal] = useState(false);
   const [showZoomConnectModal, setShowZoomConnectModal] = useState(false);
   const [showRiversideModal, setShowRiversideModal] = useState(false);
+  const [showDropboxModal, setShowDropboxModal] = useState(false);
   
   // YouTube state
   const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -351,6 +353,15 @@ export function MediaUploadOptions({
           >
             <AudioWaveform className="h-4 w-4" />
             Import from Riverside
+          </Button>
+
+          {/* Import from Dropbox - solid blue */}
+          <Button
+            onClick={() => setShowDropboxModal(true)}
+            className={cn(buttonClass, "bg-blue-500 text-white hover:bg-blue-600 border-0")}
+          >
+            <CloudDownload className="h-4 w-4" />
+            Import from Dropbox
           </Button>
 
           {/* Import from Descript - Coming Soon (grey with vote) */}
@@ -581,6 +592,15 @@ export function MediaUploadOptions({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Dropbox Import Modal */}
+      <DropboxImportDialog
+        open={showDropboxModal}
+        onOpenChange={setShowDropboxModal}
+        onImportComplete={() => {
+          onImportComplete?.();
+        }}
+      />
     </>
   );
 }
