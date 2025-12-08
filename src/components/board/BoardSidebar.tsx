@@ -33,7 +33,7 @@ import { useBoardViewMode } from '@/hooks/useBoardViewMode';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-// Overview section
+// OVERVIEW section
 const overviewItems = [
   {
     id: 'dashboard',
@@ -55,7 +55,7 @@ const overviewItems = [
   },
 ];
 
-// Business section
+// BUSINESS STRATEGY section
 const businessItems = [
   {
     id: 'business-model',
@@ -70,10 +70,22 @@ const businessItems = [
     path: '/board/gtm',
   },
   {
-    id: 'forecasts',
-    label: '3-Year Forecasts',
-    icon: TrendingUp,
-    path: '/board/forecasts',
+    id: 'market-intel',
+    label: 'Market Intelligence',
+    icon: Globe,
+    path: '/board/market-intel',
+  },
+  {
+    id: 'competitive',
+    label: 'Competitive Landscape',
+    icon: Sword,
+    path: '/board/competitive-landscape',
+  },
+  {
+    id: 'swot',
+    label: 'SWOT Analysis',
+    icon: ChartPie,
+    path: '/board/swot',
   },
   {
     id: 'ceo-vto',
@@ -90,19 +102,13 @@ const businessItems = [
   },
 ];
 
-// Financials section
+// FINANCIALS section
 const financialItems = [
   {
-    id: 'key-metrics',
-    label: 'Key Metrics',
-    icon: BarChart3,
-    path: '/board/key-metrics',
-  },
-  {
-    id: 'roi-calculator',
-    label: 'ROI Calculator',
-    icon: Calculator,
-    path: '/board/roi-calculator',
+    id: 'proforma',
+    label: 'AI-Powered 3-Year Pro Forma',
+    icon: TrendingUp,
+    path: '/board/proforma',
   },
   {
     id: 'revenue-insights',
@@ -111,36 +117,20 @@ const financialItems = [
     path: '/board/revenue-insights',
   },
   {
-    id: 'proforma-combined',
-    label: '3-Year Pro Forma (Combined)',
-    icon: TrendingUp,
-    path: '/board/proforma/combined',
+    id: 'roi-calculator',
+    label: 'ROI Calculator',
+    icon: Calculator,
+    path: '/board/roi-calculator',
+  },
+  {
+    id: 'key-metrics',
+    label: 'Key Metrics',
+    icon: BarChart3,
+    path: '/board/key-metrics',
   },
 ];
 
-// Competitive & Strategy section
-const strategyItems = [
-  {
-    id: 'competitive',
-    label: 'Competitive Landscape',
-    icon: Sword,
-    path: '/board/competitive-landscape',
-  },
-  {
-    id: 'swot',
-    label: 'SWOT Analysis',
-    icon: ChartPie,
-    path: '/board/swot',
-  },
-  {
-    id: 'market-intel',
-    label: 'Market Intelligence',
-    icon: Globe,
-    path: '/board/market-intel',
-  },
-];
-
-// Tools section
+// TOOLS section
 const toolsItems = [
   {
     id: 'ai-analyst',
@@ -186,6 +176,10 @@ export function BoardSidebar() {
 
   const isItemActive = (item: NavItem) => {
     if (!item.path) return false;
+    // Handle proforma route matching for any proforma sub-routes
+    if (item.path === '/board/proforma' && location.pathname.startsWith('/board/proforma')) {
+      return true;
+    }
     return location.pathname === item.path;
   };
 
@@ -242,9 +236,8 @@ export function BoardSidebar() {
 
       <SidebarContent className="px-2 py-1 overflow-y-auto">
         {renderSection('Overview', overviewItems)}
-        {renderSection('Business', businessItems, 'mt-0.5')}
+        {renderSection('Business Strategy', businessItems, 'mt-0.5')}
         {renderSection('Financials', financialItems, 'mt-0.5')}
-        {renderSection('Competitive & Strategy', strategyItems, 'mt-0.5')}
         {renderSection('Tools', toolsItems, 'mt-0.5')}
       </SidebarContent>
 

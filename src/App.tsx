@@ -462,7 +462,6 @@ import AdminSeeksyTV from "./pages/admin/AdminSeeksyTV";
 import BoardDashboard from "./pages/board/BoardDashboard";
 import BoardBusinessModel from "./pages/board/BoardBusinessModel";
 import BoardGTM from "./pages/board/BoardGTM";
-import BoardForecasts from "./pages/board/BoardForecasts";
 import BoardProFormaAI from "./pages/board/BoardProFormaAI";
 import BoardVideos from "./pages/board/BoardVideos";
 import BoardDocs from "./pages/board/BoardDocs";
@@ -1041,7 +1040,8 @@ const AppContent = () => {
             <Route path="gtm" element={<BoardGTM />} />
             <Route path="ceo-plan" element={<BoardCEOPlan />} />
             <Route path="vto" element={<BoardCEOVTO />} />
-            <Route path="forecasts" element={<BoardProFormaAI />} />
+            <Route path="forecasts" element={<Navigate to="/board/proforma" replace />} />
+            <Route path="proforma" element={<BoardProFormaAI />} />
             <Route path="videos" element={<BoardVideos />} />
             <Route path="docs" element={<BoardDocs />} />
             <Route path="investor-links" element={<BoardInvestorLinks />} />
@@ -1058,9 +1058,8 @@ const AppContent = () => {
             <Route path="swot" element={<BoardSWOT />} />
             <Route path="market-intel" element={<BoardMarketIntel />} />
             <Route path="inventory" element={<BoardInventory />} />
-            <Route path="proforma/combined" element={<BoardProFormaAI />} />
+            <Route path="proforma/combined" element={<Navigate to="/board/proforma" replace />} />
             <Route path="proforma/events-awards" element={<EventsAwardsProForma />} />
-            <Route path="proforma/legacy" element={<BoardForecasts />} />
           </Route>
           <Route path="/investor/:token" element={<BoardInvestorPortal />} />
           
