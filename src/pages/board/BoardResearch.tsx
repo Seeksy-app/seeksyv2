@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { BoardLayout } from '@/components/board/BoardLayout';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Database, ExternalLink, FileText, Headphones, Newspaper, Search, Tag, Flag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -159,8 +158,7 @@ export default function BoardResearch() {
   };
 
   return (
-    <BoardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div>
           <Button
@@ -359,7 +357,6 @@ export default function BoardResearch() {
             </p>
           </CardContent>
         </Card>
-      </div>
-    </BoardLayout>
+    </div>
   );
 }

@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { BoardLayout } from '@/components/board/BoardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Video, ArrowLeft, Lock, Check, Play, Clock, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -176,8 +175,7 @@ export default function BoardVideos() {
   };
 
   return (
-    <BoardLayout>
-      <div>
+    <div>
         {/* Breadcrumb */}
         <Button
           variant="ghost"
@@ -371,7 +369,6 @@ export default function BoardVideos() {
             )}
           </div>
         </div>
-      </div>
-    </BoardLayout>
+    </div>
   );
 }

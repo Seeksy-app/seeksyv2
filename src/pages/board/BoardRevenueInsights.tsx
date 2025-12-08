@@ -6,7 +6,6 @@ import { useBoardDataMode } from '@/contexts/BoardDataModeContext';
 import { DataModeLabel, DataModeBadge } from '@/components/board/DataModeToggle';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useState, useEffect } from 'react';
-import { BoardLayout } from '@/components/board/BoardLayout';
 
 const demoRevenueMetrics = [
   { label: 'Total Revenue (MTD)', value: '$156,420', change: '+12.3%', icon: DollarSign },
@@ -39,8 +38,7 @@ export default function BoardRevenueInsights() {
   const revenueByChannel = isDemo ? demoRevenueByChannel : [];
 
   return (
-    <BoardLayout>
-      <div className="space-y-8">
+    <div className="space-y-8">
         <Button
           variant="ghost"
           className="text-slate-500 hover:text-slate-700 -ml-2"
@@ -152,7 +150,6 @@ export default function BoardRevenueInsights() {
       <p className="text-xs text-slate-400 text-center">
         {isDemo ? 'Viewing demo data' : 'Real data mode'} • Last updated: {new Date().toLocaleDateString()}
       </p>
-      </div>
-    </BoardLayout>
+    </div>
   );
 }
