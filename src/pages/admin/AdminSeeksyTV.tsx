@@ -2,17 +2,20 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tv, Upload, FolderSync, Play, Clock, Eye, Radio, MoreVertical, ExternalLink } from "lucide-react";
+import { Tv, Upload, FolderSync, Play, Clock, Eye, Radio, MoreVertical, ExternalLink, Pencil, Trash2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DropboxImportDialog } from "@/components/tv/DropboxImportDialog";
 import { VideoUploadDialog } from "@/components/tv/VideoUploadDialog";
 import { ChannelSelector } from "@/components/tv/ChannelSelector";
+import { VideoEditDialog } from "@/components/tv/VideoEditDialog";
+import { VideoDeleteDialog } from "@/components/tv/VideoDeleteDialog";
 import { format } from "date-fns";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
@@ -22,7 +25,9 @@ const AdminSeeksyTV = () => {
   const [dropboxOpen, setDropboxOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [channelSelectorOpen, setChannelSelectorOpen] = useState(false);
-  const [selectedVideo, setSelectedVideo] = useState<{ id: string; title: string; channelId?: string | null } | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<{ id: string; title: string; channelId?: string | null; description?: string | null; category?: string | null } | null>(null);
 
   const { data: tvContent, isLoading, refetch } = useQuery({
     queryKey: ['admin-tv-content'],
@@ -279,6 +284,13 @@ const AdminSeeksyTV = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start">
+                          <DropdownMenuItem onClick={() => {
+                            setSelectedVideo({ id: video.id, title: video.title, channelId: video.channel_id, description: video.description, category: video.category });
+                            setEditDialogOpen(true);
+                          }}>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Edit Details
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openChannelSelector(video)}>
                             <Radio className="h-4 w-4 mr-2" />
                             {video.channel_id ? "Change Channel" : "Publish to Channel"}
@@ -286,6 +298,17 @@ const AdminSeeksyTV = () => {
                           <DropdownMenuItem onClick={() => window.open(video.video_url, '_blank')}>
                             <ExternalLink className="h-4 w-4 mr-2" />
                             View Video
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              setSelectedVideo({ id: video.id, title: video.title });
+                              setDeleteDialogOpen(true);
+                            }}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Video
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -347,14 +370,28 @@ const AdminSeeksyTV = () => {
       />
 
       {selectedVideo && (
-        <ChannelSelector
-          open={channelSelectorOpen}
-          onOpenChange={setChannelSelectorOpen}
-          videoId={selectedVideo.id}
-          videoTitle={selectedVideo.title}
-          currentChannelId={selectedVideo.channelId}
-          onSuccess={() => refetch()}
-        />
+        <>
+          <ChannelSelector
+            open={channelSelectorOpen}
+            onOpenChange={setChannelSelectorOpen}
+            videoId={selectedVideo.id}
+            videoTitle={selectedVideo.title}
+            currentChannelId={selectedVideo.channelId}
+            onSuccess={() => refetch()}
+          />
+          <VideoEditDialog
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            video={selectedVideo}
+            onSuccess={() => refetch()}
+          />
+          <VideoDeleteDialog
+            open={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+            video={selectedVideo}
+            onSuccess={() => refetch()}
+          />
+        </>
       )}
     </div>
   );
