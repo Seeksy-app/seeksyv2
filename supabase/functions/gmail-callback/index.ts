@@ -6,18 +6,36 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const code = url.searchParams.get('code');
-    const state = url.searchParams.get('state'); // user_id
+    const stateParam = url.searchParams.get('state');
     const error = url.searchParams.get('error');
 
-    if (error) {
-    console.error('OAuth error:', error);
-    return new Response(null, {
-      status: 302,
-      headers: { Location: `https://seeksy.io/email-settings?error=oauth_failed` }
-    });
+    // Parse state to get userId and returnPath
+    let userId: string | null = null;
+    let returnPath = '/email-settings';
+    
+    if (stateParam) {
+      try {
+        const decoded = atob(stateParam);
+        const stateData = JSON.parse(decoded);
+        userId = stateData.userId;
+        returnPath = stateData.returnPath || '/email-settings';
+      } catch {
+        // Fallback: state might be just the user_id (old format)
+        userId = stateParam;
+      }
     }
 
-    if (!code || !state) {
+    console.log('Gmail callback - userId:', userId, 'returnPath:', returnPath);
+
+    if (error) {
+      console.error('OAuth error:', error);
+      return new Response(null, {
+        status: 302,
+        headers: { Location: `https://seeksy.io${returnPath}?error=oauth_failed` }
+      });
+    }
+
+    if (!code || !userId) {
       throw new Error('Missing code or state');
     }
 
@@ -45,7 +63,7 @@ serve(async (req) => {
     }
 
     const tokens = await tokenResponse.json();
-    console.log('Received Gmail tokens for user:', state);
+    console.log('Received Gmail tokens for user:', userId);
 
     // Get user's email
     const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
@@ -75,7 +93,7 @@ serve(async (req) => {
     const { data: existing } = await supabaseAdmin
       .from('email_accounts')
       .select('id')
-      .eq('user_id', state)
+      .eq('user_id', userId)
       .eq('email_address', email)
       .maybeSingle();
 
@@ -98,7 +116,7 @@ serve(async (req) => {
       const { data: userAccounts } = await supabaseAdmin
         .from('email_accounts')
         .select('id')
-        .eq('user_id', state);
+        .eq('user_id', userId);
       
       const isFirstAccount = !userAccounts || userAccounts.length === 0;
       
@@ -106,7 +124,7 @@ serve(async (req) => {
       const { error: insertError } = await supabaseAdmin
         .from('email_accounts')
         .insert({
-          user_id: state,
+          user_id: userId,
           email_address: email,
           provider: 'gmail',
           display_name: userInfo.name || email,
@@ -114,23 +132,21 @@ serve(async (req) => {
           refresh_token: encryptedRefreshToken,
           token_expires_at: expiryDate.toISOString(),
           is_active: true,
-          is_default: isFirstAccount, // First account becomes default
+          is_default: isFirstAccount,
           connected_at: new Date().toISOString(),
         });
 
       if (insertError) throw insertError;
     }
 
-    console.log('Successfully stored encrypted Gmail account for user:', state);
+    console.log('Successfully stored encrypted Gmail account for user:', userId);
 
-    // Redirect - check referrer to determine admin or user flow
-    const referrer = req.headers.get('referer') || '';
-    const isAdmin = referrer.includes('/admin/');
-    const redirectPath = isAdmin ? '/admin/integrations' : '/email-settings';
+    // Determine success parameter based on return path
+    const successParam = returnPath.includes('/admin') ? 'gmail_connected' : 'gmail_connected';
     
     return new Response(null, {
       status: 302,
-      headers: { Location: `https://seeksy.io${redirectPath}?success=gmail_connected` }
+      headers: { Location: `https://seeksy.io${returnPath}?success=${successParam}` }
     });
   } catch (error) {
     console.error('Error in gmail-callback:', error);

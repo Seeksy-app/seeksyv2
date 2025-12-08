@@ -353,8 +353,15 @@ export default function AdminIntegrations() {
         
         // Store redirect info for callback
         sessionStorage.setItem('dropbox_redirect', redirectUri);
+      } else if (integration.id === 'gmail') {
+        // Gmail OAuth with returnPath for proper redirect
+        const { data, error } = await supabase.functions.invoke(integration.oauthEndpoint, {
+          body: { returnPath: '/admin/integrations' }
+        });
+        if (error) throw error;
+        authUrl = data?.authUrl || data?.url;
       } else {
-        // Standard OAuth flow for Gmail, Google Calendar
+        // Standard OAuth flow for Google Calendar, etc.
         const { data, error } = await supabase.functions.invoke(integration.oauthEndpoint);
         if (error) throw error;
         authUrl = data?.authUrl || data?.url;

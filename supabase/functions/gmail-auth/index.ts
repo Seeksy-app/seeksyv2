@@ -17,6 +17,17 @@ serve(async (req) => {
       throw new Error('No authorization header');
     }
 
+    // Parse request body for returnPath
+    let returnPath = '/email-settings';
+    try {
+      const body = await req.json();
+      if (body?.returnPath) {
+        returnPath = body.returnPath;
+      }
+    } catch {
+      // No body or invalid JSON, use default
+    }
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -38,6 +49,10 @@ serve(async (req) => {
       'https://www.googleapis.com/auth/userinfo.email'
     ].join(' ');
 
+    // Encode user_id and returnPath in state
+    const stateData = JSON.stringify({ userId: user.id, returnPath });
+    const state = btoa(stateData);
+
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
       `client_id=${clientId}` +
       `&redirect_uri=${encodeURIComponent(redirectUri)}` +
@@ -45,7 +60,7 @@ serve(async (req) => {
       `&scope=${encodeURIComponent(scopes)}` +
       `&access_type=offline` +
       `&prompt=consent%20select_account` +
-      `&state=${user.id}`;
+      `&state=${encodeURIComponent(state)}`;
 
     console.log('Generated Gmail auth URL for user:', user.id);
 
