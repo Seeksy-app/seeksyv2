@@ -82,7 +82,7 @@ import {
   Package,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -314,6 +314,7 @@ const MODULE_NAME_MAP: Record<string, string> = {
 
 export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { roles, isLoading: rolesLoading, isAdmin } = useUserRoles();
   const { activeAccountType } = useAccountType();
   const { state } = useSidebar();
@@ -326,9 +327,19 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
   // Use permission-based navigation filtering for admin nav
   const { navigation: permissionFilteredNav, canAccessPath, isLoading: rbacLoading } = useRoleBasedNavigation();
 
+  // CRITICAL: Determine if we're on an admin route based on URL path
+  // This takes precedence over role loading state to prevent nav flicker
+  const isAdminRoute = location.pathname.startsWith('/admin') || 
+                       location.pathname.startsWith('/cfo') ||
+                       location.pathname.startsWith('/helpdesk');
+  
+  // Use route-based admin detection OR role-based admin detection
+  // This ensures admin nav shows on admin routes even during role loading
+  const shouldShowAdminNav = isAdminRoute || isAdmin;
+
   // Handle logo click - navigate to default landing (My Day for creators, /admin for admins)
   const handleLogoClick = () => {
-    const defaultRoute = isAdmin ? '/admin' : '/my-day';
+    const defaultRoute = shouldShowAdminNav ? '/admin' : '/my-day';
     navigate(defaultRoute);
   };
   
@@ -344,7 +355,24 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
     return () => window.removeEventListener('navPreferencesUpdated', handleNavUpdate);
   }, []);
 
+  // Don't render anything while loading, but on admin routes show nothing rather than creator nav
   if (!user || rolesLoading || navLoading || rbacLoading) {
+    // On admin routes, return empty sidebar placeholder to prevent flash of creator nav
+    if (isAdminRoute) {
+      return (
+        <Sidebar collapsible="icon">
+          <SidebarHeader className="border-b border-sidebar-border px-4 py-3 bg-sidebar">
+            <div className="flex items-center gap-3">
+              <SparkIcon variant="holiday" size={48} animated pose="idle" />
+              {!collapsed && <span className="text-sidebar-foreground text-2xl font-bold">Seeksy</span>}
+            </div>
+          </SidebarHeader>
+          <SidebarContent className="pb-6 bg-sidebar">
+            {/* Loading placeholder for admin nav */}
+          </SidebarContent>
+        </Sidebar>
+      );
+    }
     return null;
   }
 
@@ -361,7 +389,7 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
   const isModuleActivated = (item: typeof NAV_ITEMS[0]): boolean => {
     const requiredModule = item.moduleId || NAV_TO_MODULE_MAP[item.id];
     if (!requiredModule) return true; // No module requirement - always visible
-    if (isAdmin) return true; // Admins see all
+    if (shouldShowAdminNav) return true; // Admins/admin routes see all
     return activatedModuleIds.includes(requiredModule);
   };
 
@@ -377,8 +405,8 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
       return aSort - bSort;
     });
 
-  // Use permission-filtered navigation for admin users (combines role + permission checks)
-  const filteredNavigation = isAdmin ? permissionFilteredNav : [];
+  // Use permission-filtered navigation for admin routes/users (combines role + permission checks)
+  const filteredNavigation = shouldShowAdminNav ? permissionFilteredNav : [];
 
   return (
     <Sidebar collapsible="icon">
@@ -415,9 +443,9 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
       </SidebarHeader>
 
       <SidebarContent className="pb-6 bg-sidebar">
-        {/* Creator nav items - ONLY for non-admin users */}
+        {/* Creator nav items - ONLY for non-admin routes and non-admin users */}
         {/* All top-level items are flush-left with identical visual hierarchy */}
-        {!isAdmin && (
+        {!shouldShowAdminNav && (
           <SidebarMenu className="px-2">
             {userNavItems.map((item) => {
               const Icon = ICON_MAP[item.id] || LayoutDashboard;
