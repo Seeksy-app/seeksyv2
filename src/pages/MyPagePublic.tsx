@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { MyPageTheme, defaultTheme } from "@/config/myPageThemes";
@@ -33,9 +33,16 @@ export default function MyPagePublic() {
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<MyPageTheme>(defaultTheme);
 
+  // If no username provided (root path matched incorrectly), skip loading
+  const hasValidUsername = username && username.trim() !== '';
+
   useEffect(() => {
-    loadProfile();
-  }, [username]);
+    if (hasValidUsername) {
+      loadProfile();
+    } else {
+      setLoading(false);
+    }
+  }, [username, hasValidUsername]);
 
   const loadProfile = async () => {
     try {
@@ -99,6 +106,11 @@ export default function MyPagePublic() {
         <p className="text-muted-foreground">Loading...</p>
       </div>
     );
+  }
+
+  // If no valid username, redirect to home
+  if (!hasValidUsername) {
+    return <Navigate to="/" replace />;
   }
 
   if (!profile) {
