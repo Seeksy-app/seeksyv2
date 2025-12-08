@@ -67,16 +67,18 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
     }
   }, [open, initialRecipients, to]);
 
-  // Auto-save draft every 3 seconds
+  // Auto-save draft every 10 seconds (only if content has changed)
   useEffect(() => {
-    if (!open || (!to && !subject && !body)) return;
+    if (!open) return;
+    // Only auto-save if there's meaningful content
+    if (!subject && !body) return;
 
     setSaveStatus("saving");
     const timer = setTimeout(() => {
-      if (to || subject || body) {
+      if (subject || body) {
         autoSaveDraftMutation.mutate();
       }
-    }, 3000);
+    }, 10000); // Increased from 3s to 10s
 
     return () => clearTimeout(timer);
   }, [to, subject, body, open]);

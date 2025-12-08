@@ -90,7 +90,7 @@ serve(async (req) => {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      await supabase.from("email_events").insert({
+      const { error: insertError } = await supabase.from("email_events").insert({
         event_type: "email.sent",
         to_email: recipient,
         from_email: fromEmail,
@@ -100,12 +100,11 @@ serve(async (req) => {
         user_id: user.id,
         resend_email_id: emailData?.id,
         occurred_at: new Date().toISOString(),
-        metadata: {
-          message_id: emailData?.id, // Store for reply matching
-          from: fromEmail,
-          subject: subject,
-        },
       });
+
+      if (insertError) {
+        console.error("❌ Failed to log email event:", insertError);
+      }
     }
 
     return new Response(

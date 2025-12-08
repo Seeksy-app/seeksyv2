@@ -16,12 +16,12 @@ export const usePageTitle = (pageTitle?: string) => {
     queryFn: async () => {
       if (!user) return 0;
       
+      // Get unread inbox messages instead of using non-existent read_at column
       const { count } = await supabase
-        .from("email_events")
+        .from("inbox_messages")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
-        .eq("event_type", "email.delivered")
-        .is("read_at", null);
+        .eq("is_read", false);
       
       return count || 0;
     },
