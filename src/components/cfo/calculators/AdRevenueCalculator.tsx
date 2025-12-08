@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -7,78 +7,84 @@ import { Slider } from '@/components/ui/slider';
 import { motion } from 'framer-motion';
 import { DollarSign, RefreshCw, Save, Radio, Video, Mail, Monitor, Handshake, Info } from 'lucide-react';
 import { useCFOAssumptions } from '@/hooks/useCFOAssumptions';
+import { CFO_ASSUMPTIONS_SCHEMA } from '@/lib/cfo-assumptions-schema';
 
 interface Props {
   onSave?: () => void;
 }
 
-interface ChannelConfig {
-  name: string;
-  icon: typeof Radio;
-  color: string;
-  impressions: number;
-  impressionsMin: number;
-  impressionsMax: number;
-  impressionsStep: number;
-  impressionsUnit: string;
-  cpm: number;
-  cpmMin: number;
-  cpmMax: number;
-  fillRate: number;
-  fillRateDefault: number;
-}
+const AD_SCHEMA = CFO_ASSUMPTIONS_SCHEMA.advertising;
+const IMP_SCHEMA = CFO_ASSUMPTIONS_SCHEMA.impressions;
 
 export function AdRevenueCalculator({ onSave }: Props) {
   const { getEffectiveValue, saveMultipleAssumptions, isSaving } = useCFOAssumptions();
 
-  // Audio Host-Read
-  const [audioHostReadImpressions, setAudioHostReadImpressions] = useState(1600000);
-  const [audioHostReadCPM, setAudioHostReadCPM] = useState(22);
-  const [audioHostReadFillRate, setAudioHostReadFillRate] = useState(65);
+  // CPMs from schema
+  const [audioHostReadCPM, setAudioHostReadCPM] = useState(AD_SCHEMA.audio_cpm_hostread.default);
+  const [audioProgrammaticCPM, setAudioProgrammaticCPM] = useState(AD_SCHEMA.audio_cpm_programmatic.default);
+  const [videoCPM, setVideoCPM] = useState(AD_SCHEMA.video_cpm.default);
+  const [newsletterCPM, setNewsletterCPM] = useState(AD_SCHEMA.newsletter_cpm.default);
+  const [displayCPM, setDisplayCPM] = useState(AD_SCHEMA.display_cpm.default);
 
-  // Audio Programmatic
-  const [audioProgrammaticImpressions, setAudioProgrammaticImpressions] = useState(1600000);
-  const [audioProgrammaticCPM, setAudioProgrammaticCPM] = useState(11.5);
-  const [audioProgrammaticFillRate, setAudioProgrammaticFillRate] = useState(65);
+  // Fill rates from schema
+  const [audioFillRate, setAudioFillRate] = useState(AD_SCHEMA.audio_fill_rate.default);
+  const [videoFillRate, setVideoFillRate] = useState(AD_SCHEMA.video_fill_rate.default);
+  const [newsletterFillRate, setNewsletterFillRate] = useState(AD_SCHEMA.newsletter_fill_rate.default);
+  const [displayFillRate, setDisplayFillRate] = useState(AD_SCHEMA.display_fill_rate.default);
 
-  // Video
-  const [videoImpressions, setVideoImpressions] = useState(2800000);
-  const [videoCPM, setVideoCPM] = useState(19.25);
-  const [videoFillRate, setVideoFillRate] = useState(55);
+  // Impressions (based on mid-tier creator defaults from schema)
+  const [audioImpressions, setAudioImpressions] = useState(IMP_SCHEMA.podcaster_mid.default * 2); // 50K monthly
+  const [videoImpressions, setVideoImpressions] = useState(IMP_SCHEMA.video_mid.default); // 100K monthly
+  const [newsletterImpressions, setNewsletterImpressions] = useState(50000);
+  const [displayImpressions, setDisplayImpressions] = useState(100000);
 
-  // Newsletter
-  const [newsletterImpressions, setNewsletterImpressions] = useState(100000);
-  const [newsletterCPM, setNewsletterCPM] = useState(35);
-  const [newsletterFillRate, setNewsletterFillRate] = useState(80);
-
-  // Display
-  const [displayImpressions, setDisplayImpressions] = useState(200000);
-  const [displayCPM, setDisplayCPM] = useState(5);
-  const [displayFillRate, setDisplayFillRate] = useState(70);
-
-  // Brand Deals (count instead of impressions)
+  // Brand Deals
   const [brandDeals, setBrandDeals] = useState(50);
   const [brandDealValue, setBrandDealValue] = useState(5000);
 
-  // Revenue shares
-  const [creatorShare, setCreatorShare] = useState(75);
-  const platformShare = 100 - creatorShare;
+  // Platform shares from schema
+  const [hostreadPlatformShare, setHostreadPlatformShare] = useState(AD_SCHEMA.hostread_platform_share.default);
+  const [programmaticPlatformShare, setProgrammaticPlatformShare] = useState(AD_SCHEMA.programmatic_platform_share.default);
+  const [brandDealPlatformShare, setBrandDealPlatformShare] = useState(AD_SCHEMA.brand_deal_platform_share.default);
 
-  // Calculations
+  // Load saved values
+  useEffect(() => {
+    setAudioHostReadCPM(getEffectiveValue('audio_cpm_hostread') || AD_SCHEMA.audio_cpm_hostread.default);
+    setAudioProgrammaticCPM(getEffectiveValue('audio_cpm_programmatic') || AD_SCHEMA.audio_cpm_programmatic.default);
+    setVideoCPM(getEffectiveValue('video_cpm') || AD_SCHEMA.video_cpm.default);
+    setNewsletterCPM(getEffectiveValue('newsletter_cpm') || AD_SCHEMA.newsletter_cpm.default);
+    setDisplayCPM(getEffectiveValue('display_cpm') || AD_SCHEMA.display_cpm.default);
+    setAudioFillRate(getEffectiveValue('audio_fill_rate') || AD_SCHEMA.audio_fill_rate.default);
+    setVideoFillRate(getEffectiveValue('video_fill_rate') || AD_SCHEMA.video_fill_rate.default);
+    setNewsletterFillRate(getEffectiveValue('newsletter_fill_rate') || AD_SCHEMA.newsletter_fill_rate.default);
+    setDisplayFillRate(getEffectiveValue('display_fill_rate') || AD_SCHEMA.display_fill_rate.default);
+    setHostreadPlatformShare(getEffectiveValue('hostread_platform_share') || AD_SCHEMA.hostread_platform_share.default);
+    setProgrammaticPlatformShare(getEffectiveValue('programmatic_platform_share') || AD_SCHEMA.programmatic_platform_share.default);
+    setBrandDealPlatformShare(getEffectiveValue('brand_deal_platform_share') || AD_SCHEMA.brand_deal_platform_share.default);
+  }, [getEffectiveValue]);
+
+  // Calculate revenue per channel
   const calculateChannelRevenue = (impressions: number, cpm: number, fillRate: number) => {
     return (impressions * (fillRate / 100) * cpm) / 1000;
   };
 
-  const audioHostReadRevenue = calculateChannelRevenue(audioHostReadImpressions, audioHostReadCPM, audioHostReadFillRate);
-  const audioProgrammaticRevenue = calculateChannelRevenue(audioProgrammaticImpressions, audioProgrammaticCPM, audioProgrammaticFillRate);
+  const audioHostReadRevenue = calculateChannelRevenue(audioImpressions, audioHostReadCPM, audioFillRate);
+  const audioProgrammaticRevenue = calculateChannelRevenue(audioImpressions, audioProgrammaticCPM, audioFillRate);
   const videoRevenue = calculateChannelRevenue(videoImpressions, videoCPM, videoFillRate);
   const newsletterRevenue = calculateChannelRevenue(newsletterImpressions, newsletterCPM, newsletterFillRate);
   const displayRevenue = calculateChannelRevenue(displayImpressions, displayCPM, displayFillRate);
   const brandDealsRevenue = brandDeals * brandDealValue;
 
+  // Platform vs creator shares
+  const hostreadPlatformRevenue = audioHostReadRevenue * (hostreadPlatformShare / 100);
+  const programmaticPlatformRevenue = audioProgrammaticRevenue * (programmaticPlatformShare / 100);
+  const brandDealPlatformRevenue = brandDealsRevenue * (brandDealPlatformShare / 100);
+
   const totalGrossRevenue = audioHostReadRevenue + audioProgrammaticRevenue + videoRevenue + newsletterRevenue + displayRevenue + brandDealsRevenue;
-  const platformRevenue = totalGrossRevenue * (platformShare / 100);
-  const creatorPayout = totalGrossRevenue * (creatorShare / 100);
+  const avgPlatformShare = 30; // Simplified average for display/newsletter
+  const totalPlatformRevenue = hostreadPlatformRevenue + programmaticPlatformRevenue + brandDealPlatformRevenue + 
+    (videoRevenue + newsletterRevenue + displayRevenue) * (avgPlatformShare / 100);
+  const totalCreatorPayout = totalGrossRevenue - totalPlatformRevenue;
 
   const formatCurrency = (value: number) => {
     if (value >= 1000000) return `$${(value / 1000000).toFixed(2)}M`;
@@ -93,118 +99,101 @@ export function AdRevenueCalculator({ onSave }: Props) {
   };
 
   const handleReset = () => {
-    setAudioHostReadImpressions(1600000);
-    setAudioHostReadCPM(22);
-    setAudioHostReadFillRate(65);
-    setAudioProgrammaticImpressions(1600000);
-    setAudioProgrammaticCPM(11.5);
-    setAudioProgrammaticFillRate(65);
-    setVideoImpressions(2800000);
-    setVideoCPM(19.25);
-    setVideoFillRate(55);
-    setNewsletterImpressions(100000);
-    setNewsletterCPM(35);
-    setNewsletterFillRate(80);
-    setDisplayImpressions(200000);
-    setDisplayCPM(5);
-    setDisplayFillRate(70);
+    setAudioHostReadCPM(AD_SCHEMA.audio_cpm_hostread.default);
+    setAudioProgrammaticCPM(AD_SCHEMA.audio_cpm_programmatic.default);
+    setVideoCPM(AD_SCHEMA.video_cpm.default);
+    setNewsletterCPM(AD_SCHEMA.newsletter_cpm.default);
+    setDisplayCPM(AD_SCHEMA.display_cpm.default);
+    setAudioFillRate(AD_SCHEMA.audio_fill_rate.default);
+    setVideoFillRate(AD_SCHEMA.video_fill_rate.default);
+    setNewsletterFillRate(AD_SCHEMA.newsletter_fill_rate.default);
+    setDisplayFillRate(AD_SCHEMA.display_fill_rate.default);
+    setAudioImpressions(50000);
+    setVideoImpressions(100000);
+    setNewsletterImpressions(50000);
+    setDisplayImpressions(100000);
     setBrandDeals(50);
     setBrandDealValue(5000);
-    setCreatorShare(75);
+    setHostreadPlatformShare(AD_SCHEMA.hostread_platform_share.default);
+    setProgrammaticPlatformShare(AD_SCHEMA.programmatic_platform_share.default);
+    setBrandDealPlatformShare(AD_SCHEMA.brand_deal_platform_share.default);
   };
 
   const handleSave = () => {
     saveMultipleAssumptions([
-      { metric_key: 'audio_hostread_impressions', value: audioHostReadImpressions, unit: 'count', category: 'ads' },
-      { metric_key: 'audio_hostread_preroll_cpm', value: audioHostReadCPM, unit: 'usd', category: 'ads' },
-      { metric_key: 'audio_hostread_fill_rate', value: audioHostReadFillRate, unit: 'percent', category: 'ads' },
-      { metric_key: 'audio_programmatic_impressions', value: audioProgrammaticImpressions, unit: 'count', category: 'ads' },
-      { metric_key: 'audio_programmatic_cpm', value: audioProgrammaticCPM, unit: 'usd', category: 'ads' },
-      { metric_key: 'audio_programmatic_fill_rate', value: audioProgrammaticFillRate, unit: 'percent', category: 'ads' },
-      { metric_key: 'video_impressions', value: videoImpressions, unit: 'count', category: 'ads' },
-      { metric_key: 'video_preroll_cpm', value: videoCPM, unit: 'usd', category: 'ads' },
-      { metric_key: 'video_fill_rate', value: videoFillRate, unit: 'percent', category: 'ads' },
-      { metric_key: 'newsletter_impressions', value: newsletterImpressions, unit: 'count', category: 'ads' },
-      { metric_key: 'newsletter_cpm', value: newsletterCPM, unit: 'usd', category: 'ads' },
-      { metric_key: 'newsletter_fill_rate', value: newsletterFillRate, unit: 'percent', category: 'ads' },
-      { metric_key: 'display_impressions', value: displayImpressions, unit: 'count', category: 'ads' },
-      { metric_key: 'display_cpm', value: displayCPM, unit: 'usd', category: 'ads' },
-      { metric_key: 'display_fill_rate', value: displayFillRate, unit: 'percent', category: 'ads' },
-      { metric_key: 'brand_deals_count', value: brandDeals, unit: 'count', category: 'ads' },
-      { metric_key: 'brand_deal_avg_value', value: brandDealValue, unit: 'usd', category: 'ads' },
-      { metric_key: 'creator_ad_share', value: creatorShare, unit: 'percent', category: 'ads' },
-      { metric_key: 'platform_ad_share', value: platformShare, unit: 'percent', category: 'ads' },
+      { metric_key: 'audio_cpm_hostread', value: audioHostReadCPM },
+      { metric_key: 'audio_cpm_programmatic', value: audioProgrammaticCPM },
+      { metric_key: 'video_cpm', value: videoCPM },
+      { metric_key: 'newsletter_cpm', value: newsletterCPM },
+      { metric_key: 'display_cpm', value: displayCPM },
+      { metric_key: 'audio_fill_rate', value: audioFillRate },
+      { metric_key: 'video_fill_rate', value: videoFillRate },
+      { metric_key: 'newsletter_fill_rate', value: newsletterFillRate },
+      { metric_key: 'display_fill_rate', value: displayFillRate },
+      { metric_key: 'hostread_platform_share', value: hostreadPlatformShare },
+      { metric_key: 'programmatic_platform_share', value: programmaticPlatformShare },
+      { metric_key: 'brand_deal_platform_share', value: brandDealPlatformShare },
     ]);
     onSave?.();
   };
 
   const channels = [
     { 
-      name: 'Audio Host-Read', 
+      name: AD_SCHEMA.audio_cpm_hostread.label, 
       icon: Radio, 
-      color: 'blue',
-      impressions: audioHostReadImpressions,
-      setImpressions: setAudioHostReadImpressions,
+      impressions: audioImpressions,
+      setImpressions: setAudioImpressions,
       cpm: audioHostReadCPM,
       setCpm: setAudioHostReadCPM,
-      cpmMin: 15,
-      cpmMax: 40,
-      fillRate: audioHostReadFillRate,
-      setFillRate: setAudioHostReadFillRate,
+      cpmConfig: AD_SCHEMA.audio_cpm_hostread,
+      fillRate: audioFillRate,
+      setFillRate: setAudioFillRate,
       revenue: audioHostReadRevenue,
     },
     { 
-      name: 'Audio Programmatic', 
+      name: AD_SCHEMA.audio_cpm_programmatic.label, 
       icon: Radio, 
-      color: 'indigo',
-      impressions: audioProgrammaticImpressions,
-      setImpressions: setAudioProgrammaticImpressions,
+      impressions: audioImpressions,
+      setImpressions: setAudioImpressions,
       cpm: audioProgrammaticCPM,
       setCpm: setAudioProgrammaticCPM,
-      cpmMin: 5,
-      cpmMax: 20,
-      fillRate: audioProgrammaticFillRate,
-      setFillRate: setAudioProgrammaticFillRate,
+      cpmConfig: AD_SCHEMA.audio_cpm_programmatic,
+      fillRate: audioFillRate,
+      setFillRate: setAudioFillRate,
       revenue: audioProgrammaticRevenue,
     },
     { 
-      name: 'Video (Pre/Mid-Roll)', 
+      name: AD_SCHEMA.video_cpm.label, 
       icon: Video, 
-      color: 'purple',
       impressions: videoImpressions,
       setImpressions: setVideoImpressions,
       cpm: videoCPM,
       setCpm: setVideoCPM,
-      cpmMin: 10,
-      cpmMax: 40,
+      cpmConfig: AD_SCHEMA.video_cpm,
       fillRate: videoFillRate,
       setFillRate: setVideoFillRate,
       revenue: videoRevenue,
     },
     { 
-      name: 'Newsletter/Email', 
+      name: AD_SCHEMA.newsletter_cpm.label, 
       icon: Mail, 
-      color: 'amber',
       impressions: newsletterImpressions,
       setImpressions: setNewsletterImpressions,
       cpm: newsletterCPM,
       setCpm: setNewsletterCPM,
-      cpmMin: 20,
-      cpmMax: 60,
+      cpmConfig: AD_SCHEMA.newsletter_cpm,
       fillRate: newsletterFillRate,
       setFillRate: setNewsletterFillRate,
       revenue: newsletterRevenue,
     },
     { 
-      name: 'Display', 
+      name: AD_SCHEMA.display_cpm.label, 
       icon: Monitor, 
-      color: 'slate',
       impressions: displayImpressions,
       setImpressions: setDisplayImpressions,
       cpm: displayCPM,
       setCpm: setDisplayCPM,
-      cpmMin: 2,
-      cpmMax: 15,
+      cpmConfig: AD_SCHEMA.display_cpm,
       fillRate: displayFillRate,
       setFillRate: setDisplayFillRate,
       revenue: displayRevenue,
@@ -273,9 +262,9 @@ export function AdRevenueCalculator({ onSave }: Props) {
                     <Slider
                       value={[channel.cpm]}
                       onValueChange={([v]) => channel.setCpm(v)}
-                      min={channel.cpmMin}
-                      max={channel.cpmMax}
-                      step={0.5}
+                      min={channel.cpmConfig.min}
+                      max={channel.cpmConfig.max}
+                      step={channel.cpmConfig.step}
                     />
                   </div>
                   <div className="space-y-1">
@@ -286,9 +275,9 @@ export function AdRevenueCalculator({ onSave }: Props) {
                     <Slider
                       value={[channel.fillRate]}
                       onValueChange={([v]) => channel.setFillRate(v)}
-                      min={30}
-                      max={95}
-                      step={5}
+                      min={AD_SCHEMA.audio_fill_rate.min}
+                      max={AD_SCHEMA.audio_fill_rate.max}
+                      step={AD_SCHEMA.audio_fill_rate.step}
                     />
                   </div>
                 </div>
@@ -341,29 +330,54 @@ export function AdRevenueCalculator({ onSave }: Props) {
           </motion.div>
         </div>
 
-        {/* Revenue Share */}
-        <div className="p-4 bg-muted rounded-lg mb-4">
-          <Label className="flex items-center justify-between mb-2">
-            <span>Creator Revenue Share</span>
-            <span className="font-medium">{creatorShare}% Creator / {platformShare}% Platform</span>
-          </Label>
-          <Slider
-            value={[creatorShare]}
-            onValueChange={([v]) => setCreatorShare(v)}
-            min={60}
-            max={90}
-            step={5}
-          />
-          <p className="text-xs text-muted-foreground mt-2">
-            Platform vs creator share drives gross margin in the Pro Forma.
-          </p>
+        {/* Platform Shares */}
+        <div className="grid md:grid-cols-3 gap-4 mb-4">
+          <div className="p-3 bg-muted rounded-lg">
+            <Label className="flex items-center justify-between mb-2 text-sm">
+              <span>{AD_SCHEMA.hostread_platform_share.label}</span>
+              <span className="font-medium">{hostreadPlatformShare}%</span>
+            </Label>
+            <Slider
+              value={[hostreadPlatformShare]}
+              onValueChange={([v]) => setHostreadPlatformShare(v)}
+              min={AD_SCHEMA.hostread_platform_share.min}
+              max={AD_SCHEMA.hostread_platform_share.max}
+              step={AD_SCHEMA.hostread_platform_share.step}
+            />
+          </div>
+          <div className="p-3 bg-muted rounded-lg">
+            <Label className="flex items-center justify-between mb-2 text-sm">
+              <span>{AD_SCHEMA.programmatic_platform_share.label}</span>
+              <span className="font-medium">{programmaticPlatformShare}%</span>
+            </Label>
+            <Slider
+              value={[programmaticPlatformShare]}
+              onValueChange={([v]) => setProgrammaticPlatformShare(v)}
+              min={AD_SCHEMA.programmatic_platform_share.min}
+              max={AD_SCHEMA.programmatic_platform_share.max}
+              step={AD_SCHEMA.programmatic_platform_share.step}
+            />
+          </div>
+          <div className="p-3 bg-muted rounded-lg">
+            <Label className="flex items-center justify-between mb-2 text-sm">
+              <span>{AD_SCHEMA.brand_deal_platform_share.label}</span>
+              <span className="font-medium">{brandDealPlatformShare}%</span>
+            </Label>
+            <Slider
+              value={[brandDealPlatformShare]}
+              onValueChange={([v]) => setBrandDealPlatformShare(v)}
+              min={AD_SCHEMA.brand_deal_platform_share.min}
+              max={AD_SCHEMA.brand_deal_platform_share.max}
+              step={AD_SCHEMA.brand_deal_platform_share.step}
+            />
+          </div>
         </div>
 
         {/* Helper Text */}
         <div className="flex items-start gap-2 p-3 bg-purple-50 rounded-lg mb-4">
           <Info className="w-4 h-4 text-purple-600 mt-0.5" />
           <p className="text-sm text-purple-800">
-            Channel CPM and fill rates are seeded from industry benchmarks. Use overrides to reflect Seeksy's deal structure.
+            Channel CPM and fill rates are seeded from industry benchmarks. Platform vs creator share drives gross margin in the Pro Forma.
           </p>
         </div>
 
@@ -378,13 +392,13 @@ export function AdRevenueCalculator({ onSave }: Props) {
           <Card className="bg-gradient-to-br from-purple-100 to-purple-50 border-0">
             <CardContent className="p-4 text-center">
               <p className="text-xs text-purple-600">Platform Share</p>
-              <p className="text-2xl font-bold text-purple-700">{formatCurrency(platformRevenue)}</p>
+              <p className="text-2xl font-bold text-purple-700">{formatCurrency(totalPlatformRevenue)}</p>
             </CardContent>
           </Card>
           <Card className="bg-gradient-to-br from-emerald-100 to-emerald-50 border-0">
             <CardContent className="p-4 text-center">
               <p className="text-xs text-emerald-600">Creator Payout</p>
-              <p className="text-2xl font-bold text-emerald-700">{formatCurrency(creatorPayout)}</p>
+              <p className="text-2xl font-bold text-emerald-700">{formatCurrency(totalCreatorPayout)}</p>
             </CardContent>
           </Card>
         </div>

@@ -5,46 +5,48 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { motion } from 'framer-motion';
-import { Users, RefreshCw, Save, CreditCard, Info } from 'lucide-react';
+import { RefreshCw, Save, CreditCard, Info } from 'lucide-react';
 import { useCFOAssumptions } from '@/hooks/useCFOAssumptions';
+import { CFO_ASSUMPTIONS_SCHEMA } from '@/lib/cfo-assumptions-schema';
 
 interface Props {
   onSave?: () => void;
 }
 
+const SCHEMA = CFO_ASSUMPTIONS_SCHEMA.subscriptions;
+const GROWTH_SCHEMA = CFO_ASSUMPTIONS_SCHEMA.growth;
+
 export function SubscriptionRevenueCalculator({ onSave }: Props) {
   const { getEffectiveValue, saveMultipleAssumptions, isSaving } = useCFOAssumptions();
 
-  // Input state with specified defaults
+  // Input state with canonical schema defaults
   const [activeCreators, setActiveCreators] = useState(2400);
   const [freePct, setFreePct] = useState(60);
   const [proPct, setProPct] = useState(25);
   const [businessPct, setBusinessPct] = useState(10);
   const [enterprisePct, setEnterprisePct] = useState(5);
-  const [monthlyGrowth, setMonthlyGrowth] = useState(8);
-  const [upgradeRate, setUpgradeRate] = useState(5);
+  const [monthlyGrowth, setMonthlyGrowth] = useState(GROWTH_SCHEMA.monthly_creator_growth_rate.default);
+  const [upgradeRate, setUpgradeRate] = useState(SCHEMA.free_to_pro_conversion_rate.default);
   
-  // Tier pricing with specified ranges and defaults
-  const [pricePro, setPricePro] = useState(19);
-  const [priceBusiness, setPriceBusiness] = useState(49);
-  const [priceEnterprise, setPriceEnterprise] = useState(299);
+  // Tier pricing from schema
+  const [pricePro, setPricePro] = useState(SCHEMA.pro_arpu.default);
+  const [priceBusiness, setPriceBusiness] = useState(SCHEMA.business_arpu.default);
+  const [priceEnterprise, setPriceEnterprise] = useState(SCHEMA.enterprise_arpu.default);
 
-  // Ensure tier percentages always total 100%
-  const normalizeTiers = (changed: string, newValue: number) => {
-    const total = 100;
-    let remaining = total - newValue;
+  // Load saved values
+  useEffect(() => {
+    const savedGrowth = getEffectiveValue('monthly_creator_growth_rate');
+    const savedUpgrade = getEffectiveValue('free_to_pro_conversion_rate');
+    const savedPro = getEffectiveValue('pro_arpu');
+    const savedBusiness = getEffectiveValue('business_arpu');
+    const savedEnterprise = getEffectiveValue('enterprise_arpu');
     
-    if (changed === 'free') {
-      // Distribute remaining proportionally among paid tiers
-      const paidTotal = proPct + businessPct + enterprisePct;
-      if (paidTotal > 0) {
-        const ratio = remaining / paidTotal;
-        setProPct(Math.round(proPct * ratio));
-        setBusinessPct(Math.round(businessPct * ratio));
-        setEnterprisePct(Math.round(enterprisePct * ratio));
-      }
-    }
-  };
+    if (savedGrowth) setMonthlyGrowth(savedGrowth);
+    if (savedUpgrade) setUpgradeRate(savedUpgrade);
+    if (savedPro) setPricePro(savedPro);
+    if (savedBusiness) setPriceBusiness(savedBusiness);
+    if (savedEnterprise) setPriceEnterprise(savedEnterprise);
+  }, [getEffectiveValue]);
 
   // Calculations
   const freeCount = Math.round(activeCreators * (freePct / 100));
@@ -68,25 +70,20 @@ export function SubscriptionRevenueCalculator({ onSave }: Props) {
     setProPct(25);
     setBusinessPct(10);
     setEnterprisePct(5);
-    setMonthlyGrowth(8);
-    setUpgradeRate(5);
-    setPricePro(19);
-    setPriceBusiness(49);
-    setPriceEnterprise(299);
+    setMonthlyGrowth(GROWTH_SCHEMA.monthly_creator_growth_rate.default);
+    setUpgradeRate(SCHEMA.free_to_pro_conversion_rate.default);
+    setPricePro(SCHEMA.pro_arpu.default);
+    setPriceBusiness(SCHEMA.business_arpu.default);
+    setPriceEnterprise(SCHEMA.enterprise_arpu.default);
   };
 
   const handleSave = () => {
     saveMultipleAssumptions([
-      { metric_key: 'starting_creators', value: activeCreators, unit: 'count', category: 'growth' },
-      { metric_key: 'free_tier_percent', value: freePct, unit: 'percent', category: 'subscriptions' },
-      { metric_key: 'pro_tier_percent', value: proPct, unit: 'percent', category: 'subscriptions' },
-      { metric_key: 'business_tier_percent', value: businessPct, unit: 'percent', category: 'subscriptions' },
-      { metric_key: 'enterprise_tier_percent', value: enterprisePct, unit: 'percent', category: 'subscriptions' },
-      { metric_key: 'creator_growth_mom', value: monthlyGrowth, unit: 'percent', category: 'growth' },
-      { metric_key: 'free_to_paid_upgrade_rate', value: upgradeRate, unit: 'percent', category: 'subscriptions' },
-      { metric_key: 'creator_subscription_arpu_pro', value: pricePro, unit: 'usd', category: 'subscriptions' },
-      { metric_key: 'creator_subscription_arpu_business', value: priceBusiness, unit: 'usd', category: 'subscriptions' },
-      { metric_key: 'creator_subscription_arpu_enterprise', value: priceEnterprise, unit: 'usd', category: 'subscriptions' },
+      { metric_key: 'monthly_creator_growth_rate', value: monthlyGrowth },
+      { metric_key: 'free_to_pro_conversion_rate', value: upgradeRate },
+      { metric_key: 'pro_arpu', value: pricePro },
+      { metric_key: 'business_arpu', value: priceBusiness },
+      { metric_key: 'enterprise_arpu', value: priceEnterprise },
     ]);
     onSave?.();
   };
@@ -208,72 +205,72 @@ export function SubscriptionRevenueCalculator({ onSave }: Props) {
               
               <div className="space-y-2">
                 <Label className="flex items-center justify-between text-sm">
-                  <span>Pro Price</span>
+                  <span>{SCHEMA.pro_arpu.label}</span>
                   <span className="font-medium">${pricePro}/mo</span>
                 </Label>
                 <Slider
                   value={[pricePro]}
                   onValueChange={([v]) => setPricePro(v)}
-                  min={9}
-                  max={39}
-                  step={1}
+                  min={SCHEMA.pro_arpu.min}
+                  max={SCHEMA.pro_arpu.max}
+                  step={SCHEMA.pro_arpu.step}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label className="flex items-center justify-between text-sm">
-                  <span>Business Price</span>
+                  <span>{SCHEMA.business_arpu.label}</span>
                   <span className="font-medium">${priceBusiness}/mo</span>
                 </Label>
                 <Slider
                   value={[priceBusiness]}
                   onValueChange={([v]) => setPriceBusiness(v)}
-                  min={29}
-                  max={149}
-                  step={5}
+                  min={SCHEMA.business_arpu.min}
+                  max={SCHEMA.business_arpu.max}
+                  step={SCHEMA.business_arpu.step}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label className="flex items-center justify-between text-sm">
-                  <span>Enterprise Price</span>
+                  <span>{SCHEMA.enterprise_arpu.label}</span>
                   <span className="font-medium">${priceEnterprise}/mo</span>
                 </Label>
                 <Slider
                   value={[priceEnterprise]}
                   onValueChange={([v]) => setPriceEnterprise(v)}
-                  min={99}
-                  max={499}
-                  step={10}
+                  min={SCHEMA.enterprise_arpu.min}
+                  max={SCHEMA.enterprise_arpu.max}
+                  step={SCHEMA.enterprise_arpu.step}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label className="flex items-center justify-between">
-                <span>Monthly Creator Growth</span>
+                <span>{GROWTH_SCHEMA.monthly_creator_growth_rate.label}</span>
                 <span className="text-sm font-medium text-foreground">{monthlyGrowth}%</span>
               </Label>
               <Slider
                 value={[monthlyGrowth]}
                 onValueChange={([v]) => setMonthlyGrowth(v)}
-                min={1}
-                max={20}
-                step={1}
+                min={GROWTH_SCHEMA.monthly_creator_growth_rate.min}
+                max={GROWTH_SCHEMA.monthly_creator_growth_rate.max}
+                step={GROWTH_SCHEMA.monthly_creator_growth_rate.step}
               />
             </div>
 
             <div className="space-y-2">
               <Label className="flex items-center justify-between">
-                <span>Free → Paid Upgrade Rate</span>
+                <span>{SCHEMA.free_to_pro_conversion_rate.label}</span>
                 <span className="text-sm font-medium text-foreground">{upgradeRate}%</span>
               </Label>
               <Slider
                 value={[upgradeRate]}
                 onValueChange={([v]) => setUpgradeRate(v)}
-                min={0}
-                max={20}
-                step={1}
+                min={SCHEMA.free_to_pro_conversion_rate.min}
+                max={SCHEMA.free_to_pro_conversion_rate.max}
+                step={SCHEMA.free_to_pro_conversion_rate.step}
               />
             </div>
           </div>
