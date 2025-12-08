@@ -26,15 +26,18 @@ export function GrowthCACCalculator({ onSave }: Props) {
   const [churnRate, setChurnRate] = useState(SCHEMA.creator_monthly_churn_rate.default);
   const [timeHorizon, setTimeHorizon] = useState(12);
 
-  // Update from saved values when loaded
+  // Update from saved values when loaded - only run once on mount
+  const [initialized, setInitialized] = useState(false);
   useEffect(() => {
+    if (initialized) return;
     const savedCac = getEffectiveValue('creator_cac_paid');
     const savedArpu = getEffectiveValue('pro_arpu');
     const savedChurn = getEffectiveValue('creator_monthly_churn_rate');
     if (savedCac) setCac(savedCac);
     if (savedArpu) setArpu(savedArpu);
     if (savedChurn) setChurnRate(savedChurn);
-  }, [getEffectiveValue]);
+    setInitialized(true);
+  }, [getEffectiveValue, initialized]);
 
   // Calculations
   const newCustomersPerMonth = Math.floor(monthlyBudget / cac);

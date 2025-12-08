@@ -47,8 +47,10 @@ export function AdRevenueCalculator({ onSave }: Props) {
   const [programmaticPlatformShare, setProgrammaticPlatformShare] = useState(AD_SCHEMA.programmatic_platform_share.default);
   const [brandDealPlatformShare, setBrandDealPlatformShare] = useState(AD_SCHEMA.brand_deal_platform_share.default);
 
-  // Load saved values
+  // Load saved values - only run once on mount
+  const [initialized, setInitialized] = useState(false);
   useEffect(() => {
+    if (initialized) return;
     setAudioHostReadCPM(getEffectiveValue('audio_cpm_hostread') || AD_SCHEMA.audio_cpm_hostread.default);
     setAudioProgrammaticCPM(getEffectiveValue('audio_cpm_programmatic') || AD_SCHEMA.audio_cpm_programmatic.default);
     setVideoCPM(getEffectiveValue('video_cpm') || AD_SCHEMA.video_cpm.default);
@@ -61,7 +63,8 @@ export function AdRevenueCalculator({ onSave }: Props) {
     setHostreadPlatformShare(getEffectiveValue('hostread_platform_share') || AD_SCHEMA.hostread_platform_share.default);
     setProgrammaticPlatformShare(getEffectiveValue('programmatic_platform_share') || AD_SCHEMA.programmatic_platform_share.default);
     setBrandDealPlatformShare(getEffectiveValue('brand_deal_platform_share') || AD_SCHEMA.brand_deal_platform_share.default);
-  }, [getEffectiveValue]);
+    setInitialized(true);
+  }, [getEffectiveValue, initialized]);
 
   // Calculate revenue per channel
   const calculateChannelRevenue = (impressions: number, cpm: number, fillRate: number) => {

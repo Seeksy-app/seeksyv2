@@ -33,8 +33,10 @@ export function SubscriptionRevenueCalculator({ onSave }: Props) {
   const [priceBusiness, setPriceBusiness] = useState(SCHEMA.business_arpu.default);
   const [priceEnterprise, setPriceEnterprise] = useState(SCHEMA.enterprise_arpu.default);
 
-  // Load saved values
+  // Load saved values - only run once on mount
+  const [initialized, setInitialized] = useState(false);
   useEffect(() => {
+    if (initialized) return;
     const savedGrowth = getEffectiveValue('monthly_creator_growth_rate');
     const savedUpgrade = getEffectiveValue('free_to_pro_conversion_rate');
     const savedPro = getEffectiveValue('pro_arpu');
@@ -46,7 +48,8 @@ export function SubscriptionRevenueCalculator({ onSave }: Props) {
     if (savedPro) setPricePro(savedPro);
     if (savedBusiness) setPriceBusiness(savedBusiness);
     if (savedEnterprise) setPriceEnterprise(savedEnterprise);
-  }, [getEffectiveValue]);
+    setInitialized(true);
+  }, [getEffectiveValue, initialized]);
 
   // Calculations
   const freeCount = Math.round(activeCreators * (freePct / 100));

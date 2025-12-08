@@ -30,8 +30,10 @@ export function EventsAwardsCalculator({ onSave }: Props) {
   const [nominationFees, setNominationFees] = useState(25);
   const [avgNominations, setAvgNominations] = useState(200);
 
-  // Load saved values
+  // Load saved values - only run once on mount
+  const [initialized, setInitialized] = useState(false);
   useEffect(() => {
+    if (initialized) return;
     const savedEvents = getEffectiveValue('events_per_year');
     const savedTicket = getEffectiveValue('avg_ticket_price');
     const savedSponsorship = getEffectiveValue('avg_event_sponsorship');
@@ -39,7 +41,8 @@ export function EventsAwardsCalculator({ onSave }: Props) {
     if (savedEvents) setEventsPerYear(savedEvents);
     if (savedTicket) setAvgTicketPrice(savedTicket);
     if (savedSponsorship) setAvgSponsorshipPerEvent(savedSponsorship);
-  }, [getEffectiveValue]);
+    setInitialized(true);
+  }, [getEffectiveValue, initialized]);
 
   // Calculations
   const ticketRevenue = eventsPerYear * avgTicketPrice * avgAttendeesPerEvent;
