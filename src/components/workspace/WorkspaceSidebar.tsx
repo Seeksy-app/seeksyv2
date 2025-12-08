@@ -569,22 +569,6 @@ export function WorkspaceSidebar() {
                         >
                           <SidebarMenuItem className="group/item relative">
                             <div className="flex items-center w-full">
-                              {/* Drag handle - visible on hover */}
-                              {!isCollapsed && (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <button
-                                      className="h-6 w-5 p-0 mr-0.5 flex items-center justify-center text-sidebar-foreground/30 hover:text-sidebar-foreground/60 cursor-grab active:cursor-grabbing opacity-0 group-hover/group:opacity-100 transition-opacity"
-                                      onMouseDown={(e) => e.stopPropagation()}
-                                    >
-                                      <GripVertical className="h-3.5 w-3.5" />
-                                    </button>
-                                  </TooltipTrigger>
-                                  <TooltipContent side="right" className="text-xs">
-                                    Drag to reorder
-                                  </TooltipContent>
-                                </Tooltip>
-                              )}
                               <CollapsibleTrigger asChild>
                                 <Button
                                   variant="ghost"
