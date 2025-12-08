@@ -72,7 +72,7 @@ export default function BoardCustomerHealth() {
   const [selectedSegment, setSelectedSegment] = useState<SegmentMetrics | null>(null);
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="w-full space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

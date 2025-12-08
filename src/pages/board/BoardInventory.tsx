@@ -134,7 +134,7 @@ export default function BoardInventory() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-foreground">Ad Inventory Overview</h1>

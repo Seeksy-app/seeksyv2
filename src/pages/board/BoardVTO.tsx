@@ -117,7 +117,7 @@ export default function BoardVTO() {
 
   if (!vto) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="w-full space-y-6">
         <Card>
           <CardContent className="p-8 text-center">
             <Target className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
@@ -132,7 +132,7 @@ export default function BoardVTO() {
   const rocksOnTrack = vto.quarterly_rocks.filter(r => r.status === "on_track" || r.status === "complete").length;
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="w-full space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

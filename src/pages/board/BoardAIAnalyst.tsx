@@ -143,8 +143,7 @@ How can I assist you today?`;
   ];
 
   return (
-    <div className="w-full">
-      <div className="w-full space-y-6">
+    <div className="w-full space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -253,7 +252,6 @@ How can I assist you today?`;
             </div>
           </CardContent>
         </Card>
-      </div>
     </div>
   );
 }
