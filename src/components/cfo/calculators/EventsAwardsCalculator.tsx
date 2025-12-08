@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { motion } from 'framer-motion';
-import { Calendar, Trophy, DollarSign, RefreshCw, Save, Users } from 'lucide-react';
+import { Calendar, Trophy, RefreshCw, Save, Info } from 'lucide-react';
 import { useCFOAssumptions } from '@/hooks/useCFOAssumptions';
 
 interface Props {
@@ -15,15 +15,15 @@ interface Props {
 export function EventsAwardsCalculator({ onSave }: Props) {
   const { saveMultipleAssumptions, isSaving } = useCFOAssumptions();
 
-  // Events
-  const [eventsPerYear, setEventsPerYear] = useState(12);
-  const [avgTicketPrice, setAvgTicketPrice] = useState(50);
-  const [avgAttendeesPerEvent, setAvgAttendeesPerEvent] = useState(200);
+  // Events - with specified ranges and defaults
+  const [eventsPerYear, setEventsPerYear] = useState(24);
+  const [avgTicketPrice, setAvgTicketPrice] = useState(45);
+  const [avgAttendeesPerEvent, setAvgAttendeesPerEvent] = useState(150);
   const [avgSponsorshipPerEvent, setAvgSponsorshipPerEvent] = useState(5000);
 
-  // Awards
-  const [awardProgramsPerYear, setAwardProgramsPerYear] = useState(2);
-  const [avgSponsorshipPerAward, setAvgSponsorshipPerAward] = useState(15000);
+  // Awards - with specified ranges and defaults
+  const [awardProgramsPerYear, setAwardProgramsPerYear] = useState(4);
+  const [avgSponsorshipPerAward, setAvgSponsorshipPerAward] = useState(2500);
   const [nominationFees, setNominationFees] = useState(25);
   const [avgNominations, setAvgNominations] = useState(200);
 
@@ -45,12 +45,12 @@ export function EventsAwardsCalculator({ onSave }: Props) {
   };
 
   const handleReset = () => {
-    setEventsPerYear(12);
-    setAvgTicketPrice(50);
-    setAvgAttendeesPerEvent(200);
+    setEventsPerYear(24);
+    setAvgTicketPrice(45);
+    setAvgAttendeesPerEvent(150);
     setAvgSponsorshipPerEvent(5000);
-    setAwardProgramsPerYear(2);
-    setAvgSponsorshipPerAward(15000);
+    setAwardProgramsPerYear(4);
+    setAvgSponsorshipPerAward(2500);
     setNominationFees(25);
     setAvgNominations(200);
   };
@@ -70,13 +70,18 @@ export function EventsAwardsCalculator({ onSave }: Props) {
   };
 
   return (
-    <Card className="border-slate-200 shadow-sm">
-      <CardHeader className="border-b border-slate-100 py-4">
+    <Card className="border-border shadow-sm">
+      <CardHeader className="border-b border-border py-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-amber-500" />
-            Events & Awards Calculator
-          </CardTitle>
+          <div>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-amber-500" />
+              Events & Awards Calculator
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Adjust these sliders to update CFO assumptions. Click 'Save to Pro Forma' to apply them to all board forecasts.
+            </p>
+          </div>
           <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
             Event Revenue
           </Badge>
@@ -88,7 +93,7 @@ export function EventsAwardsCalculator({ onSave }: Props) {
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-3">
               <Calendar className="w-4 h-4 text-blue-500" />
-              <h3 className="font-semibold text-slate-900">Events</h3>
+              <h3 className="font-semibold text-foreground">Events</h3>
             </div>
 
             <div className="space-y-2">
@@ -99,8 +104,8 @@ export function EventsAwardsCalculator({ onSave }: Props) {
               <Slider
                 value={[eventsPerYear]}
                 onValueChange={([v]) => setEventsPerYear(v)}
-                min={1}
-                max={52}
+                min={0}
+                max={200}
                 step={1}
               />
             </div>
@@ -113,9 +118,9 @@ export function EventsAwardsCalculator({ onSave }: Props) {
               <Slider
                 value={[avgTicketPrice]}
                 onValueChange={([v]) => setAvgTicketPrice(v)}
-                min={0}
-                max={500}
-                step={10}
+                min={10}
+                max={250}
+                step={5}
               />
             </div>
 
@@ -141,25 +146,25 @@ export function EventsAwardsCalculator({ onSave }: Props) {
               <Slider
                 value={[avgSponsorshipPerEvent]}
                 onValueChange={([v]) => setAvgSponsorshipPerEvent(v)}
-                min={0}
+                min={500}
                 max={50000}
-                step={1000}
+                step={500}
               />
             </div>
 
             <div className="p-3 bg-blue-50 rounded-lg">
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <p className="text-slate-500">Ticket Revenue</p>
-                  <p className="font-bold text-slate-900">{formatCurrency(ticketRevenue)}</p>
+                  <p className="text-muted-foreground">Ticket Revenue</p>
+                  <p className="font-bold text-foreground">{formatCurrency(ticketRevenue)}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500">Sponsorships</p>
-                  <p className="font-bold text-slate-900">{formatCurrency(eventSponsorshipRevenue)}</p>
+                  <p className="text-muted-foreground">Sponsorships</p>
+                  <p className="font-bold text-foreground">{formatCurrency(eventSponsorshipRevenue)}</p>
                 </div>
               </div>
               <div className="mt-2 pt-2 border-t border-blue-100">
-                <p className="text-xs text-slate-500">Total Event Revenue</p>
+                <p className="text-xs text-muted-foreground">Total Event Revenue</p>
                 <p className="text-lg font-bold text-blue-600">{formatCurrency(totalEventRevenue)}</p>
               </div>
             </div>
@@ -169,7 +174,7 @@ export function EventsAwardsCalculator({ onSave }: Props) {
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-3">
               <Trophy className="w-4 h-4 text-amber-500" />
-              <h3 className="font-semibold text-slate-900">Awards Programs</h3>
+              <h3 className="font-semibold text-foreground">Awards Programs</h3>
             </div>
 
             <div className="space-y-2">
@@ -180,8 +185,8 @@ export function EventsAwardsCalculator({ onSave }: Props) {
               <Slider
                 value={[awardProgramsPerYear]}
                 onValueChange={([v]) => setAwardProgramsPerYear(v)}
-                min={1}
-                max={12}
+                min={0}
+                max={20}
                 step={1}
               />
             </div>
@@ -195,8 +200,8 @@ export function EventsAwardsCalculator({ onSave }: Props) {
                 value={[avgSponsorshipPerAward]}
                 onValueChange={([v]) => setAvgSponsorshipPerAward(v)}
                 min={1000}
-                max={100000}
-                step={1000}
+                max={50000}
+                step={500}
               />
             </div>
 
@@ -231,24 +236,32 @@ export function EventsAwardsCalculator({ onSave }: Props) {
             <div className="p-3 bg-amber-50 rounded-lg">
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <p className="text-slate-500">Sponsorships</p>
-                  <p className="font-bold text-slate-900">{formatCurrency(awardSponsorshipRevenue)}</p>
+                  <p className="text-muted-foreground">Sponsorships</p>
+                  <p className="font-bold text-foreground">{formatCurrency(awardSponsorshipRevenue)}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500">Nomination Fees</p>
-                  <p className="font-bold text-slate-900">{formatCurrency(awardNominationRevenue)}</p>
+                  <p className="text-muted-foreground">Nomination Fees</p>
+                  <p className="font-bold text-foreground">{formatCurrency(awardNominationRevenue)}</p>
                 </div>
               </div>
               <div className="mt-2 pt-2 border-t border-amber-100">
-                <p className="text-xs text-slate-500">Total Awards Revenue</p>
+                <p className="text-xs text-muted-foreground">Total Awards Revenue</p>
                 <p className="text-lg font-bold text-amber-600">{formatCurrency(totalAwardRevenue)}</p>
               </div>
             </div>
           </div>
         </div>
 
+        {/* Helper Text */}
+        <div className="flex items-start gap-2 p-3 bg-amber-50 rounded-lg mt-6">
+          <Info className="w-4 h-4 text-amber-600 mt-0.5" />
+          <p className="text-sm text-amber-800">
+            Use this to model events and awards revenue that feeds into the Events & Awards line in the AI Pro Forma.
+          </p>
+        </div>
+
         {/* Combined Total */}
-        <Card className="mt-6 bg-gradient-to-br from-amber-100 to-orange-50 border-0">
+        <Card className="mt-4 bg-gradient-to-br from-amber-100 to-orange-50 border-0">
           <CardContent className="p-4 text-center">
             <p className="text-sm text-amber-700">Total Events & Awards Revenue</p>
             <p className="text-3xl font-bold text-amber-800">{formatCurrency(totalEventsAwardsRevenue)}</p>
