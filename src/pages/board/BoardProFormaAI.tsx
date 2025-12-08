@@ -413,7 +413,8 @@ export default function BoardProFormaAI() {
       <Alert className="border-emerald-200 bg-emerald-50">
         <Shield className="w-4 h-4 text-emerald-600" />
         <AlertDescription className="text-emerald-800">
-          <strong>CFO-Controlled Financial Model</strong> — All scenarios use CFO assumptions as baseline.
+          <strong>CFO-Controlled Financial Model</strong> — All scenarios use CFO assumptions as the financial baseline. 
+          Conservative and Aggressive scenarios apply percentage adjustments on top of the Base case.
           {isLocked && lockedAt && (
             <span className="ml-2 text-emerald-600">
               Locked on {new Date(lockedAt).toLocaleDateString()}
