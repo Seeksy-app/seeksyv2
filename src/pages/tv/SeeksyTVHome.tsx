@@ -10,6 +10,8 @@ import {
   Mic, Video, Sparkles
 } from "lucide-react";
 import { TVFooter } from "@/components/tv/TVFooter";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 // Mock data for demo
 const featuredCreators = [
@@ -55,6 +57,24 @@ export default function SeeksyTVHome() {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Fetch channels with published videos
+  const { data: channels } = useQuery({
+    queryKey: ['tv-channels-with-videos'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tv_channels')
+        .select(`
+          *,
+          videos:tv_content(id, title, thumbnail_url, duration_seconds, view_count)
+        `)
+        .eq('tv_content.is_published', true)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data?.filter(c => c.videos && c.videos.length > 0) || [];
+    }
+  });
 
   return (
     <div className="min-h-screen bg-[#0a0a14] text-white">
@@ -114,10 +134,10 @@ export default function SeeksyTVHome() {
             <Badge className="bg-red-600 text-white mb-4">
               <span className="animate-pulse mr-2">●</span> LIVE NOW
             </Badge>
-            <h1 className="text-5xl font-bold mb-4">
+            <h1 className="text-5xl font-bold mb-4 text-white drop-shadow-lg">
               Morning Tech Roundup
             </h1>
-            <p className="text-xl text-gray-300 mb-6">
+            <p className="text-xl text-white/90 mb-6 drop-shadow-md">
               Join The Daily Tech for a live discussion on the latest AI developments and tech news.
             </p>
             <div className="flex items-center gap-4">
@@ -125,7 +145,7 @@ export default function SeeksyTVHome() {
                 <Play className="h-5 w-5 fill-current" />
                 Watch Now
               </Button>
-              <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10">
+              <Button size="lg" variant="outline" className="border-white/50 text-white bg-white/10 hover:bg-white/20">
                 <Bell className="h-5 w-5 mr-2" />
                 Set Reminder
               </Button>
@@ -145,7 +165,7 @@ export default function SeeksyTVHome() {
                 className={
                   selectedCategory === category
                     ? "bg-amber-500 hover:bg-amber-600 text-white shrink-0"
-                    : "border-white/20 text-gray-300 hover:text-white hover:bg-white/10 shrink-0"
+                    : "border-white/30 bg-white text-gray-800 hover:bg-gray-100 shrink-0"
                 }
                 onClick={() => setSelectedCategory(category)}
               >
@@ -157,13 +177,67 @@ export default function SeeksyTVHome() {
         </ScrollArea>
       </section>
 
+      {/* Channels Section - Shows published channel videos */}
+      {channels && channels.length > 0 && (
+        <section className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
+              <Radio className="h-6 w-6 text-amber-400" />
+              Channels
+            </h2>
+            <Button variant="ghost" className="text-amber-400 hover:text-amber-300">
+              Browse all <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {channels.map((channel: any) => (
+              <div
+                key={channel.id}
+                className="group rounded-xl overflow-hidden bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                onClick={() => navigate(`/tv/channel/${channel.slug}`)}
+              >
+                <div className="p-4 flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white text-xl font-bold shrink-0">
+                    {channel.name.charAt(0)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-lg text-white group-hover:text-amber-400 transition-colors truncate">
+                      {channel.name}
+                    </h3>
+                    <p className="text-sm text-gray-400">
+                      {channel.videos?.length || 0} videos
+                    </p>
+                  </div>
+                </div>
+                {channel.videos && channel.videos.length > 0 && (
+                  <div className="grid grid-cols-3 gap-1 p-2 pt-0">
+                    {channel.videos.slice(0, 3).map((video: any) => (
+                      <div key={video.id} className="aspect-video rounded overflow-hidden bg-gray-800">
+                        {video.thumbnail_url ? (
+                          <img src={video.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Tv className="h-4 w-4 text-gray-600" />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Live Now Section */}
       {liveNow.length > 0 && (
         <section className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-              <h2 className="text-2xl font-bold">Live Now</h2>
+              <h2 className="text-2xl font-bold text-white">Live Now</h2>
             </div>
             <Button variant="ghost" className="text-amber-400 hover:text-amber-300">
               See all <ChevronRight className="h-4 w-4 ml-1" />
@@ -192,7 +266,7 @@ export default function SeeksyTVHome() {
                   </Badge>
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <h3 className="font-semibold text-lg mb-1 group-hover:text-amber-400 transition-colors">
+                  <h3 className="font-semibold text-lg mb-1 text-white group-hover:text-amber-400 transition-colors">
                     {stream.title}
                   </h3>
                   <p className="text-sm text-gray-400">{stream.creator}</p>
@@ -211,7 +285,7 @@ export default function SeeksyTVHome() {
       {/* Featured Creators */}
       <section className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold flex items-center gap-2">
+          <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
             <Star className="h-6 w-6 text-amber-400" />
             Featured Creators
           </h2>
@@ -249,7 +323,7 @@ export default function SeeksyTVHome() {
       {/* Latest Episodes */}
       <section className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold flex items-center gap-2">
+          <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
             <Radio className="h-6 w-6 text-amber-400" />
             Latest Episodes
           </h2>
@@ -294,7 +368,7 @@ export default function SeeksyTVHome() {
       {/* AI Clips */}
       <section className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold flex items-center gap-2">
+          <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
             <Sparkles className="h-6 w-6 text-amber-400" />
             AI-Generated Clips
           </h2>
@@ -343,7 +417,7 @@ export default function SeeksyTVHome() {
       {/* Trending Creators */}
       <section className="container mx-auto px-4 py-6 mb-12">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold flex items-center gap-2">
+          <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
             <TrendingUp className="h-6 w-6 text-amber-400" />
             Trending This Week
           </h2>
