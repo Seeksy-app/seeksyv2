@@ -109,7 +109,7 @@ export const CFO_ASSUMPTIONS_SCHEMA: CFOAssumptionsSchema = {
       default: 29,
       benchmark_key: "creator_subscription_arpu_pro",
       min: 9,
-      max: 49,
+      max: 299,
       step: 1,
       description: "Average revenue per Pro subscriber"
     },

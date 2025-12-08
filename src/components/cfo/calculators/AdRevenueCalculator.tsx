@@ -250,7 +250,7 @@ export function AdRevenueCalculator({ onSave }: Props) {
                   <Slider
                     value={[channel.impressions]}
                     onValueChange={([v]) => channel.setImpressions(v)}
-                    min={10000}
+                    min={5000}
                     max={10000000}
                     step={10000}
                   />
