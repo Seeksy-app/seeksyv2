@@ -6,10 +6,12 @@ import { Tv, Upload, FolderSync, Play, Clock, Eye } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DropboxImportDialog } from "@/components/tv/DropboxImportDialog";
+import { VideoUploadDialog } from "@/components/tv/VideoUploadDialog";
 import { format } from "date-fns";
 
 const AdminSeeksyTV = () => {
   const [dropboxOpen, setDropboxOpen] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
 
   const { data: tvContent, isLoading, refetch } = useQuery({
     queryKey: ['admin-tv-content'],
@@ -76,7 +78,7 @@ const AdminSeeksyTV = () => {
             <FolderSync className="h-4 w-4 mr-2" />
             Import from Dropbox
           </Button>
-          <Button>
+          <Button onClick={() => setUploadOpen(true)}>
             <Upload className="h-4 w-4 mr-2" />
             Upload Video
           </Button>
@@ -234,6 +236,12 @@ const AdminSeeksyTV = () => {
         open={dropboxOpen} 
         onOpenChange={setDropboxOpen}
         onImportComplete={() => refetch()}
+      />
+
+      <VideoUploadDialog
+        open={uploadOpen}
+        onOpenChange={setUploadOpen}
+        onUploadComplete={() => refetch()}
       />
     </div>
   );
