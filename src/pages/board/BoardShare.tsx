@@ -55,14 +55,15 @@ export default function BoardShare() {
   
   // Form state
   const [investorName, setInvestorName] = useState('');
+  const [investorEmail, setInvestorEmail] = useState('');
+  const [personalMessage, setPersonalMessage] = useState('');
   const [selectedScope, setSelectedScope] = useState<string[]>(['dashboard', 'gtm', 'forecasts']);
-  const [dataMode, setDataMode] = useState('demo');
   const [duration, setDuration] = useState('7d');
   const [allowAI, setAllowAI] = useState(true);
   const [allowPDF, setAllowPDF] = useState(false);
-  const [useRealTimeData, setUseRealTimeData] = useState(true);
   const [allowHtmlView, setAllowHtmlView] = useState(true);
   const [allowDownload, setAllowDownload] = useState(false);
+  const [sendEmail, setSendEmail] = useState(true);
   
   // Generated link data
   const [generatedLink, setGeneratedLink] = useState('');
@@ -108,7 +109,6 @@ export default function BoardShare() {
 
       // Build share configuration for investor viewing
       const shareConfig = {
-        useRealTimeData,
         allowHtmlView,
         allowDownload,
       };
@@ -117,7 +117,6 @@ export default function BoardShare() {
         token,
         passcode,
         investor_name: investorName || null,
-        data_mode: dataMode,
         scope: selectedScope,
         allow_ai: allowAI,
         allow_pdf: allowPDF,
@@ -133,8 +132,40 @@ export default function BoardShare() {
       const baseUrl = window.location.origin;
       setGeneratedLink(`${baseUrl}/investor/${token}`);
       setGeneratedPasscode(passcode);
+
+      // Send email if email is provided and sendEmail is enabled
+      if (sendEmail && investorEmail) {
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', user.id)
+            .single();
+          
+          const boardMemberName = profile?.full_name || user.email?.split('@')[0] || 'Board Member';
+
+          await supabase.functions.invoke('send-investor-email', {
+            body: {
+              linkId: data.id,
+              investorEmail,
+              investorName,
+              message: personalMessage,
+              boardMemberName,
+              boardMemberEmail: user.email,
+              shareUrl: `${baseUrl}/investor/${token}`,
+              passcode,
+            },
+          });
+          toast.success('Investor link created and email sent');
+        } catch (emailError) {
+          console.error('Error sending email:', emailError);
+          toast.warning('Link created but failed to send email');
+        }
+      } else {
+        toast.success('Investor link created successfully');
+      }
+
       setStep('success');
-      toast.success('Investor link created successfully');
     } catch (error) {
       console.error('Error creating investor link:', error);
       toast.error('Failed to create investor link');
@@ -183,16 +214,60 @@ export default function BoardShare() {
               <CardTitle>Create Investor View</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Investor Name */}
-              <div className="space-y-2">
-                <Label htmlFor="investor-name">Investor Name (optional)</Label>
-                <Input
-                  id="investor-name"
-                  placeholder="e.g., Acme Ventures"
-                  value={investorName}
-                  onChange={(e) => setInvestorName(e.target.value)}
-                />
+              {/* Investor Contact Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="investor-name">Investor Name (optional)</Label>
+                  <Input
+                    id="investor-name"
+                    placeholder="e.g., Acme Ventures"
+                    value={investorName}
+                    onChange={(e) => setInvestorName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="investor-email">Investor Email</Label>
+                  <Input
+                    id="investor-email"
+                    type="email"
+                    placeholder="investor@example.com"
+                    value={investorEmail}
+                    onChange={(e) => setInvestorEmail(e.target.value)}
+                  />
+                </div>
               </div>
+
+              {/* Personal Message */}
+              <div className="space-y-2">
+                <Label htmlFor="personal-message">Personal Message (optional)</Label>
+                <textarea
+                  id="personal-message"
+                  className="w-full min-h-[80px] px-3 py-2 text-sm border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Add a personal note to include in the email invitation..."
+                  value={personalMessage}
+                  onChange={(e) => setPersonalMessage(e.target.value)}
+                />
+                <p className="text-xs text-slate-500">This message will be included in the email along with the link and access code.</p>
+              </div>
+
+              {/* Send Email Toggle */}
+              {investorEmail && (
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
+                  <div className="flex items-center gap-2">
+                    <div>
+                      <Label htmlFor="send-email" className="text-sm font-medium text-slate-700">
+                        Send Email Invitation
+                      </Label>
+                      <p className="text-xs text-slate-500">Automatically send the link and access code to the investor</p>
+                    </div>
+                  </div>
+                  <Switch
+                    id="send-email"
+                    checked={sendEmail}
+                    onCheckedChange={setSendEmail}
+                  />
+                </div>
+              )}
 
               {/* Scope */}
               <div className="space-y-3">
