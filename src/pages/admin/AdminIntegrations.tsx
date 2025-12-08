@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { 
   Puzzle, 
   Database, 
@@ -23,8 +24,13 @@ import {
   Calendar as CalendarIcon,
   Folder as FolderIcon,
   Box as BoxIcon,
+  Search,
+  Unplug,
+  PlugZap,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface Integration {
   id: string;
@@ -60,7 +66,7 @@ const integrations: Integration[] = [
     name: 'Google Calendar',
     description: 'Calendar sync and event management',
     icon: <CalendarIcon className="w-5 h-5" />,
-    status: 'connected',
+    status: 'not_connected',
     category: 'Google',
   },
   {
@@ -68,7 +74,7 @@ const integrations: Integration[] = [
     name: 'Gmail',
     description: 'Email integration and inbox sync',
     icon: <Mail className="w-5 h-5" />,
-    status: 'connected',
+    status: 'not_connected',
     category: 'Google',
   },
   {
@@ -85,7 +91,7 @@ const integrations: Integration[] = [
     name: 'Dropbox',
     description: 'Cloud storage and file import',
     icon: <BoxIcon className="w-5 h-5" />,
-    status: 'connected',
+    status: 'not_connected',
     category: 'Storage',
   },
   // Communication
@@ -188,9 +194,34 @@ const categoryOrder = ['Infrastructure', 'Google', 'Storage', 'AI & Media', 'Com
 
 export default function AdminIntegrations() {
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [integrationStatuses, setIntegrationStatuses] = useState<Record<string, Integration['status']>>(
+    integrations.reduce((acc, i) => ({ ...acc, [i.id]: i.status }), {})
+  );
+
+  const handleConnect = (integrationId: string, integrationName: string) => {
+    // Simulate connection
+    toast.success(`Connecting to ${integrationName}...`);
+    setIntegrationStatuses(prev => ({ ...prev, [integrationId]: 'connected' }));
+  };
+
+  const handleDisconnect = (integrationId: string, integrationName: string) => {
+    toast.success(`Disconnected from ${integrationName}`);
+    setIntegrationStatuses(prev => ({ ...prev, [integrationId]: 'not_connected' }));
+  };
+
+  const handleRefresh = (integrationName: string) => {
+    toast.success(`Refreshing ${integrationName}...`);
+  };
+
+  const filteredIntegrations = integrations.filter(i => 
+    i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    i.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    i.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const groupedIntegrations = categoryOrder.reduce((acc, category) => {
-    acc[category] = integrations.filter(i => i.category === category);
+    acc[category] = filteredIntegrations.filter(i => i.category === category);
     return acc;
   }, {} as Record<string, Integration[]>);
 
@@ -219,6 +250,10 @@ export default function AdminIntegrations() {
     }
   };
 
+  const connectedCount = Object.values(integrationStatuses).filter(s => s === 'connected').length;
+  const availableCount = Object.values(integrationStatuses).filter(s => s === 'not_connected').length;
+  const errorCount = Object.values(integrationStatuses).filter(s => s === 'error').length;
+
   return (
     <div className="p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
       {/* Header */}
@@ -238,23 +273,34 @@ export default function AdminIntegrations() {
         </Button>
       </div>
 
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          placeholder="Search integrations..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10 max-w-md"
+        />
+      </div>
+
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="bg-card border-border">
           <CardContent className="p-4">
-            <p className="text-2xl font-bold text-foreground">{integrations.filter(i => i.status === 'connected').length}</p>
+            <p className="text-2xl font-bold text-foreground">{connectedCount}</p>
             <p className="text-sm text-muted-foreground">Connected</p>
           </CardContent>
         </Card>
         <Card className="bg-card border-border">
           <CardContent className="p-4">
-            <p className="text-2xl font-bold text-foreground">{integrations.filter(i => i.status === 'not_connected').length}</p>
+            <p className="text-2xl font-bold text-foreground">{availableCount}</p>
             <p className="text-sm text-muted-foreground">Available</p>
           </CardContent>
         </Card>
         <Card className="bg-card border-border">
           <CardContent className="p-4">
-            <p className="text-2xl font-bold text-foreground">{integrations.filter(i => i.status === 'error').length}</p>
+            <p className="text-2xl font-bold text-foreground">{errorCount}</p>
             <p className="text-sm text-muted-foreground">Errors</p>
           </CardContent>
         </Card>
@@ -275,42 +321,66 @@ export default function AdminIntegrations() {
           <div key={category} className="space-y-4">
             <h2 className="text-lg font-semibold text-foreground">{category}</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {categoryIntegrations.map(integration => (
-                <Card key={integration.id} className="bg-card border-border hover:shadow-md transition-shadow">
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                        {integration.icon}
+              {categoryIntegrations.map(integration => {
+                const currentStatus = integrationStatuses[integration.id];
+                return (
+                  <Card key={integration.id} className="bg-card border-border hover:shadow-md transition-shadow">
+                    <CardContent className="p-5">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                          {integration.icon}
+                        </div>
+                        {getStatusBadge(currentStatus)}
                       </div>
-                      {getStatusBadge(integration.status)}
-                    </div>
-                    <h3 className="font-semibold text-foreground mb-1">{integration.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-4">{integration.description}</p>
-                    <div className="flex gap-2">
-                      {integration.configPath ? (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex-1"
-                          onClick={() => navigate(integration.configPath!)}
-                        >
-                          <Settings className="w-3 h-3 mr-1" />
-                          Configure
-                        </Button>
-                      ) : integration.status === 'connected' ? (
-                        <Button variant="outline" size="sm" className="flex-1" disabled>
-                          <RefreshCw className="w-3 h-3 mr-1" />
-                          Refresh
-                        </Button>
-                      ) : (
-                        <Button variant="default" size="sm" className="flex-1">
-                          Connect
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      <h3 className="font-semibold text-foreground mb-1">{integration.name}</h3>
+                      <p className="text-sm text-muted-foreground mb-4">{integration.description}</p>
+                      <div className="flex gap-2">
+                        {integration.configPath ? (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => navigate(integration.configPath!)}
+                          >
+                            <Settings className="w-3 h-3 mr-1" />
+                            Configure
+                          </Button>
+                        ) : currentStatus === 'connected' ? (
+                          <>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="flex-1"
+                              onClick={() => handleRefresh(integration.name)}
+                            >
+                              <RefreshCw className="w-3 h-3 mr-1" />
+                              Refresh
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => handleDisconnect(integration.id, integration.name)}
+                            >
+                              <Unplug className="w-3 h-3" />
+                            </Button>
+                          </>
+                        ) : (
+                          <Button 
+                            variant="default" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => handleConnect(integration.id, integration.name)}
+                          >
+                            <PlugZap className="w-3 h-3 mr-1" />
+                            Connect
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         );
