@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,16 +8,38 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FloatingEmailComposer } from "@/components/email/client/FloatingEmailComposer";
 import { 
-  Mail, Send, Inbox, FileText, Clock, BarChart3, 
-  Eye, MousePointer, RefreshCw, ExternalLink
+  Mail, Send, Inbox, FileText, BarChart3, 
+  Eye, MousePointer, RefreshCw, ExternalLink, PenTool, Plus, Trash2, Edit
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function AdminEmail() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [composerOpen, setComposerOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [signatureModalOpen, setSignatureModalOpen] = useState(false);
+  const [editingSignature, setEditingSignature] = useState<any>(null);
+  const [signatureForm, setSignatureForm] = useState({
+    name: "",
+    profile_name: "",
+    profile_title: "",
+    company_name: "",
+    company_phone: "",
+    html_signature: "",
+  });
 
   const { data: user } = useQuery({
     queryKey: ["admin-user"],
@@ -80,6 +102,23 @@ export default function AdminEmail() {
     },
   });
 
+  // Fetch admin signatures
+  const { data: signatures = [], refetch: refetchSignatures } = useQuery({
+    queryKey: ["admin-email-signatures"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+      
+      const { data } = await supabase
+        .from("email_signatures")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      
+      return data || [];
+    },
+  });
+
   const syncInbox = async () => {
     setIsSyncing(true);
     try {
@@ -89,6 +128,69 @@ export default function AdminEmail() {
       console.error("Error syncing inbox:", error);
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  const openSignatureModal = (signature?: any) => {
+    if (signature) {
+      setEditingSignature(signature);
+      setSignatureForm({
+        name: signature.name || "",
+        profile_name: signature.profile_name || "",
+        profile_title: signature.profile_title || "",
+        company_name: signature.company_name || "",
+        company_phone: signature.company_phone || "",
+        html_signature: signature.html_signature || "",
+      });
+    } else {
+      setEditingSignature(null);
+      setSignatureForm({
+        name: "",
+        profile_name: "",
+        profile_title: "",
+        company_name: "",
+        company_phone: "",
+        html_signature: "",
+      });
+    }
+    setSignatureModalOpen(true);
+  };
+
+  const saveSignature = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      if (editingSignature) {
+        await supabase
+          .from("email_signatures")
+          .update(signatureForm)
+          .eq("id", editingSignature.id);
+      } else {
+        await supabase
+          .from("email_signatures")
+          .insert({
+            ...signatureForm,
+            user_id: user.id,
+          });
+      }
+
+      toast({ title: editingSignature ? "Signature updated" : "Signature created" });
+      setSignatureModalOpen(false);
+      refetchSignatures();
+    } catch (error: any) {
+      toast({ title: "Error saving signature", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const deleteSignature = async (id: string) => {
+    if (!confirm("Delete this signature?")) return;
+    try {
+      await supabase.from("email_signatures").delete().eq("id", id);
+      toast({ title: "Signature deleted" });
+      refetchSignatures();
+    } catch (error: any) {
+      toast({ title: "Error deleting signature", description: error.message, variant: "destructive" });
     }
   };
 
@@ -204,6 +306,10 @@ export default function AdminEmail() {
             <FileText className="w-4 h-4" />
             Campaigns
           </TabsTrigger>
+          <TabsTrigger value="signatures" className="gap-2">
+            <PenTool className="w-4 h-4" />
+            Signatures
+          </TabsTrigger>
           <TabsTrigger value="analytics" className="gap-2">
             <BarChart3 className="w-4 h-4" />
             Analytics
@@ -298,6 +404,65 @@ export default function AdminEmail() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="signatures" className="mt-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg">Email Signatures</CardTitle>
+              <Button size="sm" onClick={() => openSignatureModal()}>
+                <Plus className="w-4 h-4 mr-2" />
+                New Signature
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {signatures.length === 0 ? (
+                <div className="text-center py-8 text-slate-500">
+                  <PenTool className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                  <p>No signatures yet</p>
+                  <Button variant="outline" size="sm" className="mt-3" onClick={() => openSignatureModal()}>
+                    Create First Signature
+                  </Button>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Profile</TableHead>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="w-[100px]">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {signatures.map((sig) => (
+                      <TableRow key={sig.id}>
+                        <TableCell className="font-medium">{sig.name || "Untitled"}</TableCell>
+                        <TableCell>{sig.profile_name || "-"}</TableCell>
+                        <TableCell>{sig.company_name || "-"}</TableCell>
+                        <TableCell>
+                          <Badge variant={sig.is_active ? "default" : "secondary"}>
+                            {sig.is_active ? "Active" : "Inactive"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" onClick={() => openSignatureModal(sig)}>
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => deleteSignature(sig.id)}>
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="analytics" className="mt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
@@ -381,6 +546,74 @@ export default function AdminEmail() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Signature Modal */}
+      <Dialog open={signatureModalOpen} onOpenChange={setSignatureModalOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editingSignature ? "Edit Signature" : "New Signature"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium">Signature Name</label>
+              <Input 
+                placeholder="e.g. Main, Marketing, Support"
+                value={signatureForm.name}
+                onChange={(e) => setSignatureForm({ ...signatureForm, name: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Your Name</label>
+                <Input 
+                  placeholder="John Doe"
+                  value={signatureForm.profile_name}
+                  onChange={(e) => setSignatureForm({ ...signatureForm, profile_name: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Title</label>
+                <Input 
+                  placeholder="CEO, Manager, etc."
+                  value={signatureForm.profile_title}
+                  onChange={(e) => setSignatureForm({ ...signatureForm, profile_title: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Company Name</label>
+                <Input 
+                  placeholder="Seeksy Inc."
+                  value={signatureForm.company_name}
+                  onChange={(e) => setSignatureForm({ ...signatureForm, company_name: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Phone</label>
+                <Input 
+                  placeholder="+1 555-123-4567"
+                  value={signatureForm.company_phone}
+                  onChange={(e) => setSignatureForm({ ...signatureForm, company_phone: e.target.value })}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Custom HTML Signature (optional)</label>
+              <Textarea 
+                placeholder="<p>Your HTML signature...</p>"
+                value={signatureForm.html_signature}
+                onChange={(e) => setSignatureForm({ ...signatureForm, html_signature: e.target.value })}
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSignatureModalOpen(false)}>Cancel</Button>
+            <Button onClick={saveSignature}>Save Signature</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Floating Composer */}
       <FloatingEmailComposer
