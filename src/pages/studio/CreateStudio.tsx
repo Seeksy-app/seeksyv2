@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,11 +55,49 @@ export default function CreateStudio() {
 
     setIsCreating(true);
     
-    // Simulate creation
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    toast.success("Studio created successfully!");
-    navigate("/studio");
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Please sign in to create a studio");
+        return;
+      }
+
+      // Upload thumbnail if provided
+      let thumbnailUrl = null;
+      if (thumbnail) {
+        const fileName = `${user.id}/studio-thumbnails/${Date.now()}-${thumbnail.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from('studio-recordings')
+          .upload(fileName, thumbnail);
+        
+        if (!uploadError) {
+          const { data: { publicUrl } } = supabase.storage
+            .from('studio-recordings')
+            .getPublicUrl(fileName);
+          thumbnailUrl = publicUrl;
+        }
+      }
+
+      // Create the studio template
+      const { error } = await supabase
+        .from('studio_templates')
+        .insert({
+          user_id: user.id,
+          session_name: studioName,
+          description: studioDescription || `${studioTypes.find(t => t.id === studioType)?.name} created on ${new Date().toLocaleDateString()}`,
+          thumbnail_url: thumbnailUrl,
+        });
+
+      if (error) throw error;
+
+      toast.success("Studio created successfully!");
+      navigate("/studio");
+    } catch (error) {
+      console.error("Error creating studio:", error);
+      toast.error("Failed to create studio. Please try again.");
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (

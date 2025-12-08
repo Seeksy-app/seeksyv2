@@ -162,27 +162,31 @@ function ChannelCard({
 export default function StudioHubPremium() {
   const navigate = useNavigate();
 
-  // Fetch user's studios (persistent environments)
+  // Fetch user's studios from studio_templates table
   const { data: studios, isLoading: studiosLoading } = useQuery({
     queryKey: ["my-studios"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
-      // For now, return mock data - replace with actual table when created
-      const { data } = await supabase
-        .from("studio_sessions")
+      const { data, error } = await supabase
+        .from("studio_templates")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
-        .limit(6);
+        .limit(8);
 
-      // Transform sessions into "studios" for now
-      return (data || []).slice(0, 4).map((session: any) => ({
-        id: session.id,
-        name: session.room_name || "My Studio",
-        thumbnail_url: null,
-        last_session_at: session.created_at,
+      if (error) {
+        console.error("Error fetching studios:", error);
+        return [];
+      }
+
+      return (data || []).map((template: any) => ({
+        id: template.id,
+        name: template.session_name,
+        description: template.description,
+        thumbnail_url: template.thumbnail_url,
+        last_session_at: template.updated_at,
       }));
     },
   });
