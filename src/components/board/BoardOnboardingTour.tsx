@@ -33,11 +33,11 @@ const tourSteps: TourStep[] = [
     position: 'center',
   },
   {
-    id: 'forecasts',
-    title: 'Financial Forecasts',
-    description: 'See AI-generated projections based on real creator, usage, and revenue models.',
+    id: 'proforma',
+    title: 'AI-Powered Pro Forma',
+    description: 'See AI-generated 3-year financial projections based on R&D benchmarks and scenario analysis.',
     icon: TrendingUp,
-    route: '/board/forecasts',
+    route: '/board/proforma',
     position: 'center',
   },
   {

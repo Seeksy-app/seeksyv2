@@ -43,10 +43,10 @@ const quickLinks = [
     gradient: 'from-emerald-500 to-teal-600',
   },
   {
-    title: '3-Year Forecasts',
-    description: 'AI-generated projections',
+    title: 'AI-Powered 3-Year Pro Forma',
+    description: 'AI-generated financial projections',
     icon: TrendingUp,
-    path: '/board/forecasts',
+    path: '/board/proforma',
     gradient: 'from-amber-500 to-orange-600',
   },
   {
