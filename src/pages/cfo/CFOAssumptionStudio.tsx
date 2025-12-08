@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Sliders, TrendingUp, CreditCard, DollarSign, Calendar, ArrowLeft, Sparkles, Info, Lock, Unlock } from 'lucide-react';
+import { Sliders, TrendingUp, CreditCard, DollarSign, Calendar, ArrowLeft, Sparkles, Info, Lock, Unlock, CheckCircle2, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCFOAssumptions } from '@/hooks/useCFOAssumptions';
 import { useCFOLockStatus } from '@/hooks/useCFOLockStatus';
@@ -15,6 +15,7 @@ import { SubscriptionRevenueCalculator } from '@/components/cfo/calculators/Subs
 import { AdRevenueCalculator } from '@/components/cfo/calculators/AdRevenueCalculator';
 import { EventsAwardsCalculator } from '@/components/cfo/calculators/EventsAwardsCalculator';
 import { AssumptionsSummaryPanel } from '@/components/cfo/AssumptionsSummaryPanel';
+import { toast } from 'sonner';
 
 export default function CFOAssumptionStudio() {
   const navigate = useNavigate();
@@ -29,6 +30,18 @@ export default function CFOAssumptionStudio() {
         deleteAssumption(assumption.metric_key);
       }
     }
+  };
+
+  // Handler for when a calculator saves - shows toast with CTA
+  const handleCalculatorSave = () => {
+    toast.success('Assumptions updated', {
+      description: 'Open the AI-Powered 3-Year Pro Forma to see the updated forecast.',
+      action: {
+        label: 'View Pro Forma',
+        onClick: () => navigate('/board/proforma'),
+      },
+      duration: 6000,
+    });
   };
 
   return (
@@ -102,7 +115,29 @@ export default function CFOAssumptionStudio() {
           </div>
         </div>
 
-        {/* Info Alert */}
+        {/* Live Assumptions Banner */}
+        <Alert className="bg-emerald-50 border-emerald-200">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+          <AlertDescription className="text-emerald-800 flex items-center justify-between">
+            <div>
+              <strong>Your Assumptions Are Live</strong>
+              <span className="ml-2">
+                These inputs drive all Board-facing financial forecasts. Navigate to the AI-Powered 3-Year Pro Forma to see your assumptions in action.
+              </span>
+            </div>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="ml-4 bg-white border-emerald-300 text-emerald-700 hover:bg-emerald-100"
+              onClick={() => navigate('/board/proforma')}
+            >
+              View Pro Forma
+              <ExternalLink className="w-3 h-3 ml-2" />
+            </Button>
+          </AlertDescription>
+        </Alert>
+
+        {/* How it works Info */}
         <Alert className="bg-indigo-50 border-indigo-200">
           <Info className="w-4 h-4 text-indigo-600" />
           <AlertDescription className="text-indigo-800">
@@ -137,19 +172,19 @@ export default function CFOAssumptionStudio() {
               </TabsList>
 
               <TabsContent value="growth">
-                <GrowthCACCalculator />
+                <GrowthCACCalculator onSave={handleCalculatorSave} />
               </TabsContent>
 
               <TabsContent value="subscriptions">
-                <SubscriptionRevenueCalculator />
+                <SubscriptionRevenueCalculator onSave={handleCalculatorSave} />
               </TabsContent>
 
               <TabsContent value="ads">
-                <AdRevenueCalculator />
+                <AdRevenueCalculator onSave={handleCalculatorSave} />
               </TabsContent>
 
               <TabsContent value="events">
-                <EventsAwardsCalculator />
+                <EventsAwardsCalculator onSave={handleCalculatorSave} />
               </TabsContent>
             </Tabs>
           </div>
@@ -158,6 +193,25 @@ export default function CFOAssumptionStudio() {
           <div className="lg:sticky lg:top-6 lg:self-start">
             <AssumptionsSummaryPanel onResetAll={handleResetAll} />
           </div>
+        </div>
+
+        {/* Footer Reminder */}
+        <div className="mt-8 p-4 bg-muted/50 border border-border rounded-lg flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            <strong className="text-foreground">Want to preview your impact?</strong>
+            <span className="ml-2">
+              Open the 3-Year Pro Forma to see how your assumptions drive revenue, CAC, churn, and margins.
+            </span>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => navigate('/board/proforma')}
+            className="gap-2"
+          >
+            <Sparkles className="w-4 h-4" />
+            View Pro Forma
+          </Button>
         </div>
       </div>
     </div>
