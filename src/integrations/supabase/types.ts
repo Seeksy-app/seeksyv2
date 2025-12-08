@@ -16991,6 +16991,51 @@ export type Database = {
         }
         Relationships: []
       }
+      proforma_forecasts: {
+        Row: {
+          ad_revenue_breakdown: Json
+          ai_commentary: string | null
+          benchmarks_used: Json
+          created_at: string
+          expense_data: Json
+          forecast_year: number
+          generated_by: string | null
+          id: string
+          revenue_data: Json
+          scenario_key: string
+          summary_metrics: Json
+          updated_at: string
+        }
+        Insert: {
+          ad_revenue_breakdown?: Json
+          ai_commentary?: string | null
+          benchmarks_used?: Json
+          created_at?: string
+          expense_data?: Json
+          forecast_year: number
+          generated_by?: string | null
+          id?: string
+          revenue_data?: Json
+          scenario_key: string
+          summary_metrics?: Json
+          updated_at?: string
+        }
+        Update: {
+          ad_revenue_breakdown?: Json
+          ai_commentary?: string | null
+          benchmarks_used?: Json
+          created_at?: string
+          expense_data?: Json
+          forecast_year?: number
+          generated_by?: string | null
+          id?: string
+          revenue_data?: Json
+          scenario_key?: string
+          summary_metrics?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       proforma_share_links: {
         Row: {
           created_at: string
@@ -17554,6 +17599,48 @@ export type Database = {
         }
         Relationships: []
       }
+      rd_market_data: {
+        Row: {
+          cagr: number | null
+          id: string
+          notes: string | null
+          region: string
+          sam: number | null
+          segment: string
+          som: number | null
+          source: string | null
+          tam: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          cagr?: number | null
+          id?: string
+          notes?: string | null
+          region?: string
+          sam?: number | null
+          segment: string
+          som?: number | null
+          source?: string | null
+          tam: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          cagr?: number | null
+          id?: string
+          notes?: string | null
+          region?: string
+          sam?: number | null
+          segment?: string
+          som?: number | null
+          source?: string | null
+          tam?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
       rd_transcripts: {
         Row: {
           confidence_score: number | null
@@ -18016,6 +18103,54 @@ export type Database = {
           description?: string | null
           frequency?: string
           id?: string
+        }
+        Relationships: []
+      }
+      scenario_configs: {
+        Row: {
+          cac_multiplier: number
+          churn_multiplier: number
+          cpm_multiplier: number
+          fill_rate_multiplier: number
+          id: string
+          impressions_multiplier: number
+          is_active: boolean | null
+          label: string
+          market_adoption_multiplier: number
+          platform_revshare_adjustment: number
+          revenue_growth_multiplier: number
+          scenario_key: string
+          updated_at: string
+        }
+        Insert: {
+          cac_multiplier?: number
+          churn_multiplier?: number
+          cpm_multiplier?: number
+          fill_rate_multiplier?: number
+          id?: string
+          impressions_multiplier?: number
+          is_active?: boolean | null
+          label: string
+          market_adoption_multiplier?: number
+          platform_revshare_adjustment?: number
+          revenue_growth_multiplier?: number
+          scenario_key: string
+          updated_at?: string
+        }
+        Update: {
+          cac_multiplier?: number
+          churn_multiplier?: number
+          cpm_multiplier?: number
+          fill_rate_multiplier?: number
+          id?: string
+          impressions_multiplier?: number
+          is_active?: boolean | null
+          label?: string
+          market_adoption_multiplier?: number
+          platform_revshare_adjustment?: number
+          revenue_growth_multiplier?: number
+          scenario_key?: string
+          updated_at?: string
         }
         Relationships: []
       }
