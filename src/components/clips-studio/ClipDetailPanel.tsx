@@ -372,55 +372,20 @@ export function ClipDetailPanel({ clip, sourceMedia, onUpdate }: ClipDetailPanel
         </ScrollArea>
       </Tabs>
 
-      {/* Export Section */}
-      <div className="border-t p-4 space-y-4 bg-card/50">
-        <div>
-          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 block">
-            Export To
-          </Label>
-          <div className="flex flex-wrap gap-2">
-            {platforms.map((platform) => {
-              const Icon = platform.icon;
-              const isSelected = selectedPlatforms.includes(platform.id);
-              return (
-                <button
-                  key={platform.id}
-                  onClick={() => togglePlatform(platform.id)}
-                  className={cn(
-                    "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all",
-                    isSelected 
-                      ? `${platform.color} text-white`
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
-                  )}
-                >
-                  <Icon className="h-3 w-3" />
-                  {platform.label}
-                  {isSelected && <Check className="h-3 w-3" />}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          <Button 
-            variant="outline" 
-            className="gap-2"
-            onClick={handleExport}
-            disabled={isExporting}
-          >
-            {isExporting ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Download className="h-4 w-4" />
-            )}
-            Download
-          </Button>
-          <Button className="gap-2 bg-[#053877] hover:bg-[#053877]/90">
-            <Share2 className="h-4 w-4" />
-            Publish
-          </Button>
-        </div>
+      {/* Simple Publish Button - navigates to Media Detail */}
+      <div className="border-t p-4 bg-card/50">
+        <Button 
+          className="w-full gap-2 bg-[#053877] hover:bg-[#053877]/90"
+          onClick={() => {
+            // Navigate to media detail page
+            if (sourceMedia?.id) {
+              window.location.href = `/studio/media/${sourceMedia.id}`;
+            }
+          }}
+        >
+          <Share2 className="h-4 w-4" />
+          Publish to Media Library
+        </Button>
       </div>
     </div>
   );

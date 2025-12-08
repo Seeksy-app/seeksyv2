@@ -354,31 +354,30 @@ export default function MediaDetail() {
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
       <div className="max-w-7xl mx-auto px-6 py-6">
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Video Player Section */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Video Player */}
+        <div className="grid lg:grid-cols-3 gap-4">
+          {/* Video Player Section - More compact */}
+          <div className="lg:col-span-2 space-y-4">
+            {/* Video Player - Reduced height */}
             <Card className="overflow-hidden">
-              <div className="aspect-video bg-black relative">
+              <div className="aspect-video max-h-[360px] bg-black relative">
                 {/* Processing state */}
                 {isProcessing && !primaryVideoUrl && !isYouTubeEmbed ? (
                   <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-[#053877]/20 to-[#2C6BED]/20">
-                    <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-                    <p className="text-white font-medium">Processing your video...</p>
-                    <p className="text-white/60 text-sm mt-1">AI enhancement in progress</p>
+                    <Loader2 className="w-10 h-10 text-primary animate-spin mb-3" />
+                    <p className="text-white font-medium text-sm">Processing your video...</p>
                   </div>
                 ) : processingFailed && !primaryVideoUrl && !isYouTubeEmbed ? (
                   <div className="flex flex-col items-center justify-center h-full">
-                    <AlertCircle className="w-12 h-12 text-destructive mb-4" />
-                    <p className="text-white font-medium">Processing failed</p>
+                    <AlertCircle className="w-10 h-10 text-destructive mb-3" />
+                    <p className="text-white font-medium text-sm">Processing failed</p>
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="mt-4"
+                      className="mt-3"
                       onClick={() => navigate(`/studio/ai-post-production?media=${id}`)}
                     >
-                      <Wand2 className="w-4 h-4 mr-2" />
-                      Retry AI Enhancement
+                      <Wand2 className="w-3 h-3 mr-1" />
+                      Retry
                     </Button>
                   </div>
                 ) : isYouTubeEmbed && youtubeVideoId ? (
@@ -398,322 +397,192 @@ export default function MediaDetail() {
                   />
                 ) : (
                   <div className="flex items-center justify-center h-full">
-                    <Video className="w-16 h-16 text-white/20" />
+                    <Video className="w-12 h-12 text-white/20" />
                   </div>
                 )}
                 
                 {/* Enhanced badge overlay */}
                 {enhancedVideo && (
-                  <Badge className="absolute top-3 left-3 bg-green-500 text-white border-0">
+                  <Badge className="absolute top-2 left-2 bg-green-500 text-white border-0 text-xs">
                     <Sparkles className="w-3 h-3 mr-1" />
                     Enhanced
                   </Badge>
                 )}
               </div>
-              <CardContent className="p-4">
+              <CardContent className="p-3">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h1 className="text-xl font-semibold mb-2">{media.file_name || "Untitled Video"}</h1>
-                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <h1 className="text-lg font-semibold mb-1">{media.file_name || "Untitled Video"}</h1>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
+                        <Clock className="w-3 h-3" />
                         {formatDuration(media.duration_seconds)}
                       </span>
                       <span className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
+                        <Calendar className="w-3 h-3" />
                         {media.created_at ? format(new Date(media.created_at), "MMM d, yyyy") : "—"}
                       </span>
-                      <Badge className={sourceInfo.className}>{sourceInfo.label}</Badge>
+                      <Badge className={cn(sourceInfo.className, "text-xs")}>{sourceInfo.label}</Badge>
                       {hasAIProcessing && completedJobs.length > 0 && (
-                        <Badge className="bg-green-500/90 text-white">Enhanced</Badge>
+                        <Badge className="bg-green-500/90 text-white text-xs">Enhanced</Badge>
                       )}
                     </div>
                   </div>
                 </div>
-                {media.description && (
-                  <p className="mt-3 text-sm text-muted-foreground">{media.description}</p>
-                )}
               </CardContent>
             </Card>
 
-            {/* Analytics Tabs - Enhancements First */}
-            <Card>
-              <Tabs defaultValue="enhancements" className="w-full">
-                <CardHeader className="pb-0">
-                  <TabsList className="w-full grid grid-cols-3 bg-muted">
-                    <TabsTrigger value="enhancements" className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4" />
-                      Enhancements
-                    </TabsTrigger>
-                    <TabsTrigger value="clips" className="flex items-center gap-2">
-                      <Scissors className="w-4 h-4" />
-                      Clips
-                    </TabsTrigger>
-                    <TabsTrigger value="analytics" className="flex items-center gap-2">
-                      <BarChart2 className="w-4 h-4" />
-                      Analytics
-                    </TabsTrigger>
-                  </TabsList>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  {/* Enhancements Tab */}
-                  <TabsContent value="enhancements" className="mt-0">
-                    {!hasAIProcessing ? (
-                      <div className="text-center py-8">
-                        <Wand2 className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
-                        <p className="font-medium mb-1">No AI enhancements yet</p>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          {isYouTubeEmbed 
-                            ? "Generate AI clips from this YouTube video, or enhance it with AI post-production"
-                            : "Enhance your video with AI-powered post-production"
-                          }
-                        </p>
-                        <div className="flex items-center justify-center gap-3">
-                          <Button 
-                            variant="outline"
-                            onClick={() => navigate(`/studio/clips?media=${id}`)}
-                          >
-                            <Scissors className="w-4 h-4 mr-2" />
-                            Generate AI Clips
-                          </Button>
-                          <Button onClick={() => navigate(`/studio/ai-post-production?media=${id}`)}>
-                            <Wand2 className="w-4 h-4 mr-2" />
-                            AI Enhancement
-                          </Button>
-                        </div>
-                        {isYouTubeEmbed && (
-                          <p className="text-xs text-muted-foreground mt-3">
-                            Note: AI enhancement requires downloading the video first
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div className="p-4 rounded-lg border bg-card">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Layers className="w-5 h-5 text-blue-500" />
-                            <span className="font-medium">Chapters</span>
-                          </div>
-                          <p className="text-2xl font-bold">
-                            {completedJobs.find(j => j.job_type === 'chapters') ? '✓' : '—'}
-                          </p>
-                          <p className="text-xs text-muted-foreground">Auto-detected</p>
-                        </div>
+            {/* Compact Enhancements Grid - 2 rows */}
+            {hasAIProcessing && (
+              <div className="grid grid-cols-6 gap-2">
+                <div className="p-2 rounded-lg border bg-card text-center">
+                  <Layers className="w-4 h-4 mx-auto text-blue-500 mb-1" />
+                  <p className="text-xs font-semibold">{completedJobs.find(j => j.job_type === 'chapters') ? '✓' : '—'}</p>
+                  <p className="text-[9px] text-muted-foreground">Chapters</p>
+                </div>
+                <div className="p-2 rounded-lg border bg-card text-center">
+                  <FileText className="w-4 h-4 mx-auto text-green-500 mb-1" />
+                  <p className="text-xs font-semibold">{latestTranscript ? '✓' : '—'}</p>
+                  <p className="text-[9px] text-muted-foreground">Transcript</p>
+                </div>
+                <div className="p-2 rounded-lg border bg-card text-center">
+                  <Mic className="w-4 h-4 mx-auto text-orange-500 mb-1" />
+                  <p className="text-xs font-semibold">{completedJobs.find(j => j.job_type === 'filler_removal') ? '✓' : '—'}</p>
+                  <p className="text-[9px] text-muted-foreground">Filler</p>
+                </div>
+                <div className="p-2 rounded-lg border bg-card text-center">
+                  <Volume2 className="w-4 h-4 mx-auto text-purple-500 mb-1" />
+                  <p className="text-xs font-semibold">{completedJobs.find(j => j.job_type === 'audio_enhancement') ? '✓' : '—'}</p>
+                  <p className="text-[9px] text-muted-foreground">Audio</p>
+                </div>
+                <div className="p-2 rounded-lg border bg-card text-center">
+                  <Palette className="w-4 h-4 mx-auto text-pink-500 mb-1" />
+                  <p className="text-xs font-semibold">{completedJobs.find(j => j.job_type === 'color_correction') ? '✓' : '—'}</p>
+                  <p className="text-[9px] text-muted-foreground">Color</p>
+                </div>
+                <div className="p-2 rounded-lg border bg-card text-center">
+                  <Scissors className="w-4 h-4 mx-auto text-cyan-500 mb-1" />
+                  <p className="text-xs font-semibold">{clips?.length || 0}</p>
+                  <p className="text-[9px] text-muted-foreground">Clips</p>
+                </div>
+              </div>
+            )}
 
-                        <div className="p-4 rounded-lg border bg-card">
-                          <div className="flex items-center gap-2 mb-2">
-                            <FileText className="w-5 h-5 text-green-500" />
-                            <span className="font-medium">Transcript</span>
-                          </div>
-                          <p className="text-2xl font-bold">
-                            {latestTranscript ? '✓' : '—'}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {latestTranscript ? 'Words transcribed' : 'Not generated'}
-                          </p>
-                        </div>
-
-                        <div className="p-4 rounded-lg border bg-card">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Mic className="w-5 h-5 text-orange-500" />
-                            <span className="font-medium">Filler Removal</span>
-                          </div>
-                          <p className="text-2xl font-bold">
-                            {completedJobs.find(j => j.job_type === 'filler_removal') ? '✓' : '—'}
-                          </p>
-                          <p className="text-xs text-muted-foreground">Processed</p>
-                        </div>
-
-                        <div className="p-4 rounded-lg border bg-card">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Volume2 className="w-5 h-5 text-purple-500" />
-                            <span className="font-medium">Audio Enhanced</span>
-                          </div>
-                          <p className="text-2xl font-bold">
-                            {completedJobs.find(j => j.job_type === 'audio_enhancement') ? '✓' : '—'}
-                          </p>
-                          <p className="text-xs text-muted-foreground">Noise reduced</p>
-                        </div>
-
-                        <div className="p-4 rounded-lg border bg-card">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Palette className="w-5 h-5 text-pink-500" />
-                            <span className="font-medium">Color Grading</span>
-                          </div>
-                          <p className="text-2xl font-bold">
-                            {completedJobs.find(j => j.job_type === 'color_correction') ? '✓' : '—'}
-                          </p>
-                          <p className="text-xs text-muted-foreground">Applied</p>
-                        </div>
-
-                        <div className="p-4 rounded-lg border bg-card">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Scissors className="w-5 h-5 text-cyan-500" />
-                            <span className="font-medium">Clips Generated</span>
-                          </div>
-                          <p className="text-2xl font-bold">{clips?.length || 0}</p>
-                          <p className="text-xs text-muted-foreground">Ready to share</p>
-                        </div>
-                      </div>
-                    )}
-                  </TabsContent>
-
-                  {/* Clips Tab */}
-                  <TabsContent value="clips" className="mt-0">
-                    {!clips || clips.length === 0 ? (
-                      <div className="text-center py-8">
-                        <Scissors className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
-                        <p className="font-medium mb-1">No clips generated yet</p>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Generate viral clips from your video with AI
-                        </p>
-                        <Button onClick={() => navigate(`/studio/clips?media=${id}`)}>
-                          <Scissors className="w-4 h-4 mr-2" />
-                          Generate Clips
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm text-muted-foreground">{clips.length} clips generated</p>
-                          <Button variant="outline" size="sm" onClick={() => navigate(`/studio/clips?media=${id}`)}>
-                            Generate More
-                          </Button>
-                        </div>
-                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {clips.slice(0, 6).map((clip) => (
-                            <div
-                              key={clip.id}
-                              className="group relative aspect-[9/16] rounded-lg overflow-hidden border bg-muted cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
-                              onClick={() => handlePublishToSocial(clip)}
-                            >
-                              {clip.thumbnail_url ? (
-                                <img
-                                  src={clip.thumbnail_url}
-                                  alt={clip.title}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <Scissors className="w-8 h-8 text-muted-foreground/40" />
-                                </div>
-                              )}
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                              <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <p className="text-white text-sm font-medium truncate">{clip.title}</p>
-                                <p className="text-white/70 text-xs">{formatDuration(clip.duration_seconds)}</p>
+            {/* Inline Clips as Small Thumbnails */}
+            {clips && clips.length > 0 && (
+              <Card className="p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Scissors className="w-4 h-4 text-primary" />
+                    <span className="font-medium text-sm">Clips</span>
+                    <Badge className="bg-[#2C6BED] text-white text-xs">{clips.length}</Badge>
+                  </div>
+                  <Button variant="ghost" size="sm" className="text-xs h-6" onClick={() => navigate(`/studio/clips?media=${id}`)}>
+                    Generate More
+                  </Button>
+                </div>
+                <ScrollArea className="w-full">
+                  <div className="flex items-center gap-2">
+                    {clips.map((clip) => (
+                      <div
+                        key={clip.id}
+                        className="flex-shrink-0 group cursor-pointer"
+                        onClick={() => handlePublishToSocial(clip)}
+                      >
+                        <div className="w-20 rounded-md border bg-background overflow-hidden hover:border-primary/50">
+                          <div className="aspect-[9/16] h-28 bg-muted relative">
+                            {clip.thumbnail_url ? (
+                              <img src={clip.thumbnail_url} alt={clip.title} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Scissors className="w-4 h-4 text-muted-foreground/40" />
                               </div>
-                              {clip.hook_score && (
-                                <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs">
-                                  {Math.round(clip.hook_score * 100)}%
-                                </Badge>
-                              )}
+                            )}
+                            <Badge className="absolute bottom-1 right-1 text-[8px] px-1 py-0 bg-black/70 text-white border-0">
+                              {formatDuration(clip.duration_seconds)}
+                            </Badge>
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
+                              <Play className="w-5 h-5 text-white" fill="white" />
                             </div>
-                          ))}
+                          </div>
+                          <div className="p-1">
+                            <p className="text-[8px] font-medium truncate">{clip.title || "Untitled"}</p>
+                          </div>
                         </div>
-                        {clips.length > 6 && (
-                          <div className="text-center">
-                            <Button variant="link" onClick={() => navigate(`/studio/clips?media=${id}`)}>
-                              View all {clips.length} clips
-                            </Button>
-                          </div>
-                        )}
                       </div>
-                    )}
-                  </TabsContent>
-                  
-                  {/* Analytics Tab */}
-                  <TabsContent value="analytics" className="mt-0">
-                    <div className="flex items-center justify-between mb-4">
-                      <Badge variant={isPublished ? "default" : "secondary"}>
-                        {isPublished ? `Published to ${publishStatus.replace('published_', '').charAt(0).toUpperCase() + publishStatus.replace('published_', '').slice(1)}` : "Not yet published"}
-                      </Badge>
-                    </div>
-                    
-                    {/* Info banner */}
-                    <div className="mb-4 p-3 bg-muted/50 rounded-lg flex items-start gap-2">
-                      <Info className="w-4 h-4 text-muted-foreground mt-0.5" />
-                      <p className="text-sm text-muted-foreground">
-                        Analytics will start updating once this video is published to social.
-                      </p>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {analyticsCards.map((card) => {
-                        const Icon = card.icon;
-                        return (
-                          <div key={card.label} className="p-4 rounded-lg border bg-card text-center">
-                            <Icon className="w-5 h-5 mx-auto mb-2 text-muted-foreground" />
-                            <p className="text-2xl font-bold">
-                              {card.noData ? (card.isTime || card.isPercent ? "—" : "0") : card.value}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {card.noData 
-                                ? (card.isTime || card.isPercent 
-                                    ? "Analytics start after first publish" 
-                                    : `No ${card.label.toLowerCase()} yet`)
-                                : card.label}
-                            </p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </TabsContent>
-                </CardContent>
-              </Tabs>
-            </Card>
+                    ))}
+                  </div>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
+              </Card>
+            )}
 
-            {/* Duplicate Generated Clips section removed - clips are shown in Clips tab above */}
+            {/* No AI Processing CTA */}
+            {!hasAIProcessing && !clips?.length && (
+              <Card className="p-4 text-center">
+                <Wand2 className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
+                <p className="font-medium text-sm mb-1">No AI enhancements yet</p>
+                <p className="text-xs text-muted-foreground mb-3">Enhance your video with AI</p>
+                <div className="flex items-center justify-center gap-2">
+                  <Button size="sm" variant="outline" onClick={() => navigate(`/studio/clips?media=${id}`)}>
+                    <Scissors className="w-3 h-3 mr-1" />
+                    Generate Clips
+                  </Button>
+                  <Button size="sm" onClick={() => navigate(`/studio/ai-post-production?media=${id}`)}>
+                    <Wand2 className="w-3 h-3 mr-1" />
+                    AI Enhance
+                  </Button>
+                </div>
+              </Card>
+            )}
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-
+          {/* Sidebar - More compact */}
+          <div className="space-y-4">
             {/* Export & Share */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Export & Share</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
+            <Card className="p-3">
+              <h3 className="font-medium text-sm mb-2">Export & Share</h3>
+              <div className="space-y-1.5">
                 <Button
                   variant="outline"
-                  className="w-full justify-start"
+                  size="sm"
+                  className="w-full justify-start text-xs h-8"
                   onClick={() => handlePublishToSocial(undefined, 'instagram')}
                 >
-                  <Instagram className="w-4 h-4 mr-2 text-pink-500" />
-                  Publish to Instagram
+                  <Instagram className="w-3 h-3 mr-2 text-pink-500" />
+                  Instagram
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full justify-start"
+                  size="sm"
+                  className="w-full justify-start text-xs h-8"
                   onClick={() => handlePublishToSocial(undefined, 'tiktok')}
                 >
-                  <Video className="w-4 h-4 mr-2" />
-                  Publish to TikTok
+                  <Video className="w-3 h-3 mr-2" />
+                  TikTok
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full justify-start"
+                  size="sm"
+                  className="w-full justify-start text-xs h-8"
                   onClick={() => handlePublishToSocial(undefined, 'youtube')}
                 >
-                  <Youtube className="w-4 h-4 mr-2 text-red-500" />
-                  Publish to YouTube Shorts
+                  <Youtube className="w-3 h-3 mr-2 text-red-500" />
+                  YouTube Shorts
                 </Button>
-              </CardContent>
+              </div>
             </Card>
 
-            {/* File Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">File Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
+            {/* File Details - Compact */}
+            <Card className="p-3">
+              <h3 className="font-medium text-sm mb-2">File Details</h3>
+              <div className="space-y-1.5 text-xs">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Duration</span>
                   <span className="font-medium">{formatDuration(media.duration_seconds)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">File Size</span>
+                  <span className="text-muted-foreground">Size</span>
                   <span className="font-medium">{formatFileSize(media.file_size_bytes)}</span>
                 </div>
                 <div className="flex justify-between">
@@ -722,7 +591,7 @@ export default function MediaDetail() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Source</span>
-                  <Badge className={sourceInfo.className}>{sourceInfo.label}</Badge>
+                  <Badge className={cn(sourceInfo.className, "text-[10px]")}>{sourceInfo.label}</Badge>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Uploaded</span>
@@ -732,26 +601,22 @@ export default function MediaDetail() {
                       : "—"}
                   </span>
                 </div>
-              </CardContent>
+              </div>
             </Card>
 
-            {/* Transcript Preview */}
+            {/* Transcript Preview - Compact */}
             {latestTranscript && (
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">Transcript</CardTitle>
-                    <Button variant="ghost" size="sm">
-                      <Eye className="w-4 h-4 mr-1" />
-                      View Full
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground line-clamp-6">
-                    {latestTranscript.raw_text || "No transcript text available"}
-                  </p>
-                </CardContent>
+              <Card className="p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-medium text-sm">Transcript</h3>
+                  <Button variant="ghost" size="sm" className="h-6 text-xs">
+                    <Eye className="w-3 h-3 mr-1" />
+                    View
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground line-clamp-4">
+                  {latestTranscript.raw_text || "No transcript text available"}
+                </p>
               </Card>
             )}
           </div>
@@ -759,103 +624,6 @@ export default function MediaDetail() {
       </div>
       </div>
 
-      {/* Clips Thumbnail Strip - Fixed at bottom */}
-      {clips && clips.length > 0 && (
-        <div className="flex-shrink-0 border-t bg-card/95 backdrop-blur-sm">
-          {/* Toggle header */}
-          <button 
-            onClick={() => setShowClipStrip(!showClipStrip)}
-            className="w-full flex items-center justify-between px-4 py-2 hover:bg-muted/50 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Scissors className="w-4 h-4 text-primary" />
-              <span className="font-semibold text-sm">Generated Clips</span>
-              <Badge className="bg-[#2C6BED] text-white">
-                {clips.length} clip{clips.length !== 1 ? 's' : ''}
-              </Badge>
-            </div>
-            {showClipStrip ? (
-              <ChevronDown className="w-4 h-4 text-muted-foreground" />
-            ) : (
-              <ChevronUp className="w-4 h-4 text-muted-foreground" />
-            )}
-          </button>
-
-          {/* Scrollable clip thumbnails */}
-          {showClipStrip && (
-            <ScrollArea className="w-full border-t">
-              <div className="flex items-center gap-3 p-3">
-                {clips.map((clip) => (
-                  <div
-                    key={clip.id}
-                    className={cn(
-                      "flex-shrink-0 relative group cursor-pointer transition-all",
-                      selectedPreviewClip?.id === clip.id && "ring-2 ring-primary"
-                    )}
-                    onClick={() => setSelectedPreviewClip(clip)}
-                  >
-                    <div className="w-24 rounded-lg border bg-background overflow-hidden hover:border-primary/50">
-                      {/* Thumbnail */}
-                      <div className="aspect-[9/16] h-32 bg-muted relative">
-                        {clip.thumbnail_url ? (
-                          <img 
-                            src={clip.thumbnail_url} 
-                            alt={clip.title}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Scissors className="w-5 h-5 text-muted-foreground/40" />
-                          </div>
-                        )}
-                        
-                        {/* Duration badge */}
-                        <Badge className="absolute bottom-1 right-1 text-[9px] px-1 py-0 bg-black/70 text-white border-0">
-                          {formatDuration(clip.duration_seconds)}
-                        </Badge>
-
-                        {/* Play overlay */}
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
-                          <Play className="w-6 h-6 text-white" fill="white" />
-                        </div>
-                      </div>
-                      
-                      {/* Title */}
-                      <div className="p-1.5">
-                        <p className="text-[9px] font-medium truncate">{clip.title || "Untitled"}</p>
-                        <div className="flex gap-1 mt-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="flex-1 text-[9px] h-5 px-1"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/studio/clips?clipId=${clip.id}`);
-                            }}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            size="sm"
-                            className="flex-1 text-[9px] h-5 px-1 bg-[#2C6BED] hover:bg-[#2C6BED]/90"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handlePublishToSocial(clip);
-                            }}
-                          >
-                            Publish
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
-          )}
-        </div>
-      )}
       {/* Social Publish Modal */}
       <SocialPublishModal
         open={showSocialModal}
