@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,16 +7,25 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { 
   Link2, Shield, Copy, Check, AlertTriangle, ArrowRight, ArrowLeft, 
-  Mail, Eye, Clock, Calendar
+  Mail, Eye, Clock, Calendar, Video, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { SendInvestorEmailModal } from './SendInvestorEmailModal';
+import { useQuery } from '@tanstack/react-query';
 
 interface GenerateLinkModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+}
+
+interface DemoVideo {
+  id: string;
+  title: string;
+  description: string | null;
+  category: string;
+  thumbnail_url: string | null;
 }
 
 const scopeOptions = [
@@ -45,6 +54,8 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
   // Form state
   const [investorName, setInvestorName] = useState('');
   const [scope, setScope] = useState<string[]>(['dashboard', 'gtm', 'forecasts']);
+  const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
+  const [showVideoSelector, setShowVideoSelector] = useState(false);
   const [dataMode, setDataMode] = useState<'demo' | 'real'>('demo');
   const [duration, setDuration] = useState('7d');
   const [customDays, setCustomDays] = useState('14');
@@ -52,6 +63,19 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
   const [allowPDF, setAllowPDF] = useState(false);
   const [maskFinancials, setMaskFinancials] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
+
+  // Fetch available demo videos
+  const { data: demoVideos } = useQuery({
+    queryKey: ['demo-videos-for-share'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('demo_videos')
+        .select('id, title, description, category, thumbnail_url')
+        .order('order_index');
+      if (error) throw error;
+      return data as DemoVideo[];
+    },
+  });
 
   // Generated link
   const [generatedData, setGeneratedData] = useState<{
@@ -65,6 +89,8 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
     setStep('configure');
     setInvestorName('');
     setScope(['dashboard', 'gtm', 'forecasts']);
+    setSelectedVideos([]);
+    setShowVideoSelector(false);
     setDataMode('demo');
     setDuration('7d');
     setCustomDays('14');
@@ -74,6 +100,24 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
     setAcknowledged(false);
     setGeneratedData(null);
     setCopied(false);
+  };
+
+  const toggleVideo = (videoId: string) => {
+    setSelectedVideos(prev => 
+      prev.includes(videoId) 
+        ? prev.filter(id => id !== videoId)
+        : [...prev, videoId]
+    );
+  };
+
+  const selectAllVideos = () => {
+    if (demoVideos) {
+      setSelectedVideos(demoVideos.map(v => v.id));
+    }
+  };
+
+  const clearAllVideos = () => {
+    setSelectedVideos([]);
   };
 
   const handleClose = () => {
@@ -130,6 +174,7 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
         allow_pdf_export: allowPDF,
         mask_financials: maskFinancials,
         what_was_shared: scope,
+        selected_videos: selectedVideos.length > 0 ? selectedVideos : null,
         status: 'active',
       }).select().single();
 
@@ -194,6 +239,76 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
                     ))}
                   </div>
                 </div>
+
+                {/* Video Selection - shows when Platform Videos is selected */}
+                {scope.includes('videos') && demoVideos && demoVideos.length > 0 && (
+                  <div className="border border-slate-200 rounded-lg p-3 bg-slate-50/50">
+                    <button
+                      type="button"
+                      onClick={() => setShowVideoSelector(!showVideoSelector)}
+                      className="flex items-center justify-between w-full text-left"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Video className="w-4 h-4 text-purple-600" />
+                        <span className="text-sm font-medium text-slate-700">
+                          Select Specific Videos
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          ({selectedVideos.length === 0 ? 'All videos' : `${selectedVideos.length} selected`})
+                        </span>
+                      </div>
+                      {showVideoSelector ? (
+                        <ChevronUp className="w-4 h-4 text-slate-400" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-slate-400" />
+                      )}
+                    </button>
+                    
+                    {showVideoSelector && (
+                      <div className="mt-3 space-y-2">
+                        <div className="flex gap-2 mb-2">
+                          <button
+                            type="button"
+                            onClick={selectAllVideos}
+                            className="text-xs text-blue-600 hover:text-blue-700"
+                          >
+                            Select all
+                          </button>
+                          <span className="text-slate-300">|</span>
+                          <button
+                            type="button"
+                            onClick={clearAllVideos}
+                            className="text-xs text-slate-500 hover:text-slate-700"
+                          >
+                            Clear all
+                          </button>
+                        </div>
+                        {demoVideos.map((video) => (
+                          <div 
+                            key={video.id} 
+                            className="flex items-center gap-2 p-2 rounded-md hover:bg-white transition-colors"
+                          >
+                            <Checkbox
+                              id={`video-${video.id}`}
+                              checked={selectedVideos.includes(video.id)}
+                              onCheckedChange={() => toggleVideo(video.id)}
+                            />
+                            <label 
+                              htmlFor={`video-${video.id}`} 
+                              className="flex-1 text-sm cursor-pointer text-slate-700"
+                            >
+                              {video.title}
+                            </label>
+                            <span className="text-xs text-slate-400">{video.category}</span>
+                          </div>
+                        ))}
+                        <p className="text-xs text-slate-400 mt-2">
+                          Leave empty to include all videos
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div>
                   <Label className="mb-3 block">Data Mode</Label>

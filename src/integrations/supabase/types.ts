@@ -12284,6 +12284,7 @@ export type Database = {
           mask_financials: boolean | null
           passcode: string
           scope: string[]
+          selected_videos: string[] | null
           status: string
           tabs_viewed: string[] | null
           token: string
@@ -12303,6 +12304,7 @@ export type Database = {
           mask_financials?: boolean | null
           passcode: string
           scope?: string[]
+          selected_videos?: string[] | null
           status?: string
           tabs_viewed?: string[] | null
           token: string
@@ -12322,6 +12324,7 @@ export type Database = {
           mask_financials?: boolean | null
           passcode?: string
           scope?: string[]
+          selected_videos?: string[] | null
           status?: string
           tabs_viewed?: string[] | null
           token?: string
