@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { motion } from 'framer-motion';
-import { Calculator, Users, DollarSign, TrendingUp, RefreshCw, Save } from 'lucide-react';
+import { Calculator, Users, DollarSign, TrendingUp, RefreshCw, Save, Info } from 'lucide-react';
 import { useCFOAssumptions } from '@/hooks/useCFOAssumptions';
 
 interface Props {
@@ -15,35 +15,38 @@ interface Props {
 export function GrowthCACCalculator({ onSave }: Props) {
   const { getEffectiveValue, saveMultipleAssumptions, isSaving } = useCFOAssumptions();
 
-  // Input state with defaults from R&D benchmarks
+  // Input state with specified defaults
   const [monthlyBudget, setMonthlyBudget] = useState(10000);
-  const [cac, setCac] = useState(() => getEffectiveValue('creator_cac_paid', 45));
-  const [arpu, setArpu] = useState(() => getEffectiveValue('creator_subscription_arpu_pro', 29));
-  const [churnRate, setChurnRate] = useState(() => getEffectiveValue('creator_monthly_churn', 5));
+  const [cac, setCac] = useState(50);
+  const [arpu, setArpu] = useState(35);
+  const [churnRate, setChurnRate] = useState(4);
   const [timeHorizon, setTimeHorizon] = useState(12);
 
-  // Update from R&D when loaded
+  // Update from saved values when loaded
   useEffect(() => {
-    setCac(getEffectiveValue('creator_cac_paid', 45));
-    setArpu(getEffectiveValue('creator_subscription_arpu_pro', 29));
-    setChurnRate(getEffectiveValue('creator_monthly_churn', 5));
+    const savedCac = getEffectiveValue('creator_cac_paid', 50);
+    const savedArpu = getEffectiveValue('creator_subscription_arpu_pro', 35);
+    const savedChurn = getEffectiveValue('creator_monthly_churn', 4);
+    if (savedCac) setCac(savedCac);
+    if (savedArpu) setArpu(savedArpu);
+    if (savedChurn) setChurnRate(savedChurn);
   }, [getEffectiveValue]);
 
   // Calculations
   const newCustomersPerMonth = Math.floor(monthlyBudget / cac);
   const ltv = arpu * (1 / (churnRate / 100));
   const ltvCacRatio = (ltv / cac).toFixed(2);
+  const paybackMonths = (cac / arpu).toFixed(1);
   const totalCustomersYear = newCustomersPerMonth * timeHorizon;
   const totalRevenue = totalCustomersYear * ltv;
   const totalCost = monthlyBudget * timeHorizon;
   const netROI = ((totalRevenue - totalCost) / totalCost * 100).toFixed(1);
-  const paybackMonths = (cac / arpu).toFixed(1);
 
   const handleReset = () => {
     setMonthlyBudget(10000);
-    setCac(45);
-    setArpu(29);
-    setChurnRate(5);
+    setCac(50);
+    setArpu(35);
+    setChurnRate(4);
     setTimeHorizon(12);
   };
 
@@ -57,13 +60,18 @@ export function GrowthCACCalculator({ onSave }: Props) {
   };
 
   return (
-    <Card className="border-slate-200 shadow-sm">
-      <CardHeader className="border-b border-slate-100 py-4">
+    <Card className="border-border shadow-sm">
+      <CardHeader className="border-b border-border py-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Calculator className="w-5 h-5 text-blue-500" />
-            Growth & CAC Calculator
-          </CardTitle>
+          <div>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Calculator className="w-5 h-5 text-blue-500" />
+              Growth & CAC Calculator
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Adjust these sliders to update CFO assumptions. Click 'Save to Pro Forma' to apply them to all board forecasts.
+            </p>
+          </div>
           <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
             Unit Economics
           </Badge>
@@ -76,7 +84,7 @@ export function GrowthCACCalculator({ onSave }: Props) {
             <div className="space-y-2">
               <Label className="flex items-center justify-between">
                 <span>Monthly Marketing Budget</span>
-                <span className="text-sm font-medium text-slate-900">${monthlyBudget.toLocaleString()}</span>
+                <span className="text-sm font-medium text-foreground">${monthlyBudget.toLocaleString()}</span>
               </Label>
               <Slider
                 value={[monthlyBudget]}
@@ -85,40 +93,43 @@ export function GrowthCACCalculator({ onSave }: Props) {
                 max={100000}
                 step={1000}
               />
+              <p className="text-xs text-muted-foreground">Total monthly spend on paid marketing across all channels.</p>
             </div>
 
             <div className="space-y-2">
               <Label className="flex items-center justify-between">
                 <span>Customer Acquisition Cost (CAC)</span>
-                <span className="text-sm font-medium text-slate-900">${cac}</span>
+                <span className="text-sm font-medium text-foreground">${cac}</span>
               </Label>
               <Slider
                 value={[cac]}
                 onValueChange={([v]) => setCac(v)}
-                min={10}
-                max={200}
+                min={5}
+                max={500}
                 step={5}
               />
+              <p className="text-xs text-muted-foreground">Average cost to acquire one paying customer.</p>
             </div>
 
             <div className="space-y-2">
               <Label className="flex items-center justify-between">
                 <span>Average Revenue Per User (ARPU)</span>
-                <span className="text-sm font-medium text-slate-900">${arpu}/mo</span>
+                <span className="text-sm font-medium text-foreground">${arpu}/mo</span>
               </Label>
               <Slider
                 value={[arpu]}
                 onValueChange={([v]) => setArpu(v)}
-                min={5}
-                max={100}
-                step={1}
+                min={10}
+                max={200}
+                step={5}
               />
+              <p className="text-xs text-muted-foreground">Average monthly recurring revenue per paying creator.</p>
             </div>
 
             <div className="space-y-2">
               <Label className="flex items-center justify-between">
                 <span>Monthly Churn Rate</span>
-                <span className="text-sm font-medium text-slate-900">{churnRate}%</span>
+                <span className="text-sm font-medium text-foreground">{churnRate}%</span>
               </Label>
               <Slider
                 value={[churnRate]}
@@ -127,20 +138,22 @@ export function GrowthCACCalculator({ onSave }: Props) {
                 max={20}
                 step={0.5}
               />
+              <p className="text-xs text-muted-foreground">Percent of paying customers who cancel in a given month.</p>
             </div>
 
             <div className="space-y-2">
               <Label className="flex items-center justify-between">
                 <span>Time Horizon</span>
-                <span className="text-sm font-medium text-slate-900">{timeHorizon} months</span>
+                <span className="text-sm font-medium text-foreground">{timeHorizon} months</span>
               </Label>
               <Slider
                 value={[timeHorizon]}
                 onValueChange={([v]) => setTimeHorizon(v)}
                 min={3}
                 max={36}
-                step={3}
+                step={1}
               />
+              <p className="text-xs text-muted-foreground">How far out to model ROI and payback.</p>
             </div>
           </div>
 
@@ -149,21 +162,23 @@ export function GrowthCACCalculator({ onSave }: Props) {
             <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-0">
               <CardContent className="p-4">
                 <div className="text-center mb-4">
-                  <p className="text-sm text-slate-500">Net ROI</p>
+                  <p className="text-sm text-muted-foreground">Net ROI</p>
                   <p className={`text-4xl font-bold ${Number(netROI) > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                     {netROI}%
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="text-center p-3 bg-white/80 rounded-lg">
-                    <p className="text-xs text-slate-500">LTV/CAC Ratio</p>
+                    <p className="text-xs text-muted-foreground">LTV/CAC Ratio</p>
                     <p className={`text-xl font-bold ${Number(ltvCacRatio) >= 3 ? 'text-emerald-600' : Number(ltvCacRatio) >= 2 ? 'text-amber-600' : 'text-rose-600'}`}>
                       {ltvCacRatio}x
                     </p>
                   </div>
                   <div className="text-center p-3 bg-white/80 rounded-lg">
-                    <p className="text-xs text-slate-500">Payback Period</p>
-                    <p className="text-xl font-bold text-slate-900">{paybackMonths} mo</p>
+                    <p className="text-xs text-muted-foreground">Payback Period</p>
+                    <p className={`text-xl font-bold ${Number(paybackMonths) <= 12 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                      {paybackMonths} mo
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -183,23 +198,35 @@ export function GrowthCACCalculator({ onSave }: Props) {
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.03 }}
-                    className="p-3 bg-slate-50 rounded-lg"
+                    className="p-3 bg-muted rounded-lg"
                   >
-                    <div className="flex items-center gap-2 text-slate-500 mb-1">
+                    <div className="flex items-center gap-2 text-muted-foreground mb-1">
                       <Icon className="w-3 h-3" />
                       <span className="text-xs">{metric.label}</span>
                     </div>
-                    <p className="text-sm font-bold text-slate-900">{metric.value}</p>
+                    <p className="text-sm font-bold text-foreground">{metric.value}</p>
                   </motion.div>
                 );
               })}
+            </div>
+
+            {/* KPI Explanations */}
+            <div className="space-y-2 p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-start gap-2">
+                <Info className="w-4 h-4 text-blue-600 mt-0.5" />
+                <div className="space-y-1.5 text-sm">
+                  <p className="text-blue-800"><strong>LTV/CAC:</strong> Target &gt;3x is considered healthy.</p>
+                  <p className="text-blue-800"><strong>Payback period:</strong> Under 12 months is typically considered strong.</p>
+                  <p className="text-blue-800"><strong>Churn:</strong> Below 5% monthly indicates strong retention.</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Benchmark & Actions */}
-        <div className="mt-6 p-4 bg-slate-50 rounded-lg">
-          <p className="text-sm text-slate-600">
+        <div className="mt-6 p-4 bg-muted rounded-lg">
+          <p className="text-sm text-muted-foreground">
             <strong>Industry Benchmarks:</strong> SaaS companies target LTV/CAC of 3:1+. Payback under 12 months is healthy. Churn below 5% indicates strong retention.
           </p>
         </div>

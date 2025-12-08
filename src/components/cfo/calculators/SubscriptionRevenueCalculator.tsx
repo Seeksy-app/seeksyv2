@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { motion } from 'framer-motion';
-import { Users, DollarSign, TrendingUp, RefreshCw, Save, CreditCard } from 'lucide-react';
+import { Users, RefreshCw, Save, CreditCard, Info } from 'lucide-react';
 import { useCFOAssumptions } from '@/hooks/useCFOAssumptions';
 
 interface Props {
@@ -15,19 +15,36 @@ interface Props {
 export function SubscriptionRevenueCalculator({ onSave }: Props) {
   const { getEffectiveValue, saveMultipleAssumptions, isSaving } = useCFOAssumptions();
 
-  // Input state
-  const [activeCreators, setActiveCreators] = useState(5000);
-  const [freePct, setFreePct] = useState(70);
-  const [proPct, setProPct] = useState(20);
-  const [businessPct, setBusinessPct] = useState(8);
-  const [enterprisePct, setEnterprisePct] = useState(2);
-  const [monthlyGrowth, setMonthlyGrowth] = useState(15);
-  const [upgradeRate, setUpgradeRate] = useState(8);
+  // Input state with specified defaults
+  const [activeCreators, setActiveCreators] = useState(2400);
+  const [freePct, setFreePct] = useState(60);
+  const [proPct, setProPct] = useState(25);
+  const [businessPct, setBusinessPct] = useState(10);
+  const [enterprisePct, setEnterprisePct] = useState(5);
+  const [monthlyGrowth, setMonthlyGrowth] = useState(8);
+  const [upgradeRate, setUpgradeRate] = useState(5);
   
-  // Prices from R&D
-  const [priceProMonthly] = useState(() => getEffectiveValue('creator_subscription_arpu_pro', 29));
-  const [priceBusinessMonthly] = useState(() => getEffectiveValue('creator_subscription_arpu_business', 79));
-  const [priceEnterpriseMonthly] = useState(() => getEffectiveValue('creator_subscription_arpu_enterprise', 299));
+  // Tier pricing with specified ranges and defaults
+  const [pricePro, setPricePro] = useState(19);
+  const [priceBusiness, setPriceBusiness] = useState(49);
+  const [priceEnterprise, setPriceEnterprise] = useState(299);
+
+  // Ensure tier percentages always total 100%
+  const normalizeTiers = (changed: string, newValue: number) => {
+    const total = 100;
+    let remaining = total - newValue;
+    
+    if (changed === 'free') {
+      // Distribute remaining proportionally among paid tiers
+      const paidTotal = proPct + businessPct + enterprisePct;
+      if (paidTotal > 0) {
+        const ratio = remaining / paidTotal;
+        setProPct(Math.round(proPct * ratio));
+        setBusinessPct(Math.round(businessPct * ratio));
+        setEnterprisePct(Math.round(enterprisePct * ratio));
+      }
+    }
+  };
 
   // Calculations
   const freeCount = Math.round(activeCreators * (freePct / 100));
@@ -35,24 +52,27 @@ export function SubscriptionRevenueCalculator({ onSave }: Props) {
   const businessCount = Math.round(activeCreators * (businessPct / 100));
   const enterpriseCount = Math.round(activeCreators * (enterprisePct / 100));
 
-  const monthlyProRevenue = proCount * priceProMonthly;
-  const monthlyBusinessRevenue = businessCount * priceBusinessMonthly;
-  const monthlyEnterpriseRevenue = enterpriseCount * priceEnterpriseMonthly;
+  const monthlyProRevenue = proCount * pricePro;
+  const monthlyBusinessRevenue = businessCount * priceBusiness;
+  const monthlyEnterpriseRevenue = enterpriseCount * priceEnterprise;
   const totalMRR = monthlyProRevenue + monthlyBusinessRevenue + monthlyEnterpriseRevenue;
 
   // 3-year projection with growth
-  const year1Revenue = totalMRR * 12 * (1 + (monthlyGrowth * 6) / 100); // Average growth
+  const year1Revenue = totalMRR * 12 * (1 + (monthlyGrowth * 6) / 100);
   const year2Revenue = year1Revenue * (1 + monthlyGrowth / 100) ** 12;
   const year3Revenue = year2Revenue * (1 + monthlyGrowth / 100) ** 12;
 
   const handleReset = () => {
-    setActiveCreators(5000);
-    setFreePct(70);
-    setProPct(20);
-    setBusinessPct(8);
-    setEnterprisePct(2);
-    setMonthlyGrowth(15);
-    setUpgradeRate(8);
+    setActiveCreators(2400);
+    setFreePct(60);
+    setProPct(25);
+    setBusinessPct(10);
+    setEnterprisePct(5);
+    setMonthlyGrowth(8);
+    setUpgradeRate(5);
+    setPricePro(19);
+    setPriceBusiness(49);
+    setPriceEnterprise(299);
   };
 
   const handleSave = () => {
@@ -64,6 +84,9 @@ export function SubscriptionRevenueCalculator({ onSave }: Props) {
       { metric_key: 'enterprise_tier_percent', value: enterprisePct, unit: 'percent', category: 'subscriptions' },
       { metric_key: 'creator_growth_mom', value: monthlyGrowth, unit: 'percent', category: 'growth' },
       { metric_key: 'free_to_paid_upgrade_rate', value: upgradeRate, unit: 'percent', category: 'subscriptions' },
+      { metric_key: 'creator_subscription_arpu_pro', value: pricePro, unit: 'usd', category: 'subscriptions' },
+      { metric_key: 'creator_subscription_arpu_business', value: priceBusiness, unit: 'usd', category: 'subscriptions' },
+      { metric_key: 'creator_subscription_arpu_enterprise', value: priceEnterprise, unit: 'usd', category: 'subscriptions' },
     ]);
     onSave?.();
   };
@@ -74,14 +97,22 @@ export function SubscriptionRevenueCalculator({ onSave }: Props) {
     return `$${value.toFixed(0)}`;
   };
 
+  // Calculate total tier percentage for validation display
+  const tierTotal = freePct + proPct + businessPct + enterprisePct;
+
   return (
-    <Card className="border-slate-200 shadow-sm">
-      <CardHeader className="border-b border-slate-100 py-4">
+    <Card className="border-border shadow-sm">
+      <CardHeader className="border-b border-border py-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-emerald-500" />
-            Subscription Revenue Calculator
-          </CardTitle>
+          <div>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-emerald-500" />
+              Subscription Revenue Calculator
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Adjust tier mix and pricing to see their impact on MRR and 3-year subscription revenue.
+            </p>
+          </div>
           <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
             MRR Model
           </Badge>
@@ -94,54 +125,139 @@ export function SubscriptionRevenueCalculator({ onSave }: Props) {
             <div className="space-y-2">
               <Label className="flex items-center justify-between">
                 <span>Active Creators Today</span>
-                <span className="text-sm font-medium text-slate-900">{activeCreators.toLocaleString()}</span>
+                <span className="text-sm font-medium text-foreground">{activeCreators.toLocaleString()}</span>
               </Label>
               <Slider
                 value={[activeCreators]}
                 onValueChange={([v]) => setActiveCreators(v)}
                 min={100}
-                max={50000}
+                max={100000}
                 step={100}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label className="flex items-center justify-between">
-                <span>Free Tier %</span>
-                <span className="text-sm font-medium text-slate-900">{freePct}%</span>
-              </Label>
-              <Slider
-                value={[freePct]}
-                onValueChange={([v]) => setFreePct(v)}
-                min={50}
-                max={95}
-                step={1}
-              />
+            {/* Tier Mix Section */}
+            <div className="p-3 bg-muted rounded-lg space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Tier Mix</span>
+                <span className={`text-xs ${tierTotal === 100 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                  Total: {tierTotal}%
+                </span>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="flex items-center justify-between text-sm">
+                  <span>Free ($0/mo)</span>
+                  <span className="font-medium">{freePct}%</span>
+                </Label>
+                <Slider
+                  value={[freePct]}
+                  onValueChange={([v]) => setFreePct(v)}
+                  min={0}
+                  max={95}
+                  step={1}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="flex items-center justify-between text-sm">
+                  <span>Pro (${pricePro}/mo)</span>
+                  <span className="font-medium">{proPct}%</span>
+                </Label>
+                <Slider
+                  value={[proPct]}
+                  onValueChange={([v]) => setProPct(v)}
+                  min={0}
+                  max={50}
+                  step={1}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="flex items-center justify-between text-sm">
+                  <span>Business (${priceBusiness}/mo)</span>
+                  <span className="font-medium">{businessPct}%</span>
+                </Label>
+                <Slider
+                  value={[businessPct]}
+                  onValueChange={([v]) => setBusinessPct(v)}
+                  min={0}
+                  max={30}
+                  step={1}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="flex items-center justify-between text-sm">
+                  <span>Enterprise (${priceEnterprise}/mo)</span>
+                  <span className="font-medium">{enterprisePct}%</span>
+                </Label>
+                <Slider
+                  value={[enterprisePct]}
+                  onValueChange={([v]) => setEnterprisePct(v)}
+                  min={0}
+                  max={15}
+                  step={1}
+                />
+              </div>
+            </div>
+
+            {/* Pricing Section */}
+            <div className="p-3 bg-blue-50 rounded-lg space-y-4">
+              <span className="text-sm font-medium text-blue-900">Tier Pricing</span>
+              
+              <div className="space-y-2">
+                <Label className="flex items-center justify-between text-sm">
+                  <span>Pro Price</span>
+                  <span className="font-medium">${pricePro}/mo</span>
+                </Label>
+                <Slider
+                  value={[pricePro]}
+                  onValueChange={([v]) => setPricePro(v)}
+                  min={9}
+                  max={39}
+                  step={1}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="flex items-center justify-between text-sm">
+                  <span>Business Price</span>
+                  <span className="font-medium">${priceBusiness}/mo</span>
+                </Label>
+                <Slider
+                  value={[priceBusiness]}
+                  onValueChange={([v]) => setPriceBusiness(v)}
+                  min={29}
+                  max={149}
+                  step={5}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="flex items-center justify-between text-sm">
+                  <span>Enterprise Price</span>
+                  <span className="font-medium">${priceEnterprise}/mo</span>
+                </Label>
+                <Slider
+                  value={[priceEnterprise]}
+                  onValueChange={([v]) => setPriceEnterprise(v)}
+                  min={99}
+                  max={499}
+                  step={10}
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
               <Label className="flex items-center justify-between">
-                <span>Pro Tier % (${priceProMonthly}/mo)</span>
-                <span className="text-sm font-medium text-slate-900">{proPct}%</span>
+                <span>Monthly Creator Growth</span>
+                <span className="text-sm font-medium text-foreground">{monthlyGrowth}%</span>
               </Label>
               <Slider
-                value={[proPct]}
-                onValueChange={([v]) => setProPct(v)}
+                value={[monthlyGrowth]}
+                onValueChange={([v]) => setMonthlyGrowth(v)}
                 min={1}
-                max={40}
-                step={1}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="flex items-center justify-between">
-                <span>Business Tier % (${priceBusinessMonthly}/mo)</span>
-                <span className="text-sm font-medium text-slate-900">{businessPct}%</span>
-              </Label>
-              <Slider
-                value={[businessPct]}
-                onValueChange={([v]) => setBusinessPct(v)}
-                min={0}
                 max={20}
                 step={1}
               />
@@ -149,28 +265,14 @@ export function SubscriptionRevenueCalculator({ onSave }: Props) {
 
             <div className="space-y-2">
               <Label className="flex items-center justify-between">
-                <span>Monthly Creator Growth</span>
-                <span className="text-sm font-medium text-slate-900">{monthlyGrowth}%</span>
-              </Label>
-              <Slider
-                value={[monthlyGrowth]}
-                onValueChange={([v]) => setMonthlyGrowth(v)}
-                min={0}
-                max={30}
-                step={1}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="flex items-center justify-between">
                 <span>Free → Paid Upgrade Rate</span>
-                <span className="text-sm font-medium text-slate-900">{upgradeRate}%</span>
+                <span className="text-sm font-medium text-foreground">{upgradeRate}%</span>
               </Label>
               <Slider
                 value={[upgradeRate]}
                 onValueChange={([v]) => setUpgradeRate(v)}
-                min={1}
-                max={25}
+                min={0}
+                max={20}
                 step={1}
               />
             </div>
@@ -181,26 +283,26 @@ export function SubscriptionRevenueCalculator({ onSave }: Props) {
             <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 border-0">
               <CardContent className="p-4">
                 <div className="text-center mb-4">
-                  <p className="text-sm text-slate-500">Current MRR</p>
+                  <p className="text-sm text-muted-foreground">Current MRR</p>
                   <p className="text-4xl font-bold text-emerald-600">
                     {formatCurrency(totalMRR)}
                   </p>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div className="p-2 bg-white/80 rounded-lg">
-                    <p className="text-xs text-slate-500">Pro</p>
+                    <p className="text-xs text-muted-foreground">Pro</p>
                     <p className="text-sm font-bold">{formatCurrency(monthlyProRevenue)}</p>
-                    <p className="text-xs text-slate-400">{proCount} users</p>
+                    <p className="text-xs text-muted-foreground">{proCount} users</p>
                   </div>
                   <div className="p-2 bg-white/80 rounded-lg">
-                    <p className="text-xs text-slate-500">Business</p>
+                    <p className="text-xs text-muted-foreground">Business</p>
                     <p className="text-sm font-bold">{formatCurrency(monthlyBusinessRevenue)}</p>
-                    <p className="text-xs text-slate-400">{businessCount} users</p>
+                    <p className="text-xs text-muted-foreground">{businessCount} users</p>
                   </div>
                   <div className="p-2 bg-white/80 rounded-lg">
-                    <p className="text-xs text-slate-500">Enterprise</p>
+                    <p className="text-xs text-muted-foreground">Enterprise</p>
                     <p className="text-sm font-bold">{formatCurrency(monthlyEnterpriseRevenue)}</p>
-                    <p className="text-xs text-slate-400">{enterpriseCount} users</p>
+                    <p className="text-xs text-muted-foreground">{enterpriseCount} users</p>
                   </div>
                 </div>
               </CardContent>
@@ -217,10 +319,10 @@ export function SubscriptionRevenueCalculator({ onSave }: Props) {
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.03 }}
-                  className="p-3 bg-slate-50 rounded-lg text-center"
+                  className="p-3 bg-muted rounded-lg text-center"
                 >
-                  <p className="text-xs text-slate-500">{item.label}</p>
-                  <p className="text-lg font-bold text-slate-900">{item.value}</p>
+                  <p className="text-xs text-muted-foreground">{item.label}</p>
+                  <p className="text-lg font-bold text-foreground">{item.value}</p>
                 </motion.div>
               ))}
             </div>
@@ -232,6 +334,14 @@ export function SubscriptionRevenueCalculator({ onSave }: Props) {
               </div>
               <p className="text-xs text-amber-600 mt-1">
                 {upgradeRate}% upgrade rate = {Math.round(freeCount * upgradeRate / 100)} potential converts/mo
+              </p>
+            </div>
+
+            {/* Info box */}
+            <div className="flex items-start gap-2 p-3 bg-emerald-50 rounded-lg">
+              <Info className="w-4 h-4 text-emerald-600 mt-0.5" />
+              <p className="text-sm text-emerald-800">
+                These values are saved as CFO assumptions and used by the AI Pro Forma.
               </p>
             </div>
           </div>
