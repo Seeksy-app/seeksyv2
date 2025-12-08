@@ -1,22 +1,25 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { StudioRightSidebar } from "@/components/studio/StudioRightSidebar";
 import { Button } from "@/components/ui/button";
-import { Video, VideoOff, Mic, MicOff, PhoneOff, Moon, Users, Sparkles } from "lucide-react";
+import { Video, VideoOff, Mic, MicOff, PhoneOff, Moon, Users, Sparkles, UserPlus, Monitor, MessageSquare, ExternalLink } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { toast } from "sonner";
 import { DeviceTestDialog } from "@/components/meeting/DeviceTestDialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { InviteGuestModal } from "@/components/studio/video/modals/InviteGuestModal";
 
 const MeetingStudio = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
   const [showDeviceTest, setShowDeviceTest] = useState(true);
   const [showAINotes, setShowAINotes] = useState(true);
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const [selectedDevices, setSelectedDevices] = useState<{
     videoDeviceId: string | null;
     audioInputDeviceId: string | null;
@@ -118,6 +121,16 @@ const MeetingStudio = () => {
     }
   }, [isMicOn]);
 
+  const handleEndCall = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+    }
+    navigate('/meetings');
+  };
+
+  const handleOpenInNewTab = () => {
+    window.open(window.location.href, '_blank');
+  };
 
   return (
     <>
@@ -126,17 +139,37 @@ const MeetingStudio = () => {
         onContinue={handleDeviceTestComplete}
       />
       
-      <div className="flex flex-col h-screen bg-background">
+      <InviteGuestModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        sessionId={id}
+      />
+      
+      {/* Full screen container - fixed position, no scroll */}
+      <div className="fixed inset-0 flex flex-col bg-zinc-900 overflow-hidden">
         {/* Header */}
-        <div className="h-16 bg-zinc-900 border-b border-border/40 flex items-center justify-between px-6">
+        <div className="h-14 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between px-6 flex-shrink-0">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-white">
+              <span className="text-lg font-semibold">Meeting Studio</span>
+              <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-medium rounded">Live</span>
+            </div>
+            <div className="flex items-center gap-2 text-zinc-400">
               <Users className="h-4 w-4" />
-              <span className="text-sm">1 participant</span>
+              <span className="text-sm">2 participants</span>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleOpenInNewTab}
+              className="text-zinc-400 hover:text-white hover:bg-zinc-800 gap-2"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Open in New Tab
+            </Button>
             <div className="flex items-center gap-2">
               <Switch
                 id="ai-notes"
@@ -148,19 +181,19 @@ const MeetingStudio = () => {
                 AI Notes
               </Label>
             </div>
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+            <Button variant="ghost" size="icon" className="text-white hover:bg-zinc-800">
               <Moon className="h-5 w-5" />
             </Button>
           </div>
         </div>
 
         {/* Main Content with Resizable Panels */}
-        <ResizablePanelGroup direction="horizontal" className="flex-1">
+        <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
           {/* Video Area */}
           <ResizablePanel defaultSize={40} minSize={15}>
             <div className="flex flex-col h-full">
               {/* Video Grid */}
-              <div className="flex-1 bg-zinc-900 flex items-center justify-center relative">
+              <div className="flex-1 bg-zinc-900 flex items-center justify-center relative min-h-0">
                 <video
                   ref={videoRef}
                   autoPlay
@@ -178,30 +211,64 @@ const MeetingStudio = () => {
                 )}
               </div>
 
-              {/* Controls Bar */}
-              <div className="h-20 bg-zinc-900 border-t border-border/40 flex items-center justify-center gap-4 px-6">
+              {/* Controls Bar - Fixed at bottom */}
+              <div className="h-20 bg-zinc-950 border-t border-zinc-800 flex items-center justify-center gap-3 px-6 flex-shrink-0">
+                {/* Mic */}
                 <Button
-                  variant={isMicOn ? "default" : "destructive"}
+                  variant="ghost"
                   size="icon"
-                  className="h-12 w-12 rounded-full"
+                  className={`h-12 w-12 rounded-full ${isMicOn ? 'bg-amber-500 hover:bg-amber-600 text-black' : 'bg-red-500 hover:bg-red-600 text-white'}`}
                   onClick={() => setIsMicOn(!isMicOn)}
                 >
                   {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
                 </Button>
 
+                {/* Video */}
                 <Button
-                  variant={isVideoOn ? "default" : "destructive"}
+                  variant="ghost"
                   size="icon"
-                  className="h-12 w-12 rounded-full"
+                  className={`h-12 w-12 rounded-full ${isVideoOn ? 'bg-amber-500 hover:bg-amber-600 text-black' : 'bg-red-500 hover:bg-red-600 text-white'}`}
                   onClick={() => setIsVideoOn(!isVideoOn)}
                 >
                   {isVideoOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
                 </Button>
 
+                {/* Screen Share */}
                 <Button
-                  variant="destructive"
+                  variant="ghost"
                   size="icon"
-                  className="h-12 w-12 rounded-full"
+                  className="h-12 w-12 rounded-full bg-amber-500 hover:bg-amber-600 text-black"
+                  onClick={() => toast.info("Screen sharing coming soon!")}
+                >
+                  <Monitor className="h-5 w-5" />
+                </Button>
+
+                {/* Chat */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-12 w-12 rounded-full bg-amber-500 hover:bg-amber-600 text-black"
+                  onClick={() => toast.info("Chat panel coming soon!")}
+                >
+                  <MessageSquare className="h-5 w-5" />
+                </Button>
+
+                {/* Invite Participant */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-12 w-12 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
+                  onClick={() => setShowInviteModal(true)}
+                >
+                  <UserPlus className="h-5 w-5" />
+                </Button>
+
+                {/* End Call */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-12 w-12 rounded-full bg-red-500 hover:bg-red-600 text-white"
+                  onClick={handleEndCall}
                 >
                   <PhoneOff className="h-5 w-5" />
                 </Button>
@@ -211,7 +278,7 @@ const MeetingStudio = () => {
 
           <ResizableHandle withHandle />
 
-          {/* Right Sidebar - Now twice as large */}
+          {/* Right Sidebar */}
           <ResizablePanel defaultSize={60} minSize={30} maxSize={85}>
             <StudioRightSidebar
               currentViewerCount={2}
