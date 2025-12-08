@@ -23,10 +23,12 @@ serve(async (req) => {
 
     if (action === 'get_auth_url') {
       // Generate OAuth URL for Dropbox
+      console.log('Generating Dropbox auth URL with redirect_uri:', redirectUri);
       const authUrl = `https://www.dropbox.com/oauth2/authorize?client_id=${appKey}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&token_access_type=offline`;
+      console.log('Generated auth URL:', authUrl);
       
       return new Response(
-        JSON.stringify({ authUrl }),
+        JSON.stringify({ authUrl, debug_redirect_uri: redirectUri }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
