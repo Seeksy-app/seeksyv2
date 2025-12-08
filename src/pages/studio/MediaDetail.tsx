@@ -663,70 +663,7 @@ export default function MediaDetail() {
               </Tabs>
             </Card>
 
-            {/* Generated Clips Section */}
-            {clips && clips.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <Scissors className="w-5 h-5 text-primary" />
-                      Generated Clips
-                    </CardTitle>
-                    <Button variant="outline" size="sm" onClick={() => navigate(`/studio/clips?media=${id}`)}>
-                      Generate More
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {clips.map((clip) => (
-                      <div
-                        key={clip.id}
-                        className="group rounded-lg border overflow-hidden hover:border-primary/50 transition-all"
-                      >
-                        <div className="aspect-[9/16] max-h-40 bg-muted relative">
-                          {clip.thumbnail_url ? (
-                            <img src={clip.thumbnail_url} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="flex items-center justify-center h-full">
-                              <Scissors className="w-8 h-8 text-muted-foreground/40" />
-                            </div>
-                          )}
-                          <Badge className="absolute bottom-2 right-2 text-xs bg-black/60 text-white border-0">
-                            {formatDuration(clip.duration_seconds)}
-                          </Badge>
-                          {clip.hook_score && (
-                            <Badge className="absolute top-2 left-2 text-xs bg-primary text-primary-foreground">
-                              Hook: {clip.hook_score}%
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="p-3">
-                          <p className="font-medium text-sm truncate mb-2">{clip.title || "Untitled Clip"}</p>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="flex-1 text-xs h-8"
-                              onClick={() => navigate(`/studio/clips?clipId=${clip.id}`)}
-                            >
-                              Edit
-                            </Button>
-                            <Button
-                              size="sm"
-                              className="flex-1 text-xs h-8"
-                              onClick={() => handlePublishToSocial(clip)}
-                            >
-                              Publish
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {/* Duplicate Generated Clips section removed - clips are shown in Clips tab above */}
           </div>
 
           {/* Sidebar */}

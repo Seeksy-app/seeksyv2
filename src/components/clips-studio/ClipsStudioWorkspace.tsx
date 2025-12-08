@@ -118,8 +118,19 @@ export function ClipsStudioWorkspace({
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Re-analyze button - more visible */}
+            <Button 
+              variant="default" 
+              size="sm" 
+              onClick={onReanalyze}
+              className="bg-[#2C6BED] hover:bg-[#2C6BED]/90 text-white"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Re-analyze
+            </Button>
+            
             {/* View mode toggle */}
-            <div className="flex items-center bg-muted rounded-lg p-1 mr-2">
+            <div className="flex items-center bg-muted rounded-lg p-1">
               <Button
                 variant="ghost"
                 size="icon"
@@ -137,15 +148,6 @@ export function ClipsStudioWorkspace({
                 <List className="h-4 w-4" />
               </Button>
             </div>
-
-            <Button variant="outline" size="sm" onClick={onReanalyze}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Re-analyze
-            </Button>
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Export All
-            </Button>
           </div>
         </div>
       </header>

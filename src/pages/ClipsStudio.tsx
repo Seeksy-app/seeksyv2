@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ClipsStudioWorkspace } from "@/components/clips-studio/ClipsStudioWorkspace";
 import { ClipsSourceSelector } from "@/components/clips-studio/ClipsSourceSelector";
+import { useSidebar } from "@/components/ui/sidebar";
 import { Loader2, Sparkles, Zap, TrendingUp, Film } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -55,6 +56,14 @@ export default function ClipsStudio() {
   const navigate = useNavigate();
   const { toast } = useToast();
   
+  // Try to get sidebar context safely
+  let sidebar: ReturnType<typeof useSidebar> | null = null;
+  try {
+    sidebar = useSidebar();
+  } catch {
+    // Sidebar context not available
+  }
+  
   const [step, setStep] = useState<'select' | 'analyze' | 'edit'>('select');
   const [sourceMedia, setSourceMedia] = useState<SourceMedia | null>(null);
   const [clips, setClips] = useState<ClipData[]>([]);
@@ -62,6 +71,19 @@ export default function ClipsStudio() {
   const [isLoading, setIsLoading] = useState(true);
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [analysisStage, setAnalysisStage] = useState('');
+
+  // Auto-collapse sidebar when entering clips studio
+  useEffect(() => {
+    if (sidebar && !sidebar.isMobile) {
+      sidebar.setOpen(false);
+    }
+    return () => {
+      // Restore sidebar when leaving
+      if (sidebar && !sidebar.isMobile) {
+        sidebar.setOpen(true);
+      }
+    };
+  }, [sidebar]);
 
   // Check for mediaId in URL params (from AI Post-Production flow)
   useEffect(() => {

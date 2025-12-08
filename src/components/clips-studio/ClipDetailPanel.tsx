@@ -248,35 +248,7 @@ export function ClipDetailPanel({ clip, sourceMedia, onUpdate }: ClipDetailPanel
               </div>
             )}
 
-            {/* Scene Analysis */}
-            {clip.scenes && clip.scenes.length > 0 && (
-              <div>
-                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Scene Analysis
-                </Label>
-                <div className="mt-2 space-y-2">
-                  {clip.scenes.map((scene, i) => (
-                    <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
-                      <div className={cn(
-                        "w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold",
-                        scene.type === 'hook' && "bg-yellow-500",
-                        scene.type === 'key_point' && "bg-blue-500",
-                        scene.type === 'cta' && "bg-green-500",
-                        scene.type === 'transition' && "bg-gray-500"
-                      )}>
-                        {Math.floor(scene.timestamp - clip.start_seconds)}s
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{scene.description}</p>
-                        <Badge variant="outline" className="text-[10px] mt-1">
-                          {scene.type.replace('_', ' ')}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Scene Analysis section removed per user request */}
           </TabsContent>
 
           {/* Captions Tab */}
