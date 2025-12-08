@@ -272,6 +272,14 @@ export const NAVIGATION_CONFIG: {
           "roles": ["admin", "super_admin", "cmo"]
         },
         {
+          "id": "admin_email",
+          "label": "Email Suite",
+          "icon": "mail",
+          "path": "/admin/email",
+          "roles": ["admin", "super_admin", "cmo"],
+          "description": "Send, receive, and track emails"
+        },
+        {
           "id": "admin_outbound_campaigns",
           "label": "Outbound Campaigns",
           "icon": "send",
