@@ -20,6 +20,7 @@ import { StudioInviteDialog } from "@/components/studio/StudioInviteDialog";
 import { StudioBrandingMenu, BrandingSettings } from "@/components/studio/StudioBrandingMenu";
 import { RecordingMarker } from "@/components/studio/MarkerPanel";
 import { Scene } from "@/components/studio/StudioScenes";
+import { SaveSessionDialog, SaveOptions } from "@/components/studio/SaveSessionDialog";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { StudioGuestPanel } from "@/components/studio/StudioGuestPanel";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -545,7 +546,7 @@ Closing Notes:
     setShowNameDialog(true);
   };
 
-  const confirmUpload = async () => {
+  const handleSaveSession = async (options: SaveOptions) => {
     if (!pendingBlob) {
       toast({
         title: "Error",
@@ -555,13 +556,61 @@ Closing Notes:
       return;
     }
     
-    // Use session name as default if no custom name provided
-    const finalName = recordingName.trim() || sessionName || `Live Stream ${new Date().toLocaleDateString()}`;
+    setIsUploading(true);
     
-    setShowNameDialog(false);
-    await uploadRecording(pendingBlob, finalName);
-    setRecordingName("");
-    setPendingBlob(null);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Save as Template if selected
+      if (options.saveAsTemplate) {
+        const { error: templateError } = await supabase
+          .from('studio_templates')
+          .insert({
+            user_id: user.id,
+            session_name: options.name,
+            description: `Template created from session on ${new Date().toLocaleDateString()}`,
+            thumbnail_url: null,
+          });
+
+        if (templateError) {
+          console.error('Template save error:', templateError);
+          toast({
+            title: "Template not saved",
+            description: "Could not save as template, but recording will continue",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Template saved",
+            description: `"${options.name}" is now available as a reusable template`,
+            duration: 3000,
+          });
+        }
+      }
+
+      // Save as Recording if selected
+      if (options.saveAsRecording) {
+        await uploadRecording(pendingBlob, options.name);
+      } else {
+        // If only template, just close and go back
+        setShowNameDialog(false);
+        setPendingBlob(null);
+        navigate('/studio');
+        return;
+      }
+      
+      setShowNameDialog(false);
+      setPendingBlob(null);
+    } catch (error) {
+      console.error("Error saving session:", error);
+      toast({
+        title: "Save failed",
+        description: "Could not save your session",
+        variant: "destructive",
+      });
+      setIsUploading(false);
+    }
   };
 
   const uploadRecording = async (blob: Blob, name: string) => {
@@ -1028,35 +1077,13 @@ Closing Notes:
         }}
       />
 
-      <Dialog open={showNameDialog} onOpenChange={setShowNameDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Name Your Recording</DialogTitle>
-            <DialogDescription>
-              Give your recording a memorable name
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="recording-name">Recording Name</Label>
-              <Input
-                id="recording-name"
-                value={recordingName}
-                onChange={(e) => setRecordingName(e.target.value)}
-                placeholder="My awesome recording"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    confirmUpload();
-                  }
-                }}
-              />
-            </div>
-            <Button onClick={confirmUpload} className="w-full">
-              Save Recording
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <SaveSessionDialog
+        open={showNameDialog}
+        onOpenChange={setShowNameDialog}
+        defaultName={sessionName || `Session ${new Date().toLocaleDateString()}`}
+        onSave={handleSaveSession}
+        isLoading={isUploading}
+      />
 
       <Dialog open={showVideoLiveDialog} onOpenChange={setShowVideoLiveDialog}>
         <DialogContent className="max-w-md">
