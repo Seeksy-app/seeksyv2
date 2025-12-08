@@ -33,8 +33,7 @@ export function BoardLayout({ children }: BoardLayoutProps) {
           <BoardSidebar />
           
           {/* Light content area - ensure no extra margins */}
-          <div className="flex-1 flex flex-col min-w-0 bg-white h-screen overflow-hidden ml-0">
-            <BoardTopNav />
+          <div className="flex-1 flex flex-col min-w-0 bg-white h-screen overflow-hidden">
             <main className="flex-1 bg-slate-50 overflow-auto relative">
               <motion.div
                 key={location.pathname}

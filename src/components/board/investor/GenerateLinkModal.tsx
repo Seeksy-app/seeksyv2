@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Link2, Shield, Copy, Check, AlertTriangle, ArrowRight, ArrowLeft, 
-  Mail, Eye, Clock, Calendar, Video, ChevronDown, ChevronUp, Settings
+  Mail, Eye, Clock, Calendar, Video, ChevronDown, ChevronUp, Settings, TrendingUp
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -399,16 +399,17 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
                 </div>
 
                 {/* Financial Adjustments Section */}
-                <div className="border-t pt-4">
-                  <Label className="mb-3 flex items-center gap-2">
-                    <Settings className="w-4 h-4 text-slate-500" />
-                    Financial Adjustments
-                  </Label>
-                  
-                  <div className="space-y-4">
-                    {/* Overall Adjustment */}
-                    <div className="p-3 bg-slate-50 rounded-lg space-y-3">
-                      <div className="text-sm font-medium text-slate-700">Overall Adjustment (All Scenarios)</div>
+                <div className="border-t pt-4 space-y-4">
+                  {/* Overall Adjustment - Only show when NOT using real-time financials */}
+                  {!useRealTimeFinancials && (
+                    <div className="p-4 bg-slate-50 rounded-lg space-y-3">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-slate-600" />
+                        <div className="text-sm font-medium text-slate-700">Overall Adjustment (All Scenarios)</div>
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        Apply +/- % adjustment to Conservative, Growth, and Aggressive projections
+                      </p>
                       <div className="flex items-center gap-2">
                         <Select value={overallAdjustment} onValueChange={(v) => setOverallAdjustment(v as '+' | '-')}>
                           <SelectTrigger className="w-20">
@@ -423,52 +424,50 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
                           type="number"
                           value={adjustmentPercent}
                           onChange={(e) => setAdjustmentPercent(e.target.value)}
-                          className="w-20"
+                          className="flex-1"
                           min="0"
                           max="100"
                         />
                         <span className="text-sm text-slate-600">%</span>
                       </div>
-                      <p className="text-xs text-slate-500">
-                        Adjust all financial projections by this percentage
+                      <p className="text-xs text-slate-500 italic">
+                        0% = Exact copy of AI Pro Forma. -10% = AI data reduced by 10%. +10% = AI data increased by 10%. Applies to all scenarios.
                       </p>
                     </div>
+                  )}
 
-                    {/* Toggle Options */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-sm font-medium text-slate-700">Use Real-Time Financials</div>
-                          <p className="text-xs text-slate-500">Pull live data instead of cached projections</p>
-                        </div>
-                        <Switch 
-                          checked={useRealTimeFinancials} 
-                          onCheckedChange={setUseRealTimeFinancials} 
-                        />
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-sm font-medium text-slate-700">Allow HTML Spreadsheet View</div>
-                          <p className="text-xs text-slate-500">Enable interactive spreadsheet viewer</p>
-                        </div>
-                        <Switch 
-                          checked={allowSpreadsheetView} 
-                          onCheckedChange={setAllowSpreadsheetView} 
-                        />
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-sm font-medium text-slate-700">Allow Download</div>
-                          <p className="text-xs text-slate-500">Permit downloading financial data as CSV/Excel</p>
-                        </div>
-                        <Switch 
-                          checked={allowDownload} 
-                          onCheckedChange={setAllowDownload} 
-                        />
-                      </div>
+                  {/* Toggle Options */}
+                  <div className="p-4 bg-slate-50 rounded-lg flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">Use Real-Time Financials</div>
+                      <p className="text-xs text-slate-500">Show live data from your actual system metrics</p>
                     </div>
+                    <Switch 
+                      checked={useRealTimeFinancials} 
+                      onCheckedChange={setUseRealTimeFinancials} 
+                    />
+                  </div>
+                  
+                  <div className="p-4 bg-slate-50 rounded-lg flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">Allow HTML Spreadsheet View</div>
+                      <p className="text-xs text-slate-500">Investors can view spreadsheet in browser (read-only)</p>
+                    </div>
+                    <Switch 
+                      checked={allowSpreadsheetView} 
+                      onCheckedChange={setAllowSpreadsheetView} 
+                    />
+                  </div>
+                  
+                  <div className="p-4 bg-slate-50 rounded-lg flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-medium text-slate-700">Allow Download</div>
+                      <p className="text-xs text-slate-500">Investors can download Excel/PDF files</p>
+                    </div>
+                    <Switch 
+                      checked={allowDownload} 
+                      onCheckedChange={setAllowDownload} 
+                    />
                   </div>
                 </div>
               </div>
