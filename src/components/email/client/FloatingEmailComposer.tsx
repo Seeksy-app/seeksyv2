@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Send, Save, Maximize2, Minimize2, Sparkles } from "lucide-react";
+import { X, Send, Save, Maximize2, Minimize2, Sparkles, PenTool } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ContactAutocomplete } from "../ContactAutocomplete";
 
@@ -32,6 +32,7 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
   const [isMinimized, setIsMinimized] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const [selectedSignatureId, setSelectedSignatureId] = useState<string>("none");
 
   // Fetch connected email accounts
   const { data: accounts = [] } = useQuery({
@@ -52,6 +53,24 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
     },
   });
 
+  // Fetch user signatures
+  const { data: signatures = [] } = useQuery({
+    queryKey: ["email-signatures-composer"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+      
+      const { data } = await supabase
+        .from("email_signatures")
+        .select("id, name, html_signature, is_active")
+        .eq("user_id", user.id)
+        .order("is_active", { ascending: false })
+        .order("name");
+      
+      return data || [];
+    },
+  });
+
   // Set default account
   useEffect(() => {
     if (accounts.length > 0 && !fromAccountId) {
@@ -59,6 +78,16 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
       setFromAccountId(defaultAccount.id);
     }
   }, [accounts, fromAccountId]);
+
+  // Set default signature when signatures load
+  useEffect(() => {
+    if (signatures.length > 0 && selectedSignatureId === "none") {
+      const activeSignature = signatures.find((s: any) => s.is_active);
+      if (activeSignature) {
+        setSelectedSignatureId(activeSignature.id);
+      }
+    }
+  }, [signatures, selectedSignatureId]);
 
   // Set initial recipients when composer opens
   useEffect(() => {
@@ -116,13 +145,22 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Build final body with signature if selected
+      let finalBody = body;
+      if (selectedSignatureId && selectedSignatureId !== "none") {
+        const selectedSig = signatures.find((s: any) => s.id === selectedSignatureId);
+        if (selectedSig?.html_signature) {
+          finalBody = `${body}\n\n${selectedSig.html_signature}`;
+        }
+      }
+
       const { data, error } = await supabase.functions.invoke("send-email", {
         body: {
           to: to.split(",").map(e => e.trim()),
           cc: cc ? cc.split(",").map(e => e.trim()) : undefined,
           bcc: bcc ? bcc.split(",").map(e => e.trim()) : undefined,
           subject,
-          htmlContent: body,
+          htmlContent: finalBody,
           fromAccountId,
         },
       });
@@ -449,7 +487,24 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
 
       {/* Footer */}
       <div className="border-t p-4 bg-muted/30">
-        <div className="flex items-center gap-3 mb-2">
+        <div className="flex items-center gap-3 mb-2 flex-wrap">
+          <div className="flex items-center gap-2">
+            <PenTool className="h-3.5 w-3.5 text-muted-foreground" />
+            <Select value={selectedSignatureId} onValueChange={setSelectedSignatureId}>
+              <SelectTrigger className="w-[160px] h-8 text-xs">
+                <SelectValue placeholder="Select signature" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover z-[60]">
+                <SelectItem value="none">No Signature</SelectItem>
+                {signatures.map((sig: any) => (
+                  <SelectItem key={sig.id} value={sig.id}>
+                    {sig.name || "Untitled"}
+                    {sig.is_active && " ✓"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <Button
             variant="outline"
             size="sm"
