@@ -415,8 +415,8 @@ export default function BoardProFormaAI() {
         </Alert>
       )}
 
-      {/* CFO-Controlled Status Notice */}
-      {hasCFOAssumptions ? (
+      {/* CFO-Controlled Status Notice - only show if CFO assumptions exist */}
+      {hasCFOAssumptions && (
         <Alert className="border-emerald-200 bg-emerald-50">
           <Shield className="w-4 h-4 text-emerald-600" />
           <AlertDescription className="text-emerald-800">
@@ -427,14 +427,6 @@ export default function BoardProFormaAI() {
                 Locked on {new Date(lockedAt).toLocaleDateString()}
               </span>
             )}
-          </AlertDescription>
-        </Alert>
-      ) : (
-        <Alert className="border-amber-200 bg-amber-50">
-          <Shield className="w-4 h-4 text-amber-600" />
-          <AlertDescription className="text-amber-800">
-            <strong>CFO has not published assumptions yet</strong> — Using R&D benchmark defaults for financial projections. 
-            Contact the CFO to publish assumptions for accurate forecasting.
           </AlertDescription>
         </Alert>
       )}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Save, Loader2 } from 'lucide-react';
-import { ForecastResult } from '@/hooks/useProFormaForecast';
 
 interface SaveVersionDialogProps {
   open: boolean;
@@ -29,9 +28,17 @@ export function SaveVersionDialog({
   scenarioLabel,
   isSaving,
 }: SaveVersionDialogProps) {
-  const defaultLabel = `${scenarioLabel} – ${new Date().toLocaleDateString()}`;
-  const [label, setLabel] = useState(defaultLabel);
+  const [label, setLabel] = useState('');
   const [summary, setSummary] = useState('');
+
+  // Reset form when dialog opens
+  useEffect(() => {
+    if (open) {
+      const defaultLabel = `${scenarioLabel} – ${new Date().toLocaleDateString()}`;
+      setLabel(defaultLabel);
+      setSummary('');
+    }
+  }, [open, scenarioLabel]);
 
   const handleSave = () => {
     onSave({ label, summary });

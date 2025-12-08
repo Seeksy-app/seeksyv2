@@ -51,7 +51,11 @@ export function useProFormaVersions() {
       forecast: ForecastResult;
       assumptions?: Record<string, number>;
     }) => {
-      const { data: user } = await supabase.auth.getUser();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        throw new Error('You must be logged in to save a version');
+      }
       
       const { data, error } = await supabase
         .from('proforma_versions')
@@ -61,7 +65,7 @@ export function useProFormaVersions() {
           summary: summary || null,
           forecast_payload: forecast as any,
           assumptions_snapshot: assumptions || null,
-          created_by: user.user?.id,
+          created_by: user.id,
         })
         .select()
         .single();
@@ -69,9 +73,9 @@ export function useProFormaVersions() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['proforma-versions'] });
-      toast.success('Pro Forma version saved');
+      toast.success(`Version saved as "${data.label}"`);
     },
     onError: (error: Error) => {
       toast.error(`Failed to save version: ${error.message}`);

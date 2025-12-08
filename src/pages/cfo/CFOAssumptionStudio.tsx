@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Sliders, TrendingUp, CreditCard, DollarSign, Calendar, ArrowLeft, Sparkles, Info, Lock, Unlock, CheckCircle2, ExternalLink } from 'lucide-react';
+import { Sliders, TrendingUp, CreditCard, DollarSign, Calendar, ArrowLeft, Sparkles, Info, Lock, Unlock, CheckCircle2, ExternalLink, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCFOAssumptions } from '@/hooks/useCFOAssumptions';
 import { useCFOLockStatus } from '@/hooks/useCFOLockStatus';
@@ -15,13 +15,13 @@ import { SubscriptionRevenueCalculator } from '@/components/cfo/calculators/Subs
 import { AdRevenueCalculator } from '@/components/cfo/calculators/AdRevenueCalculator';
 import { EventsAwardsCalculator } from '@/components/cfo/calculators/EventsAwardsCalculator';
 import { AssumptionsSummaryPanel } from '@/components/cfo/AssumptionsSummaryPanel';
-import { toast } from 'sonner';
 
 export default function CFOAssumptionStudio() {
   const navigate = useNavigate();
   const { rdCount, cfoOverrideCount, schemaCount, isLoading, deleteAssumption, cfoAssumptions } = useCFOAssumptions();
   const { isLocked, lockedAt, toggleLock, isToggling } = useCFOLockStatus();
   const [activeTab, setActiveTab] = useState('growth');
+  const [showSaveSuccess, setShowSaveSuccess] = useState(false);
 
   const handleResetAll = async () => {
     // Delete all CFO overrides
@@ -32,17 +32,18 @@ export default function CFOAssumptionStudio() {
     }
   };
 
-  // Handler for when a calculator saves - shows toast with CTA
+  // Handler for when a calculator saves - show inline success (no toast)
   const handleCalculatorSave = () => {
-    toast.success('Assumptions updated', {
-      description: 'Open the AI-Powered 3-Year Pro Forma to see the updated forecast.',
-      action: {
-        label: 'View Pro Forma',
-        onClick: () => navigate('/cfo/proforma'),
-      },
-      duration: 6000,
-    });
+    setShowSaveSuccess(true);
   };
+
+  // Auto-hide the success message after 8 seconds
+  useEffect(() => {
+    if (showSaveSuccess) {
+      const timer = setTimeout(() => setShowSaveSuccess(false), 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSaveSuccess]);
 
   return (
     <div className="w-full min-h-screen bg-background">
@@ -194,24 +195,49 @@ export default function CFOAssumptionStudio() {
           </div>
         </div>
 
-        {/* Footer Reminder */}
-        <div className="mt-8 p-4 bg-muted/50 border border-border rounded-lg flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            <strong className="text-foreground">Want to preview your impact?</strong>
-            <span className="ml-2">
-              Open the 3-Year Pro Forma to see how your assumptions drive revenue, CAC, churn, and margins.
-            </span>
+        {/* Inline Success State */}
+        {showSaveSuccess && (
+          <div className="mt-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                <Check className="w-4 h-4 text-emerald-600" />
+              </div>
+              <span className="text-sm text-emerald-800">
+                <strong>Assumptions updated.</strong> Your changes are now used in the AI-Powered 3-Year Pro Forma.
+              </span>
+            </div>
+            <Button 
+              size="sm"
+              variant="outline"
+              onClick={() => navigate('/cfo/proforma')}
+              className="bg-white border-emerald-300 text-emerald-700 hover:bg-emerald-100 gap-2"
+            >
+              <Sparkles className="w-4 h-4" />
+              View Pro Forma
+            </Button>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => navigate('/cfo/proforma')}
-            className="gap-2"
-          >
-            <Sparkles className="w-4 h-4" />
-            View Pro Forma
-          </Button>
-        </div>
+        )}
+
+        {/* Footer Reminder */}
+        {!showSaveSuccess && (
+          <div className="mt-8 p-4 bg-muted/50 border border-border rounded-lg flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              <strong className="text-foreground">Want to preview your impact?</strong>
+              <span className="ml-2">
+                Open the 3-Year Pro Forma to see how your assumptions drive revenue, CAC, churn, and margins.
+              </span>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate('/cfo/proforma')}
+              className="gap-2"
+            >
+              <Sparkles className="w-4 h-4" />
+              View Pro Forma
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
