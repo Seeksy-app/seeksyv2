@@ -79,7 +79,7 @@ export default function CFOAssumptionStudio() {
         </Alert>
 
         {/* Main Content - Two Column Layout */}
-        <div className="grid lg:grid-cols-[1fr,380px] gap-6">
+        <div className="grid lg:grid-cols-[1fr,420px] gap-6 overflow-visible">
           {/* Left: Calculators */}
           <div>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

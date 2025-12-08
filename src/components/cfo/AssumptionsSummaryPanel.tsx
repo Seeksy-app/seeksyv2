@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
   Database, 
   Settings2, 
@@ -12,7 +13,9 @@ import {
   TrendingUp,
   CreditCard,
   Radio,
-  Calendar
+  Calendar,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { useCFOAssumptions, type EffectiveAssumption } from '@/hooks/useCFOAssumptions';
 import { 
@@ -42,6 +45,19 @@ export function AssumptionsSummaryPanel({ onResetAll }: Props) {
     deleteAssumption,
     isLoading 
   } = useCFOAssumptions();
+
+  // Track which sections are open
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    growth: true,
+    subscriptions: true,
+    advertising: true,
+    impressions: true,
+    events: true,
+  });
+
+  const toggleSection = (category: string) => {
+    setOpenSections(prev => ({ ...prev, [category]: !prev[category] }));
+  };
 
   // Group assumptions by category
   const groupedAssumptions = useMemo(() => {
@@ -99,76 +115,86 @@ export function AssumptionsSummaryPanel({ onResetAll }: Props) {
       </CardHeader>
       <Separator />
       <ScrollArea className="h-[500px]">
-        <CardContent className="p-4 space-y-6">
+        <CardContent className="p-4 space-y-3">
           {Object.entries(groupedAssumptions).map(([category, items]) => {
             const Icon = CATEGORY_ICONS[category as keyof typeof CATEGORY_ICONS] || Settings2;
             const categoryLabel = CATEGORY_LABELS[category as keyof typeof CATEGORY_LABELS] || category;
+            const isOpen = openSections[category] ?? true;
             
             return (
-              <div key={category} className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Icon className="w-4 h-4 text-muted-foreground" />
-                  <h4 className="text-sm font-semibold text-foreground">{categoryLabel}</h4>
-                </div>
-                <div className="space-y-1 pl-6">
-                  {items.map(({ key, config, effective }) => {
-                    const value = effective?.value ?? config.default;
-                    const source = effective?.source || 'schema_default';
-                    const isCfoOverride = source === 'cfo_override';
-                    
-                    return (
-                      <div 
-                        key={key} 
-                        className="flex items-center justify-between py-1.5 group"
-                      >
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <span className="text-sm text-muted-foreground truncate">
-                            {config.label}
-                          </span>
+              <Collapsible key={category} open={isOpen} onOpenChange={() => toggleSection(category)}>
+                <CollapsibleTrigger asChild>
+                  <button className="w-full flex items-center gap-2 py-2 px-1 hover:bg-muted/50 rounded-md transition-colors">
+                    {isOpen ? (
+                      <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    )}
+                    <Icon className="w-4 h-4 text-muted-foreground" />
+                    <h4 className="text-sm font-semibold text-foreground">{categoryLabel}</h4>
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="space-y-1 pl-8 pr-1">
+                    {items.map(({ key, config, effective }) => {
+                      const value = effective?.value ?? config.default;
+                      const source = effective?.source || 'schema_default';
+                      const isCfoOverride = source === 'cfo_override';
+                      
+                      return (
+                        <div 
+                          key={key} 
+                          className="flex items-center justify-between py-1.5 group"
+                        >
+                          <div className="flex items-center gap-2 flex-1 min-w-0 pr-2">
+                            <span className="text-sm text-muted-foreground truncate">
+                              {config.label}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <span className="text-sm font-medium text-foreground whitespace-nowrap">
+                              {formatAssumptionValue(value, config.unit)}
+                            </span>
+                            {isCfoOverride ? (
+                              <Badge 
+                                variant="outline" 
+                                className="text-[10px] bg-blue-50 text-blue-700 border-blue-200 px-1.5 py-0 flex-shrink-0"
+                              >
+                                CFO
+                              </Badge>
+                            ) : source === 'r_d_default' ? (
+                              <Badge 
+                                variant="outline" 
+                                className="text-[10px] bg-slate-50 text-slate-600 border-slate-200 px-1.5 py-0 flex-shrink-0"
+                              >
+                                R&D
+                              </Badge>
+                            ) : (
+                              <Badge 
+                                variant="outline" 
+                                className="text-[10px] bg-amber-50 text-amber-600 border-amber-200 px-1.5 py-0 flex-shrink-0"
+                              >
+                                Default
+                              </Badge>
+                            )}
+                            {isCfoOverride && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                                onClick={() => handleResetSingle(key)}
+                                title="Reset to benchmark"
+                              >
+                                <RotateCcw className="w-3 h-3" />
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-foreground">
-                            {formatAssumptionValue(value, config.unit)}
-                          </span>
-                          {isCfoOverride ? (
-                            <Badge 
-                              variant="outline" 
-                              className="text-[10px] bg-blue-50 text-blue-700 border-blue-200 px-1.5 py-0"
-                            >
-                              CFO
-                            </Badge>
-                          ) : source === 'r_d_default' ? (
-                            <Badge 
-                              variant="outline" 
-                              className="text-[10px] bg-slate-50 text-slate-600 border-slate-200 px-1.5 py-0"
-                            >
-                              R&D
-                            </Badge>
-                          ) : (
-                            <Badge 
-                              variant="outline" 
-                              className="text-[10px] bg-amber-50 text-amber-600 border-amber-200 px-1.5 py-0"
-                            >
-                              Default
-                            </Badge>
-                          )}
-                          {isCfoOverride && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={() => handleResetSingle(key)}
-                              title="Reset to benchmark"
-                            >
-                              <RotateCcw className="w-3 h-3" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+                      );
+                    })}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
             );
           })}
         </CardContent>
