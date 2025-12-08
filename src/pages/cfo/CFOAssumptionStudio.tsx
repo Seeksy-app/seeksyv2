@@ -38,7 +38,7 @@ export default function CFOAssumptionStudio() {
       description: 'Open the AI-Powered 3-Year Pro Forma to see the updated forecast.',
       action: {
         label: 'View Pro Forma',
-        onClick: () => navigate('/board/proforma'),
+        onClick: () => navigate('/cfo/proforma'),
       },
       duration: 6000,
     });
@@ -108,7 +108,7 @@ export default function CFOAssumptionStudio() {
               </Tooltip>
             </div>
             
-            <Button onClick={() => navigate('/board/proforma')} className="gap-2">
+            <Button onClick={() => navigate('/cfo/proforma')} className="gap-2">
               <Sparkles className="w-4 h-4" />
               Generate Pro Forma
             </Button>
@@ -129,7 +129,7 @@ export default function CFOAssumptionStudio() {
               size="sm" 
               variant="outline" 
               className="ml-4 bg-white border-emerald-300 text-emerald-700 hover:bg-emerald-100"
-              onClick={() => navigate('/board/proforma')}
+              onClick={() => navigate('/cfo/proforma')}
             >
               View Pro Forma
               <ExternalLink className="w-3 h-3 ml-2" />
@@ -141,9 +141,9 @@ export default function CFOAssumptionStudio() {
         <Alert className="bg-indigo-50 border-indigo-200">
           <Info className="w-4 h-4 text-indigo-600" />
           <AlertDescription className="text-indigo-800">
-            <strong>How it works:</strong> Use the calculators below to adjust assumptions. When you click "Save to Pro Forma", 
-            your values become CFO overrides that take precedence over R&D benchmarks. Navigate to the AI-Powered 3-Year Pro Forma 
-            to see your assumptions in action.
+            <strong>How it works:</strong> Use the calculators below to set your financial assumptions. When you click 
+            "Generate Pro Forma", you'll see the same 3-year forecast view that the Board uses. Your values become CFO overrides 
+            that take precedence over R&D benchmarks.
           </AlertDescription>
         </Alert>
 
@@ -206,7 +206,7 @@ export default function CFOAssumptionStudio() {
           <Button 
             variant="outline" 
             size="sm"
-            onClick={() => navigate('/board/proforma')}
+            onClick={() => navigate('/cfo/proforma')}
             className="gap-2"
           >
             <Sparkles className="w-4 h-4" />

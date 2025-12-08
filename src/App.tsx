@@ -506,6 +506,7 @@ import GTMWorkspace from "./pages/business-tools/GTMWorkspace";
 import PersonaDashboardPage from "./pages/PersonaDashboardPage";
 import UniversalDashboard from "./pages/UniversalDashboard";
 import CFOAssumptionStudio from "./pages/cfo/CFOAssumptionStudio";
+import CFOProForma from "./pages/cfo/CFOProForma";
 
 const queryClient = new QueryClient();
 
@@ -1073,8 +1074,9 @@ const AppContent = () => {
           <Route path="/admin/content/media-library" element={<TourModeWrapper><MediaVault /></TourModeWrapper>} />
           <Route path="/admin/ad-inventory" element={<AdInventory />} />
           
-          {/* CFO Assumption Studio */}
+          {/* CFO Assumption Studio & Pro Forma */}
           <Route path="/cfo/assumptions" element={<CFOAssumptionStudio />} />
+          <Route path="/cfo/proforma" element={<CFOProForma />} />
           
           {/* R&D Intelligence */}
           <Route path="/admin/rd-feeds" element={<RDIntelligenceFeeds />} />
