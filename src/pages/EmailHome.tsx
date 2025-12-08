@@ -14,7 +14,12 @@ import { useSearchParams } from "react-router-dom";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useFaviconManager } from "@/hooks/useFaviconManager";
 
-export default function EmailHome() {
+interface EmailHomeProps {
+  /** When true, routes to admin-scoped paths instead of creator paths */
+  isAdmin?: boolean;
+}
+
+export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
   // Page title and favicon
   usePageTitle("Inbox");
   useFaviconManager();
@@ -278,6 +283,7 @@ export default function EmailHome() {
             selectedFolder={selectedFolder}
             onFolderSelect={setSelectedFolder}
             onCompose={() => setComposerOpen(true)}
+            isAdmin={isAdmin}
             counts={counts || {
               inbox: 0,
               sent: 0,

@@ -20,6 +20,8 @@ interface EmailFolderListProps {
     unsubscribed: number;
     trash: number;
   };
+  /** When true, routes to admin-scoped paths instead of creator paths */
+  isAdmin?: boolean;
 }
 
 const folders = [
@@ -35,14 +37,26 @@ const folders = [
   { id: "unsubscribed", label: "Unsubscribed", icon: UserX },
 ];
 
-// Action items that appear right after Unsubscribed
-const actionItems = [
-  { id: "signature", label: "Signature & Tracking", icon: BarChart3, path: "/signatures", defaultToAnalytics: true },
-  { id: "settings", label: "Settings", icon: Settings, path: "/email-settings" },
+// Action items that appear right after Unsubscribed - paths depend on context
+const getActionItems = (isAdmin: boolean) => [
+  { 
+    id: "signature", 
+    label: "Signature & Tracking", 
+    icon: BarChart3, 
+    path: isAdmin ? "/admin/signatures" : "/signatures", 
+    defaultToAnalytics: true 
+  },
+  { 
+    id: "settings", 
+    label: "Settings", 
+    icon: Settings, 
+    path: isAdmin ? "/admin/settings" : "/email-settings" 
+  },
 ];
 
-export function EmailFolderList({ selectedFolder, onFolderSelect, onCompose, counts }: EmailFolderListProps) {
+export function EmailFolderList({ selectedFolder, onFolderSelect, onCompose, counts, isAdmin = false }: EmailFolderListProps) {
   const navigate = useNavigate();
+  const actionItems = getActionItems(isAdmin);
 
   return (
     <div className="h-full border-r bg-muted/30 p-3 flex flex-col">
