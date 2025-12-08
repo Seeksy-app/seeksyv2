@@ -31,8 +31,8 @@ export function BoardLayout({ children }: BoardLayoutProps) {
           
           {/* Light content area - takes remaining space */}
           <div className="flex-1 flex flex-col min-w-0 bg-white">
-            <main className="flex-1 bg-slate-50 overflow-y-auto">
-              <div className="max-w-6xl mx-auto px-6 py-6 pb-20 w-full">
+            <main className="flex-1 h-full overflow-y-auto bg-slate-50">
+              <div className="w-full p-6 lg:p-8 pb-20 space-y-6">
                 {children}
                 <BoardFooter />
               </div>
