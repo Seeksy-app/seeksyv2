@@ -57,6 +57,22 @@ const DEFAULT_NAV_CONFIG: NavConfig = {
   subItems: {}
 };
 
+const DEFAULT_ADMIN_NAV_CONFIG: NavConfig = {
+  order: [
+    'admin_dashboard',
+    'admin_support',
+    'admin_content',
+    'admin_financials',
+    'admin_users',
+    'admin_rd',
+    'admin_developer',
+    'admin_advertising',
+  ],
+  hidden: [],
+  pinned: ['admin_dashboard', 'admin_financials'],
+  subItems: {}
+};
+
 const DEFAULT_LANDING_ROUTE = '/my-day';
 
 /**
@@ -157,6 +173,7 @@ function parseNavConfig(value: unknown): NavConfig | null {
 
 export function useNavPreferences() {
   const [navConfig, setNavConfig] = useState<NavConfig>(DEFAULT_NAV_CONFIG);
+  const [adminNavConfig, setAdminNavConfig] = useState<NavConfig>(DEFAULT_ADMIN_NAV_CONFIG);
   const [defaultLandingRoute, setDefaultLandingRoute] = useState<string>(DEFAULT_LANDING_ROUTE);
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
@@ -168,9 +185,13 @@ export function useNavPreferences() {
 
   // Listen for nav preference updates from other components
   useEffect(() => {
-    const handleNavUpdate = (event: CustomEvent<{ config: NavConfig; landingRoute: string }>) => {
+    const handleNavUpdate = (event: CustomEvent<{ config: NavConfig; landingRoute: string; isAdmin?: boolean }>) => {
       if (event.detail) {
-        setNavConfig(event.detail.config);
+        if (event.detail.isAdmin) {
+          setAdminNavConfig(event.detail.config);
+        } else {
+          setNavConfig(event.detail.config);
+        }
         setDefaultLandingRoute(event.detail.landingRoute);
       }
     };
@@ -189,7 +210,7 @@ export function useNavPreferences() {
 
       const { data, error } = await supabase
         .from('user_preferences')
-        .select('nav_config, default_landing_route')
+        .select('nav_config, admin_nav_config, default_landing_route')
         .eq('user_id', user.id)
         .single();
 
@@ -202,6 +223,10 @@ export function useNavPreferences() {
         if (parsed) {
           setNavConfig(parsed);
         }
+        const adminParsed = parseNavConfig(data.admin_nav_config);
+        if (adminParsed) {
+          setAdminNavConfig(adminParsed);
+        }
         if (data.default_landing_route) {
           setDefaultLandingRoute(data.default_landing_route);
         }
@@ -213,7 +238,7 @@ export function useNavPreferences() {
     }
   };
 
-  const savePreferences = useCallback(async (config: NavConfig, landingRoute: string) => {
+  const savePreferences = useCallback(async (config: NavConfig, landingRoute: string, isAdmin: boolean = false) => {
     if (!userId) return;
 
     try {
@@ -224,15 +249,23 @@ export function useNavPreferences() {
         .eq('user_id', userId)
         .single();
 
+      const updateData = isAdmin
+        ? {
+            admin_nav_config: config as unknown as Json,
+            default_landing_route: landingRoute,
+            updated_at: new Date().toISOString()
+          }
+        : {
+            nav_config: config as unknown as Json,
+            default_landing_route: landingRoute,
+            updated_at: new Date().toISOString()
+          };
+
       if (existing) {
         // Update existing
         const { error } = await supabase
           .from('user_preferences')
-          .update({
-            nav_config: config as unknown as Json,
-            default_landing_route: landingRoute,
-            updated_at: new Date().toISOString()
-          })
+          .update(updateData)
           .eq('user_id', userId);
         if (error) throw error;
       } else {
@@ -241,19 +274,22 @@ export function useNavPreferences() {
           .from('user_preferences')
           .insert({
             user_id: userId,
-            nav_config: config as unknown as Json,
-            default_landing_route: landingRoute,
+            ...updateData,
           });
         if (error) throw error;
       }
 
-      setNavConfig(config);
+      if (isAdmin) {
+        setAdminNavConfig(config);
+      } else {
+        setNavConfig(config);
+      }
       setDefaultLandingRoute(landingRoute);
       queryClient.invalidateQueries({ queryKey: ['user-preferences'] });
       
       // Dispatch event to notify sidebar to refresh immediately
       window.dispatchEvent(new CustomEvent('navPreferencesUpdated', { 
-        detail: { config, landingRoute } 
+        detail: { config, landingRoute, isAdmin } 
       }));
     } catch (err) {
       console.error('Error saving preferences:', err);
@@ -261,12 +297,17 @@ export function useNavPreferences() {
     }
   }, [userId, queryClient]);
 
-  const resetToDefaults = useCallback(async () => {
-    await savePreferences(DEFAULT_NAV_CONFIG, DEFAULT_LANDING_ROUTE);
+  const resetToDefaults = useCallback(async (isAdmin: boolean = false) => {
+    if (isAdmin) {
+      await savePreferences(DEFAULT_ADMIN_NAV_CONFIG, '/admin', true);
+    } else {
+      await savePreferences(DEFAULT_NAV_CONFIG, DEFAULT_LANDING_ROUTE, false);
+    }
   }, [savePreferences]);
 
   return {
     navConfig,
+    adminNavConfig,
     defaultLandingRoute,
     isLoading,
     savePreferences,

@@ -188,16 +188,17 @@ function SubItemRow({ subItem, config, onToggleVisible, onTogglePinned }: SubIte
 }
 
 export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationModalProps) {
-  const { navConfig, defaultLandingRoute, savePreferences, resetToDefaults, isLoading } = useNavPreferences();
+  const { navConfig, adminNavConfig, defaultLandingRoute, savePreferences, resetToDefaults, isLoading } = useNavPreferences();
   const { roles } = useUserRoles();
   
   // Determine if user is admin
   const isAdmin = roles.includes('admin') || roles.includes('super_admin');
   
-  // Use appropriate nav items based on role
+  // Use appropriate nav items and config based on role
   const activeNavItems = isAdmin ? ADMIN_NAV_ITEMS : NAV_ITEMS;
   const activeLandingOptions = isAdmin ? ADMIN_LANDING_OPTIONS : LANDING_OPTIONS;
   const defaultLanding = isAdmin ? '/admin' : '/my-day';
+  const activeConfig = isAdmin ? adminNavConfig : navConfig;
   
   const [localOrder, setLocalOrder] = useState<string[]>([]);
   const [localHidden, setLocalHidden] = useState<string[]>([]);
@@ -221,15 +222,15 @@ export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationMo
   useEffect(() => {
     if (open && !isLoading) {
       // Ensure localOrder includes all current items, preserving stored order for existing items
-      const storedOrder = navConfig.order || [];
+      const storedOrder = activeConfig.order || [];
       const allItemIds = activeNavItems.map(i => i.id);
       const mergedOrder = [
         ...storedOrder.filter(id => allItemIds.includes(id)),
         ...allItemIds.filter(id => !storedOrder.includes(id))
       ];
       setLocalOrder(mergedOrder);
-      setLocalHidden(navConfig.hidden);
-      setLocalPinned(navConfig.pinned);
+      setLocalHidden(activeConfig.hidden || []);
+      setLocalPinned(activeConfig.pinned || []);
       setLocalLanding(defaultLandingRoute || defaultLanding);
       
       // Initialize sub-items config (only for non-admin, admin nav items don't have sub-items)
@@ -238,7 +239,7 @@ export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationMo
         NAV_ITEMS.forEach(item => {
           if (item.subItems) {
             subItemsConfig[item.id] = item.subItems.map((sub, idx) => {
-              const existing = navConfig.subItems?.[item.id]?.find(s => s.id === sub.id);
+              const existing = activeConfig.subItems?.[item.id]?.find(s => s.id === sub.id);
               return existing || { id: sub.id, visible: true, pinned: false, order: idx };
             });
           }
@@ -246,7 +247,7 @@ export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationMo
       }
       setLocalSubItems(subItemsConfig);
     }
-  }, [open, navConfig, defaultLandingRoute, isLoading, isAdmin, activeNavItems, defaultLanding]);
+  }, [open, activeConfig, defaultLandingRoute, isLoading, isAdmin, activeNavItems, defaultLanding]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -316,7 +317,7 @@ export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationMo
         pinned: localPinned,
         subItems: localSubItems
       };
-      await savePreferences(config, localLanding);
+      await savePreferences(config, localLanding, isAdmin);
       toast.success("Navigation preferences saved");
       onOpenChange(false);
     } catch (err) {
@@ -329,7 +330,7 @@ export function NavCustomizationModal({ open, onOpenChange }: NavCustomizationMo
   const handleReset = async () => {
     setIsSaving(true);
     try {
-      await resetToDefaults();
+      await resetToDefaults(isAdmin);
       toast.success("Reset to defaults");
       onOpenChange(false);
     } catch (err) {

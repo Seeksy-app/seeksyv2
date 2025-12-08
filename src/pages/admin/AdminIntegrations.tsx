@@ -20,6 +20,9 @@ import {
   Zap,
   Globe,
   MessageSquare,
+  Calendar as CalendarIcon,
+  Folder as FolderIcon,
+  Box as BoxIcon,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -50,6 +53,40 @@ const integrations: Integration[] = [
     icon: <Cloud className="w-5 h-5" />,
     status: 'connected',
     category: 'Infrastructure',
+  },
+  // Google Integrations
+  {
+    id: 'google_calendar',
+    name: 'Google Calendar',
+    description: 'Calendar sync and event management',
+    icon: <CalendarIcon className="w-5 h-5" />,
+    status: 'connected',
+    category: 'Google',
+  },
+  {
+    id: 'gmail',
+    name: 'Gmail',
+    description: 'Email integration and inbox sync',
+    icon: <Mail className="w-5 h-5" />,
+    status: 'connected',
+    category: 'Google',
+  },
+  {
+    id: 'google_drive',
+    name: 'Google Drive',
+    description: 'File storage and document sync',
+    icon: <FolderIcon className="w-5 h-5" />,
+    status: 'not_connected',
+    category: 'Google',
+  },
+  // Storage
+  {
+    id: 'dropbox',
+    name: 'Dropbox',
+    description: 'Cloud storage and file import',
+    icon: <BoxIcon className="w-5 h-5" />,
+    status: 'connected',
+    category: 'Storage',
   },
   // Communication
   {
@@ -147,7 +184,7 @@ const integrations: Integration[] = [
   },
 ];
 
-const categoryOrder = ['Infrastructure', 'AI & Media', 'Communication', 'Payments', 'Blockchain', 'Automation'];
+const categoryOrder = ['Infrastructure', 'Google', 'Storage', 'AI & Media', 'Communication', 'Payments', 'Blockchain', 'Automation'];
 
 export default function AdminIntegrations() {
   const navigate = useNavigate();

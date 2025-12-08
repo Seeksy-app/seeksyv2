@@ -21979,6 +21979,7 @@ export type Database = {
       }
       user_preferences: {
         Row: {
+          admin_nav_config: Json | null
           auto_transcribe_enabled: boolean | null
           contacts_enabled: boolean | null
           created_at: string | null
@@ -22033,6 +22034,7 @@ export type Database = {
           user_type: string | null
         }
         Insert: {
+          admin_nav_config?: Json | null
           auto_transcribe_enabled?: boolean | null
           contacts_enabled?: boolean | null
           created_at?: string | null
@@ -22087,6 +22089,7 @@ export type Database = {
           user_type?: string | null
         }
         Update: {
+          admin_nav_config?: Json | null
           auto_transcribe_enabled?: boolean | null
           contacts_enabled?: boolean | null
           created_at?: string | null
