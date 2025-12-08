@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,15 +8,10 @@ import {
   Tv, Users, Clock
 } from "lucide-react";
 import { TVFooter } from "@/components/tv/TVFooter";
+import { IVSPlayer } from "@/components/tv/IVSPlayer";
+import { useLiveChannels } from "@/hooks/useLiveChannels";
 
-// Mock live data
-const liveNow = [
-  { id: "1", title: "Morning Tech Roundup", creator: "The Daily Tech", category: "Technology", viewers: "2.3K", thumbnail: "/placeholder.svg", startedAt: "2 hours ago" },
-  { id: "2", title: "Design Systems Workshop", creator: "Creative Minds", category: "Design", viewers: "1.1K", thumbnail: "/placeholder.svg", startedAt: "45 mins ago" },
-  { id: "3", title: "Market Analysis Live", creator: "Business Insider Pod", category: "Business", viewers: "892", thumbnail: "/placeholder.svg", startedAt: "1 hour ago" },
-  { id: "4", title: "True Crime Investigation", creator: "True Crime Weekly", category: "True Crime", viewers: "3.4K", thumbnail: "/placeholder.svg", startedAt: "30 mins ago" },
-];
-
+// Mock upcoming/past data (real live streams from database)
 const upcomingStreams = [
   { id: "5", title: "CES 2025 Coverage", creator: "The Daily Tech", category: "Technology", scheduledFor: "Tomorrow at 10:00 AM", thumbnail: "/placeholder.svg" },
   { id: "6", title: "Fitness Friday Challenge", creator: "Health & Wellness", category: "Health", scheduledFor: "Friday at 9:00 AM", thumbnail: "/placeholder.svg" },
@@ -34,6 +29,12 @@ const pastStreams = [
 export default function SeeksyTVLive() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const { channels: liveChannels, isLoading: liveLoading } = useLiveChannels();
+
+  // Filter live channels by search
+  const filteredLive = liveChannels.filter(channel => 
+    channel.channel_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-[#0a0a14] text-white flex flex-col">
@@ -82,61 +83,44 @@ export default function SeeksyTVLive() {
       </header>
 
       <main className="flex-1 container mx-auto px-4 py-8">
-        {/* Live Now Section */}
+        {/* Live Now Section - Real IVS Streams */}
         <section className="mb-12">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
             <h2 className="text-2xl font-bold">Live Now</h2>
-            <Badge className="bg-red-600 text-white">{liveNow.length} streams</Badge>
+            <Badge className="bg-red-600 text-white">{filteredLive.length} streams</Badge>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {liveNow.map((stream) => (
-              <div
-                key={stream.id}
-                className="group relative rounded-xl overflow-hidden cursor-pointer"
-                onClick={() => navigate(`/tv/watch/${stream.id}`)}
-              >
-                <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900">
-                  <img src={stream.thumbnail} alt="" className="w-full h-full object-cover opacity-80" />
+          {liveLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[1, 2].map((i) => (
+                <div key={i} className="aspect-video bg-gray-800 rounded-xl animate-pulse" />
+              ))}
+            </div>
+          ) : filteredLive.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredLive.map((channel) => (
+                <div
+                  key={channel.id}
+                  className="group relative rounded-xl overflow-hidden"
+                >
+                  <IVSPlayer 
+                    playbackUrl={channel.playback_url}
+                    channelName={channel.channel_name}
+                    viewerCount={channel.viewer_count}
+                    isLive={true}
+                    className="aspect-video"
+                  />
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                
-                {/* Live Badge */}
-                <div className="absolute top-4 left-4">
-                  <Badge className="bg-red-600 text-white">
-                    <span className="animate-pulse mr-1.5">●</span> LIVE
-                  </Badge>
-                </div>
-                
-                {/* Viewers */}
-                <div className="absolute top-4 right-4">
-                  <Badge variant="secondary" className="bg-black/50 text-white">
-                    <Users className="h-3 w-3 mr-1" /> {stream.viewers} watching
-                  </Badge>
-                </div>
-                
-                {/* Info */}
-                <div className="absolute bottom-0 left-0 right-0 p-5">
-                  <Badge variant="outline" className="border-white/30 text-white/80 mb-2">
-                    {stream.category}
-                  </Badge>
-                  <h3 className="font-bold text-xl mb-1 group-hover:text-amber-400 transition-colors">
-                    {stream.title}
-                  </h3>
-                  <p className="text-gray-300">{stream.creator}</p>
-                  <p className="text-sm text-gray-400 mt-1">Started {stream.startedAt}</p>
-                </div>
-                
-                {/* Play Button */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="w-20 h-20 rounded-full bg-red-600/90 flex items-center justify-center">
-                    <Play className="h-10 w-10 text-white fill-current ml-1" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 bg-white/5 rounded-xl">
+              <Tv className="h-16 w-16 text-gray-600 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-300 mb-2">No live streams right now</h3>
+              <p className="text-gray-500 mb-4">Check back later or browse upcoming streams below</p>
+            </div>
+          )}
         </section>
 
         {/* Upcoming Section */}
