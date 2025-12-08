@@ -307,7 +307,7 @@ export default function BoardCEOPlan() {
         ) : (
           <div 
             ref={contentRef}
-            className="ceo-plan-content max-w-4xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-sm p-8 lg:p-12"
+            className="ceo-plan-content w-full bg-white rounded-2xl border border-slate-200 shadow-sm p-8 lg:p-12"
           >
             <style>{`
               .ceo-plan-content h1 {
