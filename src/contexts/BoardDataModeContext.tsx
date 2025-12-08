@@ -2,14 +2,14 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { useCFOAssumptions } from '@/hooks/useCFOAssumptions';
 import { useRealPlatformMetrics } from '@/hooks/useRealPlatformMetrics';
 
-type DataMode = 'cfo' | 'live' | 'demo';
+type DataMode = 'cfo' | 'live';
 
 interface BoardDataModeContextType {
   dataMode: DataMode;
   setDataMode: (mode: DataMode) => void;
   isCFO: boolean;
   isLive: boolean;
-  isDemo: boolean;
+  isDemo: boolean; // Kept for backward compatibility, always false now
   hasCFOAssumptions: boolean;
   hasLiveData: boolean;
   availableModes: DataMode[];
@@ -30,14 +30,11 @@ export function BoardDataModeProvider({ children }: { children: ReactNode }) {
     realData.totalEpisodes > 0
   );
 
-  // Determine available modes based on data availability
-  const availableModes: DataMode[] = [];
-  if (hasCFOAssumptions) availableModes.push('cfo');
-  if (hasLiveData) availableModes.push('live');
-  if (!hasCFOAssumptions && !hasLiveData) availableModes.push('demo');
+  // Available modes: CFO Model and Live Data
+  const availableModes: DataMode[] = ['cfo', 'live'];
 
-  // Default to CFO if available, otherwise live, otherwise demo
-  const defaultMode: DataMode = hasCFOAssumptions ? 'cfo' : (hasLiveData ? 'live' : 'demo');
+  // Default to CFO if available, otherwise live
+  const defaultMode: DataMode = hasCFOAssumptions ? 'cfo' : 'live';
   
   const [dataMode, setDataMode] = useState<DataMode>(defaultMode);
 
@@ -54,17 +51,12 @@ export function BoardDataModeProvider({ children }: { children: ReactNode }) {
       case 'cfo':
         return {
           label: 'CFO Model',
-          tooltip: 'Powered by CFO assumptions. Baseline for all Board forecasts.',
+          tooltip: 'All metrics powered by CFO assumptions. Baseline for all Board forecasts.',
         };
       case 'live':
         return {
           label: 'Live Data',
-          tooltip: 'Real-time operational metrics from Seeksy.',
-        };
-      case 'demo':
-        return {
-          label: 'Demo',
-          tooltip: 'Sample data for demonstration purposes.',
+          tooltip: 'Real-time operational metrics from Seeksy platform.',
         };
     }
   };
@@ -78,7 +70,7 @@ export function BoardDataModeProvider({ children }: { children: ReactNode }) {
         setDataMode,
         isCFO: dataMode === 'cfo',
         isLive: dataMode === 'live',
-        isDemo: dataMode === 'demo',
+        isDemo: false, // Always false - demo mode removed
         hasCFOAssumptions,
         hasLiveData: !!hasLiveData,
         availableModes,
@@ -93,20 +85,20 @@ export function BoardDataModeProvider({ children }: { children: ReactNode }) {
 
 // Safe default values for when hook is used outside provider
 const defaultContextValue: BoardDataModeContextType = {
-  dataMode: 'demo',
+  dataMode: 'cfo',
   setDataMode: () => {
     if (import.meta.env.DEV) {
       console.warn('useBoardDataMode: setDataMode called outside provider - no effect');
     }
   },
-  isCFO: false,
+  isCFO: true,
   isLive: false,
-  isDemo: true,
+  isDemo: false,
   hasCFOAssumptions: false,
   hasLiveData: false,
-  availableModes: ['demo'],
-  modeLabel: 'Demo',
-  modeTooltip: 'Sample data for demonstration purposes.',
+  availableModes: ['cfo', 'live'],
+  modeLabel: 'CFO Model',
+  modeTooltip: 'All metrics powered by CFO assumptions. Baseline for all Board forecasts.',
 };
 
 export function useBoardDataMode(): BoardDataModeContextType {
@@ -115,7 +107,7 @@ export function useBoardDataMode(): BoardDataModeContextType {
   if (!context) {
     // Log warning in development only
     if (import.meta.env.DEV) {
-      console.warn('useBoardDataMode: used outside BoardDataModeProvider - falling back to demo mode');
+      console.warn('useBoardDataMode: used outside BoardDataModeProvider - falling back to CFO mode');
     }
     // Return safe defaults instead of throwing
     return defaultContextValue;

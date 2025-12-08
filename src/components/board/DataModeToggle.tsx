@@ -1,6 +1,6 @@
 import { useBoardDataMode } from '@/contexts/BoardDataModeContext';
 import { cn } from '@/lib/utils';
-import { Database, Activity, Sparkles, Info } from 'lucide-react';
+import { Activity, Sparkles, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function DataModeToggle() {
@@ -9,12 +9,11 @@ export function DataModeToggle() {
   const modeConfig = {
     cfo: { icon: Sparkles, label: 'CFO Model' },
     live: { icon: Activity, label: 'Live Data' },
-    demo: { icon: Database, label: 'Demo' },
   };
 
   // Only show toggle if there are multiple available modes
   if (availableModes.length <= 1) {
-    const mode = availableModes[0] || 'demo';
+    const mode = availableModes[0] || 'cfo';
     const { icon: Icon, label } = modeConfig[mode];
     
     return (
@@ -62,9 +61,8 @@ export function DataModeToggle() {
               </TooltipTrigger>
               <TooltipContent side="bottom">
                 <p className="text-xs">
-                  {mode === 'cfo' && 'Powered by CFO assumptions. Baseline for all Board forecasts.'}
-                  {mode === 'live' && 'Real-time operational metrics from Seeksy.'}
-                  {mode === 'demo' && 'Sample data for demonstration purposes.'}
+                  {mode === 'cfo' && 'All metrics powered by CFO assumptions. Baseline for all Board forecasts.'}
+                  {mode === 'live' && 'Real-time operational metrics from Seeksy platform.'}
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -76,30 +74,27 @@ export function DataModeToggle() {
 }
 
 export function DataModeLabel() {
-  const { modeLabel, modeTooltip, isCFO, isLive, isDemo } = useBoardDataMode();
+  const { isCFO, isLive } = useBoardDataMode();
 
   return (
     <p className="text-sm text-muted-foreground">
       {isCFO && 'Viewing: CFO-Controlled Financial Model'}
       {isLive && 'Viewing: Real-time platform metrics'}
-      {isDemo && 'Viewing: Demo Data (until CFO publishes assumptions)'}
     </p>
   );
 }
 
 export function DataModeBadge({ className }: { className?: string }) {
-  const { dataMode, isCFO, isLive, isDemo } = useBoardDataMode();
+  const { dataMode } = useBoardDataMode();
 
   const badgeStyles = {
     cfo: 'bg-primary/10 text-primary',
     live: 'bg-emerald-100 text-emerald-700',
-    demo: 'bg-amber-100 text-amber-700',
   };
 
   const labels = {
     cfo: 'CFO Model',
     live: 'Live',
-    demo: 'Demo',
   };
 
   return (

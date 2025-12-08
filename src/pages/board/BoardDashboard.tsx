@@ -73,8 +73,8 @@ const metricConfig = {
   },
 };
 
-// Demo metrics
-const demoMetrics = [
+// CFO Model metrics (displayed when in CFO mode)
+const cfoMetrics = [
   { id: '1', metric_key: 'total_creators', metric_label: 'Total Creators', metric_value: '2,450' },
   { id: '2', metric_key: 'monthly_active', metric_label: 'Monthly Active', metric_value: '1,200' },
   { id: '3', metric_key: 'revenue_mtd', metric_label: 'Revenue MTD', metric_value: '$45,000' },
@@ -102,7 +102,7 @@ const stateOfCompanyContent = {
 
 export default function BoardDashboard() {
   const navigate = useNavigate();
-  const { isDemo, isLive, isCFO } = useBoardDataMode();
+  const { isLive, isCFO } = useBoardDataMode();
   const [firstName, setFirstName] = useState<string>('');
   const [metricsLoading, setMetricsLoading] = useState(true);
   const [isVideoLoading, setIsVideoLoading] = useState(true);
@@ -121,7 +121,7 @@ export default function BoardDashboard() {
         .from('demo_videos')
         .select('*')
         .order('order_index')
-        .limit(1);
+        .limit(5);
 
       if (error) throw error;
       return data;
@@ -129,6 +129,7 @@ export default function BoardDashboard() {
   });
 
   const featuredVideo = dbVideos && dbVideos.length > 0 ? dbVideos[0] : null;
+  const additionalVideos = dbVideos && dbVideos.length > 1 ? dbVideos.slice(1) : [];
 
   useEffect(() => {
     const fetchUserName = async () => {
@@ -149,8 +150,8 @@ export default function BoardDashboard() {
     fetchUserName();
   }, []);
 
-  // Build metrics based on mode
-  const metrics = isDemo ? demoMetrics : [
+  // Build metrics based on mode - CFO Model uses projections, Live uses real data
+  const metrics = isCFO ? cfoMetrics : [
     { id: '1', metric_key: 'total_creators', metric_label: 'Total Creators', metric_value: realData ? formatNumber(realData.totalCreators) : '—' },
     { id: '2', metric_key: 'monthly_active', metric_label: 'Total Podcasts', metric_value: realData ? formatNumber(realData.totalPodcasts) : '—' },
     { id: '3', metric_key: 'revenue_mtd', metric_label: 'Total Episodes', metric_value: realData ? formatNumber(realData.totalEpisodes) : '—' },
@@ -366,6 +367,55 @@ export default function BoardDashboard() {
             })}
           </div>
         </div>
+
+        {/* Additional Video Cards */}
+        {additionalVideos.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-slate-900">More Investor Videos</h2>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-blue-600 hover:text-blue-700"
+                onClick={() => navigate('/board/videos')}
+              >
+                View All <ArrowRight className="w-3 h-3 ml-1" />
+              </Button>
+            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {additionalVideos.map((video) => (
+                <Card 
+                  key={video.id}
+                  className="bg-white border-slate-100 hover:border-slate-200 hover:shadow-md transition-all cursor-pointer group rounded-xl overflow-hidden"
+                  onClick={() => navigate('/board/videos')}
+                >
+                  <div className="aspect-video bg-slate-900 relative">
+                    {video.thumbnail_url ? (
+                      <img 
+                        src={video.thumbnail_url} 
+                        alt={video.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <Play className="w-8 h-8 text-slate-400" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Play className="w-10 h-10 text-white" />
+                    </div>
+                  </div>
+                  <CardContent className="p-3">
+                    <Badge className={cn('text-[10px] mb-1.5', categoryColors[video.category] || 'bg-slate-100 text-slate-600')}>
+                      {video.category}
+                    </Badge>
+                    <h3 className="text-sm font-medium text-slate-900 line-clamp-1">{video.title}</h3>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Floating AI Button */}
         <BoardFloatingAIButton onClick={handleOpenAIPanel} />

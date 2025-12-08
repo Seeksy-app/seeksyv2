@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,10 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Share2, Shield, Copy, Check, AlertTriangle, Link2 } from 'lucide-react';
+import { ArrowLeft, Share2, Shield, Copy, Check, AlertTriangle, Link2, ChevronDown, ChevronUp, Video } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 
 const scopeOptions = [
   { id: 'dashboard', label: 'Dashboard KPIs' },
@@ -52,12 +58,28 @@ export default function BoardShare() {
   const [step, setStep] = useState<'configure' | 'confirm' | 'success'>('configure');
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [videosExpanded, setVideosExpanded] = useState(false);
+  
+  // Fetch available videos
+  const { data: availableVideos } = useQuery({
+    queryKey: ['boardShareVideos'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('demo_videos')
+        .select('id, title, category')
+        .order('order_index');
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
   
   // Form state
   const [investorName, setInvestorName] = useState('');
   const [investorEmail, setInvestorEmail] = useState('');
   const [personalMessage, setPersonalMessage] = useState('');
   const [selectedScope, setSelectedScope] = useState<string[]>(['dashboard', 'gtm', 'forecasts']);
+  const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
   const [duration, setDuration] = useState('7d');
   const [allowAI, setAllowAI] = useState(true);
   const [allowPDF, setAllowPDF] = useState(false);
@@ -68,12 +90,27 @@ export default function BoardShare() {
   // Generated link data
   const [generatedLink, setGeneratedLink] = useState('');
   const [generatedPasscode, setGeneratedPasscode] = useState('');
+  
+  // Auto-select all videos when "videos" scope is selected
+  useEffect(() => {
+    if (selectedScope.includes('videos') && availableVideos && availableVideos.length > 0 && selectedVideos.length === 0) {
+      setSelectedVideos(availableVideos.map(v => v.id));
+    }
+  }, [selectedScope, availableVideos]);
 
   const handleScopeChange = (scopeId: string, checked: boolean) => {
     if (checked) {
       setSelectedScope([...selectedScope, scopeId]);
     } else {
       setSelectedScope(selectedScope.filter(s => s !== scopeId));
+    }
+  };
+
+  const handleVideoChange = (videoId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedVideos([...selectedVideos, videoId]);
+    } else {
+      setSelectedVideos(selectedVideos.filter(v => v !== videoId));
     }
   };
 
@@ -111,6 +148,7 @@ export default function BoardShare() {
       const shareConfig = {
         allowHtmlView,
         allowDownload,
+        selectedVideos: selectedScope.includes('videos') ? selectedVideos : [],
       };
 
       const { data, error } = await supabase.from('investor_links').insert({
@@ -274,15 +312,66 @@ export default function BoardShare() {
                 <Label>What can they see?</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {scopeOptions.map((option) => (
-                    <div key={option.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={option.id}
-                        checked={selectedScope.includes(option.id)}
-                        onCheckedChange={(checked) => handleScopeChange(option.id, checked as boolean)}
-                      />
-                      <label htmlFor={option.id} className="text-sm text-slate-700 cursor-pointer">
-                        {option.label}
-                      </label>
+                    <div key={option.id}>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id={option.id}
+                          checked={selectedScope.includes(option.id)}
+                          onCheckedChange={(checked) => handleScopeChange(option.id, checked as boolean)}
+                        />
+                        <label htmlFor={option.id} className="text-sm text-slate-700 cursor-pointer">
+                          {option.label}
+                        </label>
+                      </div>
+                      
+                      {/* Video Selection Dropdown - only show when videos is selected */}
+                      {option.id === 'videos' && selectedScope.includes('videos') && availableVideos && availableVideos.length > 0 && (
+                        <Collapsible 
+                          open={videosExpanded} 
+                          onOpenChange={setVideosExpanded}
+                          className="mt-2 ml-6"
+                        >
+                          <CollapsibleTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1 text-slate-600">
+                              <Video className="w-3 h-3" />
+                              Select Videos ({selectedVideos.length}/{availableVideos.length})
+                              {videosExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                            </Button>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+                            {availableVideos.map((video) => (
+                              <div key={video.id} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`video-${video.id}`}
+                                  checked={selectedVideos.includes(video.id)}
+                                  onCheckedChange={(checked) => handleVideoChange(video.id, checked as boolean)}
+                                />
+                                <label htmlFor={`video-${video.id}`} className="text-xs text-slate-700 cursor-pointer">
+                                  {video.title}
+                                </label>
+                              </div>
+                            ))}
+                            <div className="flex gap-2 pt-2 border-t border-slate-200">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-6 text-xs"
+                                onClick={() => setSelectedVideos(availableVideos.map(v => v.id))}
+                              >
+                                Select All
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-6 text-xs"
+                                onClick={() => setSelectedVideos([])}
+                              >
+                                Clear
+                              </Button>
+                            </div>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      )}
                     </div>
                   ))}
                 </div>

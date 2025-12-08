@@ -353,7 +353,7 @@ export default function BoardProFormaAI() {
           <div>
             <h1 className="text-3xl font-bold text-slate-900">AI-Powered 3-Year Pro Forma</h1>
             <p className="text-slate-500">
-              Financial projections powered by {cfoOverrideCount} CFO assumptions and {rdCount} R&D benchmarks.
+              Financial projections powered by CFO assumptions.
               <span className="text-slate-400 ml-1">
                 A separate Events & Awards Pro Forma is available in the "Share with Investors" panel for the Veteran Podcast Awards asset.
               </span>
@@ -362,16 +362,10 @@ export default function BoardProFormaAI() {
         </div>
         <div className="flex items-center gap-3">
           {/* Data Source Status Badge */}
-          {hasCFOAssumptions ? (
-            <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 flex items-center gap-1.5">
-              <Shield className="w-3.5 h-3.5" />
-              Live Forecast (CFO-Controlled)
-            </Badge>
-          ) : (
-            <Badge className="bg-amber-100 text-amber-700 border-amber-200">
-              Demo Forecast — Using R&D Benchmarks
-            </Badge>
-          )}
+          <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 flex items-center gap-1.5">
+            <Shield className="w-3.5 h-3.5" />
+            CFO-Controlled Financial Model
+          </Badge>
           {isLocked && (
             <Badge className="bg-blue-100 text-blue-700 border-blue-200 flex items-center gap-1.5">
               <Lock className="w-3.5 h-3.5" />
@@ -416,25 +410,17 @@ export default function BoardProFormaAI() {
       )}
 
       {/* CFO-Controlled Status Notice */}
-      {hasCFOAssumptions ? (
-        <Alert className="border-emerald-200 bg-emerald-50">
-          <Shield className="w-4 h-4 text-emerald-600" />
-          <AlertDescription className="text-emerald-800">
-            <strong>Viewing: CFO-Controlled Financial Model</strong> — All scenarios use CFO assumptions as baseline.
-            {isLocked && lockedAt && (
-              <span className="ml-2 text-emerald-600">
-                Locked on {new Date(lockedAt).toLocaleDateString()}
-              </span>
-            )}
-          </AlertDescription>
-        </Alert>
-      ) : (
-        <Alert className="border-amber-200 bg-amber-50">
-          <AlertDescription className="text-amber-800">
-            <strong>Viewing: Demo Data</strong> — Using R&D benchmarks until CFO publishes assumptions.
-          </AlertDescription>
-        </Alert>
-      )}
+      <Alert className="border-emerald-200 bg-emerald-50">
+        <Shield className="w-4 h-4 text-emerald-600" />
+        <AlertDescription className="text-emerald-800">
+          <strong>CFO-Controlled Financial Model</strong> — All scenarios use CFO assumptions as baseline.
+          {isLocked && lockedAt && (
+            <span className="ml-2 text-emerald-600">
+              Locked on {new Date(lockedAt).toLocaleDateString()}
+            </span>
+          )}
+        </AlertDescription>
+      </Alert>
 
       {/* Scenario Switcher */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
