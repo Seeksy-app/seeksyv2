@@ -217,7 +217,7 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[90vh]">
           {step === 'configure' && (
             <>
               <DialogHeader>
@@ -227,7 +227,7 @@ export function GenerateLinkModal({ open, onOpenChange, onSuccess }: GenerateLin
                 </DialogTitle>
               </DialogHeader>
 
-              <div className="space-y-5 py-4 max-h-[60vh] overflow-y-auto">
+              <div className="space-y-5 py-4 max-h-[70vh] overflow-y-auto pr-2">
                 <div>
                   <Label>Investor Name (optional)</Label>
                   <Input
