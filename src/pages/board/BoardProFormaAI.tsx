@@ -61,6 +61,7 @@ export default function BoardProFormaAI() {
     scenarios,
     benchmarks,
     storedForecasts,
+    generatedForecast,
     isLoading,
     isGenerating,
     generateForecast,
@@ -68,10 +69,36 @@ export default function BoardProFormaAI() {
     clearCfoOverrides,
   } = useProFormaForecast();
 
-  // Parse forecast data for display
+  // Parse forecast data for display - prefer generated forecast for immediate display
   const forecastData = useMemo(() => {
-    if (!storedForecasts || storedForecasts.length === 0) return null;
+    // If we have a freshly generated forecast, use it directly
+    if (generatedForecast?.years) {
+      console.log('[BoardProFormaAI] Using generated forecast:', generatedForecast.years.length, 'years');
+      return generatedForecast.years.map((y) => ({
+        year: y.year,
+        revenue: y.revenue,
+        expenses: y.expenses,
+        adBreakdown: y.revenue?.advertising,
+        summary: {
+          ebitda: y.ebitda,
+          ebitdaMargin: y.ebitdaMargin,
+          creatorCount: y.creatorCount,
+          subscriberCount: y.subscriberCount,
+          churnRate: y.churnRate,
+          cac: y.cac,
+          ltv: y.ltv,
+        },
+        commentary: generatedForecast.commentary,
+      }));
+    }
     
+    // Fall back to stored forecasts from database
+    if (!storedForecasts || storedForecasts.length === 0) {
+      console.log('[BoardProFormaAI] No forecast data available');
+      return null;
+    }
+    
+    console.log('[BoardProFormaAI] Using stored forecasts:', storedForecasts.length, 'rows');
     const yearlyData = storedForecasts.map((f: any) => ({
       year: f.forecast_year,
       revenue: f.revenue_data,
@@ -82,7 +109,7 @@ export default function BoardProFormaAI() {
     }));
     
     return yearlyData;
-  }, [storedForecasts]);
+  }, [storedForecasts, generatedForecast]);
 
   // Get current year data
   const currentYearData = useMemo(() => {

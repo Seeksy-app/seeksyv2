@@ -83,6 +83,10 @@ export function useProFormaForecast() {
   const queryClient = useQueryClient();
   const [selectedScenario, setSelectedScenario] = useState<ScenarioKey>('base');
   const [cfoOverrides, setCfoOverrides] = useState<Record<string, number>>({});
+  
+  // Store the latest generated forecast directly for immediate UI update
+  const [generatedForecast, setGeneratedForecast] = useState<ForecastResult | null>(null);
+  const [lastGeneratedScenario, setLastGeneratedScenario] = useState<ScenarioKey | null>(null);
 
   // Fetch scenario configs
   const { data: scenarios, isLoading: scenariosLoading } = useQuery({
@@ -147,10 +151,21 @@ export function useProFormaForecast() {
         throw new Error('Forecast generation failed - no success response');
       }
       
-      return data as { success: boolean; scenario: string; forecast: ForecastResult; benchmarksUsed: number };
+      return { 
+        ...data as { success: boolean; scenario: string; forecast: ForecastResult; benchmarksUsed: number },
+        scenarioKey 
+      };
     },
     onSuccess: (data) => {
+      console.log('[useProFormaForecast] Success, setting forecast state:', data.forecast);
+      
+      // Immediately set the generated forecast for instant UI update
+      setGeneratedForecast(data.forecast);
+      setLastGeneratedScenario(data.scenarioKey as ScenarioKey);
+      
       toast.success(`${data.scenario} forecast generated using ${data.benchmarksUsed} benchmarks`);
+      
+      // Also invalidate the stored forecasts query for persistence
       queryClient.invalidateQueries({ queryKey: ['proforma-forecasts'] });
     },
     onError: (error: Error) => {
@@ -159,19 +174,25 @@ export function useProFormaForecast() {
     },
   });
 
-  // Fetch stored forecasts
-  const { data: storedForecasts, isLoading: forecastsLoading } = useQuery({
+  // Fetch stored forecasts from database
+  const { data: storedForecasts, isLoading: forecastsLoading, refetch: refetchForecasts } = useQuery({
     queryKey: ['proforma-forecasts', selectedScenario],
     queryFn: async () => {
+      console.log('[useProFormaForecast] Fetching stored forecasts for:', selectedScenario);
       const { data, error } = await supabase
         .from('proforma_forecasts')
         .select('*')
         .eq('scenario_key', selectedScenario)
         .order('forecast_year');
       
-      if (error) throw error;
+      if (error) {
+        console.error('[useProFormaForecast] Error fetching forecasts:', error);
+        throw error;
+      }
+      console.log('[useProFormaForecast] Fetched forecasts:', data?.length || 0, 'rows');
       return data;
     },
+    staleTime: 0, // Always refetch
   });
 
   const updateCfoOverride = useCallback((key: string, value: number) => {
@@ -181,6 +202,11 @@ export function useProFormaForecast() {
   const clearCfoOverrides = useCallback(() => {
     setCfoOverrides({});
   }, []);
+
+  // Use generated forecast if it matches current scenario, otherwise use stored
+  const activeForecast = (lastGeneratedScenario === selectedScenario && generatedForecast) 
+    ? generatedForecast 
+    : null;
 
   return {
     // State
@@ -192,6 +218,7 @@ export function useProFormaForecast() {
     scenarios,
     benchmarks,
     storedForecasts,
+    generatedForecast: activeForecast, // The immediately-available forecast from generation
     
     // Loading states
     isLoading: scenariosLoading || benchmarksLoading || forecastsLoading,
@@ -201,5 +228,6 @@ export function useProFormaForecast() {
     generateForecast: generateForecast.mutate,
     updateCfoOverride,
     clearCfoOverrides,
+    refetchForecasts,
   };
 }
