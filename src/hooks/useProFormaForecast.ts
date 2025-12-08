@@ -120,6 +120,8 @@ export function useProFormaForecast() {
       years?: number[]; 
       overrides?: Record<string, number>;
     }) => {
+      console.log('[useProFormaForecast] Calling generate-proforma-forecast with:', { scenarioKey, years });
+      
       const { data, error } = await supabase.functions.invoke('generate-proforma-forecast', {
         body: {
           scenarioKey,
@@ -128,14 +130,31 @@ export function useProFormaForecast() {
         },
       });
 
-      if (error) throw error;
+      console.log('[useProFormaForecast] Response:', { data, error });
+
+      if (error) {
+        console.error('[useProFormaForecast] Edge function error:', error);
+        throw new Error(error.message || 'Failed to invoke edge function');
+      }
+      
+      // Check for error in response body
+      if (data?.error) {
+        console.error('[useProFormaForecast] Response error:', data.error);
+        throw new Error(data.error);
+      }
+      
+      if (!data?.success) {
+        throw new Error('Forecast generation failed - no success response');
+      }
+      
       return data as { success: boolean; scenario: string; forecast: ForecastResult; benchmarksUsed: number };
     },
     onSuccess: (data) => {
       toast.success(`${data.scenario} forecast generated using ${data.benchmarksUsed} benchmarks`);
       queryClient.invalidateQueries({ queryKey: ['proforma-forecasts'] });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
+      console.error('[useProFormaForecast] Mutation error:', error);
       toast.error(`Failed to generate forecast: ${error.message}`);
     },
   });

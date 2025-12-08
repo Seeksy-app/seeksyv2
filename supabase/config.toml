@@ -416,3 +416,6 @@ verify_jwt = true
 
 [functions.dropbox-import-videos]
 verify_jwt = true
+
+[functions.generate-proforma-forecast]
+verify_jwt = true
