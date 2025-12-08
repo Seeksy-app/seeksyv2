@@ -419,3 +419,6 @@ verify_jwt = true
 
 [functions.generate-proforma-forecast]
 verify_jwt = true
+
+[functions.seed-tv-content]
+verify_jwt = true
