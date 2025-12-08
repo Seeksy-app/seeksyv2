@@ -52,8 +52,12 @@ export function ScenarioSwitcher({
     return 'base';
   };
 
-  const formatMultiplier = (value: number) => {
+  const formatMultiplier = (value: number, key: string) => {
     const percent = ((value - 1) * 100).toFixed(0);
+    // Show "(Baseline)" for 0% on Base scenario
+    if (key === 'base' && percent === '0') {
+      return '0% (Baseline)';
+    }
     return value >= 1 ? `+${percent}%` : `${percent}%`;
   };
 
@@ -77,7 +81,7 @@ export function ScenarioSwitcher({
             onClick={() => onScenarioChange(scenario.id)}
           >
             <CardContent className="p-4">
-              <div className="flex items-start justify-between mb-3">
+              <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <Icon className={cn(
                     'h-5 w-5',
@@ -85,40 +89,49 @@ export function ScenarioSwitcher({
                     key === 'base' && 'text-blue-600',
                     key === 'aggressive' && 'text-emerald-600'
                   )} />
-                  <span className="font-semibold">{scenario.scenario_name}</span>
+                  <span className="font-semibold">
+                    {key === 'base' ? 'Base (CFO Baseline)' : scenario.scenario_name}
+                  </span>
                 </div>
                 {isSelected && (
                   <Check className="h-5 w-5 text-primary" />
                 )}
               </div>
 
-              <p className="text-sm text-muted-foreground mb-3">
-                {scenario.description || 'Scenario projections based on R&D benchmarks'}
-              </p>
+              {/* Helper text for Base scenario */}
+              {key === 'base' ? (
+                <p className="text-xs text-muted-foreground mb-3" title="Base uses your CFO assumptions exactly, with no additional multipliers.">
+                  Pure CFO assumptions — no multipliers applied
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground mb-3">
+                  {scenario.description || 'Scenario projections based on R&D benchmarks'}
+                </p>
+              )}
 
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Revenue:</span>
                   <Badge variant="outline" className={cn('text-xs', SCENARIO_BADGE_COLORS[key])}>
-                    {formatMultiplier(scenario.revenue_growth_multiplier)}
+                    {formatMultiplier(scenario.revenue_growth_multiplier, key)}
                   </Badge>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Impressions:</span>
                   <Badge variant="outline" className={cn('text-xs', SCENARIO_BADGE_COLORS[key])}>
-                    {formatMultiplier(scenario.impressions_multiplier)}
+                    {formatMultiplier(scenario.impressions_multiplier, key)}
                   </Badge>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">CPM:</span>
                   <Badge variant="outline" className={cn('text-xs', SCENARIO_BADGE_COLORS[key])}>
-                    {formatMultiplier(scenario.cpm_multiplier)}
+                    {formatMultiplier(scenario.cpm_multiplier, key)}
                   </Badge>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Fill Rate:</span>
                   <Badge variant="outline" className={cn('text-xs', SCENARIO_BADGE_COLORS[key])}>
-                    {formatMultiplier(scenario.fill_rate_multiplier)}
+                    {formatMultiplier(scenario.fill_rate_multiplier, key)}
                   </Badge>
                 </div>
               </div>
