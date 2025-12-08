@@ -42,12 +42,9 @@ export default function SeeksyTVHome() {
   const { data: featuredContent } = useQuery({
     queryKey: ['tv-featured-content'],
     queryFn: async (): Promise<FeaturedItem[]> => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('tv_content')
-        .select(`
-          id, title, description, thumbnail_url, video_url, duration_seconds, category,
-          channel:tv_channels(name)
-        `)
+        .select('id, title, description, thumbnail_url, video_url, duration_seconds, category, channel:tv_channels(name)')
         .eq('is_published', true)
         .eq('is_featured', true)
         .order('published_at', { ascending: false })
@@ -65,12 +62,9 @@ export default function SeeksyTVHome() {
   const { data: channels } = useQuery({
     queryKey: ['tv-channels-with-videos'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('tv_channels')
-        .select(`
-          *,
-          videos:tv_content(id, title, thumbnail_url, duration_seconds, view_count)
-        `)
+        .select('*, videos:tv_content(id, title, thumbnail_url, duration_seconds, view_count)')
         .eq('is_active', true)
         .order('follower_count', { ascending: false })
         .limit(8);
@@ -100,12 +94,9 @@ export default function SeeksyTVHome() {
   const { data: latestEpisodes } = useQuery({
     queryKey: ['tv-latest-episodes', selectedCategory],
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from('tv_content')
-        .select(`
-          id, title, description, thumbnail_url, duration_seconds, view_count, category, content_type,
-          channel:tv_channels(name, slug)
-        `)
+        .select('id, title, description, thumbnail_url, duration_seconds, view_count, category, content_type, channel:tv_channels(name, slug)')
         .eq('is_published', true)
         .in('content_type', ['episode', 'spotlight'])
         .order('published_at', { ascending: false })
@@ -125,12 +116,9 @@ export default function SeeksyTVHome() {
   const { data: aiClips } = useQuery({
     queryKey: ['tv-ai-clips'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('tv_content')
-        .select(`
-          id, title, thumbnail_url, duration_seconds, view_count, content_type,
-          channel:tv_channels(name, slug)
-        `)
+        .select('id, title, thumbnail_url, duration_seconds, view_count, content_type, channel:tv_channels(name, slug)')
         .eq('is_published', true)
         .eq('content_type', 'clip')
         .order('view_count', { ascending: false })
@@ -145,12 +133,9 @@ export default function SeeksyTVHome() {
   const { data: trendingContent } = useQuery({
     queryKey: ['tv-trending'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('tv_content')
-        .select(`
-          id, title, thumbnail_url, duration_seconds, view_count, content_type, category,
-          channel:tv_channels(name, slug)
-        `)
+        .select('id, title, thumbnail_url, duration_seconds, view_count, content_type, category, channel:tv_channels(name, slug)')
         .eq('is_published', true)
         .order('view_count', { ascending: false })
         .limit(10);
