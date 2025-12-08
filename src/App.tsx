@@ -247,7 +247,7 @@ import SeeksyArchitecture from "./pages/SeeksyArchitecture";
 import SupportDesk from "./pages/admin/SupportDesk";
 import SupportDeskCRM from "./pages/admin/support/SupportDeskCRM";
 import DataRecovery from "./pages/admin/DataRecovery";
-import { SeeksyTVHome, SeeksyTVChannel, SeeksyTVWatch } from "./pages/tv";
+import { SeeksyTVHome, SeeksyTVChannel, SeeksyTVWatch, SeeksyTVBrowse, SeeksyTVClips, SeeksyTVLive, SeeksyTVTrending } from "./pages/tv";
 // Help Desk (Zendesk-style support system)
 import HelpDeskLayout from "./pages/helpdesk/HelpDeskLayout";
 import TicketsInbox from "./pages/helpdesk/TicketsInbox";
@@ -728,6 +728,10 @@ const AppContent = () => {
               
               {/* Seeksy TV - Public Video Hub */}
               <Route path="/tv" element={<SeeksyTVHome />} />
+              <Route path="/tv/browse" element={<SeeksyTVBrowse />} />
+              <Route path="/tv/clips" element={<SeeksyTVClips />} />
+              <Route path="/tv/live" element={<SeeksyTVLive />} />
+              <Route path="/tv/trending" element={<SeeksyTVTrending />} />
               <Route path="/tv/channel/:channelId" element={<SeeksyTVChannel />} />
               <Route path="/tv/watch/:videoId" element={<SeeksyTVWatch />} />
               <Route path="/tv/clip/:clipId" element={<SeeksyTVWatch />} />

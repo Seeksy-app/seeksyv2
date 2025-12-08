@@ -9,6 +9,7 @@ import {
   Calendar, ArrowLeft, ExternalLink, Twitter, Instagram
 } from "lucide-react";
 import { Tv } from "lucide-react";
+import { TVFooter } from "@/components/tv/TVFooter";
 
 // Mock creator data
 const mockCreator = {
@@ -338,6 +339,8 @@ export default function SeeksyTVChannel() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <TVFooter />
     </div>
   );
 }

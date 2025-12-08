@@ -10,6 +10,7 @@ import {
   Tv, SkipForward, SkipBack
 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
+import { TVFooter } from "@/components/tv/TVFooter";
 
 // Mock video data
 const mockVideo = {
@@ -333,6 +334,8 @@ export default function SeeksyTVWatch() {
           </div>
         </div>
       </div>
+
+      <TVFooter />
     </div>
   );
 }
