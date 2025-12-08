@@ -7,26 +7,30 @@ import { Slider } from '@/components/ui/slider';
 import { motion } from 'framer-motion';
 import { Calculator, Users, DollarSign, TrendingUp, RefreshCw, Save, Info } from 'lucide-react';
 import { useCFOAssumptions } from '@/hooks/useCFOAssumptions';
+import { CFO_ASSUMPTIONS_SCHEMA } from '@/lib/cfo-assumptions-schema';
 
 interface Props {
   onSave?: () => void;
 }
 
+const SCHEMA = CFO_ASSUMPTIONS_SCHEMA.growth;
+const SUB_SCHEMA = CFO_ASSUMPTIONS_SCHEMA.subscriptions;
+
 export function GrowthCACCalculator({ onSave }: Props) {
   const { getEffectiveValue, saveMultipleAssumptions, isSaving } = useCFOAssumptions();
 
-  // Input state with specified defaults
+  // Input state with canonical schema defaults
   const [monthlyBudget, setMonthlyBudget] = useState(10000);
-  const [cac, setCac] = useState(50);
-  const [arpu, setArpu] = useState(35);
-  const [churnRate, setChurnRate] = useState(4);
+  const [cac, setCac] = useState(SCHEMA.creator_cac_paid.default);
+  const [arpu, setArpu] = useState(SUB_SCHEMA.pro_arpu.default);
+  const [churnRate, setChurnRate] = useState(SCHEMA.creator_monthly_churn_rate.default);
   const [timeHorizon, setTimeHorizon] = useState(12);
 
   // Update from saved values when loaded
   useEffect(() => {
-    const savedCac = getEffectiveValue('creator_cac_paid', 50);
-    const savedArpu = getEffectiveValue('creator_subscription_arpu_pro', 35);
-    const savedChurn = getEffectiveValue('creator_monthly_churn', 4);
+    const savedCac = getEffectiveValue('creator_cac_paid');
+    const savedArpu = getEffectiveValue('pro_arpu');
+    const savedChurn = getEffectiveValue('creator_monthly_churn_rate');
     if (savedCac) setCac(savedCac);
     if (savedArpu) setArpu(savedArpu);
     if (savedChurn) setChurnRate(savedChurn);
@@ -44,17 +48,17 @@ export function GrowthCACCalculator({ onSave }: Props) {
 
   const handleReset = () => {
     setMonthlyBudget(10000);
-    setCac(50);
-    setArpu(35);
-    setChurnRate(4);
+    setCac(SCHEMA.creator_cac_paid.default);
+    setArpu(SUB_SCHEMA.pro_arpu.default);
+    setChurnRate(SCHEMA.creator_monthly_churn_rate.default);
     setTimeHorizon(12);
   };
 
   const handleSave = () => {
     saveMultipleAssumptions([
-      { metric_key: 'creator_cac_paid', value: cac, unit: 'usd', category: 'growth' },
-      { metric_key: 'creator_subscription_arpu_pro', value: arpu, unit: 'usd', category: 'subscriptions' },
-      { metric_key: 'creator_monthly_churn', value: churnRate, unit: 'percent', category: 'growth' },
+      { metric_key: 'creator_cac_paid', value: cac },
+      { metric_key: 'pro_arpu', value: arpu },
+      { metric_key: 'creator_monthly_churn_rate', value: churnRate },
     ]);
     onSave?.();
   };
@@ -98,47 +102,47 @@ export function GrowthCACCalculator({ onSave }: Props) {
 
             <div className="space-y-2">
               <Label className="flex items-center justify-between">
-                <span>Customer Acquisition Cost (CAC)</span>
+                <span>{SCHEMA.creator_cac_paid.label}</span>
                 <span className="text-sm font-medium text-foreground">${cac}</span>
               </Label>
               <Slider
                 value={[cac]}
                 onValueChange={([v]) => setCac(v)}
-                min={5}
-                max={500}
-                step={5}
+                min={SCHEMA.creator_cac_paid.min}
+                max={SCHEMA.creator_cac_paid.max}
+                step={SCHEMA.creator_cac_paid.step}
               />
-              <p className="text-xs text-muted-foreground">Average cost to acquire one paying customer.</p>
+              <p className="text-xs text-muted-foreground">{SCHEMA.creator_cac_paid.description}</p>
             </div>
 
             <div className="space-y-2">
               <Label className="flex items-center justify-between">
-                <span>Average Revenue Per User (ARPU)</span>
+                <span>{SUB_SCHEMA.pro_arpu.label}</span>
                 <span className="text-sm font-medium text-foreground">${arpu}/mo</span>
               </Label>
               <Slider
                 value={[arpu]}
                 onValueChange={([v]) => setArpu(v)}
-                min={10}
-                max={200}
-                step={5}
+                min={SUB_SCHEMA.pro_arpu.min}
+                max={SUB_SCHEMA.pro_arpu.max}
+                step={SUB_SCHEMA.pro_arpu.step}
               />
-              <p className="text-xs text-muted-foreground">Average monthly recurring revenue per paying creator.</p>
+              <p className="text-xs text-muted-foreground">{SUB_SCHEMA.pro_arpu.description}</p>
             </div>
 
             <div className="space-y-2">
               <Label className="flex items-center justify-between">
-                <span>Monthly Churn Rate</span>
+                <span>{SCHEMA.creator_monthly_churn_rate.label}</span>
                 <span className="text-sm font-medium text-foreground">{churnRate}%</span>
               </Label>
               <Slider
                 value={[churnRate]}
                 onValueChange={([v]) => setChurnRate(v)}
-                min={1}
-                max={20}
-                step={0.5}
+                min={SCHEMA.creator_monthly_churn_rate.min}
+                max={SCHEMA.creator_monthly_churn_rate.max}
+                step={SCHEMA.creator_monthly_churn_rate.step}
               />
-              <p className="text-xs text-muted-foreground">Percent of paying customers who cancel in a given month.</p>
+              <p className="text-xs text-muted-foreground">{SCHEMA.creator_monthly_churn_rate.description}</p>
             </div>
 
             <div className="space-y-2">

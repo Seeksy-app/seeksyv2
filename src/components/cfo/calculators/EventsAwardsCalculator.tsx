@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -7,25 +7,39 @@ import { Slider } from '@/components/ui/slider';
 import { motion } from 'framer-motion';
 import { Calendar, Trophy, RefreshCw, Save, Info } from 'lucide-react';
 import { useCFOAssumptions } from '@/hooks/useCFOAssumptions';
+import { CFO_ASSUMPTIONS_SCHEMA } from '@/lib/cfo-assumptions-schema';
 
 interface Props {
   onSave?: () => void;
 }
 
+const SCHEMA = CFO_ASSUMPTIONS_SCHEMA.events;
+
 export function EventsAwardsCalculator({ onSave }: Props) {
-  const { saveMultipleAssumptions, isSaving } = useCFOAssumptions();
+  const { getEffectiveValue, saveMultipleAssumptions, isSaving } = useCFOAssumptions();
 
-  // Events - with specified ranges and defaults
-  const [eventsPerYear, setEventsPerYear] = useState(24);
-  const [avgTicketPrice, setAvgTicketPrice] = useState(45);
+  // Events from canonical schema
+  const [eventsPerYear, setEventsPerYear] = useState(SCHEMA.events_per_year.default);
+  const [avgTicketPrice, setAvgTicketPrice] = useState(SCHEMA.avg_ticket_price.default);
   const [avgAttendeesPerEvent, setAvgAttendeesPerEvent] = useState(150);
-  const [avgSponsorshipPerEvent, setAvgSponsorshipPerEvent] = useState(5000);
+  const [avgSponsorshipPerEvent, setAvgSponsorshipPerEvent] = useState(SCHEMA.avg_event_sponsorship.default);
 
-  // Awards - with specified ranges and defaults
+  // Awards (not in canonical schema yet, using local defaults)
   const [awardProgramsPerYear, setAwardProgramsPerYear] = useState(4);
   const [avgSponsorshipPerAward, setAvgSponsorshipPerAward] = useState(2500);
   const [nominationFees, setNominationFees] = useState(25);
   const [avgNominations, setAvgNominations] = useState(200);
+
+  // Load saved values
+  useEffect(() => {
+    const savedEvents = getEffectiveValue('events_per_year');
+    const savedTicket = getEffectiveValue('avg_ticket_price');
+    const savedSponsorship = getEffectiveValue('avg_event_sponsorship');
+    
+    if (savedEvents) setEventsPerYear(savedEvents);
+    if (savedTicket) setAvgTicketPrice(savedTicket);
+    if (savedSponsorship) setAvgSponsorshipPerEvent(savedSponsorship);
+  }, [getEffectiveValue]);
 
   // Calculations
   const ticketRevenue = eventsPerYear * avgTicketPrice * avgAttendeesPerEvent;
@@ -45,10 +59,10 @@ export function EventsAwardsCalculator({ onSave }: Props) {
   };
 
   const handleReset = () => {
-    setEventsPerYear(24);
-    setAvgTicketPrice(45);
+    setEventsPerYear(SCHEMA.events_per_year.default);
+    setAvgTicketPrice(SCHEMA.avg_ticket_price.default);
     setAvgAttendeesPerEvent(150);
-    setAvgSponsorshipPerEvent(5000);
+    setAvgSponsorshipPerEvent(SCHEMA.avg_event_sponsorship.default);
     setAwardProgramsPerYear(4);
     setAvgSponsorshipPerAward(2500);
     setNominationFees(25);
@@ -57,14 +71,9 @@ export function EventsAwardsCalculator({ onSave }: Props) {
 
   const handleSave = () => {
     saveMultipleAssumptions([
-      { metric_key: 'events_per_year', value: eventsPerYear, unit: 'count', category: 'events' },
-      { metric_key: 'avg_event_ticket_price', value: avgTicketPrice, unit: 'usd', category: 'events' },
-      { metric_key: 'avg_attendees_per_event', value: avgAttendeesPerEvent, unit: 'count', category: 'events' },
-      { metric_key: 'avg_event_sponsorship', value: avgSponsorshipPerEvent, unit: 'usd', category: 'events' },
-      { metric_key: 'award_programs_per_year', value: awardProgramsPerYear, unit: 'count', category: 'events' },
-      { metric_key: 'avg_award_sponsorship_value', value: avgSponsorshipPerAward, unit: 'usd', category: 'events' },
-      { metric_key: 'nomination_fee', value: nominationFees, unit: 'usd', category: 'events' },
-      { metric_key: 'avg_nominations_per_program', value: avgNominations, unit: 'count', category: 'events' },
+      { metric_key: 'events_per_year', value: eventsPerYear },
+      { metric_key: 'avg_ticket_price', value: avgTicketPrice },
+      { metric_key: 'avg_event_sponsorship', value: avgSponsorshipPerEvent },
     ]);
     onSave?.();
   };
@@ -98,29 +107,29 @@ export function EventsAwardsCalculator({ onSave }: Props) {
 
             <div className="space-y-2">
               <Label className="flex items-center justify-between">
-                <span>Events per Year</span>
+                <span>{SCHEMA.events_per_year.label}</span>
                 <span className="text-sm font-medium">{eventsPerYear}</span>
               </Label>
               <Slider
                 value={[eventsPerYear]}
                 onValueChange={([v]) => setEventsPerYear(v)}
-                min={0}
-                max={200}
-                step={1}
+                min={SCHEMA.events_per_year.min}
+                max={SCHEMA.events_per_year.max}
+                step={SCHEMA.events_per_year.step}
               />
             </div>
 
             <div className="space-y-2">
               <Label className="flex items-center justify-between">
-                <span>Avg Ticket Price</span>
+                <span>{SCHEMA.avg_ticket_price.label}</span>
                 <span className="text-sm font-medium">${avgTicketPrice}</span>
               </Label>
               <Slider
                 value={[avgTicketPrice]}
                 onValueChange={([v]) => setAvgTicketPrice(v)}
-                min={10}
-                max={250}
-                step={5}
+                min={SCHEMA.avg_ticket_price.min}
+                max={SCHEMA.avg_ticket_price.max}
+                step={SCHEMA.avg_ticket_price.step}
               />
             </div>
 
@@ -140,15 +149,15 @@ export function EventsAwardsCalculator({ onSave }: Props) {
 
             <div className="space-y-2">
               <Label className="flex items-center justify-between">
-                <span>Avg Sponsorship per Event</span>
+                <span>{SCHEMA.avg_event_sponsorship.label}</span>
                 <span className="text-sm font-medium">${avgSponsorshipPerEvent.toLocaleString()}</span>
               </Label>
               <Slider
                 value={[avgSponsorshipPerEvent]}
                 onValueChange={([v]) => setAvgSponsorshipPerEvent(v)}
-                min={500}
-                max={50000}
-                step={500}
+                min={SCHEMA.avg_event_sponsorship.min}
+                max={SCHEMA.avg_event_sponsorship.max}
+                step={SCHEMA.avg_event_sponsorship.step}
               />
             </div>
 
