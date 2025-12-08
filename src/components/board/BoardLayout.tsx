@@ -1,4 +1,5 @@
 import { ReactNode, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { BoardSidebar } from './BoardSidebar';
 import { BoardTopNav } from './BoardTopNav';
@@ -14,6 +15,7 @@ interface BoardLayoutProps {
 
 export function BoardLayout({ children }: BoardLayoutProps) {
   const { setTheme, theme } = useTheme();
+  const location = useLocation();
 
   // Force light theme for board portal main content
   useEffect(() => {
@@ -32,7 +34,10 @@ export function BoardLayout({ children }: BoardLayoutProps) {
           {/* Light content area - fills all remaining space */}
           <div className="flex-1 flex flex-col min-w-0 w-full bg-slate-50">
             <main className="flex-1 overflow-y-auto w-full">
-              <div className="w-full px-6 lg:px-8 py-6 pb-20">
+              <div 
+                key={location.pathname} 
+                className="w-full px-6 lg:px-8 py-6 pb-20 page-container"
+              >
                 {children}
               </div>
               <BoardFooter />
