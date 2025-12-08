@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { BoardLayout } from '@/components/board/BoardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -158,8 +157,7 @@ export default function BoardShare() {
   };
 
   return (
-    <BoardLayout>
-      <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto">
         <Button
           variant="ghost"
           className="text-slate-500 hover:text-slate-700 mb-6 -ml-2"
@@ -439,7 +437,6 @@ export default function BoardShare() {
             </CardContent>
           </Card>
         )}
-      </div>
-    </BoardLayout>
+    </div>
   );
 }

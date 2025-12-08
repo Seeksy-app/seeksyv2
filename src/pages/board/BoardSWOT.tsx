@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { BoardLayout } from '@/components/board/BoardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -220,11 +219,9 @@ ${item.boardConsiderations.map(c => `• ${c}`).join('\n')}`;
 
   if (isLoading) {
     return (
-      <BoardLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </BoardLayout>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
   }
 
@@ -297,8 +294,7 @@ ${item.boardConsiderations.map(c => `• ${c}`).join('\n')}`;
   );
 
   return (
-    <BoardLayout>
-      <TooltipProvider>
+    <TooltipProvider>
         <div className="w-full max-w-none space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
@@ -467,6 +463,5 @@ ${item.boardConsiderations.map(c => `• ${c}`).join('\n')}`;
           </AnimatePresence>
         </div>
       </TooltipProvider>
-    </BoardLayout>
   );
 }

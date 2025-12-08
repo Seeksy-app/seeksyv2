@@ -1,4 +1,3 @@
-import { BoardLayout } from '@/components/board/BoardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useBoardDataMode } from '@/contexts/BoardDataModeContext';
@@ -60,8 +59,7 @@ export default function BoardKeyMetrics() {
   };
 
   return (
-    <BoardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -156,7 +154,6 @@ export default function BoardKeyMetrics() {
             ? 'Showing demo data for illustration purposes'
             : 'Showing real platform data'}
         </p>
-      </div>
-    </BoardLayout>
+    </div>
   );
 }

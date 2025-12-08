@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { BoardLayout } from '@/components/board/BoardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -74,8 +73,7 @@ Provide insights on:
   };
 
   return (
-    <BoardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -253,7 +251,6 @@ Provide insights on:
             </p>
           </CardContent>
         </Card>
-      </div>
-    </BoardLayout>
+    </div>
   );
 }
