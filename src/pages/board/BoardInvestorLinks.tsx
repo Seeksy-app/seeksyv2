@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BoardLayout } from '@/components/board/BoardLayout';
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -89,7 +89,7 @@ export default function BoardInvestorLinks() {
   };
 
   return (
-    <BoardLayout>
+    <>
       <div className="space-y-6">
         <Button
           variant="ghost"
@@ -272,6 +272,6 @@ export default function BoardInvestorLinks() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </BoardLayout>
+    </>
   );
 }

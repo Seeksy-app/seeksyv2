@@ -1,4 +1,4 @@
-import { BoardLayout } from '@/components/board/BoardLayout';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -140,8 +140,7 @@ export default function BoardCompetitiveLandscape() {
   };
 
   return (
-    <BoardLayout>
-      <TooltipProvider>
+    <TooltipProvider>
         <div className="max-w-6xl mx-auto space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -291,7 +290,6 @@ export default function BoardCompetitiveLandscape() {
             Competitive data compiled from public sources and market research · Last updated: {new Date().toLocaleDateString()}
           </p>
         </div>
-      </TooltipProvider>
-    </BoardLayout>
+    </TooltipProvider>
   );
 }

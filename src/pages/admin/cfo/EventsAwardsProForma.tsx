@@ -73,8 +73,8 @@ const EventsAwardsProForma = () => {
   };
 
   const content = (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-7xl px-6 py-6">
+    <div className="bg-background w-full">
+      <div className="mx-auto max-w-7xl px-6 py-6 pb-20">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
