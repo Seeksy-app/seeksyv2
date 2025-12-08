@@ -948,7 +948,7 @@ const AppContent = () => {
             <Route path="/admin/module-organizer" element={<ModuleOrganizer />} />
               <Route path="/admin/permissions" element={<Permissions />} />
               <Route path="/admin/integrations" element={<AdminIntegrations />} />
-              <Route path="/admin/email" element={<AdminEmail />} />
+              <Route path="/admin/email" element={<Navigate to="/admin/email-client" replace />} />
               <Route path="/admin/email-client" element={<AdminEmailClient />} />
               <Route path="/admin/signatures" element={<AdminSignatures />} />
               <Route path="/admin/webhooks" element={<Webhooks />} />

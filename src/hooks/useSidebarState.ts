@@ -37,6 +37,10 @@ const ROUTE_TO_GROUP: Record<string, string> = {
   '/admin/logs': 'Developer Tools',
   '/admin/help': 'Support',
   '/admin/contact': 'Support',
+  // Email Suite routes - map to Marketing group
+  '/admin/email': 'Marketing',
+  '/admin/email-client': 'Marketing',
+  '/admin/signatures': 'Marketing',
 };
 
 const DEFAULT_STATE: SidebarState = {

@@ -275,7 +275,7 @@ export const NAVIGATION_CONFIG: {
           "id": "admin_email",
           "label": "Email Suite",
           "icon": "mail",
-          "path": "/admin/email",
+          "path": "/admin/email-client",
           "roles": ["admin", "super_admin", "cmo"],
           "description": "Send, receive, and track emails"
         },
