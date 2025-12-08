@@ -90,7 +90,7 @@ export default function BoardInvestorLinks() {
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="w-full space-y-6">
         <Button
           variant="ghost"
           className="text-slate-500 hover:text-slate-700 -ml-2"
