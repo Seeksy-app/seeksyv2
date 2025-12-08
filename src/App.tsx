@@ -95,6 +95,7 @@ import AppsAndTools from "./pages/marketing/AppsAndTools";
 import AdminSecurityOverview from "./pages/admin/AdminSecurityOverview";
 import EventsAwardsProForma from "./pages/admin/cfo/EventsAwardsProForma";
 import CombinedProForma from "./pages/admin/cfo/CombinedProForma";
+import BoardProForma from "./pages/board/BoardProForma";
 import ProFormaSharePage from "./pages/public/ProFormaSharePage";
 import AdminLegal from "./pages/AdminLegal";
 import Settings from "./pages/Settings";
@@ -1036,7 +1037,7 @@ const AppContent = () => {
             <Route path="swot" element={<BoardSWOT />} />
             <Route path="market-intel" element={<BoardMarketIntel />} />
             <Route path="inventory" element={<BoardInventory />} />
-            <Route path="proforma/combined" element={<CombinedProForma />} />
+            <Route path="proforma/combined" element={<BoardProForma />} />
             <Route path="proforma/events-awards" element={<EventsAwardsProForma />} />
           </Route>
           <Route path="/investor/:token" element={<BoardInvestorPortal />} />
