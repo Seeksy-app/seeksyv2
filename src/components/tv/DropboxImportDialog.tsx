@@ -63,7 +63,7 @@ export function DropboxImportDialog({ open, onOpenChange, onImportComplete }: Dr
   const connectDropbox = async () => {
     setIsLoading(true);
     try {
-      const redirectUri = `${window.location.origin}/dropbox-callback`;
+      const redirectUri = `${window.location.origin}/dropbox/callback`;
       
       const { data, error } = await supabase.functions.invoke('dropbox-auth', {
         body: { action: 'get_auth_url', redirectUri }
