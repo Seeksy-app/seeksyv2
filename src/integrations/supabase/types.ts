@@ -21624,6 +21624,7 @@ export type Database = {
       tv_content: {
         Row: {
           category: string | null
+          content_type: string | null
           created_at: string | null
           description: string | null
           duration_seconds: number | null
@@ -21646,6 +21647,7 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          content_type?: string | null
           created_at?: string | null
           description?: string | null
           duration_seconds?: number | null
@@ -21668,6 +21670,7 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          content_type?: string | null
           created_at?: string | null
           description?: string | null
           duration_seconds?: number | null
