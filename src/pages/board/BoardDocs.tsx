@@ -1,4 +1,4 @@
-import { BoardLayout } from '@/components/board/BoardLayout';
+
 import { MarkdownRenderer } from '@/components/board/MarkdownRenderer';
 import { useBoardContent, useBoardDocuments } from '@/hooks/useBoardContent';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -53,8 +53,7 @@ export default function BoardDocs() {
   const hasRealDocs = dbDocuments && dbDocuments.length > 0;
 
   return (
-    <BoardLayout>
-      <div>
+    <div>
         <Button
           variant="ghost"
           className="text-slate-500 hover:text-slate-700 mb-6 -ml-2"
@@ -181,7 +180,6 @@ export default function BoardDocs() {
             Last updated: {new Date(content.updated_at).toLocaleDateString()}
           </p>
         )}
-      </div>
-    </BoardLayout>
+    </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BoardLayout } from '@/components/board/BoardLayout';
+
 import { useBoardDataMode } from '@/contexts/BoardDataModeContext';
 import { DataModeLabel, DataModeBadge } from '@/components/board/DataModeToggle';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -101,8 +101,7 @@ export default function BoardForecasts() {
   const multiplier = selectedScenario?.multiplier || 1;
 
   return (
-    <BoardLayout>
-      <div>
+    <div>
         <Button
           variant="ghost"
           className="text-slate-500 hover:text-slate-700 mb-6 -ml-2"
@@ -330,7 +329,6 @@ export default function BoardForecasts() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
-    </BoardLayout>
+    </div>
   );
 }

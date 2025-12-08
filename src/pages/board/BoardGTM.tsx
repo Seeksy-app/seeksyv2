@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BoardLayout } from '@/components/board/BoardLayout';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Target } from 'lucide-react';
@@ -25,8 +25,7 @@ export default function BoardGTM() {
   const [activeTab, setActiveTab] = useState("market-overview");
 
   return (
-    <BoardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div>
           <Button
@@ -100,7 +99,6 @@ export default function BoardGTM() {
             </AnimatePresence>
           </div>
         </Tabs>
-      </div>
-    </BoardLayout>
+    </div>
   );
 }

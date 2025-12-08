@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { BoardLayout } from '@/components/board/BoardLayout';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -125,8 +125,7 @@ export default function BoardContacts() {
   };
 
   return (
-    <BoardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -315,7 +314,6 @@ export default function BoardContacts() {
             <p className="text-sm text-slate-500">Try adjusting your search terms</p>
           </Card>
         )}
-      </div>
-    </BoardLayout>
+    </div>
   );
 }

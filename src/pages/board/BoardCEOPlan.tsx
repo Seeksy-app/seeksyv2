@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { BoardLayout } from '@/components/board/BoardLayout';
+
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Download, FileText, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -247,8 +247,7 @@ export default function BoardCEOPlan() {
   };
 
   return (
-    <BoardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div>
           <Button
@@ -416,7 +415,6 @@ export default function BoardCEOPlan() {
             </div>
           </div>
         )}
-      </div>
-    </BoardLayout>
+    </div>
   );
 }
