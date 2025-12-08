@@ -353,7 +353,10 @@ export default function BoardProFormaAI() {
           <div>
             <h1 className="text-3xl font-bold text-slate-900">AI-Powered 3-Year Pro Forma</h1>
             <p className="text-slate-500">
-              Financial projections powered by {cfoOverrideCount} CFO assumptions and {rdCount} R&D benchmarks
+              Financial projections powered by {cfoOverrideCount} CFO assumptions and {rdCount} R&D benchmarks.
+              <span className="text-slate-400 ml-1">
+                A separate Events & Awards Pro Forma is available in the "Share with Investors" panel for the Veteran Podcast Awards asset.
+              </span>
             </p>
           </div>
         </div>
