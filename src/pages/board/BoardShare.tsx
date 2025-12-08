@@ -28,7 +28,8 @@ const scopeOptions = [
   { id: 'dashboard', label: 'Dashboard KPIs' },
   { id: 'business-model', label: 'Business Model' },
   { id: 'gtm', label: 'GTM Strategy' },
-  { id: 'forecasts', label: '3-Year Forecasts' },
+  { id: 'forecasts', label: 'Platform Pro Forma' },
+  { id: 'awards-proforma', label: 'Events & Awards Pro Forma' },
   { id: 'videos', label: 'Platform Videos' },
   { id: 'documents', label: 'Documents' },
 ];
@@ -323,6 +324,23 @@ export default function BoardShare() {
                           {option.label}
                         </label>
                       </div>
+                      
+                      {/* Awards Pro Forma description */}
+                      {option.id === 'awards-proforma' && selectedScope.includes('awards-proforma') && (
+                        <div className="mt-2 ml-6 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                          <p className="text-xs text-amber-800">
+                            Includes 3-year outlook for the Veteran Podcast Awards asset with strategic positioning and event metrics.
+                          </p>
+                          <a 
+                            href="https://veteranpodcastawards.com" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-amber-700 underline hover:text-amber-900 mt-1 inline-block"
+                          >
+                            View VeteranPodcastAwards.com →
+                          </a>
+                        </div>
+                      )}
                       
                       {/* Video Selection Dropdown - only show when videos is selected */}
                       {option.id === 'videos' && selectedScope.includes('videos') && availableVideos && availableVideos.length > 0 && (
