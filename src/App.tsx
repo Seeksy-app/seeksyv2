@@ -509,6 +509,7 @@ import UniversalDashboard from "./pages/UniversalDashboard";
 import CFOAssumptionStudio from "./pages/cfo/CFOAssumptionStudio";
 import CFOProForma from "./pages/cfo/CFOProForma";
 import CFOStudioV2 from "./pages/cfo/CFOStudioV2";
+import CFOStudioV3 from "./pages/cfo/CFOStudioV3";
 
 const queryClient = new QueryClient();
 
@@ -1079,6 +1080,7 @@ const AppContent = () => {
           
           {/* CFO Assumption Studio & Pro Forma */}
           <Route path="/cfo/studio-v2" element={<CFOStudioV2 />} />
+          <Route path="/cfo/studio-v3" element={<CFOStudioV3 />} />
           <Route path="/cfo/assumptions" element={<CFOAssumptionStudio />} />
           <Route path="/cfo/proforma" element={<CFOProForma />} />
           

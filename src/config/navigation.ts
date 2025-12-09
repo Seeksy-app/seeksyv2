@@ -208,6 +208,13 @@ export const NAVIGATION_CONFIG: {
           "roles": ["admin", "super_admin", "cfo"]
         },
         {
+          "id": "admin_cfo_studio_v3",
+          "label": "CFO Studio V3",
+          "icon": "file-spreadsheet",
+          "path": "/cfo/studio-v3",
+          "roles": ["admin", "super_admin", "cfo"]
+        },
+        {
           "id": "admin_cfo_assumptions",
           "label": "CFO Assumption Studio",
           "icon": "sliders",
