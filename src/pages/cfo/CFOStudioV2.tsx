@@ -563,9 +563,10 @@ export default function CFOStudioV2() {
 
   return (
     <div className="w-full min-h-screen bg-background">
-      <div className="max-w-[1600px] mx-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="flex flex-col gap-4">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-50 bg-background border-b">
+        <div className="max-w-[1600px] mx-auto px-6 py-4 space-y-4">
+          {/* Header Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
@@ -662,31 +663,35 @@ export default function CFOStudioV2() {
               </Badge>
             </div>
           </div>
-        </div>
 
-        {/* Key Metrics Strip */}
-        <div className="grid grid-cols-8 gap-3">
-          {[
-            { label: 'Y3 ARR', value: formatCurrency(metrics.arr[2]), icon: TrendingUp, color: 'text-emerald-600' },
-            { label: 'CAC', value: formatCurrency(metrics.cac, false), icon: DollarSign, color: 'text-blue-600' },
-            { label: 'LTV', value: formatCurrency(metrics.ltv), icon: Users, color: 'text-purple-600' },
-            { label: 'LTV:CAC', value: `${(metrics.ltv / metrics.cac).toFixed(1)}x`, icon: Target, color: 'text-amber-600' },
-            { label: 'Gross Margin', value: formatPercent(metrics.grossMargin[2]), icon: Calculator, color: 'text-indigo-600' },
-            { label: 'Burn Rate', value: formatCurrency(metrics.burnRate[0]), icon: TrendingUp, color: metrics.burnRate[0] > 0 ? 'text-red-600' : 'text-emerald-600' },
-            { label: 'Runway', value: `${Math.round(metrics.runway)}mo`, icon: Building2, color: 'text-cyan-600' },
-            { label: 'Breakeven', value: metrics.breakEvenMonth ? `M${metrics.breakEvenMonth}` : 'N/A', icon: Briefcase, color: 'text-green-600' },
-          ].map((metric, i) => (
-            <Card key={i} className="bg-card">
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <metric.icon className={cn("w-4 h-4", metric.color)} />
-                  <span className="text-xs text-muted-foreground">{metric.label}</span>
-                </div>
-                <p className="text-lg font-semibold">{metric.value}</p>
-              </CardContent>
-            </Card>
-          ))}
+          {/* Key Metrics Strip */}
+          <div className="grid grid-cols-8 gap-3">
+            {[
+              { label: 'Y3 ARR', value: formatCurrency(metrics.arr[2]), icon: TrendingUp, color: 'text-emerald-600' },
+              { label: 'CAC', value: formatCurrency(metrics.cac, false), icon: DollarSign, color: 'text-blue-600' },
+              { label: 'LTV', value: formatCurrency(metrics.ltv), icon: Users, color: 'text-purple-600' },
+              { label: 'LTV:CAC', value: `${(metrics.ltv / metrics.cac).toFixed(1)}x`, icon: Target, color: 'text-amber-600' },
+              { label: 'Gross Margin', value: formatPercent(metrics.grossMargin[2]), icon: Calculator, color: 'text-indigo-600' },
+              { label: 'Burn Rate', value: formatCurrency(metrics.burnRate[0]), icon: TrendingUp, color: metrics.burnRate[0] > 0 ? 'text-red-600' : 'text-emerald-600' },
+              { label: 'Runway', value: `${Math.round(metrics.runway)}mo`, icon: Building2, color: 'text-cyan-600' },
+              { label: 'Breakeven', value: metrics.breakEvenMonth ? `M${metrics.breakEvenMonth}` : 'N/A', icon: Briefcase, color: 'text-green-600' },
+            ].map((metric, i) => (
+              <Card key={i} className="bg-card">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <metric.icon className={cn("w-4 h-4", metric.color)} />
+                    <span className="text-xs text-muted-foreground">{metric.label}</span>
+                  </div>
+                  <p className="text-lg font-semibold">{metric.value}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-[1600px] mx-auto p-6 space-y-6">
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
