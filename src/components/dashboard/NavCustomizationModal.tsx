@@ -34,22 +34,20 @@ interface NavCustomizationModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-// Admin-specific nav items (flat list from NAVIGATION_CONFIG groups)
-const ADMIN_NAV_ITEMS = [
-  { id: 'admin_dashboard', label: 'Admin Dashboard', path: '/admin', isHome: true },
-  { id: 'admin_advertising', label: 'Advertising and Sales', path: '/admin/advertising' },
-  { id: 'admin_support', label: 'Support Desk', path: '/admin/support' },
-  { id: 'admin_financials', label: 'Financials (CFO)', path: '/admin/financials/key-metrics' },
-  { id: 'admin_users', label: 'User Management', path: '/admin/users' },
-  { id: 'admin_rd', label: 'R&D Intelligence', path: '/admin/rd-intelligence' },
-  { id: 'admin_content', label: 'Content Management', path: '/admin/awards-programs' },
-  { id: 'admin_developer', label: 'Developer Tools', path: '/admin/developer' },
-];
+import { NAVIGATION_CONFIG } from "@/config/navigation";
+
+// Admin-specific nav items derived from NAVIGATION_CONFIG groups (to match actual sidebar order)
+const ADMIN_NAV_ITEMS = NAVIGATION_CONFIG.navigation.map((group, idx) => ({
+  id: `admin_group_${group.group.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
+  label: group.group,
+  path: group.items[0]?.path || '/admin',
+  isHome: idx === 0, // First group (Dashboard) is the home
+}));
 
 const ADMIN_LANDING_OPTIONS = [
   { id: '/admin', label: 'Admin Dashboard', description: 'Platform overview and quick actions' },
-  { id: '/admin/financials/key-metrics', label: 'CFO Dashboard', description: 'Financial metrics and analysis' },
-  { id: '/admin/rd-intelligence', label: 'R&D Intelligence', description: 'Research and market insights' },
+  { id: '/cfo/studio-v2', label: 'CFO Studio', description: 'Financial modeling and analysis' },
+  { id: '/admin/rd-feeds', label: 'R&D Intelligence', description: 'Research and market insights' },
 ];
 
 interface SortableNavItemProps {
