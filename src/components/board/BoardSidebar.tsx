@@ -168,14 +168,17 @@ export function BoardSidebar() {
             data-tour={item.id === 'dashboard' ? 'nav-dashboard' : item.id === 'swot' ? 'nav-swot' : undefined}
             className={cn(
               'w-full flex items-center gap-2.5 px-3 py-2 rounded-md transition-all duration-200',
-              'text-slate-200 hover:bg-slate-800/40 hover:text-white',
+              'hover:bg-slate-700/60',
               'text-[13px] font-medium tracking-normal',
-              isActive && 'bg-blue-500/30 text-white font-semibold hover:bg-blue-500/40'
+              isActive 
+                ? 'bg-blue-500/30 text-white font-semibold hover:bg-blue-500/40' 
+                : 'text-slate-100'
             )}
+            style={{ color: isActive ? undefined : 'rgba(226, 232, 240, 0.95)' }}
           >
             <Icon className={cn(
               "w-4 h-4 flex-shrink-0",
-              item.isAI ? "text-yellow-400" : isActive ? "text-blue-300" : "text-slate-400"
+              item.isAI ? "text-yellow-400" : isActive ? "text-blue-300" : "text-slate-300"
             )} />
             <span className="flex-1 truncate">{item.label}</span>
           </Link>
