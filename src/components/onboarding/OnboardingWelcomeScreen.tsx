@@ -82,12 +82,18 @@ export function OnboardingWelcomeScreen({
             is_active: true,
           }, { onConflict: 'user_id,module_id' });
         }
+
+        // Ensure onboarding is marked complete before navigating
+        await supabase.from('profiles').update({
+          onboarding_completed: true
+        }).eq('id', user.id);
       }
     } catch (error) {
       console.error('Error saving modules:', error);
     }
     
-    onContinue();
+    // Navigate directly to my-day instead of calling onContinue which may have issues
+    navigate('/my-day');
   };
 
   const quickActions = [
@@ -284,8 +290,8 @@ export function OnboardingWelcomeScreen({
                   transition={{ delay: 0.5 + index * 0.1 }}
                   whileHover={{ scale: 1.01, x: 4 }}
                   whileTap={{ scale: 0.99 }}
-                  onClick={() => {
-                    handleContinue();
+                  onClick={async () => {
+                    await handleContinue();
                     navigate(action.path);
                   }}
                   className="w-full p-4 rounded-xl border border-border/50 hover:border-primary/30 hover:bg-accent/50 transition-all text-left group flex items-start gap-4"

@@ -507,6 +507,38 @@ export function FullScreenOnboarding() {
     </div>
   );
 
+  const handleGoogleConnect = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Please log in to connect Google');
+        return;
+      }
+
+      const suggestedIntegration = ['Events & Meetings', 'Podcasting'].includes(data.manageFocus || '') ? 'calendar' : 'email';
+      
+      // Call the gmail-auth edge function to get OAuth URL
+      const response = await supabase.functions.invoke('gmail-auth', {
+        body: { returnPath: '/onboarding' }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      if (response.data?.authUrl) {
+        // Store that we're connecting, then redirect
+        setData(prev => ({ ...prev, integrationType: suggestedIntegration === 'email' ? 'google_email' : 'google_calendar' }));
+        window.location.href = response.data.authUrl;
+      } else {
+        toast.error('Could not get Google authorization URL');
+      }
+    } catch (error) {
+      console.error('Google connect error:', error);
+      toast.error('Failed to connect Google. Please try again.');
+    }
+  };
+
   const renderStep6 = () => {
     const suggestedIntegration = ['Events & Meetings', 'Podcasting'].includes(data.manageFocus || '') ? 'calendar' : 'email';
     
@@ -547,8 +579,8 @@ export function FullScreenOnboarding() {
           <Button
             variant="outline"
             size="lg"
-            className="w-full justify-start gap-3 h-14 text-base font-medium border-2"
-            onClick={() => setData(prev => ({ ...prev, integrationType: suggestedIntegration === 'email' ? 'google_email' : 'google_calendar' }))}
+            className="w-full justify-start gap-3 h-14 text-base font-medium border-2 bg-amber-50 border-amber-200 hover:bg-amber-100"
+            onClick={handleGoogleConnect}
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
