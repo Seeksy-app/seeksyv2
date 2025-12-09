@@ -46,6 +46,8 @@ import { CertifiedClipsCard } from "@/components/dashboard/CertifiedClipsCard";
 import { MediaVaultCard } from "@/components/dashboard/MediaVaultCard";
 import { AdvertiserAccessCard } from "@/components/dashboard/AdvertiserAccessCard";
 import { QuickCreateCard } from "@/components/dashboard/QuickCreateCard";
+import { QuickActionsRow } from "@/components/dashboard/QuickActionsRow";
+import { RecommendedSeeksiesBanner } from "@/components/dashboard/RecommendedSeeeksiesBanner";
 import { HolidayCreatorBanner } from "@/components/dashboard/HolidayCreatorBanner";
 import { useHolidaySettings } from "@/hooks/useHolidaySettings";
 import { useRole } from "@/contexts/RoleContext";
@@ -113,6 +115,15 @@ const WIDGET_MODULE_MAP: Record<string, string[]> = {
   "impressions": ["monetization", "advertising"],
 };
 
+// Feature cards to module mapping
+const FEATURE_CARD_MODULE_MAP: Record<string, string[]> = {
+  "identity": ["identity-verification", "identity"],
+  "clips": ["ai-clips", "clips", "media-library"],
+  "media": ["media-library", "studio", "media"],
+  "advertiser": ["monetization", "advertising"],
+  "quick-create": [], // Always show
+};
+
 const DEFAULT_WIDGETS: WidgetConfig[] = [
   { id: "profile-views", label: "Profile Visits", enabled: true, category: "mypage" },
   { id: "link-clicks", label: "Link Clicks", enabled: true, category: "mypage" },
@@ -167,6 +178,18 @@ export default function MyDay() {
   // Check if a widget should be visible based on active modules
   const isWidgetVisible = (widgetId: string): boolean => {
     const requiredModules = WIDGET_MODULE_MAP[widgetId] || [];
+    if (requiredModules.length === 0) return true; // No module requirement
+    return requiredModules.some(modId => 
+      activeModuleIds.has(modId) || 
+      Array.from(activeModuleIds).some(activeId => 
+        activeId.includes(modId) || modId.includes(activeId)
+      )
+    );
+  };
+
+  // Check if a feature card should be visible based on active modules
+  const isFeatureCardVisible = (cardId: string): boolean => {
+    const requiredModules = FEATURE_CARD_MODULE_MAP[cardId] || [];
     if (requiredModules.length === 0) return true; // No module requirement
     return requiredModules.some(modId => 
       activeModuleIds.has(modId) || 
@@ -499,13 +522,19 @@ export default function MyDay() {
           <HolidayCreatorBanner firstName={firstName} />
         )}
 
-        {/* Identity & Content Dashboard Cards */}
+        {/* Recommended Seeksies Banner */}
+        <RecommendedSeeksiesBanner />
+
+        {/* Quick Actions Row */}
+        <QuickActionsRow />
+
+        {/* Identity & Content Dashboard Cards - filtered by module */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-8 w-full">
-          <IdentityStatusCard />
-          <CertifiedClipsCard />
-          <MediaVaultCard />
-          <AdvertiserAccessCard />
-          <QuickCreateCard />
+          {isFeatureCardVisible("identity") && <IdentityStatusCard />}
+          {isFeatureCardVisible("clips") && <CertifiedClipsCard />}
+          {isFeatureCardVisible("media") && <MediaVaultCard />}
+          {isFeatureCardVisible("advertiser") && <AdvertiserAccessCard />}
+          {isFeatureCardVisible("quick-create") && <QuickCreateCard />}
         </div>
 
         {/* Customizable Widgets */}
