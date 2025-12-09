@@ -116,6 +116,64 @@ export function OnboardingWizard() {
         if (modulesError) {
           console.error('Error activating modules:', modulesError);
         }
+
+        // Check if user has a workspace, create one if not
+        const { data: existingWorkspaces } = await supabase
+          .from('custom_packages')
+          .select('id')
+          .eq('user_id', user.id)
+          .limit(1);
+
+        let workspaceId: string;
+
+        if (!existingWorkspaces || existingWorkspaces.length === 0) {
+          // Create default workspace with the selected modules
+          const workspaceName = selectedType === 'podcaster' ? 'My Podcast Workspace' :
+                               selectedType === 'creator' ? 'My Creator Workspace' :
+                               selectedType === 'agency' ? 'My Agency Workspace' :
+                               'My Workspace';
+          
+          const { data: newWorkspace, error: workspaceError } = await supabase
+            .from('custom_packages')
+            .insert({
+              user_id: user.id,
+              name: workspaceName,
+              slug: `workspace-${Date.now().toString(36)}`,
+              modules: moduleIds,
+              is_default: true,
+              icon_color: '#2C6BED',
+            })
+            .select()
+            .single();
+
+          if (workspaceError) {
+            console.error('Error creating workspace:', workspaceError);
+          } else {
+            workspaceId = newWorkspace.id;
+          }
+        } else {
+          workspaceId = existingWorkspaces[0].id;
+        }
+
+        // Add modules to workspace_modules table
+        if (workspaceId) {
+          const workspaceModulesToInsert = moduleIds.map((moduleId, index) => ({
+            workspace_id: workspaceId,
+            module_id: moduleId,
+            position: index,
+          }));
+
+          const { error: wsModulesError } = await supabase
+            .from('workspace_modules')
+            .upsert(workspaceModulesToInsert, { 
+              onConflict: 'workspace_id,module_id',
+              ignoreDuplicates: true 
+            });
+
+          if (wsModulesError) {
+            console.error('Error adding modules to workspace:', wsModulesError);
+          }
+        }
       }
 
       await completeOnboarding({
