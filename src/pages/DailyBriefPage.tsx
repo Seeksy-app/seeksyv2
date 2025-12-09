@@ -132,23 +132,31 @@ export default function DailyBriefPage() {
         return;
       }
 
-      if (isSubscribed) {
+      // Toggle the subscription (opt-out system - default enabled)
+      const { data: existing } = await supabase
+        .from('brief_subscriptions')
+        .select('id, is_active')
+        .eq('user_id', user.id)
+        .eq('audience_type', selectedAudience)
+        .maybeSingle();
+
+      if (existing) {
         await supabase
           .from('brief_subscriptions')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('audience_type', selectedAudience);
+          .update({ is_active: !existing.is_active })
+          .eq('id', existing.id);
+        setIsSubscribed(!existing.is_active);
       } else {
+        // First time - create subscription (enabled by default for opt-out)
         await supabase
           .from('brief_subscriptions')
-          .upsert({
+          .insert({
             user_id: user.id,
             audience_type: selectedAudience,
             is_active: true
           });
+        setIsSubscribed(true);
       }
-
-      setIsSubscribed(!isSubscribed);
       toast({ 
         title: isSubscribed ? 'Unsubscribed' : 'Subscribed!',
         description: isSubscribed 
