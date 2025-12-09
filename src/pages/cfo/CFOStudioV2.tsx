@@ -1115,7 +1115,7 @@ export default function CFOStudioV2() {
                   <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Quick Calculators</h3>
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     <ROICalculator
-                      marketingSpend={assumptions.monthlyMarketingBudget * 12}
+                      marketingSpend={assumptions.monthlyMarketingBudget}
                       cac={assumptions.cacPaid}
                       churn={assumptions.churnRate}
                       arpu={assumptions.proTierArpu}
