@@ -10,9 +10,34 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { 
   DollarSign, TrendingUp, Calendar, Plus, Trash2, AlertTriangle, 
-  CheckCircle, XCircle, Wallet, Clock, Landmark
+  CheckCircle, XCircle, Wallet, Clock, Landmark, Info
 } from 'lucide-react';
 import { CollapsibleSliderSection } from './CFOSliderControl';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+
+// Tooltip helper for labels
+function LabelWithTooltip({ label, tooltip }: { label: string; tooltip: string }) {
+  return (
+    <div className="flex items-center gap-1">
+      <Label className="text-sm">{label}</Label>
+      <TooltipProvider delayDuration={0}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Info className="w-3 h-3 text-muted-foreground cursor-help" />
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-xs text-xs">
+            <p>{tooltip}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+}
 
 export interface CapitalInfusion {
   id: string;
@@ -213,6 +238,16 @@ export function CFOCapitalRunway({
           <CardTitle className="text-lg flex items-center gap-2">
             <Landmark className="w-5 h-5 text-primary" />
             Scenario Selection
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="w-4 h-4 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-xs text-xs">
+                  <p>Switch between Base, Best, and Worst Case financial scenarios.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -253,7 +288,10 @@ export function CFOCapitalRunway({
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label className="text-sm">Starting Cash on Hand</Label>
+              <LabelWithTooltip 
+                label="Starting Cash on Hand" 
+                tooltip="Total available cash at the beginning of the forecast period."
+              />
               <div className="relative mt-1">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                 <Input
@@ -265,7 +303,10 @@ export function CFOCapitalRunway({
               </div>
             </div>
             <div>
-              <Label className="text-sm">Minimum Cash Target (Alert Threshold)</Label>
+              <LabelWithTooltip 
+                label="Minimum Cash Target" 
+                tooltip="Threshold for minimum liquidity. Alerts trigger when projected cash falls below this level."
+              />
               <div className="relative mt-1">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                 <Input
@@ -290,24 +331,68 @@ export function CFOCapitalRunway({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-3 bg-background rounded-lg border">
-                <p className="text-xs text-muted-foreground">Current Monthly Burn</p>
-                <p className="text-xl font-bold text-red-600">{formatCurrency(outputs.monthlyBurn[0])}</p>
-              </div>
-              <div className="p-3 bg-background rounded-lg border">
-                <p className="text-xs text-muted-foreground">Cash Runway</p>
-                <p className={cn("text-xl font-bold", outputs.runwayMonths >= 18 ? "text-emerald-600" : outputs.runwayMonths >= 12 ? "text-amber-600" : "text-red-600")}>
-                  {outputs.runwayMonths} months
-                </p>
-              </div>
-              <div className="p-3 bg-background rounded-lg border">
-                <p className="text-xs text-muted-foreground">Total Infusions Planned</p>
-                <p className="text-xl font-bold text-blue-600">{formatCurrency(totalInfusions)}</p>
-              </div>
-              <div className="p-3 bg-background rounded-lg border">
-                <p className="text-xs text-muted-foreground">Next Raise Needed</p>
-                <p className="text-xl font-bold">{outputs.nextRaiseDate || 'N/A'}</p>
-              </div>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="p-3 bg-background rounded-lg border cursor-help">
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        Current Monthly Burn <Info className="w-3 h-3" />
+                      </p>
+                      <p className="text-xl font-bold text-red-600">{formatCurrency(outputs.monthlyBurn[0])}</p>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs text-xs">
+                    <p>Net monthly cash outflow after revenue, COGS, and OpEx.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="p-3 bg-background rounded-lg border cursor-help">
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        Cash Runway <Info className="w-3 h-3" />
+                      </p>
+                      <p className={cn("text-xl font-bold", outputs.runwayMonths >= 18 ? "text-emerald-600" : outputs.runwayMonths >= 12 ? "text-amber-600" : "text-red-600")}>
+                        {outputs.runwayMonths} months
+                      </p>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs text-xs">
+                    <p>Months until cash reaches zero or the minimum threshold.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="p-3 bg-background rounded-lg border cursor-help">
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        Total Infusions Planned <Info className="w-3 h-3" />
+                      </p>
+                      <p className="text-xl font-bold text-blue-600">{formatCurrency(totalInfusions)}</p>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs text-xs">
+                    <p>Funds added to the business. Includes amount, date, and type (SAFE, equity, debt, grant).</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="p-3 bg-background rounded-lg border cursor-help">
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        Next Raise Needed <Info className="w-3 h-3" />
+                      </p>
+                      <p className="text-xl font-bold">{outputs.nextRaiseDate || 'N/A'}</p>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs text-xs">
+                    <p>Projected date the company will require additional capital.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
 
             {/* Survival Indicators */}
@@ -448,8 +533,20 @@ export function CFOCapitalRunway({
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
           {/* Burn Rate Change */}
           <div className="space-y-2">
-            <div className="flex justify-between">
-              <Label className="text-sm">Burn Rate Change</Label>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-1">
+                <Label className="text-sm">Burn Rate Change</Label>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="w-3 h-3 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs text-xs">
+                      <p>Models higher or lower burn due to hiring, pricing, or macro factors.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <span className="text-sm font-medium">{settings.burnRateChangePercent >= 0 ? '+' : ''}{settings.burnRateChangePercent}%</span>
             </div>
             <Slider
@@ -459,13 +556,25 @@ export function CFOCapitalRunway({
               max={100}
               step={5}
             />
-            <p className="text-xs text-muted-foreground">Adjust expected burn rate for scenario modeling</p>
+            <p className="text-xs text-muted-foreground">Total monthly cash consumption.</p>
           </div>
 
           {/* OpEx Compression */}
           <div className="space-y-2">
-            <div className="flex justify-between">
-              <Label className="text-sm">OpEx Compression</Label>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-1">
+                <Label className="text-sm">OpEx Compression</Label>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="w-3 h-3 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs text-xs">
+                      <p>Simulates company-wide cost reductions or automation efficiencies.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <span className="text-sm font-medium">-{settings.opexCompression}%</span>
             </div>
             <Slider
@@ -475,13 +584,25 @@ export function CFOCapitalRunway({
               max={40}
               step={5}
             />
-            <p className="text-xs text-muted-foreground">Reduce operating expenses (cost cutting)</p>
+            <p className="text-xs text-muted-foreground">Models reduced operational spend.</p>
           </div>
 
           {/* Revenue Shock */}
           <div className="space-y-2">
-            <div className="flex justify-between">
-              <Label className="text-sm">Revenue Shock</Label>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-1">
+                <Label className="text-sm">Revenue Shock</Label>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="w-3 h-3 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs text-xs">
+                      <p>Stress-test scenario for sudden revenue decline.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <span className="text-sm font-medium text-red-600">-{settings.revenueShock}%</span>
             </div>
             <Slider
@@ -491,13 +612,25 @@ export function CFOCapitalRunway({
               max={50}
               step={5}
             />
-            <p className="text-xs text-muted-foreground">Model revenue shortfall scenario</p>
+            <p className="text-xs text-muted-foreground">Simulate sudden revenue decreases.</p>
           </div>
 
           {/* Cash-to-EBITDA Conversion */}
           <div className="space-y-2">
-            <div className="flex justify-between">
-              <Label className="text-sm">Cash-to-EBITDA Conversion</Label>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-1">
+                <Label className="text-sm">Cash-to-EBITDA Conversion</Label>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="w-3 h-3 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs text-xs">
+                      <p>How much EBITDA converts to actual cash inflows.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <span className="text-sm font-medium">{settings.cashToEbitdaConversion}%</span>
             </div>
             <Slider
@@ -507,19 +640,31 @@ export function CFOCapitalRunway({
               max={100}
               step={5}
             />
-            <p className="text-xs text-muted-foreground">How much EBITDA converts to actual cash</p>
+            <p className="text-xs text-muted-foreground">Percentage of positive EBITDA that becomes cash.</p>
           </div>
 
           {/* Hiring Freeze Toggle */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label className="text-sm">Hiring Freeze</Label>
+              <div className="flex items-center gap-1">
+                <Label className="text-sm">Hiring Freeze</Label>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="w-3 h-3 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs text-xs">
+                      <p>Pauses planned headcount growth to reduce future expenses.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <Switch
                 checked={settings.hiringFreezeEnabled}
                 onCheckedChange={(v) => onSettingsChange({ ...settings, hiringFreezeEnabled: v })}
               />
             </div>
-            <p className="text-xs text-muted-foreground">Pauses headcount growth, reduces burn by ~30%</p>
+            <p className="text-xs text-muted-foreground">Stops all planned hiring to slow burn.</p>
           </div>
         </div>
       </CollapsibleSliderSection>

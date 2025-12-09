@@ -878,27 +878,30 @@ export default function CFOStudioV2() {
                       max={20}
                       step={0.5}
                       unit="percent"
-                      helperText="Updates growth rate for all creator-driven revenue"
+                      helperText="Monthly growth rate of paying creators."
+                      tooltip="Monthly % increase in paying creators."
                     />
                     <CFOSliderControl
-                      label="ARPU (Avg Rev/Creator)"
+                      label="ARPU – Creator"
                       value={assumptions.avgRevenuePerCreator}
                       onChange={(v) => updateAssumption('avgRevenuePerCreator', v)}
                       min={10}
                       max={150}
                       step={5}
                       unit="currency"
-                      helperText="Recalculates subscription + usage revenue"
+                      helperText="Revenue per paying creator each month."
+                      tooltip="Average monthly revenue from creators."
                     />
                     <CFOSliderControl
-                      label="Advertising CPM"
+                      label="Average CPM"
                       value={assumptions.advertisingCPM}
                       onChange={(v) => updateAssumption('advertisingCPM', v)}
                       min={5}
                       max={75}
                       step={1}
                       unit="currency"
-                      helperText="Recalculates ad revenue block"
+                      helperText="Reflects advertiser demand and pricing strength."
+                      tooltip="Cost per thousand impressions. Higher CPM signals stronger advertiser demand."
                     />
                     <CFOSliderControl
                       label="Ad Fill Rate"
@@ -908,7 +911,8 @@ export default function CFOStudioV2() {
                       max={100}
                       step={5}
                       unit="percent"
-                      helperText="Modifies total advertising revenue"
+                      helperText="Percent of impressions filled by paid advertisers."
+                      tooltip="Percentage of ad inventory successfully filled by demand partners."
                     />
                     <CFOSliderControl
                       label="Monthly Churn"
@@ -918,7 +922,8 @@ export default function CFOStudioV2() {
                       max={15}
                       step={0.5}
                       unit="percent"
-                      helperText="Reduces subscriber and revenue projections"
+                      helperText="Reduces subscriber and revenue projections."
+                      tooltip="Percentage of subscribers who cancel each month. Higher churn reduces active subscriber counts and revenue."
                     />
                     <CFOSliderControl
                       label="Pricing Sensitivity"
@@ -928,7 +933,8 @@ export default function CFOStudioV2() {
                       max={20}
                       step={1}
                       unit="percent"
-                      helperText="Applies % modifier to subscription prices"
+                      helperText="Applies % modifier to subscription prices."
+                      tooltip="Simulates effects of raising or lowering subscription or usage pricing."
                     />
                     <CFOSliderControl
                       label="Organic Growth Mix"
@@ -938,7 +944,8 @@ export default function CFOStudioV2() {
                       max={100}
                       step={5}
                       unit="percent"
-                      helperText="Adjusts CAC and revenue forecast"
+                      helperText="Adjusts CAC and revenue forecast."
+                      tooltip="Percentage of new users from organic channels vs paid acquisition."
                     />
                     <CFOSliderControl
                       label="Enterprise Deal Value"
