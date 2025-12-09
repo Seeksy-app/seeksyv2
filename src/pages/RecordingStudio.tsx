@@ -751,13 +751,13 @@ export default function RecordingStudio() {
         </div>
       </div>
 
-      {/* Refiner AI Button - Fixed bottom right */}
+      {/* Ask Seeksy Button - Fixed bottom right */}
       <Button
         className="fixed bottom-6 right-6 gap-2 bg-primary hover:bg-primary/90 shadow-lg z-50"
-        onClick={() => toast.info("Refiner AI coming soon")}
+        onClick={() => toast.info("Ask Seeksy coming soon")}
       >
-        <span className="text-lg">✨</span>
-        Refiner AI
+        <span className="text-lg">⭐</span>
+        Ask Seeksy
       </Button>
     </div>
   );
