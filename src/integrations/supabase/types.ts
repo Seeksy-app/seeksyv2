@@ -191,6 +191,7 @@ export type Database = {
           daily_cap: number | null
           end_date: string
           id: string
+          is_demo: boolean | null
           max_impressions: number | null
           name: string
           objective: string | null
@@ -212,6 +213,7 @@ export type Database = {
           daily_cap?: number | null
           end_date: string
           id?: string
+          is_demo?: boolean | null
           max_impressions?: number | null
           name: string
           objective?: string | null
@@ -233,6 +235,7 @@ export type Database = {
           daily_cap?: number | null
           end_date?: string
           id?: string
+          is_demo?: boolean | null
           max_impressions?: number | null
           name?: string
           objective?: string | null
@@ -1583,6 +1586,7 @@ export type Database = {
           contact_phone: string | null
           created_at: string | null
           id: string
+          is_demo: boolean | null
           owner_profile_id: string | null
           primary_goal: string | null
           status: string | null
@@ -1597,6 +1601,7 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string | null
           id?: string
+          is_demo?: boolean | null
           owner_profile_id?: string | null
           primary_goal?: string | null
           status?: string | null
@@ -1611,6 +1616,7 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string | null
           id?: string
+          is_demo?: boolean | null
           owner_profile_id?: string | null
           primary_goal?: string | null
           status?: string | null
@@ -2184,6 +2190,7 @@ export type Database = {
       }
       app_settings: {
         Row: {
+          data_mode: string
           holiday_mode: boolean
           holiday_snow: boolean
           id: string
@@ -2192,6 +2199,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          data_mode?: string
           holiday_mode?: boolean
           holiday_snow?: boolean
           id?: string
@@ -2200,6 +2208,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          data_mode?: string
           holiday_mode?: boolean
           holiday_snow?: boolean
           id?: string
@@ -6595,6 +6604,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
+          is_demo: boolean | null
           last_scraped_at: string | null
           name: string
           tracking_enabled: boolean | null
@@ -6606,6 +6616,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          is_demo?: boolean | null
           last_scraped_at?: string | null
           name: string
           tracking_enabled?: boolean | null
@@ -6617,6 +6628,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          is_demo?: boolean | null
           last_scraped_at?: string | null
           name?: string
           tracking_enabled?: boolean | null
@@ -7086,6 +7098,7 @@ export type Database = {
           download_url: string | null
           email: string
           id: string
+          is_demo: boolean | null
           last_clicked_at: string | null
           last_opened_at: string | null
           lead_magnet_sent_at: string | null
@@ -7115,6 +7128,7 @@ export type Database = {
           download_url?: string | null
           email: string
           id?: string
+          is_demo?: boolean | null
           last_clicked_at?: string | null
           last_opened_at?: string | null
           lead_magnet_sent_at?: string | null
@@ -7144,6 +7158,7 @@ export type Database = {
           download_url?: string | null
           email?: string
           id?: string
+          is_demo?: boolean | null
           last_clicked_at?: string | null
           last_opened_at?: string | null
           lead_magnet_sent_at?: string | null
@@ -8868,6 +8883,7 @@ export type Database = {
           competitive_insights: Json | null
           created_at: string | null
           id: string
+          is_demo: boolean | null
           is_sent: boolean | null
           market_trends: Json | null
           sources: Json | null
@@ -8883,6 +8899,7 @@ export type Database = {
           competitive_insights?: Json | null
           created_at?: string | null
           id?: string
+          is_demo?: boolean | null
           is_sent?: boolean | null
           market_trends?: Json | null
           sources?: Json | null
@@ -8898,6 +8915,7 @@ export type Database = {
           competitive_insights?: Json | null
           created_at?: string | null
           id?: string
+          is_demo?: boolean | null
           is_sent?: boolean | null
           market_trends?: Json | null
           sources?: Json | null
@@ -10144,6 +10162,7 @@ export type Database = {
           file_size_bytes: number | null
           guid: string | null
           id: string
+          is_demo: boolean | null
           is_explicit: boolean | null
           is_published: boolean | null
           photos: string[] | null
@@ -10167,6 +10186,7 @@ export type Database = {
           file_size_bytes?: number | null
           guid?: string | null
           id?: string
+          is_demo?: boolean | null
           is_explicit?: boolean | null
           is_published?: boolean | null
           photos?: string[] | null
@@ -10190,6 +10210,7 @@ export type Database = {
           file_size_bytes?: number | null
           guid?: string | null
           id?: string
+          is_demo?: boolean | null
           is_explicit?: boolean | null
           is_published?: boolean | null
           photos?: string[] | null
@@ -10843,6 +10864,7 @@ export type Database = {
           event_type: string | null
           id: string
           image_url: string | null
+          is_demo: boolean | null
           is_published: boolean | null
           location: string | null
           max_registrations: number | null
@@ -10877,6 +10899,7 @@ export type Database = {
           event_type?: string | null
           id?: string
           image_url?: string | null
+          is_demo?: boolean | null
           is_published?: boolean | null
           location?: string | null
           max_registrations?: number | null
@@ -10911,6 +10934,7 @@ export type Database = {
           event_type?: string | null
           id?: string
           image_url?: string | null
+          is_demo?: boolean | null
           is_published?: boolean | null
           location?: string | null
           max_registrations?: number | null
@@ -12714,6 +12738,7 @@ export type Database = {
           expires_at: string | null
           id: string
           investor_name: string | null
+          is_demo: boolean | null
           last_viewed_at: string | null
           mask_financials: boolean | null
           passcode: string
@@ -12734,6 +12759,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           investor_name?: string | null
+          is_demo?: boolean | null
           last_viewed_at?: string | null
           mask_financials?: boolean | null
           passcode: string
@@ -12754,6 +12780,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           investor_name?: string | null
+          is_demo?: boolean | null
           last_viewed_at?: string | null
           mask_financials?: boolean | null
           passcode?: string
@@ -14725,6 +14752,7 @@ export type Database = {
           duration: number
           id: string
           is_active: boolean | null
+          is_demo: boolean | null
           location_type: Database["public"]["Enums"]["location_type"]
           name: string
           pre_meeting_questions: Json | null
@@ -14742,6 +14770,7 @@ export type Database = {
           duration: number
           id?: string
           is_active?: boolean | null
+          is_demo?: boolean | null
           location_type?: Database["public"]["Enums"]["location_type"]
           name: string
           pre_meeting_questions?: Json | null
@@ -14759,6 +14788,7 @@ export type Database = {
           duration?: number
           id?: string
           is_active?: boolean | null
+          is_demo?: boolean | null
           location_type?: Database["public"]["Enums"]["location_type"]
           name?: string
           pre_meeting_questions?: Json | null
@@ -16770,6 +16800,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_demo: boolean | null
           is_explicit: boolean | null
           is_published: boolean | null
           language: string | null
@@ -16797,6 +16828,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_demo?: boolean | null
           is_explicit?: boolean | null
           is_published?: boolean | null
           language?: string | null
@@ -16824,6 +16856,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_demo?: boolean | null
           is_explicit?: boolean | null
           is_published?: boolean | null
           language?: string | null
@@ -17387,6 +17420,7 @@ export type Database = {
           forecast_year: number
           generated_by: string | null
           id: string
+          is_demo: boolean | null
           revenue_data: Json
           scenario_key: string
           summary_metrics: Json
@@ -17401,6 +17435,7 @@ export type Database = {
           forecast_year: number
           generated_by?: string | null
           id?: string
+          is_demo?: boolean | null
           revenue_data?: Json
           scenario_key: string
           summary_metrics?: Json
@@ -17415,6 +17450,7 @@ export type Database = {
           forecast_year?: number
           generated_by?: string | null
           id?: string
+          is_demo?: boolean | null
           revenue_data?: Json
           scenario_key?: string
           summary_metrics?: Json
@@ -17477,6 +17513,7 @@ export type Database = {
           created_by: string | null
           forecast_payload: Json
           id: string
+          is_demo: boolean | null
           label: string
           scenario_key: string
           summary: string | null
@@ -17487,6 +17524,7 @@ export type Database = {
           created_by?: string | null
           forecast_payload: Json
           id?: string
+          is_demo?: boolean | null
           label: string
           scenario_key: string
           summary?: string | null
@@ -17497,6 +17535,7 @@ export type Database = {
           created_by?: string | null
           forecast_payload?: Json
           id?: string
+          is_demo?: boolean | null
           label?: string
           scenario_key?: string
           summary?: string | null
@@ -17796,6 +17835,7 @@ export type Database = {
         Row: {
           confidence: string | null
           id: string
+          is_demo: boolean | null
           last_updated_at: string
           metric_key: string
           source_notes: string | null
@@ -17806,6 +17846,7 @@ export type Database = {
         Insert: {
           confidence?: string | null
           id?: string
+          is_demo?: boolean | null
           last_updated_at?: string
           metric_key: string
           source_notes?: string | null
@@ -17816,6 +17857,7 @@ export type Database = {
         Update: {
           confidence?: string | null
           id?: string
+          is_demo?: boolean | null
           last_updated_at?: string
           metric_key?: string
           source_notes?: string | null
@@ -18022,6 +18064,7 @@ export type Database = {
         Row: {
           cagr: number | null
           id: string
+          is_demo: boolean | null
           notes: string | null
           region: string
           sam: number | null
@@ -18035,6 +18078,7 @@ export type Database = {
         Insert: {
           cagr?: number | null
           id?: string
+          is_demo?: boolean | null
           notes?: string | null
           region?: string
           sam?: number | null
@@ -18048,6 +18092,7 @@ export type Database = {
         Update: {
           cagr?: number | null
           id?: string
+          is_demo?: boolean | null
           notes?: string | null
           region?: string
           sam?: number | null

@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation, Outlet } from "rea
 import { ThemeProvider } from "next-themes";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { RoleProvider } from "@/contexts/RoleContext";
+import { GlobalDataModeProvider } from "@/contexts/GlobalDataModeContext";
 import { WorkspaceLayout } from "@/components/layout/WorkspaceLayout";
 import { TourModeWrapper } from "@/components/layout/TourModeWrapper";
 import { NavCustomizationModal } from "@/components/dashboard/NavCustomizationModal";
@@ -204,6 +205,7 @@ import PostProductionStudio from "./pages/PostProductionStudio";
 import CreateClips from "./pages/CreateClips";
 import SystemStatus from "./pages/SystemStatus";
 import AdminSystemStatus from "./pages/admin/SystemStatus";
+import AdminDataModeSettings from "./pages/admin/AdminDataModeSettings";
 import Pricing from "./pages/Pricing";
 import ContentAcceleratorHub from "./pages/ContentAcceleratorHub";
 import CreatorGrowthBlueprint from "./pages/CreatorGrowthBlueprint";
@@ -609,6 +611,7 @@ const AppContent = () => {
   const shouldShowTopNav = user && !isStudioRoute && !isTourMode && !isOnboardingComplete;
 
   return (
+    <GlobalDataModeProvider>
     <RoleProvider>
       <BoardGuard>
       <OnboardingGuard>
@@ -926,6 +929,7 @@ const AppContent = () => {
               <Route path="/admin/system-tools" element={<SystemTools />} />
               <Route path="/admin/security" element={<AdminSecurityOverview />} />
               <Route path="/admin/data-recovery" element={<DataRecovery />} />
+              <Route path="/admin/data-mode" element={<AdminDataModeSettings />} />
           <Route path="/demo-videos" element={<DemoVideos />} />
           <Route path="/admin/demo-videos" element={<DemoVideos />} />
           <Route path="/admin/seeksy-tv" element={<AdminSeeksyTV />} />
@@ -1232,6 +1236,7 @@ const AppContent = () => {
       </OnboardingGuard>
       </BoardGuard>
     </RoleProvider>
+    </GlobalDataModeProvider>
   );
 };
 

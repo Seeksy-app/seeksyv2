@@ -13,6 +13,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { ModuleCenterModal } from "@/components/modules";
 import { SparkMascot } from "@/components/myday/SparkMascot";
+import { DataModePill } from "@/components/data-mode/DataModePill";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAIAssistant } from "@/components/ai/AIAssistantProvider";
 import {
@@ -98,6 +99,9 @@ export function GlobalTopNav() {
 
           {/* Right section */}
           <div className="flex items-center gap-1.5">
+            {/* Data Mode Pill */}
+            <DataModePill />
+            
             {/* Ask Seeksy AI Chat button */}
             <Button 
               variant="ghost" 
