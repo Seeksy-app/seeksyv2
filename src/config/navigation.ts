@@ -200,6 +200,13 @@ export const NAVIGATION_CONFIG: {
       "description": "Financial planning and analysis",
       "collapsible": true,
       "items": [
+      {
+          "id": "admin_cfo_studio_v2",
+          "label": "CFO Studio V2",
+          "icon": "calculator",
+          "path": "/cfo/studio-v2",
+          "roles": ["admin", "super_admin", "cfo"]
+        },
         {
           "id": "admin_cfo_assumptions",
           "label": "CFO Assumption Studio",

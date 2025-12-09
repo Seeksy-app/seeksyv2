@@ -508,6 +508,7 @@ import PersonaDashboardPage from "./pages/PersonaDashboardPage";
 import UniversalDashboard from "./pages/UniversalDashboard";
 import CFOAssumptionStudio from "./pages/cfo/CFOAssumptionStudio";
 import CFOProForma from "./pages/cfo/CFOProForma";
+import CFOStudioV2 from "./pages/cfo/CFOStudioV2";
 
 const queryClient = new QueryClient();
 
@@ -1077,6 +1078,7 @@ const AppContent = () => {
           <Route path="/admin/ad-inventory" element={<AdInventory />} />
           
           {/* CFO Assumption Studio & Pro Forma */}
+          <Route path="/cfo/studio-v2" element={<CFOStudioV2 />} />
           <Route path="/cfo/assumptions" element={<CFOAssumptionStudio />} />
           <Route path="/cfo/proforma" element={<CFOProForma />} />
           
