@@ -4179,6 +4179,36 @@ export type Database = {
         }
         Relationships: []
       }
+      brief_subscriptions: {
+        Row: {
+          audience_type: string
+          created_at: string | null
+          delivery_time: string | null
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          audience_type: string
+          created_at?: string | null
+          delivery_time?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          audience_type?: string
+          created_at?: string | null
+          delivery_time?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       calendar_connections: {
         Row: {
           access_token: string
@@ -6559,6 +6589,89 @@ export type Database = {
         }
         Relationships: []
       }
+      competitor_profiles: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          last_scraped_at: string | null
+          name: string
+          tracking_enabled: boolean | null
+          updated_at: string | null
+          website_url: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          last_scraped_at?: string | null
+          name: string
+          tracking_enabled?: boolean | null
+          updated_at?: string | null
+          website_url: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          last_scraped_at?: string | null
+          name?: string
+          tracking_enabled?: boolean | null
+          updated_at?: string | null
+          website_url?: string
+        }
+        Relationships: []
+      }
+      competitor_updates: {
+        Row: {
+          competitor_id: string | null
+          content: string | null
+          created_at: string | null
+          id: string
+          is_processed: boolean | null
+          relevance_score: number | null
+          scraped_at: string | null
+          source_url: string | null
+          title: string
+          update_type: string
+        }
+        Insert: {
+          competitor_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          is_processed?: boolean | null
+          relevance_score?: number | null
+          scraped_at?: string | null
+          source_url?: string | null
+          title: string
+          update_type: string
+        }
+        Update: {
+          competitor_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          is_processed?: boolean | null
+          relevance_score?: number | null
+          scraped_at?: string | null
+          source_url?: string | null
+          title?: string
+          update_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competitor_updates_competitor_id_fkey"
+            columns: ["competitor_id"]
+            isOneToOne: false
+            referencedRelation: "competitor_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       connected_calendars: {
         Row: {
           access_token: string | null
@@ -8744,6 +8857,54 @@ export type Database = {
           slug?: string | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      daily_briefs: {
+        Row: {
+          action_items: Json | null
+          audience_type: string
+          brief_date: string
+          competitive_insights: Json | null
+          created_at: string | null
+          id: string
+          is_sent: boolean | null
+          market_trends: Json | null
+          sources: Json | null
+          strategy_assessment: Json | null
+          summary: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          action_items?: Json | null
+          audience_type: string
+          brief_date?: string
+          competitive_insights?: Json | null
+          created_at?: string | null
+          id?: string
+          is_sent?: boolean | null
+          market_trends?: Json | null
+          sources?: Json | null
+          strategy_assessment?: Json | null
+          summary: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          action_items?: Json | null
+          audience_type?: string
+          brief_date?: string
+          competitive_insights?: Json | null
+          created_at?: string | null
+          id?: string
+          is_sent?: boolean | null
+          market_trends?: Json | null
+          sources?: Json | null
+          strategy_assessment?: Json | null
+          summary?: string
+          title?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

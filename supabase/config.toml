@@ -425,3 +425,12 @@ verify_jwt = true
 
 [functions.send-board-proforma-notification]
 verify_jwt = true
+
+[functions.scrape-competitors]
+verify_jwt = true
+
+[functions.generate-daily-brief]
+verify_jwt = true
+
+[functions.send-daily-briefs]
+verify_jwt = false
