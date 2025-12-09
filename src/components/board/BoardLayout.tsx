@@ -7,6 +7,7 @@ import { BoardOnboardingTour } from './BoardOnboardingTour';
 import { BoardDataModeProvider } from '@/contexts/BoardDataModeContext';
 import { useTheme } from 'next-themes';
 import { Skeleton } from '@/components/ui/skeleton';
+import { GlossaryButton } from './GlossaryModal';
 
 interface BoardLayoutProps {
   children: ReactNode;
@@ -52,6 +53,10 @@ export function BoardLayout({ children }: BoardLayoutProps) {
           
           {/* Light content area - fills all remaining space */}
           <div className="flex-1 flex flex-col min-w-0 w-full bg-slate-50">
+            {/* Top bar with Glossary */}
+            <div className="sticky top-0 z-40 bg-slate-50 border-b border-slate-200 px-6 py-2 flex justify-end">
+              <GlossaryButton />
+            </div>
             <main className="flex-1 overflow-y-auto w-full">
               {/* Content container with smooth CSS transitions */}
               <div className="w-full px-6 lg:px-8 py-6 pb-20 page-container transition-opacity duration-300 ease-out">

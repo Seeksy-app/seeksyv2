@@ -486,6 +486,7 @@ import BoardCompetitiveLandscape from "./pages/board/BoardCompetitiveLandscape";
 import BoardSWOT from "./pages/board/BoardSWOT";
 import BoardMarketIntel from "./pages/board/BoardMarketIntel";
 import BoardMarketIntelligence from "./pages/board/BoardMarketIntelligence";
+import BoardStateOfCompany from "./pages/board/BoardStateOfCompany";
 import BoardInvestorPortal from "./pages/investor/InvestorPortal";
 import BoardMemberManagement from "./pages/admin/BoardMemberManagement";
 import { BoardGuard } from "./components/board/BoardGuard";
@@ -1051,6 +1052,7 @@ const AppContent = () => {
           {/* Board Member Portal Routes - All wrapped in BoardLayout */}
           <Route path="/board" element={<BoardLayout><Outlet /></BoardLayout>}>
             <Route index element={<BoardDashboard />} />
+            <Route path="state-of-company" element={<BoardStateOfCompany />} />
             <Route path="business-model" element={<BoardBusinessModel />} />
             <Route path="gtm" element={<BoardGTM />} />
             <Route path="ceo-plan" element={<BoardCEOPlan />} />

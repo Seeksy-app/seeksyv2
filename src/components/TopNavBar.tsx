@@ -7,6 +7,7 @@ import { AccountTypeSwitcher } from "@/components/AccountTypeSwitcher";
 import { StartOnboardingButton } from "@/components/onboarding/StartOnboardingButton";
 import { DataModePill } from "@/components/data-mode/DataModePill";
 import { DailyBriefButton } from "@/components/daily-brief/DailyBriefButton";
+import { GlossaryButton } from "@/components/board/GlossaryModal";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -116,6 +117,11 @@ export function TopNavBar() {
           <GlobalSearch />
           
           <div className="flex items-center gap-2">
+            {/* Glossary for Admin routes */}
+            {location.pathname.startsWith('/admin') || location.pathname.startsWith('/cfo') ? (
+              <GlossaryButton />
+            ) : null}
+            
             {/* Data Mode Pill */}
             <DataModePill />
             
