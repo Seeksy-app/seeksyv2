@@ -7,9 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 import { 
   CheckCircle2, Circle, Clock, AlertTriangle, 
-  ArrowRight, Calendar, Users, Zap, Target
+  ArrowRight, Calendar, Users, Zap, Target, ArrowLeft
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -165,6 +166,7 @@ const CATEGORY_ICONS = {
 };
 
 export default function BoardMilestones() {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<MilestoneStatus | 'all'>('all');
   
   const filteredMilestones = filter === 'all' 
@@ -185,6 +187,17 @@ export default function BoardMilestones() {
   
   return (
     <div className="space-y-6 p-6">
+      {/* Back Navigation */}
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        onClick={() => navigate('/board')}
+        className="mb-2"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to Dashboard
+      </Button>
+
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold">Milestones Tracker</h1>

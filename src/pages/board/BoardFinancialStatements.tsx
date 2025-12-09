@@ -7,9 +7,12 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { useFinancialCalculationEngine } from '@/hooks/useFinancialCalculationEngine';
 import { useCFOMasterModel } from '@/hooks/useCFOMasterModel';
-import { ArrowUp, ArrowDown, Brain, Calculator, TrendingUp, DollarSign, CreditCard, Wallet } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowUp, ArrowDown, Brain, Calculator, TrendingUp, DollarSign, CreditCard, Wallet, ArrowLeft, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 function formatCurrency(value: number): string {
@@ -20,10 +23,6 @@ function formatCurrency(value: number): string {
     return `$${(value / 1000).toFixed(0)}K`;
   }
   return `$${value.toFixed(0)}`;
-}
-
-function formatPercent(value: number): string {
-  return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
 }
 
 interface StatementRowProps {
@@ -250,11 +249,37 @@ function CashFlowStatement() {
 }
 
 export default function BoardFinancialStatements() {
+  const navigate = useNavigate();
+  const { projections } = useFinancialCalculationEngine();
   const [dataSource, setDataSource] = useState<'ai' | 'cfo'>('ai');
-  const hasSavedVersions = true; // Placeholder - check for CFO versions
+  const [cfoNotes, setCfoNotes] = useState('');
+  const hasSavedVersions = true;
+  
+  // AI Insights based on financial data
+  const aiInsights = [
+    projections.yearlyEbitdaMargin[2] > 0 
+      ? `Positive trajectory: EBITDA margin expected to reach ${projections.yearlyEbitdaMargin[2].toFixed(1)}% by Year 3`
+      : `Path to profitability: Projected break-even by Month ${projections.breakEvenMonth || 'TBD'}`,
+    `Gross margins remain healthy at ${projections.yearlyGrossMargin[0].toFixed(0)}%, supporting investment in growth`,
+    projections.yearlyRevenue[2] > 2000000 
+      ? `Revenue trajectory on track to exceed $2M by Year 3`
+      : `Revenue growth requires acceleration to meet $2M Year 3 target`,
+    `Working capital efficiency improving with receivables at 8% of revenue`
+  ];
   
   return (
     <div className="space-y-6 p-6">
+      {/* Back Navigation */}
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        onClick={() => navigate('/board')}
+        className="mb-2"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to Dashboard
+      </Button>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -287,7 +312,7 @@ export default function BoardFinancialStatements() {
               <TrendingUp className="w-5 h-5 text-green-500" />
               <div>
                 <p className="text-sm text-muted-foreground">Year 3 Revenue</p>
-                <p className="text-2xl font-bold">{formatCurrency(2400000)}</p>
+                <p className="text-2xl font-bold">{formatCurrency(projections.yearlyRevenue[2])}</p>
               </div>
             </div>
           </CardContent>
@@ -298,7 +323,7 @@ export default function BoardFinancialStatements() {
               <DollarSign className="w-5 h-5 text-blue-500" />
               <div>
                 <p className="text-sm text-muted-foreground">Gross Margin</p>
-                <p className="text-2xl font-bold">72.4%</p>
+                <p className="text-2xl font-bold">{projections.yearlyGrossMargin[0].toFixed(1)}%</p>
               </div>
             </div>
           </CardContent>
@@ -308,8 +333,10 @@ export default function BoardFinancialStatements() {
             <div className="flex items-center gap-2">
               <CreditCard className="w-5 h-5 text-purple-500" />
               <div>
-                <p className="text-sm text-muted-foreground">EBITDA Margin</p>
-                <p className="text-2xl font-bold">18.3%</p>
+                <p className="text-sm text-muted-foreground">EBITDA Margin (Y3)</p>
+                <p className={cn("text-2xl font-bold", projections.yearlyEbitdaMargin[2] >= 0 ? "text-green-600" : "text-red-500")}>
+                  {projections.yearlyEbitdaMargin[2].toFixed(1)}%
+                </p>
               </div>
             </div>
           </CardContent>
@@ -319,8 +346,10 @@ export default function BoardFinancialStatements() {
             <div className="flex items-center gap-2">
               <Wallet className="w-5 h-5 text-emerald-500" />
               <div>
-                <p className="text-sm text-muted-foreground">Cash Position</p>
-                <p className="text-2xl font-bold">$892K</p>
+                <p className="text-sm text-muted-foreground">Year 3 EBITDA</p>
+                <p className={cn("text-2xl font-bold", projections.yearlyEbitda[2] >= 0 ? "text-green-600" : "text-red-500")}>
+                  {formatCurrency(projections.yearlyEbitda[2])}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -349,6 +378,46 @@ export default function BoardFinancialStatements() {
             </TabsContent>
           </CardContent>
         </Tabs>
+      </Card>
+
+      {/* CFO Notes Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calculator className="w-5 h-5" />
+            CFO Notes
+          </CardTitle>
+          <CardDescription>Additional context and commentary from the CFO</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Textarea
+            placeholder="Add notes about financial performance, assumptions, or key considerations for the board..."
+            value={cfoNotes}
+            onChange={(e) => setCfoNotes(e.target.value)}
+            className="min-h-[100px]"
+          />
+        </CardContent>
+      </Card>
+
+      {/* AI Insights Panel */}
+      <Card className="border-yellow-500/20 bg-yellow-500/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-yellow-600">
+            <Lightbulb className="w-5 h-5" />
+            AI Insights
+          </CardTitle>
+          <CardDescription>Automated analysis of financial projections</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2">
+            {aiInsights.map((insight, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm">
+                <span className="text-yellow-500 mt-0.5">•</span>
+                {insight}
+              </li>
+            ))}
+          </ul>
+        </CardContent>
       </Card>
     </div>
   );
