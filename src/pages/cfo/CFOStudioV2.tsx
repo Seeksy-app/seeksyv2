@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { 
   Download, FileSpreadsheet, FileText, Sparkles, Target, TrendingUp,
-  DollarSign, Users, Building2, Briefcase, Calculator, Share2, ArrowLeft, Info
+  DollarSign, Users, Building2, Briefcase, Calculator, Share2, ArrowLeft, Info,
+  Check, Save
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -121,6 +122,35 @@ export default function CFOStudioV2() {
   const [cogsSliderOpen, setCogsSliderOpen] = useState(true);
   const [opexSliderOpen, setOpexSliderOpen] = useState(true);
   const [headcountSliderOpen, setHeadcountSliderOpen] = useState(true);
+
+  // Tab completion tracking
+  const [savedTabs, setSavedTabs] = useState<Record<string, boolean>>({
+    revenue: false,
+    cogs: false,
+    opex: false,
+    headcount: false,
+    assumptions: false,
+  });
+  const [savingTab, setSavingTab] = useState<string | null>(null);
+
+  const TAB_ORDER = ['revenue', 'cogs', 'opex', 'headcount', 'metrics', 'assumptions', 'statements', 'summary'];
+  
+  const handleSaveTab = useCallback((tabName: string) => {
+    setSavingTab(tabName);
+    
+    // Simulate save with animation delay
+    setTimeout(() => {
+      setSavedTabs(prev => ({ ...prev, [tabName]: true }));
+      setSavingTab(null);
+      toast.success(`${tabName.charAt(0).toUpperCase() + tabName.slice(1)} saved to Pro Forma`);
+      
+      // Auto-advance to next tab
+      const currentIndex = TAB_ORDER.indexOf(tabName);
+      if (currentIndex < TAB_ORDER.length - 1) {
+        setActiveTab(TAB_ORDER[currentIndex + 1]);
+      }
+    }, 600);
+  }, []);
 
   // Assumptions State with all new sliders
   const [assumptions, setAssumptions] = useState<Assumptions>({
@@ -696,12 +726,27 @@ export default function CFOStudioV2() {
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="grid grid-cols-8 w-full max-w-4xl">
-            <TabsTrigger value="revenue">Revenue</TabsTrigger>
-            <TabsTrigger value="cogs">COGS</TabsTrigger>
-            <TabsTrigger value="opex">OpEx</TabsTrigger>
-            <TabsTrigger value="headcount">Headcount</TabsTrigger>
+            <TabsTrigger value="revenue" className={cn("relative", savedTabs.revenue && "bg-emerald-100 data-[state=active]:bg-emerald-200")}>
+              Revenue
+              {savedTabs.revenue && <Check className="w-3 h-3 text-emerald-600 absolute -top-1 -right-1" />}
+            </TabsTrigger>
+            <TabsTrigger value="cogs" className={cn("relative", savedTabs.cogs && "bg-emerald-100 data-[state=active]:bg-emerald-200")}>
+              COGS
+              {savedTabs.cogs && <Check className="w-3 h-3 text-emerald-600 absolute -top-1 -right-1" />}
+            </TabsTrigger>
+            <TabsTrigger value="opex" className={cn("relative", savedTabs.opex && "bg-emerald-100 data-[state=active]:bg-emerald-200")}>
+              OpEx
+              {savedTabs.opex && <Check className="w-3 h-3 text-emerald-600 absolute -top-1 -right-1" />}
+            </TabsTrigger>
+            <TabsTrigger value="headcount" className={cn("relative", savedTabs.headcount && "bg-emerald-100 data-[state=active]:bg-emerald-200")}>
+              Headcount
+              {savedTabs.headcount && <Check className="w-3 h-3 text-emerald-600 absolute -top-1 -right-1" />}
+            </TabsTrigger>
             <TabsTrigger value="metrics">Metrics</TabsTrigger>
-            <TabsTrigger value="assumptions">Assumptions</TabsTrigger>
+            <TabsTrigger value="assumptions" className={cn("relative", savedTabs.assumptions && "bg-emerald-100 data-[state=active]:bg-emerald-200")}>
+              Assumptions
+              {savedTabs.assumptions && <Check className="w-3 h-3 text-emerald-600 absolute -top-1 -right-1" />}
+            </TabsTrigger>
             <TabsTrigger value="statements">Financials</TabsTrigger>
             <TabsTrigger value="summary">Summary</TabsTrigger>
           </TabsList>
@@ -866,6 +911,27 @@ export default function CFOStudioV2() {
                     />
                   </div>
                 </CollapsibleSliderSection>
+
+                {/* Save Button */}
+                <div className="mt-6 flex justify-end">
+                  <Button
+                    onClick={() => handleSaveTab('revenue')}
+                    disabled={savingTab === 'revenue'}
+                    className={cn(
+                      "transition-all duration-300",
+                      savingTab === 'revenue' && "animate-pulse",
+                      savedTabs.revenue && "bg-emerald-600 hover:bg-emerald-700"
+                    )}
+                  >
+                    {savingTab === 'revenue' ? (
+                      <>Saving...</>
+                    ) : savedTabs.revenue ? (
+                      <><Check className="w-4 h-4 mr-2" />Saved</>
+                    ) : (
+                      <><Save className="w-4 h-4 mr-2" />Save & Continue</>
+                    )}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -983,11 +1049,30 @@ export default function CFOStudioV2() {
                     />
                   </div>
                 </CollapsibleSliderSection>
+
+                {/* Save Button */}
+                <div className="mt-6 flex justify-end">
+                  <Button
+                    onClick={() => handleSaveTab('cogs')}
+                    disabled={savingTab === 'cogs'}
+                    className={cn(
+                      "transition-all duration-300",
+                      savingTab === 'cogs' && "animate-pulse",
+                      savedTabs.cogs && "bg-emerald-600 hover:bg-emerald-700"
+                    )}
+                  >
+                    {savingTab === 'cogs' ? (
+                      <>Saving...</>
+                    ) : savedTabs.cogs ? (
+                      <><Check className="w-4 h-4 mr-2" />Saved</>
+                    ) : (
+                      <><Save className="w-4 h-4 mr-2" />Save & Continue</>
+                    )}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
-
-          {/* OpEx Tab */}
           <TabsContent value="opex">
             <Card>
               <CardHeader className="pb-3">
@@ -1135,11 +1220,30 @@ export default function CFOStudioV2() {
                     />
                   </div>
                 </div>
+
+                {/* Save Button */}
+                <div className="mt-6 flex justify-end">
+                  <Button
+                    onClick={() => handleSaveTab('opex')}
+                    disabled={savingTab === 'opex'}
+                    className={cn(
+                      "transition-all duration-300",
+                      savingTab === 'opex' && "animate-pulse",
+                      savedTabs.opex && "bg-emerald-600 hover:bg-emerald-700"
+                    )}
+                  >
+                    {savingTab === 'opex' ? (
+                      <>Saving...</>
+                    ) : savedTabs.opex ? (
+                      <><Check className="w-4 h-4 mr-2" />Saved</>
+                    ) : (
+                      <><Save className="w-4 h-4 mr-2" />Save & Continue</>
+                    )}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
-
-          {/* Headcount Tab */}
           <TabsContent value="headcount">
             <Card>
               <CardHeader className="pb-3">
@@ -1259,6 +1363,27 @@ export default function CFOStudioV2() {
                     </div>
                   </div>
                 </CollapsibleSliderSection>
+
+                {/* Save Button */}
+                <div className="mt-6 flex justify-end">
+                  <Button
+                    onClick={() => handleSaveTab('headcount')}
+                    disabled={savingTab === 'headcount'}
+                    className={cn(
+                      "transition-all duration-300",
+                      savingTab === 'headcount' && "animate-pulse",
+                      savedTabs.headcount && "bg-emerald-600 hover:bg-emerald-700"
+                    )}
+                  >
+                    {savingTab === 'headcount' ? (
+                      <>Saving...</>
+                    ) : savedTabs.headcount ? (
+                      <><Check className="w-4 h-4 mr-2" />Saved</>
+                    ) : (
+                      <><Save className="w-4 h-4 mr-2" />Save & Continue</>
+                    )}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -1447,11 +1572,30 @@ export default function CFOStudioV2() {
                     </div>
                   </div>
                 </div>
+
+                {/* Save Button */}
+                <div className="mt-6 flex justify-end">
+                  <Button
+                    onClick={() => handleSaveTab('assumptions')}
+                    disabled={savingTab === 'assumptions'}
+                    className={cn(
+                      "transition-all duration-300",
+                      savingTab === 'assumptions' && "animate-pulse",
+                      savedTabs.assumptions && "bg-emerald-600 hover:bg-emerald-700"
+                    )}
+                  >
+                    {savingTab === 'assumptions' ? (
+                      <>Saving...</>
+                    ) : savedTabs.assumptions ? (
+                      <><Check className="w-4 h-4 mr-2" />Saved</>
+                    ) : (
+                      <><Save className="w-4 h-4 mr-2" />Save & Continue</>
+                    )}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
-
-          {/* Financial Statements Tab */}
           <TabsContent value="statements">
             <CFOFinancialStatements
               data={financialData}
