@@ -1192,6 +1192,7 @@ export default function CFOStudioV2() {
                       step={5000}
                       unit="currency"
                       helperText="Feeds CAC calculator + OpEx"
+                      tooltip="Total monthly spend allocated to paid channels. Impacts CAC, customer acquisition volume, and OpEx."
                     />
                     <CFOSliderControl
                       label="Creator CAC (Paid)"
@@ -1202,6 +1203,7 @@ export default function CFOStudioV2() {
                       step={5}
                       unit="currency"
                       helperText="Updates acquisition cost"
+                      tooltip="Customer Acquisition Cost. The average cost to acquire one paying creator via paid marketing channels."
                     />
                     <CFOSliderControl
                       label="Pro Tier ARPU"
@@ -1212,6 +1214,7 @@ export default function CFOStudioV2() {
                       step={1}
                       unit="currency"
                       helperText="Recalculates subscription revenue"
+                      tooltip="Average monthly revenue generated per paying Pro subscriber."
                     />
                     <CFOSliderControl
                       label="Monthly Churn"
@@ -1222,6 +1225,7 @@ export default function CFOStudioV2() {
                       step={0.5}
                       unit="percent"
                       helperText="Reduces active subscriber counts"
+                      tooltip="Percentage of subscribers who cancel each month. Higher churn reduces active subscriber counts and revenue."
                     />
                     <CFOSliderControl
                       label="Headcount Productivity"
@@ -1232,6 +1236,7 @@ export default function CFOStudioV2() {
                       step={0.1}
                       unit="multiplier"
                       helperText="Adjusts OpEx efficiency in EBITDA"
+                      tooltip="Adjusts OpEx efficiency relative to headcount. Higher values simulate improved team output or automation leverage."
                     />
                   </div>
                 </CollapsibleSliderSection>

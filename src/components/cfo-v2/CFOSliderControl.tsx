@@ -1,6 +1,12 @@
 import { Slider } from '@/components/ui/slider';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface CFOSliderControlProps {
   label: string;
@@ -11,6 +17,7 @@ interface CFOSliderControlProps {
   step?: number;
   unit?: 'percent' | 'currency' | 'multiplier' | 'months' | 'none';
   helperText?: string;
+  tooltip?: string;
   className?: string;
 }
 
@@ -40,12 +47,27 @@ export function CFOSliderControl({
   step = 1,
   unit = 'none',
   helperText,
+  tooltip,
   className,
 }: CFOSliderControlProps) {
   return (
     <div className={cn("space-y-2", className)}>
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-foreground">{label}</label>
+        <div className="flex items-center gap-1.5">
+          <label className="text-sm font-medium text-foreground">{label}</label>
+          {tooltip && (
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="w-3.5 h-3.5 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-xs text-xs">
+                  <p>{tooltip}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
         <span className="text-sm font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded">
           {formatValue(value, unit)}
         </span>

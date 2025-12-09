@@ -3,8 +3,54 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ChevronDown, ChevronUp, Calculator, TrendingUp, Target } from 'lucide-react';
+import { ChevronDown, ChevronUp, Calculator, TrendingUp, Target, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+
+// Tooltip helper component
+function LabelWithTooltip({ label, tooltip }: { label: string; tooltip: string }) {
+  return (
+    <div className="flex items-center gap-1">
+      <Label className="text-xs">{label}</Label>
+      <TooltipProvider delayDuration={0}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Info className="w-3 h-3 text-muted-foreground cursor-help" />
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-xs text-xs">
+            <p>{tooltip}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+}
+
+function OutputWithTooltip({ label, tooltip, children }: { label: string; tooltip: string; children: React.ReactNode }) {
+  return (
+    <div className="text-center">
+      <TooltipProvider delayDuration={0}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <p className="text-xs text-muted-foreground cursor-help flex items-center justify-center gap-1">
+              {label}
+              <Info className="w-3 h-3" />
+            </p>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-xs text-xs">
+            <p>{tooltip}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      {children}
+    </div>
+  );
+}
 
 interface ROICalculatorProps {
   marketingSpend: number;
@@ -48,7 +94,10 @@ export function ROICalculator({ marketingSpend, cac, churn, arpu, onApply }: ROI
         <CardContent className="pt-0 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="text-xs">Marketing Spend ($)</Label>
+              <LabelWithTooltip 
+                label="Marketing Spend ($)" 
+                tooltip="Monthly allocation to paid marketing channels used to compute blended acquisition return."
+              />
               <Input
                 type="number"
                 value={localSpend}
@@ -57,7 +106,10 @@ export function ROICalculator({ marketingSpend, cac, churn, arpu, onApply }: ROI
               />
             </div>
             <div>
-              <Label className="text-xs">CAC ($)</Label>
+              <LabelWithTooltip 
+                label="CAC ($)" 
+                tooltip="Customer Acquisition Cost. The average cost to acquire one paying creator."
+              />
               <Input
                 type="number"
                 value={localCac}
@@ -66,7 +118,10 @@ export function ROICalculator({ marketingSpend, cac, churn, arpu, onApply }: ROI
               />
             </div>
             <div>
-              <Label className="text-xs">Monthly Churn (%)</Label>
+              <LabelWithTooltip 
+                label="Monthly Churn (%)" 
+                tooltip="Expected percentage of paying creators who cancel each month."
+              />
               <Input
                 type="number"
                 value={localChurn}
@@ -75,7 +130,10 @@ export function ROICalculator({ marketingSpend, cac, churn, arpu, onApply }: ROI
               />
             </div>
             <div>
-              <Label className="text-xs">ARPU ($)</Label>
+              <LabelWithTooltip 
+                label="ARPU ($)" 
+                tooltip="Average Revenue Per User. Revenue generated per paying creator each month."
+              />
               <Input
                 type="number"
                 value={localArpu}
@@ -86,34 +144,49 @@ export function ROICalculator({ marketingSpend, cac, churn, arpu, onApply }: ROI
           </div>
           
           <div className="grid grid-cols-3 gap-3 p-3 bg-muted/50 rounded-lg">
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground">ROI</p>
+            <OutputWithTooltip 
+              label="ROI" 
+              tooltip="Measures the financial return on marketing spend after factoring in CAC, ARPU, and churn."
+            >
               <p className={cn("font-bold", results.roi >= 0 ? "text-emerald-600" : "text-red-600")}>
                 {results.roi.toFixed(0)}%
               </p>
-            </div>
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground">LTV:CAC</p>
+            </OutputWithTooltip>
+            <OutputWithTooltip 
+              label="LTV:CAC" 
+              tooltip="Compares customer lifetime value to acquisition cost. Ratios above 3× are considered strong."
+            >
               <p className={cn("font-bold", results.ltvCac >= 3 ? "text-emerald-600" : "text-amber-600")}>
                 {results.ltvCac.toFixed(1)}x
               </p>
-            </div>
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground">Payback</p>
+            </OutputWithTooltip>
+            <OutputWithTooltip 
+              label="Payback" 
+              tooltip="Estimated time (in months) for revenue from a new creator to cover CAC."
+            >
               <p className="font-bold">{results.payback.toFixed(1)} mo</p>
-            </div>
+            </OutputWithTooltip>
           </div>
 
-          <Button
-            size="sm"
-            className="w-full"
-            onClick={() => onApply(
-              { roi: results.roi, ltvCac: results.ltvCac, payback: results.payback },
-              { marketingSpend: localSpend, cac: localCac, churn: localChurn, arpu: localArpu }
-            )}
-          >
-            Apply to Model
-          </Button>
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  className="w-full"
+                  onClick={() => onApply(
+                    { roi: results.roi, ltvCac: results.ltvCac, payback: results.payback },
+                    { marketingSpend: localSpend, cac: localCac, churn: localChurn, arpu: localArpu }
+                  )}
+                >
+                  Apply to Model
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs text-xs">
+                <p>Pushes calculator results into the CFO model.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </CardContent>
       )}
     </Card>
@@ -182,7 +255,10 @@ export function BreakevenCalculator({
         <CardContent className="pt-0 space-y-4">
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <Label className="text-xs">Fixed OpEx ($/yr)</Label>
+              <LabelWithTooltip 
+                label="Fixed OpEx ($/yr)" 
+                tooltip="Annual recurring expenses that do not change with usage or revenue."
+              />
               <Input
                 type="number"
                 value={localFixed}
@@ -191,7 +267,10 @@ export function BreakevenCalculator({
               />
             </div>
             <div>
-              <Label className="text-xs">Variable OpEx (%)</Label>
+              <LabelWithTooltip 
+                label="Variable OpEx (%)" 
+                tooltip="Percentage of expenses that scale with revenue or creator activity."
+              />
               <Input
                 type="number"
                 value={localVariable}
@@ -200,7 +279,10 @@ export function BreakevenCalculator({
               />
             </div>
             <div>
-              <Label className="text-xs">Revenue Growth (%)</Label>
+              <LabelWithTooltip 
+                label="Revenue Growth (%)" 
+                tooltip="Expected annual revenue growth rate used to calculate breakeven timing."
+              />
               <Input
                 type="number"
                 value={localGrowth}
@@ -211,25 +293,38 @@ export function BreakevenCalculator({
           </div>
           
           <div className="grid grid-cols-2 gap-3 p-3 bg-muted/50 rounded-lg">
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground">Breakeven Month</p>
+            <OutputWithTooltip 
+              label="Breakeven Month" 
+              tooltip="The month when total revenue exceeds total expenses."
+            >
               <p className="font-bold text-emerald-600">Month {results.breakEvenMonth}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground">Run Rate at Breakeven</p>
+            </OutputWithTooltip>
+            <OutputWithTooltip 
+              label="Run Rate at Breakeven" 
+              tooltip="Annualized revenue required to sustain break-even operations."
+            >
               <p className="font-bold">
                 ${(results.breakEvenRunRate / 1000000).toFixed(2)}M
               </p>
-            </div>
+            </OutputWithTooltip>
           </div>
 
-          <Button
-            size="sm"
-            className="w-full"
-            onClick={() => onApply(results, { fixedOpex: localFixed, variableOpexPct: localVariable, revenueGrowth: localGrowth })}
-          >
-            Apply to Model
-          </Button>
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  className="w-full"
+                  onClick={() => onApply(results, { fixedOpex: localFixed, variableOpexPct: localVariable, revenueGrowth: localGrowth })}
+                >
+                  Apply to Model
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs text-xs">
+                <p>Updates OpEx and revenue assumptions in the CFO model.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </CardContent>
       )}
     </Card>
@@ -289,7 +384,10 @@ export function GrowthImpactCalculator({
         <CardContent className="pt-0 space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs">Growth Δ (%)</Label>
+              <LabelWithTooltip 
+                label="Growth Δ (%)" 
+                tooltip="Adjusts overall company growth assumptions to model scenario impact."
+              />
               <Input
                 type="number"
                 value={growthDelta}
@@ -298,7 +396,10 @@ export function GrowthImpactCalculator({
               />
             </div>
             <div>
-              <Label className="text-xs">Pricing Δ (%)</Label>
+              <LabelWithTooltip 
+                label="Pricing Δ (%)" 
+                tooltip="Simulates effects of raising or lowering subscription or usage pricing."
+              />
               <Input
                 type="number"
                 value={pricingDelta}
@@ -307,7 +408,10 @@ export function GrowthImpactCalculator({
               />
             </div>
             <div>
-              <Label className="text-xs">CAC Δ (%)</Label>
+              <LabelWithTooltip 
+                label="CAC Δ (%)" 
+                tooltip="Models changes in acquisition efficiency or increased ad competition."
+              />
               <Input
                 type="number"
                 value={cacDelta}
@@ -316,7 +420,10 @@ export function GrowthImpactCalculator({
               />
             </div>
             <div>
-              <Label className="text-xs">Churn Δ (%)</Label>
+              <LabelWithTooltip 
+                label="Churn Δ (%)" 
+                tooltip="Adjusts retention assumptions to test churn sensitivity."
+              />
               <Input
                 type="number"
                 value={churnDelta}
@@ -327,33 +434,48 @@ export function GrowthImpactCalculator({
           </div>
           
           <div className="grid grid-cols-3 gap-2 p-3 bg-muted/50 rounded-lg text-xs">
-            <div className="text-center">
-              <p className="text-muted-foreground">ΔRevenue Y3</p>
+            <OutputWithTooltip 
+              label="ΔRevenue Y3" 
+              tooltip="Projected change in Year 3 revenue from modified assumptions."
+            >
               <p className={cn("font-bold", results.deltaRevenue[2] >= 0 ? "text-emerald-600" : "text-red-600")}>
                 {results.deltaRevenue[2] >= 0 ? '+' : ''}{(results.deltaRevenue[2] / 1000).toFixed(0)}K
               </p>
-            </div>
-            <div className="text-center">
-              <p className="text-muted-foreground">ΔEBITDA Y3</p>
+            </OutputWithTooltip>
+            <OutputWithTooltip 
+              label="ΔEBITDA Y3" 
+              tooltip="Projected change in Year 3 EBITDA from growth or pricing adjustments."
+            >
               <p className={cn("font-bold", results.deltaEbitda[2] >= 0 ? "text-emerald-600" : "text-red-600")}>
                 {results.deltaEbitda[2] >= 0 ? '+' : ''}{(results.deltaEbitda[2] / 1000).toFixed(0)}K
               </p>
-            </div>
-            <div className="text-center">
-              <p className="text-muted-foreground">ΔRunway</p>
+            </OutputWithTooltip>
+            <OutputWithTooltip 
+              label="ΔRunway" 
+              tooltip="Change in total runway (months) based on updated assumptions."
+            >
               <p className={cn("font-bold", results.deltaRunway >= 0 ? "text-emerald-600" : "text-red-600")}>
                 {results.deltaRunway >= 0 ? '+' : ''}{results.deltaRunway.toFixed(1)} mo
               </p>
-            </div>
+            </OutputWithTooltip>
           </div>
 
-          <Button
-            size="sm"
-            className="w-full"
-            onClick={() => onApply(results, { growthDelta, pricingDelta, cacDelta, churnDelta })}
-          >
-            Apply to Model
-          </Button>
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  className="w-full"
+                  onClick={() => onApply(results, { growthDelta, pricingDelta, cacDelta, churnDelta })}
+                >
+                  Apply to Model
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs text-xs">
+                <p>Applies scenario outcomes to the CFO model.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </CardContent>
       )}
     </Card>
