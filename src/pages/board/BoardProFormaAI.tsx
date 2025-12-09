@@ -356,15 +356,6 @@ export default function BoardProFormaAI() {
 
   return (
     <div className="w-full space-y-6">
-      <Button
-        variant="ghost"
-        className="text-slate-500 hover:text-slate-700 -ml-2"
-        onClick={() => navigate('/board')}
-      >
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Dashboard
-      </Button>
-
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">

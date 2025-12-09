@@ -90,15 +90,6 @@ export default function BoardInvestorLinks() {
   return (
     <>
       <div className="w-full space-y-6">
-        <Button
-          variant="ghost"
-          className="text-slate-500 hover:text-slate-700 -ml-2"
-          onClick={() => navigate('/board')}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Dashboard
-        </Button>
-
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md">

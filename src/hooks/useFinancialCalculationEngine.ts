@@ -284,7 +284,7 @@ export function useFinancialCalculationEngine(overrides?: Partial<CalculationDri
       yearlyGrossMargin,
       yearlyEbitdaMargin,
       breakEvenMonth,
-      runwayMonths: Math.min(runwayMonths, 36),
+      runwayMonths: Math.round(Math.min(runwayMonths, 36)),
       ltv,
       cac: blendedCAC,
       ltvCacRatio,

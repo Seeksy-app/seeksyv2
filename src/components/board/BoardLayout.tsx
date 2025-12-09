@@ -35,14 +35,14 @@ function BoardContentSkeleton() {
 }
 
 export function BoardLayout({ children }: BoardLayoutProps) {
-  const { setTheme, theme } = useTheme();
+  const { setTheme, theme, resolvedTheme } = useTheme();
 
-  // Force light theme for board portal main content
+  // Force light theme for board portal main content - only run once
   useEffect(() => {
-    if (theme !== 'light') {
+    if (resolvedTheme !== 'light') {
       setTheme('light');
     }
-  }, [theme, setTheme]);
+  }, [resolvedTheme, setTheme]);
 
   return (
     <BoardDataModeProvider>

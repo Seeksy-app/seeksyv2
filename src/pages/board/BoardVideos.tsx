@@ -176,16 +176,6 @@ export default function BoardVideos() {
 
   return (
     <div className="w-full">
-        {/* Breadcrumb */}
-        <Button
-          variant="ghost"
-          className="text-slate-500 hover:text-slate-700 mb-6 -ml-2"
-          onClick={() => navigate('/board')}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Dashboard
-        </Button>
-
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-md">

@@ -54,15 +54,6 @@ export default function BoardDocs() {
 
   return (
     <div className="w-full">
-        <Button
-          variant="ghost"
-          className="text-slate-500 hover:text-slate-700 mb-6 -ml-2"
-          onClick={() => navigate('/board')}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Dashboard
-        </Button>
-
         <div className="flex items-center gap-4 mb-8">
           <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 flex items-center justify-center shadow-md">
             <FileText className="w-7 h-7 text-white" />

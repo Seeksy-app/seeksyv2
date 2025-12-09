@@ -161,15 +161,6 @@ export default function BoardResearch() {
     <div className="w-full space-y-6">
         {/* Header */}
         <div>
-          <Button
-            variant="ghost"
-            className="text-slate-500 hover:text-slate-700 mb-4 -ml-2"
-            onClick={() => navigate('/board')}
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Button>
-
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-md">
