@@ -263,16 +263,16 @@ export function CFOCapitalRunway({
                   settings.scenario === scenario && scenario === 'worst' && "bg-red-600 hover:bg-red-700"
                 )}
               >
-                {scenario === 'base' && 'Base Case'}
-                {scenario === 'best' && 'Best Case'}
-                {scenario === 'worst' && 'Worst Case'}
+                {scenario === 'base' && 'Base'}
+                {scenario === 'best' && 'Growth'}
+                {scenario === 'worst' && 'Aggressive'}
               </Button>
             ))}
           </div>
           <p className="text-xs text-muted-foreground mt-2">
             {settings.scenario === 'base' && 'Using current assumptions without adjustments'}
-            {settings.scenario === 'best' && 'Optimistic: 20% lower burn, faster growth'}
-            {settings.scenario === 'worst' && 'Pessimistic: 30% higher burn, revenue challenges'}
+            {settings.scenario === 'best' && 'Growth: 20% lower burn, steady growth trajectory'}
+            {settings.scenario === 'worst' && 'Aggressive: Accelerated spend, higher revenue targets'}
           </p>
         </CardContent>
       </Card>
@@ -768,9 +768,9 @@ export function CFOCapitalSummaryCard({ data }: { data: CapitalSummaryData }) {
           </CardTitle>
           <div className="flex items-center gap-2">
             <Badge variant="outline">
-              {settings.scenario === 'base' && 'Base Case'}
-              {settings.scenario === 'best' && 'Best Case'}
-              {settings.scenario === 'worst' && 'Worst Case'}
+              {settings.scenario === 'base' && 'Base'}
+              {settings.scenario === 'best' && 'Growth'}
+              {settings.scenario === 'worst' && 'Aggressive'}
             </Badge>
             <Badge variant="secondary">
               {forecastMode === 'ai' ? 'AI Forecast' : 'Custom Mode'}

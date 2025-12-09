@@ -17,7 +17,7 @@ interface ScenarioConfig {
 
 export const SCENARIO_CONFIGS: Record<ScenarioType, ScenarioConfig> = {
   base: {
-    label: 'Base Case',
+    label: 'Base',
     description: 'Realistic operating expectations using historical trends and steady adoption.',
     icon: Target,
     color: 'text-blue-600',
@@ -25,7 +25,7 @@ export const SCENARIO_CONFIGS: Record<ScenarioType, ScenarioConfig> = {
     borderColor: 'border-blue-200 dark:border-blue-800',
   },
   best: {
-    label: 'Best Case',
+    label: 'Growth',
     description: 'Faster adoption, improved retention, higher ARPU, lower CAC, and efficient OpEx.',
     icon: TrendingUp,
     color: 'text-emerald-600',
@@ -33,8 +33,8 @@ export const SCENARIO_CONFIGS: Record<ScenarioType, ScenarioConfig> = {
     borderColor: 'border-emerald-200 dark:border-emerald-800',
   },
   worst: {
-    label: 'Worst Case',
-    description: 'Lower growth, weaker ad demand, churn increases, pricing pressure, and higher CAC.',
+    label: 'Aggressive',
+    description: 'Higher growth targets, accelerated spend, premium positioning.',
     icon: TrendingDown,
     color: 'text-amber-600',
     bgColor: 'bg-amber-50 dark:bg-amber-950/30',

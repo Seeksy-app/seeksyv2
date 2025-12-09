@@ -1895,7 +1895,7 @@ export default function CFOStudioV2() {
                     size="lg"
                     onClick={() => {
                       handleSaveTab('summary');
-                      navigate('/board/proforma');
+                      navigate('/cfo/proforma');
                     }}
                     className="bg-emerald-600 hover:bg-emerald-700 px-6"
                   >
@@ -1952,7 +1952,7 @@ export default function CFOStudioV2() {
             },
           });
           setShowSaveModal(false);
-          navigate('/board/proforma');
+          navigate('/cfo/proforma');
         }}
         isSaving={isSaving}
       />

@@ -5,6 +5,7 @@ import { Sparkles, Loader2, Copy, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { VisionData, Rock, YearGoal, TractionSliders, Milestone } from '@/hooks/useCEOVTO';
+import ReactMarkdown from 'react-markdown';
 
 interface Props {
   vision: VisionData;
@@ -62,20 +63,20 @@ The company continues to execute on our 1-year focus: "${vision.oneYearFocus.sub
 Our key differentiators remain strong, with ${sliders.identityVerification}% identity verification adoption rate.
 
 ### KPI Movement Summary
-- **ARR**: $${(kpis.arr / 1000).toFixed(0)}K (${sliders.creatorGrowth}% monthly creator growth)
-- **Creator Base**: ${kpis.creatorCount.toLocaleString()} total, ${kpis.verifiedCreators.toLocaleString()} verified
-- **AI Tool Adoption**: ${kpis.aiToolAdoption}%
-- **Runway**: ${kpis.runway} months at current burn rate
+- ARR: $${(kpis.arr / 1000).toFixed(0)}K (${sliders.creatorGrowth}% monthly creator growth)
+- Creator Base: ${kpis.creatorCount.toLocaleString()} total, ${kpis.verifiedCreators.toLocaleString()} verified
+- AI Tool Adoption: ${kpis.aiToolAdoption}%
+- Runway: ${kpis.runway} months at current burn rate
 
 ### Rocks Status
-- **In Progress**: ${inProgressRocks.length} rocks actively being worked
+- In Progress: ${inProgressRocks.length} rocks actively being worked
 ${inProgressRocks.map(r => `  - ${r.name} (Owner: ${r.owner})`).join('\n')}
 
 ${rocksAtRisk.length > 0 ? `### ⚠️ Risks & Blockers
-${rocksAtRisk.map(r => `- **${r.name}**: Needs attention from ${r.owner}`).join('\n')}` : '### ✅ No Rocks At Risk\nAll quarterly rocks are on track.'}
+${rocksAtRisk.map(r => `- ${r.name}: Needs attention from ${r.owner}`).join('\n')}` : '### ✅ No Rocks At Risk\nAll quarterly rocks are on track.'}
 
 ### Upcoming Milestones
-${upcomingMilestones.map(m => `- **${m.title}** — Due: ${new Date(m.deadline).toLocaleDateString()} (${m.status.replace('_', ' ')})`).join('\n')}
+${upcomingMilestones.map(m => `- ${m.title} — Due: ${new Date(m.deadline).toLocaleDateString()} (${m.status.replace('_', ' ')})`).join('\n')}
 
 ### Recommended Next Steps
 1. Review advertising demand projections (currently ${sliders.advertisingDemand > 0 ? '+' : ''}${sliders.advertisingDemand}% adjustment)
@@ -132,9 +133,19 @@ ${upcomingMilestones.map(m => `- **${m.title}** — Due: ${new Date(m.deadline).
                 </Button>
               </div>
               <div className="prose prose-sm dark:prose-invert max-w-none p-4 bg-muted/30 rounded-lg border border-border">
-                <div className="whitespace-pre-wrap font-mono text-sm">
+                <ReactMarkdown
+                  components={{
+                    h2: ({ children }) => <h2 className="text-lg font-bold mt-4 mb-2">{children}</h2>,
+                    h3: ({ children }) => <h3 className="text-md font-semibold mt-3 mb-1">{children}</h3>,
+                    ul: ({ children }) => <ul className="list-disc list-inside space-y-1">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal list-inside space-y-1">{children}</ol>,
+                    li: ({ children }) => <li className="text-sm">{children}</li>,
+                    p: ({ children }) => <p className="text-sm mb-2">{children}</p>,
+                    strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                  }}
+                >
                   {briefing}
-                </div>
+                </ReactMarkdown>
               </div>
             </div>
           ) : (

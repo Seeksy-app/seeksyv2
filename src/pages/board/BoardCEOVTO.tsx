@@ -47,8 +47,10 @@ export default function BoardCEOVTO() {
 
   const kpis = getKPIs();
 
-  // Check if user has edit permissions (CEO/Admin)
-  const [canEdit, setCanEdit] = useState(true);
+  // Board members and investors are view-only; only Admin/CEO can edit
+  // For now, we check the route - if accessed from /board, it's view-only
+  const isAdminRoute = window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/cfo');
+  const canEdit = isAdminRoute;
 
   const handleDownloadPDF = async () => {
     setIsGeneratingPDF(true);

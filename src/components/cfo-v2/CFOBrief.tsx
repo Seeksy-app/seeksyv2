@@ -46,7 +46,7 @@ export function CFOBrief({ variant, metrics, forecastMode, scenario = 'base', ye
 
   // Generate Board Brief (5W Format - Internal/Operational)
   const generateBoardBrief = () => {
-    const scenarioLabel = scenario === 'best' ? 'Best Case' : scenario === 'worst' ? 'Worst Case' : 'Base Case';
+    const scenarioLabel = scenario === 'best' ? 'Growth' : scenario === 'worst' ? 'Aggressive' : 'Base';
     const modeLabel = forecastMode === 'ai' ? 'AI-Generated' : 'Custom Assumptions';
 
     return {
