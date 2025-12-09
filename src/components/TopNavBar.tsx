@@ -6,6 +6,7 @@ import { NotificationsBell } from "@/components/NotificationsBell";
 import { AccountTypeSwitcher } from "@/components/AccountTypeSwitcher";
 import { BoardViewToggle } from "@/components/board/BoardViewToggle";
 import { StartOnboardingButton } from "@/components/onboarding/StartOnboardingButton";
+import { DataModePill } from "@/components/data-mode/DataModePill";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -115,6 +116,9 @@ export function TopNavBar() {
           <GlobalSearch />
           
           <div className="flex items-center gap-2">
+            {/* Data Mode Pill */}
+            <DataModePill />
+            
             {/* Ask Spark Button - Santa mascot with gold styling */}
             <Button
               variant="ghost"
