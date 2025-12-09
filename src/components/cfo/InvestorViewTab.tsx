@@ -77,9 +77,9 @@ export function InvestorViewTab() {
   };
 
   const narratives: Record<string, string> = {
-    "Base Case": "Steady growth with realistic CPMs and moderate advertiser adoption. Assumes consistent creator engagement and industry-standard conversion rates. Platform scales efficiently with predictable revenue trajectory.",
-    "Conservative Case": "Downside case assuming slower user growth and lower CPMs. Factors in market headwinds, competitive pressure, and conservative advertiser budgets. Demonstrates resilience even in challenging market conditions.",
-    "Aggressive Case": "Upside case assuming strong creator adoption and premium advertiser demand. Accelerated growth driven by network effects, brand partnerships, and market leadership. Represents best-case execution scenario.",
+    "Base": "Steady growth with realistic CPMs and moderate advertiser adoption. Assumes consistent creator engagement and industry-standard conversion rates. Platform scales efficiently with predictable revenue trajectory.",
+    "Growth": "Conservative case assuming steady user growth with lower CPMs. Factors in market conditions and moderate advertiser budgets. Demonstrates resilience with steady growth trajectory.",
+    "Aggressive": "Upside case assuming strong creator adoption and premium advertiser demand. Accelerated growth driven by network effects, brand partnerships, and market leadership. Represents best-case execution scenario.",
   };
 
   return (
