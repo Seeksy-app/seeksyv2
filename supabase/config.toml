@@ -437,3 +437,6 @@ verify_jwt = false
 
 [functions.cleanup-user]
 verify_jwt = false
+
+[functions.generate-poster]
+verify_jwt = false
