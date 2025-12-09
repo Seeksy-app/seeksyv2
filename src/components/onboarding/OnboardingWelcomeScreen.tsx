@@ -91,13 +91,16 @@ export function OnboardingWelcomeScreen({
         // Clear any lingering onboarding localStorage
         localStorage.removeItem('onboarding_step');
         localStorage.removeItem('onboarding_data');
+        
+        // Set a flag to prevent OnboardingGuard from redirecting back
+        sessionStorage.setItem('onboarding_just_completed', 'true');
       }
     } catch (error) {
       console.error('Error saving modules:', error);
     }
     
-    // Navigate to target path or default to my-day
-    navigate(targetPath || '/my-day');
+    // Use window.location for a full page reload to ensure fresh state
+    window.location.href = targetPath || '/my-day';
   };
 
   const quickActions = [

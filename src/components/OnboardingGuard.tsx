@@ -17,9 +17,23 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
     }
   }, [isLoading, rolesLoading]);
 
+  // Clear the just-completed flag after successful navigation
+  useEffect(() => {
+    if (sessionStorage.getItem('onboarding_just_completed') && location.pathname !== '/onboarding') {
+      // Clear after a short delay to ensure we're past the guard check
+      const timer = setTimeout(() => {
+        sessionStorage.removeItem('onboarding_just_completed');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [location.pathname]);
+
   useEffect(() => {
     // Don't redirect if we're loading, already on onboarding, or on public/auth pages
     if (isLoading || rolesLoading) return;
+    
+    // If user just completed onboarding, don't redirect back
+    if (sessionStorage.getItem('onboarding_just_completed')) return;
     
     // Public paths that don't require onboarding
     const publicPaths = [

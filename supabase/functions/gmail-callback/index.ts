@@ -141,12 +141,21 @@ serve(async (req) => {
 
     console.log('Successfully stored encrypted Gmail account for user:', userId);
 
-    // Determine success parameter based on return path
-    const successParam = returnPath.includes('/admin') ? 'gmail_connected' : 'gmail_connected';
+    // Determine the base URL - use origin from referer or fall back to seeksy.io
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    // Extract the project ref from SUPABASE_URL to build the correct Lovable preview URL
+    const projectRef = supabaseUrl.includes('.supabase.co') 
+      ? supabaseUrl.replace('https://', '').replace('.supabase.co', '')
+      : null;
+    
+    // Use Lovable preview URL if we can detect it, otherwise fallback to seeksy.io
+    const baseUrl = projectRef 
+      ? `https://${projectRef}.lovableproject.com`
+      : 'https://seeksy.io';
     
     return new Response(null, {
       status: 302,
-      headers: { Location: `https://seeksy.io${returnPath}?success=${successParam}` }
+      headers: { Location: `${baseUrl}${returnPath}?success=gmail_connected` }
     });
   } catch (error) {
     console.error('Error in gmail-callback:', error);
