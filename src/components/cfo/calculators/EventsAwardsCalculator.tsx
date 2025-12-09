@@ -10,7 +10,7 @@ import { useCFOAssumptions } from '@/hooks/useCFOAssumptions';
 import { CFO_ASSUMPTIONS_SCHEMA } from '@/lib/cfo-assumptions-schema';
 
 interface Props {
-  onSave?: () => void;
+  onSave?: (data?: Record<string, any>) => void;
 }
 
 const SCHEMA = CFO_ASSUMPTIONS_SCHEMA.events;
@@ -78,7 +78,11 @@ export function EventsAwardsCalculator({ onSave }: Props) {
       { metric_key: 'avg_ticket_price', value: avgTicketPrice },
       { metric_key: 'avg_event_sponsorship', value: avgSponsorshipPerEvent },
     ]);
-    onSave?.();
+    onSave?.({
+      eventsPerYear, avgTicketPrice, avgAttendeesPerEvent, avgSponsorshipPerEvent,
+      awardProgramsPerYear, avgSponsorshipPerAward, nominationFees, avgNominations,
+      totalEventRevenue, totalAwardRevenue, totalEventsAwardsRevenue,
+    });
   };
 
   return (

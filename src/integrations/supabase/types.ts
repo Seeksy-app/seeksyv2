@@ -5314,6 +5314,36 @@ export type Database = {
         }
         Relationships: []
       }
+      cfo_proforma_versions: {
+        Row: {
+          assumptions: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          is_published: boolean | null
+          name: string
+          notes: string | null
+        }
+        Insert: {
+          assumptions: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean | null
+          name: string
+          notes?: string | null
+        }
+        Update: {
+          assumptions?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean | null
+          name?: string
+          notes?: string | null
+        }
+        Relationships: []
+      }
       cfo_swot: {
         Row: {
           ai_last_summary: string | null

@@ -15,7 +15,7 @@ import { useCFOExpenses } from '@/hooks/useCFOExpenses';
 import { CFO_EXPENSES_SCHEMA, CATEGORY_LABELS, formatExpenseValue } from '@/lib/cfo-expenses-schema';
 
 interface Props {
-  onSave?: () => void;
+  onSave?: (data?: Record<string, any>) => void;
 }
 
 export function ExpenseCalculator({ onSave }: Props) {
@@ -82,7 +82,10 @@ export function ExpenseCalculator({ onSave }: Props) {
       value
     }));
     saveMultipleExpenses(updates);
-    onSave?.();
+    onSave?.({
+      ...localExpenses,
+      ...localSummary,
+    });
   };
 
   const categoryIcons = {

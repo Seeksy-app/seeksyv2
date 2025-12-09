@@ -10,7 +10,7 @@ import { useCFOAssumptions } from '@/hooks/useCFOAssumptions';
 import { CFO_ASSUMPTIONS_SCHEMA } from '@/lib/cfo-assumptions-schema';
 
 interface Props {
-  onSave?: () => void;
+  onSave?: (data?: Record<string, any>) => void;
 }
 
 const SCHEMA = CFO_ASSUMPTIONS_SCHEMA.growth;
@@ -63,7 +63,19 @@ export function GrowthCACCalculator({ onSave }: Props) {
       { metric_key: 'pro_arpu', value: arpu },
       { metric_key: 'creator_monthly_churn_rate', value: churnRate },
     ]);
-    onSave?.();
+    onSave?.({
+      monthlyBudget,
+      cac,
+      arpu,
+      churnRate,
+      timeHorizon,
+      newCustomersPerMonth,
+      ltv,
+      ltvCacRatio,
+      paybackMonths,
+      totalCustomersYear,
+      netROI,
+    });
   };
 
   return (

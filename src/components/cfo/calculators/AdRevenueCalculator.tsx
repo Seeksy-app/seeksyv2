@@ -10,7 +10,7 @@ import { useCFOAssumptions } from '@/hooks/useCFOAssumptions';
 import { CFO_ASSUMPTIONS_SCHEMA } from '@/lib/cfo-assumptions-schema';
 
 interface Props {
-  onSave?: () => void;
+  onSave?: (data?: Record<string, any>) => void;
 }
 
 const AD_SCHEMA = CFO_ASSUMPTIONS_SCHEMA.advertising;
@@ -137,7 +137,13 @@ export function AdRevenueCalculator({ onSave }: Props) {
       { metric_key: 'programmatic_platform_share', value: programmaticPlatformShare },
       { metric_key: 'brand_deal_platform_share', value: brandDealPlatformShare },
     ]);
-    onSave?.();
+    onSave?.({
+      audioHostReadCPM, audioProgrammaticCPM, videoCPM, newsletterCPM, displayCPM,
+      audioFillRate, videoFillRate, newsletterFillRate, displayFillRate,
+      brandDeals, brandDealValue,
+      hostreadPlatformShare, programmaticPlatformShare, brandDealPlatformShare,
+      totalGrossRevenue, totalPlatformRevenue, totalCreatorPayout,
+    });
   };
 
   const channels = [
