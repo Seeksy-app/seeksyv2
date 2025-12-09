@@ -168,7 +168,7 @@ export default function MeetingsDashboard() {
   return (
     <div className="mx-auto max-w-7xl px-6 py-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-3">
             <Calendar className="w-8 h-8 text-primary" />
@@ -176,7 +176,7 @@ export default function MeetingsDashboard() {
           </h1>
           <p className="text-muted-foreground mt-1">Create meeting types, share your link, and manage bookings.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => navigate('/creator/meetings/settings')}>
             <Clock className="w-4 h-4 mr-2" />
             Settings
@@ -295,9 +295,10 @@ export default function MeetingsDashboard() {
             </DialogContent>
           </Dialog>
         </div>
+      </div>
 
-        {/* Stats Row */}
-        <div className="grid md:grid-cols-3 gap-4">
+      {/* Stats Row */}
+      <div className="grid md:grid-cols-3 gap-4">
           <Card>
             <CardContent className="p-5 flex items-center gap-4">
               <div className="p-3 bg-primary/10 rounded-lg">
@@ -476,7 +477,6 @@ export default function MeetingsDashboard() {
             )}
           </TabsContent>
         </Tabs>
-      </div>
     </div>
   );
 }
