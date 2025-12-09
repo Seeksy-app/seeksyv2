@@ -4,9 +4,9 @@ import { GlobalSearch } from "@/components/GlobalSearch";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { AccountTypeSwitcher } from "@/components/AccountTypeSwitcher";
-import { BoardViewToggle } from "@/components/board/BoardViewToggle";
 import { StartOnboardingButton } from "@/components/onboarding/StartOnboardingButton";
 import { DataModePill } from "@/components/data-mode/DataModePill";
+import { DailyBriefButton } from "@/components/daily-brief/DailyBriefButton";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -131,7 +131,7 @@ export function TopNavBar() {
             </Button>
             
             <StartOnboardingButton />
-            <BoardViewToggle />
+            <DailyBriefButton audienceType="ceo" variant="ghost" size="sm" />
             <AccountTypeSwitcher />
             <ThemeToggle />
             <NotificationsBell />

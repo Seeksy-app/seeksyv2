@@ -26,7 +26,7 @@ export function DataModePill() {
             className={
               isDemo
                 ? 'bg-orange-500/20 text-orange-600 border-orange-500/30 hover:bg-orange-500/30 cursor-help'
-                : 'bg-green-500/20 text-green-600 border-green-500/30 hover:bg-green-500/30 cursor-help'
+                : 'bg-white text-slate-700 border-white/80 hover:bg-white/90 cursor-help shadow-sm'
             }
           >
             {isDemo ? (
