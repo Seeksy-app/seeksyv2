@@ -57,7 +57,7 @@ export default function CFOProForma() {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [viewingVersion, setViewingVersion] = useState<ProFormaVersion | null>(null);
   
-  const { rdCount, cfoOverrideCount, hasCFOAssumptions, dataSource, lastCFOUpdate } = useCFOAssumptions();
+  const { rdCount, cfoOverrideCount, hasCFOAssumptions, dataSource, lastCFOUpdate, getEffectiveValue } = useCFOAssumptions();
   const { isLocked, lockedAt } = useCFOLockStatus();
   
   const {
@@ -74,6 +74,14 @@ export default function CFOProForma() {
     updateCfoOverride,
     clearCfoOverrides,
   } = useProFormaForecast();
+
+  // Get key CFO baseline values for display
+  const baselineValues = useMemo(() => ({
+    revenueGrowth: getEffectiveValue('monthly_creator_growth_rate', 4),
+    cpm: getEffectiveValue('audio_cpm_hostread', 22),
+    fillRate: getEffectiveValue('audio_fill_rate', 65),
+    churn: getEffectiveValue('creator_monthly_churn_rate', 5),
+  }), [getEffectiveValue]);
 
   const {
     versions,
@@ -454,27 +462,35 @@ export default function CFOProForma() {
                 
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Revenue:</span>
+                      <span className="text-muted-foreground">Revenue Growth:</span>
                       <Badge variant="outline" className={cn('text-xs', style.badgeColor)}>
-                        {key === 'base' ? '0% (Baseline)' : `${((scenario.revenue_growth_multiplier - 1) * 100).toFixed(0)}%`}
+                        {key === 'base' 
+                          ? `${baselineValues.revenueGrowth}%/mo` 
+                          : `${((scenario.revenue_growth_multiplier - 1) * 100) >= 0 ? '+' : ''}${((scenario.revenue_growth_multiplier - 1) * 100).toFixed(0)}%`}
                       </Badge>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">CPM:</span>
                       <Badge variant="outline" className={cn('text-xs', style.badgeColor)}>
-                        {key === 'base' ? '0% (Baseline)' : `${((scenario.cpm_multiplier - 1) * 100).toFixed(0)}%`}
+                        {key === 'base' 
+                          ? `$${baselineValues.cpm}` 
+                          : `${((scenario.cpm_multiplier - 1) * 100) >= 0 ? '+' : ''}${((scenario.cpm_multiplier - 1) * 100).toFixed(0)}%`}
                       </Badge>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Fill Rate:</span>
                       <Badge variant="outline" className={cn('text-xs', style.badgeColor)}>
-                        {key === 'base' ? '0% (Baseline)' : `${((scenario.fill_rate_multiplier - 1) * 100).toFixed(0)}%`}
+                        {key === 'base' 
+                          ? `${baselineValues.fillRate}%` 
+                          : `${((scenario.fill_rate_multiplier - 1) * 100) >= 0 ? '+' : ''}${((scenario.fill_rate_multiplier - 1) * 100).toFixed(0)}%`}
                       </Badge>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Churn:</span>
                       <Badge variant="outline" className={cn('text-xs', style.badgeColor)}>
-                        {key === 'base' ? '0% (Baseline)' : `${((scenario.churn_multiplier - 1) * 100).toFixed(0)}%`}
+                        {key === 'base' 
+                          ? `${baselineValues.churn}%/mo` 
+                          : `${((scenario.churn_multiplier - 1) * 100) >= 0 ? '+' : ''}${((scenario.churn_multiplier - 1) * 100).toFixed(0)}%`}
                       </Badge>
                     </div>
                   </div>
