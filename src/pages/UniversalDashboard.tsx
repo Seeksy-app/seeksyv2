@@ -5,6 +5,7 @@ import { User } from "@supabase/supabase-js";
 
 import { WorkspaceHeader } from "@/components/dashboard/workspace/WorkspaceHeader";
 import { QuickActionsRow } from "@/components/dashboard/workspace/QuickActionsRow";
+import { PosterHeroBackground } from "@/components/dashboard/workspace/PosterHeroBackground";
 import { RoleBasedWidgets } from "@/components/dashboard/workspace/RoleBasedWidgets";
 import { IdentityWidget } from "@/components/dashboard/workspace/IdentityWidget";
 import { AddWidgetsDrawer } from "@/components/dashboard/universal/AddWidgetsDrawer";
@@ -159,6 +160,9 @@ export default function UniversalDashboard() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Poster Hero Background */}
+        <PosterHeroBackground />
+
         {/* Workspace Header */}
         <WorkspaceHeader
           firstName={firstName}
