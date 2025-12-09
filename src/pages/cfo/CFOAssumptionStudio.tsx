@@ -19,7 +19,7 @@ import { EventsAwardsCalculator } from '@/components/cfo/calculators/EventsAward
 import { ExpenseCalculator } from '@/components/cfo/calculators/ExpenseCalculator';
 import { CapitalRunwayCalculator } from '@/components/cfo/calculators/CapitalRunwayCalculator';
 import { AssumptionsSummaryPanel } from '@/components/cfo/AssumptionsSummaryPanel';
-import { CFOTabIndicator } from '@/components/cfo/CFOTabIndicator';
+
 import { SaveProFormaVersionModal } from '@/components/cfo/SaveProFormaVersionModal';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -55,18 +55,28 @@ export default function CFOAssumptionStudio() {
     return section === 'adRevenue' ? 'ads' : section;
   };
 
-  // Handler for when a calculator saves - mark section as saved and auto-advance
+  // Handler for when a calculator saves - mark section as saved and auto-advance to next unsaved
   const handleCalculatorSave = (section: CFOSectionKey, data?: Record<string, any>) => {
     markSectionSaved(section, data);
     setShowSaveSuccess(true);
     toast.success('Saved to Pro Forma — this section is now included in the forecast.');
     
-    // Auto-advance to the next tab (unless we're on the last one)
+    // Find the next UNSAVED section and auto-advance to it
     const currentIndex = tabOrder.indexOf(section);
-    if (currentIndex < tabOrder.length - 1) {
-      const nextSection = tabOrder[currentIndex + 1];
-      setActiveTab(sectionToTabValue(nextSection));
+    for (let i = currentIndex + 1; i < tabOrder.length; i++) {
+      if (!sectionStatus[tabOrder[i]]) {
+        setActiveTab(sectionToTabValue(tabOrder[i]));
+        return;
+      }
     }
+    // If no unsaved section after current, check from beginning
+    for (let i = 0; i < currentIndex; i++) {
+      if (!sectionStatus[tabOrder[i]]) {
+        setActiveTab(sectionToTabValue(tabOrder[i]));
+        return;
+      }
+    }
+    // All sections saved - stay on current tab
   };
 
   // Auto-hide the success message after 8 seconds
@@ -264,16 +274,10 @@ export default function CFOAssumptionStudio() {
                     <TabsTrigger 
                       key={tab.key} 
                       value={tabValue} 
-                      className={cn(
-                        "gap-2 data-[state=active]:bg-background relative",
-                        sectionStatus[tab.key] && "border-b-2 border-emerald-500"
-                      )}
+                      className="gap-2 data-[state=active]:bg-background"
                     >
-                      <CFOTabIndicator 
-                        isSaved={sectionStatus[tab.key]} 
-                        label={tab.label} 
-                        icon={tab.icon} 
-                      />
+                      {tab.icon}
+                      {tab.label}
                     </TabsTrigger>
                   );
                 })}
