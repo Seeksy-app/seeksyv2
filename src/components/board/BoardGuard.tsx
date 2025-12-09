@@ -26,21 +26,25 @@ export function BoardGuard({ children }: BoardGuardProps) {
     location.pathname.startsWith('/p/');
 
   useEffect(() => {
+    // Don't redirect while loading, but board routes render immediately regardless
     if (rolesLoading || viewModeLoading) return;
     if (isPublicRoute) return;
+    // Board routes don't need any redirect logic - they just render
+    if (isBoardRoute) return;
 
     // If user is a board member (not admin), redirect to /board
-    if (isBoardMember && !isAdmin && !isBoardRoute) {
+    if (isBoardMember && !isAdmin) {
       navigate('/board', { replace: true });
       return;
     }
 
     // If admin is viewing as board, redirect to /board (unless already there)
-    if (isAdmin && isViewingAsBoard && !isBoardRoute) {
+    if (isAdmin && isViewingAsBoard) {
       navigate('/board', { replace: true });
       return;
     }
   }, [isBoardMember, isAdmin, isViewingAsBoard, isBoardRoute, isPublicRoute, navigate, rolesLoading, viewModeLoading]);
 
+  // Board routes render immediately without waiting for role checks
   return <>{children}</>;
 }

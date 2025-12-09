@@ -42,6 +42,14 @@ export function RouteTransition({ children }: { children: React.ReactNode }) {
     console.log('[RouteTransition] Route change:', prevPathRef.current, '→', location.pathname);
     prevPathRef.current = location.pathname;
 
+    // Skip transition animation for board routes - they should load instantly
+    const isBoardRoute = location.pathname.startsWith('/board');
+    if (isBoardRoute) {
+      setIsTransitioning(false);
+      setIsStuck(false);
+      return;
+    }
+
     // Clear any existing timers first
     clearTimers();
     
