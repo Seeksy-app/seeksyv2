@@ -202,6 +202,7 @@ import ClipsStudio from "./pages/ClipsStudio";
 import MediaLibrary from "./pages/MediaLibrary";
 import MediaVault from "./pages/MediaVault";
 import PostProductionStudio from "./pages/PostProductionStudio";
+import RecordingStudio from "./pages/RecordingStudio";
 import CreateClips from "./pages/CreateClips";
 import SystemStatus from "./pages/SystemStatus";
 import AdminSystemStatus from "./pages/admin/SystemStatus";
@@ -820,6 +821,7 @@ const AppContent = () => {
               <Route path="/meeting-rsvp" element={<MeetingRSVP />} />
               
               {/* Studio Hub */}
+              <Route path="/recording-studio" element={<RecordingStudio />} />
               <Route path="/studio" element={<TourModeWrapper><StudioHubPremium /></TourModeWrapper>} />
               <Route path="/studio/new" element={<CreateStudio />} />
               <Route path="/studio/advertising" element={<StudioAdvertising />} />
