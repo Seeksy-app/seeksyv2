@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { 
   Download, FileSpreadsheet, FileText, Sparkles, Target, TrendingUp,
-  DollarSign, Users, Building2, Briefcase, Calculator, Share2, ArrowLeft
+  DollarSign, Users, Building2, Briefcase, Calculator, Share2, ArrowLeft, Info
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -16,6 +16,9 @@ import { toast } from 'sonner';
 import { CFOSliderControl, CollapsibleSliderSection } from '@/components/cfo-v2/CFOSliderControl';
 import { ROICalculator, BreakevenCalculator, GrowthImpactCalculator } from '@/components/cfo-v2/CFOCalculators';
 import { CFOFinancialStatements } from '@/components/cfo-v2/CFOFinancialStatements';
+import { CFOVersionManager, CFOStudioVersion } from '@/components/cfo-v2/CFOVersionManager';
+import { useCFOProFormaVersions } from '@/hooks/useCFOProFormaVersions';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 // Types
 interface RevenueModel {
@@ -108,6 +111,10 @@ export default function CFOStudioV2() {
   const [forecastMode, setForecastMode] = useState<'ai' | 'custom'>('custom');
   const [enterpriseEnabled, setEnterpriseEnabled] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Version management
+  const { versions, isLoading: versionsLoading, saveVersion, deleteVersion, isSaving } = useCFOProFormaVersions();
+  const [currentVersionId, setCurrentVersionId] = useState<string | null>(null);
 
   // Collapsible sections state
   const [revenueSliderOpen, setRevenueSliderOpen] = useState(true);
@@ -399,6 +406,96 @@ export default function CFOStudioV2() {
 
   const shareToBoard = () => toast.success('Pro Forma shared to Board');
 
+  // Version management handlers
+  const mappedVersions: CFOStudioVersion[] = useMemo(() => {
+    return (versions || []).map((v) => ({
+      id: v.id,
+      name: v.name,
+      notes: v.notes,
+      created_at: v.created_at,
+      assumptions: v.assumptions,
+      is_live: v.is_published,
+    }));
+  }, [versions]);
+
+  const handleSelectVersion = useCallback((version: CFOStudioVersion | null) => {
+    if (!version) {
+      // Reset to default draft state
+      setCurrentVersionId(null);
+      setAssumptions({
+        monthlyCreatorGrowth: 8,
+        avgRevenuePerCreator: 45,
+        advertisingCPM: 22,
+        adFillRate: 65,
+        churnRate: 5,
+        pricingSensitivity: 0,
+        organicGrowthMix: 30,
+        enterpriseDealValue: 150000,
+        hostingCostPerUser: 12,
+        bandwidthMultiplier: 1.0,
+        aiInferenceCostPerMin: 0.005,
+        paymentProcessingFee: 3,
+        aiUsageMultiplier: 1.0,
+        monthlyMarketingBudget: 10000,
+        cacPaid: 85,
+        proTierArpu: 29,
+        opexChurn: 5,
+        headcountProductivity: 1.0,
+        salaryInflation: 5,
+        hiringRampSpeed: 1.0,
+        contractorToEmployee: false,
+        cacOrganic: 15,
+        grossMarginTarget: 70,
+        aiToolsAdoption: 35,
+      });
+      toast.info('Started new draft');
+      return;
+    }
+
+    // Load saved version
+    setCurrentVersionId(version.id);
+    if (version.assumptions?.sliders) {
+      setAssumptions(prev => ({ ...prev, ...version.assumptions.sliders }));
+    }
+    if (version.assumptions?.revenue) {
+      setRevenue(version.assumptions.revenue);
+    }
+    if (version.assumptions?.cogs) {
+      setCogs(version.assumptions.cogs);
+    }
+    if (version.assumptions?.opex) {
+      setOpex(version.assumptions.opex);
+    }
+    if (version.assumptions?.headcount) {
+      setHeadcount(version.assumptions.headcount);
+    }
+    toast.success(`Loaded version: ${version.name}`);
+  }, []);
+
+  const handleSaveVersion = useCallback(async (name: string, notes: string) => {
+    const fullAssumptions = {
+      sliders: assumptions,
+      revenue,
+      cogs,
+      opex,
+      headcount,
+      metrics: {
+        arr: metrics.arr,
+        ebitda: metrics.ebitda,
+        grossMargin: metrics.grossMargin,
+      },
+    };
+    
+    saveVersion({ name, notes, assumptions: fullAssumptions });
+  }, [assumptions, revenue, cogs, opex, headcount, metrics, saveVersion]);
+
+  const handleDeleteVersion = useCallback(async (id: string) => {
+    deleteVersion(id);
+    if (currentVersionId === id) {
+      setCurrentVersionId(null);
+    }
+  }, [deleteVersion, currentVersionId]);
+
   const renderNumberInput = (
     value: number, 
     onChange: (v: number) => void, 
@@ -442,64 +539,102 @@ export default function CFOStudioV2() {
     <div className="w-full min-h-screen bg-background">
       <div className="max-w-[1600px] mx-auto p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate('/admin')}
-              className="shrink-0"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
-              <Calculator className="w-6 h-6 text-white" />
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate('/admin')}
+                className="shrink-0"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
+                <Calculator className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">CFO Studio V2.5</h1>
+                <p className="text-muted-foreground text-sm">3-Year Financial Pro Forma • Fine-Tune Sliders • Investor Package</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">CFO Studio V2.5</h1>
-              <p className="text-muted-foreground text-sm">3-Year Financial Pro Forma • Fine-Tune Sliders • Investor Package</p>
+            
+            <div className="flex items-center gap-3">
+              <Button variant="outline" size="sm" onClick={exportPDF}>
+                <FileText className="w-4 h-4 mr-1.5" />
+                PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={exportExcel}>
+                <FileSpreadsheet className="w-4 h-4 mr-1.5" />
+                Excel
+              </Button>
+              <Button variant="default" size="sm" onClick={shareToBoard}>
+                <Share2 className="w-4 h-4 mr-1.5" />
+                Share to Board
+              </Button>
             </div>
           </div>
-          
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
-              <Button
-                variant={forecastMode === 'custom' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setForecastMode('custom')}
-                className="h-8"
-              >
-                <Target className="w-4 h-4 mr-1.5" />
-                Custom
-              </Button>
-              <Button
-                variant={forecastMode === 'ai' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={generateAIForecast}
-                disabled={isGenerating}
-                className="h-8"
-              >
-                <Sparkles className="w-4 h-4 mr-1.5" />
-                {isGenerating ? 'Generating...' : 'AI Forecast'}
-              </Button>
+
+          {/* Version Manager & Mode Row */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <CFOVersionManager
+                versions={mappedVersions}
+                currentVersionId={currentVersionId}
+                onSelectVersion={handleSelectVersion}
+                onSaveVersion={handleSaveVersion}
+                onDeleteVersion={handleDeleteVersion}
+                isSaving={isSaving}
+                isLoading={versionsLoading}
+              />
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Info className="w-4 h-4 text-muted-foreground" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs bg-background border shadow-lg">
+                    <p className="text-sm">
+                      <strong>Auto-save:</strong> Sliders update the model in real-time as you adjust them.
+                      <br /><br />
+                      <strong>Calculators:</strong> Click "Apply to Model" to apply calculator results to your forecast.
+                      <br /><br />
+                      <strong>Versions:</strong> Click "Save Version" to create a named snapshot you can return to later.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
+            
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
+                <Button
+                  variant={forecastMode === 'custom' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setForecastMode('custom')}
+                  className="h-8"
+                >
+                  <Target className="w-4 h-4 mr-1.5" />
+                  Custom
+                </Button>
+                <Button
+                  variant={forecastMode === 'ai' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={generateAIForecast}
+                  disabled={isGenerating}
+                  className="h-8"
+                >
+                  <Sparkles className="w-4 h-4 mr-1.5" />
+                  {isGenerating ? 'Generating...' : 'AI Forecast'}
+                </Button>
+              </div>
 
-            <Badge variant="outline" className="h-8 px-3">
-              {forecastMode === 'ai' ? 'AI-Generated' : 'Custom Assumptions'}
-            </Badge>
-
-            <Button variant="outline" size="sm" onClick={exportPDF}>
-              <FileText className="w-4 h-4 mr-1.5" />
-              PDF
-            </Button>
-            <Button variant="outline" size="sm" onClick={exportExcel}>
-              <FileSpreadsheet className="w-4 h-4 mr-1.5" />
-              Excel
-            </Button>
-            <Button variant="default" size="sm" onClick={shareToBoard}>
-              <Share2 className="w-4 h-4 mr-1.5" />
-              Share to Board
-            </Button>
+              <Badge variant="outline" className="h-8 px-3">
+                {forecastMode === 'ai' ? 'AI-Generated' : 'Custom Assumptions'}
+              </Badge>
+            </div>
           </div>
         </div>
 
