@@ -21,8 +21,9 @@ import { CFOVersionManager, CFOStudioVersion } from '@/components/cfo-v2/CFOVers
 import { CFOCapitalRunway, CapitalSettings, CapitalInfusion, CapitalOutputs } from '@/components/cfo-v2/CFOCapitalRunway';
 import { useCFOProFormaVersions } from '@/hooks/useCFOProFormaVersions';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Landmark } from 'lucide-react';
+import { Landmark, Eye } from 'lucide-react';
 import { CFOBrief, generateInvestorBriefText } from '@/components/cfo-v2/CFOBrief';
+import { SaveProFormaVersionModal } from '@/components/cfo/SaveProFormaVersionModal';
 
 // Types
 interface RevenueModel {
@@ -139,6 +140,7 @@ export default function CFOStudioV2() {
     summary: false,
   });
   const [savingTab, setSavingTab] = useState<string | null>(null);
+  const [showSaveModal, setShowSaveModal] = useState(false);
 
   const TAB_ORDER = ['revenue', 'cogs', 'opex', 'headcount', 'metrics', 'assumptions', 'capital', 'statements', 'summary'];
   const allTabsSaved = Object.values(savedTabs).every(Boolean);
@@ -1835,29 +1837,90 @@ export default function CFOStudioV2() {
                 years={YEARS}
               />
             </div>
-            <div className="mt-6 flex justify-center">
-              <Button
-                size="lg"
-                onClick={() => handleSaveTab('summary')}
-                disabled={savingTab === 'summary'}
-                className={cn(
-                  "transition-all duration-300 px-8",
-                  savingTab === 'summary' && "animate-pulse",
-                  savedTabs.summary && "bg-emerald-600 hover:bg-emerald-700"
-                )}
-              >
-                {savingTab === 'summary' ? (
-                  <>Saving...</>
-                ) : savedTabs.summary ? (
-                  <><Check className="w-4 h-4 mr-2" />Pro Forma Created</>
-                ) : (
-                  <><Save className="w-4 h-4 mr-2" />Save & Create Pro Forma</>
-                )}
-              </Button>
+            <div className="mt-6 flex justify-center gap-4">
+              {!savedTabs.summary ? (
+                <Button
+                  size="lg"
+                  onClick={() => handleSaveTab('summary')}
+                  disabled={savingTab === 'summary'}
+                  className={cn(
+                    "transition-all duration-300 px-8",
+                    savingTab === 'summary' && "animate-pulse"
+                  )}
+                >
+                  {savingTab === 'summary' ? (
+                    <>Saving...</>
+                  ) : (
+                    <><Save className="w-4 h-4 mr-2" />Save & Create Pro Forma</>
+                  )}
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    size="lg"
+                    onClick={() => {
+                      handleSaveTab('summary');
+                      navigate('/board/proforma');
+                    }}
+                    className="bg-emerald-600 hover:bg-emerald-700 px-6"
+                  >
+                    <Check className="w-4 h-4 mr-2" />
+                    Save & View
+                  </Button>
+                  <Button
+                    size="lg"
+                    onClick={() => {
+                      handleSaveTab('summary');
+                      setShowSaveModal(true);
+                    }}
+                    variant="outline"
+                    className="border-emerald-600 text-emerald-600 hover:bg-emerald-50 px-6"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Save, View & Share
+                  </Button>
+                </>
+              )}
             </div>
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Save Pro Forma Version Modal */}
+      <SaveProFormaVersionModal
+        open={showSaveModal}
+        onOpenChange={setShowSaveModal}
+        onSave={(name, notes) => {
+          saveVersion({
+            name,
+            notes,
+            assumptions: {
+              ...assumptions,
+              metrics: {
+                arr: metrics.arr,
+                ebitda: metrics.ebitda,
+                grossMargin: metrics.grossMargin,
+                burnRate: metrics.burnRate,
+                runway: metrics.runway,
+                cac: metrics.cac,
+                ltv: metrics.ltv,
+                breakEvenMonth: metrics.breakEvenMonth,
+              },
+              financials: {
+                revenue: financialData.revenue,
+                cogs: financialData.cogs,
+                grossProfit: financialData.grossProfit,
+                opex: financialData.opex,
+              },
+              forecastMode,
+              years: YEARS,
+            },
+          });
+          setShowSaveModal(false);
+          navigate('/board/proforma');
+        }}
+        isSaving={isSaving}
+      />
     </div>
   );
 }
