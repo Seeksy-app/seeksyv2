@@ -10,7 +10,7 @@ import { useCFOAssumptions } from '@/hooks/useCFOAssumptions';
 import { CFO_ASSUMPTIONS_SCHEMA } from '@/lib/cfo-assumptions-schema';
 
 interface Props {
-  onSave?: () => void;
+  onSave?: (data?: Record<string, any>) => void;
 }
 
 const SCHEMA = CFO_ASSUMPTIONS_SCHEMA.subscriptions;
@@ -88,7 +88,14 @@ export function SubscriptionRevenueCalculator({ onSave }: Props) {
       { metric_key: 'business_arpu', value: priceBusiness },
       { metric_key: 'enterprise_arpu', value: priceEnterprise },
     ]);
-    onSave?.();
+    onSave?.({
+      activeCreators,
+      freePct, proPct, businessPct, enterprisePct,
+      pricePro, priceBusiness, priceEnterprise,
+      monthlyGrowth, upgradeRate,
+      totalMRR,
+      year1Revenue, year2Revenue, year3Revenue,
+    });
   };
 
   const formatCurrency = (value: number) => {

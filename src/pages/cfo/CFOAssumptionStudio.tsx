@@ -6,10 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Sliders, TrendingUp, CreditCard, DollarSign, Calendar, ArrowLeft, Sparkles, Info, Lock, Unlock, CheckCircle2, ExternalLink, Check, Building2, PiggyBank } from 'lucide-react';
+import { Sliders, TrendingUp, CreditCard, DollarSign, Calendar, ArrowLeft, Sparkles, Info, Lock, Unlock, CheckCircle2, ExternalLink, Check, Building2, PiggyBank, Save, RefreshCw, FileCheck2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCFOAssumptions } from '@/hooks/useCFOAssumptions';
 import { useCFOLockStatus } from '@/hooks/useCFOLockStatus';
+import { useCFOProFormaStatus, type CFOSectionKey } from '@/hooks/useCFOProFormaStatus';
+import { useCFOProFormaVersions } from '@/hooks/useCFOProFormaVersions';
 import { GrowthCACCalculator } from '@/components/cfo/calculators/GrowthCACCalculator';
 import { SubscriptionRevenueCalculator } from '@/components/cfo/calculators/SubscriptionRevenueCalculator';
 import { AdRevenueCalculator } from '@/components/cfo/calculators/AdRevenueCalculator';
@@ -17,13 +19,21 @@ import { EventsAwardsCalculator } from '@/components/cfo/calculators/EventsAward
 import { ExpenseCalculator } from '@/components/cfo/calculators/ExpenseCalculator';
 import { CapitalRunwayCalculator } from '@/components/cfo/calculators/CapitalRunwayCalculator';
 import { AssumptionsSummaryPanel } from '@/components/cfo/AssumptionsSummaryPanel';
+import { CFOTabIndicator } from '@/components/cfo/CFOTabIndicator';
+import { SaveProFormaVersionModal } from '@/components/cfo/SaveProFormaVersionModal';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 export default function CFOAssumptionStudio() {
   const navigate = useNavigate();
-  const { rdCount, cfoOverrideCount, schemaCount, isLoading, deleteAssumption, cfoAssumptions } = useCFOAssumptions();
+  const { rdCount, cfoOverrideCount, schemaCount, isLoading, deleteAssumption, cfoAssumptions, effectiveAssumptions } = useCFOAssumptions();
   const { isLocked, lockedAt, toggleLock, isToggling } = useCFOLockStatus();
+  const { sectionStatus, markSectionSaved, resetAllSections } = useCFOProFormaStatus();
+  const { saveVersion, isSaving, isProFormaComplete, buildFullAssumptions } = useCFOProFormaVersions();
+  
   const [activeTab, setActiveTab] = useState('growth');
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
 
   const handleResetAll = async () => {
     // Delete all CFO overrides
@@ -32,11 +42,16 @@ export default function CFOAssumptionStudio() {
         deleteAssumption(assumption.metric_key);
       }
     }
+    // Reset all section statuses
+    resetAllSections();
+    toast.success('Assumptions reset — rebuild required.');
   };
 
-  // Handler for when a calculator saves - show inline success (no toast)
-  const handleCalculatorSave = () => {
+  // Handler for when a calculator saves - mark section as saved
+  const handleCalculatorSave = (section: CFOSectionKey, data?: Record<string, any>) => {
+    markSectionSaved(section, data);
     setShowSaveSuccess(true);
+    toast.success('Saved to Pro Forma — this section is now included in the forecast.');
   };
 
   // Auto-hide the success message after 8 seconds
@@ -46,6 +61,32 @@ export default function CFOAssumptionStudio() {
       return () => clearTimeout(timer);
     }
   }, [showSaveSuccess]);
+
+  // Handle full version save
+  const handleSaveFullVersion = (name: string, notes?: string) => {
+    const assumptions = {
+      ...buildFullAssumptions(),
+      effectiveAssumptions: Object.fromEntries(
+        Object.entries(effectiveAssumptions).map(([k, v]) => [k, v.value])
+      ),
+    };
+    saveVersion({ name, notes, assumptions });
+    setSaveModalOpen(false);
+  };
+
+  // Count saved sections
+  const savedCount = Object.values(sectionStatus).filter(Boolean).length;
+  const totalSections = Object.keys(sectionStatus).length;
+
+  // Tab configuration
+  const tabs = [
+    { key: 'growth' as CFOSectionKey, label: 'Growth & CAC', icon: <TrendingUp className="w-4 h-4" /> },
+    { key: 'subscriptions' as CFOSectionKey, label: 'Subscriptions', icon: <CreditCard className="w-4 h-4" /> },
+    { key: 'adRevenue' as CFOSectionKey, label: 'Ad Revenue', icon: <DollarSign className="w-4 h-4" /> },
+    { key: 'events' as CFOSectionKey, label: 'Events & Awards', icon: <Calendar className="w-4 h-4" /> },
+    { key: 'expenses' as CFOSectionKey, label: 'Expenses', icon: <Building2 className="w-4 h-4" /> },
+    { key: 'capital' as CFOSectionKey, label: 'Capital & Runway', icon: <PiggyBank className="w-4 h-4" /> },
+  ];
 
   return (
     <div className="w-full min-h-screen bg-background">
@@ -61,7 +102,7 @@ export default function CFOAssumptionStudio() {
         </Button>
 
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-md">
               <Sliders className="w-7 h-7 text-white" />
@@ -71,7 +112,7 @@ export default function CFOAssumptionStudio() {
               <p className="text-muted-foreground">Configure financial assumptions for AI Pro Forma forecasts</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <Badge variant="outline" className="text-sm">
               {schemaCount} total metrics
             </Badge>
@@ -111,43 +152,90 @@ export default function CFOAssumptionStudio() {
               </Tooltip>
             </div>
             
-            <Button onClick={() => navigate('/cfo/proforma')} className="gap-2">
+            <Button onClick={() => navigate('/cfo/proforma')} variant="outline" className="gap-2">
               <Sparkles className="w-4 h-4" />
-              Generate Pro Forma
+              Preview Pro Forma
             </Button>
           </div>
         </div>
 
-        {/* Live Assumptions Banner */}
-        <Alert className="bg-emerald-50 border-emerald-200">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          <AlertDescription className="text-emerald-800 flex items-center justify-between">
+        {/* Pro Forma Status Bar */}
+        <div className={cn(
+          "p-4 rounded-lg border flex items-center justify-between",
+          isProFormaComplete 
+            ? "bg-emerald-50 border-emerald-200" 
+            : "bg-amber-50 border-amber-200"
+        )}>
+          <div className="flex items-center gap-3">
+            {isProFormaComplete ? (
+              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+            ) : (
+              <Info className="w-5 h-5 text-amber-600" />
+            )}
             <div>
-              <strong>Your Assumptions Are Live</strong>
-              <span className="ml-2">
-                These inputs drive all Board-facing financial forecasts. Navigate to the AI-Powered 3-Year Pro Forma to see your assumptions in action.
-              </span>
+              <p className={cn(
+                "font-medium",
+                isProFormaComplete ? "text-emerald-800" : "text-amber-800"
+              )}>
+                {isProFormaComplete 
+                  ? 'All sections saved — ready to publish!' 
+                  : `${savedCount} of ${totalSections} sections saved`}
+              </p>
+              <p className={cn(
+                "text-sm",
+                isProFormaComplete ? "text-emerald-700" : "text-amber-700"
+              )}>
+                {isProFormaComplete 
+                  ? 'Click "Save Full Pro Forma Version" to lock and publish to Board.'
+                  : 'Save each section to include it in the Pro Forma.'}
+              </p>
             </div>
+          </div>
+          <div className="flex items-center gap-3">
             <Button 
-              size="sm" 
               variant="outline" 
-              className="ml-4 bg-white border-emerald-300 text-emerald-700 hover:bg-emerald-100"
-              onClick={() => navigate('/cfo/proforma')}
+              size="sm" 
+              onClick={handleResetAll}
+              className="gap-2"
             >
-              View Pro Forma
-              <ExternalLink className="w-3 h-3 ml-2" />
+              <RefreshCw className="w-4 h-4" />
+              Reset All
             </Button>
-          </AlertDescription>
-        </Alert>
+            <Button 
+              onClick={() => setSaveModalOpen(true)}
+              disabled={!isProFormaComplete}
+              className={cn(
+                "gap-2 transition-all",
+                isProFormaComplete 
+                  ? "bg-emerald-600 hover:bg-emerald-700 animate-pulse" 
+                  : "bg-muted text-muted-foreground cursor-not-allowed"
+              )}
+            >
+              <FileCheck2 className="w-4 h-4" />
+              Save Full Pro Forma Version
+            </Button>
+          </div>
+        </div>
 
-        {/* How it works Info */}
-        <Alert className="bg-indigo-50 border-indigo-200">
-          <Info className="w-4 h-4 text-indigo-600" />
-          <AlertDescription className="text-indigo-800">
-            <strong>How it works:</strong> After updating assumptions, click "Generate Pro Forma" to preview the same 3-year forecast the Board will see.
-            Your values become CFO overrides that take precedence over R&D benchmarks. The Base scenario uses pure CFO assumptions; Conservative and Aggressive apply multipliers on top.
-          </AlertDescription>
-        </Alert>
+        {/* Section Status Chips */}
+        <div className="flex flex-wrap gap-2">
+          {tabs.map(tab => (
+            <Badge
+              key={tab.key}
+              variant="outline"
+              className={cn(
+                "text-xs py-1.5 px-3 cursor-pointer transition-all",
+                sectionStatus[tab.key]
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                  : "bg-muted text-muted-foreground border-border"
+              )}
+              onClick={() => setActiveTab(tab.key === 'adRevenue' ? 'ads' : tab.key)}
+            >
+              {sectionStatus[tab.key] && <CheckCircle2 className="w-3 h-3 mr-1" />}
+              {tab.label}
+            </Badge>
+          ))}
+        </div>
 
         {/* Main Content - Two Column Layout */}
         <div className="grid lg:grid-cols-[1fr,420px] gap-6 overflow-visible">
@@ -155,54 +243,49 @@ export default function CFOAssumptionStudio() {
           <div>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
               <TabsList className="bg-muted border border-border p-1 flex-wrap h-auto gap-1">
-                <TabsTrigger value="growth" className="gap-2 data-[state=active]:bg-background">
-                  <TrendingUp className="w-4 h-4" />
-                  Growth & CAC
-                </TabsTrigger>
-                <TabsTrigger value="subscriptions" className="gap-2 data-[state=active]:bg-background">
-                  <CreditCard className="w-4 h-4" />
-                  Subscriptions
-                </TabsTrigger>
-                <TabsTrigger value="ads" className="gap-2 data-[state=active]:bg-background">
-                  <DollarSign className="w-4 h-4" />
-                  Ad Revenue
-                </TabsTrigger>
-                <TabsTrigger value="events" className="gap-2 data-[state=active]:bg-background">
-                  <Calendar className="w-4 h-4" />
-                  Events & Awards
-                </TabsTrigger>
-                <TabsTrigger value="expenses" className="gap-2 data-[state=active]:bg-background">
-                  <Building2 className="w-4 h-4" />
-                  Expenses
-                </TabsTrigger>
-                <TabsTrigger value="capital" className="gap-2 data-[state=active]:bg-background">
-                  <PiggyBank className="w-4 h-4" />
-                  Capital & Runway
-                </TabsTrigger>
+                {tabs.map(tab => {
+                  const tabValue = tab.key === 'adRevenue' ? 'ads' : tab.key;
+                  return (
+                    <TabsTrigger 
+                      key={tab.key} 
+                      value={tabValue} 
+                      className={cn(
+                        "gap-2 data-[state=active]:bg-background relative",
+                        sectionStatus[tab.key] && "border-b-2 border-emerald-500"
+                      )}
+                    >
+                      <CFOTabIndicator 
+                        isSaved={sectionStatus[tab.key]} 
+                        label={tab.label} 
+                        icon={tab.icon} 
+                      />
+                    </TabsTrigger>
+                  );
+                })}
               </TabsList>
 
               <TabsContent value="growth">
-                <GrowthCACCalculator onSave={handleCalculatorSave} />
+                <GrowthCACCalculator onSave={(data) => handleCalculatorSave('growth', data)} />
               </TabsContent>
 
               <TabsContent value="subscriptions">
-                <SubscriptionRevenueCalculator onSave={handleCalculatorSave} />
+                <SubscriptionRevenueCalculator onSave={(data) => handleCalculatorSave('subscriptions', data)} />
               </TabsContent>
 
               <TabsContent value="ads">
-                <AdRevenueCalculator onSave={handleCalculatorSave} />
+                <AdRevenueCalculator onSave={(data) => handleCalculatorSave('adRevenue', data)} />
               </TabsContent>
 
               <TabsContent value="events">
-                <EventsAwardsCalculator onSave={handleCalculatorSave} />
+                <EventsAwardsCalculator onSave={(data) => handleCalculatorSave('events', data)} />
               </TabsContent>
 
               <TabsContent value="expenses">
-                <ExpenseCalculator onSave={handleCalculatorSave} />
+                <ExpenseCalculator onSave={(data) => handleCalculatorSave('expenses', data)} />
               </TabsContent>
 
               <TabsContent value="capital">
-                <CapitalRunwayCalculator onSave={handleCalculatorSave} />
+                <CapitalRunwayCalculator onSave={(data) => handleCalculatorSave('capital', data)} />
               </TabsContent>
             </Tabs>
           </div>
@@ -221,28 +304,29 @@ export default function CFOAssumptionStudio() {
                 <Check className="w-4 h-4 text-emerald-600" />
               </div>
               <span className="text-sm text-emerald-800">
-                <strong>Assumptions updated.</strong> Your changes are now used in the AI-Powered 3-Year Pro Forma.
+                <strong>Section saved.</strong> {savedCount} of {totalSections} sections complete.
               </span>
             </div>
-            <Button 
-              size="sm"
-              variant="outline"
-              onClick={() => navigate('/cfo/proforma')}
-              className="bg-white border-emerald-300 text-emerald-700 hover:bg-emerald-100 gap-2"
-            >
-              <Sparkles className="w-4 h-4" />
-              View Pro Forma
-            </Button>
+            {isProFormaComplete && (
+              <Button 
+                size="sm"
+                onClick={() => setSaveModalOpen(true)}
+                className="bg-emerald-600 hover:bg-emerald-700 gap-2"
+              >
+                <FileCheck2 className="w-4 h-4" />
+                Save Full Version
+              </Button>
+            )}
           </div>
         )}
 
         {/* Footer Reminder */}
-        {!showSaveSuccess && (
+        {!showSaveSuccess && !isProFormaComplete && (
           <div className="mt-8 p-4 bg-muted/50 border border-border rounded-lg flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
-              <strong className="text-foreground">Want to preview your impact?</strong>
+              <strong className="text-foreground">Complete all sections to save a Pro Forma version.</strong>
               <span className="ml-2">
-                Open the 3-Year Pro Forma to see how your assumptions drive revenue, CAC, churn, and margins.
+                Each saved section turns green. Once all are green, you can publish to the Board.
               </span>
             </div>
             <Button 
@@ -252,11 +336,19 @@ export default function CFOAssumptionStudio() {
               className="gap-2"
             >
               <Sparkles className="w-4 h-4" />
-              View Pro Forma
+              Preview Pro Forma
             </Button>
           </div>
         )}
       </div>
+
+      {/* Save Version Modal */}
+      <SaveProFormaVersionModal
+        open={saveModalOpen}
+        onOpenChange={setSaveModalOpen}
+        onSave={handleSaveFullVersion}
+        isSaving={isSaving}
+      />
     </div>
   );
 }

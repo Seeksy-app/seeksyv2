@@ -21,7 +21,7 @@ import {
 } from 'recharts';
 
 interface Props {
-  onSave?: () => void;
+  onSave?: (data?: Record<string, any>) => void;
 }
 
 const EVENT_TYPES = [
@@ -116,7 +116,15 @@ export function CapitalRunwayCalculator({ onSave }: Props) {
       cash_runway_months: runwayData.runwayMonths,
       break_even_month: runwayData.breakEvenMonth
     });
-    onSave?.();
+    onSave?.({
+      currentCash,
+      monthlyBurnRate,
+      monthlyRevenue,
+      revenueGrowth,
+      runwayMonths: runwayData.runwayMonths,
+      breakEvenMonth: runwayData.breakEvenMonth,
+      capitalEvents: capitalEvents?.map(e => ({ id: e.id, amount: e.amount, timing: e.timing_quarter })),
+    });
   };
 
   const totalCapital = capitalEvents?.reduce((sum, e) => sum + e.amount, 0) || 0;
