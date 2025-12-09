@@ -160,19 +160,19 @@ const handler = async (req: Request): Promise<Response> => {
     let actionButtonsHtml = "";
     if ((showContactAction || showTaskAction) && (createContactUrl || createTaskUrl)) {
       const contactBtn = showContactAction && createContactUrl
-        ? `<a href="${createContactUrl}" style="display: inline-block; background: #3b82f6; color: white; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500;">➕ Create Contact</a>`
+        ? `<a href="${createContactUrl}" style="display: inline-block; background: #2C6BED; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 500;">➕ Create Contact</a>`
         : "";
       const taskBtn = showTaskAction && createTaskUrl
-        ? `<a href="${createTaskUrl}" style="display: inline-block; background: #8b5cf6; color: white; text-decoration: none; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500;">📋 Create Task</a>`
+        ? `<a href="${createTaskUrl}" style="display: inline-block; background: #053877; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 500;">📋 Create Task</a>`
         : "";
       
       if (contactBtn || taskBtn) {
         actionButtonsHtml = `
           <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
-            <p style="font-size: 14px; color: #64748b; margin: 0 0 16px; text-align: center;">Take action on this lead:</p>
-            <div style="display: flex; gap: 12px; justify-content: center;">
-              ${contactBtn}
-              ${taskBtn}
+            <p style="font-size: 14px; color: #64748b; margin: 0 0 20px; text-align: center;">Take action on this lead:</p>
+            <div style="text-align: center;">
+              ${contactBtn ? `<div style="margin-bottom: 16px;">${contactBtn}</div>` : ""}
+              ${taskBtn ? `<div>${taskBtn}</div>` : ""}
             </div>
           </div>
         `;
@@ -185,7 +185,7 @@ const handler = async (req: Request): Promise<Response> => {
         : `Someone opened your email`;
       bodyHtml = `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+          <div style="background: linear-gradient(135deg, #053877, #2C6BED); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
             <h1 style="color: white; margin: 0; font-size: 24px;">📧 Email Opened!</h1>
           </div>
           <div style="background: #f8fafc; padding: 30px; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0; border-top: none;">
@@ -204,7 +204,7 @@ const handler = async (req: Request): Promise<Response> => {
                 ${recipientEmail ? `
                 <tr>
                   <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Recipient</td>
-                  <td style="padding: 8px 0; color: #3b82f6; font-size: 14px; font-weight: 600; text-align: right;">${recipientEmail}</td>
+                  <td style="padding: 8px 0; color: #2C6BED; font-size: 14px; font-weight: 600; text-align: right;">${recipientEmail}</td>
                 </tr>
                 ` : ""}
                 <tr>
@@ -248,7 +248,7 @@ const handler = async (req: Request): Promise<Response> => {
       subject = `Someone clicked a ${clickType} in your email`;
       bodyHtml = `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: linear-gradient(135deg, #10b981, #06b6d4); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+          <div style="background: linear-gradient(135deg, #053877, #2C6BED); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
             <h1 style="color: white; margin: 0; font-size: 24px;">🔗 Link Clicked!</h1>
           </div>
           <div style="background: #f8fafc; padding: 30px; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0; border-top: none;">
@@ -268,7 +268,7 @@ const handler = async (req: Request): Promise<Response> => {
                 ${targetUrl ? `
                 <tr>
                   <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Link Clicked</td>
-                  <td style="padding: 8px 0; color: #3b82f6; font-size: 14px; text-align: right; word-break: break-all;">${targetUrl}</td>
+                  <td style="padding: 8px 0; color: #2C6BED; font-size: 14px; text-align: right; word-break: break-all;">${targetUrl}</td>
                 </tr>
                 ` : ""}
                 <tr>
