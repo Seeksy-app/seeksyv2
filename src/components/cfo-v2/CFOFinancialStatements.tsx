@@ -2,6 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
+import { CFOCapitalSummaryCard, CapitalSummaryData } from './CFOCapitalRunway';
+
 interface FinancialData {
   revenue: number[];
   cogs: number[];
@@ -15,6 +17,7 @@ interface CFOFinancialStatementsProps {
   data: FinancialData;
   years: number[];
   cashBalance?: number;
+  capitalSummary?: CapitalSummaryData;
 }
 
 const formatCurrency = (value: number, compact = true) => {
@@ -25,7 +28,7 @@ const formatCurrency = (value: number, compact = true) => {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
 };
 
-export function CFOFinancialStatements({ data, years, cashBalance = 500000 }: CFOFinancialStatementsProps) {
+export function CFOFinancialStatements({ data, years, cashBalance = 500000, capitalSummary }: CFOFinancialStatementsProps) {
   // Simplified balance sheet calculations
   const calculateBalanceSheet = (yearIndex: number) => {
     const cash = cashBalance + data.ebitda.slice(0, yearIndex + 1).reduce((a, b) => a + b, 0);
@@ -269,6 +272,11 @@ export function CFOFinancialStatements({ data, years, cashBalance = 500000 }: CF
           </CardContent>
         </Card>
       </div>
+
+      {/* Capital & Runway Summary Card */}
+      {capitalSummary && (
+        <CFOCapitalSummaryCard data={capitalSummary} />
+      )}
     </div>
   );
 }

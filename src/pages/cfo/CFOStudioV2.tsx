@@ -18,8 +18,10 @@ import { CFOSliderControl, CollapsibleSliderSection } from '@/components/cfo-v2/
 import { ROICalculator, BreakevenCalculator, GrowthImpactCalculator } from '@/components/cfo-v2/CFOCalculators';
 import { CFOFinancialStatements } from '@/components/cfo-v2/CFOFinancialStatements';
 import { CFOVersionManager, CFOStudioVersion } from '@/components/cfo-v2/CFOVersionManager';
+import { CFOCapitalRunway, CapitalSettings, CapitalInfusion, CapitalOutputs } from '@/components/cfo-v2/CFOCapitalRunway';
 import { useCFOProFormaVersions } from '@/hooks/useCFOProFormaVersions';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Landmark } from 'lucide-react';
 
 // Types
 interface RevenueModel {
@@ -130,10 +132,24 @@ export default function CFOStudioV2() {
     opex: false,
     headcount: false,
     assumptions: false,
+    capital: false,
   });
   const [savingTab, setSavingTab] = useState<string | null>(null);
 
-  const TAB_ORDER = ['revenue', 'cogs', 'opex', 'headcount', 'metrics', 'assumptions', 'statements', 'summary'];
+  const TAB_ORDER = ['revenue', 'cogs', 'opex', 'headcount', 'metrics', 'assumptions', 'capital', 'statements', 'summary'];
+
+  // Capital & Runway State
+  const [capitalSettings, setCapitalSettings] = useState<CapitalSettings>({
+    startingCash: 500000,
+    minimumCashTarget: 100000,
+    burnRateChangePercent: 0,
+    hiringFreezeEnabled: false,
+    opexCompression: 0,
+    revenueShock: 0,
+    cashToEbitdaConversion: 85,
+    scenario: 'base',
+  });
+  const [capitalInfusions, setCapitalInfusions] = useState<CapitalInfusion[]>([]);
   
   const handleSaveTab = useCallback((tabName: string) => {
     setSavingTab(tabName);
