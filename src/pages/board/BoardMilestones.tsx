@@ -1,189 +1,78 @@
 /**
- * Milestones Tracker - Completed vs upcoming milestones with progress tracking
+ * Milestones Tracker - Connected to Admin database with AI insights
  */
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
 import { 
   CheckCircle2, Circle, Clock, AlertTriangle, 
-  ArrowRight, Calendar, Users, Zap, Target, ArrowLeft
+  ArrowRight, Calendar, Users, Zap, Target
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { 
+  useMilestones, 
+  calculateProgress, 
+  CATEGORY_LABELS, 
+  STATUS_LABELS,
+  AVAILABLE_METRICS,
+  Milestone,
+} from '@/hooks/useMilestones';
+import { BoardMilestoneAIInsights } from '@/components/board/milestones/BoardMilestoneAIInsights';
+import { Skeleton } from '@/components/ui/skeleton';
+import { format } from 'date-fns';
 
-type MilestoneStatus = 'completed' | 'in-progress' | 'upcoming' | 'at-risk' | 'blocked';
-
-interface Milestone {
-  id: string;
-  name: string;
-  description: string;
-  status: MilestoneStatus;
-  progress: number;
-  dueDate: string;
-  owner: string;
-  dependencies: string[];
-  blockers?: string[];
-  category: 'product' | 'growth' | 'operations' | 'fundraising';
-}
-
-const MILESTONES: Milestone[] = [
-  // Completed
-  {
-    id: 'm1',
-    name: 'Platform MVP Launch',
-    description: 'Core podcast hosting and creator tools live',
-    status: 'completed',
-    progress: 100,
-    dueDate: '2024-06-01',
-    owner: 'Product Team',
-    dependencies: [],
-    category: 'product',
-  },
-  {
-    id: 'm2',
-    name: 'First 100 Creators',
-    description: 'Onboard initial creator cohort',
-    status: 'completed',
-    progress: 100,
-    dueDate: '2024-08-01',
-    owner: 'Growth Team',
-    dependencies: ['m1'],
-    category: 'growth',
-  },
-  {
-    id: 'm3',
-    name: 'Identity Verification v1',
-    description: 'Voice and face verification system live',
-    status: 'completed',
-    progress: 100,
-    dueDate: '2024-10-01',
-    owner: 'Engineering',
-    dependencies: ['m1'],
-    category: 'product',
-  },
-  
-  // In Progress
-  {
-    id: 'm4',
-    name: 'AI Clips Engine',
-    description: 'Automated clip generation from long-form content',
-    status: 'in-progress',
-    progress: 75,
-    dueDate: '2025-01-15',
-    owner: 'AI Team',
-    dependencies: ['m1'],
-    category: 'product',
-  },
-  {
-    id: 'm5',
-    name: '1,000 Active Creators',
-    description: 'Reach critical mass for marketplace',
-    status: 'in-progress',
-    progress: 60,
-    dueDate: '2025-02-01',
-    owner: 'Growth Team',
-    dependencies: ['m2'],
-    category: 'growth',
-  },
-  {
-    id: 'm6',
-    name: 'Seed Round Close',
-    description: '$1.5M seed funding secured',
-    status: 'in-progress',
-    progress: 40,
-    dueDate: '2025-03-01',
-    owner: 'CEO',
-    dependencies: [],
-    category: 'fundraising',
-  },
-  
-  // At Risk
-  {
-    id: 'm7',
-    name: 'Advertising Marketplace v1',
-    description: 'Self-serve ad buying for brands',
-    status: 'at-risk',
-    progress: 30,
-    dueDate: '2025-02-15',
-    owner: 'Product Team',
-    dependencies: ['m4', 'm5'],
-    blockers: ['Engineering capacity constraint'],
-    category: 'product',
-  },
-  
-  // Upcoming
-  {
-    id: 'm8',
-    name: 'Mobile App Launch',
-    description: 'iOS and Android creator apps',
-    status: 'upcoming',
-    progress: 0,
-    dueDate: '2025-04-01',
-    owner: 'Mobile Team',
-    dependencies: ['m4'],
-    category: 'product',
-  },
-  {
-    id: 'm9',
-    name: 'Enterprise Tier Launch',
-    description: 'White-label solution for agencies',
-    status: 'upcoming',
-    progress: 0,
-    dueDate: '2025-05-01',
-    owner: 'Product Team',
-    dependencies: ['m5'],
-    category: 'product',
-  },
-  {
-    id: 'm10',
-    name: '10,000 Creators',
-    description: 'Scale to market leadership position',
-    status: 'upcoming',
-    progress: 0,
-    dueDate: '2025-12-01',
-    owner: 'Growth Team',
-    dependencies: ['m5', 'm7'],
-    category: 'growth',
-  },
-];
+type FilterStatus = 'all' | 'completed' | 'in_progress' | 'at_risk' | 'blocked' | 'not_started';
 
 const STATUS_CONFIG = {
   completed: { icon: CheckCircle2, color: 'text-green-500', bg: 'bg-green-500/10', border: 'border-green-500/30' },
-  'in-progress': { icon: Clock, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
-  upcoming: { icon: Circle, color: 'text-muted-foreground', bg: 'bg-muted/30', border: 'border-border' },
-  'at-risk': { icon: AlertTriangle, color: 'text-yellow-500', bg: 'bg-yellow-500/10', border: 'border-yellow-500/30' },
+  in_progress: { icon: Clock, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
+  not_started: { icon: Circle, color: 'text-muted-foreground', bg: 'bg-muted/30', border: 'border-border' },
+  at_risk: { icon: AlertTriangle, color: 'text-yellow-500', bg: 'bg-yellow-500/10', border: 'border-yellow-500/30' },
   blocked: { icon: AlertTriangle, color: 'text-red-500', bg: 'bg-red-500/10', border: 'border-red-500/30' },
 };
 
 const CATEGORY_ICONS = {
   product: Zap,
+  engineering: Zap,
   growth: Users,
-  operations: Target,
+  ops: Target,
   fundraising: Calendar,
 };
 
 export default function BoardMilestones() {
-  const navigate = useNavigate();
-  const [filter, setFilter] = useState<MilestoneStatus | 'all'>('all');
+  const { data: milestones, isLoading } = useMilestones();
+  const [filter, setFilter] = useState<FilterStatus>('all');
   
   const filteredMilestones = filter === 'all' 
-    ? MILESTONES 
-    : MILESTONES.filter(m => m.status === filter);
+    ? milestones 
+    : milestones?.filter(m => m.status === filter);
   
   const stats = {
-    total: MILESTONES.length,
-    completed: MILESTONES.filter(m => m.status === 'completed').length,
-    inProgress: MILESTONES.filter(m => m.status === 'in-progress').length,
-    atRisk: MILESTONES.filter(m => m.status === 'at-risk' || m.status === 'blocked').length,
-    upcoming: MILESTONES.filter(m => m.status === 'upcoming').length,
+    total: milestones?.length || 0,
+    completed: milestones?.filter(m => m.status === 'completed').length || 0,
+    inProgress: milestones?.filter(m => m.status === 'in_progress').length || 0,
+    atRisk: milestones?.filter(m => m.status === 'at_risk' || m.status === 'blocked').length || 0,
+    notStarted: milestones?.filter(m => m.status === 'not_started').length || 0,
   };
   
-  const overallProgress = Math.round(
-    MILESTONES.reduce((sum, m) => sum + m.progress, 0) / MILESTONES.length
-  );
+  const overallProgress = milestones?.length 
+    ? Math.round(milestones.reduce((sum, m) => sum + calculateProgress(m), 0) / milestones.length)
+    : 0;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 p-6">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-24 w-full" />
+        <div className="grid grid-cols-4 gap-4">
+          {[1,2,3,4].map(i => <Skeleton key={i} className="h-20" />)}
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-6 p-6">
@@ -222,7 +111,7 @@ export default function BoardMilestones() {
             </div>
           </CardContent>
         </Card>
-        <Card className="cursor-pointer hover:border-blue-500/50 transition-colors" onClick={() => setFilter('in-progress')}>
+        <Card className="cursor-pointer hover:border-blue-500/50 transition-colors" onClick={() => setFilter('in_progress')}>
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-blue-500" />
@@ -233,7 +122,7 @@ export default function BoardMilestones() {
             </div>
           </CardContent>
         </Card>
-        <Card className="cursor-pointer hover:border-yellow-500/50 transition-colors" onClick={() => setFilter('at-risk')}>
+        <Card className="cursor-pointer hover:border-yellow-500/50 transition-colors" onClick={() => setFilter('at_risk')}>
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-yellow-500" />
@@ -244,39 +133,46 @@ export default function BoardMilestones() {
             </div>
           </CardContent>
         </Card>
-        <Card className="cursor-pointer hover:border-border transition-colors" onClick={() => setFilter('upcoming')}>
+        <Card className="cursor-pointer hover:border-border transition-colors" onClick={() => setFilter('not_started')}>
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
               <Circle className="w-5 h-5 text-muted-foreground" />
               <div>
-                <p className="text-2xl font-bold">{stats.upcoming}</p>
-                <p className="text-sm text-muted-foreground">Upcoming</p>
+                <p className="text-2xl font-bold">{stats.notStarted}</p>
+                <p className="text-sm text-muted-foreground">Not Started</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
+      {/* AI Insights */}
+      {milestones && milestones.length > 0 && (
+        <BoardMilestoneAIInsights milestones={milestones} />
+      )}
+
       {/* Filter Tabs */}
       <div className="flex gap-2 flex-wrap">
-        {(['all', 'completed', 'in-progress', 'at-risk', 'upcoming'] as const).map(status => (
+        {(['all', 'completed', 'in_progress', 'at_risk', 'not_started'] as const).map(status => (
           <Button
             key={status}
             variant={filter === status ? 'default' : 'outline'}
             size="sm"
             onClick={() => setFilter(status)}
           >
-            {status === 'all' ? 'All' : status.replace('-', ' ')}
+            {status === 'all' ? 'All' : STATUS_LABELS[status as keyof typeof STATUS_LABELS] || status.replace('_', ' ')}
           </Button>
         ))}
       </div>
 
       {/* Milestones List */}
       <div className="space-y-4">
-        {filteredMilestones.map(milestone => {
+        {filteredMilestones?.map(milestone => {
           const config = STATUS_CONFIG[milestone.status];
           const StatusIcon = config.icon;
-          const CategoryIcon = CATEGORY_ICONS[milestone.category];
+          const CategoryIcon = CATEGORY_ICONS[milestone.category] || Zap;
+          const progress = calculateProgress(milestone);
+          const metricLabel = AVAILABLE_METRICS.find(m => m.key === milestone.metric_key)?.label;
           
           return (
             <Card key={milestone.id} className={cn("border", config.border)}>
@@ -288,51 +184,50 @@ export default function BoardMilestones() {
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-semibold">{milestone.name}</h4>
+                      <h4 className="font-semibold">{milestone.title}</h4>
                       <Badge variant="outline" className="text-xs">
                         <CategoryIcon className="w-3 h-3 mr-1" />
-                        {milestone.category}
+                        {CATEGORY_LABELS[milestone.category]}
                       </Badge>
+                      {milestone.is_demo && (
+                        <Badge variant="secondary" className="text-xs">Demo</Badge>
+                      )}
                     </div>
-                    <p className="text-sm text-muted-foreground mb-3">{milestone.description}</p>
-                    
-                    {/* Progress bar for in-progress items */}
-                    {milestone.status === 'in-progress' && (
-                      <div className="mb-3">
-                        <div className="flex items-center justify-between text-xs mb-1">
-                          <span>Progress</span>
-                          <span>{milestone.progress}%</span>
-                        </div>
-                        <Progress value={milestone.progress} className="h-2" />
-                      </div>
+                    {milestone.description && (
+                      <p className="text-sm text-muted-foreground mb-3">{milestone.description}</p>
                     )}
                     
-                    {/* Blockers */}
-                    {milestone.blockers && milestone.blockers.length > 0 && (
-                      <div className="mb-3 p-2 rounded bg-red-500/10 border border-red-500/20">
-                        <p className="text-xs text-red-500 font-medium flex items-center gap-1">
-                          <AlertTriangle className="w-3 h-3" />
-                          Blockers:
-                        </p>
-                        <ul className="text-xs text-red-500/80 mt-1">
-                          {milestone.blockers.map((blocker, i) => (
-                            <li key={i}>• {blocker}</li>
-                          ))}
-                        </ul>
+                    {/* Progress bar */}
+                    <div className="mb-3">
+                      <div className="flex items-center justify-between text-xs mb-1">
+                        <span>Progress</span>
+                        <span>{progress}%</span>
                       </div>
+                      <Progress value={progress} className="h-2" />
+                    </div>
+                    
+                    {/* Metric info */}
+                    {milestone.progress_type === 'metric' && metricLabel && (
+                      <p className="text-xs text-muted-foreground mb-2">
+                        {metricLabel}: {milestone.metric_current?.toLocaleString() || 0} / {milestone.metric_target?.toLocaleString() || 0}
+                      </p>
                     )}
                     
                     {/* Meta info */}
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        Due: {new Date(milestone.dueDate).toLocaleDateString()}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Users className="w-3 h-3" />
-                        {milestone.owner}
-                      </span>
-                      {milestone.dependencies.length > 0 && (
+                      {milestone.due_date && (
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          Due: {format(new Date(milestone.due_date), 'MMM d, yyyy')}
+                        </span>
+                      )}
+                      {milestone.owner && (
+                        <span className="flex items-center gap-1">
+                          <Users className="w-3 h-3" />
+                          {milestone.owner}
+                        </span>
+                      )}
+                      {milestone.dependencies && milestone.dependencies.length > 0 && (
                         <span className="flex items-center gap-1">
                           <ArrowRight className="w-3 h-3" />
                           {milestone.dependencies.length} dependencies
@@ -344,10 +239,10 @@ export default function BoardMilestones() {
                   <div className="text-right">
                     <Badge variant={
                       milestone.status === 'completed' ? 'default' :
-                      milestone.status === 'in-progress' ? 'secondary' :
-                      milestone.status === 'at-risk' ? 'destructive' : 'outline'
+                      milestone.status === 'in_progress' ? 'secondary' :
+                      milestone.status === 'at_risk' || milestone.status === 'blocked' ? 'destructive' : 'outline'
                     }>
-                      {milestone.status.replace('-', ' ')}
+                      {STATUS_LABELS[milestone.status]}
                     </Badge>
                   </div>
                 </div>

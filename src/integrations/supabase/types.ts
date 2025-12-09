@@ -15098,6 +15098,101 @@ export type Database = {
         }
         Relationships: []
       }
+      milestone_subtasks: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          id: string
+          is_completed: boolean | null
+          milestone_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_completed?: boolean | null
+          milestone_id: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_completed?: boolean | null
+          milestone_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "milestone_subtasks_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "milestones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      milestones: {
+        Row: {
+          category: string
+          created_at: string
+          dependencies: string[] | null
+          description: string | null
+          display_order: number | null
+          due_date: string | null
+          id: string
+          is_demo: boolean | null
+          metric_current: number | null
+          metric_key: string | null
+          metric_target: number | null
+          owner: string | null
+          progress_percent: number | null
+          progress_type: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          dependencies?: string[] | null
+          description?: string | null
+          display_order?: number | null
+          due_date?: string | null
+          id?: string
+          is_demo?: boolean | null
+          metric_current?: number | null
+          metric_key?: string | null
+          metric_target?: number | null
+          owner?: string | null
+          progress_percent?: number | null
+          progress_type?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          dependencies?: string[] | null
+          description?: string | null
+          display_order?: number | null
+          due_date?: string | null
+          id?: string
+          is_demo?: boolean | null
+          metric_current?: number | null
+          metric_key?: string | null
+          metric_target?: number | null
+          owner?: string | null
+          progress_percent?: number | null
+          progress_type?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       module_bundle_relations: {
         Row: {
           bundle_module_id: string
