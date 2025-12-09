@@ -344,7 +344,7 @@ export default function CFOStudioV2() {
   ) => {
     setAssumptions(prev => ({
       ...prev,
-      monthlyMarketingBudget: Math.round(inputs.marketingSpend / 12),
+      monthlyMarketingBudget: inputs.marketingSpend,
       cacPaid: inputs.cac,
       churnRate: inputs.churn,
       proTierArpu: inputs.arpu,
