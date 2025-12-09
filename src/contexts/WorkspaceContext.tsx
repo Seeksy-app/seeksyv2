@@ -51,6 +51,13 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
 
   const fetchWorkspaces = useCallback(async () => {
+    // Skip workspace fetching for board routes - they don't need workspace context
+    const isBoardRoute = window.location.pathname.startsWith('/board');
+    if (isBoardRoute) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       console.log('[WorkspaceContext] Session:', session?.user?.id, session?.user?.email);
