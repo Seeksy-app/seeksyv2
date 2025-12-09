@@ -9,10 +9,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useFinancialCalculationEngine } from '@/hooks/useFinancialCalculationEngine';
 import { useCFOMasterModel } from '@/hooks/useCFOMasterModel';
+import { useNavigate } from 'react-router-dom';
 import { 
   Brain, TrendingUp, TrendingDown, AlertTriangle, 
   CheckCircle2, Target, Users, DollarSign, Zap,
-  ArrowUp, ArrowDown, Minus, RefreshCw
+  ArrowUp, ArrowDown, Minus, RefreshCw, ArrowLeft,
+  HelpCircle, Lightbulb
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -37,6 +39,7 @@ interface KPIScorecard {
 }
 
 export default function BoardCompanyHealth() {
+  const navigate = useNavigate();
   const { projections, drivers } = useFinancialCalculationEngine();
   const { assumptions, startingCash } = useCFOMasterModel();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -61,6 +64,8 @@ export default function BoardCompanyHealth() {
       churn,
       ltvCac,
       breakEven: projections.breakEvenMonth,
+      yearlyRevenue: projections.yearlyRevenue[0],
+      yearlyEbitda: projections.yearlyEbitda[0],
     };
   }, [projections, drivers]);
   
@@ -110,6 +115,49 @@ export default function BoardCompanyHealth() {
     return { narratives, overallHealth };
   }, [healthData, drivers, projections]);
   
+  // Board Questions for CEO - contextual based on current state
+  const boardQuestions = useMemo(() => {
+    const questions = [];
+    
+    if (healthData.churn > 5) {
+      questions.push("What specific actions are being taken to reduce churn from the current " + healthData.churn + "%?");
+    }
+    if (healthData.runway < 18) {
+      questions.push("What is the timeline for the next fundraise given the " + healthData.runway + "-month runway?");
+    }
+    if (healthData.ebitdaMargin < -15) {
+      questions.push("What cost reduction measures are being considered to improve the EBITDA margin?");
+    }
+    if (drivers.creatorGrowth < 8) {
+      questions.push("What changes to the GTM strategy will accelerate creator acquisition?");
+    }
+    if (projections.ltvCacRatio < 3) {
+      questions.push("How will unit economics be improved to reach a 3x LTV/CAC ratio?");
+    }
+    
+    // Always include strategic questions
+    questions.push("What are the top 3 priorities for the next quarter?");
+    questions.push("Are there any emerging competitive threats we should be aware of?");
+    
+    return questions.slice(0, 5);
+  }, [healthData, drivers, projections]);
+  
+  // Board Actions to Support Company
+  const boardActions = useMemo(() => {
+    const actions = [];
+    
+    if (healthData.runway < 18) {
+      actions.push({ action: "Facilitate warm introductions to potential investors", priority: "high" });
+    }
+    if (drivers.creatorGrowth < 8) {
+      actions.push({ action: "Leverage personal networks to attract marquee creators", priority: "medium" });
+    }
+    actions.push({ action: "Review and provide feedback on Q1 strategic plan", priority: "medium" });
+    actions.push({ action: "Identify potential strategic partnership opportunities", priority: "low" });
+    
+    return actions;
+  }, [healthData, drivers]);
+  
   // KPI Scorecards
   const scorecards: KPIScorecard[] = useMemo(() => {
     const getStatus = (metric: string, value: number): HealthStatus => {
@@ -126,11 +174,18 @@ export default function BoardCompanyHealth() {
     
     return [
       { 
-        name: 'Revenue Health', 
-        value: `${healthData.revenueGrowth.toFixed(0)}% YoY`,
+        name: 'Total Revenue (Y1)', 
+        value: formatCurrency(healthData.yearlyRevenue),
         status: getStatus('revenue', healthData.revenueGrowth),
         trend: healthData.revenueGrowth > 80 ? 'up' : 'down',
-        trendValue: '+12%'
+        trendValue: `${healthData.revenueGrowth.toFixed(0)}% YoY`
+      },
+      { 
+        name: 'EBITDA (Y1)', 
+        value: formatCurrency(healthData.yearlyEbitda),
+        status: getStatus('ebitda', healthData.ebitdaMargin),
+        trend: healthData.ebitdaMargin > -15 ? 'up' : 'down',
+        trendValue: `${healthData.ebitdaMargin.toFixed(0)}% margin`
       },
       { 
         name: 'Gross Margin', 
@@ -140,53 +195,25 @@ export default function BoardCompanyHealth() {
         trendValue: '+2%'
       },
       { 
-        name: 'EBITDA Trend', 
-        value: `${healthData.ebitdaMargin.toFixed(0)}%`,
-        status: getStatus('ebitda', healthData.ebitdaMargin),
-        trend: healthData.ebitdaMargin > -15 ? 'up' : 'down',
-        trendValue: healthData.ebitdaMargin > -15 ? '+5%' : '-3%'
-      },
-      { 
         name: 'Runway', 
         value: `${healthData.runway} months`,
         status: getStatus('runway', healthData.runway),
         trend: 'flat',
-        trendValue: '0'
+        trendValue: 'Stable'
       },
       { 
         name: 'Creator Growth', 
         value: `${drivers.creatorGrowth}% MoM`,
         status: drivers.creatorGrowth >= 8 ? 'healthy' : 'warning',
         trend: drivers.creatorGrowth >= 8 ? 'up' : 'down',
-        trendValue: '+2%'
+        trendValue: drivers.creatorGrowth >= 8 ? 'On target' : 'Below target'
       },
       { 
         name: 'Churn', 
         value: `${healthData.churn}%`,
         status: getStatus('churn', healthData.churn),
         trend: healthData.churn <= 5 ? 'down' : 'up',
-        trendValue: '-0.5%'
-      },
-      { 
-        name: 'Product Velocity', 
-        value: 'On Track',
-        status: 'healthy',
-        trend: 'up',
-        trendValue: '+1 release'
-      },
-      { 
-        name: 'Technical Stability', 
-        value: '99.8% uptime',
-        status: 'healthy',
-        trend: 'up',
-        trendValue: '+0.1%'
-      },
-      { 
-        name: 'Identity Verification', 
-        value: `${drivers.identityVerificationAdoption}% adoption`,
-        status: drivers.identityVerificationAdoption >= 25 ? 'healthy' : 'warning',
-        trend: 'up',
-        trendValue: '+5%'
+        trendValue: healthData.churn <= 5 ? 'Healthy' : 'Elevated'
       },
     ];
   }, [healthData, drivers]);
@@ -198,6 +225,17 @@ export default function BoardCompanyHealth() {
   
   return (
     <div className="space-y-6 p-6">
+      {/* Back Navigation */}
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        onClick={() => navigate('/board')}
+        className="mb-2"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to Dashboard
+      </Button>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -239,7 +277,7 @@ export default function BoardCompanyHealth() {
       {/* KPI Scorecards */}
       <Card>
         <CardHeader>
-          <CardTitle>KPI Scorecards</CardTitle>
+          <CardTitle>KPI Summary</CardTitle>
           <CardDescription>Real-time health indicators</CardDescription>
         </CardHeader>
         <CardContent>
@@ -274,6 +312,55 @@ export default function BoardCompanyHealth() {
                     {kpi.trendValue}
                   </div>
                 </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* AI-Generated Board Questions for CEO */}
+      <Card className="border-blue-500/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-blue-600">
+            <HelpCircle className="w-5 h-5" />
+            Board Questions for CEO
+          </CardTitle>
+          <CardDescription>AI-generated questions based on current metrics</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-3">
+            {boardQuestions.map((question, i) => (
+              <li key={i} className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold">
+                  {i + 1}
+                </span>
+                <span className="text-sm">{question}</span>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+
+      {/* Board Actions to Support Company */}
+      <Card className="border-purple-500/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-purple-600">
+            <Lightbulb className="w-5 h-5" />
+            Board Actions to Support Company
+          </CardTitle>
+          <CardDescription>Recommended ways the board can help</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {boardActions.map((item, i) => (
+              <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-purple-50 dark:bg-purple-950/20">
+                <span className="text-sm">{item.action}</span>
+                <Badge variant={
+                  item.priority === 'high' ? 'destructive' :
+                  item.priority === 'medium' ? 'default' : 'outline'
+                }>
+                  {item.priority}
+                </Badge>
               </div>
             ))}
           </div>

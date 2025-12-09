@@ -6,11 +6,13 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
 import { useFinancialCalculationEngine } from '@/hooks/useFinancialCalculationEngine';
 import { useCFOMasterModel } from '@/hooks/useCFOMasterModel';
+import { useNavigate } from 'react-router-dom';
 import { 
   Flame, Clock, TrendingUp, Users, AlertTriangle, 
-  CheckCircle2, DollarSign, Target, Zap
+  CheckCircle2, DollarSign, Target, Zap, ArrowLeft, Brain
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -120,6 +122,7 @@ const STRESS_SCENARIOS: StressScenario[] = [
 ];
 
 export default function BoardCapitalStrategy() {
+  const navigate = useNavigate();
   const { projections, drivers } = useFinancialCalculationEngine();
   const { startingCash } = useCFOMasterModel();
   
@@ -129,6 +132,17 @@ export default function BoardCapitalStrategy() {
   
   return (
     <div className="space-y-6 p-6">
+      {/* Back Navigation */}
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        onClick={() => navigate('/board')}
+        className="mb-2"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to Dashboard
+      </Button>
+
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold">Capital Strategy</h1>

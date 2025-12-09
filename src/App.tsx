@@ -488,6 +488,11 @@ import BoardSWOT from "./pages/board/BoardSWOT";
 import BoardMarketIntel from "./pages/board/BoardMarketIntel";
 import BoardMarketIntelligence from "./pages/board/BoardMarketIntelligence";
 import BoardStateOfCompany from "./pages/board/BoardStateOfCompany";
+import BoardCompanyHealth from "./pages/board/BoardCompanyHealth";
+import BoardFinancialStatements from "./pages/board/BoardFinancialStatements";
+import BoardCapitalStrategy from "./pages/board/BoardCapitalStrategy";
+import BoardMilestones from "./pages/board/BoardMilestones";
+import BoardTeamOrg from "./pages/board/BoardTeamOrg";
 import BoardInvestorPortal from "./pages/investor/InvestorPortal";
 import BoardMemberManagement from "./pages/admin/BoardMemberManagement";
 import { BoardGuard } from "./components/board/BoardGuard";
@@ -1079,6 +1084,11 @@ const AppContent = () => {
             <Route path="inventory" element={<BoardInventory />} />
             <Route path="proforma/combined" element={<Navigate to="/board/proforma" replace />} />
             <Route path="proforma/events-awards" element={<EventsAwardsProForma />} />
+            <Route path="company-health" element={<BoardCompanyHealth />} />
+            <Route path="financial-statements" element={<BoardFinancialStatements />} />
+            <Route path="capital-strategy" element={<BoardCapitalStrategy />} />
+            <Route path="milestones" element={<BoardMilestones />} />
+            <Route path="team-org" element={<BoardTeamOrg />} />
           </Route>
           <Route path="/investor/:token" element={<BoardInvestorPortal />} />
           

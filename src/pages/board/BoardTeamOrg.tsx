@@ -5,9 +5,11 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 import { 
   Users, User, AlertCircle, CheckCircle2, 
-  TrendingUp, Calendar, Brain, Building
+  TrendingUp, Calendar, Brain, Building, ArrowLeft
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -101,6 +103,7 @@ function formatCurrency(value: number): string {
 }
 
 export default function BoardTeamOrg() {
+  const navigate = useNavigate();
   const totalHeadcount = TEAM.length;
   const plannedHires = ROLE_GAPS.length;
   const highPriorityGaps = ROLE_GAPS.filter(r => r.priority === 'high').length;
@@ -108,6 +111,17 @@ export default function BoardTeamOrg() {
   
   return (
     <div className="space-y-6 p-6">
+      {/* Back Navigation */}
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        onClick={() => navigate('/board')}
+        className="mb-2"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to Dashboard
+      </Button>
+
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold">Team & Org Overview</h1>
