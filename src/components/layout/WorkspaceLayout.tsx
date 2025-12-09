@@ -94,9 +94,9 @@ function WorkspaceLayoutInner({
         {shouldShowSidebar && (
           isAdvertiserRoute ? <AdvertiserSidebarNav /> : <RoleBasedSidebar user={user} />
         )}
-        <div className="flex-1 flex flex-col min-h-screen overflow-auto">
+        <div className="flex-1 flex flex-col min-h-screen">
           {shouldShowTopNav && <TopNavBar />}
-          <main className="flex-1 flex flex-col bg-background">
+          <main className="flex-1 flex flex-col bg-background overflow-auto">
             {children}
           </main>
         </div>
@@ -108,9 +108,9 @@ function WorkspaceLayoutInner({
   return (
     <div className="min-h-screen flex w-full bg-background">
       {shouldShowSidebar && <WorkspaceSidebar />}
-      <div className="flex-1 flex flex-col min-h-screen overflow-auto">
+      <div className="flex-1 flex flex-col min-h-screen">
         {shouldShowTopNav && <GlobalTopNav />}
-        <main className="flex-1 flex flex-col bg-background">
+        <main className="flex-1 flex flex-col bg-background overflow-auto">
           {children}
         </main>
       </div>
