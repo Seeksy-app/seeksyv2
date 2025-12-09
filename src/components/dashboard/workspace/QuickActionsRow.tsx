@@ -12,6 +12,16 @@ import { cn } from "@/lib/utils";
 
 const quickActions = [
   { 
+    id: "start-meeting", 
+    label: "+ Start Meeting Now", 
+    icon: Video, 
+    path: "/studio",
+    gradient: "from-emerald-500 to-green-500",
+    bgColor: "bg-emerald-50",
+    hoverBg: "hover:bg-emerald-100",
+    iconColor: "text-emerald-600"
+  },
+  { 
     id: "meeting", 
     label: "Create Meeting", 
     icon: Calendar, 
@@ -40,16 +50,6 @@ const quickActions = [
     bgColor: "bg-orange-50",
     hoverBg: "hover:bg-orange-100",
     iconColor: "text-orange-600"
-  },
-  { 
-    id: "studio", 
-    label: "Launch Studio", 
-    icon: Video, 
-    path: "/studio",
-    gradient: "from-blue-500 to-indigo-500",
-    bgColor: "bg-blue-50",
-    hoverBg: "hover:bg-blue-100",
-    iconColor: "text-blue-600"
   },
   { 
     id: "spark", 
