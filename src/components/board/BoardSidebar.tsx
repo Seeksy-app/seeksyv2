@@ -65,13 +65,20 @@ const businessItems = [
   },
 ];
 
-// FINANCIALS section - single Pro Forma entry
+// FINANCIALS section - expanded with new tabs
 const financialItems = [
+  {
+    id: 'state-of-company',
+    label: 'State of the Company',
+    icon: BarChart3,
+    path: '/board/state-of-company',
+    isAI: true,
+  },
   {
     id: 'proforma',
     label: 'AI-Powered 3-Year Pro Forma',
     icon: TrendingUp,
-    path: '/board/proforma',
+    path: '/board/forecasts',
   },
   {
     id: 'revenue-insights',
