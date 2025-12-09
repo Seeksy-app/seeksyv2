@@ -538,93 +538,98 @@ export default function RecordingStudio() {
           </Card>
 
           {/* Controls Bar */}
-          <div className="mt-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Button
-                variant={isCameraOn ? "secondary" : "outline"}
-                onClick={isCameraOn ? stopCamera : startCamera}
-                className="gap-2"
-              >
-                <Camera className="h-4 w-4" />
-                {isCameraOn ? "Stop Camera" : "Start Camera"}
-              </Button>
-              <Button
-                variant={isScreenSharing ? "secondary" : "outline"}
-                onClick={isScreenSharing ? stopScreenShare : startScreenShare}
-                className="gap-2"
-              >
-                <Monitor className="h-4 w-4" />
-                {isScreenSharing ? "Stop Share" : "Share Screen"}
-              </Button>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleMic}
-                className={cn(!isMicOn && "text-destructive")}
-              >
-                {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleCamera}
-                className={cn(!isCameraOn && "text-destructive")}
-              >
-                {isCameraOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
-              </Button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {isRecording ? (
-                <>
-                  <Button variant="outline" size="icon" onClick={pauseRecording}>
-                    {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
-                  </Button>
-                  <Button variant="destructive" onClick={stopRecording} className="gap-2">
-                    <Square className="h-4 w-4" />
-                    Stop Recording
-                  </Button>
-                </>
-              ) : (
-                <Button 
-                  onClick={startRecording} 
-                  disabled={!hasActiveSource}
-                  className="gap-2 bg-red-600 hover:bg-red-700"
+          <Card className="mt-4 p-4 bg-card border">
+            <div className="flex items-center justify-between">
+              {/* Left: Source controls */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={isCameraOn ? stopCamera : startCamera}
+                  className="gap-2"
                 >
-                  <Circle className="h-4 w-4 fill-current" />
-                  {sessionMode === "stream" ? "Go Live" : "Start Recording"}
+                  <Users className="h-4 w-4" />
+                  {isCameraOn ? "Stop Camera" : "Start Camera"}
                 </Button>
-              )}
-              
-              <Select value={recordingMode} onValueChange={(v) => setRecordingMode(v as RecordingMode)}>
-                <SelectTrigger className="w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-popover">
-                  <SelectItem value="webcam">Webcam Only</SelectItem>
-                  <SelectItem value="screen">Screen Only</SelectItem>
-                  <SelectItem value="both">Screen + Webcam</SelectItem>
-                </SelectContent>
-              </Select>
+                <Button
+                  variant="outline"
+                  onClick={isScreenSharing ? stopScreenShare : startScreenShare}
+                  className="gap-2"
+                >
+                  <Monitor className="h-4 w-4" />
+                  {isScreenSharing ? "Stop Share" : "Share Screen"}
+                </Button>
+              </div>
+
+              {/* Center: Mic/Camera toggles */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleMic}
+                  className={cn(!isMicOn && "text-destructive")}
+                >
+                  {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleCamera}
+                  className={cn(!isCameraOn && "text-destructive")}
+                >
+                  {isCameraOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
+                </Button>
+              </div>
+
+              {/* Right: Recording controls */}
+              <div className="flex items-center gap-2">
+                {isRecording ? (
+                  <>
+                    <Button variant="outline" size="icon" onClick={pauseRecording}>
+                      {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+                    </Button>
+                    <Button variant="destructive" onClick={stopRecording} className="gap-2">
+                      <Square className="h-4 w-4" />
+                      Stop Recording
+                    </Button>
+                  </>
+                ) : (
+                  <Button 
+                    onClick={startRecording} 
+                    disabled={!hasActiveSource}
+                    className="gap-2 bg-red-500 hover:bg-red-600 text-white"
+                  >
+                    <Circle className="h-4 w-4 fill-current" />
+                    {sessionMode === "stream" ? "Go Live" : "Start Recording"}
+                  </Button>
+                )}
+                
+                <Select value={recordingMode} onValueChange={(v) => setRecordingMode(v as RecordingMode)}>
+                  <SelectTrigger className="w-36 bg-muted">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover">
+                    <SelectItem value="webcam">Webcam Only</SelectItem>
+                    <SelectItem value="screen">Screen Only</SelectItem>
+                    <SelectItem value="both">Screen + Webcam</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
+          </Card>
         </div>
 
         {/* Sidebar */}
-        <div className="w-80 border-l bg-card p-4">
+        <div className="w-80 border-l bg-background p-4">
           <Tabs defaultValue="layout">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="layout" className="gap-1">
-                <Layout className="h-3 w-3" />
+            <TabsList className="grid w-full grid-cols-3 bg-muted/50">
+              <TabsTrigger value="layout" className="data-[state=active]:bg-background">
+                <Layout className="h-4 w-4" />
               </TabsTrigger>
-              <TabsTrigger value="background" className="gap-1">
-                <Image className="h-3 w-3" />
+              <TabsTrigger value="background" className="data-[state=active]:bg-background">
+                <Image className="h-4 w-4" />
               </TabsTrigger>
-              <TabsTrigger value="teleprompter" className="gap-1">
-                <Type className="h-3 w-3" />
+              <TabsTrigger value="teleprompter" className="data-[state=active]:bg-background">
+                <Type className="h-4 w-4" />
               </TabsTrigger>
             </TabsList>
 
@@ -637,7 +642,7 @@ export default function RecordingStudio() {
                   className={cn(
                     "w-full p-3 rounded-lg border text-left transition-colors",
                     layout === option.id 
-                      ? "border-primary bg-primary/10" 
+                      ? "border-primary bg-primary/5 text-primary" 
                       : "border-border hover:bg-muted"
                   )}
                 >
@@ -745,6 +750,15 @@ export default function RecordingStudio() {
           )}
         </div>
       </div>
+
+      {/* Refiner AI Button - Fixed bottom right */}
+      <Button
+        className="fixed bottom-6 right-6 gap-2 bg-primary hover:bg-primary/90 shadow-lg z-50"
+        onClick={() => toast.info("Refiner AI coming soon")}
+      >
+        <span className="text-lg">✨</span>
+        Refiner AI
+      </Button>
     </div>
   );
 }
