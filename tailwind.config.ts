@@ -70,11 +70,18 @@ export default {
           red: "hsl(var(--brand-red))",
         },
         sidebar: {
-          bg: "hsl(var(--sidebar-bg))",
-          hover: "hsl(var(--sidebar-hover))",
-          active: "hsl(var(--sidebar-active))",
+          DEFAULT: "hsl(var(--sidebar-background))",
+          foreground: "hsl(var(--sidebar-foreground))",
+          primary: "hsl(var(--sidebar-primary))",
+          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
           accent: "hsl(var(--sidebar-accent))",
-          text: "hsl(var(--sidebar-text))",
+          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
+          border: "hsl(var(--sidebar-border))",
+          ring: "hsl(var(--sidebar-ring))",
+        },
+        header: {
+          DEFAULT: "hsl(var(--header-background))",
+          foreground: "hsl(var(--header-foreground))",
         },
       },
       backgroundImage: {
