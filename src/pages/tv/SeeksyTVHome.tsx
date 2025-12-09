@@ -7,7 +7,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { 
   Search, Bell, Tv, Radio, Scissors, 
   Star, TrendingUp, Sparkles, Film,
-  Flame, Clock, Award
+  Flame, Clock, Award, Play, ChevronRight
 } from "lucide-react";
 import { TVFooter } from "@/components/tv/TVFooter";
 import { TVHeroPlayer } from "@/components/tv/TVHeroPlayer";
@@ -19,6 +19,51 @@ import { supabase } from "@/integrations/supabase/client";
 const categories = [
   "All", "Podcasts", "Interviews", "AI Clips", "Events", "Live", 
   "Technology", "Business", "Health", "True Crime", "Design", "Entertainment"
+];
+
+// Demo content for placeholders
+const demoThumbnails = [
+  { id: "demo-1", title: "The Future of AI", gradient: "from-purple-600 to-pink-600" },
+  { id: "demo-2", title: "Business Insights", gradient: "from-blue-600 to-cyan-600" },
+  { id: "demo-3", title: "Wellness Journey", gradient: "from-green-600 to-teal-600" },
+  { id: "demo-4", title: "Tech Trends", gradient: "from-orange-600 to-red-600" },
+  { id: "demo-5", title: "Creative Studio", gradient: "from-pink-600 to-purple-600" },
+  { id: "demo-6", title: "True Crime Files", gradient: "from-gray-700 to-gray-900" },
+  { id: "demo-7", title: "Startup Stories", gradient: "from-amber-600 to-orange-600" },
+  { id: "demo-8", title: "Design Systems", gradient: "from-indigo-600 to-blue-600" },
+  { id: "demo-9", title: "Health & Science", gradient: "from-teal-600 to-green-600" },
+  { id: "demo-10", title: "Leadership", gradient: "from-red-600 to-pink-600" },
+  { id: "demo-11", title: "Marketing Pro", gradient: "from-cyan-600 to-blue-600" },
+  { id: "demo-12", title: "AI Frontiers", gradient: "from-violet-600 to-purple-600" },
+];
+
+const demoEpisodes = [
+  { id: "ep-1", title: "The Future of AI in Creative Industries", category: "Technology", duration_seconds: 2732, view_count: 45200, channel: { name: "Tech Insider Daily" }, content_type: "episode" },
+  { id: "ep-2", title: "Building a Personal Brand from Scratch", category: "Business", duration_seconds: 2415, view_count: 38100, channel: { name: "Business Unplugged" }, content_type: "episode" },
+  { id: "ep-3", title: "Meditation for Busy Professionals", category: "Health", duration_seconds: 1845, view_count: 52300, channel: { name: "The Wellness Hour" }, content_type: "episode" },
+  { id: "ep-4", title: "The Untold Story: Cold Case Files", category: "True Crime", duration_seconds: 3128, view_count: 67400, channel: { name: "True Crime Weekly" }, content_type: "episode" },
+  { id: "ep-5", title: "Design Systems That Scale", category: "Design", duration_seconds: 2156, view_count: 29800, channel: { name: "Creative Studio" }, content_type: "episode" },
+  { id: "ep-6", title: "Startup Founders Share Their Journey", category: "Business", duration_seconds: 2890, view_count: 41200, channel: { name: "Startup Stories" }, content_type: "episode" },
+];
+
+const demoClips = [
+  { id: "clip-1", title: "This AI Tool Changed Everything", category: "Technology", duration_seconds: 58, view_count: 125000, channel: { name: "AI Frontiers" }, content_type: "clip" },
+  { id: "clip-2", title: "The One Habit You Need for Success", category: "Self-Help", duration_seconds: 75, view_count: 89000, channel: { name: "Mindful Living" }, content_type: "clip" },
+  { id: "clip-3", title: "Shocking Twist in the Investigation", category: "True Crime", duration_seconds: 45, view_count: 156000, channel: { name: "True Crime Weekly" }, content_type: "clip" },
+  { id: "clip-4", title: "Design Hack You Have Never Seen", category: "Design", duration_seconds: 62, view_count: 78000, channel: { name: "Creative Studio" }, content_type: "clip" },
+  { id: "clip-5", title: "The Secret to Morning Productivity", category: "Productivity", duration_seconds: 89, view_count: 92000, channel: { name: "The Wellness Hour" }, content_type: "clip" },
+  { id: "clip-6", title: "What Nobody Tells You About Startups", category: "Business", duration_seconds: 67, view_count: 134000, channel: { name: "Startup Stories" }, content_type: "clip" },
+];
+
+const demoCreators = [
+  { id: "ch-1", name: "Tech Insider Daily", slug: "tech-insider-daily", category: "Technology", follower_count: 245000, total_views: 1250000 },
+  { id: "ch-2", name: "The Wellness Hour", slug: "the-wellness-hour", category: "Health", follower_count: 189000, total_views: 890000 },
+  { id: "ch-3", name: "Business Unplugged", slug: "business-unplugged", category: "Business", follower_count: 312000, total_views: 1890000 },
+  { id: "ch-4", name: "Creative Studio", slug: "creative-studio", category: "Design", follower_count: 156000, total_views: 670000 },
+  { id: "ch-5", name: "True Crime Weekly", slug: "true-crime-weekly", category: "True Crime", follower_count: 428000, total_views: 2340000 },
+  { id: "ch-6", name: "Startup Stories", slug: "startup-stories", category: "Business", follower_count: 198000, total_views: 920000 },
+  { id: "ch-7", name: "AI Frontiers", slug: "ai-frontiers", category: "Technology", follower_count: 276000, total_views: 1450000 },
+  { id: "ch-8", name: "Mindful Living", slug: "mindful-living", category: "Health", follower_count: 134000, total_views: 540000 },
 ];
 
 export default function SeeksyTVHome() {
@@ -161,14 +206,19 @@ export default function SeeksyTVHome() {
     }
   });
 
-  const hasContent = (latestEpisodes?.length ?? 0) > 0 || (aiClips?.length ?? 0) > 0 || (channels?.length ?? 0) > 0;
+  // Use demo content when no real content exists
+  const displayTrending = trendingContent?.length ? trendingContent : demoEpisodes;
+  const displayEpisodes = latestEpisodes?.length ? latestEpisodes : demoEpisodes;
+  const displayClips = aiClips?.length ? aiClips : demoClips;
+  const displayCreators = featuredCreators?.length ? featuredCreators : demoCreators;
+  const displayTrendingCreators = trendingCreators?.length ? trendingCreators : demoCreators.slice(0, 5);
 
   // Default featured content if none in DB
   const heroItems = featuredContent?.length ? featuredContent : [
     {
       id: "default",
-      title: "Welcome to Seeksy TV",
-      description: "Your destination for creator content, podcasts, AI clips, and live streams. Discover amazing creators and their best content.",
+      title: "Unlimited podcasts, shows, and more",
+      description: "Watch creator content, podcasts, AI clips, and live streams. Start watching for free.",
       thumbnail_url: null,
       video_url: null,
       category: "Featured",
@@ -230,11 +280,63 @@ export default function SeeksyTVHome() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <TVHeroPlayer 
-        featuredItems={heroItems}
-        onPlay={(id) => navigate(`/tv/watch/${id}`)}
-      />
+      {/* Netflix-Style Hero with Mosaic Background */}
+      <section className="relative w-full min-h-[85vh] overflow-hidden">
+        {/* Mosaic Grid Background */}
+        <div className="absolute inset-0">
+          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1 opacity-40 transform rotate-[-8deg] scale-125 -translate-y-20">
+            {[...demoThumbnails, ...demoThumbnails, ...demoThumbnails].map((item, idx) => (
+              <div 
+                key={`${item.id}-${idx}`}
+                className={`aspect-[2/3] rounded-lg bg-gradient-to-br ${item.gradient} animate-pulse`}
+                style={{ animationDelay: `${idx * 0.1}s`, animationDuration: '3s' }}
+              >
+                <div className="w-full h-full flex items-end p-2">
+                  <span className="text-[8px] text-white/60 font-medium truncate">{item.title}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Heavy Gradient Overlays */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14] via-[#0a0a14]/80 to-[#0a0a14]/40" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a14] via-transparent to-[#0a0a14]" />
+          <div className="absolute inset-0 bg-[#0a0a14]/30" />
+        </div>
+
+        {/* Hero Content */}
+        <div className="relative z-10 container mx-auto px-4 pt-40 pb-20 flex flex-col items-center justify-center min-h-[85vh] text-center">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white mb-6 drop-shadow-2xl leading-tight">
+            Unlimited podcasts,
+            <br />
+            <span className="text-amber-400">shows, and more</span>
+          </h1>
+          
+          <p className="text-lg md:text-xl text-white/80 mb-4 max-w-2xl">
+            Watch anywhere. Create anything. Join the creator revolution.
+          </p>
+          
+          <p className="text-base text-white/60 mb-8">
+            Ready to watch? Enter your email to create or restart your membership.
+          </p>
+
+          {/* Email Signup */}
+          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xl">
+            <Input
+              placeholder="Email address"
+              className="h-14 bg-black/60 border-white/30 text-white placeholder:text-gray-400 text-lg px-6"
+            />
+            <Button 
+              size="lg"
+              className="h-14 bg-amber-500 hover:bg-amber-600 text-white font-bold text-lg px-8 shadow-lg shadow-amber-500/30 whitespace-nowrap"
+              onClick={() => navigate("/auth?mode=signup")}
+            >
+              Get Started
+              <ChevronRight className="h-5 w-5 ml-1" />
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {/* Category Filter */}
       <section className="container mx-auto px-4 py-6 -mt-8 relative z-10">
@@ -260,163 +362,161 @@ export default function SeeksyTVHome() {
         </ScrollArea>
       </section>
 
-      {/* Trending Now */}
-      {trendingContent && trendingContent.length > 0 && (
-        <TVContentRow
-          title="Trending Now"
-          icon={Flame}
-          items={trendingContent}
-          onItemClick={(id) => navigate(`/tv/watch/${id}`)}
-          variant="large"
-          showRank
-        />
-      )}
-
-      {/* Featured Creators */}
-      {featuredCreators && featuredCreators.length > 0 && (
-        <section className="py-8">
-          <div className="container mx-auto px-4 mb-4">
-            <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3 text-white">
-              <Star className="h-6 w-6 text-amber-400" />
-              Featured Creators
-            </h2>
-          </div>
-          <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
-            {featuredCreators.map((creator) => (
-              <TVCreatorCard
-                key={creator.id}
-                {...creator}
-                onClick={() => navigate(`/tv/channel/${creator.slug || creator.id}`)}
-                variant="featured"
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Latest Episodes */}
-      {latestEpisodes && latestEpisodes.length > 0 && (
-        <TVContentRow
-          title="Latest Episodes"
-          icon={Radio}
-          items={latestEpisodes}
-          onItemClick={(id) => navigate(`/tv/watch/${id}`)}
-        />
-      )}
-
-      {/* AI Clips - Vertical Format */}
-      {aiClips && aiClips.length > 0 && (
-        <TVContentRow
-          title="AI-Generated Clips"
-          icon={Sparkles}
-          items={aiClips}
-          onItemClick={(id) => navigate(`/tv/clip/${id}`)}
-          variant="portrait"
-        />
-      )}
-
-      {/* Channels Grid */}
-      {channels && channels.length > 0 && (
-        <section className="py-8">
-          <div className="container mx-auto px-4 mb-6">
-            <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3 text-white">
-              <Film className="h-6 w-6 text-amber-400" />
-              Popular Channels
-            </h2>
-          </div>
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {channels.map((channel: any) => (
-                <div
-                  key={channel.id}
-                  className="group rounded-xl overflow-hidden bg-white/5 hover:bg-white/10 transition-all cursor-pointer border border-transparent hover:border-amber-500/30"
-                  onClick={() => navigate(`/tv/channel/${channel.slug}`)}
-                >
-                  {/* Channel Videos Preview */}
-                  <div className="grid grid-cols-3 gap-0.5">
-                    {(channel.videos?.slice(0, 3) || []).map((video: any, idx: number) => (
-                      <div key={video.id || idx} className="aspect-video bg-gray-800">
-                        {video.thumbnail_url ? (
-                          <img src={video.thumbnail_url} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Tv className="h-4 w-4 text-gray-600" />
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                    {/* Fill empty slots */}
-                    {Array.from({ length: Math.max(0, 3 - (channel.videos?.length || 0)) }).map((_, idx) => (
-                      <div key={`empty-${idx}`} className="aspect-video bg-gray-800/50" />
-                    ))}
+      {/* Trending Now - Netflix Style with Big Numbers */}
+      <section className="py-8">
+        <div className="container mx-auto px-4 mb-4">
+          <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3 text-white">
+            <Flame className="h-6 w-6 text-amber-400" />
+            Trending Now
+          </h2>
+        </div>
+        <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
+          {displayTrending.slice(0, 10).map((item, index) => (
+            <div 
+              key={item.id}
+              className="shrink-0 w-48 md:w-56 group cursor-pointer relative"
+              onClick={() => navigate(`/tv/watch/${item.id}`)}
+            >
+              {/* Big Rank Number */}
+              <div className="absolute -left-4 bottom-0 z-10">
+                <span className="text-[120px] font-black text-transparent bg-clip-text bg-gradient-to-b from-white/20 to-white/5 leading-none drop-shadow-lg" style={{ WebkitTextStroke: '2px rgba(255,255,255,0.3)' }}>
+                  {index + 1}
+                </span>
+              </div>
+              
+              {/* Thumbnail */}
+              <div className="aspect-[2/3] rounded-lg overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 ml-8 relative group-hover:scale-105 transition-transform duration-300">
+                {item.thumbnail_url ? (
+                  <img src={item.thumbnail_url} alt={item.title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className={`w-full h-full bg-gradient-to-br ${demoThumbnails[index % demoThumbnails.length]?.gradient || 'from-amber-600 to-orange-600'} flex items-end p-4`}>
+                    <div>
+                      <p className="text-xs text-white/60 uppercase tracking-wider mb-1">{item.category}</p>
+                      <h3 className="text-sm font-bold text-white line-clamp-2">{item.title}</h3>
+                    </div>
                   </div>
-                  
-                  {/* Channel Info */}
-                  <div className="p-4 flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white font-bold shrink-0 ring-2 ring-transparent group-hover:ring-amber-500/50 transition-all">
-                      {channel.name.charAt(0)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-white group-hover:text-amber-400 transition-colors truncate">
-                        {channel.name}
-                      </h3>
-                      <p className="text-sm text-gray-400">
-                        {channel.videos?.length || 0} videos
-                      </p>
-                    </div>
+                )}
+                
+                {/* Hover Play */}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center">
+                    <Play className="h-5 w-5 text-white fill-current ml-0.5" />
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
-        </section>
-      )}
+          ))}
+        </div>
+      </section>
 
-      {/* Trending Creators */}
-      {trendingCreators && trendingCreators.length > 0 && (
-        <section className="py-8 mb-8">
-          <div className="container mx-auto px-4 mb-4">
-            <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3 text-white">
-              <TrendingUp className="h-6 w-6 text-amber-400" />
-              Trending This Week
-            </h2>
-          </div>
-          <div className="container mx-auto px-4 space-y-3">
-            {trendingCreators.map((creator, index) => (
-              <TVCreatorCard
-                key={creator.id}
-                {...creator}
-                onClick={() => navigate(`/tv/channel/${creator.slug || creator.id}`)}
-                variant="compact"
-                rank={index + 1}
-              />
+      {/* Featured Creators */}
+      <section className="py-8">
+        <div className="container mx-auto px-4 mb-4">
+          <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3 text-white">
+            <Star className="h-6 w-6 text-amber-400" />
+            Featured Creators
+          </h2>
+        </div>
+        <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
+          {displayCreators.map((creator) => (
+            <TVCreatorCard
+              key={creator.id}
+              {...creator}
+              onClick={() => navigate(`/tv/channel/${creator.slug || creator.id}`)}
+              variant="featured"
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* Latest Episodes */}
+      <TVContentRow
+        title="Latest Episodes"
+        icon={Radio}
+        items={displayEpisodes}
+        onItemClick={(id) => navigate(`/tv/watch/${id}`)}
+      />
+
+      {/* AI Clips - Vertical Format */}
+      <TVContentRow
+        title="AI-Generated Clips"
+        icon={Sparkles}
+        items={displayClips}
+        onItemClick={(id) => navigate(`/tv/clip/${id}`)}
+        variant="portrait"
+      />
+
+      {/* Popular Channels Grid */}
+      <section className="py-8">
+        <div className="container mx-auto px-4 mb-6">
+          <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3 text-white">
+            <Film className="h-6 w-6 text-amber-400" />
+            Popular Channels
+          </h2>
+        </div>
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {(channels?.length ? channels : demoCreators).map((channel: any) => (
+              <div
+                key={channel.id}
+                className="group rounded-xl overflow-hidden bg-white/5 hover:bg-white/10 transition-all cursor-pointer border border-transparent hover:border-amber-500/30"
+                onClick={() => navigate(`/tv/channel/${channel.slug || channel.id}`)}
+              >
+                {/* Channel Videos Preview */}
+                <div className="grid grid-cols-3 gap-0.5">
+                  {[0, 1, 2].map((idx) => (
+                    <div key={idx} className={`aspect-video bg-gradient-to-br ${demoThumbnails[(idx + parseInt(channel.id?.slice(-1) || '0')) % demoThumbnails.length]?.gradient || 'from-gray-700 to-gray-800'}`}>
+                      {channel.videos?.[idx]?.thumbnail_url ? (
+                        <img src={channel.videos[idx].thumbnail_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Tv className="h-4 w-4 text-white/30" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Channel Info */}
+                <div className="p-4 flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white font-bold shrink-0 ring-2 ring-transparent group-hover:ring-amber-500/50 transition-all">
+                    {channel.name?.charAt(0) || 'C'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-white group-hover:text-amber-400 transition-colors truncate">
+                      {channel.name}
+                    </h3>
+                    <p className="text-sm text-gray-400">
+                      {channel.videos?.length || Math.floor(Math.random() * 20) + 5} videos
+                    </p>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
-      {/* Empty State */}
-      {!hasContent && (
-        <section className="container mx-auto px-4 py-24 text-center">
-          <div className="max-w-md mx-auto">
-            <div className="w-24 h-24 rounded-full bg-amber-500/20 flex items-center justify-center mx-auto mb-6">
-              <Tv className="h-12 w-12 text-amber-400" />
-            </div>
-            <h2 className="text-3xl font-bold text-white mb-4">No Content Yet</h2>
-            <p className="text-gray-400 mb-8 text-lg">
-              Seeksy TV is ready for content! Start by seeding demo content to see the platform in action.
-            </p>
-            <Button 
-              size="lg"
-              onClick={() => navigate('/admin/tv-seeder')} 
-              className="bg-amber-500 hover:bg-amber-600 shadow-lg shadow-amber-500/30 px-8"
-            >
-              <Sparkles className="h-5 w-5 mr-2" />
-              Seed Demo Content
-            </Button>
-          </div>
-        </section>
-      )}
+      {/* Trending Creators */}
+      <section className="py-8 mb-8">
+        <div className="container mx-auto px-4 mb-4">
+          <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3 text-white">
+            <TrendingUp className="h-6 w-6 text-amber-400" />
+            Trending This Week
+          </h2>
+        </div>
+        <div className="container mx-auto px-4 space-y-3">
+          {displayTrendingCreators.map((creator, index) => (
+            <TVCreatorCard
+              key={creator.id}
+              {...creator}
+              onClick={() => navigate(`/tv/channel/${creator.slug || creator.id}`)}
+              variant="compact"
+              rank={index + 1}
+            />
+          ))}
+        </div>
+      </section>
 
       <TVFooter />
     </div>
