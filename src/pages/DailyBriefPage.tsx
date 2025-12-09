@@ -67,7 +67,7 @@ export default function DailyBriefPage() {
         .limit(30);
 
       if (briefsError) throw briefsError;
-      setBriefs((briefsData || []) as Brief[]);
+      setBriefs((briefsData || []) as unknown as Brief[]);
 
       // Fetch competitors
       const { data: competitorsData, error: competitorsError } = await supabase

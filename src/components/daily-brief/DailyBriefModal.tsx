@@ -62,7 +62,7 @@ export function DailyBriefModal({ open, onOpenChange, audienceType }: DailyBrief
         .maybeSingle();
 
       if (error) throw error;
-      setBrief(data as Brief | null);
+      setBrief(data as unknown as Brief | null);
     } catch (error: any) {
       console.error('Failed to fetch brief:', error);
     } finally {

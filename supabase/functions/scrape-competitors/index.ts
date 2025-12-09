@@ -98,7 +98,7 @@ serve(async (req) => {
 
       } catch (err) {
         console.error(`Error scraping ${competitor.name}:`, err);
-        results.push({ competitor: competitor.name, error: err.message });
+        results.push({ competitor: competitor.name, error: err instanceof Error ? err.message : 'Unknown error' });
       }
     }
 
@@ -107,7 +107,7 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('Scrape competitors error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
