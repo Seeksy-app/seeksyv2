@@ -67,7 +67,7 @@ export function OnboardingWelcomeScreen({
     ));
   };
 
-  const handleContinue = async () => {
+  const handleContinue = async (targetPath?: string) => {
     // Save enabled apps to user_modules
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -87,13 +87,17 @@ export function OnboardingWelcomeScreen({
         await supabase.from('profiles').update({
           onboarding_completed: true
         }).eq('id', user.id);
+        
+        // Clear any lingering onboarding localStorage
+        localStorage.removeItem('onboarding_step');
+        localStorage.removeItem('onboarding_data');
       }
     } catch (error) {
       console.error('Error saving modules:', error);
     }
     
-    // Navigate directly to my-day instead of calling onContinue which may have issues
-    navigate('/my-day');
+    // Navigate to target path or default to my-day
+    navigate(targetPath || '/my-day');
   };
 
   const quickActions = [
@@ -290,10 +294,7 @@ export function OnboardingWelcomeScreen({
                   transition={{ delay: 0.5 + index * 0.1 }}
                   whileHover={{ scale: 1.01, x: 4 }}
                   whileTap={{ scale: 0.99 }}
-                  onClick={async () => {
-                    await handleContinue();
-                    navigate(action.path);
-                  }}
+                  onClick={() => handleContinue(action.path)}
                   className="w-full p-4 rounded-xl border border-border/50 hover:border-primary/30 hover:bg-accent/50 transition-all text-left group flex items-start gap-4"
                 >
                   <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${action.gradient} flex items-center justify-center flex-shrink-0 shadow-md group-hover:scale-105 transition-transform`}>
@@ -324,7 +325,7 @@ export function OnboardingWelcomeScreen({
               </p>
               <Button 
                 size="lg" 
-                onClick={handleContinue}
+                onClick={() => handleContinue()}
                 className="w-full gap-2 h-12 text-base font-semibold"
               >
                 Go to Dashboard

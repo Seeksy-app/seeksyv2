@@ -4,12 +4,12 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { ArrowLeft, ChevronRight, Check } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Check, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { ONBOARDING_IMAGES, getImageForFocus } from './OnboardingImages';
@@ -140,11 +140,13 @@ function CheckboxPill({
 
 export function FullScreenOnboarding() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [confettiPlayed, setConfettiPlayed] = useState(false);
   const [firstName, setFirstName] = useState('');
+  const [googleConnected, setGoogleConnected] = useState(false);
   
   // Restore step and data from localStorage to persist across OAuth redirects
   const [step, setStep] = useState(() => {
@@ -192,6 +194,19 @@ export function FullScreenOnboarding() {
   }, [data]);
 
   const totalSteps = 6;
+
+  // Check for Google connection success from URL params
+  useEffect(() => {
+    const success = searchParams.get('success');
+    if (success === 'gmail_connected') {
+      setGoogleConnected(true);
+      toast.success('Google account connected successfully!');
+      // Update integrationType in data
+      setData(prev => ({ ...prev, integrationType: 'google_email' }));
+      // Clean up the URL
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   // Fetch user first name
   useEffect(() => {
@@ -579,6 +594,46 @@ export function FullScreenOnboarding() {
 
   const renderStep6 = () => {
     const suggestedIntegration = ['Events & Meetings', 'Podcasting'].includes(data.manageFocus || '') ? 'calendar' : 'email';
+    
+    // Show connected state if Google was just connected
+    if (googleConnected || data.integrationType === 'google_email' || data.integrationType === 'google_calendar') {
+      return (
+        <div className="space-y-8">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-3"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+              </div>
+              <div>
+                <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+                  You're connected to Google!
+                </h1>
+                <p className="text-muted-foreground">Your account is ready to sync</p>
+              </div>
+            </div>
+            <div className="space-y-1 text-muted-foreground mt-4 pl-15">
+              <p className="flex items-center gap-2"><span>✅</span> Email syncing enabled</p>
+              <p className="flex items-center gap-2"><span>✅</span> Contacts will be imported automatically</p>
+            </div>
+          </motion.div>
+
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="space-y-3 max-w-md"
+          >
+            <p className="text-sm text-muted-foreground">
+              Click "Get Started" below to complete your setup and start exploring Seeksy.
+            </p>
+          </motion.div>
+        </div>
+      );
+    }
     
     return (
       <div className="space-y-8">
