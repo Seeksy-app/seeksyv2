@@ -10,6 +10,7 @@ import { Loader2 } from "lucide-react";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
 import { validatePasswordStrength } from "@/lib/password-validation";
+import { WelcomeBackToast } from "@/components/WelcomeBackToast";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -76,7 +77,21 @@ const Auth = () => {
 
         if (error) throw error;
         
-        toast.success("Welcome back! You've successfully logged in.");
+        // Get display name for personalized welcome
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', (await supabase.auth.getUser()).data.user?.id)
+          .maybeSingle();
+        
+        const firstName = profile?.full_name?.split(' ')[0];
+        
+        toast.custom((t) => (
+          <WelcomeBackToast 
+            firstName={firstName} 
+            onDismiss={() => toast.dismiss(t)} 
+          />
+        ), { duration: 4000 });
         
         // Get user from session
         const { data: { session } } = await supabase.auth.getSession();
