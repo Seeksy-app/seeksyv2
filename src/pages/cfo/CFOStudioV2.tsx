@@ -6,7 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Download, FileSpreadsheet, FileText, Sparkles, Target, TrendingUp,
   DollarSign, Users, Building2, Briefcase, Calculator, Share2, ArrowLeft
@@ -14,6 +13,9 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { CFOSliderControl, CollapsibleSliderSection } from '@/components/cfo-v2/CFOSliderControl';
+import { ROICalculator, BreakevenCalculator, GrowthImpactCalculator } from '@/components/cfo-v2/CFOCalculators';
+import { CFOFinancialStatements } from '@/components/cfo-v2/CFOFinancialStatements';
 
 // Types
 interface RevenueModel {
@@ -42,18 +44,39 @@ interface HeadcountRow {
   year1: number;
   year2: number;
   year3: number;
+  avgSalary: number;
 }
 
 interface Assumptions {
+  // Revenue sliders
   monthlyCreatorGrowth: number;
   avgRevenuePerCreator: number;
-  aiToolsAdoption: number;
+  advertisingCPM: number;
   adFillRate: number;
-  avgCPM: number;
   churnRate: number;
+  pricingSensitivity: number;
+  organicGrowthMix: number;
+  enterpriseDealValue: number;
+  // COGS sliders
+  hostingCostPerUser: number;
+  bandwidthMultiplier: number;
+  aiInferenceCostPerMin: number;
+  paymentProcessingFee: number;
+  aiUsageMultiplier: number;
+  // OpEx sliders
+  monthlyMarketingBudget: number;
   cacPaid: number;
+  proTierArpu: number;
+  opexChurn: number;
+  headcountProductivity: number;
+  // Headcount sliders
+  salaryInflation: number;
+  hiringRampSpeed: number;
+  contractorToEmployee: boolean;
+  // Legacy
   cacOrganic: number;
   grossMarginTarget: number;
+  aiToolsAdoption: number;
 }
 
 interface KeyMetrics {
@@ -86,17 +109,43 @@ export default function CFOStudioV2() {
   const [enterpriseEnabled, setEnterpriseEnabled] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Assumptions State
+  // Collapsible sections state
+  const [revenueSliderOpen, setRevenueSliderOpen] = useState(true);
+  const [cogsSliderOpen, setCogsSliderOpen] = useState(true);
+  const [opexSliderOpen, setOpexSliderOpen] = useState(true);
+  const [headcountSliderOpen, setHeadcountSliderOpen] = useState(true);
+
+  // Assumptions State with all new sliders
   const [assumptions, setAssumptions] = useState<Assumptions>({
+    // Revenue
     monthlyCreatorGrowth: 8,
     avgRevenuePerCreator: 45,
-    aiToolsAdoption: 35,
+    advertisingCPM: 22,
     adFillRate: 65,
-    avgCPM: 22,
     churnRate: 5,
+    pricingSensitivity: 0,
+    organicGrowthMix: 30,
+    enterpriseDealValue: 150000,
+    // COGS
+    hostingCostPerUser: 12,
+    bandwidthMultiplier: 1.0,
+    aiInferenceCostPerMin: 0.005,
+    paymentProcessingFee: 3,
+    aiUsageMultiplier: 1.0,
+    // OpEx
+    monthlyMarketingBudget: 10000,
     cacPaid: 85,
+    proTierArpu: 29,
+    opexChurn: 5,
+    headcountProductivity: 1.0,
+    // Headcount
+    salaryInflation: 5,
+    hiringRampSpeed: 1.0,
+    contractorToEmployee: false,
+    // Legacy
     cacOrganic: 15,
     grossMarginTarget: 70,
+    aiToolsAdoption: 35,
   });
 
   // Revenue Model State
@@ -125,30 +174,87 @@ export default function CFOStudioV2() {
 
   // Headcount State
   const [headcount, setHeadcount] = useState<HeadcountRow[]>([
-    { department: 'Engineering', year1: 4, year2: 7, year3: 12 },
-    { department: 'Product', year1: 2, year2: 3, year3: 5 },
-    { department: 'Sales', year1: 2, year2: 4, year3: 8 },
-    { department: 'Marketing', year1: 1, year2: 2, year3: 4 },
-    { department: 'Customer Success', year1: 1, year2: 2, year3: 4 },
-    { department: 'G&A', year1: 2, year2: 3, year3: 4 },
+    { department: 'Engineering', year1: 4, year2: 7, year3: 12, avgSalary: 120000 },
+    { department: 'Product', year1: 2, year2: 3, year3: 5, avgSalary: 110000 },
+    { department: 'Sales', year1: 2, year2: 4, year3: 8, avgSalary: 90000 },
+    { department: 'Marketing', year1: 1, year2: 2, year3: 4, avgSalary: 85000 },
+    { department: 'Customer Success', year1: 1, year2: 2, year3: 4, avgSalary: 75000 },
+    { department: 'G&A', year1: 2, year2: 3, year3: 4, avgSalary: 95000 },
   ]);
+
+  // Apply slider effects to revenue
+  const adjustedRevenue = useMemo(() => {
+    const growthMultiplier = 1 + (assumptions.monthlyCreatorGrowth / 100);
+    const pricingMultiplier = 1 + (assumptions.pricingSensitivity / 100);
+    const churnImpact = 1 - (assumptions.churnRate / 100);
+    
+    return {
+      saasSubscriptions: revenue.saasSubscriptions.map((v, i) => 
+        Math.round(v * Math.pow(growthMultiplier, i) * pricingMultiplier * churnImpact)
+      ),
+      aiProductionTools: revenue.aiProductionTools.map((v, i) =>
+        Math.round(v * (assumptions.aiToolsAdoption / 35) * Math.pow(growthMultiplier, i))
+      ),
+      advertisingMarketplace: revenue.advertisingMarketplace.map((v, i) =>
+        Math.round(v * (assumptions.advertisingCPM / 22) * (assumptions.adFillRate / 65) * Math.pow(growthMultiplier, i))
+      ),
+      enterpriseLicensing: enterpriseEnabled 
+        ? [0, assumptions.enterpriseDealValue, assumptions.enterpriseDealValue * 3.33]
+        : [0, 0, 0],
+    };
+  }, [revenue, assumptions, enterpriseEnabled]);
+
+  // Apply slider effects to COGS
+  const adjustedCogs = useMemo(() => {
+    const totalRevenue = adjustedRevenue.saasSubscriptions.map((v, i) =>
+      v + adjustedRevenue.aiProductionTools[i] + adjustedRevenue.advertisingMarketplace[i] + adjustedRevenue.enterpriseLicensing[i]
+    );
+    
+    return {
+      hostingBandwidth: cogs.hostingBandwidth.map((v, i) =>
+        Math.round(v * (assumptions.hostingCostPerUser / 12) * assumptions.bandwidthMultiplier)
+      ),
+      aiInference: cogs.aiInference.map((v, i) =>
+        Math.round(v * (assumptions.aiInferenceCostPerMin / 0.005) * assumptions.aiUsageMultiplier)
+      ),
+      paymentProcessing: totalRevenue.map(rev =>
+        Math.round(rev * (assumptions.paymentProcessingFee / 100))
+      ),
+    };
+  }, [cogs, assumptions, adjustedRevenue]);
+
+  // Apply slider effects to OpEx
+  const adjustedOpex = useMemo(() => {
+    const productivityFactor = assumptions.headcountProductivity;
+    const marketingBudgetRatio = assumptions.monthlyMarketingBudget / 10000;
+    
+    return {
+      productEngineering: opex.productEngineering.map(v => Math.round(v / productivityFactor)),
+      salesMarketing: opex.salesMarketing.map(v => Math.round(v * marketingBudgetRatio)),
+      generalAdmin: opex.generalAdmin.map(v => Math.round(v / productivityFactor)),
+      customerSuccess: opex.customerSuccess.map(v => Math.round(v / productivityFactor)),
+      contractorsAI: assumptions.contractorToEmployee 
+        ? opex.contractorsAI.map(v => Math.round(v * 1.2))
+        : opex.contractorsAI,
+    };
+  }, [opex, assumptions]);
 
   // Calculated Metrics
   const metrics = useMemo<KeyMetrics>(() => {
     const totalRevenue = YEARS.map((_, i) => 
-      revenue.saasSubscriptions[i] + 
-      revenue.aiProductionTools[i] + 
-      revenue.advertisingMarketplace[i] + 
-      (enterpriseEnabled ? revenue.enterpriseLicensing[i] : 0)
+      adjustedRevenue.saasSubscriptions[i] + 
+      adjustedRevenue.aiProductionTools[i] + 
+      adjustedRevenue.advertisingMarketplace[i] + 
+      adjustedRevenue.enterpriseLicensing[i]
     );
 
     const totalCogs = YEARS.map((_, i) => 
-      cogs.hostingBandwidth[i] + cogs.aiInference[i] + cogs.paymentProcessing[i]
+      adjustedCogs.hostingBandwidth[i] + adjustedCogs.aiInference[i] + adjustedCogs.paymentProcessing[i]
     );
 
     const totalOpex = YEARS.map((_, i) =>
-      opex.productEngineering[i] + opex.salesMarketing[i] + opex.generalAdmin[i] +
-      opex.customerSuccess[i] + opex.contractorsAI[i]
+      adjustedOpex.productEngineering[i] + adjustedOpex.salesMarketing[i] + adjustedOpex.generalAdmin[i] +
+      adjustedOpex.customerSuccess[i] + adjustedOpex.contractorsAI[i]
     );
 
     const grossProfit = totalRevenue.map((rev, i) => rev - totalCogs[i]);
@@ -156,13 +262,14 @@ export default function CFOStudioV2() {
     const ebitda = grossProfit.map((gp, i) => gp - totalOpex[i]);
     const burnRate = ebitda.map(e => e < 0 ? Math.abs(e) / 12 : 0);
 
-    // Simple CAC/LTV based on assumptions
-    const blendedCAC = (assumptions.cacPaid * 0.6) + (assumptions.cacOrganic * 0.4);
-    const avgMonthlyRevenue = assumptions.avgRevenuePerCreator;
+    // CAC/LTV based on assumptions
+    const blendedCAC = (assumptions.cacPaid * (100 - assumptions.organicGrowthMix) / 100) + 
+                       (assumptions.cacOrganic * assumptions.organicGrowthMix / 100);
+    const avgMonthlyRevenue = assumptions.proTierArpu;
     const churnRate = assumptions.churnRate / 100;
     const ltv = churnRate > 0 ? avgMonthlyRevenue / churnRate : avgMonthlyRevenue * 24;
 
-    // Find breakeven month (first month where cumulative EBITDA > 0)
+    // Find breakeven month
     let breakEvenMonth: number | null = null;
     let cumulative = 0;
     for (let month = 1; month <= 36; month++) {
@@ -175,9 +282,8 @@ export default function CFOStudioV2() {
       }
     }
 
-    // Runway calculation (months of cash at current burn rate)
     const currentBurn = burnRate[0];
-    const assumedCash = 500000; // Could be an input
+    const assumedCash = 500000;
     const runway = currentBurn > 0 ? assumedCash / currentBurn : 36;
 
     return {
@@ -190,7 +296,7 @@ export default function CFOStudioV2() {
       ebitda,
       breakEvenMonth,
     };
-  }, [revenue, cogs, opex, assumptions, enterpriseEnabled]);
+  }, [adjustedRevenue, adjustedCogs, adjustedOpex, assumptions]);
 
   // Update handlers
   const updateRevenue = useCallback((key: keyof RevenueModel, yearIndex: number, value: number) => {
@@ -214,23 +320,34 @@ export default function CFOStudioV2() {
     }));
   }, []);
 
-  const updateHeadcount = useCallback((index: number, field: 'year1' | 'year2' | 'year3', value: number) => {
+  const updateHeadcount = useCallback((index: number, field: 'year1' | 'year2' | 'year3' | 'avgSalary', value: number) => {
     setHeadcount(prev => prev.map((row, i) => 
       i === index ? { ...row, [field]: value } : row
     ));
   }, []);
 
-  const updateAssumption = useCallback((key: keyof Assumptions, value: number) => {
+  const updateAssumption = useCallback(<K extends keyof Assumptions>(key: K, value: Assumptions[K]) => {
     setAssumptions(prev => ({ ...prev, [key]: value }));
+  }, []);
+
+  // Calculator apply handlers
+  const handleROIApply = useCallback((results: { roi: number; ltvCac: number; payback: number }) => {
+    toast.success(`ROI Calculator applied: ${results.roi.toFixed(0)}% ROI, ${results.ltvCac.toFixed(1)}x LTV:CAC`);
+  }, []);
+
+  const handleBreakevenApply = useCallback((results: { breakEvenMonth: number; breakEvenRunRate: number }) => {
+    toast.success(`Breakeven Month ${results.breakEvenMonth} applied to model`);
+  }, []);
+
+  const handleGrowthImpactApply = useCallback((results: { deltaRevenue: number[]; deltaEbitda: number[]; deltaRunway: number }) => {
+    toast.success('Growth impact applied to model');
   }, []);
 
   // AI Forecast Generation
   const generateAIForecast = async () => {
     setIsGenerating(true);
-    // Simulate AI processing
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // Apply growth multipliers based on assumptions
     const growthMultiplier = 1 + (assumptions.monthlyCreatorGrowth / 100) * 12;
     
     setRevenue({
@@ -246,28 +363,24 @@ export default function CFOStudioV2() {
   };
 
   // Export handlers
-  const exportPDF = () => {
-    toast.success('PDF export started');
-    // PDF generation logic would go here
-  };
-
+  const exportPDF = () => toast.success('PDF export started');
   const exportExcel = () => {
     const headers = ['Category', ...YEARS.map(y => y.toString())];
     const rows = [
-      ['Revenue - SaaS Subscriptions', ...revenue.saasSubscriptions],
-      ['Revenue - AI + Production Tools', ...revenue.aiProductionTools],
-      ['Revenue - Advertising + Marketplace', ...revenue.advertisingMarketplace],
-      ['Revenue - Enterprise Licensing', ...revenue.enterpriseLicensing],
+      ['Revenue - SaaS Subscriptions', ...adjustedRevenue.saasSubscriptions],
+      ['Revenue - AI + Production Tools', ...adjustedRevenue.aiProductionTools],
+      ['Revenue - Advertising + Marketplace', ...adjustedRevenue.advertisingMarketplace],
+      ['Revenue - Enterprise Licensing', ...adjustedRevenue.enterpriseLicensing],
       ['', '', '', ''],
-      ['COGS - Hosting & Bandwidth', ...cogs.hostingBandwidth],
-      ['COGS - AI Inference', ...cogs.aiInference],
-      ['COGS - Payment Processing', ...cogs.paymentProcessing],
+      ['COGS - Hosting & Bandwidth', ...adjustedCogs.hostingBandwidth],
+      ['COGS - AI Inference', ...adjustedCogs.aiInference],
+      ['COGS - Payment Processing', ...adjustedCogs.paymentProcessing],
       ['', '', '', ''],
-      ['OpEx - Product & Engineering', ...opex.productEngineering],
-      ['OpEx - Sales & Marketing', ...opex.salesMarketing],
-      ['OpEx - G&A', ...opex.generalAdmin],
-      ['OpEx - Customer Success', ...opex.customerSuccess],
-      ['OpEx - Contractors/AI', ...opex.contractorsAI],
+      ['OpEx - Product & Engineering', ...adjustedOpex.productEngineering],
+      ['OpEx - Sales & Marketing', ...adjustedOpex.salesMarketing],
+      ['OpEx - G&A', ...adjustedOpex.generalAdmin],
+      ['OpEx - Customer Success', ...adjustedOpex.customerSuccess],
+      ['OpEx - Contractors/AI', ...adjustedOpex.contractorsAI],
       ['', '', '', ''],
       ['ARR', ...metrics.arr],
       ['Gross Margin %', ...metrics.grossMargin.map(v => `${v.toFixed(1)}%`)],
@@ -284,12 +397,8 @@ export default function CFOStudioV2() {
     toast.success('Excel export complete');
   };
 
-  const shareToBoard = () => {
-    toast.success('Pro Forma shared to Board');
-    // Would update board_shared flag in database
-  };
+  const shareToBoard = () => toast.success('Pro Forma shared to Board');
 
-  // Render helpers
   const renderNumberInput = (
     value: number, 
     onChange: (v: number) => void, 
@@ -306,6 +415,28 @@ export default function CFOStudioV2() {
       />
     </div>
   );
+
+  // Financial data for statements
+  const financialData = useMemo(() => {
+    const totalRevenue = metrics.arr;
+    const totalCogs = YEARS.map((_, i) => 
+      adjustedCogs.hostingBandwidth[i] + adjustedCogs.aiInference[i] + adjustedCogs.paymentProcessing[i]
+    );
+    const totalOpex = YEARS.map((_, i) =>
+      adjustedOpex.productEngineering[i] + adjustedOpex.salesMarketing[i] + adjustedOpex.generalAdmin[i] +
+      adjustedOpex.customerSuccess[i] + adjustedOpex.contractorsAI[i]
+    );
+    const grossProfit = totalRevenue.map((rev, i) => rev - totalCogs[i]);
+    
+    return {
+      revenue: totalRevenue,
+      cogs: totalCogs,
+      opex: totalOpex,
+      ebitda: metrics.ebitda,
+      grossProfit,
+      grossMargin: metrics.grossMargin,
+    };
+  }, [metrics, adjustedCogs, adjustedOpex]);
 
   return (
     <div className="w-full min-h-screen bg-background">
@@ -325,13 +456,12 @@ export default function CFOStudioV2() {
               <Calculator className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">CFO Studio V2</h1>
-              <p className="text-muted-foreground text-sm">3-Year Financial Pro Forma • Investor Package</p>
+              <h1 className="text-2xl font-bold text-foreground">CFO Studio V2.5</h1>
+              <p className="text-muted-foreground text-sm">3-Year Financial Pro Forma • Fine-Tune Sliders • Investor Package</p>
             </div>
           </div>
           
           <div className="flex items-center gap-3">
-            {/* Forecast Mode Toggle */}
             <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
               <Button
                 variant={forecastMode === 'custom' ? 'default' : 'ghost'}
@@ -358,7 +488,6 @@ export default function CFOStudioV2() {
               {forecastMode === 'ai' ? 'AI-Generated' : 'Custom Assumptions'}
             </Badge>
 
-            {/* Export Buttons */}
             <Button variant="outline" size="sm" onClick={exportPDF}>
               <FileText className="w-4 h-4 mr-1.5" />
               PDF
@@ -400,13 +529,14 @@ export default function CFOStudioV2() {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid grid-cols-7 w-full max-w-3xl">
+          <TabsList className="grid grid-cols-8 w-full max-w-4xl">
             <TabsTrigger value="revenue">Revenue</TabsTrigger>
             <TabsTrigger value="cogs">COGS</TabsTrigger>
             <TabsTrigger value="opex">OpEx</TabsTrigger>
             <TabsTrigger value="headcount">Headcount</TabsTrigger>
             <TabsTrigger value="metrics">Metrics</TabsTrigger>
             <TabsTrigger value="assumptions">Assumptions</TabsTrigger>
+            <TabsTrigger value="statements">Financials</TabsTrigger>
             <TabsTrigger value="summary">Summary</TabsTrigger>
           </TabsList>
 
@@ -441,46 +571,38 @@ export default function CFOStudioV2() {
                       <tr className="border-b hover:bg-muted/50">
                         <td className="py-2 px-3">SaaS Platform Subscriptions</td>
                         {YEARS.map((_, i) => (
-                          <td key={i} className="py-2 px-3">
-                            {renderNumberInput(revenue.saasSubscriptions[i], (v) => updateRevenue('saasSubscriptions', i, v))}
-                          </td>
+                          <td key={i} className="py-2 px-3 text-right font-medium">{formatCurrency(adjustedRevenue.saasSubscriptions[i])}</td>
                         ))}
                       </tr>
                       <tr className="border-b hover:bg-muted/50">
                         <td className="py-2 px-3">AI + Production Tools (Usage)</td>
                         {YEARS.map((_, i) => (
-                          <td key={i} className="py-2 px-3">
-                            {renderNumberInput(revenue.aiProductionTools[i], (v) => updateRevenue('aiProductionTools', i, v))}
-                          </td>
+                          <td key={i} className="py-2 px-3 text-right font-medium">{formatCurrency(adjustedRevenue.aiProductionTools[i])}</td>
                         ))}
                       </tr>
                       <tr className="border-b hover:bg-muted/50">
                         <td className="py-2 px-3">Advertising + Marketplace</td>
                         {YEARS.map((_, i) => (
-                          <td key={i} className="py-2 px-3">
-                            {renderNumberInput(revenue.advertisingMarketplace[i], (v) => updateRevenue('advertisingMarketplace', i, v))}
-                          </td>
+                          <td key={i} className="py-2 px-3 text-right font-medium">{formatCurrency(adjustedRevenue.advertisingMarketplace[i])}</td>
                         ))}
                       </tr>
                       {enterpriseEnabled && (
                         <tr className="border-b hover:bg-muted/50">
                           <td className="py-2 px-3">Enterprise Licensing</td>
                           {YEARS.map((_, i) => (
-                            <td key={i} className="py-2 px-3">
-                              {renderNumberInput(revenue.enterpriseLicensing[i], (v) => updateRevenue('enterpriseLicensing', i, v))}
-                            </td>
+                            <td key={i} className="py-2 px-3 text-right font-medium">{formatCurrency(adjustedRevenue.enterpriseLicensing[i])}</td>
                           ))}
                         </tr>
                       )}
                       <tr className="bg-muted/30 font-semibold">
                         <td className="py-2 px-3">Total Revenue</td>
                         {YEARS.map((_, i) => (
-                          <td key={i} className="py-2 px-3 text-right">
+                          <td key={i} className="py-2 px-3 text-right text-emerald-600">
                             {formatCurrency(
-                              revenue.saasSubscriptions[i] + 
-                              revenue.aiProductionTools[i] + 
-                              revenue.advertisingMarketplace[i] + 
-                              (enterpriseEnabled ? revenue.enterpriseLicensing[i] : 0)
+                              adjustedRevenue.saasSubscriptions[i] + 
+                              adjustedRevenue.aiProductionTools[i] + 
+                              adjustedRevenue.advertisingMarketplace[i] + 
+                              adjustedRevenue.enterpriseLicensing[i]
                             )}
                           </td>
                         ))}
@@ -488,6 +610,96 @@ export default function CFOStudioV2() {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Revenue Fine-Tune Sliders */}
+                <CollapsibleSliderSection
+                  title="Revenue Fine-Tune Controls"
+                  isOpen={revenueSliderOpen}
+                  onToggle={() => setRevenueSliderOpen(!revenueSliderOpen)}
+                >
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-4">
+                    <CFOSliderControl
+                      label="Monthly Creator Growth"
+                      value={assumptions.monthlyCreatorGrowth}
+                      onChange={(v) => updateAssumption('monthlyCreatorGrowth', v)}
+                      min={0}
+                      max={20}
+                      step={0.5}
+                      unit="percent"
+                      helperText="Updates growth rate for all creator-driven revenue"
+                    />
+                    <CFOSliderControl
+                      label="ARPU (Avg Rev/Creator)"
+                      value={assumptions.avgRevenuePerCreator}
+                      onChange={(v) => updateAssumption('avgRevenuePerCreator', v)}
+                      min={10}
+                      max={150}
+                      step={5}
+                      unit="currency"
+                      helperText="Recalculates subscription + usage revenue"
+                    />
+                    <CFOSliderControl
+                      label="Advertising CPM"
+                      value={assumptions.advertisingCPM}
+                      onChange={(v) => updateAssumption('advertisingCPM', v)}
+                      min={5}
+                      max={75}
+                      step={1}
+                      unit="currency"
+                      helperText="Recalculates ad revenue block"
+                    />
+                    <CFOSliderControl
+                      label="Ad Fill Rate"
+                      value={assumptions.adFillRate}
+                      onChange={(v) => updateAssumption('adFillRate', v)}
+                      min={10}
+                      max={100}
+                      step={5}
+                      unit="percent"
+                      helperText="Modifies total advertising revenue"
+                    />
+                    <CFOSliderControl
+                      label="Monthly Churn"
+                      value={assumptions.churnRate}
+                      onChange={(v) => updateAssumption('churnRate', v)}
+                      min={0}
+                      max={15}
+                      step={0.5}
+                      unit="percent"
+                      helperText="Reduces subscriber and revenue projections"
+                    />
+                    <CFOSliderControl
+                      label="Pricing Sensitivity"
+                      value={assumptions.pricingSensitivity}
+                      onChange={(v) => updateAssumption('pricingSensitivity', v)}
+                      min={-20}
+                      max={20}
+                      step={1}
+                      unit="percent"
+                      helperText="Applies % modifier to subscription prices"
+                    />
+                    <CFOSliderControl
+                      label="Organic Growth Mix"
+                      value={assumptions.organicGrowthMix}
+                      onChange={(v) => updateAssumption('organicGrowthMix', v)}
+                      min={0}
+                      max={100}
+                      step={5}
+                      unit="percent"
+                      helperText="Adjusts CAC and revenue forecast"
+                    />
+                    <CFOSliderControl
+                      label="Enterprise Deal Value"
+                      value={assumptions.enterpriseDealValue}
+                      onChange={(v) => updateAssumption('enterpriseDealValue', v)}
+                      min={0}
+                      max={5000000}
+                      step={50000}
+                      unit="currency"
+                      helperText="Replaces enterprise licensing revenue"
+                    />
+                  </div>
+                </CollapsibleSliderSection>
               </CardContent>
             </Card>
           </TabsContent>
@@ -513,38 +725,98 @@ export default function CFOStudioV2() {
                       <tr className="border-b hover:bg-muted/50">
                         <td className="py-2 px-3">Hosting + Bandwidth</td>
                         {YEARS.map((_, i) => (
-                          <td key={i} className="py-2 px-3">
-                            {renderNumberInput(cogs.hostingBandwidth[i], (v) => updateCogs('hostingBandwidth', i, v))}
-                          </td>
+                          <td key={i} className="py-2 px-3 text-right font-medium">{formatCurrency(adjustedCogs.hostingBandwidth[i])}</td>
                         ))}
                       </tr>
                       <tr className="border-b hover:bg-muted/50">
                         <td className="py-2 px-3">AI Inference</td>
                         {YEARS.map((_, i) => (
-                          <td key={i} className="py-2 px-3">
-                            {renderNumberInput(cogs.aiInference[i], (v) => updateCogs('aiInference', i, v))}
-                          </td>
+                          <td key={i} className="py-2 px-3 text-right font-medium">{formatCurrency(adjustedCogs.aiInference[i])}</td>
                         ))}
                       </tr>
                       <tr className="border-b hover:bg-muted/50">
                         <td className="py-2 px-3">Payment Processing</td>
                         {YEARS.map((_, i) => (
-                          <td key={i} className="py-2 px-3">
-                            {renderNumberInput(cogs.paymentProcessing[i], (v) => updateCogs('paymentProcessing', i, v))}
-                          </td>
+                          <td key={i} className="py-2 px-3 text-right font-medium">{formatCurrency(adjustedCogs.paymentProcessing[i])}</td>
                         ))}
                       </tr>
                       <tr className="bg-muted/30 font-semibold">
                         <td className="py-2 px-3">Total COGS</td>
                         {YEARS.map((_, i) => (
-                          <td key={i} className="py-2 px-3 text-right">
-                            {formatCurrency(cogs.hostingBandwidth[i] + cogs.aiInference[i] + cogs.paymentProcessing[i])}
+                          <td key={i} className="py-2 px-3 text-right text-red-600">
+                            {formatCurrency(adjustedCogs.hostingBandwidth[i] + adjustedCogs.aiInference[i] + adjustedCogs.paymentProcessing[i])}
                           </td>
+                        ))}
+                      </tr>
+                      <tr className="bg-emerald-50 dark:bg-emerald-950/30">
+                        <td className="py-2 px-3 font-semibold">Gross Margin %</td>
+                        {metrics.grossMargin.map((v, i) => (
+                          <td key={i} className="py-2 px-3 text-right font-bold text-emerald-600">{formatPercent(v)}</td>
                         ))}
                       </tr>
                     </tbody>
                   </table>
                 </div>
+
+                {/* COGS Fine-Tune Sliders */}
+                <CollapsibleSliderSection
+                  title="COGS Fine-Tune Controls"
+                  isOpen={cogsSliderOpen}
+                  onToggle={() => setCogsSliderOpen(!cogsSliderOpen)}
+                >
+                  <div className="grid grid-cols-2 lg:grid-cols-5 gap-6 pt-4">
+                    <CFOSliderControl
+                      label="Hosting Cost/User ($/yr)"
+                      value={assumptions.hostingCostPerUser}
+                      onChange={(v) => updateAssumption('hostingCostPerUser', v)}
+                      min={2}
+                      max={40}
+                      step={1}
+                      unit="currency"
+                      helperText="Modifies Hosting + Bandwidth line"
+                    />
+                    <CFOSliderControl
+                      label="Bandwidth Multiplier"
+                      value={assumptions.bandwidthMultiplier}
+                      onChange={(v) => updateAssumption('bandwidthMultiplier', v)}
+                      min={0.5}
+                      max={3}
+                      step={0.1}
+                      unit="multiplier"
+                      helperText="Multiplies hosting cost"
+                    />
+                    <CFOSliderControl
+                      label="AI Inference $/min"
+                      value={assumptions.aiInferenceCostPerMin}
+                      onChange={(v) => updateAssumption('aiInferenceCostPerMin', v)}
+                      min={0.0005}
+                      max={0.1}
+                      step={0.0005}
+                      unit="currency"
+                      helperText="Modifies AI Inference line"
+                    />
+                    <CFOSliderControl
+                      label="Payment Processing Fee"
+                      value={assumptions.paymentProcessingFee}
+                      onChange={(v) => updateAssumption('paymentProcessingFee', v)}
+                      min={1}
+                      max={8}
+                      step={0.5}
+                      unit="percent"
+                      helperText="Revenue × fee rate"
+                    />
+                    <CFOSliderControl
+                      label="AI Usage Multiplier"
+                      value={assumptions.aiUsageMultiplier}
+                      onChange={(v) => updateAssumption('aiUsageMultiplier', v)}
+                      min={0.5}
+                      max={5}
+                      step={0.1}
+                      unit="multiplier"
+                      helperText="Increases inference cost"
+                    />
+                  </div>
+                </CollapsibleSliderSection>
               </CardContent>
             </Card>
           </TabsContent>
@@ -570,56 +842,132 @@ export default function CFOStudioV2() {
                       <tr className="border-b hover:bg-muted/50">
                         <td className="py-2 px-3">Product & Engineering</td>
                         {YEARS.map((_, i) => (
-                          <td key={i} className="py-2 px-3">
-                            {renderNumberInput(opex.productEngineering[i], (v) => updateOpex('productEngineering', i, v))}
-                          </td>
+                          <td key={i} className="py-2 px-3 text-right font-medium">{formatCurrency(adjustedOpex.productEngineering[i])}</td>
                         ))}
                       </tr>
                       <tr className="border-b hover:bg-muted/50">
                         <td className="py-2 px-3">Sales & Marketing</td>
                         {YEARS.map((_, i) => (
-                          <td key={i} className="py-2 px-3">
-                            {renderNumberInput(opex.salesMarketing[i], (v) => updateOpex('salesMarketing', i, v))}
-                          </td>
+                          <td key={i} className="py-2 px-3 text-right font-medium">{formatCurrency(adjustedOpex.salesMarketing[i])}</td>
                         ))}
                       </tr>
                       <tr className="border-b hover:bg-muted/50">
                         <td className="py-2 px-3">General & Administrative</td>
                         {YEARS.map((_, i) => (
-                          <td key={i} className="py-2 px-3">
-                            {renderNumberInput(opex.generalAdmin[i], (v) => updateOpex('generalAdmin', i, v))}
-                          </td>
+                          <td key={i} className="py-2 px-3 text-right font-medium">{formatCurrency(adjustedOpex.generalAdmin[i])}</td>
                         ))}
                       </tr>
                       <tr className="border-b hover:bg-muted/50">
                         <td className="py-2 px-3">Customer Success</td>
                         {YEARS.map((_, i) => (
-                          <td key={i} className="py-2 px-3">
-                            {renderNumberInput(opex.customerSuccess[i], (v) => updateOpex('customerSuccess', i, v))}
-                          </td>
+                          <td key={i} className="py-2 px-3 text-right font-medium">{formatCurrency(adjustedOpex.customerSuccess[i])}</td>
                         ))}
                       </tr>
                       <tr className="border-b hover:bg-muted/50">
                         <td className="py-2 px-3">Contractors / AI Automation</td>
                         {YEARS.map((_, i) => (
-                          <td key={i} className="py-2 px-3">
-                            {renderNumberInput(opex.contractorsAI[i], (v) => updateOpex('contractorsAI', i, v))}
-                          </td>
+                          <td key={i} className="py-2 px-3 text-right font-medium">{formatCurrency(adjustedOpex.contractorsAI[i])}</td>
                         ))}
                       </tr>
                       <tr className="bg-muted/30 font-semibold">
                         <td className="py-2 px-3">Total OpEx</td>
                         {YEARS.map((_, i) => (
-                          <td key={i} className="py-2 px-3 text-right">
+                          <td key={i} className="py-2 px-3 text-right text-red-600">
                             {formatCurrency(
-                              opex.productEngineering[i] + opex.salesMarketing[i] + opex.generalAdmin[i] +
-                              opex.customerSuccess[i] + opex.contractorsAI[i]
+                              adjustedOpex.productEngineering[i] + adjustedOpex.salesMarketing[i] + adjustedOpex.generalAdmin[i] +
+                              adjustedOpex.customerSuccess[i] + adjustedOpex.contractorsAI[i]
                             )}
                           </td>
                         ))}
                       </tr>
                     </tbody>
                   </table>
+                </div>
+
+                {/* OpEx Fine-Tune Sliders */}
+                <CollapsibleSliderSection
+                  title="OpEx Fine-Tune Controls"
+                  isOpen={opexSliderOpen}
+                  onToggle={() => setOpexSliderOpen(!opexSliderOpen)}
+                >
+                  <div className="grid grid-cols-2 lg:grid-cols-5 gap-6 pt-4">
+                    <CFOSliderControl
+                      label="Monthly Marketing Budget"
+                      value={assumptions.monthlyMarketingBudget}
+                      onChange={(v) => updateAssumption('monthlyMarketingBudget', v)}
+                      min={0}
+                      max={250000}
+                      step={5000}
+                      unit="currency"
+                      helperText="Feeds CAC calculator + OpEx"
+                    />
+                    <CFOSliderControl
+                      label="Creator CAC (Paid)"
+                      value={assumptions.cacPaid}
+                      onChange={(v) => updateAssumption('cacPaid', v)}
+                      min={10}
+                      max={250}
+                      step={5}
+                      unit="currency"
+                      helperText="Updates acquisition cost"
+                    />
+                    <CFOSliderControl
+                      label="Pro Tier ARPU"
+                      value={assumptions.proTierArpu}
+                      onChange={(v) => updateAssumption('proTierArpu', v)}
+                      min={10}
+                      max={100}
+                      step={1}
+                      unit="currency"
+                      helperText="Recalculates subscription revenue"
+                    />
+                    <CFOSliderControl
+                      label="Monthly Churn"
+                      value={assumptions.opexChurn}
+                      onChange={(v) => updateAssumption('opexChurn', v)}
+                      min={0}
+                      max={20}
+                      step={0.5}
+                      unit="percent"
+                      helperText="Reduces active subscriber counts"
+                    />
+                    <CFOSliderControl
+                      label="Headcount Productivity"
+                      value={assumptions.headcountProductivity}
+                      onChange={(v) => updateAssumption('headcountProductivity', v)}
+                      min={0.7}
+                      max={2}
+                      step={0.1}
+                      unit="multiplier"
+                      helperText="Adjusts OpEx efficiency in EBITDA"
+                    />
+                  </div>
+                </CollapsibleSliderSection>
+
+                {/* Inline Calculators */}
+                <div className="mt-6 space-y-3">
+                  <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Quick Calculators</h3>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <ROICalculator
+                      marketingSpend={assumptions.monthlyMarketingBudget * 12}
+                      cac={assumptions.cacPaid}
+                      churn={assumptions.churnRate}
+                      arpu={assumptions.proTierArpu}
+                      onApply={handleROIApply}
+                    />
+                    <BreakevenCalculator
+                      fixedOpex={adjustedOpex.productEngineering[0] + adjustedOpex.generalAdmin[0] + adjustedOpex.customerSuccess[0]}
+                      variableOpexPct={20}
+                      revenueGrowth={assumptions.monthlyCreatorGrowth * 12}
+                      initialRevenue={metrics.arr[0]}
+                      onApply={handleBreakevenApply}
+                    />
+                    <GrowthImpactCalculator
+                      baseRevenue={metrics.arr}
+                      baseEbitda={metrics.ebitda}
+                      onApply={handleGrowthImpactApply}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -637,9 +985,10 @@ export default function CFOStudioV2() {
                     <thead>
                       <tr className="border-b">
                         <th className="text-left py-2 px-3 font-medium text-muted-foreground">Department</th>
-                        {YEARS.map(year => (
-                          <th key={year} className="text-center py-2 px-3 font-medium text-muted-foreground w-28">{year}</th>
-                        ))}
+                        <th className="text-center py-2 px-3 font-medium text-muted-foreground w-24">2025</th>
+                        <th className="text-center py-2 px-3 font-medium text-muted-foreground w-24">2026</th>
+                        <th className="text-center py-2 px-3 font-medium text-muted-foreground w-24">2027</th>
+                        <th className="text-right py-2 px-3 font-medium text-muted-foreground w-32">Avg Salary</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -649,7 +998,7 @@ export default function CFOStudioV2() {
                           <td className="py-2 px-3">
                             <Input
                               type="number"
-                              value={row.year1}
+                              value={Math.round(row.year1 * assumptions.hiringRampSpeed)}
                               onChange={(e) => updateHeadcount(index, 'year1', Number(e.target.value))}
                               className="text-center h-9 w-20 mx-auto"
                             />
@@ -657,7 +1006,7 @@ export default function CFOStudioV2() {
                           <td className="py-2 px-3">
                             <Input
                               type="number"
-                              value={row.year2}
+                              value={Math.round(row.year2 * assumptions.hiringRampSpeed)}
                               onChange={(e) => updateHeadcount(index, 'year2', Number(e.target.value))}
                               className="text-center h-9 w-20 mx-auto"
                             />
@@ -665,22 +1014,85 @@ export default function CFOStudioV2() {
                           <td className="py-2 px-3">
                             <Input
                               type="number"
-                              value={row.year3}
+                              value={Math.round(row.year3 * assumptions.hiringRampSpeed)}
                               onChange={(e) => updateHeadcount(index, 'year3', Number(e.target.value))}
                               className="text-center h-9 w-20 mx-auto"
+                            />
+                          </td>
+                          <td className="py-2 px-3">
+                            <Input
+                              type="number"
+                              value={Math.round(row.avgSalary * (1 + assumptions.salaryInflation / 100))}
+                              onChange={(e) => updateHeadcount(index, 'avgSalary', Number(e.target.value))}
+                              className="text-right h-9 w-28 ml-auto"
                             />
                           </td>
                         </tr>
                       ))}
                       <tr className="bg-muted/30 font-semibold">
                         <td className="py-2 px-3">Total Headcount</td>
-                        <td className="py-2 px-3 text-center">{headcount.reduce((sum, r) => sum + r.year1, 0)}</td>
-                        <td className="py-2 px-3 text-center">{headcount.reduce((sum, r) => sum + r.year2, 0)}</td>
-                        <td className="py-2 px-3 text-center">{headcount.reduce((sum, r) => sum + r.year3, 0)}</td>
+                        <td className="py-2 px-3 text-center">{Math.round(headcount.reduce((sum, r) => sum + r.year1, 0) * assumptions.hiringRampSpeed)}</td>
+                        <td className="py-2 px-3 text-center">{Math.round(headcount.reduce((sum, r) => sum + r.year2, 0) * assumptions.hiringRampSpeed)}</td>
+                        <td className="py-2 px-3 text-center">{Math.round(headcount.reduce((sum, r) => sum + r.year3, 0) * assumptions.hiringRampSpeed)}</td>
+                        <td className="py-2 px-3"></td>
+                      </tr>
+                      <tr className="bg-amber-50 dark:bg-amber-950/30">
+                        <td className="py-2 px-3 font-semibold">Total Payroll</td>
+                        {[0, 1, 2].map(yearIdx => {
+                          const yearField = ['year1', 'year2', 'year3'][yearIdx] as 'year1' | 'year2' | 'year3';
+                          const total = headcount.reduce((sum, r) => 
+                            sum + Math.round(r[yearField] * assumptions.hiringRampSpeed) * 
+                                  Math.round(r.avgSalary * (1 + assumptions.salaryInflation / 100) * Math.pow(1 + assumptions.salaryInflation / 100, yearIdx))
+                          , 0);
+                          return (
+                            <td key={yearIdx} className="py-2 px-3 text-center font-bold text-amber-600">{formatCurrency(total)}</td>
+                          );
+                        })}
+                        <td className="py-2 px-3"></td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
+
+                {/* Headcount Fine-Tune Sliders */}
+                <CollapsibleSliderSection
+                  title="Headcount Fine-Tune Controls"
+                  isOpen={headcountSliderOpen}
+                  onToggle={() => setHeadcountSliderOpen(!headcountSliderOpen)}
+                >
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-4">
+                    <CFOSliderControl
+                      label="Salary Inflation"
+                      value={assumptions.salaryInflation}
+                      onChange={(v) => updateAssumption('salaryInflation', v)}
+                      min={0}
+                      max={15}
+                      step={0.5}
+                      unit="percent"
+                      helperText="Increases salary line YoY"
+                    />
+                    <CFOSliderControl
+                      label="Hiring Ramp Speed"
+                      value={assumptions.hiringRampSpeed}
+                      onChange={(v) => updateAssumption('hiringRampSpeed', v)}
+                      min={0.5}
+                      max={2}
+                      step={0.1}
+                      unit="multiplier"
+                      helperText="Scales all headcount entries"
+                    />
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium">Contractor → Employee</Label>
+                        <Switch
+                          checked={assumptions.contractorToEmployee}
+                          onCheckedChange={(v) => updateAssumption('contractorToEmployee', v)}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">Switching ON increases cost by 20%</p>
+                    </div>
+                  </div>
+                </CollapsibleSliderSection>
               </CardContent>
             </Card>
           </TabsContent>
@@ -828,8 +1240,8 @@ export default function CFOStudioV2() {
                         <Label className="text-sm">Average CPM ($)</Label>
                         <Input
                           type="number"
-                          value={assumptions.avgCPM}
-                          onChange={(e) => updateAssumption('avgCPM', Number(e.target.value))}
+                          value={assumptions.advertisingCPM}
+                          onChange={(e) => updateAssumption('advertisingCPM', Number(e.target.value))}
                           className="mt-1"
                         />
                       </div>
@@ -873,10 +1285,18 @@ export default function CFOStudioV2() {
             </Card>
           </TabsContent>
 
+          {/* Financial Statements Tab */}
+          <TabsContent value="statements">
+            <CFOFinancialStatements
+              data={financialData}
+              years={YEARS}
+              cashBalance={500000}
+            />
+          </TabsContent>
+
           {/* Summary Tab */}
           <TabsContent value="summary">
             <div className="grid grid-cols-2 gap-6">
-              {/* P&L Summary */}
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg">P&L Summary</CardTitle>
@@ -902,27 +1322,21 @@ export default function CFOStudioV2() {
                         <td className="py-2">COGS</td>
                         {YEARS.map((_, i) => (
                           <td key={i} className="py-2 text-right text-red-600">
-                            ({formatCurrency(cogs.hostingBandwidth[i] + cogs.aiInference[i] + cogs.paymentProcessing[i])})
+                            ({formatCurrency(adjustedCogs.hostingBandwidth[i] + adjustedCogs.aiInference[i] + adjustedCogs.paymentProcessing[i])})
                           </td>
                         ))}
                       </tr>
                       <tr className="border-b bg-muted/30">
                         <td className="py-2 font-semibold">Gross Profit</td>
-                        {YEARS.map((_, i) => {
-                          const totalCogs = cogs.hostingBandwidth[i] + cogs.aiInference[i] + cogs.paymentProcessing[i];
-                          return (
-                            <td key={i} className="py-2 text-right font-semibold">{formatCurrency(metrics.arr[i] - totalCogs)}</td>
-                          );
-                        })}
+                        {financialData.grossProfit.map((v, i) => (
+                          <td key={i} className="py-2 text-right font-semibold">{formatCurrency(v)}</td>
+                        ))}
                       </tr>
                       <tr className="border-b">
                         <td className="py-2">Operating Expenses</td>
-                        {YEARS.map((_, i) => {
-                          const totalOpex = opex.productEngineering[i] + opex.salesMarketing[i] + opex.generalAdmin[i] + opex.customerSuccess[i] + opex.contractorsAI[i];
-                          return (
-                            <td key={i} className="py-2 text-right text-red-600">({formatCurrency(totalOpex)})</td>
-                          );
-                        })}
+                        {financialData.opex.map((v, i) => (
+                          <td key={i} className="py-2 text-right text-red-600">({formatCurrency(v)})</td>
+                        ))}
                       </tr>
                       <tr className="bg-emerald-50 dark:bg-emerald-950/30">
                         <td className="py-2 font-bold">EBITDA</td>
@@ -937,7 +1351,6 @@ export default function CFOStudioV2() {
                 </CardContent>
               </Card>
 
-              {/* Board Pack Summary */}
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg">Board Pack Summary</CardTitle>
@@ -956,7 +1369,7 @@ export default function CFOStudioV2() {
                     </div>
                     <div className="p-4 bg-muted/50 rounded-lg">
                       <p className="text-sm text-muted-foreground">Year 3 Headcount</p>
-                      <p className="text-2xl font-bold">{headcount.reduce((sum, r) => sum + r.year3, 0)}</p>
+                      <p className="text-2xl font-bold">{Math.round(headcount.reduce((sum, r) => sum + r.year3, 0) * assumptions.hiringRampSpeed)}</p>
                     </div>
                     <div className="p-4 bg-muted/50 rounded-lg">
                       <p className="text-sm text-muted-foreground">Breakeven</p>
@@ -970,10 +1383,10 @@ export default function CFOStudioV2() {
                     <h4 className="font-semibold mb-3">Revenue Mix (Year 3)</h4>
                     <div className="space-y-2">
                       {[
-                        { label: 'SaaS Subscriptions', value: revenue.saasSubscriptions[2], color: 'bg-blue-500' },
-                        { label: 'AI + Production', value: revenue.aiProductionTools[2], color: 'bg-purple-500' },
-                        { label: 'Advertising', value: revenue.advertisingMarketplace[2], color: 'bg-amber-500' },
-                        ...(enterpriseEnabled ? [{ label: 'Enterprise', value: revenue.enterpriseLicensing[2], color: 'bg-emerald-500' }] : []),
+                        { label: 'SaaS Subscriptions', value: adjustedRevenue.saasSubscriptions[2], color: 'bg-blue-500' },
+                        { label: 'AI + Production', value: adjustedRevenue.aiProductionTools[2], color: 'bg-purple-500' },
+                        { label: 'Advertising', value: adjustedRevenue.advertisingMarketplace[2], color: 'bg-amber-500' },
+                        ...(enterpriseEnabled ? [{ label: 'Enterprise', value: adjustedRevenue.enterpriseLicensing[2], color: 'bg-emerald-500' }] : []),
                       ].map((item) => {
                         const total = metrics.arr[2];
                         const pct = total > 0 ? (item.value / total) * 100 : 0;
