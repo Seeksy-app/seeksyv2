@@ -1,6 +1,5 @@
 import { User } from "@supabase/supabase-js";
 import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
 import { WorkspaceProvider, useWorkspace } from "@/contexts/WorkspaceContext";
 import { WorkspaceSidebar } from "@/components/workspace/WorkspaceSidebar";
 import { GlobalTopNav } from "@/components/workspace/GlobalTopNav";
@@ -45,7 +44,7 @@ function WorkspaceLayoutInner({
   shouldShowTopNav 
 }: WorkspaceLayoutProps) {
   const location = useLocation();
-  const { workspaces, isLoading, currentWorkspace, createWorkspace, setCurrentWorkspace } = useWorkspace();
+  const { workspaces, isLoading, currentWorkspace } = useWorkspace();
   const useLegacyNav = useShouldUseLegacyNav();
   const isAdvertiserRoute = location.pathname.startsWith('/advertiser');
 
@@ -64,22 +63,8 @@ function WorkspaceLayoutInner({
     '/onboarding',
   ].some(route => location.pathname === route || location.pathname.startsWith('/public') || location.pathname.startsWith('/onboarding'));
 
-  // Auto-create default workspace if user has none (instead of showing old popup)
-  useEffect(() => {
-    const autoCreateWorkspace = async () => {
-      if (!isLoading && user && workspaces.length === 0 && !useLegacyNav && !isPublicRoute) {
-        try {
-          const newWorkspace = await createWorkspace("My Workspace", []);
-          if (newWorkspace) {
-            setCurrentWorkspace(newWorkspace);
-          }
-        } catch (error) {
-          console.error("Error auto-creating workspace:", error);
-        }
-      }
-    };
-    autoCreateWorkspace();
-  }, [isLoading, user, workspaces.length, useLegacyNav, isPublicRoute, createWorkspace, setCurrentWorkspace]);
+  // Auto-create removed - workspaces are created during onboarding or via the Create Workspace button
+  // This prevents the duplicate workspace creation error (23505)
 
   // Board routes have their own complete layout (BoardLayout) - skip WorkspaceLayout wrapper
   const isBoardRoute = location.pathname.startsWith('/board');
