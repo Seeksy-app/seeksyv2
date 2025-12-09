@@ -308,6 +308,7 @@ import AgencyCampaigns from "./pages/agency/AgencyCampaigns";
 import InfluencerProfileSettings from "./pages/InfluencerProfileSettings";
 import InfluencerPortfolio from "./pages/InfluencerPortfolio";
 import Marketing from "./pages/Marketing";
+import DailyBriefPage from "./pages/DailyBriefPage";
 import EmailSettings from "./pages/EmailSettings";
 import EmailHome from "./pages/EmailHome";
 import EmailCampaigns from "./pages/EmailCampaigns";
@@ -754,6 +755,7 @@ const AppContent = () => {
               <Route path="/roi-playbook" element={<LeadMagnetLanding />} />
               <Route path="/event-growth-kit" element={<LeadMagnetLanding />} />
               <Route path="/thank-you/:slug" element={<LeadMagnetThankYou />} />
+          <Route path="/daily-brief" element={<DailyBriefPage />} />
           <Route path="/dashboard" element={<UniversalDashboard />} />
           <Route path="/dashboard-legacy" element={<Dashboard />} />
           <Route path="/dashboard-v2" element={<DashboardV2 />} />

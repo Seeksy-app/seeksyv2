@@ -19,6 +19,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useMyPageEnabled } from "@/hooks/useMyPageEnabled";
 import { DashboardCustomizer, WidgetConfig } from "@/components/dashboard/DashboardCustomizer";
+import { DailyBriefButton } from "@/components/daily-brief/DailyBriefButton";
 import {
   ProfileViewsWidget,
   LinkClicksWidget,
@@ -464,6 +465,7 @@ export default function MyDay() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <DailyBriefButton audienceType="creator" variant="outline" />
             <DashboardCustomizer widgets={widgets} onSave={handleWidgetsSave} />
             <Button variant="outline" size="sm" onClick={() => navigate("/meetings/create")}>
               <Calendar className="h-4 w-4 mr-2" />

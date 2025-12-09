@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { WelcomeBanner } from '@/components/board/WelcomeBanner';
 import { BoardFloatingAIButton } from '@/components/board/BoardFloatingAIButton';
 import { BoardAISlidePanel } from '@/components/board/BoardAISlidePanel';
+import { DailyBriefButton } from '@/components/daily-brief/DailyBriefButton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -117,7 +118,10 @@ export default function BoardDashboard() {
   return (
     <div className="space-y-6 w-full">
       {/* Welcome Banner */}
-      <WelcomeBanner firstName={firstName} />
+      <div className="flex items-center justify-between">
+        <WelcomeBanner firstName={firstName} />
+        <DailyBriefButton audienceType="board" variant="default" className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:opacity-90" />
+      </div>
 
       {/* Featured Investor Video - Static investor media, not tied to data mode */}
       <Card className="bg-white border-slate-100 shadow-sm rounded-xl overflow-hidden">
