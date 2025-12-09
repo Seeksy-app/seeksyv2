@@ -15,7 +15,7 @@ import { TVContentRow } from "@/components/tv/TVContentRow";
 import { TVCreatorCard } from "@/components/tv/TVCreatorCard";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAIPosterGeneration } from "@/hooks/useAIPosterGeneration";
+
 
 const categories = [
   "All", "Podcasts", "Interviews", "AI Clips", "Events", "Live", 
@@ -71,7 +71,58 @@ export default function SeeksyTVHome() {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-  const { requestPoster, getPosterUrl, isLoading: isPosterLoading } = useAIPosterGeneration();
+  const [posterImages, setPosterImages] = useState<Record<string, string>>({});
+  const [loadingPosters, setLoadingPosters] = useState<Set<string>>(new Set());
+
+  // Generate posters on mount
+  useEffect(() => {
+    const generatePosters = async () => {
+      const cacheKey = "seeksy-tv-posters-v2";
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          setPosterImages(JSON.parse(cached));
+          return;
+        } catch {}
+      }
+
+      // Generate a few posters for the trending section
+      const postersToGenerate = demoThumbnails.slice(0, 6);
+      
+      for (const item of postersToGenerate) {
+        if (posterImages[item.id]) continue;
+        
+        setLoadingPosters(prev => new Set(prev).add(item.id));
+        
+        try {
+          const { data, error } = await supabase.functions.invoke('generate-poster', {
+            body: { title: item.title, category: "Entertainment" }
+          });
+
+          if (!error && data?.imageUrl) {
+            setPosterImages(prev => {
+              const updated = { ...prev, [item.id]: data.imageUrl };
+              localStorage.setItem(cacheKey, JSON.stringify(updated));
+              return updated;
+            });
+          }
+        } catch (err) {
+          console.error("Failed to generate poster:", err);
+        } finally {
+          setLoadingPosters(prev => {
+            const next = new Set(prev);
+            next.delete(item.id);
+            return next;
+          });
+        }
+        
+        // Rate limit delay
+        await new Promise(r => setTimeout(r, 3000));
+      }
+    };
+
+    generatePosters();
+  }, []);
 
   interface FeaturedItem {
     id: string;
@@ -288,22 +339,16 @@ export default function SeeksyTVHome() {
         <div className="absolute inset-0">
           <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1 opacity-40 transform rotate-[-8deg] scale-125 -translate-y-20">
             {[...demoThumbnails, ...demoThumbnails, ...demoThumbnails].map((item, idx) => {
-              const heroPosterId = `hero-${item.id}-${idx}`;
-              const heroAiPosterUrl = getPosterUrl(heroPosterId);
-              
-              // Only request for first 12 to avoid rate limits
-              if (idx < 12 && !heroAiPosterUrl && !isPosterLoading(heroPosterId)) {
-                requestPoster(heroPosterId, item.title, "Entertainment");
-              }
+              const aiPosterUrl = posterImages[item.id];
               
               return (
                 <div 
                   key={`${item.id}-${idx}`}
-                  className={`aspect-[2/3] rounded-lg overflow-hidden ${!heroAiPosterUrl ? `bg-gradient-to-br ${item.gradient}` : ''}`}
+                  className={`aspect-[2/3] rounded-lg overflow-hidden ${!aiPosterUrl ? `bg-gradient-to-br ${item.gradient}` : ''}`}
                   style={{ animationDelay: `${idx * 0.1}s`, animationDuration: '3s' }}
                 >
-                  {heroAiPosterUrl ? (
-                    <img src={heroAiPosterUrl} alt={item.title} className="w-full h-full object-cover" />
+                  {aiPosterUrl ? (
+                    <img src={aiPosterUrl} alt={item.title} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-end p-2">
                       <span className="text-[8px] text-white/60 font-medium truncate">{item.title}</span>
@@ -388,14 +433,8 @@ export default function SeeksyTVHome() {
         </div>
         <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
           {displayTrending.slice(0, 10).map((item, index) => {
-            const posterId = `trending-${item.id}`;
-            const aiPosterUrl = getPosterUrl(posterId);
-            const posterLoading = isPosterLoading(posterId);
-            
-            // Request AI poster generation if no thumbnail
-            if (!item.thumbnail_url && !aiPosterUrl && !posterLoading) {
-              requestPoster(posterId, item.title, item.category || "Entertainment");
-            }
+            const aiPosterUrl = posterImages[demoThumbnails[index % demoThumbnails.length]?.id];
+            const posterLoading = loadingPosters.has(demoThumbnails[index % demoThumbnails.length]?.id);
             
             return (
               <div 
