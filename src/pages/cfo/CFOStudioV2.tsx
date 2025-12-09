@@ -24,6 +24,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Landmark, Eye } from 'lucide-react';
 import { CFOBrief, generateInvestorBriefText } from '@/components/cfo-v2/CFOBrief';
 import { SaveProFormaVersionModal } from '@/components/cfo/SaveProFormaVersionModal';
+import { GlossaryTerm } from '@/components/cfo-v2/CFOGlossary';
+import { AIExplanationCard } from '@/components/cfo-v2/CFOAIExplanations';
+import { CFOScenarioSummary, ScenarioSummaryExport, ScenarioType } from '@/components/cfo-v2/CFOScenarioSummary';
 
 // Types
 interface RevenueModel {
@@ -115,6 +118,8 @@ export default function CFOStudioV2() {
   const [activeTab, setActiveTab] = useState('revenue');
   const [forecastMode, setForecastMode] = useState<'ai' | 'custom'>('custom');
   const [enterpriseEnabled, setEnterpriseEnabled] = useState(true);
+  const [activeScenario, setActiveScenario] = useState<ScenarioType>('base');
+  const [lastChangedFields, setLastChangedFields] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Version management
@@ -388,6 +393,7 @@ export default function CFOStudioV2() {
 
   const updateAssumption = useCallback(<K extends keyof Assumptions>(key: K, value: Assumptions[K]) => {
     setAssumptions(prev => ({ ...prev, [key]: value }));
+    setLastChangedFields(prev => [...new Set([...prev, key as string])].slice(-5));
   }, []);
 
   // Calculator apply handlers - sync inputs back to sliders
@@ -722,23 +728,25 @@ export default function CFOStudioV2() {
             </div>
           </div>
 
-          {/* Key Metrics Strip */}
+          {/* Key Metrics Strip with Glossary Tooltips */}
           <div className="grid grid-cols-8 gap-3">
             {[
-              { label: 'Y3 ARR', value: formatCurrency(metrics.arr[2]), icon: TrendingUp, color: 'text-emerald-600' },
-              { label: 'CAC', value: formatCurrency(metrics.cac, false), icon: DollarSign, color: 'text-blue-600' },
-              { label: 'LTV', value: formatCurrency(metrics.ltv), icon: Users, color: 'text-purple-600' },
-              { label: 'LTV:CAC', value: `${(metrics.ltv / metrics.cac).toFixed(1)}x`, icon: Target, color: 'text-amber-600' },
-              { label: 'Gross Margin', value: formatPercent(metrics.grossMargin[2]), icon: Calculator, color: 'text-indigo-600' },
-              { label: 'Burn Rate', value: formatCurrency(metrics.burnRate[0]), icon: TrendingUp, color: metrics.burnRate[0] > 0 ? 'text-red-600' : 'text-emerald-600' },
-              { label: 'Runway', value: `${Math.round(metrics.runway)}mo`, icon: Building2, color: 'text-cyan-600' },
-              { label: 'Breakeven', value: metrics.breakEvenMonth ? `M${metrics.breakEvenMonth}` : 'N/A', icon: Briefcase, color: 'text-green-600' },
+              { label: 'Y3 ARR', glossaryTerm: 'ARR', value: formatCurrency(metrics.arr[2]), icon: TrendingUp, color: 'text-emerald-600' },
+              { label: 'CAC', glossaryTerm: 'CAC', value: formatCurrency(metrics.cac, false), icon: DollarSign, color: 'text-blue-600' },
+              { label: 'LTV', glossaryTerm: 'LTV', value: formatCurrency(metrics.ltv), icon: Users, color: 'text-purple-600' },
+              { label: 'LTV:CAC', glossaryTerm: 'LTV:CAC Ratio', value: `${(metrics.ltv / metrics.cac).toFixed(1)}x`, icon: Target, color: 'text-amber-600' },
+              { label: 'Gross Margin', glossaryTerm: 'Gross Margin', value: formatPercent(metrics.grossMargin[2]), icon: Calculator, color: 'text-indigo-600' },
+              { label: 'Burn Rate', glossaryTerm: 'Burn Rate', value: formatCurrency(metrics.burnRate[0]), icon: TrendingUp, color: metrics.burnRate[0] > 0 ? 'text-red-600' : 'text-emerald-600' },
+              { label: 'Runway', glossaryTerm: 'Runway', value: `${Math.round(metrics.runway)}mo`, icon: Building2, color: 'text-cyan-600' },
+              { label: 'Breakeven', glossaryTerm: 'Breakeven Month', value: metrics.breakEvenMonth ? `M${metrics.breakEvenMonth}` : 'N/A', icon: Briefcase, color: 'text-green-600' },
             ].map((metric, i) => (
               <Card key={i} className="bg-card">
                 <CardContent className="p-3">
                   <div className="flex items-center gap-2 mb-1">
                     <metric.icon className={cn("w-4 h-4", metric.color)} />
-                    <span className="text-xs text-muted-foreground">{metric.label}</span>
+                    <GlossaryTerm term={metric.glossaryTerm} className="text-xs text-muted-foreground">
+                      {metric.label}
+                    </GlossaryTerm>
                   </div>
                   <p className="text-lg font-semibold">{metric.value}</p>
                 </CardContent>
@@ -746,6 +754,11 @@ export default function CFOStudioV2() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Scenario Summary Banner */}
+      <div className="max-w-[1600px] mx-auto px-6 pt-4">
+        <CFOScenarioSummary scenario={activeScenario} compact />
       </div>
 
       {/* Main Content */}
@@ -960,6 +973,11 @@ export default function CFOStudioV2() {
                   </div>
                 </CollapsibleSliderSection>
 
+                {/* AI Explanation Card */}
+                <AIExplanationCard type="revenue" className="mt-4" visible={lastChangedFields.some(f => 
+                  ['monthlyCreatorGrowth', 'avgRevenuePerCreator', 'advertisingCPM', 'adFillRate', 'aiToolsAdoption', 'pricingSensitivity'].includes(f)
+                )} />
+
                 {/* Save Button */}
                 <div className="mt-6 flex justify-end">
                   <Button
@@ -1021,7 +1039,7 @@ export default function CFOStudioV2() {
                         ))}
                       </tr>
                       <tr className="bg-muted/30 font-semibold">
-                        <td className="py-2 px-3">Total COGS</td>
+                        <td className="py-2 px-3"><GlossaryTerm term="COGS">Total COGS</GlossaryTerm></td>
                         {YEARS.map((_, i) => (
                           <td key={i} className="py-2 px-3 text-right text-red-600">
                             {formatCurrency(adjustedCogs.hostingBandwidth[i] + adjustedCogs.aiInference[i] + adjustedCogs.paymentProcessing[i])}
@@ -1029,7 +1047,7 @@ export default function CFOStudioV2() {
                         ))}
                       </tr>
                       <tr className="bg-emerald-50 dark:bg-emerald-950/30">
-                        <td className="py-2 px-3 font-semibold">Gross Margin %</td>
+                        <td className="py-2 px-3 font-semibold"><GlossaryTerm term="Gross Margin">Gross Margin %</GlossaryTerm></td>
                         {metrics.grossMargin.map((v, i) => (
                           <td key={i} className="py-2 px-3 text-right font-bold text-emerald-600">{formatPercent(v)}</td>
                         ))}
@@ -1169,7 +1187,7 @@ export default function CFOStudioV2() {
                         ))}
                       </tr>
                       <tr className="bg-muted/30 font-semibold">
-                        <td className="py-2 px-3">Total OpEx</td>
+                        <td className="py-2 px-3"><GlossaryTerm term="OpEx">Total OpEx</GlossaryTerm></td>
                         {YEARS.map((_, i) => (
                           <td key={i} className="py-2 px-3 text-right text-red-600">
                             {formatCurrency(
@@ -1460,19 +1478,19 @@ export default function CFOStudioV2() {
                     </thead>
                     <tbody>
                       <tr className="border-b hover:bg-muted/50">
-                        <td className="py-2 px-3 font-medium">ARR</td>
+                        <td className="py-2 px-3 font-medium"><GlossaryTerm term="ARR">ARR</GlossaryTerm></td>
                         {metrics.arr.map((v, i) => (
                           <td key={i} className="py-2 px-3 text-right font-semibold text-emerald-600">{formatCurrency(v)}</td>
                         ))}
                       </tr>
                       <tr className="border-b hover:bg-muted/50">
-                        <td className="py-2 px-3 font-medium">Gross Margin %</td>
+                        <td className="py-2 px-3 font-medium"><GlossaryTerm term="Gross Margin">Gross Margin %</GlossaryTerm></td>
                         {metrics.grossMargin.map((v, i) => (
                           <td key={i} className="py-2 px-3 text-right">{formatPercent(v)}</td>
                         ))}
                       </tr>
                       <tr className="border-b hover:bg-muted/50">
-                        <td className="py-2 px-3 font-medium">EBITDA</td>
+                        <td className="py-2 px-3 font-medium"><GlossaryTerm term="EBITDA">EBITDA</GlossaryTerm></td>
                         {metrics.ebitda.map((v, i) => (
                           <td key={i} className={cn("py-2 px-3 text-right font-semibold", v >= 0 ? 'text-emerald-600' : 'text-red-600')}>
                             {formatCurrency(v)}
@@ -1480,7 +1498,7 @@ export default function CFOStudioV2() {
                         ))}
                       </tr>
                       <tr className="border-b hover:bg-muted/50">
-                        <td className="py-2 px-3 font-medium">Burn Rate (Monthly)</td>
+                        <td className="py-2 px-3 font-medium"><GlossaryTerm term="Burn Rate">Burn Rate (Monthly)</GlossaryTerm></td>
                         {metrics.burnRate.map((v, i) => (
                           <td key={i} className={cn("py-2 px-3 text-right", v > 0 ? 'text-red-600' : 'text-emerald-600')}>
                             {v > 0 ? formatCurrency(v) : 'Cash Positive'}
@@ -1488,25 +1506,25 @@ export default function CFOStudioV2() {
                         ))}
                       </tr>
                       <tr className="border-b hover:bg-muted/50">
-                        <td className="py-2 px-3 font-medium">CAC (Blended)</td>
+                        <td className="py-2 px-3 font-medium"><GlossaryTerm term="CAC">CAC (Blended)</GlossaryTerm></td>
                         <td colSpan={3} className="py-2 px-3 text-right">{formatCurrency(metrics.cac, false)}</td>
                       </tr>
                       <tr className="border-b hover:bg-muted/50">
-                        <td className="py-2 px-3 font-medium">LTV</td>
+                        <td className="py-2 px-3 font-medium"><GlossaryTerm term="LTV">LTV</GlossaryTerm></td>
                         <td colSpan={3} className="py-2 px-3 text-right">{formatCurrency(metrics.ltv)}</td>
                       </tr>
                       <tr className="border-b hover:bg-muted/50">
-                        <td className="py-2 px-3 font-medium">LTV:CAC Ratio</td>
+                        <td className="py-2 px-3 font-medium"><GlossaryTerm term="LTV:CAC Ratio">LTV:CAC Ratio</GlossaryTerm></td>
                         <td colSpan={3} className={cn("py-2 px-3 text-right font-semibold", metrics.ltv / metrics.cac >= 3 ? 'text-emerald-600' : 'text-amber-600')}>
                           {(metrics.ltv / metrics.cac).toFixed(1)}x
                         </td>
                       </tr>
                       <tr className="border-b hover:bg-muted/50">
-                        <td className="py-2 px-3 font-medium">Runway (Months)</td>
+                        <td className="py-2 px-3 font-medium"><GlossaryTerm term="Runway">Runway (Months)</GlossaryTerm></td>
                         <td colSpan={3} className="py-2 px-3 text-right">{Math.round(metrics.runway)} months</td>
                       </tr>
                       <tr className="bg-emerald-50 dark:bg-emerald-950/30">
-                        <td className="py-2 px-3 font-semibold">Breakeven Month</td>
+                        <td className="py-2 px-3 font-semibold"><GlossaryTerm term="Breakeven Month">Breakeven Month</GlossaryTerm></td>
                         <td colSpan={3} className="py-2 px-3 text-right font-bold text-emerald-600">
                           {metrics.breakEvenMonth ? `Month ${metrics.breakEvenMonth}` : 'Beyond Y3'}
                         </td>
@@ -1837,6 +1855,11 @@ export default function CFOStudioV2() {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+
+            {/* Scenario Summary for Export */}
+            <div className="mt-6">
+              <ScenarioSummaryExport scenario={activeScenario} />
             </div>
 
             {/* CFO Brief for Board */}
