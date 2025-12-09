@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import { TVContentRow } from "@/components/tv/TVContentRow";
 import { TVCreatorCard } from "@/components/tv/TVCreatorCard";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAIPosterGeneration } from "@/hooks/useAIPosterGeneration";
 
 const categories = [
   "All", "Podcasts", "Interviews", "AI Clips", "Events", "Live", 
@@ -70,6 +71,7 @@ export default function SeeksyTVHome() {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const { requestPoster, getPosterUrl, isLoading: isPosterLoading } = useAIPosterGeneration();
 
   interface FeaturedItem {
     id: string;
@@ -285,17 +287,31 @@ export default function SeeksyTVHome() {
         {/* Mosaic Grid Background */}
         <div className="absolute inset-0">
           <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1 opacity-40 transform rotate-[-8deg] scale-125 -translate-y-20">
-            {[...demoThumbnails, ...demoThumbnails, ...demoThumbnails].map((item, idx) => (
-              <div 
-                key={`${item.id}-${idx}`}
-                className={`aspect-[2/3] rounded-lg bg-gradient-to-br ${item.gradient} animate-pulse`}
-                style={{ animationDelay: `${idx * 0.1}s`, animationDuration: '3s' }}
-              >
-                <div className="w-full h-full flex items-end p-2">
-                  <span className="text-[8px] text-white/60 font-medium truncate">{item.title}</span>
+            {[...demoThumbnails, ...demoThumbnails, ...demoThumbnails].map((item, idx) => {
+              const heroPosterId = `hero-${item.id}-${idx}`;
+              const heroAiPosterUrl = getPosterUrl(heroPosterId);
+              
+              // Only request for first 12 to avoid rate limits
+              if (idx < 12 && !heroAiPosterUrl && !isPosterLoading(heroPosterId)) {
+                requestPoster(heroPosterId, item.title, "Entertainment");
+              }
+              
+              return (
+                <div 
+                  key={`${item.id}-${idx}`}
+                  className={`aspect-[2/3] rounded-lg overflow-hidden ${!heroAiPosterUrl ? `bg-gradient-to-br ${item.gradient}` : ''}`}
+                  style={{ animationDelay: `${idx * 0.1}s`, animationDuration: '3s' }}
+                >
+                  {heroAiPosterUrl ? (
+                    <img src={heroAiPosterUrl} alt={item.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-end p-2">
+                      <span className="text-[8px] text-white/60 font-medium truncate">{item.title}</span>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           
           {/* Heavy Gradient Overlays */}
@@ -371,41 +387,59 @@ export default function SeeksyTVHome() {
           </h2>
         </div>
         <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
-          {displayTrending.slice(0, 10).map((item, index) => (
-            <div 
-              key={item.id}
-              className="shrink-0 w-48 md:w-56 group cursor-pointer relative"
-              onClick={() => navigate(`/tv/watch/${item.id}`)}
-            >
-              {/* Big Rank Number */}
-              <div className="absolute -left-4 bottom-0 z-10">
-                <span className="text-[120px] font-black text-transparent bg-clip-text bg-gradient-to-b from-white/20 to-white/5 leading-none drop-shadow-lg" style={{ WebkitTextStroke: '2px rgba(255,255,255,0.3)' }}>
-                  {index + 1}
-                </span>
-              </div>
-              
-              {/* Thumbnail */}
-              <div className="aspect-[2/3] rounded-lg overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 ml-8 relative group-hover:scale-105 transition-transform duration-300">
-                {item.thumbnail_url ? (
-                  <img src={item.thumbnail_url} alt={item.title} className="w-full h-full object-cover" />
-                ) : (
-                  <div className={`w-full h-full bg-gradient-to-br ${demoThumbnails[index % demoThumbnails.length]?.gradient || 'from-amber-600 to-orange-600'} flex items-end p-4`}>
-                    <div>
-                      <p className="text-xs text-white/60 uppercase tracking-wider mb-1">{item.category}</p>
-                      <h3 className="text-sm font-bold text-white line-clamp-2">{item.title}</h3>
-                    </div>
-                  </div>
-                )}
+          {displayTrending.slice(0, 10).map((item, index) => {
+            const posterId = `trending-${item.id}`;
+            const aiPosterUrl = getPosterUrl(posterId);
+            const posterLoading = isPosterLoading(posterId);
+            
+            // Request AI poster generation if no thumbnail
+            if (!item.thumbnail_url && !aiPosterUrl && !posterLoading) {
+              requestPoster(posterId, item.title, item.category || "Entertainment");
+            }
+            
+            return (
+              <div 
+                key={item.id}
+                className="shrink-0 w-48 md:w-56 group cursor-pointer relative"
+                onClick={() => navigate(`/tv/watch/${item.id}`)}
+              >
+                {/* Big Rank Number */}
+                <div className="absolute -left-4 bottom-0 z-10">
+                  <span className="text-[120px] font-black text-transparent bg-clip-text bg-gradient-to-b from-white/20 to-white/5 leading-none drop-shadow-lg" style={{ WebkitTextStroke: '2px rgba(255,255,255,0.3)' }}>
+                    {index + 1}
+                  </span>
+                </div>
                 
-                {/* Hover Play */}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <div className="w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center">
-                    <Play className="h-5 w-5 text-white fill-current ml-0.5" />
+                {/* Thumbnail */}
+                <div className="aspect-[2/3] rounded-lg overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 ml-8 relative group-hover:scale-105 transition-transform duration-300">
+                  {item.thumbnail_url ? (
+                    <img src={item.thumbnail_url} alt={item.title} className="w-full h-full object-cover" />
+                  ) : aiPosterUrl ? (
+                    <img src={aiPosterUrl} alt={item.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className={`w-full h-full bg-gradient-to-br ${demoThumbnails[index % demoThumbnails.length]?.gradient || 'from-amber-600 to-orange-600'} flex items-end p-4 relative`}>
+                      {posterLoading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                          <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-xs text-white/60 uppercase tracking-wider mb-1">{item.category}</p>
+                        <h3 className="text-sm font-bold text-white line-clamp-2">{item.title}</h3>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Hover Play */}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center">
+                      <Play className="h-5 w-5 text-white fill-current ml-0.5" />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
