@@ -1,8 +1,10 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { X, Sparkles, ArrowRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { SEEKSY_MODULES, type SeeksyModule } from "@/components/modules/moduleData";
+import { ModuleDetailDrawer } from "@/components/modules/ModuleDetailDrawer";
+import { toast } from "sonner";
 
 interface RecommendedModule {
   id: string;
@@ -20,11 +22,12 @@ const RECOMMENDED_MODULES: RecommendedModule[] = [
 ];
 
 export const RecommendedSeeksiesBanner = () => {
-  const navigate = useNavigate();
   const [isDismissed, setIsDismissed] = useState(() => {
     return localStorage.getItem("recommended-seeksies-dismissed") === "true";
   });
-  const { currentWorkspace, workspaceModules } = useWorkspace();
+  const [selectedModule, setSelectedModule] = useState<SeeksyModule | null>(null);
+  const [isInstalling, setIsInstalling] = useState(false);
+  const { currentWorkspace, workspaceModules, addModule } = useWorkspace();
 
   // Get active module IDs from workspace
   const activeModuleIds = useMemo(() => {
@@ -49,48 +52,94 @@ export const RecommendedSeeksiesBanner = () => {
     localStorage.setItem("recommended-seeksies-dismissed", "true");
   };
 
+  const handleModuleClick = (moduleId: string) => {
+    // Find the full module data from SEEKSY_MODULES
+    const fullModule = SEEKSY_MODULES.find(m => m.id === moduleId);
+    if (fullModule) {
+      setSelectedModule(fullModule);
+    }
+  };
+
+  const handleInstall = async () => {
+    if (!selectedModule || !currentWorkspace) return;
+    
+    setIsInstalling(true);
+    try {
+      await addModule(selectedModule.id);
+      toast.success("App added!", {
+        description: `${selectedModule.name} has been added to ${currentWorkspace.name}.`,
+      });
+      setSelectedModule(null);
+    } catch (error) {
+      toast.error("Failed to add app");
+    } finally {
+      setIsInstalling(false);
+    }
+  };
+
+  const handleOpenModule = () => {
+    if (selectedModule?.route) {
+      window.location.href = selectedModule.route;
+    }
+  };
+
   // Don't show if dismissed or no recommendations
   if (isDismissed || recommendedModules.length === 0) return null;
 
+  const isModuleInstalled = selectedModule ? activeModuleIds.has(selectedModule.id) : false;
+
   return (
-    <div className="w-full mb-6 relative">
-      <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border border-primary/20 rounded-xl p-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3 flex-1">
-            <div className="p-2 rounded-lg bg-primary/10 shrink-0">
-              <Sparkles className="h-5 w-5 text-primary" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-sm mb-1">Recommended Seeksies</h3>
-              <p className="text-xs text-muted-foreground mb-3">
-                Add these modules to unlock more features for your workspace
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {recommendedModules.map((mod) => (
-                  <Button
-                    key={mod.id}
-                    variant="outline"
-                    size="sm"
-                    className="h-7 text-xs gap-1 bg-background/80"
-                    onClick={() => navigate("/apps-and-tools")}
-                  >
-                    {mod.name}
-                    <ArrowRight className="h-3 w-3" />
-                  </Button>
-                ))}
+    <>
+      <div className="w-full mb-6 relative">
+        <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border border-primary/20 rounded-xl p-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3 flex-1">
+              <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                <Sparkles className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-sm mb-1">Recommended Seeksies</h3>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Add these modules to unlock more features for your workspace
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {recommendedModules.map((mod) => (
+                    <Button
+                      key={mod.id}
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs gap-1 bg-background/80"
+                      onClick={() => handleModuleClick(mod.id)}
+                    >
+                      {mod.name}
+                      <ArrowRight className="h-3 w-3" />
+                    </Button>
+                  ))}
+                </div>
               </div>
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 shrink-0"
+              onClick={handleDismiss}
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 shrink-0"
-            onClick={handleDismiss}
-          >
-            <X className="h-4 w-4" />
-          </Button>
         </div>
       </div>
-    </div>
+
+      {/* Module Detail Drawer */}
+      <ModuleDetailDrawer
+        module={selectedModule}
+        isOpen={!!selectedModule}
+        onClose={() => setSelectedModule(null)}
+        isInstalled={isModuleInstalled}
+        isInstalling={isInstalling}
+        onInstall={handleInstall}
+        onOpen={handleOpenModule}
+      />
+    </>
   );
 };
