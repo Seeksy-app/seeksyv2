@@ -422,3 +422,6 @@ verify_jwt = true
 
 [functions.seed-tv-content]
 verify_jwt = true
+
+[functions.send-board-proforma-notification]
+verify_jwt = true

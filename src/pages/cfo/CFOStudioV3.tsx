@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { useCFOStudioV3 } from '@/hooks/useCFOStudioV3';
 import { CFOStickyHeader } from '@/components/cfo-v3/CFOStickyHeader';
@@ -9,8 +10,11 @@ import { CFOMetricsSection } from '@/components/cfo-v3/CFOMetricsSection';
 import { CFOAssumptionsSection } from '@/components/cfo-v3/CFOAssumptionsSection';
 import { CFOFinancialSummary } from '@/components/cfo-v3/CFOFinancialSummary';
 import { CFOExportSection } from '@/components/cfo-v3/CFOExportSection';
+import { ShareToBoardModal } from '@/components/cfo-v3/ShareToBoardModal';
 
 export default function CFOStudioV3() {
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  
   const {
     state,
     metrics,
@@ -31,7 +35,7 @@ export default function CFOStudioV3() {
   };
 
   const handleShareToBoard = () => {
-    toast.success('Pro Forma shared to Board Portal');
+    setShareModalOpen(true);
   };
 
   return (
@@ -82,6 +86,13 @@ export default function CFOStudioV3() {
           onShareToBoard={handleShareToBoard}
         />
       </main>
+
+      {/* Share to Board Modal */}
+      <ShareToBoardModal
+        open={shareModalOpen}
+        onOpenChange={setShareModalOpen}
+        versionLabel="Current Pro Forma"
+      />
     </div>
   );
 }
