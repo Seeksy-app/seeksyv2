@@ -150,10 +150,12 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const generateSlug = (name: string): string => {
-    return name
+    const baseSlug = name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '');
+    // Add timestamp suffix to ensure uniqueness
+    return `${baseSlug}-${Date.now().toString(36)}`;
   };
 
   const createWorkspace = async (name: string, templateModules?: string[]): Promise<Workspace | null> => {
