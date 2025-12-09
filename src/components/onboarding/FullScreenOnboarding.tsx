@@ -141,22 +141,55 @@ function CheckboxPill({
 export function FullScreenOnboarding() {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
-  const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [confettiPlayed, setConfettiPlayed] = useState(false);
   const [firstName, setFirstName] = useState('');
   
-  const [data, setData] = useState<OnboardingData>({
-    purpose: null,
-    role: null,
-    teamSize: null,
-    companySize: null,
-    manageFocus: null,
-    workflowFocus: null,
-    howHeard: [],
-    integrationType: null,
+  // Restore step and data from localStorage to persist across OAuth redirects
+  const [step, setStep] = useState(() => {
+    const saved = localStorage.getItem('onboarding_step');
+    return saved ? parseInt(saved, 10) : 1;
   });
+  
+  const [data, setData] = useState<OnboardingData>(() => {
+    const saved = localStorage.getItem('onboarding_data');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return {
+          purpose: null,
+          role: null,
+          teamSize: null,
+          companySize: null,
+          manageFocus: null,
+          workflowFocus: null,
+          howHeard: [],
+          integrationType: null,
+        };
+      }
+    }
+    return {
+      purpose: null,
+      role: null,
+      teamSize: null,
+      companySize: null,
+      manageFocus: null,
+      workflowFocus: null,
+      howHeard: [],
+      integrationType: null,
+    };
+  });
+
+  // Persist step and data to localStorage
+  useEffect(() => {
+    localStorage.setItem('onboarding_step', step.toString());
+  }, [step]);
+
+  useEffect(() => {
+    localStorage.setItem('onboarding_data', JSON.stringify(data));
+  }, [data]);
 
   const totalSteps = 6;
 
@@ -271,6 +304,10 @@ export function FullScreenOnboarding() {
         onboarding_completed: true,
         user_type: accountType,
       }, { onConflict: 'user_id' });
+
+      // Clear localStorage after successful completion
+      localStorage.removeItem('onboarding_step');
+      localStorage.removeItem('onboarding_data');
 
       // Trigger confetti only once
       if (!confettiPlayed) {
