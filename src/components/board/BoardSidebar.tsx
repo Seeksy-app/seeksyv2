@@ -68,29 +68,41 @@ const businessItems = [
 // FINANCIALS section - expanded with new tabs
 const financialItems = [
   {
-    id: 'state-of-company',
-    label: 'State of the Company',
+    id: 'company-health',
+    label: 'Company Health',
     icon: BarChart3,
-    path: '/board/state-of-company',
+    path: '/board/company-health',
     isAI: true,
   },
   {
-    id: 'proforma',
-    label: 'AI-Powered 3-Year Pro Forma',
+    id: 'financial-statements',
+    label: 'Financial Statements',
+    icon: DollarSign,
+    path: '/board/financial-statements',
+  },
+  {
+    id: 'capital-strategy',
+    label: 'Capital Strategy',
     icon: TrendingUp,
+    path: '/board/capital-strategy',
+  },
+  {
+    id: 'proforma',
+    label: '3-Year Pro Forma',
+    icon: Calculator,
     path: '/board/forecasts',
   },
   {
-    id: 'revenue-insights',
-    label: 'Revenue Insights',
-    icon: DollarSign,
-    path: '/board/revenue-insights',
+    id: 'milestones',
+    label: 'Milestones',
+    icon: Target,
+    path: '/board/milestones',
   },
   {
-    id: 'roi-calculator',
-    label: 'ROI Calculator',
-    icon: Calculator,
-    path: '/board/roi-calculator',
+    id: 'team-org',
+    label: 'Team & Org',
+    icon: BarChart3,
+    path: '/board/team-org',
   },
 ];
 
