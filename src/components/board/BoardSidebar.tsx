@@ -147,12 +147,12 @@ export function BoardSidebar() {
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
-              'w-full flex items-center gap-2 px-3 py-1 rounded-md transition-all duration-200',
-              'text-white hover:bg-slate-800/40',
-              'text-sm font-medium'
+              'w-full flex items-center gap-2.5 px-3 py-2 rounded-md transition-all duration-200',
+              'text-white hover:bg-white/5',
+              'text-[13px] font-medium'
             )}
           >
-            <Icon className="w-4 h-4 flex-shrink-0 text-slate-400" />
+            <Icon className="w-4 h-4 flex-shrink-0 text-white/80" />
             <span className="flex-1 truncate">{item.label}</span>
           </a>
         </SidebarMenuItem>
@@ -168,17 +168,16 @@ export function BoardSidebar() {
             data-tour={item.id === 'dashboard' ? 'nav-dashboard' : item.id === 'swot' ? 'nav-swot' : undefined}
             className={cn(
               'w-full flex items-center gap-2.5 px-3 py-2 rounded-md transition-all duration-200',
-              'hover:bg-slate-700/60',
               'text-[13px] font-medium tracking-normal',
+              'hover:bg-white/5',
               isActive 
-                ? 'bg-blue-500/30 text-white font-semibold hover:bg-blue-500/40' 
-                : 'text-slate-100'
+                ? 'bg-white/[0.08] text-white font-semibold hover:bg-white/[0.12]' 
+                : 'text-white'
             )}
-            style={{ color: isActive ? undefined : 'rgba(226, 232, 240, 0.95)' }}
           >
             <Icon className={cn(
               "w-4 h-4 flex-shrink-0",
-              item.isAI ? "text-yellow-400" : isActive ? "text-blue-300" : "text-slate-300"
+              item.isAI ? "text-yellow-400" : isActive ? "text-white" : "text-white/80"
             )} />
             <span className="flex-1 truncate">{item.label}</span>
           </Link>
@@ -193,15 +192,15 @@ export function BoardSidebar() {
           onClick={() => handleNavigation(item)}
           data-tour={item.id === 'dashboard' ? 'nav-dashboard' : item.id === 'swot' ? 'nav-swot' : undefined}
           className={cn(
-            'w-full flex items-center gap-2 px-3 py-1 rounded-md transition-all duration-200',
-            'text-white hover:bg-slate-800/40',
-            'text-sm font-medium',
-            isActive && 'bg-blue-500/30 font-semibold hover:bg-blue-500/40'
+            'w-full flex items-center gap-2.5 px-3 py-2 rounded-md transition-all duration-200',
+            'text-white hover:bg-white/5',
+            'text-[13px] font-medium',
+            isActive && 'bg-white/[0.08] font-semibold hover:bg-white/[0.12]'
           )}
         >
           <Icon className={cn(
             "w-4 h-4 flex-shrink-0",
-            item.isAI ? "text-yellow-400" : isActive ? "text-blue-300" : "text-slate-400"
+            item.isAI ? "text-yellow-400" : isActive ? "text-white" : "text-white/80"
           )} />
           <span className="flex-1 truncate">{item.label}</span>
         </SidebarMenuButton>
@@ -211,7 +210,7 @@ export function BoardSidebar() {
 
   const renderSection = (title: string, items: NavItem[], className?: string) => (
     <SidebarGroup className={cn("py-1", className)}>
-      <SidebarGroupLabel className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide px-3 mb-0.5">
+      <SidebarGroupLabel className="text-[11px] font-semibold text-white/60 uppercase tracking-wide px-3 mb-0.5">
         {title}
       </SidebarGroupLabel>
       <SidebarMenu className="space-y-0">
