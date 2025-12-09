@@ -147,13 +147,12 @@ export function BoardSidebar() {
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
-              'w-full flex items-center gap-2.5 rounded-[var(--nav-item-radius)] transition-all duration-200',
-              'text-[hsl(var(--nav-text-default))] hover:bg-[hsl(var(--nav-item-hover-bg))]',
+              'w-full flex items-center gap-2.5 rounded-lg transition-all duration-200 px-3 py-2.5',
+              'text-foreground hover:bg-accent',
               'text-[13px] font-medium'
             )}
-            style={{ padding: 'var(--nav-item-padding-y) var(--nav-item-padding-x)' }}
           >
-            <Icon className="w-4 h-4 flex-shrink-0 text-[hsl(var(--nav-text-muted))]" />
+            <Icon className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
             <span className="flex-1 truncate">{item.label}</span>
           </a>
         </SidebarMenuItem>
@@ -168,17 +167,16 @@ export function BoardSidebar() {
             to={item.path}
             data-tour={item.id === 'dashboard' ? 'nav-dashboard' : item.id === 'swot' ? 'nav-swot' : undefined}
             className={cn(
-              'w-full flex items-center gap-2.5 rounded-[var(--nav-item-radius)] transition-all duration-200',
+              'w-full flex items-center gap-2.5 rounded-lg transition-all duration-200 px-3 py-2.5',
               'text-[13px] font-medium tracking-normal',
-              'text-[hsl(var(--nav-text-default))]',
-              'hover:bg-[hsl(var(--nav-item-hover-bg))]',
-              isActive && 'bg-[hsl(var(--nav-item-active-bg))] font-semibold'
+              'text-foreground',
+              'hover:bg-accent',
+              isActive && 'bg-accent font-semibold'
             )}
-            style={{ padding: 'var(--nav-item-padding-y) var(--nav-item-padding-x)' }}
           >
             <Icon className={cn(
               "w-4 h-4 flex-shrink-0",
-              item.isAI ? "text-yellow-400" : isActive ? "text-[hsl(var(--nav-text-default))]" : "text-[hsl(var(--nav-text-muted))]"
+              item.isAI ? "text-yellow-500" : isActive ? "text-foreground" : "text-muted-foreground"
             )} />
             <span className="flex-1 truncate">{item.label}</span>
           </Link>
@@ -193,16 +191,15 @@ export function BoardSidebar() {
           onClick={() => handleNavigation(item)}
           data-tour={item.id === 'dashboard' ? 'nav-dashboard' : item.id === 'swot' ? 'nav-swot' : undefined}
           className={cn(
-            'w-full flex items-center gap-2.5 rounded-[var(--nav-item-radius)] transition-all duration-200',
-            'text-[hsl(var(--nav-text-default))] hover:bg-[hsl(var(--nav-item-hover-bg))]',
+            'w-full flex items-center gap-2.5 rounded-lg transition-all duration-200 px-3 py-2.5',
+            'text-foreground hover:bg-accent',
             'text-[13px] font-medium',
-            isActive && 'bg-[hsl(var(--nav-item-active-bg))] font-semibold'
+            isActive && 'bg-accent font-semibold'
           )}
-          style={{ padding: 'var(--nav-item-padding-y) var(--nav-item-padding-x)' }}
         >
           <Icon className={cn(
             "w-4 h-4 flex-shrink-0",
-            item.isAI ? "text-yellow-400" : isActive ? "text-[hsl(var(--nav-text-default))]" : "text-[hsl(var(--nav-text-muted))]"
+            item.isAI ? "text-yellow-500" : isActive ? "text-foreground" : "text-muted-foreground"
           )} />
           <span className="flex-1 truncate">{item.label}</span>
         </SidebarMenuButton>
@@ -212,7 +209,7 @@ export function BoardSidebar() {
 
   const renderSection = (title: string, items: NavItem[], className?: string) => (
     <SidebarGroup className={cn("py-1", className)}>
-      <SidebarGroupLabel className="text-[11px] font-semibold text-[hsl(var(--nav-text-muted))] uppercase tracking-wider px-3 mb-0.5">
+      <SidebarGroupLabel className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-0.5">
         {title}
       </SidebarGroupLabel>
       <SidebarMenu className="space-y-0">
@@ -222,15 +219,15 @@ export function BoardSidebar() {
   );
 
   return (
-    <Sidebar collapsible="none" className="border-r border-slate-700/50 bg-slate-900 w-[16rem] flex-shrink-0 antialiased font-sans">
-      <SidebarHeader className="p-4 border-b border-slate-700/50">
+    <Sidebar collapsible="none" className="border-r border-border bg-background w-[16rem] flex-shrink-0 antialiased font-sans">
+      <SidebarHeader className="p-4 border-b border-border">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
             <span className="text-white font-bold text-lg">S</span>
           </div>
           <div>
-            <h2 className="text-base font-bold text-white tracking-tight">Seeksy</h2>
-            <p className="text-xs text-slate-400 font-medium tracking-wide">Board Portal</p>
+            <h2 className="text-base font-bold text-foreground tracking-tight">Seeksy</h2>
+            <p className="text-xs text-muted-foreground font-medium tracking-wide">Board Portal</p>
           </div>
         </div>
       </SidebarHeader>
@@ -241,12 +238,12 @@ export function BoardSidebar() {
         {renderSection('Financials', financialItems, 'mt-0.5')}
       </SidebarContent>
 
-      <SidebarFooter className="p-2 border-t border-slate-700/50 space-y-0.5">
+      <SidebarFooter className="p-2 border-t border-border space-y-0.5">
         {canToggleBoardView && isViewingAsBoard && (
           <Button
             variant="outline"
             size="sm"
-            className="w-full justify-start gap-2 border-slate-600 text-slate-300 hover:bg-slate-700/50 hover:text-white text-sm font-medium py-1.5"
+            className="w-full justify-start gap-2 text-foreground hover:bg-accent text-sm font-medium py-1.5"
             onClick={handleExitBoardView}
           >
             <LayoutDashboard className="w-4 h-4" />
@@ -256,7 +253,7 @@ export function BoardSidebar() {
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start gap-2 text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 text-sm font-medium py-1.5"
+          className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground hover:bg-accent text-sm font-medium py-1.5"
           onClick={handleLogout}
         >
           <LogOut className="w-4 h-4" />
