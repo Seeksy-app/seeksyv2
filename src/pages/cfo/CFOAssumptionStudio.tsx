@@ -266,24 +266,8 @@ export default function CFOAssumptionStudio() {
         <div className="grid lg:grid-cols-[1fr,420px] gap-6 overflow-visible">
           {/* Left: Calculators */}
           <div>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="bg-muted border border-border p-1 flex-wrap h-auto gap-1">
-                {tabs.map(tab => {
-                  const tabValue = tab.key === 'adRevenue' ? 'ads' : tab.key;
-                  return (
-                    <TabsTrigger 
-                      key={tab.key} 
-                      value={tabValue} 
-                      className="gap-2 data-[state=active]:bg-background"
-                    >
-                      {tab.icon}
-                      {tab.label}
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
-
-              <TabsContent value="growth">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+              <TabsContent value="growth" className="mt-0">
                 <GrowthCACCalculator onSave={(data) => handleCalculatorSave('growth', data)} />
               </TabsContent>
 
