@@ -1,5 +1,5 @@
-import { MondayOnboarding } from "@/components/onboarding/MondayOnboarding";
+import { FullScreenOnboarding } from "@/components/onboarding/FullScreenOnboarding";
 
 export default function Onboarding() {
-  return <MondayOnboarding />;
+  return <FullScreenOnboarding />;
 }
