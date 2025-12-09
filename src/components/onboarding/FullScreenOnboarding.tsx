@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { ONBOARDING_IMAGES, getImageForFocus } from './OnboardingImages';
 import { OnboardingWelcomeScreen } from './OnboardingWelcomeScreen';
+import { OnboardingFeedbackWidget } from '@/components/feedback/OnboardingFeedbackWidget';
 
 // Types
 type Purpose = 'work' | 'personal' | 'school' | 'nonprofits' | null;
@@ -712,6 +713,9 @@ export function FullScreenOnboarding() {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* Feedback Widget */}
+      <OnboardingFeedbackWidget />
     </div>
   );
 }

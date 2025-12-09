@@ -16018,6 +16018,36 @@ export type Database = {
         }
         Relationships: []
       }
+      onboarding_feedback: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          page_path: string
+          sentiment: string
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          page_path: string
+          sentiment: string
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          page_path?: string
+          sentiment?: string
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       permission_audit_log: {
         Row: {
           action: string
