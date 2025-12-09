@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,8 +20,6 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
-  DragOverlay,
-  defaultDropAnimationSideEffects,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -31,7 +29,6 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useWorkspace } from "@/contexts/WorkspaceContext";
 
 export interface WidgetConfig {
   id: string;
@@ -163,32 +160,11 @@ const SortableCategory = ({ category, widgets, onToggle, onWidgetDragEnd }: Sort
   );
 };
 
-// Map widget categories to required modules
-const CATEGORY_MODULE_MAP: Record<string, string[]> = {
-  mypage: ["my-page", "mypage"],
-  engagement: ["social-media", "social-analytics", "my-page", "mypage"],
-  email: ["email", "newsletters", "email-signatures"],
-  seekies: ["events", "meetings", "polls", "signup-sheets"],
-  media: ["podcasts", "media-library", "studio"],
-  revenue: ["monetization", "advertising", "ad-revenue"],
-};
-
 export const DashboardCustomizer = ({ widgets, onSave }: DashboardCustomizerProps) => {
   const [localWidgets, setLocalWidgets] = useState(widgets);
   const [open, setOpen] = useState(false);
-  const { currentWorkspace, workspaceModules } = useWorkspace();
-  
-  // Get active module IDs
-  const activeModuleIds = useMemo(() => {
-    const moduleIds = new Set<string>();
-    // From workspace modules
-    workspaceModules.forEach(wm => moduleIds.add(wm.module_id.toLowerCase()));
-    // From legacy modules array
-    currentWorkspace?.modules?.forEach(m => moduleIds.add(m.toLowerCase()));
-    return moduleIds;
-  }, [workspaceModules, currentWorkspace]);
 
-  // Filter categories based on active modules
+  // Always show all categories - no module filtering for customizer
   const [categoryOrder, setCategoryOrder] = useState<CategoryData[]>([
     { id: "mypage", label: "My Page & Profile" },
     { id: "engagement", label: "Engagement & Traffic" },
@@ -197,19 +173,6 @@ export const DashboardCustomizer = ({ widgets, onSave }: DashboardCustomizerProp
     { id: "media", label: "Media & Podcasts" },
     { id: "revenue", label: "Revenue" },
   ]);
-
-  // Filter to only show categories that have at least one active module
-  const filteredCategoryOrder = useMemo(() => {
-    return categoryOrder.filter(category => {
-      const requiredModules = CATEGORY_MODULE_MAP[category.id] || [];
-      // Show category if no modules required OR if any required module is active
-      if (requiredModules.length === 0) return true;
-      return requiredModules.some(modId => 
-        activeModuleIds.has(modId) || 
-        Array.from(activeModuleIds).some(activeId => activeId.includes(modId) || modId.includes(activeId))
-      );
-    });
-  }, [categoryOrder, activeModuleIds]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -290,10 +253,10 @@ export const DashboardCustomizer = ({ widgets, onSave }: DashboardCustomizerProp
               onDragEnd={handleCategoryDragEnd}
             >
               <SortableContext
-                items={filteredCategoryOrder.map(c => c.id)}
+                items={categoryOrder.map(c => c.id)}
                 strategy={verticalListSortingStrategy}
               >
-                {filteredCategoryOrder.map((category) => {
+                {categoryOrder.map((category) => {
                   const categoryWidgets = localWidgets.filter(w => w.category === category.id);
                   if (categoryWidgets.length === 0) return null;
                   
