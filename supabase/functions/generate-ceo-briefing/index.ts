@@ -89,6 +89,4 @@ Current Slider Settings:
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-    });
-  }
 });
