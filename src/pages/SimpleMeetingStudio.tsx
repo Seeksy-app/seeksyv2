@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Video, VideoOff, Mic, MicOff, PhoneOff, 
   Monitor, MessageSquare, Users, Settings,
-  Send, X, Volume2, VolumeX
+  Send, X, Volume2, VolumeX, Link, Copy, Check
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -34,6 +34,7 @@ export default function SimpleMeetingStudio() {
     audioInputDeviceId: string | null;
     audioOutputDeviceId: string | null;
   } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   // Fetch meeting details
   const { data: meeting } = useQuery({
@@ -246,11 +247,20 @@ export default function SimpleMeetingStudio() {
     toast.success("Meeting ended");
   };
 
+  // Copy invite link
+  const copyInviteLink = () => {
+    const inviteLink = `${window.location.origin}/meetings/join/${id}`;
+    navigator.clipboard.writeText(inviteLink);
+    setCopied(true);
+    toast.success("Invite link copied!");
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <>
       <DeviceTestDialog open={showDeviceTest} onContinue={handleDeviceTestComplete} />
 
-      <div className="flex flex-col h-screen bg-zinc-950">
+      <div className="flex flex-col h-screen bg-zinc-950 fixed inset-0 z-50">
         {/* Header */}
         <div className="h-14 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between px-4">
           <div className="flex items-center gap-4">
@@ -262,8 +272,17 @@ export default function SimpleMeetingStudio() {
             </Badge>
           </div>
 
-          <div className="flex items-center gap-4 text-zinc-400 text-sm">
-            <span className="flex items-center gap-1">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={copyInviteLink}
+              className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700"
+            >
+              {copied ? <Check className="h-4 w-4 mr-2" /> : <Link className="h-4 w-4 mr-2" />}
+              {copied ? "Copied!" : "Invite"}
+            </Button>
+            <span className="flex items-center gap-1 text-zinc-400 text-sm">
               <Users className="h-4 w-4" />
               {(meeting?.meeting_attendees?.length || 0) + 1}
             </span>

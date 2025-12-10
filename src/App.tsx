@@ -614,13 +614,15 @@ const AppContent = () => {
     }
   };
 
-  // Always show unified sidebar except for special routes (studio, broadcast)
+  // Always show unified sidebar except for special routes (studio, broadcast, meetings)
   // Note: /studio/clips now shows top nav (sticky header)
   const isStudioRoute = location.pathname.includes('/broadcast/session/') ||
                         location.pathname.startsWith('/studio/video') ||
                         location.pathname.startsWith('/studio/audio') ||
                         location.pathname.includes('/ai-production') ||
-                        location.pathname.includes('/clip-generator');
+                        location.pathname.includes('/clip-generator') ||
+                        location.pathname.includes('/meetings/studio/') ||
+                        location.pathname.includes('/meeting-studio/');
   
   // Studio routes that should hide only sidebar but keep top nav
   const isClipsStudioRoute = location.pathname.startsWith('/studio/clips');
