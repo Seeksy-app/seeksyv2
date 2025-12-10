@@ -100,18 +100,25 @@ export default function BlogManagement() {
     }
   });
 
+  const [isGenerating, setIsGenerating] = useState(false);
+
   // Trigger article generation
-  const generateArticles = async () => {
-    toast.info('Starting article generation...');
+  const generateArticles = async (useFirecrawl = true) => {
+    setIsGenerating(true);
+    toast.info(useFirecrawl ? 'Scraping sources & generating articles...' : 'Generating articles...');
     try {
-      const { error } = await supabase.functions.invoke('generate-knowledge-articles', {
-        body: { count: 3 }
+      const { data, error } = await supabase.functions.invoke('generate-knowledge-articles', {
+        body: { count: 3, useFirecrawl }
       });
       if (error) throw error;
-      toast.success('Article generation started');
+      toast.success(`Generated ${data?.generated || 0} articles${data?.usedFirecrawl ? ' from web sources' : ''}`);
       queryClient.invalidateQueries({ queryKey: ['blog-generation-jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-knowledge-articles'] });
+      queryClient.invalidateQueries({ queryKey: ['blog-rss-sources'] });
     } catch (err: any) {
       toast.error(err.message || 'Failed to start generation');
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -122,10 +129,20 @@ export default function BlogManagement() {
           <h1 className="text-2xl font-bold">Blog Management</h1>
           <p className="text-muted-foreground">Manage RSS sources, content generation, and articles</p>
         </div>
-        <Button onClick={generateArticles} className="gap-2">
-          <Sparkles className="h-4 w-4" />
-          Generate 3 Articles Now
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => generateArticles(false)} 
+            disabled={isGenerating}
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
+            AI Only
+          </Button>
+          <Button onClick={() => generateArticles(true)} disabled={isGenerating} className="gap-2">
+            <RefreshCw className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`} />
+            {isGenerating ? 'Generating...' : 'Scrape & Generate'}
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">

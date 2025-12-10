@@ -7,14 +7,13 @@ const corsHeaders = {
 };
 
 const PORTALS = ['admin', 'creator', 'board'] as const;
-const CATEGORIES = [
-  'Seeksy Updates',
-  'Industry Insights',
-  'Creator Growth & Monetization',
-  'AI Tools & Trends',
-  'Podcasting Industry',
-  'Meetings & Events Industry',
-  'How-To Articles'
+
+// Industry sources to scrape if no RSS sources configured
+const DEFAULT_SOURCES = [
+  { name: 'TechCrunch Creator Economy', query: 'creator economy podcast platform', category: 'Industry Insights' },
+  { name: 'Podnews', query: 'podcast industry news trends', category: 'Podcasting Industry' },
+  { name: 'Creator Economy News', query: 'influencer monetization creator tools', category: 'Creator Growth & Monetization' },
+  { name: 'AI Tools Trends', query: 'AI tools content creation automation', category: 'AI Tools & Trends' },
 ];
 
 serve(async (req) => {
@@ -29,19 +28,30 @@ serve(async (req) => {
     );
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const FIRECRAWL_API_KEY = Deno.env.get('FIRECRAWL_API_KEY');
+    
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    const { count = 3 } = await req.json().catch(() => ({ count: 3 }));
+    const { count = 3, useFirecrawl = true } = await req.json().catch(() => ({ count: 3, useFirecrawl: true }));
 
-    console.log(`Generating ${count} knowledge articles...`);
+    console.log(`Generating ${count} knowledge articles (Firecrawl: ${useFirecrawl && !!FIRECRAWL_API_KEY})...`);
+
+    // Fetch active RSS sources from database
+    const { data: rssSources } = await supabase
+      .from('blog_rss_sources')
+      .select('*')
+      .eq('is_active', true);
 
     const generatedArticles = [];
+    const sourcesToUse = rssSources?.length ? rssSources : DEFAULT_SOURCES;
 
     for (let i = 0; i < count; i++) {
       const portal = PORTALS[i % PORTALS.length];
-      const category = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
+      const sourceIndex = i % sourcesToUse.length;
+      const source = sourcesToUse[sourceIndex];
+      const category = source.category || 'Industry Insights';
 
       // Create job record
       const { data: job, error: jobError } = await supabase
@@ -61,32 +71,122 @@ serve(async (req) => {
       }
 
       try {
-        // Generate article with AI
-        const systemPrompt = `You are a professional content writer for Seeksy, a creator platform. 
-Generate a high-quality knowledge article in JSON format.
+        let scrapedContent = '';
+        let sourceUrl = '';
 
-Target audience: ${portal === 'board' ? 'Board members and investors - strategic, high-level, financial focus' : portal === 'admin' ? 'Platform administrators - operational, technical, insights-driven' : 'Content creators - practical, inspirational, actionable'}
+        // Use Firecrawl to scrape content if available
+        if (useFirecrawl && FIRECRAWL_API_KEY) {
+          console.log(`Scraping content for: ${source.name || source.query}`);
+          
+          try {
+            // If source has URL (from RSS sources), scrape directly
+            if ('url' in source && source.url) {
+              const scrapeResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${FIRECRAWL_API_KEY}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  url: source.url,
+                  formats: ['markdown'],
+                  onlyMainContent: true,
+                }),
+              });
+
+              const scrapeData = await scrapeResponse.json();
+              if (scrapeData.success && scrapeData.data?.markdown) {
+                scrapedContent = scrapeData.data.markdown.substring(0, 3000);
+                sourceUrl = source.url;
+              }
+            } else {
+              // Use search to find relevant content
+              const searchQuery = 'query' in source ? source.query : `${source.name} latest news`;
+              const searchResponse = await fetch('https://api.firecrawl.dev/v1/search', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${FIRECRAWL_API_KEY}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  query: searchQuery,
+                  limit: 3,
+                  lang: 'en',
+                  tbs: 'qdr:w', // Last week
+                  scrapeOptions: {
+                    formats: ['markdown']
+                  }
+                }),
+              });
+
+              const searchData = await searchResponse.json();
+              if (searchData.success && searchData.data?.length) {
+                // Combine content from multiple search results
+                const combinedContent = searchData.data
+                  .slice(0, 3)
+                  .map((r: any) => `## ${r.title}\n${r.description || ''}\n${r.markdown?.substring(0, 800) || ''}`)
+                  .join('\n\n');
+                scrapedContent = combinedContent.substring(0, 4000);
+                sourceUrl = searchData.data[0]?.url || '';
+              }
+            }
+
+            // Update last_fetched_at for RSS sources
+            if ('id' in source) {
+              await supabase
+                .from('blog_rss_sources')
+                .update({ last_fetched_at: new Date().toISOString() })
+                .eq('id', source.id);
+            }
+
+            console.log(`Scraped ${scrapedContent.length} chars from ${source.name || source.query}`);
+          } catch (scrapeErr) {
+            console.error('Firecrawl error:', scrapeErr);
+          }
+        }
+
+        // Generate article with AI
+        const audienceContext = {
+          board: 'Board members and investors - strategic, high-level, financial focus. Use professional business language.',
+          admin: 'Platform administrators - operational, technical, insights-driven. Focus on metrics and implementation.',
+          creator: 'Content creators - practical, inspirational, actionable. Use friendly, motivating language.'
+        };
+
+        const systemPrompt = `You are a professional content writer for Seeksy, a creator platform.
+Generate a high-quality, original knowledge article based on the provided industry context.
+
+Target audience: ${audienceContext[portal]}
 
 Category: ${category}
 
+${scrapedContent ? `
+IMPORTANT: Use the following real-world content as context and inspiration. DO NOT copy directly - synthesize, analyze, and add unique insights:
+
+---
+${scrapedContent}
+---
+` : ''}
+
 Return ONLY valid JSON with this structure:
 {
-  "title": "Compelling article title",
-  "excerpt": "2-3 sentence summary",
-  "purpose": "Why this topic matters (2-3 sentences)",
-  "expected_outcomes": "What readers will learn (2-3 sentences)",
+  "title": "Compelling, specific article title (not generic)",
+  "excerpt": "2-3 sentence summary highlighting key insights",
+  "purpose": "Why this topic matters right now (2-3 sentences)",
+  "expected_outcomes": "What readers will learn and be able to do (2-3 sentences)",
   "key_takeaways": ["takeaway 1", "takeaway 2", "takeaway 3", "takeaway 4", "takeaway 5"],
-  "content": "Full article content in markdown format (minimum 800 words with ## headings)",
+  "content": "Full article content in markdown format (minimum 1000 words with ## headings, real examples, data points)",
   "execution_steps": ["step 1", "step 2", "step 3", "step 4"],
-  "questions": ["question 1?", "question 2?", "question 3?", "question 4?", "question 5?"],
-  "screenshot_urls": ["/assets/screens/dashboard.png", "/assets/screens/analytics.png"]
+  "questions": ["reflection question 1?", "question 2?", "question 3?", "question 4?", "question 5?"],
+  "screenshot_urls": []
 }`;
 
-        const userPrompt = `Write a comprehensive knowledge article about a trending topic in the ${category} category for ${portal === 'board' ? 'board members' : portal === 'admin' ? 'administrators' : 'creators'}.
+        const userPrompt = scrapedContent 
+          ? `Based on the industry context provided, write a comprehensive, original article about trends and insights in the ${category} category for ${portal === 'board' ? 'board members' : portal === 'admin' ? 'administrators' : 'creators'}.
 
-Make it insightful, actionable, and relevant to current industry trends. Include specific examples and data points where applicable.
+Synthesize the information, add your analysis, and provide actionable recommendations. Make it timely and relevant. Minimum 1000 words.`
+          : `Write a comprehensive knowledge article about a current trending topic in the ${category} category for ${portal === 'board' ? 'board members' : portal === 'admin' ? 'administrators' : 'creators'}.
 
-The article should be minimum 800 words and follow professional writing standards.`;
+Make it insightful, actionable, and relevant to current industry trends. Include specific examples and data points. Minimum 1000 words.`;
 
         const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
@@ -100,7 +200,7 @@ The article should be minimum 800 words and follow professional writing standard
               { role: 'system', content: systemPrompt },
               { role: 'user', content: userPrompt }
             ],
-            temperature: 0.8,
+            temperature: 0.7,
           }),
         });
 
@@ -119,7 +219,6 @@ The article should be minimum 800 words and follow professional writing standard
         // Parse JSON from response
         let articleData;
         try {
-          // Try to extract JSON from markdown code blocks
           const jsonMatch = content.match(/```json\n?([\s\S]*?)\n?```/) || content.match(/```\n?([\s\S]*?)\n?```/);
           const jsonStr = jsonMatch ? jsonMatch[1] : content;
           articleData = JSON.parse(jsonStr.trim());
@@ -185,6 +284,7 @@ The article should be minimum 800 words and follow professional writing standard
             execution_steps: articleData.execution_steps,
             questions: articleData.questions,
             screenshot_urls: articleData.screenshot_urls,
+            source_url: sourceUrl || null,
             is_published: true,
             view_count: 0,
             version: 1
@@ -205,7 +305,7 @@ The article should be minimum 800 words and follow professional writing standard
           .eq('id', job.id);
 
         generatedArticles.push(article);
-        console.log(`Generated article: ${article.title}`);
+        console.log(`Generated article: ${article.title} (source: ${sourceUrl || 'AI-generated'})`);
 
       } catch (genError) {
         console.error(`Failed to generate article:`, genError);
@@ -224,7 +324,8 @@ The article should be minimum 800 words and follow professional writing standard
       JSON.stringify({ 
         success: true, 
         generated: generatedArticles.length,
-        articles: generatedArticles 
+        articles: generatedArticles,
+        usedFirecrawl: useFirecrawl && !!FIRECRAWL_API_KEY
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
