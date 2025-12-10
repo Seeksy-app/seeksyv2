@@ -13,6 +13,7 @@ import { TVFooter } from "@/components/tv/TVFooter";
 import { TVHeroPlayer } from "@/components/tv/TVHeroPlayer";
 import { TVContentRow } from "@/components/tv/TVContentRow";
 import { TVCreatorCard } from "@/components/tv/TVCreatorCard";
+import americanWarriorsPoster from "@/assets/tv/american-warriors.png";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -24,7 +25,7 @@ const categories = [
 
 // Demo content for placeholders
 const demoThumbnails = [
-  { id: "demo-1", title: "The Future of AI", gradient: "from-purple-600 to-pink-600" },
+  { id: "demo-1", title: "American Warriors", gradient: "from-blue-800 to-slate-900", imageUrl: americanWarriorsPoster },
   { id: "demo-2", title: "Business Insights", gradient: "from-blue-600 to-cyan-600" },
   { id: "demo-3", title: "Wellness Journey", gradient: "from-green-600 to-teal-600" },
   { id: "demo-4", title: "Tech Trends", gradient: "from-orange-600 to-red-600" },
@@ -419,8 +420,10 @@ export default function SeeksyTVHome() {
         </div>
         <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
           {displayTrending.slice(0, 10).map((item, index) => {
-            const aiPosterUrl = posterImages[demoThumbnails[index % demoThumbnails.length]?.id];
-            const posterLoading = loadingPosters.has(demoThumbnails[index % demoThumbnails.length]?.id);
+            const demoItem = demoThumbnails[index % demoThumbnails.length];
+            const aiPosterUrl = posterImages[demoItem?.id];
+            const posterLoading = loadingPosters.has(demoItem?.id);
+            const staticImageUrl = demoItem?.imageUrl;
             
             return (
               <div 
@@ -439,10 +442,12 @@ export default function SeeksyTVHome() {
                 <div className="aspect-[2/3] rounded-lg overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 ml-8 relative group-hover:scale-105 transition-transform duration-300">
                   {item.thumbnail_url ? (
                     <img src={item.thumbnail_url} alt={item.title} className="w-full h-full object-cover" />
+                  ) : staticImageUrl ? (
+                    <img src={staticImageUrl} alt={demoItem?.title || item.title} className="w-full h-full object-cover" />
                   ) : aiPosterUrl ? (
                     <img src={aiPosterUrl} alt={item.title} className="w-full h-full object-cover" />
                   ) : (
-                    <div className={`w-full h-full bg-gradient-to-br ${demoThumbnails[index % demoThumbnails.length]?.gradient || 'from-amber-600 to-orange-600'} flex items-end p-4 relative`}>
+                    <div className={`w-full h-full bg-gradient-to-br ${demoItem?.gradient || 'from-amber-600 to-orange-600'} flex items-end p-4 relative`}>
                       {posterLoading && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                           <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
