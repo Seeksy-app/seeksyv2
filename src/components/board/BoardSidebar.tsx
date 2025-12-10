@@ -174,15 +174,15 @@ export function BoardSidebar() {
             to={item.path}
             data-tour={item.id === 'dashboard' ? 'nav-dashboard' : item.id === 'swot' ? 'nav-swot' : undefined}
             className={cn(
-              'w-full flex items-center gap-3 rounded-lg transition-all duration-150 px-3 py-2.5',
-              'text-[14px] font-medium',
+              'w-full flex items-center gap-2.5 rounded-lg transition-all duration-150 px-3 py-1.5',
+              'text-[13px] font-medium',
               isActive 
                 ? 'bg-orange-50 text-orange-600' 
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
             )}
           >
             <Icon className={cn(
-              "w-5 h-5 flex-shrink-0",
+              "w-4 h-4 flex-shrink-0",
               item.isAI ? "text-yellow-500" : isActive ? "text-orange-500" : "text-slate-400"
             )} />
             <span className="flex-1 truncate">{item.label}</span>
@@ -196,15 +196,15 @@ export function BoardSidebar() {
         <SidebarMenuButton
           data-tour={item.id === 'dashboard' ? 'nav-dashboard' : item.id === 'swot' ? 'nav-swot' : undefined}
           className={cn(
-            'w-full flex items-center gap-3 rounded-lg transition-all duration-150 px-3 py-2.5',
-            'text-[14px] font-medium',
+            'w-full flex items-center gap-2.5 rounded-lg transition-all duration-150 px-3 py-1.5',
+            'text-[13px] font-medium',
             isActive 
               ? 'bg-orange-50 text-orange-600' 
               : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
           )}
         >
           <Icon className={cn(
-            "w-5 h-5 flex-shrink-0",
+            "w-4 h-4 flex-shrink-0",
             item.isAI ? "text-yellow-500" : isActive ? "text-orange-500" : "text-slate-400"
           )} />
           <span className="flex-1 truncate">{item.label}</span>
@@ -218,11 +218,11 @@ export function BoardSidebar() {
     if (filteredItems.length === 0 && searchQuery.trim()) return null;
     
     return (
-      <SidebarGroup className={cn("py-2", className)}>
-        <SidebarGroupLabel className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-1">
+      <SidebarGroup className={cn("py-1", className)}>
+        <SidebarGroupLabel className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-0.5">
           {title}
         </SidebarGroupLabel>
-        <SidebarMenu className="space-y-0.5">
+        <SidebarMenu className="space-y-0">
           {filteredItems.map(renderNavItem)}
         </SidebarMenu>
       </SidebarGroup>
@@ -232,30 +232,30 @@ export function BoardSidebar() {
   return (
     <Sidebar collapsible="none" className="border-r border-slate-200 bg-white w-[260px] flex-shrink-0">
       {/* Header with Logo */}
-      <SidebarHeader className="p-5 border-b border-slate-100">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-sm">
-            <span className="text-white font-bold text-lg">S</span>
+      <SidebarHeader className="p-3 border-b border-slate-100">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-sm">
+            <span className="text-white font-bold text-sm">S</span>
           </div>
           <div>
-            <h2 className="text-lg font-bold text-slate-900 tracking-tight">Seeksy</h2>
-            <p className="text-xs text-slate-500">Board Portal</p>
+            <h2 className="text-base font-bold text-slate-900 tracking-tight">Seeksy</h2>
+            <p className="text-[10px] text-slate-500">Board Portal</p>
           </div>
         </div>
       </SidebarHeader>
 
       {/* Search Bar - Firecrawl style */}
-      <div className="px-3 py-3 border-b border-slate-100">
+      <div className="px-2 py-2 border-b border-slate-100">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
           <Input
             type="text"
             placeholder="Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 pr-10 h-10 bg-slate-50 border-slate-200 text-sm placeholder:text-slate-400 focus:bg-white focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
+            className="pl-8 pr-8 h-8 bg-slate-50 border-slate-200 text-xs placeholder:text-slate-400 focus:bg-white focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
           />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium">
+          <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-medium">
             ⌘K
           </span>
         </div>
@@ -268,34 +268,34 @@ export function BoardSidebar() {
         {renderSection('Resources', resourceItems)}
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-slate-100 space-y-1">
+      <SidebarFooter className="p-2 border-t border-slate-100 space-y-0.5">
         {canToggleBoardView && isViewingAsBoard && (
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start gap-3 text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-sm font-medium h-10"
+            className="w-full justify-start gap-2.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-[13px] font-medium h-8"
             onClick={handleExitBoardView}
           >
-            <LayoutDashboard className="w-5 h-5 text-slate-400" />
+            <LayoutDashboard className="w-4 h-4 text-slate-400" />
             Exit Board View
           </Button>
         )}
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start gap-3 text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-sm font-medium h-10"
+          className="w-full justify-start gap-2.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-[13px] font-medium h-8"
           onClick={() => navigate('/board/settings')}
         >
-          <Settings className="w-5 h-5 text-slate-400" />
+          <Settings className="w-4 h-4 text-slate-400" />
           Settings
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start gap-3 text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-sm font-medium h-10"
+          className="w-full justify-start gap-2.5 text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-[13px] font-medium h-8"
           onClick={handleLogout}
         >
-          <LogOut className="w-5 h-5 text-slate-400" />
+          <LogOut className="w-4 h-4 text-slate-400" />
           Logout
         </Button>
       </SidebarFooter>
