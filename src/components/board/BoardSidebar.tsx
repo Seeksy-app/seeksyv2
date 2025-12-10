@@ -177,13 +177,13 @@ export function BoardSidebar() {
 
     if (item.path) {
       return (
-        <SidebarMenuItem key={item.id}>
+        <SidebarMenuItem key={item.id} className="mb-0">
           <Link
             to={item.path}
             data-tour={item.id === 'dashboard' ? 'nav-dashboard' : item.id === 'swot' ? 'nav-swot' : undefined}
             className={cn(
-              'w-full flex items-center gap-2 rounded-lg transition-all duration-150 px-3 py-1',
-              'text-[13px] font-medium',
+              'w-full flex items-center gap-2 rounded-lg transition-all duration-150 px-3 py-0.5',
+              'text-[13px] font-medium leading-tight',
               isActive 
                 ? 'bg-orange-50 text-orange-600' 
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -200,12 +200,12 @@ export function BoardSidebar() {
     }
 
     return (
-      <SidebarMenuItem key={item.id}>
+      <SidebarMenuItem key={item.id} className="mb-0">
         <SidebarMenuButton
           data-tour={item.id === 'dashboard' ? 'nav-dashboard' : item.id === 'swot' ? 'nav-swot' : undefined}
           className={cn(
-            'w-full flex items-center gap-2 rounded-lg transition-all duration-150 px-3 py-1',
-            'text-[13px] font-medium',
+            'w-full flex items-center gap-2 rounded-lg transition-all duration-150 px-3 py-0.5',
+            'text-[13px] font-medium leading-tight',
             isActive 
               ? 'bg-orange-50 text-orange-600' 
               : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -227,10 +227,10 @@ export function BoardSidebar() {
     
     return (
       <SidebarGroup className={cn("py-0.5", className)}>
-        <SidebarGroupLabel className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-0 py-0.5">
+        <SidebarGroupLabel className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-0 py-0">
           {title}
         </SidebarGroupLabel>
-        <SidebarMenu className="space-y-0">
+        <SidebarMenu className="space-y-0 gap-0">
           {filteredItems.map(renderNavItem)}
         </SidebarMenu>
       </SidebarGroup>
