@@ -37,6 +37,7 @@ interface EmailViewerProps {
     device_type?: string;
     user_agent?: string;
     ip_address?: string;
+    is_inbox?: boolean;
   } | null;
   events: EmailEvent[];
   onResend?: () => void;
@@ -178,11 +179,21 @@ export function EmailViewer({
             )}
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-            <span>To: {email.to_email}</span>
+            {email.is_inbox ? (
+              <>
+                <span>From: {email.from_email}</span>
+                <span>•</span>
+                <span>To: {email.to_email}</span>
+              </>
+            ) : (
+              <>
+                <span>To: {email.to_email}</span>
+                <span>•</span>
+                <span>From: {email.from_email}</span>
+              </>
+            )}
             <span>•</span>
-            <span>From: {email.from_email}</span>
-            <span>•</span>
-            <span>Sent at {new Date(email.created_at).toLocaleString()}</span>
+            <span>{email.is_inbox ? "Received" : "Sent"} at {new Date(email.created_at).toLocaleString()}</span>
           </div>
           
           {/* Tracking Pills in Header */}

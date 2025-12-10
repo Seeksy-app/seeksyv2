@@ -32,6 +32,7 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
   const [composerOpen, setComposerOpen] = useState(false);
   const [editDraftId, setEditDraftId] = useState<string | null>(null);
   const [timelinePanelOpen, setTimelinePanelOpen] = useState(false);
+  const [selectedInboxMessage, setSelectedInboxMessage] = useState<any>(null);
 
   // Enable notifications and unread count tracking
   useEmailNotifications();
@@ -190,6 +191,26 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
     enabled: !!user,
   });
 
+  // Auto-select first email when emails load or folder changes
+  useEffect(() => {
+    if (emails.length > 0 && !selectedEmailId) {
+      const firstEmail = emails[0];
+      if (firstEmail.is_inbox) {
+        setSelectedInboxMessage(firstEmail);
+        setSelectedEmailId(null);
+      } else if (firstEmail.event_type !== "draft") {
+        setSelectedEmailId(firstEmail.id);
+        setSelectedInboxMessage(null);
+      }
+    }
+  }, [emails, selectedFolder]);
+
+  // Clear selection when folder changes
+  useEffect(() => {
+    setSelectedEmailId(null);
+    setSelectedInboxMessage(null);
+  }, [selectedFolder]);
+
   // Fetch ALL email events for tracking pills
   const { data: allEmailEvents = [] } = useQuery({
     queryKey: ["all-email-events", user?.id],
@@ -308,15 +329,20 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
               ...e,
               campaign_name: e.email_campaigns?.campaign_name,
             }))}
-            selectedEmailId={selectedEmailId}
+            selectedEmailId={selectedEmailId || selectedInboxMessage?.id}
             onEmailSelect={(id) => {
               // If it's a draft, open composer instead of viewer
               const email = emails.find((e: any) => e.id === id);
               if (email?.event_type === "draft") {
                 setEditDraftId(id);
                 setComposerOpen(true);
+              } else if (email?.is_inbox) {
+                // Inbox message - store full data for viewer
+                setSelectedInboxMessage(email);
+                setSelectedEmailId(null);
               } else {
                 setSelectedEmailId(id);
+                setSelectedInboxMessage(null);
               }
             }}
             filter={filter}
@@ -335,13 +361,24 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
         <ResizablePanel defaultSize={45} minSize={35}>
           <EmailViewer
             email={
-              selectedEmail
+              selectedInboxMessage
                 ? {
-                    ...selectedEmail,
-                    campaign_name: selectedEmail.email_campaigns?.campaign_name,
-                    html_content: selectedEmail.email_campaigns?.html_content,
+                    id: selectedInboxMessage.id,
+                    to_email: selectedInboxMessage.to_email,
+                    from_email: selectedInboxMessage.from_email,
+                    email_subject: selectedInboxMessage.email_subject,
+                    event_type: "received",
+                    created_at: selectedInboxMessage.created_at,
+                    html_content: selectedInboxMessage.snippet,
+                    is_inbox: true,
                   }
-                : null
+                : selectedEmail
+                  ? {
+                      ...selectedEmail,
+                      campaign_name: selectedEmail.email_campaigns?.campaign_name,
+                      html_content: selectedEmail.email_campaigns?.html_content,
+                    }
+                  : null
             }
             events={emailEvents}
             onResend={() => {
