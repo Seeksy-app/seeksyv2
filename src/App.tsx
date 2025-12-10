@@ -19,6 +19,7 @@ import { useAutoTheme } from "@/hooks/useAutoTheme";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { RouteTransition } from "@/components/RouteTransition";
 import Index from "./pages/Index";
+import LogoAsset from "./pages/LogoAsset";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import DashboardV2 from "./pages/DashboardV2";
@@ -656,6 +657,7 @@ const AppContent = () => {
             <RouteTransition>
               <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/logo-asset" element={<LogoAsset />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/signup-select" element={<SignupSelect />} />
               <Route path="/onboarding" element={<Onboarding />} />
