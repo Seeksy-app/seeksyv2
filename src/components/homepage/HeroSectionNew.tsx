@@ -1,147 +1,164 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Calendar } from "lucide-react";
+import { ArrowRight, Sparkles, Play, Link2, Calendar, Mic, Video } from "lucide-react";
 import { motion } from "framer-motion";
 import { ScheduleDemoDialog } from "./ScheduleDemoDialog";
 
-// Netflix-style grid images - real people
+// Feature pills
+const featurePills = [
+  { icon: Link2, label: "Social" },
+  { icon: Calendar, label: "Meetings" },
+  { icon: Mic, label: "Podcasts" },
+  { icon: Video, label: "Content" },
+];
+
+// Video thumbnails for bottom section
 import grid1 from "@/assets/homepage/grid-1.jpg";
 import grid2 from "@/assets/homepage/grid-2.jpg";
 import grid3 from "@/assets/homepage/grid-3.jpg";
 import grid4 from "@/assets/homepage/grid-4.jpg";
-import grid5 from "@/assets/homepage/grid-5.jpg";
-import grid6 from "@/assets/homepage/grid-6.jpg";
-import grid7 from "@/assets/homepage/grid-7.jpg";
-import grid8 from "@/assets/homepage/grid-8.jpg";
-import grid9 from "@/assets/homepage/grid-9.jpg";
-import grid10 from "@/assets/homepage/grid-10.jpg";
-import grid11 from "@/assets/homepage/grid-11.jpg";
-import grid12 from "@/assets/homepage/grid-12.jpg";
-import grid13 from "@/assets/homepage/grid-13.jpg";
-import grid14 from "@/assets/homepage/grid-14.jpg";
-import grid15 from "@/assets/homepage/grid-15.jpg";
 
-const gridImages = [
-  grid1, grid2, grid3, grid4, grid5,
-  grid6, grid7, grid8, grid9, grid10,
-  grid11, grid12, grid13, grid14, grid15,
-];
+const videoThumbnails = [grid1, grid2, grid3, grid4];
 
 export function HeroSectionNew() {
   const navigate = useNavigate();
   const [showDemoDialog, setShowDemoDialog] = useState(false);
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden bg-black">
-      {/* Netflix-style background grid */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Grid of tilted images */}
-        <div 
-          className="absolute inset-0 grid grid-cols-5 gap-2 p-2"
-          style={{ 
-            transform: 'rotate(-12deg) scale(1.4)',
-            transformOrigin: 'center center'
-          }}
-        >
-          {gridImages.map((img, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ 
-                duration: 0.5, 
-                delay: index * 0.05,
-                ease: "easeOut"
-              }}
-              className="relative aspect-[2/3] rounded-lg overflow-hidden"
-            >
-              <img 
-                src={img} 
-                alt=""
-                className="w-full h-full object-cover"
-                loading={index < 10 ? "eager" : "lazy"}
-              />
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Heavy dark overlay with radial gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/60" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black" />
-        <div 
-          className="absolute inset-0" 
-          style={{
-            background: 'radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.8) 70%)'
-          }}
-        />
-      </div>
-
+    <section className="relative min-h-screen flex flex-col items-center overflow-hidden bg-background pt-32 pb-16">
       {/* Content */}
-      <div className="container relative z-10 mx-auto px-4 py-20 pt-32">
-        <div className="max-w-3xl mx-auto text-center">
-          {/* Main Headline - Netflix style */}
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-4xl md:text-5xl lg:text-6xl font-black mb-4 leading-[1.1] tracking-tight text-white"
-          >
-            Unlimited podcasts, meetings, and content creation
-          </motion.h1>
+      <div className="container relative z-10 mx-auto px-4 text-center">
+        {/* Badge */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8"
+        >
+          <Sparkles className="w-4 h-4 text-primary" />
+          <span className="text-sm text-primary font-medium">More than just content creation</span>
+        </motion.div>
 
-          {/* Subheadline */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-lg md:text-xl text-white/80 mb-3"
-          >
-            Free to start. Upgrade anytime.
-          </motion.p>
+        {/* Main Headline */}
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 leading-[1.1] tracking-tight text-foreground"
+        >
+          Build Meaningful
+          <br />
+          <span className="bg-gradient-to-r from-primary via-amber-500 to-primary bg-clip-text text-transparent">
+            Connections
+          </span>{" "}
+          With Seeksy
+        </motion.h1>
 
-          {/* Secondary text */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="text-base md:text-lg text-white/70 mb-8"
-          >
-            Ready to grow? Create your workspace and start connecting.
-          </motion.p>
+        {/* Subheadline */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
+        >
+          Your workspace for meetings, media creation, social influence, and
+          community-driven growth. All in one unified platform.
+        </motion.p>
 
-          {/* CTAs - Netflix style inline */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6"
-          >
-            <Button
-              size="lg"
-              onClick={() => navigate("/auth?mode=signup")}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-7 h-auto font-bold shadow-lg transition-all duration-300 hover:scale-105 group min-w-[200px]"
-            >
-              Get Started
-              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => setShowDemoDialog(true)}
-              className="bg-white/10 hover:bg-white/20 border-2 border-white/30 text-white text-lg px-8 py-7 h-auto font-semibold backdrop-blur-sm transition-all duration-300 hover:scale-105 group min-w-[200px]"
-            >
-              <Calendar className="mr-2 h-5 w-5" />
-              Schedule Demo
-            </Button>
-          </motion.div>
+        {/* Feature Pills */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="flex flex-wrap justify-center gap-3 mb-10"
+        >
+          {featurePills.map((feature) => {
+            const Icon = feature.icon;
+            return (
+              <div
+                key={feature.label}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border text-foreground text-sm font-medium"
+              >
+                <Icon className="w-4 h-4 text-muted-foreground" />
+                {feature.label}
+              </div>
+            );
+          })}
+        </motion.div>
 
-          <ScheduleDemoDialog open={showDemoDialog} onOpenChange={setShowDemoDialog} />
-        </div>
+        {/* CTAs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6"
+        >
+          <Button
+            size="lg"
+            onClick={() => navigate("/auth?mode=signup")}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-7 h-auto font-bold shadow-lg transition-all duration-300 hover:scale-105 group min-w-[200px]"
+          >
+            <Sparkles className="mr-2 h-5 w-5" />
+            Get Started Free
+            <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => setShowDemoDialog(true)}
+            className="bg-card hover:bg-accent border-2 border-border text-foreground text-lg px-8 py-7 h-auto font-semibold transition-all duration-300 hover:scale-105 group min-w-[200px]"
+          >
+            <Play className="mr-2 h-5 w-5" />
+            Watch Demo
+          </Button>
+        </motion.div>
+
+        {/* Footer text */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="text-muted-foreground text-sm mb-16"
+        >
+          No credit card required • Free plan available • Cancel anytime
+        </motion.p>
+
+        {/* Video Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+          className="relative max-w-5xl mx-auto"
+        >
+          {/* Video Thumbnails Grid */}
+          <div className="grid grid-cols-4 gap-4 mb-8">
+            {videoThumbnails.map((thumb, index) => (
+              <div
+                key={index}
+                className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg"
+              >
+                <img
+                  src={thumb}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  loading={index < 2 ? "eager" : "lazy"}
+                />
+                <div className="absolute inset-0 bg-black/10" />
+              </div>
+            ))}
+          </div>
+
+          {/* Video Caption Overlay */}
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/80 to-transparent pt-16 pb-4">
+            <p className="text-2xl md:text-3xl font-bold text-foreground text-center">
+              The creator economy is changing quickly.
+            </p>
+          </div>
+        </motion.div>
       </div>
 
-      {/* Bottom gradient fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background to-transparent" />
+      <ScheduleDemoDialog open={showDemoDialog} onOpenChange={setShowDemoDialog} />
     </section>
   );
 }
