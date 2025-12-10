@@ -11,6 +11,7 @@ import { DataModePill } from "@/components/data-mode/DataModePill";
 import { GlossaryButton } from "@/components/board/GlossaryModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,23 +19,28 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { HelpCircle, FileText, ChevronDown, Sparkles, ExternalLink } from "lucide-react";
+import { HelpCircle, FileText, ChevronDown, Sparkles, ExternalLink, Settings, LogOut, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export function TopNavBar() {
   const location = useLocation();
   const navigate = useNavigate();
   const [teamName, setTeamName] = useState("Personal Workspace");
+  const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
 
   useEffect(() => {
     const fetchProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        setUserEmail(user.email || "");
         const { data: profile } = await supabase
           .from('profiles')
-          .select('full_name, account_full_name')
+          .select('full_name, account_full_name, avatar_url')
           .eq('id', user.id)
           .single();
         
@@ -42,12 +48,26 @@ export function TopNavBar() {
           const name = profile.full_name || profile.account_full_name;
           if (name) {
             setTeamName(`${name.split(' ')[0]}'s Workspace`);
+            setUserName(name);
+          }
+          if (profile.avatar_url) {
+            setAvatarUrl(profile.avatar_url);
           }
         }
       }
     };
     fetchProfile();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("Logged out successfully");
+      navigate('/auth');
+    } catch (error) {
+      toast.error("Failed to log out");
+    }
+  };
 
   const openAIChat = () => {
     document.dispatchEvent(new Event('open-spark-assistant'));
@@ -147,6 +167,45 @@ export function TopNavBar() {
 
           {/* Theme Toggle */}
           <ThemeToggle />
+
+          {/* User Menu with Logout */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-2 ml-1">
+                <Avatar className="h-7 w-7">
+                  <AvatarImage src={avatarUrl} alt={userName} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                    {userName?.[0]?.toUpperCase() || userEmail?.[0]?.toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <ChevronDown className="h-3 w-3 text-muted-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <div className="px-2 py-1.5">
+                <p className="text-sm font-medium">{userName || "User"}</p>
+                <p className="text-xs text-muted-foreground">{userEmail}</p>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/settings/profile">
+                  <User className="h-4 w-4 mr-2" />
+                  Profile
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/settings">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+                <LogOut className="h-4 w-4 mr-2" />
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
