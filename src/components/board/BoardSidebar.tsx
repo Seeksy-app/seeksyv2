@@ -182,7 +182,7 @@ export function BoardSidebar() {
             to={item.path}
             data-tour={item.id === 'dashboard' ? 'nav-dashboard' : item.id === 'swot' ? 'nav-swot' : undefined}
             className={cn(
-              'w-full flex items-center gap-2.5 rounded-lg transition-all duration-150 px-3 py-1.5',
+              'w-full flex items-center gap-2 rounded-lg transition-all duration-150 px-3 py-1',
               'text-[13px] font-medium',
               isActive 
                 ? 'bg-orange-50 text-orange-600' 
@@ -204,7 +204,7 @@ export function BoardSidebar() {
         <SidebarMenuButton
           data-tour={item.id === 'dashboard' ? 'nav-dashboard' : item.id === 'swot' ? 'nav-swot' : undefined}
           className={cn(
-            'w-full flex items-center gap-2.5 rounded-lg transition-all duration-150 px-3 py-1.5',
+            'w-full flex items-center gap-2 rounded-lg transition-all duration-150 px-3 py-1',
             'text-[13px] font-medium',
             isActive 
               ? 'bg-orange-50 text-orange-600' 
@@ -226,8 +226,8 @@ export function BoardSidebar() {
     if (filteredItems.length === 0 && searchQuery.trim()) return null;
     
     return (
-      <SidebarGroup className={cn("py-0", className)}>
-        <SidebarGroupLabel className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-0 py-1">
+      <SidebarGroup className={cn("py-0.5", className)}>
+        <SidebarGroupLabel className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-0 py-0.5">
           {title}
         </SidebarGroupLabel>
         <SidebarMenu className="space-y-0">
