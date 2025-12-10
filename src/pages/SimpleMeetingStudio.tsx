@@ -126,8 +126,10 @@ export default function SimpleMeetingStudio() {
             border: "0",
             borderRadius: "12px",
           },
-          showLeaveButton: false,
+          showLeaveButton: true,
           showFullscreenButton: true,
+          showLocalVideo: true,
+          showParticipantsBar: true,
         });
 
         callFrameRef.current = callFrame;
