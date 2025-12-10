@@ -52,7 +52,9 @@ export function DailyBriefModal({ open, onOpenChange, audienceType }: DailyBrief
   const fetchBrief = async () => {
     setIsLoading(true);
     try {
-      const today = new Date().toISOString().split('T')[0];
+      // Use local timezone date (not UTC)
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       
       const { data, error } = await supabase
         .from('daily_briefs')
@@ -131,7 +133,7 @@ export function DailyBriefModal({ open, onOpenChange, audienceType }: DailyBrief
                 {audienceLabels[audienceType]} Daily Brief
               </DialogTitle>
               <DialogDescription>
-                {brief ? format(new Date(brief.brief_date), 'EEEE, MMMM d, yyyy') : 'Competitive Intelligence'}
+                {brief ? format(new Date(brief.brief_date + 'T12:00:00'), 'EEEE, MMMM d, yyyy') : 'Competitive Intelligence'}
               </DialogDescription>
             </div>
             <Button
