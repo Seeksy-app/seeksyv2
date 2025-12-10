@@ -1113,6 +1113,8 @@ const AppContent = () => {
             <Route path="milestones" element={<BoardMilestones />} />
             <Route path="team-org" element={<BoardTeamOrg />} />
             <Route path="settings" element={<BoardSettings />} />
+            <Route path="knowledge" element={<BoardKnowledgeBlog />} />
+            <Route path="knowledge/:slug" element={<BoardKnowledgeArticle />} />
           </Route>
           <Route path="/investor/:token" element={<BoardInvestorPortal />} />
           

@@ -118,7 +118,7 @@ const resourceItems = [
     id: 'knowledge-hub',
     label: 'Knowledge Hub',
     icon: BookOpen,
-    path: '/knowledge/board',
+    path: '/board/knowledge',
   },
 ];
 
