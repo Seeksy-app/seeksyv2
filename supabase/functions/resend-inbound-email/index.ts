@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-resend-signature',
 };
 
-interface ResendInboundEmail {
+interface ResendInboundEmailData {
   from: string;
   to: string | string[];
   subject: string;
@@ -18,6 +18,20 @@ interface ResendInboundEmail {
     content: string;
     content_type: string;
   }>;
+}
+
+// Resend webhook wraps data in { type, created_at, data }
+interface ResendWebhookPayload {
+  type?: string;
+  created_at?: string;
+  data?: ResendInboundEmailData;
+  // Also handle direct payload format
+  from?: string;
+  to?: string | string[];
+  subject?: string;
+  text?: string;
+  html?: string;
+  headers?: Record<string, string>;
 }
 
 serve(async (req) => {
@@ -32,7 +46,12 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const payload: ResendInboundEmail = await req.json();
+    const rawPayload: ResendWebhookPayload = await req.json();
+    console.log('Raw webhook payload type:', rawPayload.type);
+    console.log('Raw payload keys:', Object.keys(rawPayload));
+    
+    // Resend can send data in either wrapped format or direct format
+    const payload = rawPayload.data || rawPayload;
     console.log('Inbound email from:', payload.from);
     console.log('To:', payload.to);
     console.log('Subject:', payload.subject);

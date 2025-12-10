@@ -41,7 +41,7 @@ export default function EmailSent() {
           .from("email_events")
           .select("*")
           .eq("user_id", user.id)
-          .eq("event_type", "email.sent")
+          .eq("event_type", "sent")
           .order("occurred_at", { ascending: false })
       ]);
       

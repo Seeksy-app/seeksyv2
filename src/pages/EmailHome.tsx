@@ -148,7 +148,7 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
         query = query.is("deleted_at", null);
         
         if (selectedFolder === "sent") {
-          query = query.eq("event_type", "email.sent");
+          query = query.eq("event_type", "sent");
         } else if (selectedFolder === "bounced") {
           query = query.eq("event_type", "email.bounced");
         } else if (selectedFolder === "unsubscribed") {
@@ -214,11 +214,11 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
       if (!user) return null;
 
       const queries = await Promise.all([
-        // Inbox: non-deleted emails
-        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).is("deleted_at", null),
-        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "email.sent").is("deleted_at", null),
-        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "email.bounced").is("deleted_at", null),
-        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "email.unsubscribed").is("deleted_at", null),
+        // Inbox: count from inbox_messages (received emails)
+        supabase.from("inbox_messages").select("*", { count: "exact", head: true }).eq("user_id", user.id).is("deleted_at", null),
+        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "sent").is("deleted_at", null),
+        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "bounced").is("deleted_at", null),
+        supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "unsubscribed").is("deleted_at", null),
         supabase.from("email_campaigns").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("is_draft", true),
         // Trash: emails with deleted_at set
         supabase.from("email_events").select("*", { count: "exact", head: true }).eq("user_id", user.id).not("deleted_at", "is", null),
