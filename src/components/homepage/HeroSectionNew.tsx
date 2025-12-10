@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Play, Link2, Calendar, Mic, Video } from "lucide-react";
+import { ArrowRight, Sparkles, Calendar, Link2, Mic, Video } from "lucide-react";
 import { motion } from "framer-motion";
 import { ScheduleDemoDialog } from "./ScheduleDemoDialog";
 
@@ -109,8 +109,8 @@ export function HeroSectionNew() {
             onClick={() => setShowDemoDialog(true)}
             className="bg-card hover:bg-accent border-2 border-border text-foreground text-lg px-8 py-7 h-auto font-semibold transition-all duration-300 hover:scale-105 group min-w-[200px]"
           >
-            <Play className="mr-2 h-5 w-5" />
-            Watch Demo
+            <Calendar className="mr-2 h-5 w-5" />
+            Schedule a Demo
           </Button>
         </motion.div>
 

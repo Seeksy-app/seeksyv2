@@ -29,20 +29,20 @@ const categories = [
   "Technology", "Business", "Health", "True Crime", "Design", "Entertainment"
 ];
 
-// Demo content for placeholders - American Warriors uses real DB ID
+// Demo content for placeholders - American Warriors links to channel, others are display only
 const demoThumbnails = [
-  { id: "014a5946-0b48-4d9a-95b1-254321df035b", title: "American Warriors", gradient: "from-blue-800 to-slate-900", imageUrl: americanWarriorsPoster },
-  { id: "demo-2", title: "Building a Personal Brand", gradient: "from-blue-600 to-cyan-600", imageUrl: personalBrandPoster },
-  { id: "demo-3", title: "Echoes of Midnight", gradient: "from-green-600 to-teal-600", imageUrl: echoesOfMidnightPoster },
-  { id: "demo-4", title: "Meditation for Professionals", gradient: "from-orange-600 to-red-600", imageUrl: meditationPoster },
-  { id: "demo-5", title: "Midnight Echoes Live", gradient: "from-pink-600 to-purple-600", imageUrl: midnightEchoesLivePoster },
-  { id: "demo-6", title: "Fight Night Live", gradient: "from-gray-700 to-gray-900", imageUrl: fightNightPoster },
-  { id: "demo-7", title: "Startup Stories", gradient: "from-amber-600 to-orange-600" },
-  { id: "demo-8", title: "Design Systems", gradient: "from-indigo-600 to-blue-600" },
-  { id: "demo-9", title: "Health & Science", gradient: "from-teal-600 to-green-600" },
-  { id: "demo-10", title: "Leadership", gradient: "from-red-600 to-pink-600" },
-  { id: "demo-11", title: "Marketing Pro", gradient: "from-cyan-600 to-blue-600" },
-  { id: "demo-12", title: "AI Frontiers", gradient: "from-violet-600 to-purple-600" },
+  { id: "channel-american-warriors", title: "American Warriors", gradient: "from-blue-800 to-slate-900", imageUrl: americanWarriorsPoster, linkType: "channel", channelSlug: "american-warriors" },
+  { id: "demo-2", title: "Building a Personal Brand", gradient: "from-blue-600 to-cyan-600", imageUrl: personalBrandPoster, linkType: "none" },
+  { id: "demo-3", title: "Echoes of Midnight", gradient: "from-green-600 to-teal-600", imageUrl: echoesOfMidnightPoster, linkType: "none" },
+  { id: "demo-4", title: "Meditation for Professionals", gradient: "from-orange-600 to-red-600", imageUrl: meditationPoster, linkType: "none" },
+  { id: "demo-5", title: "Midnight Echoes Live", gradient: "from-pink-600 to-purple-600", imageUrl: midnightEchoesLivePoster, linkType: "none" },
+  { id: "demo-6", title: "Fight Night Live", gradient: "from-gray-700 to-gray-900", imageUrl: fightNightPoster, linkType: "none" },
+  { id: "demo-7", title: "Startup Stories", gradient: "from-amber-600 to-orange-600", linkType: "none" },
+  { id: "demo-8", title: "Design Systems", gradient: "from-indigo-600 to-blue-600", linkType: "none" },
+  { id: "demo-9", title: "Health & Science", gradient: "from-teal-600 to-green-600", linkType: "none" },
+  { id: "demo-10", title: "Leadership", gradient: "from-red-600 to-pink-600", linkType: "none" },
+  { id: "demo-11", title: "Marketing Pro", gradient: "from-cyan-600 to-blue-600", linkType: "none" },
+  { id: "demo-12", title: "AI Frontiers", gradient: "from-violet-600 to-purple-600", linkType: "none" },
 ];
 
 const demoEpisodes = [
@@ -414,11 +414,20 @@ export default function SeeksyTVHome() {
             const posterLoading = loadingPosters.has(demoItem?.id);
             const staticImageUrl = demoItem?.imageUrl;
             
+            const handleClick = () => {
+              if (demoItem?.linkType === "channel" && demoItem?.channelSlug) {
+                navigate(`/tv/channel/${demoItem.channelSlug}`);
+              } else if (demoItem?.linkType !== "none" && item.id && !item.id.startsWith('ep-')) {
+                navigate(`/tv/watch/${item.id}`);
+              }
+              // For linkType "none", do nothing on click
+            };
+            
             return (
               <div 
                 key={item.id}
-                className="shrink-0 w-48 md:w-56 group cursor-pointer relative"
-                onClick={() => navigate(`/tv/watch/${item.id}`)}
+                className={`shrink-0 w-48 md:w-56 group relative ${demoItem?.linkType !== "none" ? "cursor-pointer" : ""}`}
+                onClick={handleClick}
               >
                 {/* Big Rank Number */}
                 <div className="absolute -left-4 bottom-0 z-10">
