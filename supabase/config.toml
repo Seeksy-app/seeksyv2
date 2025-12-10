@@ -446,3 +446,6 @@ verify_jwt = false
 
 [functions.generate-knowledge-articles]
 verify_jwt = true
+
+[functions.daily-get-meeting-info]
+verify_jwt = false

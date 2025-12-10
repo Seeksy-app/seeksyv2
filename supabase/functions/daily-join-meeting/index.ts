@@ -20,7 +20,14 @@ serve(async (req) => {
 
     const authHeader = req.headers.get('Authorization');
     
-    const supabaseClient = createClient(
+    // Use service role to bypass RLS for guests
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Also create user client if authenticated
+    const supabaseUser = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       authHeader ? { global: { headers: { Authorization: authHeader } } } : {}
@@ -30,18 +37,19 @@ serve(async (req) => {
     let user = null;
     let isHost = false;
     if (authHeader) {
-      const { data: { user: authUser } } = await supabaseClient.auth.getUser();
+      const { data: { user: authUser } } = await supabaseUser.auth.getUser();
       user = authUser;
     }
 
-    // Get meeting details
-    const { data: meeting, error: meetingError } = await supabaseClient
+    // Get meeting details using service role (bypasses RLS)
+    const { data: meeting, error: meetingError } = await supabaseAdmin
       .from('meetings')
       .select('*')
       .eq('id', meetingId)
       .single();
 
     if (meetingError || !meeting) {
+      console.error('Meeting query error:', meetingError);
       throw new Error('Meeting not found');
     }
 
@@ -88,8 +96,8 @@ serve(async (req) => {
 
     const tokenData = await tokenResponse.json();
 
-    // Add participant record
-    await supabaseClient
+    // Add participant record using service role
+    await supabaseAdmin
       .from('meeting_participants')
       .insert({
         meeting_id: meetingId,
