@@ -75,14 +75,14 @@ export function CFOAssumptionsReadOnlyPanel() {
       <Alert className={cn(
         hasCFOAssumptions 
           ? "bg-emerald-50 border-emerald-200" 
-          : "bg-amber-50 border-amber-200"
+          : "bg-blue-50 border-blue-200"
       )}>
         {hasCFOAssumptions ? (
           <Shield className="w-4 h-4 text-emerald-600" />
         ) : (
-          <Info className="w-4 h-4 text-amber-600" />
+          <Info className="w-4 h-4 text-blue-600" />
         )}
-        <AlertDescription className={hasCFOAssumptions ? "text-emerald-800" : "text-amber-800"}>
+        <AlertDescription className={hasCFOAssumptions ? "text-emerald-800" : "text-blue-800"}>
           {hasCFOAssumptions ? (
             <>
               <strong>These assumptions are controlled by the CFO</strong> and power all Board forecasts.
@@ -95,7 +95,7 @@ export function CFOAssumptionsReadOnlyPanel() {
             </>
           ) : (
             <>
-              <strong>Using Demo/R&D Benchmarks</strong> — CFO has not published assumptions yet.
+              <strong>Using R&D Benchmarks</strong> — Default assumptions are active.
             </>
           )}
           {isCFORoute && (
@@ -119,8 +119,8 @@ export function CFOAssumptionsReadOnlyPanel() {
             CFO-Controlled Model
           </Badge>
         ) : (
-          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-            Demo Mode
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+            R&D Benchmarks
           </Badge>
         )}
         <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">

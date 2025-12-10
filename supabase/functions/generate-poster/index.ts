@@ -18,7 +18,7 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const prompt = `Create a vibrant, modern TV show or podcast poster artwork for a show called "${title}" in the ${category} category. Style: Netflix/streaming service aesthetic, bold colors, cinematic, professional, vertical poster format 2:3 aspect ratio, no text overlay, abstract or symbolic imagery representing the theme.`;
+    const prompt = `Create a professional, modern promotional image for a podcast or show called "${title}" in the ${category} category. Style: Show diverse people with microphones, headphones, or in recording studios. Include tech elements like screens, sound waves, and modern equipment. Professional lighting, warm and inviting atmosphere. Vertical poster format 2:3 aspect ratio, no text overlay. Focus on human connection, creativity, and technology.`;
 
     console.log("Generating poster for:", title);
 
