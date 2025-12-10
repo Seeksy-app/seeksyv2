@@ -150,7 +150,8 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
       if (selectedSignatureId && selectedSignatureId !== "none") {
         const selectedSig = signatures.find((s: any) => s.id === selectedSignatureId);
         if (selectedSig?.html_signature) {
-          finalBody = `${body}\n\n${selectedSig.html_signature}`;
+          // Add spacing (two line breaks) between message and signature
+          finalBody = `${body}<br><br>${selectedSig.html_signature}`;
         }
       }
 
