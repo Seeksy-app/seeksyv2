@@ -53,8 +53,8 @@ export function BoardLayout({ children }: BoardLayoutProps) {
           {/* Light content area - fills all remaining space */}
           <div className="flex-1 flex flex-col min-w-0 w-full bg-slate-50">
             <main className="flex-1 overflow-y-auto w-full">
-              {/* Content container with smooth CSS transitions */}
-              <div className="w-full px-6 lg:px-8 py-6 pb-20 page-container transition-opacity duration-300 ease-out">
+          {/* Content container - no transition animations to prevent flashing */}
+              <div className="w-full px-6 lg:px-8 py-6 pb-20">
                 <Suspense fallback={<BoardContentSkeleton />}>
                   {children}
                 </Suspense>

@@ -21,11 +21,16 @@ import {
   DollarSign,
   Sword,
   ChartPie,
+  Search,
+  Settings,
+  HelpCircle,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useBoardViewMode } from '@/hooks/useBoardViewMode';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
 
 // OVERVIEW section - simplified
 const overviewItems = [
@@ -119,6 +124,7 @@ export function BoardSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { canToggleBoardView, toggleBoardView, isViewingAsBoard } = useBoardViewMode();
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -130,15 +136,6 @@ export function BoardSidebar() {
     navigate('/admin');
   };
 
-  const handleNavigation = (item: NavItem) => {
-    if (!item.path) return;
-    if (item.external) {
-      window.open(item.path, '_blank', 'noopener,noreferrer');
-    } else {
-      navigate(item.path);
-    }
-  };
-
   const isItemActive = (item: NavItem) => {
     if (!item.path) return false;
     if (item.path === '/board/proforma' && location.pathname.startsWith('/board/proforma')) {
@@ -147,32 +144,18 @@ export function BoardSidebar() {
     return location.pathname === item.path;
   };
 
+  // Filter items based on search
+  const filterItems = (items: NavItem[]) => {
+    if (!searchQuery.trim()) return items;
+    return items.filter(item => 
+      item.label.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  };
+
   const renderNavItem = (item: NavItem) => {
     const isActive = isItemActive(item);
     const Icon = item.icon;
 
-    // External links open in new tab
-    if (item.external && item.path) {
-      return (
-        <SidebarMenuItem key={item.id}>
-          <a
-            href={item.path}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(
-              'w-full flex items-center gap-2.5 rounded-lg transition-all duration-200 px-3 py-2.5',
-              'text-foreground hover:bg-accent',
-              'text-[13px] font-medium'
-            )}
-          >
-            <Icon className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
-            <span className="flex-1 truncate">{item.label}</span>
-          </a>
-        </SidebarMenuItem>
-      );
-    }
-
-    // Internal links use Link component for client-side navigation
     if (item.path) {
       return (
         <SidebarMenuItem key={item.id}>
@@ -180,16 +163,16 @@ export function BoardSidebar() {
             to={item.path}
             data-tour={item.id === 'dashboard' ? 'nav-dashboard' : item.id === 'swot' ? 'nav-swot' : undefined}
             className={cn(
-              'w-full flex items-center gap-2.5 rounded-lg transition-all duration-200 px-3 py-2.5',
-              'text-[13px] font-medium tracking-normal',
-              'text-foreground',
-              'hover:bg-accent',
-              isActive && 'bg-accent font-semibold'
+              'w-full flex items-center gap-3 rounded-lg transition-all duration-150 px-3 py-2.5',
+              'text-[14px] font-medium',
+              isActive 
+                ? 'bg-orange-50 text-orange-600' 
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
             )}
           >
             <Icon className={cn(
-              "w-4 h-4 flex-shrink-0",
-              item.isAI ? "text-yellow-500" : isActive ? "text-foreground" : "text-muted-foreground"
+              "w-5 h-5 flex-shrink-0",
+              item.isAI ? "text-yellow-500" : isActive ? "text-orange-500" : "text-slate-400"
             )} />
             <span className="flex-1 truncate">{item.label}</span>
           </Link>
@@ -197,22 +180,21 @@ export function BoardSidebar() {
       );
     }
 
-    // Items without paths (e.g., action items)
     return (
       <SidebarMenuItem key={item.id}>
         <SidebarMenuButton
-          onClick={() => handleNavigation(item)}
           data-tour={item.id === 'dashboard' ? 'nav-dashboard' : item.id === 'swot' ? 'nav-swot' : undefined}
           className={cn(
-            'w-full flex items-center gap-2.5 rounded-lg transition-all duration-200 px-3 py-2.5',
-            'text-foreground hover:bg-accent',
-            'text-[13px] font-medium',
-            isActive && 'bg-accent font-semibold'
+            'w-full flex items-center gap-3 rounded-lg transition-all duration-150 px-3 py-2.5',
+            'text-[14px] font-medium',
+            isActive 
+              ? 'bg-orange-50 text-orange-600' 
+              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
           )}
         >
           <Icon className={cn(
-            "w-4 h-4 flex-shrink-0",
-            item.isAI ? "text-yellow-500" : isActive ? "text-foreground" : "text-muted-foreground"
+            "w-5 h-5 flex-shrink-0",
+            item.isAI ? "text-yellow-500" : isActive ? "text-orange-500" : "text-slate-400"
           )} />
           <span className="flex-1 truncate">{item.label}</span>
         </SidebarMenuButton>
@@ -220,56 +202,88 @@ export function BoardSidebar() {
     );
   };
 
-  const renderSection = (title: string, items: NavItem[], className?: string) => (
-    <SidebarGroup className={cn("py-1", className)}>
-      <SidebarGroupLabel className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-0.5">
-        {title}
-      </SidebarGroupLabel>
-      <SidebarMenu className="space-y-0">
-        {items.map(renderNavItem)}
-      </SidebarMenu>
-    </SidebarGroup>
-  );
+  const renderSection = (title: string, items: NavItem[], className?: string) => {
+    const filteredItems = filterItems(items);
+    if (filteredItems.length === 0 && searchQuery.trim()) return null;
+    
+    return (
+      <SidebarGroup className={cn("py-2", className)}>
+        <SidebarGroupLabel className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-1">
+          {title}
+        </SidebarGroupLabel>
+        <SidebarMenu className="space-y-0.5">
+          {filteredItems.map(renderNavItem)}
+        </SidebarMenu>
+      </SidebarGroup>
+    );
+  };
 
   return (
-    <Sidebar collapsible="none" className="border-r border-border bg-background w-[16rem] flex-shrink-0 antialiased font-sans">
-      <SidebarHeader className="p-4 border-b border-border">
+    <Sidebar collapsible="none" className="border-r border-slate-200 bg-white w-[260px] flex-shrink-0">
+      {/* Header with Logo */}
+      <SidebarHeader className="p-5 border-b border-slate-100">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-sm">
             <span className="text-white font-bold text-lg">S</span>
           </div>
           <div>
-            <h2 className="text-base font-bold text-foreground tracking-tight">Seeksy</h2>
-            <p className="text-xs text-muted-foreground font-medium tracking-wide">Board Portal</p>
+            <h2 className="text-lg font-bold text-slate-900 tracking-tight">Seeksy</h2>
+            <p className="text-xs text-slate-500">Board Portal</p>
           </div>
         </div>
       </SidebarHeader>
 
+      {/* Search Bar - Firecrawl style */}
+      <div className="px-3 py-3 border-b border-slate-100">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input
+            type="text"
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 pr-10 h-10 bg-slate-50 border-slate-200 text-sm placeholder:text-slate-400 focus:bg-white focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
+          />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium">
+            ⌘K
+          </span>
+        </div>
+      </div>
+
       <SidebarContent className="px-2 py-1 overflow-y-auto">
         {renderSection('Overview', overviewItems)}
-        {renderSection('Business Strategy', businessItems, 'mt-0.5')}
-        {renderSection('Financials', financialItems, 'mt-0.5')}
+        {renderSection('Business Strategy', businessItems)}
+        {renderSection('Financials', financialItems)}
       </SidebarContent>
 
-      <SidebarFooter className="p-2 border-t border-border space-y-0.5">
+      <SidebarFooter className="p-3 border-t border-slate-100 space-y-1">
         {canToggleBoardView && isViewingAsBoard && (
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
-            className="w-full justify-start gap-2 text-foreground hover:bg-accent text-sm font-medium py-1.5"
+            className="w-full justify-start gap-3 text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-sm font-medium h-10"
             onClick={handleExitBoardView}
           >
-            <LayoutDashboard className="w-4 h-4" />
+            <LayoutDashboard className="w-5 h-5 text-slate-400" />
             Exit Board View
           </Button>
         )}
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground hover:bg-accent text-sm font-medium py-1.5"
+          className="w-full justify-start gap-3 text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-sm font-medium h-10"
+          onClick={() => navigate('/board/settings')}
+        >
+          <Settings className="w-5 h-5 text-slate-400" />
+          Settings
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start gap-3 text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-sm font-medium h-10"
           onClick={handleLogout}
         >
-          <LogOut className="w-4 h-4" />
+          <LogOut className="w-5 h-5 text-slate-400" />
           Logout
         </Button>
       </SidebarFooter>
