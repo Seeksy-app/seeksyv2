@@ -16610,6 +16610,45 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_updates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          items: string[] | null
+          published_at: string
+          title: string
+          type: string
+          version: string
+          visibility: string[]
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          items?: string[] | null
+          published_at?: string
+          title: string
+          type?: string
+          version: string
+          visibility?: string[]
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          items?: string[] | null
+          published_at?: string
+          title?: string
+          type?: string
+          version?: string
+          visibility?: string[]
+        }
+        Relationships: []
+      }
       podcast_ad_settings: {
         Row: {
           ad_mode: string | null
