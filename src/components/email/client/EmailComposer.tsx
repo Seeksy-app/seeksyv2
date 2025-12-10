@@ -10,13 +10,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { X, Send, Save, Paperclip } from "lucide-react";
 
+interface ReplyToEmail {
+  to_email: string;
+  from_email: string;
+  email_subject: string;
+  html_content?: string;
+  created_at: string;
+}
+
 interface EmailComposerProps {
   open: boolean;
   onClose: () => void;
   draftId?: string | null;
+  replyTo?: ReplyToEmail | null;
 }
 
-export function EmailComposer({ open, onClose, draftId }: EmailComposerProps) {
+export function EmailComposer({ open, onClose, draftId, replyTo }: EmailComposerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [fromAccountId, setFromAccountId] = useState<string>("");
@@ -53,9 +62,32 @@ export function EmailComposer({ open, onClose, draftId }: EmailComposerProps) {
     }
   }, [accounts, fromAccountId]);
 
+  // Load reply data
+  useEffect(() => {
+    if (replyTo && open) {
+      // For reply: send to the original sender (from_email), or to_email if it was an inbox message
+      setTo(replyTo.from_email);
+      // Add "Re:" prefix if not already present
+      const replySubject = replyTo.email_subject.startsWith("Re:") 
+        ? replyTo.email_subject 
+        : `Re: ${replyTo.email_subject}`;
+      setSubject(replySubject);
+      
+      // Format quoted original message
+      const originalDate = new Date(replyTo.created_at).toLocaleString();
+      const quotedContent = replyTo.html_content 
+        ? `<br/><br/><div style="border-left: 2px solid #ccc; padding-left: 10px; margin-left: 10px; color: #666;">
+            <p>On ${originalDate}, ${replyTo.from_email} wrote:</p>
+            ${replyTo.html_content}
+          </div>`
+        : "";
+      setBody(quotedContent);
+    }
+  }, [replyTo, open]);
+
   // Load draft if editing
   useEffect(() => {
-    if (draftId && open) {
+    if (draftId && open && !replyTo) {
       const loadDraft = async () => {
         const { data: draft } = await supabase
           .from("email_campaigns")
@@ -77,7 +109,7 @@ export function EmailComposer({ open, onClose, draftId }: EmailComposerProps) {
       };
       loadDraft();
     }
-  }, [draftId, open, accounts]);
+  }, [draftId, open, accounts, replyTo]);
 
   const sendEmailMutation = useMutation({
     mutationFn: async () => {
@@ -201,8 +233,10 @@ export function EmailComposer({ open, onClose, draftId }: EmailComposerProps) {
         <DrawerHeader className="border-b">
           <div className="flex items-center justify-between">
             <div>
-              <DrawerTitle>New Email</DrawerTitle>
-              <DrawerDescription>Compose and send a 1:1 email</DrawerDescription>
+              <DrawerTitle>{replyTo ? "Reply" : "New Email"}</DrawerTitle>
+              <DrawerDescription>
+                {replyTo ? `Replying to ${replyTo.from_email}` : "Compose and send a 1:1 email"}
+              </DrawerDescription>
             </div>
             <Button variant="ghost" size="icon" onClick={handleClose}>
               <X className="h-4 w-4" />

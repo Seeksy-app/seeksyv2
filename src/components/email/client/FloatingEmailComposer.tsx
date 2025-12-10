@@ -11,14 +11,23 @@ import { X, Send, Save, Maximize2, Minimize2, Sparkles, PenTool } from "lucide-r
 import { cn } from "@/lib/utils";
 import { ContactAutocomplete } from "../ContactAutocomplete";
 
+interface ReplyToEmail {
+  to_email: string;
+  from_email: string;
+  email_subject: string;
+  html_content?: string;
+  created_at: string;
+}
+
 interface FloatingEmailComposerProps {
   open: boolean;
   onClose: () => void;
   draftId?: string | null;
   initialRecipients?: string;
+  replyTo?: ReplyToEmail | null;
 }
 
-export function FloatingEmailComposer({ open, onClose, draftId, initialRecipients }: FloatingEmailComposerProps) {
+export function FloatingEmailComposer({ open, onClose, draftId, initialRecipients, replyTo }: FloatingEmailComposerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [fromAccountId, setFromAccountId] = useState<string>("");
@@ -95,6 +104,29 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
       setTo(initialRecipients);
     }
   }, [open, initialRecipients, to]);
+
+  // Handle reply mode
+  useEffect(() => {
+    if (replyTo && open) {
+      // For reply: send to the original sender
+      setTo(replyTo.from_email);
+      // Add "Re:" prefix if not already present
+      const replySubject = replyTo.email_subject.startsWith("Re:") 
+        ? replyTo.email_subject 
+        : `Re: ${replyTo.email_subject}`;
+      setSubject(replySubject);
+      
+      // Format quoted original message
+      const originalDate = new Date(replyTo.created_at).toLocaleString();
+      const quotedContent = replyTo.html_content 
+        ? `<br/><br/><div style="border-left: 2px solid #ccc; padding-left: 10px; margin-left: 10px; color: #666;">
+            <p>On ${originalDate}, ${replyTo.from_email} wrote:</p>
+            ${replyTo.html_content}
+          </div>`
+        : "";
+      setBody(quotedContent);
+    }
+  }, [replyTo, open]);
 
   // Auto-save draft every 10 seconds (only if content has changed)
   useEffect(() => {
@@ -331,7 +363,7 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
           className="shadow-2xl"
           size="lg"
         >
-          ✉️ New Email - {to || "No recipient"}
+          ✉️ {replyTo ? "Reply" : "New Email"} - {to || "No recipient"}
         </Button>
       </div>
     );
@@ -349,7 +381,7 @@ export function FloatingEmailComposer({ open, onClose, draftId, initialRecipient
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-muted/30">
         <div className="flex-1">
-          <h3 className="font-semibold text-foreground">New Email</h3>
+          <h3 className="font-semibold text-foreground">{replyTo ? "Reply" : "New Email"}</h3>
           {to && (
             <p className="text-xs text-muted-foreground">To: {to}</p>
           )}

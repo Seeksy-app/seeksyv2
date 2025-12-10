@@ -31,6 +31,7 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
   const [sortBy, setSortBy] = useState("date");
   const [composerOpen, setComposerOpen] = useState(false);
   const [editDraftId, setEditDraftId] = useState<string | null>(null);
+  const [replyToEmail, setReplyToEmail] = useState<any>(null);
   const [timelinePanelOpen, setTimelinePanelOpen] = useState(false);
   const [selectedInboxMessage, setSelectedInboxMessage] = useState<any>(null);
 
@@ -393,6 +394,29 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
                 description: "This feature will be implemented soon.",
               });
             }}
+            onReply={() => {
+              const emailData = selectedInboxMessage
+                ? {
+                    to_email: selectedInboxMessage.to_email,
+                    from_email: selectedInboxMessage.from_email,
+                    email_subject: selectedInboxMessage.email_subject,
+                    html_content: selectedInboxMessage.snippet,
+                    created_at: selectedInboxMessage.created_at,
+                  }
+                : selectedEmail
+                  ? {
+                      to_email: selectedEmail.to_email,
+                      from_email: selectedEmail.from_email,
+                      email_subject: selectedEmail.email_subject,
+                      html_content: selectedEmail.email_campaigns?.html_content,
+                      created_at: selectedEmail.created_at,
+                    }
+                  : null;
+              if (emailData) {
+                setReplyToEmail(emailData);
+                setComposerOpen(true);
+              }
+            }}
             onViewTemplate={() => {
               toast({
                 title: "View template",
@@ -418,8 +442,10 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
         onClose={() => {
           setComposerOpen(false);
           setEditDraftId(null);
+          setReplyToEmail(null);
         }}
         draftId={editDraftId}
+        replyTo={replyToEmail}
       />
 
       {/* Engagement Timeline Panel */}
