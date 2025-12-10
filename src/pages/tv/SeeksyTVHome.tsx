@@ -14,6 +14,11 @@ import { TVHeroPlayer } from "@/components/tv/TVHeroPlayer";
 import { TVContentRow } from "@/components/tv/TVContentRow";
 import { TVCreatorCard } from "@/components/tv/TVCreatorCard";
 import americanWarriorsPoster from "@/assets/tv/american-warriors.png";
+import personalBrandPoster from "@/assets/tv/poster-personal-brand.png";
+import echoesOfMidnightPoster from "@/assets/tv/poster-echoes-midnight.png";
+import meditationPoster from "@/assets/tv/poster-meditation.png";
+import midnightEchoesLivePoster from "@/assets/tv/poster-midnight-echoes-live.png";
+import fightNightPoster from "@/assets/tv/poster-fight-night.png";
 import seeksyTVHeroBg from "@/assets/seeksy-tv-hero-bg.png";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,11 +32,11 @@ const categories = [
 // Demo content for placeholders - American Warriors uses real DB ID
 const demoThumbnails = [
   { id: "014a5946-0b48-4d9a-95b1-254321df035b", title: "American Warriors", gradient: "from-blue-800 to-slate-900", imageUrl: americanWarriorsPoster },
-  { id: "demo-2", title: "Business Insights", gradient: "from-blue-600 to-cyan-600" },
-  { id: "demo-3", title: "Wellness Journey", gradient: "from-green-600 to-teal-600" },
-  { id: "demo-4", title: "Tech Trends", gradient: "from-orange-600 to-red-600" },
-  { id: "demo-5", title: "Creative Studio", gradient: "from-pink-600 to-purple-600" },
-  { id: "demo-6", title: "True Crime Files", gradient: "from-gray-700 to-gray-900" },
+  { id: "demo-2", title: "Building a Personal Brand", gradient: "from-blue-600 to-cyan-600", imageUrl: personalBrandPoster },
+  { id: "demo-3", title: "Echoes of Midnight", gradient: "from-green-600 to-teal-600", imageUrl: echoesOfMidnightPoster },
+  { id: "demo-4", title: "Meditation for Professionals", gradient: "from-orange-600 to-red-600", imageUrl: meditationPoster },
+  { id: "demo-5", title: "Midnight Echoes Live", gradient: "from-pink-600 to-purple-600", imageUrl: midnightEchoesLivePoster },
+  { id: "demo-6", title: "Fight Night Live", gradient: "from-gray-700 to-gray-900", imageUrl: fightNightPoster },
   { id: "demo-7", title: "Startup Stories", gradient: "from-amber-600 to-orange-600" },
   { id: "demo-8", title: "Design Systems", gradient: "from-indigo-600 to-blue-600" },
   { id: "demo-9", title: "Health & Science", gradient: "from-teal-600 to-green-600" },
