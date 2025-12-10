@@ -1,4 +1,4 @@
-import seeksyLogo from "@/assets/seeksy-logo.png";
+import seeksyLogo from "@/assets/Seeksy_Logo_5.png";
 
 export default function LogoAsset() {
   return (
