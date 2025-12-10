@@ -91,7 +91,7 @@ serve(async (req) => {
         .maybeSingle();
 
       const { error: insertError } = await supabase.from("email_events").insert({
-        event_type: "email.sent",
+        event_type: "sent",
         to_email: recipient,
         from_email: fromEmail,
         email_subject: subject,

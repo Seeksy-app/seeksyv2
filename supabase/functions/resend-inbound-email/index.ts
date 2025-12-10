@@ -69,19 +69,21 @@ serve(async (req) => {
         .limit(5);
       
       // Find the most likely match (to the same recipient)
-      const fromEmail = payload.from.match(/<([^>]+)>$/)?.[1] || payload.from;
+      const fromString = payload.from || '';
+      const fromEmail = fromString.match(/<([^>]+)>$/)?.[1] || fromString;
       originalEmail = emailEvents?.find(e => 
-        e.recipient_email?.toLowerCase() === fromEmail.toLowerCase()
+        e.to_email?.toLowerCase() === fromEmail.toLowerCase()
       ) || emailEvents?.[0];
     }
 
     if (originalEmail) {
       console.log('Found original email:', originalEmail.id, 'from user:', originalEmail.user_id);
       
-      // Parse sender info
-      const fromMatch = payload.from.match(/^(.+?)\s*<([^>]+)>$/);
-      const fromName = fromMatch ? fromMatch[1].trim() : payload.from;
-      const fromAddress = fromMatch ? fromMatch[2] : payload.from;
+      // Parse sender info - handle undefined/null payload.from
+      const fromString = payload.from || '';
+      const fromMatch = fromString.match(/^(.+?)\s*<([^>]+)>$/);
+      const fromName = fromMatch ? fromMatch[1].trim() : fromString;
+      const fromAddress = fromMatch ? fromMatch[2] : fromString;
       
       // Store the reply in email_replies table
       const { data: reply, error: insertError } = await supabase
@@ -127,9 +129,10 @@ serve(async (req) => {
       console.log('No matching original email found - storing as orphan');
       
       // Store as an unmatched inbound email for manual review
-      const fromMatch = payload.from.match(/^(.+?)\s*<([^>]+)>$/);
-      const fromName = fromMatch ? fromMatch[1].trim() : payload.from;
-      const fromAddress = fromMatch ? fromMatch[2] : payload.from;
+      const fromString = payload.from || '';
+      const fromMatch = fromString.match(/^(.+?)\s*<([^>]+)>$/);
+      const fromName = fromMatch ? fromMatch[1].trim() : fromString;
+      const fromAddress = fromMatch ? fromMatch[2] : fromString;
       
       // Could create a separate table for unmatched inbound emails
       // For now, just log it
