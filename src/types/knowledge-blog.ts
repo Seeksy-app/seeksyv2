@@ -19,6 +19,7 @@ export interface KnowledgeArticle {
   is_published: boolean;
   view_count: number;
   version: number;
+  source_url?: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -15,6 +15,7 @@ interface FirecrawlBlogLayoutProps {
   searchQuery?: string;
   tableOfContents?: { id: string; text: string; level: number }[];
   onTocClick?: (id: string) => void;
+  sourceUrl?: string | null;
 }
 
 export function FirecrawlBlogLayout({ 
@@ -24,7 +25,8 @@ export function FirecrawlBlogLayout({
   onSearch,
   searchQuery = '',
   tableOfContents = [],
-  onTocClick
+  onTocClick,
+  sourceUrl
 }: FirecrawlBlogLayoutProps) {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
   const basePath = `/knowledge/${portal}`;
@@ -114,31 +116,54 @@ export function FirecrawlBlogLayout({
           {children}
         </main>
 
-        {/* Right Sidebar - Table of Contents */}
-        {tableOfContents.length > 0 && (
+        {/* Right Sidebar - Table of Contents / Source */}
+        {(tableOfContents.length > 0 || sourceUrl) && (
           <aside className="w-56 shrink-0 border-l bg-muted/10 sticky top-14 h-[calc(100vh-3.5rem)] hidden xl:block">
             <ScrollArea className="h-full">
               <div className="p-4">
-                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                  On this page
-                </div>
-                
-                <nav className="space-y-0.5">
-                  {tableOfContents.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => onTocClick?.(item.id)}
-                      className={cn(
-                        "block w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors hover:bg-muted",
-                        item.level === 2 
-                          ? "text-foreground font-medium" 
-                          : "text-muted-foreground pl-4 text-xs"
-                      )}
+                {/* Source Link */}
+                {sourceUrl && (
+                  <div className="mb-6">
+                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                      Source
+                    </div>
+                    <a 
+                      href={sourceUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-primary hover:underline"
                     >
-                      {item.text}
-                    </button>
-                  ))}
-                </nav>
+                      Read original
+                      <ChevronRight className="h-3 w-3" />
+                    </a>
+                  </div>
+                )}
+                
+                {/* Table of Contents */}
+                {tableOfContents.length > 0 && (
+                  <>
+                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                      On this page
+                    </div>
+                    
+                    <nav className="space-y-0.5">
+                      {tableOfContents.map((item) => (
+                        <button
+                          key={item.id}
+                          onClick={() => onTocClick?.(item.id)}
+                          className={cn(
+                            "block w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors hover:bg-muted",
+                            item.level === 2 
+                              ? "text-foreground font-medium" 
+                              : "text-muted-foreground pl-4 text-xs"
+                          )}
+                        >
+                          {item.text}
+                        </button>
+                      ))}
+                    </nav>
+                  </>
+                )}
               </div>
             </ScrollArea>
           </aside>

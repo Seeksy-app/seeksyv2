@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom';
-import { KnowledgeBlogLayout } from '@/components/knowledge-blog/KnowledgeBlogLayout';
+import { useMemo } from 'react';
+import { FirecrawlBlogLayout } from '@/components/knowledge-blog/FirecrawlBlogLayout';
 import { ArticleDetail } from '@/components/knowledge-blog/ArticleDetail';
 import { useKnowledgeArticle, useRegenerateArticle } from '@/hooks/useKnowledgeArticles';
 import { PortalType } from '@/types/knowledge-blog';
@@ -18,6 +19,30 @@ export function KnowledgeArticlePage({ portal }: KnowledgeArticlePageProps) {
   
   const { data: article, isLoading, error } = useKnowledgeArticle(portal, slug || '');
   const regenerateMutation = useRegenerateArticle();
+
+  // Parse headings for TOC
+  const tableOfContents = useMemo(() => {
+    if (!article?.content) return [];
+    const headingRegex = /^(#{2,3})\s+(.+)$/gm;
+    const items: { id: string; text: string; level: number }[] = [];
+    let match;
+    
+    while ((match = headingRegex.exec(article.content)) !== null) {
+      const level = match[1].length;
+      const text = match[2];
+      const id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      items.push({ id, text, level });
+    }
+    
+    return items;
+  }, [article?.content]);
+
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   const handleRegenerate = async () => {
     if (!article) return;
@@ -39,27 +64,33 @@ export function KnowledgeArticlePage({ portal }: KnowledgeArticlePageProps) {
 
   if (isLoading) {
     return (
-      <KnowledgeBlogLayout portal={portal}>
+      <FirecrawlBlogLayout portal={portal}>
         <div className="flex items-center justify-center py-24">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
-      </KnowledgeBlogLayout>
+      </FirecrawlBlogLayout>
     );
   }
 
   if (error || !article) {
     return (
-      <KnowledgeBlogLayout portal={portal}>
+      <FirecrawlBlogLayout portal={portal}>
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <h2 className="text-xl font-semibold text-foreground mb-2">Article not found</h2>
           <p className="text-muted-foreground">The article you're looking for doesn't exist or has been removed.</p>
         </div>
-      </KnowledgeBlogLayout>
+      </FirecrawlBlogLayout>
     );
   }
 
   return (
-    <KnowledgeBlogLayout portal={portal} currentSection={article.section}>
+    <FirecrawlBlogLayout 
+      portal={portal} 
+      currentCategory={article.category}
+      tableOfContents={tableOfContents}
+      onTocClick={scrollToSection}
+      sourceUrl={article.source_url}
+    >
       <ArticleDetail
         article={article}
         portal={portal}
@@ -67,6 +98,6 @@ export function KnowledgeArticlePage({ portal }: KnowledgeArticlePageProps) {
         isRegenerating={regenerateMutation.isPending}
         canEdit={isAdmin}
       />
-    </KnowledgeBlogLayout>
+    </FirecrawlBlogLayout>
   );
 }

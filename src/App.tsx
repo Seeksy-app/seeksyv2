@@ -275,6 +275,7 @@ import CreatorKnowledgeBlog from "./pages/knowledge/CreatorKnowledgeBlog";
 import CreatorKnowledgeArticle from "./pages/knowledge/CreatorKnowledgeArticle";
 import BoardKnowledgeBlog from "./pages/knowledge/BoardKnowledgeBlog";
 import BoardKnowledgeArticle from "./pages/knowledge/BoardKnowledgeArticle";
+import BlogManagement from "./pages/admin/BlogManagement";
 import SalesDesk from "./pages/admin/SalesDesk";
 import SWOTAnalysis from "./pages/admin/SWOTAnalysis";
 import TeamMembers from "./pages/admin/TeamMembers";
@@ -1157,6 +1158,9 @@ const AppContent = () => {
           <Route path="/knowledge/creator/:slug" element={<CreatorKnowledgeArticle />} />
           <Route path="/knowledge/board" element={<BoardKnowledgeBlog />} />
           <Route path="/knowledge/board/:slug" element={<BoardKnowledgeArticle />} />
+          
+          {/* Blog Management (Admin) */}
+          <Route path="/admin/blog-management" element={<BlogManagement />} />
           
           {/* Admin Changelog */}
           <Route path="/admin/changelog" element={<AdminChangelog />} />

@@ -352,6 +352,20 @@ export const NAVIGATION_CONFIG: {
           "roles": ["admin", "super_admin", "cco"]
         },
         {
+          "id": "admin_knowledge_hub",
+          "label": "Knowledge Hub",
+          "icon": "library",
+          "path": "/knowledge/admin",
+          "roles": ["admin", "super_admin", "cfo", "cmo", "cco"]
+        },
+        {
+          "id": "admin_blog_management",
+          "label": "Blog Management",
+          "icon": "settings-2",
+          "path": "/admin/blog-management",
+          "roles": ["admin", "super_admin", "cco"]
+        },
+        {
           "id": "admin_media_library",
           "label": "Media Library",
           "icon": "folder",
