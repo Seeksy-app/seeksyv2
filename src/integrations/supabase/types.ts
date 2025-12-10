@@ -12547,7 +12547,7 @@ export type Database = {
           email_account: string | null
           from_address: string
           from_name: string | null
-          gmail_message_id: string
+          gmail_message_id: string | null
           gmail_thread_id: string | null
           id: string
           is_archived: boolean
@@ -12569,7 +12569,7 @@ export type Database = {
           email_account?: string | null
           from_address: string
           from_name?: string | null
-          gmail_message_id: string
+          gmail_message_id?: string | null
           gmail_thread_id?: string | null
           id?: string
           is_archived?: boolean
@@ -12591,7 +12591,7 @@ export type Database = {
           email_account?: string | null
           from_address?: string
           from_name?: string | null
-          gmail_message_id?: string
+          gmail_message_id?: string | null
           gmail_thread_id?: string | null
           id?: string
           is_archived?: boolean
