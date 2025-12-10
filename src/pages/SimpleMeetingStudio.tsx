@@ -9,32 +9,31 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Video, VideoOff, Mic, MicOff, PhoneOff, 
   Monitor, MessageSquare, Users, Settings,
-  Send, X, Volume2, VolumeX, Link, Copy, Check
+  Send, X, Volume2, VolumeX, Link, Copy, Check, Loader2
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { DeviceTestDialog } from "@/components/meeting/DeviceTestDialog";
+import DailyIframe from "@daily-co/daily-js";
 
 export default function SimpleMeetingStudio() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const screenStreamRef = useRef<MediaStream | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const callFrameRef = useRef<any>(null);
   
-  const [isVideoOn, setIsVideoOn] = useState(true);
-  const [isMicOn, setIsMicOn] = useState(true);
-  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [showChat, setShowChat] = useState(false);
   const [showDeviceTest, setShowDeviceTest] = useState(true);
   const [chatMessage, setChatMessage] = useState("");
   const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [copied, setCopied] = useState(false);
+  const [participantCount, setParticipantCount] = useState(1);
   const [selectedDevices, setSelectedDevices] = useState<{
     videoDeviceId: string | null;
     audioInputDeviceId: string | null;
     audioOutputDeviceId: string | null;
   } | null>(null);
-  const [copied, setCopied] = useState(false);
 
   // Fetch meeting details
   const { data: meeting } = useQuery({
@@ -97,116 +96,72 @@ export default function SimpleMeetingStudio() {
     };
   }, [id]);
 
-  const handleDeviceTestComplete = (devices: {
+  const handleDeviceTestComplete = async (devices: {
     videoDeviceId: string | null;
     audioInputDeviceId: string | null;
     audioOutputDeviceId: string | null;
   }) => {
     setSelectedDevices(devices);
     setShowDeviceTest(false);
-  };
+    
+    // Initialize Daily.co room
+    try {
+      const { data, error } = await supabase.functions.invoke("daily-create-meeting-room", {
+        body: {
+          meetingId: id,
+          meetingTitle: meeting?.title || "Meeting",
+          enableWaitingRoom: false,
+        },
+      });
 
-  // Start media stream
-  useEffect(() => {
-    if (!selectedDevices || showDeviceTest) return;
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
 
-    let mounted = true;
-
-    const startStream = async () => {
-      try {
-        const constraints: MediaStreamConstraints = {
-          video: selectedDevices.videoDeviceId
-            ? { deviceId: { exact: selectedDevices.videoDeviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }
-            : { width: { ideal: 1280 }, height: { ideal: 720 } },
-          audio: selectedDevices.audioInputDeviceId
-            ? { deviceId: { exact: selectedDevices.audioInputDeviceId }, echoCancellation: true, noiseSuppression: true }
-            : { echoCancellation: true, noiseSuppression: true },
-        };
-
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-
-        if (!mounted) {
-          stream.getTracks().forEach((track) => track.stop());
-          return;
-        }
-
-        streamRef.current = stream;
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-
-        const videoTrack = stream.getVideoTracks()[0];
-        const audioTrack = stream.getAudioTracks()[0];
-        if (videoTrack) videoTrack.enabled = isVideoOn;
-        if (audioTrack) audioTrack.enabled = isMicOn;
-      } catch (error) {
-        console.error("Media error:", error);
-        toast.error("Unable to access camera or microphone");
-      }
-    };
-
-    startStream();
-
-    return () => {
-      mounted = false;
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-      }
-      if (screenStreamRef.current) {
-        screenStreamRef.current.getTracks().forEach((track) => track.stop());
-      }
-    };
-  }, [selectedDevices, showDeviceTest]);
-
-  // Toggle video
-  useEffect(() => {
-    if (streamRef.current) {
-      const videoTrack = streamRef.current.getVideoTracks()[0];
-      if (videoTrack) videoTrack.enabled = isVideoOn;
-    }
-  }, [isVideoOn]);
-
-  // Toggle audio
-  useEffect(() => {
-    if (streamRef.current) {
-      const audioTrack = streamRef.current.getAudioTracks()[0];
-      if (audioTrack) audioTrack.enabled = isMicOn;
-    }
-  }, [isMicOn]);
-
-  // Screen share
-  const toggleScreenShare = async () => {
-    if (isScreenSharing) {
-      if (screenStreamRef.current) {
-        screenStreamRef.current.getTracks().forEach((track) => track.stop());
-        screenStreamRef.current = null;
-      }
-      if (videoRef.current && streamRef.current) {
-        videoRef.current.srcObject = streamRef.current;
-      }
-      setIsScreenSharing(false);
-    } else {
-      try {
-        const screenStream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-          audio: false,
+      // Initialize Daily iframe
+      if (containerRef.current) {
+        const callFrame = DailyIframe.createFrame(containerRef.current, {
+          iframeStyle: {
+            width: "100%",
+            height: "100%",
+            border: "0",
+            borderRadius: "12px",
+          },
+          showLeaveButton: false,
+          showFullscreenButton: true,
         });
-        screenStreamRef.current = screenStream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = screenStream;
-        }
-        screenStream.getVideoTracks()[0].onended = () => {
-          setIsScreenSharing(false);
-          if (videoRef.current && streamRef.current) {
-            videoRef.current.srcObject = streamRef.current;
-          }
-        };
-        setIsScreenSharing(true);
-      } catch (error) {
-        console.error("Screen share error:", error);
-        toast.error("Unable to share screen");
+
+        callFrameRef.current = callFrame;
+
+        // Track participant count
+        callFrame.on("participant-joined", () => {
+          const participants = callFrame.participants();
+          setParticipantCount(Object.keys(participants).length);
+        });
+
+        callFrame.on("participant-left", () => {
+          const participants = callFrame.participants();
+          setParticipantCount(Object.keys(participants).length);
+        });
+
+        callFrame.on("left-meeting", () => {
+          callFrame.destroy();
+          navigate("/meetings");
+          toast.success("Meeting ended");
+        });
+
+        await callFrame.join({
+          url: data.roomUrl,
+          token: data.token,
+        });
+
+        setParticipantCount(1);
       }
+
+      setIsInitializing(false);
+    } catch (error: any) {
+      console.error("Error initializing Daily:", error);
+      toast.error(error.message || "Failed to start meeting");
+      setIsInitializing(false);
     }
   };
 
@@ -236,13 +191,24 @@ export default function SimpleMeetingStudio() {
   };
 
   // End meeting
-  const endMeeting = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
+  const endMeeting = async () => {
+    try {
+      if (callFrameRef.current) {
+        await callFrameRef.current.leave();
+        callFrameRef.current.destroy();
+      }
+
+      // Call end meeting function to cleanup Daily room
+      await supabase.functions.invoke("daily-end-meeting", {
+        body: {
+          meetingId: id,
+          roomName: meeting?.room_name,
+        },
+      });
+    } catch (error) {
+      console.error("Error ending meeting:", error);
     }
-    if (screenStreamRef.current) {
-      screenStreamRef.current.getTracks().forEach((track) => track.stop());
-    }
+    
     navigate("/meetings");
     toast.success("Meeting ended");
   };
@@ -284,7 +250,7 @@ export default function SimpleMeetingStudio() {
             </Button>
             <span className="flex items-center gap-1 text-zinc-400 text-sm">
               <Users className="h-4 w-4" />
-              {(meeting?.meeting_attendees?.length || 0) + 1}
+              {participantCount}
             </span>
           </div>
         </div>
@@ -293,58 +259,24 @@ export default function SimpleMeetingStudio() {
         <div className="flex-1 flex">
           {/* Video area */}
           <div className="flex-1 flex flex-col">
-            <div className="flex-1 flex items-center justify-center p-4 relative">
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="w-full h-full max-h-[calc(100vh-200px)] object-contain rounded-xl bg-zinc-900"
-              />
-              {!isVideoOn && !isScreenSharing && (
+            <div className="flex-1 p-4 relative">
+              {isInitializing && !showDeviceTest ? (
                 <div className="absolute inset-4 flex items-center justify-center bg-zinc-900 rounded-xl">
-                  <div className="text-center text-zinc-500">
-                    <VideoOff className="h-16 w-16 mx-auto mb-3" />
-                    <p>Camera Off</p>
+                  <div className="text-center text-zinc-400">
+                    <Loader2 className="h-12 w-12 mx-auto mb-3 animate-spin" />
+                    <p>Starting meeting...</p>
                   </div>
                 </div>
-              )}
-              {isScreenSharing && (
-                <Badge className="absolute top-6 left-6 bg-green-500">
-                  Sharing Screen
-                </Badge>
+              ) : (
+                <div 
+                  ref={containerRef} 
+                  className="w-full h-full rounded-xl overflow-hidden bg-zinc-900"
+                />
               )}
             </div>
 
             {/* Controls */}
             <div className="h-20 bg-zinc-900 border-t border-zinc-800 flex items-center justify-center gap-3">
-              <Button
-                variant={isMicOn ? "secondary" : "destructive"}
-                size="icon"
-                className="h-12 w-12 rounded-full"
-                onClick={() => setIsMicOn(!isMicOn)}
-              >
-                {isMicOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
-              </Button>
-
-              <Button
-                variant={isVideoOn ? "secondary" : "destructive"}
-                size="icon"
-                className="h-12 w-12 rounded-full"
-                onClick={() => setIsVideoOn(!isVideoOn)}
-              >
-                {isVideoOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
-              </Button>
-
-              <Button
-                variant={isScreenSharing ? "default" : "secondary"}
-                size="icon"
-                className="h-12 w-12 rounded-full"
-                onClick={toggleScreenShare}
-              >
-                <Monitor className="h-5 w-5" />
-              </Button>
-
               <Button
                 variant={showChat ? "default" : "secondary"}
                 size="icon"

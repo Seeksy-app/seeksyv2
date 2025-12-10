@@ -54,6 +54,7 @@ import CreatorScheduledMeetings from "./pages/creator/meetings/CreatorScheduledM
 import CreatorAvailability from "./pages/creator/meetings/CreatorAvailability";
 import CreatorMeetingSettings from "./pages/creator/meetings/CreatorMeetingSettings";
 import ScheduleMeeting from "./pages/meetings/ScheduleMeeting";
+import MeetingJoin from "./pages/meetings/MeetingJoin";
 import PublicBookingPage from "./pages/public/PublicBookingPage";
 import AdminMeetings from "./pages/admin/AdminMeetings";
 import AdminMeetingsDashboard from "./pages/admin/meetings/AdminMeetingsDashboard";
@@ -841,6 +842,7 @@ const AppContent = () => {
               <Route path="/meetings/new" element={<Navigate to="/meetings/create" replace />} />
               <Route path="/meeting-studio/:id" element={<MeetingStudio />} />
               <Route path="/meetings/studio/:id" element={<SimpleMeetingStudio />} />
+              <Route path="/meetings/join/:id" element={<MeetingJoin />} />
               <Route path="/meetings/:id" element={<MeetingDetails />} />
               <Route path="/meetings/create" element={<CreateMeeting />} />
               <Route path="/meetings/schedule" element={<ScheduleMeeting />} />
