@@ -25,6 +25,7 @@ import {
   Settings,
   HelpCircle,
   BookOpen,
+  Briefcase,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useBoardViewMode } from '@/hooks/useBoardViewMode';
@@ -32,6 +33,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import seeksyLogo from '@/assets/seeksy-logo.png';
 
 // OVERVIEW section - simplified
 const overviewItems = [
@@ -119,6 +121,12 @@ const resourceItems = [
     label: 'Knowledge Hub',
     icon: BookOpen,
     path: '/board/knowledge',
+  },
+  {
+    id: 'sales-opportunities',
+    label: 'Sales Opportunities',
+    icon: Briefcase,
+    path: '/board/sales-opportunities',
   },
 ];
 
@@ -218,8 +226,8 @@ export function BoardSidebar() {
     if (filteredItems.length === 0 && searchQuery.trim()) return null;
     
     return (
-      <SidebarGroup className={cn("py-1", className)}>
-        <SidebarGroupLabel className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-0.5">
+      <SidebarGroup className={cn("py-0.5", className)}>
+        <SidebarGroupLabel className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-0">
           {title}
         </SidebarGroupLabel>
         <SidebarMenu className="space-y-0">
@@ -234,9 +242,7 @@ export function BoardSidebar() {
       {/* Header with Logo */}
       <SidebarHeader className="p-3 border-b border-slate-100">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-sm">
-            <span className="text-white font-bold text-sm">S</span>
-          </div>
+          <img src={seeksyLogo} alt="Seeksy" className="w-8 h-8 object-contain" />
           <div>
             <h2 className="text-base font-bold text-slate-900 tracking-tight">Seeksy</h2>
             <p className="text-[10px] text-slate-500">Board Portal</p>

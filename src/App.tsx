@@ -506,6 +506,7 @@ import BoardCapitalStrategy from "./pages/board/BoardCapitalStrategy";
 import BoardMilestones from "./pages/board/BoardMilestones";
 import BoardTeamOrg from "./pages/board/BoardTeamOrg";
 import BoardSettings from "./pages/board/BoardSettings";
+import BoardSalesOpportunities from "./pages/board/BoardSalesOpportunities";
 import BoardInvestorPortal from "./pages/investor/InvestorPortal";
 import BoardMemberManagement from "./pages/admin/BoardMemberManagement";
 import { BoardGuard } from "./components/board/BoardGuard";
@@ -1117,6 +1118,7 @@ const AppContent = () => {
             <Route path="settings" element={<BoardSettings />} />
             <Route path="knowledge" element={<BoardKnowledgeBlog />} />
             <Route path="knowledge/:slug" element={<BoardKnowledgeArticle />} />
+            <Route path="sales-opportunities" element={<BoardSalesOpportunities />} />
           </Route>
           <Route path="/investor/:token" element={<BoardInvestorPortal />} />
           
