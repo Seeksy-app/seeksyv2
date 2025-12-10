@@ -32,8 +32,11 @@ export function BoardGuard({ children }: BoardGuardProps) {
     // Board routes don't need any redirect logic - they just render
     if (isBoardRoute) return;
 
+    console.log('[BoardGuard] Role check:', { isBoardMember, isAdmin, isViewingAsBoard, path: location.pathname });
+
     // If user is a board member (not admin), redirect to /board
     if (isBoardMember && !isAdmin) {
+      console.log('[BoardGuard] Redirecting board_member to /board');
       navigate('/board', { replace: true });
       return;
     }

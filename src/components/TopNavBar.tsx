@@ -102,7 +102,7 @@ export function TopNavBar() {
               <Badge variant="secondary" className="ml-auto text-[10px]">Current</Badge>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate('/settings/workspace')}>
+            <DropdownMenuItem onClick={() => navigate('/workspace')}>
               Workspace Settings
             </DropdownMenuItem>
           </DropdownMenuContent>
