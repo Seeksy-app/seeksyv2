@@ -3793,6 +3793,101 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_generation_jobs: {
+        Row: {
+          category: string
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          generated_article_id: string | null
+          id: string
+          portal: string
+          source_insight_ids: string[] | null
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          category: string
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          generated_article_id?: string | null
+          id?: string
+          portal: string
+          source_insight_ids?: string[] | null
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          category?: string
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          generated_article_id?: string | null
+          id?: string
+          portal?: string
+          source_insight_ids?: string[] | null
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_generation_jobs_generated_article_id_fkey"
+            columns: ["generated_article_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_insights: {
+        Row: {
+          created_at: string
+          creator_opportunities: Json | null
+          cta_suggestions: Json | null
+          id: string
+          processed_at: string
+          raw_content: string | null
+          revenue_trends: Json | null
+          risk_notes: Json | null
+          sentiment: string | null
+          source_type: string
+          source_url: string | null
+          strategic_implications: Json | null
+          trending_topics: Json | null
+        }
+        Insert: {
+          created_at?: string
+          creator_opportunities?: Json | null
+          cta_suggestions?: Json | null
+          id?: string
+          processed_at?: string
+          raw_content?: string | null
+          revenue_trends?: Json | null
+          risk_notes?: Json | null
+          sentiment?: string | null
+          source_type?: string
+          source_url?: string | null
+          strategic_implications?: Json | null
+          trending_topics?: Json | null
+        }
+        Update: {
+          created_at?: string
+          creator_opportunities?: Json | null
+          cta_suggestions?: Json | null
+          id?: string
+          processed_at?: string
+          raw_content?: string | null
+          revenue_trends?: Json | null
+          risk_notes?: Json | null
+          sentiment?: string | null
+          source_type?: string
+          source_url?: string | null
+          strategic_implications?: Json | null
+          trending_topics?: Json | null
+        }
+        Relationships: []
+      }
       blog_post_categories: {
         Row: {
           category_id: string
@@ -3933,6 +4028,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      blog_rss_sources: {
+        Row: {
+          category: string
+          created_at: string
+          fetch_frequency_hours: number
+          id: string
+          is_active: boolean
+          last_fetched_at: string | null
+          name: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          fetch_frequency_hours?: number
+          id?: string
+          is_active?: boolean
+          last_fetched_at?: string | null
+          name: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          fetch_frequency_hours?: number
+          id?: string
+          is_active?: boolean
+          last_fetched_at?: string | null
+          name?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
       }
       board_content: {
         Row: {
@@ -13292,6 +13423,7 @@ export type Database = {
       knowledge_articles: {
         Row: {
           author_id: string | null
+          category: string | null
           content: string
           created_at: string | null
           excerpt: string | null
@@ -13314,6 +13446,7 @@ export type Database = {
         }
         Insert: {
           author_id?: string | null
+          category?: string | null
           content: string
           created_at?: string | null
           excerpt?: string | null
@@ -13336,6 +13469,7 @@ export type Database = {
         }
         Update: {
           author_id?: string | null
+          category?: string | null
           content?: string
           created_at?: string | null
           excerpt?: string | null
