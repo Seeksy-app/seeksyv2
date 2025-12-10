@@ -13289,6 +13289,75 @@ export type Database = {
         }
         Relationships: []
       }
+      knowledge_articles: {
+        Row: {
+          author_id: string | null
+          content: string
+          created_at: string | null
+          excerpt: string | null
+          execution_steps: string[] | null
+          expected_outcomes: string | null
+          id: string
+          is_published: boolean | null
+          key_takeaways: string[] | null
+          portal: string
+          purpose: string | null
+          questions: string[] | null
+          screenshot_urls: string[] | null
+          search_vector: unknown
+          section: string
+          slug: string
+          title: string
+          updated_at: string | null
+          version: number | null
+          view_count: number | null
+        }
+        Insert: {
+          author_id?: string | null
+          content: string
+          created_at?: string | null
+          excerpt?: string | null
+          execution_steps?: string[] | null
+          expected_outcomes?: string | null
+          id?: string
+          is_published?: boolean | null
+          key_takeaways?: string[] | null
+          portal: string
+          purpose?: string | null
+          questions?: string[] | null
+          screenshot_urls?: string[] | null
+          search_vector?: unknown
+          section: string
+          slug: string
+          title: string
+          updated_at?: string | null
+          version?: number | null
+          view_count?: number | null
+        }
+        Update: {
+          author_id?: string | null
+          content?: string
+          created_at?: string | null
+          excerpt?: string | null
+          execution_steps?: string[] | null
+          expected_outcomes?: string | null
+          id?: string
+          is_published?: boolean | null
+          key_takeaways?: string[] | null
+          portal?: string
+          purpose?: string | null
+          questions?: string[] | null
+          screenshot_urls?: string[] | null
+          search_vector?: unknown
+          section?: string
+          slug?: string
+          title?: string
+          updated_at?: string | null
+          version?: number | null
+          view_count?: number | null
+        }
+        Relationships: []
+      }
       landing_ctas: {
         Row: {
           auto_generated: boolean | null

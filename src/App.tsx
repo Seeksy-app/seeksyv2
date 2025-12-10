@@ -267,6 +267,13 @@ import CMOCommandCenter from "./pages/admin/cmo/CMOCommandCenter";
 import CCOCommunications from "./pages/admin/cco/CCOCommunications";
 import SalesLeads from "./pages/admin/SalesLeads";
 import SiteVisitors from "./pages/admin/SiteVisitors";
+// Knowledge Blog
+import AdminKnowledgeBlog from "./pages/knowledge/AdminKnowledgeBlog";
+import AdminKnowledgeArticle from "./pages/knowledge/AdminKnowledgeArticle";
+import CreatorKnowledgeBlog from "./pages/knowledge/CreatorKnowledgeBlog";
+import CreatorKnowledgeArticle from "./pages/knowledge/CreatorKnowledgeArticle";
+import BoardKnowledgeBlog from "./pages/knowledge/BoardKnowledgeBlog";
+import BoardKnowledgeArticle from "./pages/knowledge/BoardKnowledgeArticle";
 import SalesDesk from "./pages/admin/SalesDesk";
 import SWOTAnalysis from "./pages/admin/SWOTAnalysis";
 import TeamMembers from "./pages/admin/TeamMembers";
@@ -1139,6 +1146,14 @@ const AppContent = () => {
           
           {/* Knowledge Base - Admin */}
           <Route path="/admin/knowledge-base" element={<KnowledgeBaseAdmin />} />
+          
+          {/* Internal Knowledge Blog */}
+          <Route path="/knowledge/admin" element={<AdminKnowledgeBlog />} />
+          <Route path="/knowledge/admin/:slug" element={<AdminKnowledgeArticle />} />
+          <Route path="/knowledge/creator" element={<CreatorKnowledgeBlog />} />
+          <Route path="/knowledge/creator/:slug" element={<CreatorKnowledgeArticle />} />
+          <Route path="/knowledge/board" element={<BoardKnowledgeBlog />} />
+          <Route path="/knowledge/board/:slug" element={<BoardKnowledgeArticle />} />
           
           {/* CMO Command Center */}
           <Route path="/admin/cmo" element={<CMOCommandCenter />} />
