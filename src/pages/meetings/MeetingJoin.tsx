@@ -18,6 +18,9 @@ export default function MeetingJoin() {
   const [inMeeting, setInMeeting] = useState(false);
   const [roomUrl, setRoomUrl] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [meetingTitle, setMeetingTitle] = useState<string>("");
+  const [meetingError, setMeetingError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const callFrameRef = useRef<any>(null);
 
@@ -30,21 +33,49 @@ export default function MeetingJoin() {
     },
   });
 
-  // Fetch meeting details
-  const { data: meeting, isLoading } = useQuery({
-    queryKey: ["meeting-join", id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("meetings")
-        .select("*")
-        .eq("id", id)
-        .single();
+  // Fetch meeting via edge function (bypasses RLS for guests)
+  useEffect(() => {
+    const fetchMeeting = async () => {
+      if (!id) return;
+      
+      try {
+        // Try to get meeting info via the join function with a "check" mode
+        const { data, error } = await supabase.functions.invoke("daily-get-meeting-info", {
+          body: { meetingId: id },
+        });
 
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!id,
-  });
+        if (error || data?.error) {
+          // Fallback: try direct query for authenticated users
+          const { data: meeting, error: dbError } = await supabase
+            .from("meetings")
+            .select("id, title, room_name, is_active")
+            .eq("id", id)
+            .maybeSingle();
+
+          if (dbError || !meeting) {
+            setMeetingError("Meeting not found");
+          } else {
+            setMeetingTitle(meeting.title || "Meeting");
+            if (!meeting.room_name) {
+              setMeetingError("Waiting for host to start the meeting");
+            }
+          }
+        } else {
+          setMeetingTitle(data.title || "Meeting");
+          if (!data.roomName) {
+            setMeetingError("Waiting for host to start the meeting");
+          }
+        }
+      } catch (err) {
+        // Final fallback - show join form anyway
+        setMeetingTitle("Meeting");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMeeting();
+  }, [id]);
 
   const handleJoin = async () => {
     if (!user && (!guestName.trim() || !guestEmail.trim())) {
@@ -67,6 +98,7 @@ export default function MeetingJoin() {
 
       setRoomUrl(data.roomUrl);
       setToken(data.token);
+      setMeetingTitle(data.meetingTitle || meetingTitle);
       setInMeeting(true);
     } catch (error: any) {
       console.error("Join error:", error);
@@ -128,7 +160,7 @@ export default function MeetingJoin() {
     );
   }
 
-  if (!meeting) {
+  if (meetingError === "Meeting not found") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-950">
         <Card className="w-full max-w-md">
@@ -160,7 +192,7 @@ export default function MeetingJoin() {
           <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
             <Video className="h-8 w-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl">{meeting.title}</CardTitle>
+          <CardTitle className="text-2xl">{meetingTitle}</CardTitle>
           <CardDescription>
             You're about to join this meeting
           </CardDescription>
@@ -218,7 +250,7 @@ export default function MeetingJoin() {
             )}
           </Button>
 
-          {!meeting.room_name && (
+          {meetingError === "Waiting for host to start the meeting" && (
             <p className="text-sm text-amber-500 text-center">
               Waiting for host to start the meeting...
             </p>
