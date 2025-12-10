@@ -13,13 +13,13 @@ const featurePills = [
   { icon: Video, label: "Content" },
 ];
 
-// Video thumbnails for bottom section
-import grid1 from "@/assets/homepage/grid-1.jpg";
-import grid2 from "@/assets/homepage/grid-2.jpg";
-import grid3 from "@/assets/homepage/grid-3.jpg";
-import grid4 from "@/assets/homepage/grid-4.jpg";
+// Video thumbnails for bottom section - group/meeting images
+import heroConversations from "@/assets/homepage/hero-conversations.jpg";
+import heroCommunity from "@/assets/homepage/hero-community.jpg";
+import heroContent from "@/assets/homepage/hero-content.jpg";
+import heroPeople from "@/assets/homepage/hero-people.jpg";
 
-const videoThumbnails = [grid1, grid2, grid3, grid4];
+const videoThumbnails = [heroConversations, heroCommunity, heroContent, heroPeople];
 
 export function HeroSectionNew() {
   const navigate = useNavigate();

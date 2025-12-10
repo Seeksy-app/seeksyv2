@@ -4,38 +4,37 @@ import { Button } from "@/components/ui/button";
 import { 
   Menu, X, ChevronDown, Video, Scissors, Podcast, Calendar, 
   Users, Ticket, Trophy, DollarSign, Sparkles, ArrowRight,
-  Mic, TrendingUp, Building2, Briefcase, LayoutGrid, Play
+  Mic, TrendingUp, Building2, Briefcase
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const coreTools = [
-  { label: "Media AI Studio", href: "/studio", icon: Video, description: "Professional AI-powered recording & editing" },
-  { label: "AI Clips Generator", href: "/studio/clips", icon: Scissors, description: "Auto-extract viral clips" },
-  { label: "Podcast Hosting", href: "/podcasts", icon: Podcast, description: "Host & distribute your show" },
-  { label: "Meetings & Scheduling", href: "/meetings", icon: Calendar, description: "Book guests & run consultations" },
-  { label: "CRM + Messaging", href: "/contacts", icon: Users, description: "Manage contacts & outreach" },
+  { label: "Media AI Studio", icon: Video, description: "Professional AI-powered recording & editing" },
+  { label: "AI Clips Generator", icon: Scissors, description: "Auto-extract viral clips" },
+  { label: "Podcast Hosting", icon: Podcast, description: "Host & distribute your show" },
+  { label: "Meetings & Scheduling", icon: Calendar, description: "Book guests & run consultations" },
+  { label: "CRM + Messaging", icon: Users, description: "Manage contacts & outreach" },
 ];
 
 const moreTools = [
-  { label: "Events & Ticketing", href: "/events", icon: Ticket, description: "Host events & sell tickets" },
-  { label: "Awards & Programs", href: "/awards", icon: Trophy, description: "Run recognition programs" },
-  { label: "Monetization Tools", href: "/monetization", icon: DollarSign, description: "Earn from your content" },
-  { label: "View all features", href: "/apps-and-tools", icon: ArrowRight, description: "Explore the full suite" },
+  { label: "Events & Ticketing", icon: Ticket, description: "Host events & sell tickets" },
+  { label: "Awards & Programs", icon: Trophy, description: "Run recognition programs" },
+  { label: "Monetization Tools", icon: DollarSign, description: "Earn from your content" },
+  { label: "View all features", icon: ArrowRight, description: "Explore the full suite" },
 ];
 
 const useCases = [
-  { label: "For Podcasters", href: "/onboarding?persona=podcaster", icon: Mic, description: "Build, distribute & grow your show" },
-  { label: "For Creators", href: "/onboarding?persona=creator", icon: TrendingUp, description: "Create viral content & increase reach" },
-  { label: "For Event Hosts", href: "/onboarding?persona=event_host", icon: Ticket, description: "Run live events and guest bookings" },
-  { label: "For Agencies", href: "/onboarding?persona=agency", icon: Building2, description: "Manage multiple clients at scale" },
-  { label: "For Businesses", href: "/onboarding?persona=business", icon: Briefcase, description: "Meetings, content & customer engagement" },
+  { label: "For Podcasters", icon: Mic, description: "Build, distribute & grow your show" },
+  { label: "For Creators", icon: TrendingUp, description: "Create viral content & increase reach" },
+  { label: "For Event Hosts", icon: Ticket, description: "Run live events and guest bookings" },
+  { label: "For Agencies", icon: Building2, description: "Manage multiple clients at scale" },
+  { label: "For Businesses", icon: Briefcase, description: "Meetings, content & customer engagement" },
 ];
 
 const navLinks = [
-  { label: "Playground", href: "/onboarding" },
-  { label: "Docs", href: "/docs" },
   { label: "Pricing", href: "/pricing" },
-  { label: "Blog", href: "/blog" },
+  { label: "Apps & Tools", href: "/apps-and-tools" },
+  { label: "About", href: "/about" },
 ];
 
 export function TopNavigation() {
@@ -100,7 +99,7 @@ export function TopNavigation() {
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-1">
-              {/* Products Mega-Menu */}
+              {/* Features Mega-Menu */}
               <div
                 ref={menuRef}
                 className="relative"
@@ -115,11 +114,11 @@ export function TopNavigation() {
                   onClick={() => setFeaturesOpen(!featuresOpen)}
                   onMouseEnter={() => setFeaturesOpen(true)}
                 >
-                  Products
+                  Features
                   <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-200", featuresOpen && "rotate-180")} />
                 </button>
                 
-                {/* Mega Menu Dropdown - Firecrawl style */}
+                {/* Mega Menu Dropdown */}
                 <div 
                   className={cn(
                     "fixed left-0 right-0 top-16 z-50 transition-all duration-200",
@@ -140,10 +139,9 @@ export function TopNavigation() {
                           </h3>
                           <div className="space-y-1">
                             {coreTools.map((item) => (
-                              <button
+                              <div
                                 key={item.label}
-                                onClick={() => handleNavigation(item.href)}
-                                className="w-full flex items-start gap-3 px-2 py-2.5 rounded-lg hover:bg-slate-50 transition-colors group text-left"
+                                className="w-full flex items-start gap-3 px-2 py-2.5 rounded-lg hover:bg-slate-50 transition-colors group text-left cursor-default"
                               >
                                 <item.icon className="h-5 w-5 text-orange-500 mt-0.5 flex-shrink-0" />
                                 <div className="min-w-0">
@@ -154,7 +152,7 @@ export function TopNavigation() {
                                     {item.description}
                                   </span>
                                 </div>
-                              </button>
+                              </div>
                             ))}
                           </div>
                         </div>
@@ -166,10 +164,9 @@ export function TopNavigation() {
                           </h3>
                           <div className="space-y-1">
                             {useCases.map((item) => (
-                              <button
+                              <div
                                 key={item.label}
-                                onClick={() => handleNavigation(item.href)}
-                                className="w-full flex items-start gap-3 px-2 py-2.5 rounded-lg hover:bg-slate-50 transition-colors group text-left"
+                                className="w-full flex items-start gap-3 px-2 py-2.5 rounded-lg hover:bg-slate-50 transition-colors group text-left cursor-default"
                               >
                                 <item.icon className="h-5 w-5 text-slate-400 mt-0.5 flex-shrink-0" />
                                 <div className="min-w-0">
@@ -180,22 +177,21 @@ export function TopNavigation() {
                                     {item.description}
                                   </span>
                                 </div>
-                              </button>
+                              </div>
                             ))}
                           </div>
                         </div>
 
-                        {/* More + CTA Column */}
+                        {/* More Column */}
                         <div className="pl-8">
                           <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-4">
                             More
                           </h3>
                           <div className="space-y-1">
                             {moreTools.map((item) => (
-                              <button
+                              <div
                                 key={item.label}
-                                onClick={() => handleNavigation(item.href)}
-                                className="w-full flex items-start gap-3 px-2 py-2.5 rounded-lg hover:bg-slate-50 transition-colors group text-left"
+                                className="w-full flex items-start gap-3 px-2 py-2.5 rounded-lg hover:bg-slate-50 transition-colors group text-left cursor-default"
                               >
                                 <item.icon className="h-5 w-5 text-slate-400 mt-0.5 flex-shrink-0" />
                                 <div className="min-w-0">
@@ -206,7 +202,7 @@ export function TopNavigation() {
                                     {item.description}
                                   </span>
                                 </div>
-                              </button>
+                              </div>
                             ))}
                           </div>
                         </div>
@@ -226,14 +222,6 @@ export function TopNavigation() {
                   {link.label}
                 </button>
               ))}
-
-              {/* Resources Dropdown - simplified */}
-              <button
-                onClick={() => handleNavigation("/about")}
-                className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors rounded-full hover:bg-slate-50"
-              >
-                About
-              </button>
             </div>
 
             {/* Desktop CTA */}
@@ -247,9 +235,9 @@ export function TopNavigation() {
               </Button>
               <Button
                 onClick={() => navigate("/auth?mode=signup")}
-                className="bg-slate-900 text-white font-medium hover:bg-slate-800 rounded-lg px-4"
+                className="bg-primary text-primary-foreground font-medium hover:bg-primary/90 rounded-lg px-4"
               >
-                Dashboard
+                Start Free
               </Button>
             </div>
 
@@ -273,14 +261,13 @@ export function TopNavigation() {
                 <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Core Tools</span>
               </div>
               {coreTools.map((item) => (
-                <button
+                <div
                   key={item.label}
-                  onClick={() => handleNavigation(item.href)}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-slate-50 rounded-lg transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-slate-50 rounded-lg transition-colors cursor-default"
                 >
                   <item.icon className="h-4 w-4 text-orange-500" />
                   <span className="text-sm text-slate-700">{item.label}</span>
-                </button>
+                </div>
               ))}
               
               {/* Mobile Use Cases Section */}
@@ -288,14 +275,13 @@ export function TopNavigation() {
                 <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Use Cases</span>
               </div>
               {useCases.map((item) => (
-                <button
+                <div
                   key={item.label}
-                  onClick={() => handleNavigation(item.href)}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-slate-50 rounded-lg transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-slate-50 rounded-lg transition-colors cursor-default"
                 >
                   <item.icon className="h-4 w-4 text-slate-400" />
                   <span className="text-sm text-slate-700">{item.label}</span>
-                </button>
+                </div>
               ))}
               
               {/* Mobile Simple Links */}
@@ -311,12 +297,6 @@ export function TopNavigation() {
                   {link.label}
                 </button>
               ))}
-              <button
-                onClick={() => handleNavigation("/about")}
-                className="w-full text-left px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
-              >
-                About
-              </button>
               
               <div className="flex flex-col gap-2 pt-4 mt-3 border-t border-slate-100">
                 <Button
@@ -334,9 +314,9 @@ export function TopNavigation() {
                     navigate("/auth?mode=signup");
                     setMobileMenuOpen(false);
                   }}
-                  className="w-full bg-slate-900 text-white font-medium"
+                  className="w-full bg-primary text-primary-foreground font-medium"
                 >
-                  Get Started
+                  Start Free
                 </Button>
               </div>
             </div>
