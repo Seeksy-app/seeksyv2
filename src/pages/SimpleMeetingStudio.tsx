@@ -9,12 +9,18 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Video, VideoOff, Mic, MicOff, PhoneOff, 
   Monitor, MessageSquare, Users, Settings,
-  Send, X, Volume2, VolumeX, Link, Copy, Check, Loader2
+  Send, X, Volume2, VolumeX, Link, Copy, Check, Loader2,
+  UserCheck, UserX, Bell
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { DeviceTestDialog } from "@/components/meeting/DeviceTestDialog";
 import DailyIframe from "@daily-co/daily-js";
+
+interface WaitingParticipant {
+  id: string;
+  name: string;
+}
 
 export default function SimpleMeetingStudio() {
   const { id } = useParams();
@@ -24,11 +30,13 @@ export default function SimpleMeetingStudio() {
   
   const [isInitializing, setIsInitializing] = useState(true);
   const [showChat, setShowChat] = useState(false);
+  const [showWaitingRoom, setShowWaitingRoom] = useState(false);
   const [showDeviceTest, setShowDeviceTest] = useState(true);
   const [chatMessage, setChatMessage] = useState("");
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [copied, setCopied] = useState(false);
   const [participantCount, setParticipantCount] = useState(1);
+  const [waitingParticipants, setWaitingParticipants] = useState<WaitingParticipant[]>([]);
   const [selectedDevices, setSelectedDevices] = useState<{
     videoDeviceId: string | null;
     audioInputDeviceId: string | null;
@@ -104,13 +112,13 @@ export default function SimpleMeetingStudio() {
     setSelectedDevices(devices);
     setShowDeviceTest(false);
     
-    // Initialize Daily.co room
+    // Initialize Daily.co room with waiting room enabled
     try {
       const { data, error } = await supabase.functions.invoke("daily-create-meeting-room", {
         body: {
           meetingId: id,
           meetingTitle: meeting?.title || "Meeting",
-          enableWaitingRoom: false,
+          enableWaitingRoom: true, // Enable waiting room
         },
       });
 
@@ -145,9 +153,27 @@ export default function SimpleMeetingStudio() {
           setParticipantCount(Object.keys(participants).length);
         });
 
+        // Handle waiting room "knocking" events
+        callFrame.on("waiting-participant-added", (event: any) => {
+          console.log("Waiting participant added:", event);
+          const participant = event.participant;
+          setWaitingParticipants(prev => [...prev, {
+            id: participant.id,
+            name: participant.name || "Guest",
+          }]);
+          toast.info(`${participant.name || "Someone"} is waiting to join`);
+        });
+
+        callFrame.on("waiting-participant-removed", (event: any) => {
+          console.log("Waiting participant removed:", event);
+          setWaitingParticipants(prev => 
+            prev.filter(p => p.id !== event.participant.id)
+          );
+        });
+
         callFrame.on("left-meeting", () => {
           callFrame.destroy();
-          navigate("/meetings");
+          navigate("/admin/meetings");
           toast.success("Meeting ended");
         });
 
@@ -164,6 +190,43 @@ export default function SimpleMeetingStudio() {
       console.error("Error initializing Daily:", error);
       toast.error(error.message || "Failed to start meeting");
       setIsInitializing(false);
+    }
+  };
+
+  // Admit participant from waiting room
+  const admitParticipant = async (participantId: string) => {
+    if (callFrameRef.current) {
+      try {
+        await callFrameRef.current.updateWaitingParticipant(participantId, {
+          grantRequestedAccess: true,
+        });
+        toast.success("Participant admitted");
+      } catch (error) {
+        console.error("Error admitting participant:", error);
+        toast.error("Failed to admit participant");
+      }
+    }
+  };
+
+  // Reject participant from waiting room
+  const rejectParticipant = async (participantId: string) => {
+    if (callFrameRef.current) {
+      try {
+        await callFrameRef.current.updateWaitingParticipant(participantId, {
+          grantRequestedAccess: false,
+        });
+        toast.success("Participant rejected");
+      } catch (error) {
+        console.error("Error rejecting participant:", error);
+        toast.error("Failed to reject participant");
+      }
+    }
+  };
+
+  // Admit all waiting participants
+  const admitAll = async () => {
+    for (const participant of waitingParticipants) {
+      await admitParticipant(participant.id);
     }
   };
 
@@ -211,7 +274,7 @@ export default function SimpleMeetingStudio() {
       console.error("Error ending meeting:", error);
     }
     
-    navigate("/meetings");
+    navigate("/admin/meetings");
     toast.success("Meeting ended");
   };
 
@@ -279,6 +342,21 @@ export default function SimpleMeetingStudio() {
 
             {/* Controls */}
             <div className="h-20 bg-zinc-900 border-t border-zinc-800 flex items-center justify-center gap-3">
+              {/* Waiting Room Button */}
+              <Button
+                variant={showWaitingRoom ? "default" : "secondary"}
+                size="icon"
+                className="h-12 w-12 rounded-full relative"
+                onClick={() => setShowWaitingRoom(!showWaitingRoom)}
+              >
+                <Bell className="h-5 w-5" />
+                {waitingParticipants.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {waitingParticipants.length}
+                  </span>
+                )}
+              </Button>
+
               <Button
                 variant={showChat ? "default" : "secondary"}
                 size="icon"
@@ -298,6 +376,68 @@ export default function SimpleMeetingStudio() {
               </Button>
             </div>
           </div>
+
+          {/* Waiting Room sidebar */}
+          {showWaitingRoom && (
+            <div className="w-80 bg-zinc-900 border-l border-zinc-800 flex flex-col">
+              <div className="h-14 flex items-center justify-between px-4 border-b border-zinc-800">
+                <h2 className="text-white font-medium">Waiting Room</h2>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowWaitingRoom(false)}
+                  className="text-zinc-400 hover:text-white"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <ScrollArea className="flex-1 p-4">
+                {waitingParticipants.length === 0 ? (
+                  <p className="text-zinc-500 text-center text-sm">No one is waiting</p>
+                ) : (
+                  <div className="space-y-3">
+                    {waitingParticipants.map((participant) => (
+                      <div key={participant.id} className="bg-zinc-800 rounded-lg p-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-white font-medium">{participant.name}</span>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-green-400 hover:text-green-300 hover:bg-green-500/20"
+                              onClick={() => admitParticipant(participant.id)}
+                            >
+                              <UserCheck className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                              onClick={() => rejectParticipant(participant.id)}
+                            >
+                              <UserX className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+
+              {waitingParticipants.length > 0 && (
+                <div className="p-3 border-t border-zinc-800">
+                  <Button 
+                    className="w-full" 
+                    onClick={admitAll}
+                  >
+                    Admit All ({waitingParticipants.length})
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Chat sidebar */}
           {showChat && (
