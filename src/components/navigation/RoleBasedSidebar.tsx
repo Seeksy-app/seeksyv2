@@ -355,24 +355,17 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
     return () => window.removeEventListener('navPreferencesUpdated', handleNavUpdate);
   }, []);
 
-  // Don't render anything while loading, but on admin routes show nothing rather than creator nav
-  if (!user || rolesLoading || navLoading || rbacLoading) {
-    // On admin routes, return empty sidebar placeholder to prevent flash of creator nav
-    if (isAdminRoute) {
-      return (
-        <Sidebar collapsible="icon">
-          <SidebarHeader className="border-b border-sidebar-border px-4 py-3 bg-sidebar">
-            <div className="flex items-center gap-3">
-              <SparkIcon variant="holiday" size={48} animated pose="idle" />
-              {!collapsed && <span className="text-sidebar-foreground text-2xl font-bold">Seeksy</span>}
-            </div>
-          </SidebarHeader>
-          <SidebarContent className="pb-6 bg-sidebar">
-            {/* Loading placeholder for admin nav */}
-          </SidebarContent>
-        </Sidebar>
-      );
-    }
+  // Show loading state only for non-admin routes OR if there's no user at all
+  // On admin routes, we proceed to render navigation from config even during loading
+  // to prevent the empty sidebar flash
+  if (!user) {
+    return null;
+  }
+  
+  // For admin routes, don't wait for all loading states - use config directly
+  // This prevents the empty sidebar issue when roles are still loading
+  const isStillLoadingForNonAdmin = !isAdminRoute && (rolesLoading || navLoading);
+  if (isStillLoadingForNonAdmin) {
     return null;
   }
 
@@ -406,7 +399,12 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
     });
 
   // Use permission-filtered navigation for admin routes/users (combines role + permission checks)
-  const filteredNavigation = shouldShowAdminNav ? permissionFilteredNav : [];
+  // On admin routes, if permission nav is empty but roles are still loading, use full config
+  // This prevents the empty sidebar flash
+  const adminNavFromConfig = shouldShowAdminNav && permissionFilteredNav.length === 0 && (rolesLoading || rbacLoading)
+    ? NAVIGATION_CONFIG.navigation.filter(g => g.collapsible)
+    : permissionFilteredNav;
+  const filteredNavigation = shouldShowAdminNav ? adminNavFromConfig : [];
 
   return (
     <Sidebar collapsible="icon">
