@@ -124,37 +124,34 @@ export function HeroSectionNew() {
           No credit card required • Free plan available • Cancel anytime
         </motion.p>
 
-        {/* Video Section */}
+        {/* Image Grid Section */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="relative max-w-5xl mx-auto"
+          className="max-w-5xl mx-auto"
         >
-          {/* Video Thumbnails Grid */}
-          <div className="grid grid-cols-4 gap-4 mb-8">
+          {/* Image Thumbnails Grid */}
+          <div className="grid grid-cols-4 gap-6 mb-12">
             {videoThumbnails.map((thumb, index) => (
               <div
                 key={index}
-                className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg"
+                className="relative aspect-square rounded-2xl overflow-hidden shadow-xl"
               >
                 <img
                   src={thumb}
                   alt=""
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-center"
                   loading={index < 2 ? "eager" : "lazy"}
                 />
-                <div className="absolute inset-0 bg-black/10" />
               </div>
             ))}
           </div>
 
-          {/* Video Caption Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/80 to-transparent pt-16 pb-4">
-            <p className="text-2xl md:text-3xl font-bold text-foreground text-center">
-              The creator economy is changing quickly.
-            </p>
-          </div>
+          {/* Caption Below Images */}
+          <p className="text-2xl md:text-3xl font-bold text-foreground text-center">
+            The creator economy is changing quickly.
+          </p>
         </motion.div>
       </div>
 
