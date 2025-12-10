@@ -59,6 +59,16 @@ interface TeamMember {
   };
 }
 
+interface PendingInvite {
+  id: string;
+  invitee_email: string;
+  invitee_name: string | null;
+  role: string;
+  status: string;
+  invited_at: string;
+  expires_at: string;
+}
+
 const ADMIN_ROLES = [
   { value: 'super_admin', label: 'Super Admin', description: 'Full platform access' },
   { value: 'admin', label: 'Admin', description: 'Everything except platform settings' },
@@ -74,8 +84,8 @@ export default function TeamMembers() {
   const queryClient = useQueryClient();
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteName, setInviteName] = useState("");
   const [inviteRole, setInviteRole] = useState("manager");
-
   // Fetch team members with their roles
   const { data: members = [], isLoading } = useQuery({
     queryKey: ['admin-team-members'],
@@ -111,30 +121,43 @@ export default function TeamMembers() {
     }
   });
 
-  // Invite mutation
-  const inviteMutation = useMutation({
-    mutationFn: async ({ email, role }: { email: string; role: string }) => {
+  // Fetch pending invitations
+  const { data: pendingInvites = [] } = useQuery({
+    queryKey: ['admin-pending-invites'],
+    queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user) return [];
 
-      // Use the correct column names from team_invitations table
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('team_invitations')
-        .insert({
-          invitee_email: email,
-          inviter_id: user.id,
-          role: role,
-          status: 'pending'
-        });
+        .select('*')
+        .eq('status', 'pending')
+        .order('invited_at', { ascending: false });
 
       if (error) throw error;
+      return (data || []) as PendingInvite[];
+    }
+  });
+
+  // Invite mutation - calls edge function to send email
+  const inviteMutation = useMutation({
+    mutationFn: async ({ email, name, role }: { email: string; name: string; role: string }) => {
+      // Call edge function to send email and create invitation
+      const { data, error } = await supabase.functions.invoke('send-team-invitation', {
+        body: { email, name, role, team_id: null }
+      });
+
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       toast({ title: "Invitation sent successfully" });
       setIsInviteOpen(false);
       setInviteEmail("");
+      setInviteName("");
       setInviteRole("manager");
       queryClient.invalidateQueries({ queryKey: ['admin-team-members'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-pending-invites'] });
     },
     onError: (err: any) => {
       toast({ 
@@ -142,6 +165,41 @@ export default function TeamMembers() {
         description: err.message,
         variant: "destructive" 
       });
+    }
+  });
+
+  // Resend invitation
+  const resendMutation = useMutation({
+    mutationFn: async (invite: PendingInvite) => {
+      const { data, error } = await supabase.functions.invoke('send-team-invitation', {
+        body: { email: invite.invitee_email, name: invite.invitee_name || '', role: invite.role, team_id: null }
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast({ title: "Invitation resent" });
+    },
+    onError: (err: any) => {
+      toast({ title: "Error resending", description: err.message, variant: "destructive" });
+    }
+  });
+
+  // Cancel invitation
+  const cancelMutation = useMutation({
+    mutationFn: async (inviteId: string) => {
+      const { error } = await supabase
+        .from('team_invitations')
+        .update({ status: 'cancelled' })
+        .eq('id', inviteId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: "Invitation cancelled" });
+      queryClient.invalidateQueries({ queryKey: ['admin-pending-invites'] });
+    },
+    onError: (err: any) => {
+      toast({ title: "Error cancelling", description: err.message, variant: "destructive" });
     }
   });
 
@@ -240,6 +298,15 @@ export default function TeamMembers() {
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  placeholder="John Doe"
+                  value={inviteName}
+                  onChange={(e) => setInviteName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="email">Email Address</Label>
                 <Input
                   id="email"
@@ -273,8 +340,8 @@ export default function TeamMembers() {
                 Cancel
               </Button>
               <Button 
-                onClick={() => inviteMutation.mutate({ email: inviteEmail, role: inviteRole })}
-                disabled={!inviteEmail || inviteMutation.isPending}
+                onClick={() => inviteMutation.mutate({ email: inviteEmail, name: inviteName, role: inviteRole })}
+                disabled={!inviteEmail || !inviteName || inviteMutation.isPending}
               >
                 {inviteMutation.isPending ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -307,6 +374,77 @@ export default function TeamMembers() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Pending Invitations */}
+      {pendingInvites.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Pending Invitations
+            </CardTitle>
+            <CardDescription>
+              {pendingInvites.length} pending invitation{pendingInvites.length !== 1 ? 's' : ''}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Invited</TableHead>
+                  <TableHead className="w-[120px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pendingInvites.map((invite) => (
+                  <TableRow key={invite.id}>
+                    <TableCell className="font-medium">{invite.invitee_email}</TableCell>
+                    <TableCell>{invite.invitee_name || '—'}</TableCell>
+                    <TableCell>
+                      <Badge className={getRoleBadgeColor(invite.role)}>
+                        {ADMIN_ROLES.find(r => r.value === invite.role)?.label || invite.role}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
+                        Pending
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(invite.invited_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => resendMutation.mutate(invite)}
+                          disabled={resendMutation.isPending}
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => cancelMutation.mutate(invite.id)}
+                          disabled={cancelMutation.isPending}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <UserX className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Team Members Table */}
       <Card>

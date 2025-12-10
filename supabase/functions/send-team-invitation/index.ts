@@ -156,7 +156,7 @@ serve(async (req) => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } else {
-      // User doesn't exist, send invitation email and track in database
+      // User doesn't exist - invite them to sign up via magic link
       const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
       
       // Get inviter's name
@@ -168,43 +168,48 @@ serve(async (req) => {
       
       const inviterName = inviterProfile?.account_full_name || inviterProfile?.username || "A team member";
       
-      // Use the actual deployed domain
-      const dashboardUrl = "https://seeksy.io/dashboard";
+      // Generate invite token for tracking
+      const inviteToken = crypto.randomUUID();
       
-      // Add to contacts table
-      if (actualTeamId) {
-        const { error: contactError } = await supabaseAdmin
-          .from("contacts")
-          .upsert({
-            user_id: user.id,
-            email: email,
-            name: name,
-            tags: ["team_member"],
-          }, {
-            onConflict: 'user_id,email',
-            ignoreDuplicates: false
-          });
-
-        if (contactError) {
-          console.error("Error adding to contacts:", contactError);
-          // Continue even if contact creation fails
+      // Track invitation in database first
+      const { data: inviteRecord, error: inviteError } = await supabaseAdmin
+        .from("team_invitations")
+        .insert({
+          inviter_id: user.id,
+          team_id: actualTeamId,
+          invitee_email: email,
+          invitee_name: name,
+          role: role,
+          status: "pending",
+        })
+        .select()
+        .single();
+      
+      if (inviteError) {
+        console.error("Error creating invitation:", inviteError);
+      }
+      
+      // Use magic link / invite user via Supabase Auth
+      const siteUrl = Deno.env.get("SITE_URL") || "https://seeksy.io";
+      const redirectUrl = `${siteUrl}/auth?invited=true&role=${role}`;
+      
+      // Invite the user - this sends a Supabase Auth invite email
+      const { data: inviteData, error: authInviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+        redirectTo: redirectUrl,
+        data: {
+          full_name: name,
+          invited_role: role,
+          inviter_id: user.id,
         }
+      });
+      
+      if (authInviteError) {
+        console.error("Auth invite error:", authInviteError);
+        // Fall back to sending a manual email if auth invite fails
       }
       
-      // Track invitation in database
-      if (actualTeamId) {
-        await supabaseAdmin
-          .from("team_invitations")
-          .insert({
-            inviter_id: user.id,
-            team_id: actualTeamId,
-            invitee_email: email,
-            invitee_name: name,
-            role: role,
-            status: "pending",
-          });
-      }
-      
+      // Also send a friendly welcome email via Resend
+      const dashboardUrl = `${siteUrl}/auth?email=${encodeURIComponent(email)}`;
       const emailHTML = generateTeamInviteHTML(inviterName, role, dashboardUrl);
       const senderEmail = Deno.env.get("SENDER_EMAIL_HELLO") || "Seeksy <hello@seeksy.io>";
       
@@ -218,7 +223,7 @@ serve(async (req) => {
       const { data: emailData, error: emailError } = await resend.emails.send({
         from: senderEmail,
         to: [email],
-        subject: "🎉 Welcome to the Seeksy Team!",
+        subject: "🎉 You're Invited to Join Seeksy!",
         html: emailHTML,
       });
 
@@ -233,7 +238,8 @@ serve(async (req) => {
         JSON.stringify({ 
           success: true, 
           message: "Invitation email sent to " + email,
-          user_exists: false 
+          user_exists: false,
+          invite_sent: true
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
