@@ -216,15 +216,50 @@ Make it insightful, actionable, and relevant to current industry trends. Include
           throw new Error('No content returned from AI');
         }
 
-        // Parse JSON from response
+        // Parse JSON from response - handle various formats
         let articleData;
         try {
-          const jsonMatch = content.match(/```json\n?([\s\S]*?)\n?```/) || content.match(/```\n?([\s\S]*?)\n?```/);
-          const jsonStr = jsonMatch ? jsonMatch[1] : content;
-          articleData = JSON.parse(jsonStr.trim());
+          // Try to extract JSON from markdown code blocks
+          let jsonStr = content;
+          const jsonMatch = content.match(/```json\s*([\s\S]*?)```/);
+          const plainMatch = content.match(/```\s*([\s\S]*?)```/);
+          
+          if (jsonMatch) {
+            jsonStr = jsonMatch[1];
+          } else if (plainMatch) {
+            jsonStr = plainMatch[1];
+          }
+          
+          // Clean up the JSON string
+          jsonStr = jsonStr.trim();
+          
+          // Try parsing directly first
+          try {
+            articleData = JSON.parse(jsonStr);
+          } catch {
+            // Try to find JSON object in the string
+            const objectMatch = jsonStr.match(/\{[\s\S]*\}/);
+            if (objectMatch) {
+              articleData = JSON.parse(objectMatch[0]);
+            } else {
+              throw new Error('No valid JSON found');
+            }
+          }
         } catch (parseErr) {
-          console.error('Failed to parse AI response:', content.substring(0, 500));
-          throw new Error('Failed to parse article JSON');
+          console.error('Failed to parse AI response:', content.substring(0, 800));
+          // Create fallback article data from raw content
+          articleData = {
+            title: `Industry Insights: ${category}`,
+            excerpt: 'Latest insights and trends in the creator economy.',
+            purpose: 'Stay informed about industry developments.',
+            expected_outcomes: 'Understanding of current market trends.',
+            key_takeaways: ['Industry is evolving rapidly', 'New opportunities emerging', 'Technology driving change'],
+            content: content.replace(/```json[\s\S]*?```/g, '').substring(0, 5000) || 'Article content being generated...',
+            execution_steps: ['Review the insights', 'Apply to your strategy', 'Monitor results'],
+            questions: ['How does this apply to you?', 'What actions can you take?'],
+            screenshot_urls: []
+          };
+          console.log('Using fallback article structure');
         }
 
         // Generate slug

@@ -3840,6 +3840,54 @@ export type Database = {
           },
         ]
       }
+      blog_generation_schedules: {
+        Row: {
+          article_count: number
+          created_at: string
+          days_of_week: number[]
+          email_to_creators: boolean
+          id: string
+          is_active: boolean
+          last_run_at: string | null
+          name: string
+          next_run_at: string | null
+          portal: string
+          schedule_time: string
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          article_count?: number
+          created_at?: string
+          days_of_week?: number[]
+          email_to_creators?: boolean
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          name: string
+          next_run_at?: string | null
+          portal?: string
+          schedule_time?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          article_count?: number
+          created_at?: string
+          days_of_week?: number[]
+          email_to_creators?: boolean
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          name?: string
+          next_run_at?: string | null
+          portal?: string
+          schedule_time?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       blog_insights: {
         Row: {
           created_at: string
@@ -13439,6 +13487,7 @@ export type Database = {
           search_vector: unknown
           section: string
           slug: string
+          source_url: string | null
           title: string
           updated_at: string | null
           version: number | null
@@ -13462,6 +13511,7 @@ export type Database = {
           search_vector?: unknown
           section: string
           slug: string
+          source_url?: string | null
           title: string
           updated_at?: string | null
           version?: number | null
@@ -13485,6 +13535,7 @@ export type Database = {
           search_vector?: unknown
           section?: string
           slug?: string
+          source_url?: string | null
           title?: string
           updated_at?: string | null
           version?: number | null

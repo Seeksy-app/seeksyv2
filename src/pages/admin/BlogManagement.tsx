@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { Plus, Trash2, RefreshCw, Rss, FileText, Sparkles, Clock, ExternalLink } from 'lucide-react';
 import { BLOG_CATEGORIES } from '@/types/knowledge-blog';
 import { format } from 'date-fns';
+import BlogScheduler from '@/components/admin/BlogScheduler';
 
 export default function BlogManagement() {
   const queryClient = useQueryClient();
@@ -314,6 +315,9 @@ export default function BlogManagement() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Scheduler */}
+      <BlogScheduler />
 
       {/* Recent Articles */}
       <Card>
