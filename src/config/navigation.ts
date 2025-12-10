@@ -48,6 +48,41 @@ export const NAVIGATION_CONFIG: {
           "icon": "layout-dashboard",
           "path": "/admin",
           "roles": ["admin", "super_admin", "cfo", "cmo", "cco", "manager"]
+        },
+        {
+          "id": "admin_inbox_quick",
+          "label": "Inbox",
+          "icon": "inbox",
+          "path": "/admin/email-client",
+          "roles": ["admin", "super_admin", "cmo", "cco"]
+        }
+      ]
+    },
+    {
+      "group": "Email Suite",
+      "description": "Email management and communications",
+      "collapsible": true,
+      "items": [
+        {
+          "id": "admin_email_client",
+          "label": "Email Client",
+          "icon": "mail",
+          "path": "/admin/email-client",
+          "roles": ["admin", "super_admin", "cmo", "cco"]
+        },
+        {
+          "id": "admin_email_signatures",
+          "label": "Signatures",
+          "icon": "pen-tool",
+          "path": "/admin/email-client/signatures",
+          "roles": ["admin", "super_admin", "cmo", "cco"]
+        },
+        {
+          "id": "admin_email_inbox",
+          "label": "Inbox",
+          "icon": "inbox",
+          "path": "/admin/email-client",
+          "roles": ["admin", "super_admin", "cmo", "cco"]
         }
       ]
     },
@@ -249,21 +284,6 @@ export const NAVIGATION_CONFIG: {
           "icon": "calculator",
           "path": "/admin/financials/roi-calculator",
           "roles": ["admin", "super_admin", "cfo", "cmo"]
-        },
-        {
-          "id": "admin_lead_magnets",
-          "label": "Lead Magnets",
-          "icon": "file-text",
-          "path": "/admin/lead-magnets",
-          "roles": ["admin", "super_admin", "cmo"]
-        },
-        {
-          "id": "admin_email",
-          "label": "Email Suite",
-          "icon": "mail",
-          "path": "/admin/email-client",
-          "roles": ["admin", "super_admin", "cmo"],
-          "description": "Send, receive, and track emails"
         },
         {
           "id": "admin_outbound_campaigns",

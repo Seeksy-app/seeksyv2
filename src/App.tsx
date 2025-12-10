@@ -252,6 +252,7 @@ import SeeksyArchitecture from "./pages/SeeksyArchitecture";
 import SupportDesk from "./pages/admin/SupportDesk";
 import SupportDeskCRM from "./pages/admin/support/SupportDeskCRM";
 import DataRecovery from "./pages/admin/DataRecovery";
+import AdminChangelog from "./pages/admin/Changelog";
 import { SeeksyTVHome, SeeksyTVChannel, SeeksyTVWatch, SeeksyTVBrowse, SeeksyTVClips, SeeksyTVLive, SeeksyTVTrending } from "./pages/tv";
 // Help Desk (Zendesk-style support system)
 import HelpDeskLayout from "./pages/helpdesk/HelpDeskLayout";
@@ -1156,6 +1157,9 @@ const AppContent = () => {
           <Route path="/knowledge/creator/:slug" element={<CreatorKnowledgeArticle />} />
           <Route path="/knowledge/board" element={<BoardKnowledgeBlog />} />
           <Route path="/knowledge/board/:slug" element={<BoardKnowledgeArticle />} />
+          
+          {/* Admin Changelog */}
+          <Route path="/admin/changelog" element={<AdminChangelog />} />
           
           {/* CMO Command Center */}
           <Route path="/admin/cmo" element={<CMOCommandCenter />} />

@@ -725,7 +725,7 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
         {!collapsed && (
           <div className="p-3 pb-0">
             <button
-              onClick={() => navigate('/changelog')}
+              onClick={() => navigate(shouldShowAdminNav ? '/admin/changelog' : '/changelog')}
               className="w-full flex items-center gap-3 p-3 rounded-lg bg-orange-50 dark:bg-orange-950/30 hover:bg-orange-100 dark:hover:bg-orange-950/50 transition-colors border border-orange-200/50 dark:border-orange-800/30"
             >
               <div className="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center">
