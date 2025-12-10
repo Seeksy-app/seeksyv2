@@ -82,7 +82,8 @@ export default function SeeksyTVHome() {
     const generatePosters = async () => {
       // Generate ALL posters for complete coverage (no caching - base64 is too large)
       for (const item of demoThumbnails) {
-        if (posterImages[item.id]) continue;
+        // Skip items that already have a custom imageUrl or already generated
+        if (item.imageUrl || posterImages[item.id]) continue;
         
         setLoadingPosters(prev => new Set(prev).add(item.id));
         
