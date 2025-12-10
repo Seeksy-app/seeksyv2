@@ -33,7 +33,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
-import seeksyLogo from '@/assets/seeksy-logo.png';
+import seeksyLogo from '@/assets/seeksy-logo-orange.png';
 
 // OVERVIEW section - simplified
 const overviewItems = [
