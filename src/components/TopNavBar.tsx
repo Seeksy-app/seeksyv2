@@ -79,34 +79,53 @@ export function TopNavBar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 items-center justify-between gap-4 px-4">
-        {/* Left: Team/Workspace Selector - Firecrawl style */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-2 font-medium text-foreground hover:bg-accent"
-            >
-              <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center">
-                <span className="text-xs font-bold text-primary">
-                  {teamName[0]?.toUpperCase()}
-                </span>
-              </div>
-              <span className="hidden sm:inline">{teamName}</span>
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56">
-            <DropdownMenuItem className="font-medium">
-              {teamName}
-              <Badge variant="secondary" className="ml-auto text-[10px]">Current</Badge>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate('/workspace')}>
-              Workspace Settings
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Left: Context indicator - Admin/Board/Workspace */}
+        {isAdminRoute ? (
+          // Admin context - no workspace dropdown
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded bg-destructive/10 flex items-center justify-center">
+              <span className="text-xs font-bold text-destructive">A</span>
+            </div>
+            <span className="font-medium text-foreground">Admin Panel</span>
+          </div>
+        ) : isBoardRoute ? (
+          // Board context - no workspace dropdown
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded bg-amber-500/10 flex items-center justify-center">
+              <span className="text-xs font-bold text-amber-600">B</span>
+            </div>
+            <span className="font-medium text-foreground">Board Portal</span>
+          </div>
+        ) : (
+          // Creator context - show workspace selector
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-2 font-medium text-foreground hover:bg-accent"
+              >
+                <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center">
+                  <span className="text-xs font-bold text-primary">
+                    {teamName[0]?.toUpperCase()}
+                  </span>
+                </div>
+                <span className="hidden sm:inline">{teamName}</span>
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuItem className="font-medium">
+                {teamName}
+                <Badge variant="secondary" className="ml-auto text-[10px]">Current</Badge>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate('/workspace')}>
+                Workspace Settings
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
 
         {/* Center: Global Search - Firecrawl has search in sidebar, we keep it in top bar */}
         <div className="flex-1 max-w-xl mx-4">

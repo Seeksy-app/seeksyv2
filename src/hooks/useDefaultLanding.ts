@@ -24,6 +24,38 @@ export function useDefaultLanding() {
           return;
         }
 
+        // Check user role FIRST - admin/board users have fixed landing routes
+        const { data: roles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id);
+
+        const isAdmin = roles?.some(r => r.role === 'admin' || r.role === 'super_admin') || false;
+        const isBoardMember = roles?.some(r => r.role === 'board_member') || false;
+        const isAdvertiser = roles?.some(r => r.role === 'advertiser') || false;
+
+        // Admin users always go to /admin - never use workspace context
+        if (isAdmin) {
+          navigate('/admin', { replace: true });
+          setChecked(true);
+          return;
+        }
+
+        // Board members always go to /board
+        if (isBoardMember) {
+          navigate('/board', { replace: true });
+          setChecked(true);
+          return;
+        }
+
+        // Advertisers always go to /advertiser
+        if (isAdvertiser) {
+          navigate('/advertiser', { replace: true });
+          setChecked(true);
+          return;
+        }
+
+        // For creators/regular users, use their preference
         const { data } = await supabase
           .from('user_preferences')
           .select('default_landing_route')
@@ -38,7 +70,7 @@ export function useDefaultLanding() {
         }
       } catch (err) {
         console.error('Error checking default landing:', err);
-        // Default to My Day on error
+        // Default to My Day on error for creators
         navigate('/my-day', { replace: true });
       } finally {
         setChecked(true);

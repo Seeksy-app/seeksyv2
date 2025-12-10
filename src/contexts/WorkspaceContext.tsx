@@ -51,9 +51,15 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
 
   const fetchWorkspaces = useCallback(async () => {
-    // Skip workspace fetching for board routes - they don't need workspace context
-    const isBoardRoute = window.location.pathname.startsWith('/board');
-    if (isBoardRoute) {
+    // Skip workspace fetching for admin, board, advertiser, and CFO routes - they don't need workspace context
+    const currentPath = window.location.pathname;
+    const isNonWorkspaceRoute = 
+      currentPath.startsWith('/admin') ||
+      currentPath.startsWith('/board') ||
+      currentPath.startsWith('/advertiser') ||
+      currentPath.startsWith('/cfo');
+    
+    if (isNonWorkspaceRoute) {
       setIsLoading(false);
       return;
     }

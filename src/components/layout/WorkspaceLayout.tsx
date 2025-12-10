@@ -1,5 +1,6 @@
 import { User } from "@supabase/supabase-js";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { WorkspaceProvider, useWorkspace } from "@/contexts/WorkspaceContext";
 import { WorkspaceSidebar } from "@/components/workspace/WorkspaceSidebar";
 import { GlobalTopNav } from "@/components/workspace/GlobalTopNav";
@@ -28,13 +29,59 @@ const LEGACY_NAV_ROUTES = [
 // Check if current route should use legacy navigation
 function useShouldUseLegacyNav() {
   const location = useLocation();
+  const { isAdmin, isBoardMember, isAdvertiser } = useUserRoles();
   
   // Check if on a legacy route
   const isLegacyRoute = LEGACY_NAV_ROUTES.some(route => 
     location.pathname.startsWith(route)
   );
   
-  return isLegacyRoute;
+  // Also use legacy nav if user has admin/board/advertiser role
+  // This ensures they get the correct navigation even if they navigate to a creator route
+  return isLegacyRoute || isAdmin || isBoardMember || isAdvertiser;
+}
+
+// Hook to enforce role-based routing
+function useRoleBasedRouting(user: User | null) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { isAdmin, isBoardMember, isAdvertiser, isLoading } = useUserRoles();
+
+  useEffect(() => {
+    // Skip if no user or still loading roles
+    if (!user || isLoading) return;
+    
+    // Skip for public routes, auth, onboarding
+    const skipRoutes = ['/auth', '/onboarding', '/public', '/pricing', '/about', '/terms', '/privacy', '/apps-and-tools'];
+    if (skipRoutes.some(r => location.pathname.startsWith(r))) return;
+
+    // Admin users should be redirected to /admin if on creator routes
+    if (isAdmin) {
+      const isCreatorRoute = !location.pathname.startsWith('/admin') && 
+                             !location.pathname.startsWith('/board') && 
+                             !location.pathname.startsWith('/cfo');
+      if (isCreatorRoute && !location.pathname.startsWith('/settings')) {
+        console.log('[WorkspaceLayout] Admin on creator route, redirecting to /admin');
+        navigate('/admin', { replace: true });
+      }
+    }
+    
+    // Board members should be on /board
+    if (isBoardMember && !isAdmin) {
+      if (!location.pathname.startsWith('/board')) {
+        console.log('[WorkspaceLayout] Board member redirecting to /board');
+        navigate('/board', { replace: true });
+      }
+    }
+    
+    // Advertisers should be on /advertiser
+    if (isAdvertiser && !isAdmin && !isBoardMember) {
+      if (!location.pathname.startsWith('/advertiser')) {
+        console.log('[WorkspaceLayout] Advertiser redirecting to /advertiser');
+        navigate('/advertiser', { replace: true });
+      }
+    }
+  }, [user, isAdmin, isBoardMember, isAdvertiser, isLoading, location.pathname, navigate]);
 }
 
 function WorkspaceLayoutInner({ 
@@ -47,6 +94,10 @@ function WorkspaceLayoutInner({
   const { workspaces, isLoading, currentWorkspace } = useWorkspace();
   const useLegacyNav = useShouldUseLegacyNav();
   const isAdvertiserRoute = location.pathname.startsWith('/advertiser');
+  const { isAdmin } = useUserRoles();
+
+  // Enforce role-based routing
+  useRoleBasedRouting(user);
 
   // Public routes that don't need workspace check
   const isPublicRoute = [
@@ -68,16 +119,13 @@ function WorkspaceLayoutInner({
     return <>{children}</>;
   }
 
-  // Auto-create removed - workspaces are created during onboarding or via the Create Workspace button
-  // This prevents the duplicate workspace creation error (23505)
-
   // Board routes have their own complete layout (BoardLayout) - skip WorkspaceLayout wrapper
   const isBoardRoute = location.pathname.startsWith('/board');
   if (isBoardRoute) {
     return <>{children}</>;
   }
 
-  // Use legacy navigation for admin/advertiser routes
+  // Use legacy navigation for admin/advertiser routes OR admin users
   if (useLegacyNav || isPublicRoute || !user) {
     return (
       <div className="min-h-screen flex w-full bg-background">
@@ -94,7 +142,7 @@ function WorkspaceLayoutInner({
     );
   }
 
-  // Use new workspace-based navigation for regular users
+  // Use new workspace-based navigation for regular users (creators)
   return (
     <div className="min-h-screen flex w-full bg-background">
       {shouldShowSidebar && <WorkspaceSidebar />}

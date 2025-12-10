@@ -123,6 +123,7 @@ const Auth = () => {
           .eq('user_id', session.user.id);
         
         const isAdmin = roles?.some(r => r.role === 'admin' || r.role === 'super_admin') || false;
+        const isBoardMember = roles?.some(r => r.role === 'board_member') || false;
         const isAdvertiser = roles?.some(r => r.role === 'advertiser') || false;
         
         // Check for signup intent and redirect
@@ -131,7 +132,13 @@ const Auth = () => {
           localStorage.removeItem("signupIntent");
           navigate(intent);
         } else if (isAdmin) {
+          // Admin users always go to /admin - clear any workspace memory
+          localStorage.removeItem('currentWorkspaceId');
           navigate("/admin");
+        } else if (isBoardMember) {
+          // Board members always go to /board
+          localStorage.removeItem('currentWorkspaceId');
+          navigate("/board");
         } else if (isAdvertiser) {
           // Check if advertiser has completed onboarding
           const { data: profile } = await supabase
