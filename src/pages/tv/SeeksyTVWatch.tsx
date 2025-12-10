@@ -26,10 +26,15 @@ export default function SeeksyTVWatch() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
+  // Check if videoId is a valid UUID
+  const isValidUUID = videoId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(videoId);
+
   // Fetch video from database
   const { data: video, isLoading } = useQuery({
     queryKey: ['tv-video', videoId],
     queryFn: async () => {
+      if (!isValidUUID) return null;
+      
       const { data, error } = await supabase
         .from('tv_content')
         .select(`
@@ -37,12 +42,12 @@ export default function SeeksyTVWatch() {
           channel:tv_channels(id, name, slug)
         `)
         .eq('id', videoId)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data;
     },
-    enabled: !!videoId
+    enabled: !!videoId && isValidUUID
   });
 
   // Fetch related videos

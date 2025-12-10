@@ -24,9 +24,9 @@ const categories = [
   "Technology", "Business", "Health", "True Crime", "Design", "Entertainment"
 ];
 
-// Demo content for placeholders
+// Demo content for placeholders - American Warriors uses real DB ID
 const demoThumbnails = [
-  { id: "demo-1", title: "American Warriors", gradient: "from-blue-800 to-slate-900", imageUrl: americanWarriorsPoster },
+  { id: "014a5946-0b48-4d9a-95b1-254321df035b", title: "American Warriors", gradient: "from-blue-800 to-slate-900", imageUrl: americanWarriorsPoster },
   { id: "demo-2", title: "Business Insights", gradient: "from-blue-600 to-cyan-600" },
   { id: "demo-3", title: "Wellness Journey", gradient: "from-green-600 to-teal-600" },
   { id: "demo-4", title: "Tech Trends", gradient: "from-orange-600 to-red-600" },
