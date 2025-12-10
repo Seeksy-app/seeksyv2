@@ -222,30 +222,6 @@ export function ArticleDetail({
           )}
         </article>
       </main>
-
-      {/* Right Column - Auto-Generated TOC (Sticky) */}
-      <aside className="w-52 shrink-0 border-l sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto bg-muted/10 hidden lg:block">
-        <div className="p-4">
-          <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
-            On this page
-          </div>
-          
-          <nav className="space-y-0.5">
-            {toc.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => scrollToSection(item.id)}
-                className={cn(
-                  "block w-full text-left px-2 py-1 text-sm rounded transition-colors hover:bg-muted",
-                  item.level === 2 ? "text-foreground" : "text-muted-foreground pl-4 text-xs"
-                )}
-              >
-                {item.text}
-              </button>
-            ))}
-          </nav>
-        </div>
-      </aside>
     </div>
   );
 }

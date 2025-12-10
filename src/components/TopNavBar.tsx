@@ -1,6 +1,6 @@
 /**
  * Firecrawl-inspired TopNavBar
- * Clean, minimal design with: Team selector, Search, Help, Docs, Notifications, Upgrade
+ * Clean, minimal design with: Team selector, Search, Help, Docs, Notifications
  */
 
 import { useState, useEffect } from "react";
@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { HelpCircle, FileText, ChevronDown, Sparkles, ExternalLink, ArrowUpRight } from "lucide-react";
+import { HelpCircle, FileText, ChevronDown, Sparkles, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -147,16 +147,6 @@ export function TopNavBar() {
 
           {/* Theme Toggle */}
           <ThemeToggle />
-
-          {/* Upgrade CTA - Firecrawl style */}
-          <Button
-            size="sm"
-            className="gap-1.5 bg-primary hover:bg-primary/90"
-            onClick={() => navigate('/settings/billing')}
-          >
-            <ArrowUpRight className="h-4 w-4" />
-            <span className="hidden sm:inline">Upgrade</span>
-          </Button>
         </div>
       </div>
     </header>
