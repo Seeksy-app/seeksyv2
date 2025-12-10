@@ -56,67 +56,60 @@ serve(async (req) => {
     console.log('To:', payload.to);
     console.log('Subject:', payload.subject);
 
-    // Extract the original message ID from headers (In-Reply-To or References)
-    const inReplyTo = payload.headers?.['in-reply-to'] || payload.headers?.['In-Reply-To'];
-    const references = payload.headers?.['references'] || payload.headers?.['References'];
-    const messageIdToMatch = inReplyTo || references?.split(/\s+/)[0];
+    // Extract the sender email for matching
+    const fromString = payload.from || '';
+    const fromMatch = fromString.match(/<([^>]+)>$/);
+    const senderEmail = fromMatch ? fromMatch[1] : fromString;
+    
+    console.log('Sender email:', senderEmail);
 
-    console.log('Looking for original message:', messageIdToMatch);
-
-    // Find the original email event by message_id
+    // Try to find the original email by subject line and recipient
     let originalEmail = null;
-    if (messageIdToMatch) {
-      const { data: emailEvent } = await supabase
-        .from('email_events')
-        .select('*, profiles:user_id(id, full_name, email)')
-        .eq('message_id', messageIdToMatch.replace(/[<>]/g, ''))
-        .single();
-      
-      originalEmail = emailEvent;
-    }
-
-    // If not found by message_id, try matching by subject line
-    if (!originalEmail && payload.subject) {
+    if (payload.subject) {
       // Remove Re: / Fwd: prefixes for matching
       const cleanSubject = payload.subject.replace(/^(Re:|Fwd:|RE:|FWD:)\s*/gi, '').trim();
+      console.log('Looking for original email with subject:', cleanSubject);
       
-      const { data: emailEvents } = await supabase
+      const { data: emailEvents, error: searchError } = await supabase
         .from('email_events')
-        .select('*, profiles:user_id(id, full_name, email)')
-        .ilike('subject', `%${cleanSubject}%`)
+        .select('*')
+        .eq('event_type', 'sent')
+        .ilike('email_subject', `%${cleanSubject}%`)
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(10);
       
-      // Find the most likely match (to the same recipient)
-      const fromString = payload.from || '';
-      const fromEmail = fromString.match(/<([^>]+)>$/)?.[1] || fromString;
-      originalEmail = emailEvents?.find(e => 
-        e.to_email?.toLowerCase() === fromEmail.toLowerCase()
-      ) || emailEvents?.[0];
+      if (searchError) {
+        console.error('Error searching for original email:', searchError);
+      } else {
+        console.log('Found', emailEvents?.length || 0, 'potential matches');
+        
+        // Find the most likely match (to the same recipient who is now replying)
+        originalEmail = emailEvents?.find(e => 
+          e.to_email?.toLowerCase() === senderEmail.toLowerCase()
+        ) || emailEvents?.[0];
+        
+        if (originalEmail) {
+          console.log('Matched original email:', originalEmail.id, 'to:', originalEmail.to_email);
+        }
+      }
     }
 
     if (originalEmail) {
       console.log('Found original email:', originalEmail.id, 'from user:', originalEmail.user_id);
       
-      // Parse sender info - handle undefined/null payload.from
-      const fromString = payload.from || '';
-      const fromMatch = fromString.match(/^(.+?)\s*<([^>]+)>$/);
-      const fromName = fromMatch ? fromMatch[1].trim() : fromString;
-      const fromAddress = fromMatch ? fromMatch[2] : fromString;
+      // Parse sender info
+      const fromName = fromMatch ? fromString.split('<')[0].trim() : senderEmail;
       
       // Store the reply in email_replies table
       const { data: reply, error: insertError } = await supabase
         .from('email_replies')
         .insert({
           email_event_id: originalEmail.id,
-          from_address: fromAddress,
+          from_address: senderEmail,
           from_name: fromName,
           subject: payload.subject,
           snippet: (payload.text || payload.html?.replace(/<[^>]*>/g, '') || '').substring(0, 500),
-          body_text: payload.text,
-          body_html: payload.html,
           received_at: new Date().toISOString(),
-          source: 'resend_inbound',
         })
         .select()
         .single();
@@ -125,14 +118,30 @@ serve(async (req) => {
         console.error('Error inserting reply:', insertError);
       } else {
         console.log('Reply stored successfully:', reply?.id);
-        
-        // Update the email_event reply count
-        await supabase
-          .from('email_events')
-          .update({ 
-            reply_count: (originalEmail.reply_count || 0) + 1 
-          })
-          .eq('id', originalEmail.id);
+      }
+      
+      // Also store in inbox_messages for Inbox view
+      const { error: inboxError } = await supabase
+        .from('inbox_messages')
+        .insert({
+          user_id: originalEmail.user_id,
+          from_address: senderEmail,
+          from_name: fromName,
+          to_address: Array.isArray(payload.to) ? payload.to[0] : payload.to,
+          subject: payload.subject,
+          snippet: (payload.text || payload.html?.replace(/<[^>]*>/g, '') || '').substring(0, 500),
+          body_text: payload.text || '',
+          body_html: payload.html || '',
+          received_at: new Date().toISOString(),
+          is_read: false,
+          is_starred: false,
+          is_archived: false,
+        });
+      
+      if (inboxError) {
+        console.error('Error inserting to inbox_messages:', inboxError);
+      } else {
+        console.log('Reply also added to inbox_messages');
       }
       
       return new Response(
@@ -145,17 +154,19 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } else {
-      console.log('No matching original email found - storing as orphan');
+      console.log('No matching original email found - storing as new inbox message');
       
-      // Store as an unmatched inbound email for manual review
-      const fromString = payload.from || '';
-      const fromMatch = fromString.match(/^(.+?)\s*<([^>]+)>$/);
-      const fromName = fromMatch ? fromMatch[1].trim() : fromString;
-      const fromAddress = fromMatch ? fromMatch[2] : fromString;
+      // Parse sender info for orphan email
+      const fromName = fromMatch ? fromString.split('<')[0].trim() : senderEmail;
       
-      // Could create a separate table for unmatched inbound emails
-      // For now, just log it
-      console.log('Orphan email from:', fromAddress, 'Subject:', payload.subject);
+      // Store unmatched emails in inbox_messages so they show in Inbox
+      // We need to find any user associated with the receiving email address
+      const toAddress = Array.isArray(payload.to) ? payload.to[0] : payload.to;
+      
+      // For now, log it but we can't easily associate without knowing the user
+      // These are emails sent TO hello@seeksy.io which is our system sender
+      console.log('Orphan email from:', senderEmail, 'Subject:', payload.subject);
+      console.log('To address:', toAddress);
       
       return new Response(
         JSON.stringify({ 
