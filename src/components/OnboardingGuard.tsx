@@ -69,8 +69,7 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
     if (isAdminPath) return;
 
     // Redirect non-admin users to onboarding if not completed
-    // Only redirect if onboarding is explicitly NOT completed (false or null)
-    // Don't redirect just because accountType is missing - user may have completed onboarding but not selected a type
+    // Only redirect if onboarding is explicitly false (not undefined/null)
     if (onboardingCompleted === false) {
       navigate('/onboarding');
     }

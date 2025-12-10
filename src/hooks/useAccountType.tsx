@@ -170,7 +170,9 @@ export function useAccountType() {
     accountType: data?.account_type,
     activeAccountType: data?.active_account_type,
     accountTypesEnabled: data?.account_types_enabled || [],
-    onboardingCompleted: data?.onboarding_completed || false,
+    // Only return false if we explicitly know onboarding is not completed
+    // Return undefined/null if we don't have data yet to prevent false redirects
+    onboardingCompleted: data ? data.onboarding_completed : undefined,
     onboardingData: data?.onboarding_data,
     isLoading,
     error,
