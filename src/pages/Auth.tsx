@@ -14,8 +14,12 @@ import { WelcomeBackToast } from "@/components/WelcomeBackToast";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
-  const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
-  const [email, setEmail] = useState("");
+  const isInvited = searchParams.get("invited") === "true";
+  const inviteRole = searchParams.get("role") || "";
+  const inviteEmail = searchParams.get("email") || "";
+  
+  const [isLogin, setIsLogin] = useState(!isInvited && searchParams.get("mode") !== "signup");
+  const [email, setEmail] = useState(inviteEmail);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -28,7 +32,14 @@ const Auth = () => {
 
   useEffect(() => {
     const mode = searchParams.get("mode");
-    if (mode === "signup") {
+    const invited = searchParams.get("invited") === "true";
+    const emailParam = searchParams.get("email");
+    
+    if (invited) {
+      // Invited users should be in signup mode with pre-filled email
+      setIsLogin(false);
+      if (emailParam) setEmail(emailParam);
+    } else if (mode === "signup") {
       setIsLogin(false);
       
       // Check for advertiser signup data
@@ -276,8 +287,24 @@ const Auth = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md p-8 shadow-soft">
+        {/* Prominent banner for team invitation */}
+        {isInvited && (
+          <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border-2 border-primary rounded-lg">
+            <div className="text-center space-y-2">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/20 mb-2">
+                <span className="text-2xl">🎉</span>
+              </div>
+              <h3 className="text-xl font-bold text-primary">You're Invited!</h3>
+              <p className="text-sm font-medium">
+                Create your password to join the team
+                {inviteRole && <span className="block text-primary mt-1">Role: {inviteRole.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Prominent banner for advertiser signup final step */}
-        {isAdvertiserSignup && (
+        {isAdvertiserSignup && !isInvited && (
           <div className="mb-6 p-4 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border-2 border-primary rounded-lg">
             <div className="text-center space-y-2">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/20 mb-2">
@@ -294,7 +321,7 @@ const Auth = () => {
             Seeksy
           </h1>
           <p className="text-muted-foreground mt-2">
-            {isLogin ? "Welcome back" : "Create your account"}
+            {isInvited ? "Complete your account" : isLogin ? "Welcome back" : "Create your account"}
           </p>
         </div>
 
@@ -393,7 +420,12 @@ const Auth = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="you@example.com"
+                readOnly={isInvited && !!inviteEmail}
+                className={isInvited && !!inviteEmail ? "bg-muted" : ""}
               />
+              {isInvited && inviteEmail && (
+                <p className="text-xs text-muted-foreground">Email pre-filled from your invitation</p>
+              )}
             </div>
 
             <div className="space-y-2">
