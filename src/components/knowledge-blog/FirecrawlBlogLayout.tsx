@@ -32,10 +32,10 @@ export function FirecrawlBlogLayout({
   const basePath = `/knowledge/${portal}`;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex h-14 items-center px-4 gap-4">
+    <div className="h-full bg-background">
+      {/* Simple Header - No full page takeover */}
+      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex h-12 items-center px-4 gap-4">
           <Button
             variant="ghost"
             size="icon"
@@ -47,7 +47,7 @@ export function FirecrawlBlogLayout({
           
           <Link to={basePath} className="flex items-center gap-2 font-semibold">
             <BookOpen className="h-5 w-5 text-primary" />
-            <span className="hidden sm:inline">{PORTAL_LABELS[portal]}</span>
+            <span>{PORTAL_LABELS[portal]}</span>
           </Link>
           
           <div className="flex-1 max-w-md ml-auto">
@@ -64,12 +64,12 @@ export function FirecrawlBlogLayout({
         </div>
       </header>
 
-      <div className="flex">
+      <div className="flex h-[calc(100%-3rem)]">
         {/* Left Sidebar - Categories */}
         <aside 
           className={cn(
-            "w-60 shrink-0 border-r bg-muted/20 fixed lg:sticky top-14 h-[calc(100vh-3.5rem)] z-40 transition-transform lg:translate-x-0",
-            leftSidebarOpen ? "translate-x-0" : "-translate-x-full"
+            "w-56 shrink-0 border-r bg-muted/20 overflow-hidden transition-all lg:block",
+            leftSidebarOpen ? "block" : "hidden"
           )}
         >
           <ScrollArea className="h-full">
@@ -112,71 +112,61 @@ export function FirecrawlBlogLayout({
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 min-w-0 lg:ml-0">
+        <main className="flex-1 min-w-0 overflow-auto">
           {children}
         </main>
 
         {/* Right Sidebar - Table of Contents / Source */}
         {(tableOfContents.length > 0 || sourceUrl) && (
-          <aside className="w-56 shrink-0 border-l bg-muted/10 sticky top-14 h-[calc(100vh-3.5rem)] hidden xl:block">
-            <ScrollArea className="h-full">
-              <div className="p-4">
-                {/* Source Link */}
-                {sourceUrl && (
-                  <div className="mb-6">
-                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                      Source
-                    </div>
-                    <a 
-                      href={sourceUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-sm text-primary hover:underline"
-                    >
-                      Read original
-                      <ChevronRight className="h-3 w-3" />
-                    </a>
+          <aside className="w-52 shrink-0 border-l bg-muted/10 hidden xl:block overflow-auto">
+            <div className="p-4">
+              {/* Source Link */}
+              {sourceUrl && (
+                <div className="mb-6">
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                    Source
                   </div>
-                )}
-                
-                {/* Table of Contents */}
-                {tableOfContents.length > 0 && (
-                  <>
-                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                      On this page
-                    </div>
-                    
-                    <nav className="space-y-0.5">
-                      {tableOfContents.map((item) => (
-                        <button
-                          key={item.id}
-                          onClick={() => onTocClick?.(item.id)}
-                          className={cn(
-                            "block w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors hover:bg-muted",
-                            item.level === 2 
-                              ? "text-foreground font-medium" 
-                              : "text-muted-foreground pl-4 text-xs"
-                          )}
-                        >
-                          {item.text}
-                        </button>
-                      ))}
-                    </nav>
-                  </>
-                )}
-              </div>
-            </ScrollArea>
+                  <a 
+                    href={sourceUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm text-primary hover:underline"
+                  >
+                    Read original
+                    <ChevronRight className="h-3 w-3" />
+                  </a>
+                </div>
+              )}
+              
+              {/* Table of Contents */}
+              {tableOfContents.length > 0 && (
+                <>
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                    On this page
+                  </div>
+                  
+                  <nav className="space-y-0.5">
+                    {tableOfContents.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => onTocClick?.(item.id)}
+                        className={cn(
+                          "block w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors hover:bg-muted",
+                          item.level === 2 
+                            ? "text-foreground font-medium" 
+                            : "text-muted-foreground pl-4 text-xs"
+                        )}
+                      >
+                        {item.text}
+                      </button>
+                    ))}
+                  </nav>
+                </>
+              )}
+            </div>
           </aside>
         )}
       </div>
-
-      {/* Mobile overlay */}
-      {leftSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-          onClick={() => setLeftSidebarOpen(false)}
-        />
-      )}
     </div>
   );
 }
