@@ -74,29 +74,31 @@ export default function SeeksyTVHome() {
   const [posterImages, setPosterImages] = useState<Record<string, string>>({});
   const [loadingPosters, setLoadingPosters] = useState<Set<string>>(new Set());
 
-  // Generate posters on mount
+  // Generate posters on mount - generate ALL 12 thumbnails
   useEffect(() => {
     const generatePosters = async () => {
-      const cacheKey = "seeksy-tv-posters-v2";
+      const cacheKey = "seeksy-tv-posters-v3";
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
         try {
-          setPosterImages(JSON.parse(cached));
-          return;
+          const parsed = JSON.parse(cached);
+          // Only use cache if we have all 12 posters
+          if (Object.keys(parsed).length >= 12) {
+            setPosterImages(parsed);
+            return;
+          }
         } catch {}
       }
 
-      // Generate a few posters for the trending section
-      const postersToGenerate = demoThumbnails.slice(0, 6);
-      
-      for (const item of postersToGenerate) {
+      // Generate ALL posters for complete coverage
+      for (const item of demoThumbnails) {
         if (posterImages[item.id]) continue;
         
         setLoadingPosters(prev => new Set(prev).add(item.id));
         
         try {
           const { data, error } = await supabase.functions.invoke('generate-poster', {
-            body: { title: item.title, category: "Entertainment" }
+            body: { title: item.title, category: "Podcasting" }
           });
 
           if (!error && data?.imageUrl) {
@@ -117,7 +119,7 @@ export default function SeeksyTVHome() {
         }
         
         // Rate limit delay
-        await new Promise(r => setTimeout(r, 3000));
+        await new Promise(r => setTimeout(r, 2500));
       }
     };
 

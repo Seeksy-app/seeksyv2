@@ -522,7 +522,14 @@ import CFOAssumptionStudio from "./pages/cfo/CFOAssumptionStudio";
 import CFOProForma from "./pages/cfo/CFOProForma";
 import CFOStudioV2 from "./pages/cfo/CFOStudioV2";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    },
+  },
+});
 
 // Holiday features completely removed
 
