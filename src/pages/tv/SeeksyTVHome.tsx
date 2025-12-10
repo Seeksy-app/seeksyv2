@@ -14,6 +14,7 @@ import { TVHeroPlayer } from "@/components/tv/TVHeroPlayer";
 import { TVContentRow } from "@/components/tv/TVContentRow";
 import { TVCreatorCard } from "@/components/tv/TVCreatorCard";
 import americanWarriorsPoster from "@/assets/tv/american-warriors.png";
+import seeksyTVHeroBg from "@/assets/seeksy-tv-hero-bg.png";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -322,34 +323,18 @@ export default function SeeksyTVHome() {
 
       {/* Netflix-Style Hero with Mosaic Background */}
       <section className="relative w-full min-h-[85vh] overflow-hidden">
-        {/* Mosaic Grid Background */}
+        {/* Hero Background Image */}
         <div className="absolute inset-0">
-          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1 opacity-40 transform rotate-[-8deg] scale-125 -translate-y-20">
-            {[...demoThumbnails, ...demoThumbnails, ...demoThumbnails].map((item, idx) => {
-              const aiPosterUrl = posterImages[item.id];
-              
-              return (
-                <div 
-                  key={`${item.id}-${idx}`}
-                  className={`aspect-[2/3] rounded-lg overflow-hidden ${!aiPosterUrl ? `bg-gradient-to-br ${item.gradient}` : ''}`}
-                  style={{ animationDelay: `${idx * 0.1}s`, animationDuration: '3s' }}
-                >
-                  {aiPosterUrl ? (
-                    <img src={aiPosterUrl} alt={item.title} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-end p-2">
-                      <span className="text-[8px] text-white/60 font-medium truncate">{item.title}</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <img 
+            src={seeksyTVHeroBg} 
+            alt="Seeksy TV Shows" 
+            className="w-full h-full object-cover object-center"
+          />
           
-          {/* Heavy Gradient Overlays */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14] via-[#0a0a14]/80 to-[#0a0a14]/40" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a14] via-transparent to-[#0a0a14]" />
-          <div className="absolute inset-0 bg-[#0a0a14]/30" />
+          {/* Heavy Gradient Overlays for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14] via-[#0a0a14]/70 to-[#0a0a14]/30" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a14]/80 via-transparent to-[#0a0a14]/80" />
+          <div className="absolute inset-0 bg-[#0a0a14]/40" />
         </div>
 
         {/* Hero Content */}
