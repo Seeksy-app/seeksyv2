@@ -76,7 +76,7 @@ export function BoardPageHeader({
           <DailyBriefButton 
             audienceType="board" 
             variant="default" 
-            className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:opacity-90" 
+            className="ml-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:opacity-90" 
           />
           
           {/* Custom Actions */}
