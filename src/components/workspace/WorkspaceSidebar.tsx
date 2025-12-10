@@ -83,6 +83,7 @@ import {
   Newspaper,
   Building2,
   Copy,
+  BookOpen,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useModuleGroups } from "@/hooks/useModuleGroups";
@@ -623,6 +624,19 @@ export function WorkspaceSidebar() {
         {/* Sticky Footer - always visible even when scrolling */}
         <SidebarFooter className="p-3 pt-2 border-t border-sidebar-border bg-sidebar mt-auto">
           <SidebarMenu>
+            {/* Knowledge Hub */}
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => navigate('/knowledge/creator')}
+                isActive={isActive('/knowledge/creator')}
+                tooltip="Knowledge Hub"
+                className="text-sidebar-foreground hover:bg-sidebar-accent"
+              >
+                <BookOpen className="h-4 w-4" />
+                {!isCollapsed && <span>Knowledge Hub</span>}
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            
             {/* AI Agent / Ask Seeksy - Opens chat panel - Brand blue style */}
             <SidebarMenuItem>
               <button

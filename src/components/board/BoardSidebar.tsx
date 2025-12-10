@@ -24,6 +24,7 @@ import {
   Search,
   Settings,
   HelpCircle,
+  BookOpen,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useBoardViewMode } from '@/hooks/useBoardViewMode';
@@ -108,6 +109,16 @@ const financialItems = [
     label: 'Team & Org',
     icon: BarChart3,
     path: '/board/team-org',
+  },
+];
+
+// RESOURCES section
+const resourceItems = [
+  {
+    id: 'knowledge-hub',
+    label: 'Knowledge Hub',
+    icon: BookOpen,
+    path: '/knowledge/board',
   },
 ];
 
@@ -254,6 +265,7 @@ export function BoardSidebar() {
         {renderSection('Overview', overviewItems)}
         {renderSection('Business Strategy', businessItems)}
         {renderSection('Financials', financialItems)}
+        {renderSection('Resources', resourceItems)}
       </SidebarContent>
 
       <SidebarFooter className="p-3 border-t border-slate-100 space-y-1">

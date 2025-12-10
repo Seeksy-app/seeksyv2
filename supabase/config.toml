@@ -440,3 +440,9 @@ verify_jwt = false
 
 [functions.generate-poster]
 verify_jwt = false
+
+[functions.seed-knowledge-articles]
+verify_jwt = false
+
+[functions.generate-knowledge-articles]
+verify_jwt = true
