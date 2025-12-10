@@ -1,66 +1,150 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { 
   Play, Pause, Volume2, VolumeX, Maximize, Settings,
-  ThumbsUp, Share2, Bell, ArrowLeft, ChevronRight,
-  Tv, SkipForward, SkipBack
+  ThumbsUp, Share2, ArrowLeft,
+  Tv, SkipForward, SkipBack, Loader2
 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { TVFooter } from "@/components/tv/TVFooter";
-
-// Mock video data
-const mockVideo = {
-  id: "1",
-  title: "The Future of AI in 2025",
-  description: "In this episode, we dive deep into what AI developments we can expect in 2025. From multimodal models to AI agents, we cover everything you need to know about the future of artificial intelligence.",
-  creator: {
-    id: "1",
-    name: "The Daily Tech",
-    avatar: "/placeholder.svg",
-    followers: "125K"
-  },
-  duration: "45:32",
-  views: "15K",
-  likes: "2.3K",
-  publishedAt: "2 days ago",
-  thumbnail: "/placeholder.svg",
-  chapters: [
-    { time: "0:00", title: "Introduction" },
-    { time: "2:15", title: "GPT-5 and Beyond" },
-    { time: "12:30", title: "AI Agents Revolution" },
-    { time: "25:00", title: "Open Source AI" },
-    { time: "38:45", title: "Predictions & Conclusions" },
-  ]
-};
-
-const upNext = [
-  { id: "2", title: "Apple Vision Pro: One Year Later", creator: "The Daily Tech", duration: "38:15", thumbnail: "/placeholder.svg", views: "12K" },
-  { id: "3", title: "The Rise of Open Source AI", creator: "The Daily Tech", duration: "52:18", thumbnail: "/placeholder.svg", views: "28K" },
-  { id: "4", title: "Quantum Computing Explained", creator: "The Daily Tech", duration: "41:05", thumbnail: "/placeholder.svg", views: "9.2K" },
-  { id: "5", title: "Building with AI APIs", creator: "The Daily Tech", duration: "35:20", thumbnail: "/placeholder.svg", views: "6.8K" },
-];
-
-const recommendations = [
-  { id: "10", title: "The Future of Work with AI", creator: "Business Insider Pod", duration: "42:15", thumbnail: "/placeholder.svg", views: "18K" },
-  { id: "11", title: "Tech Giants: 2025 Strategy", creator: "Market Watch", duration: "55:30", thumbnail: "/placeholder.svg", views: "24K" },
-  { id: "12", title: "AI in Healthcare", creator: "Health & Wellness", duration: "38:45", thumbnail: "/placeholder.svg", views: "11K" },
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function SeeksyTVWatch() {
   const { videoId } = useParams();
   const navigate = useNavigate();
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [progress, setProgress] = useState([0]);
   const [volume, setVolume] = useState([80]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
 
-  const video = mockVideo; // In real app, fetch by videoId
+  // Fetch video from database
+  const { data: video, isLoading } = useQuery({
+    queryKey: ['tv-video', videoId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tv_content')
+        .select(`
+          *,
+          channel:tv_channels(id, name, slug)
+        `)
+        .eq('id', videoId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!videoId
+  });
+
+  // Fetch related videos
+  const { data: relatedVideos } = useQuery({
+    queryKey: ['tv-related-videos', videoId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tv_content')
+        .select('*')
+        .neq('id', videoId)
+        .eq('is_published', true)
+        .limit(8);
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!videoId
+  });
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handlePlayPause = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      const current = videoRef.current.currentTime;
+      const dur = videoRef.current.duration || 0;
+      setCurrentTime(current);
+      setProgress(dur > 0 ? [(current / dur) * 100] : [0]);
+    }
+  };
+
+  const handleProgressChange = (value: number[]) => {
+    if (videoRef.current && videoRef.current.duration) {
+      const newTime = (value[0] / 100) * videoRef.current.duration;
+      videoRef.current.currentTime = newTime;
+      setProgress(value);
+    }
+  };
+
+  const handleVolumeChange = (value: number[]) => {
+    setVolume(value);
+    if (videoRef.current) {
+      videoRef.current.volume = value[0] / 100;
+    }
+    setIsMuted(value[0] === 0);
+  };
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const handleLoadedMetadata = () => {
+    if (videoRef.current) {
+      setDuration(videoRef.current.duration);
+    }
+  };
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.volume = volume[0] / 100;
+    }
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a14] text-white flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+      </div>
+    );
+  }
+
+  if (!video) {
+    return (
+      <div className="min-h-screen bg-[#0a0a14] text-white flex flex-col items-center justify-center gap-4">
+        <Tv className="h-16 w-16 text-gray-500" />
+        <h1 className="text-xl font-semibold">Video not found</h1>
+        <Button onClick={() => navigate("/tv")} className="bg-amber-500 hover:bg-amber-600">
+          Back to Seeksy TV
+        </Button>
+      </div>
+    );
+  }
+
+  const channelName = video.channel ? (video.channel as { name: string }).name : video.series_name || "Seeksy TV";
+  const channelSlug = video.channel ? (video.channel as { slug: string }).slug : null;
 
   return (
     <div className="min-h-screen bg-[#0a0a14] text-white">
@@ -101,21 +185,28 @@ export default function SeeksyTVWatch() {
           <div className="lg:col-span-2">
             {/* Video Player */}
             <div className="relative aspect-video bg-black rounded-xl overflow-hidden mb-4">
-              <img src={video.thumbnail} alt="" className="w-full h-full object-cover" />
+              <video
+                ref={videoRef}
+                src={video.video_url}
+                poster={video.thumbnail_url || undefined}
+                className="w-full h-full object-contain"
+                onTimeUpdate={handleTimeUpdate}
+                onLoadedMetadata={handleLoadedMetadata}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+              />
               
-              {/* Play overlay */}
-              <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                <button
-                  onClick={() => setIsPlaying(!isPlaying)}
-                  className="w-20 h-20 rounded-full bg-amber-500/90 hover:bg-amber-500 flex items-center justify-center transition-colors"
-                >
-                  {isPlaying ? (
-                    <Pause className="h-10 w-10 text-white" />
-                  ) : (
+              {/* Play overlay - only show when not playing */}
+              {!isPlaying && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                  <button
+                    onClick={handlePlayPause}
+                    className="w-20 h-20 rounded-full bg-amber-500/90 hover:bg-amber-500 flex items-center justify-center transition-colors"
+                  >
                     <Play className="h-10 w-10 text-white fill-current ml-1" />
-                  )}
-                </button>
-              </div>
+                  </button>
+                </div>
+              )}
 
               {/* Controls */}
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
@@ -123,7 +214,7 @@ export default function SeeksyTVWatch() {
                 <div className="mb-3">
                   <Slider
                     value={progress}
-                    onValueChange={setProgress}
+                    onValueChange={handleProgressChange}
                     max={100}
                     step={0.1}
                     className="w-full"
@@ -138,7 +229,7 @@ export default function SeeksyTVWatch() {
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      onClick={() => setIsPlaying(!isPlaying)}
+                      onClick={handlePlayPause}
                       className="text-white hover:bg-white/20"
                     >
                       {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
@@ -151,7 +242,7 @@ export default function SeeksyTVWatch() {
                       <Button 
                         variant="ghost" 
                         size="icon"
-                        onClick={() => setIsMuted(!isMuted)}
+                        onClick={toggleMute}
                         className="text-white hover:bg-white/20"
                       >
                         {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
@@ -159,24 +250,28 @@ export default function SeeksyTVWatch() {
                       <div className="w-20">
                         <Slider
                           value={isMuted ? [0] : volume}
-                          onValueChange={(v) => {
-                            setVolume(v);
-                            setIsMuted(false);
-                          }}
+                          onValueChange={handleVolumeChange}
                           max={100}
                           step={1}
                         />
                       </div>
                     </div>
 
-                    <span className="text-sm text-gray-300">0:00 / {video.duration}</span>
+                    <span className="text-sm text-gray-300">
+                      {formatTime(currentTime)} / {formatTime(duration || video.duration_seconds || 0)}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
                       <Settings className="h-5 w-5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="text-white hover:bg-white/20"
+                      onClick={() => videoRef.current?.requestFullscreen()}
+                    >
                       <Maximize className="h-5 w-5" />
                     </Button>
                   </div>
@@ -191,14 +286,14 @@ export default function SeeksyTVWatch() {
               {/* Creator info */}
               <div 
                 className="flex items-center gap-3 cursor-pointer"
-                onClick={() => navigate(`/tv/channel/${video.creator.id}`)}
+                onClick={() => channelSlug ? navigate(`/tv/channel/${channelSlug}`) : null}
               >
-                <div className="w-12 h-12 rounded-full overflow-hidden">
-                  <img src={video.creator.avatar} alt={video.creator.name} className="w-full h-full object-cover" />
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">{channelName.charAt(0)}</span>
                 </div>
                 <div>
-                  <p className="font-semibold hover:text-amber-400 transition-colors">{video.creator.name}</p>
-                  <p className="text-sm text-gray-400">{video.creator.followers} followers</p>
+                  <p className="font-semibold hover:text-amber-400 transition-colors">{channelName}</p>
+                  <p className="text-sm text-gray-400">{video.category || "Video"}</p>
                 </div>
                 <Button
                   onClick={(e) => {
@@ -227,7 +322,7 @@ export default function SeeksyTVWatch() {
                   }
                 >
                   <ThumbsUp className={`h-4 w-4 mr-2 ${isLiked ? "fill-current" : ""}`} />
-                  {video.likes}
+                  {video.view_count || 0}
                 </Button>
                 <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10">
                   <Share2 className="h-4 w-4 mr-2" />
@@ -238,29 +333,15 @@ export default function SeeksyTVWatch() {
 
             {/* Stats */}
             <p className="text-sm text-gray-400 mb-4">
-              {video.views} views • {video.publishedAt}
+              {video.view_count || 0} views • {new Date(video.created_at).toLocaleDateString()}
             </p>
 
             {/* Description */}
-            <div className="bg-white/5 rounded-xl p-4 mb-6">
-              <p className="text-gray-300 whitespace-pre-line">{video.description}</p>
-            </div>
-
-            {/* Chapters */}
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-3">Chapters</h3>
-              <div className="space-y-2">
-                {video.chapters.map((chapter, index) => (
-                  <button
-                    key={index}
-                    className="w-full flex items-center gap-4 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left"
-                  >
-                    <span className="text-amber-400 font-mono text-sm w-12">{chapter.time}</span>
-                    <span>{chapter.title}</span>
-                  </button>
-                ))}
+            {video.description && (
+              <div className="bg-white/5 rounded-xl p-4 mb-6">
+                <p className="text-gray-300 whitespace-pre-line">{video.description}</p>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Sidebar */}
@@ -274,7 +355,7 @@ export default function SeeksyTVWatch() {
                 </Button>
               </div>
               <div className="space-y-3">
-                {upNext.map((item) => (
+                {relatedVideos?.slice(0, 4).map((item) => (
                   <div
                     key={item.id}
                     className="flex gap-3 group cursor-pointer"
@@ -282,18 +363,26 @@ export default function SeeksyTVWatch() {
                   >
                     <div className="relative w-40 shrink-0">
                       <div className="aspect-video rounded-lg overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900">
-                        <img src={item.thumbnail} alt="" className="w-full h-full object-cover" />
+                        {item.thumbnail_url ? (
+                          <img src={item.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Tv className="h-6 w-6 text-gray-500" />
+                          </div>
+                        )}
                       </div>
-                      <Badge variant="secondary" className="absolute bottom-1 right-1 bg-black/70 text-white text-xs">
-                        {item.duration}
-                      </Badge>
+                      {item.duration_seconds && (
+                        <Badge variant="secondary" className="absolute bottom-1 right-1 bg-black/70 text-white text-xs">
+                          {Math.floor(item.duration_seconds / 60)}:{(item.duration_seconds % 60).toString().padStart(2, '0')}
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-sm line-clamp-2 group-hover:text-amber-400 transition-colors">
                         {item.title}
                       </h4>
-                      <p className="text-xs text-gray-400 mt-1">{item.creator}</p>
-                      <p className="text-xs text-gray-500">{item.views} views</p>
+                      <p className="text-xs text-gray-400 mt-1">{item.series_name || "Seeksy TV"}</p>
+                      <p className="text-xs text-gray-500">{item.view_count || 0} views</p>
                     </div>
                   </div>
                 ))}
@@ -302,11 +391,11 @@ export default function SeeksyTVWatch() {
 
             <Separator className="bg-white/10 mb-6" />
 
-            {/* Recommendations */}
+            {/* More from this channel */}
             <div>
               <h3 className="text-lg font-semibold mb-4">Recommended for You</h3>
               <div className="space-y-3">
-                {recommendations.map((item) => (
+                {relatedVideos?.slice(4, 8).map((item) => (
                   <div
                     key={item.id}
                     className="flex gap-3 group cursor-pointer"
@@ -314,18 +403,26 @@ export default function SeeksyTVWatch() {
                   >
                     <div className="relative w-40 shrink-0">
                       <div className="aspect-video rounded-lg overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900">
-                        <img src={item.thumbnail} alt="" className="w-full h-full object-cover" />
+                        {item.thumbnail_url ? (
+                          <img src={item.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Tv className="h-6 w-6 text-gray-500" />
+                          </div>
+                        )}
                       </div>
-                      <Badge variant="secondary" className="absolute bottom-1 right-1 bg-black/70 text-white text-xs">
-                        {item.duration}
-                      </Badge>
+                      {item.duration_seconds && (
+                        <Badge variant="secondary" className="absolute bottom-1 right-1 bg-black/70 text-white text-xs">
+                          {Math.floor(item.duration_seconds / 60)}:{(item.duration_seconds % 60).toString().padStart(2, '0')}
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-sm line-clamp-2 group-hover:text-amber-400 transition-colors">
                         {item.title}
                       </h4>
-                      <p className="text-xs text-gray-400 mt-1">{item.creator}</p>
-                      <p className="text-xs text-gray-500">{item.views} views</p>
+                      <p className="text-xs text-gray-400 mt-1">{item.series_name || "Seeksy TV"}</p>
+                      <p className="text-xs text-gray-500">{item.view_count || 0} views</p>
                     </div>
                   </div>
                 ))}
