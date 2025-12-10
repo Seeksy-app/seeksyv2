@@ -6,12 +6,23 @@ import { Input } from "@/components/ui/input";
 import { Headphones, Search, Clock, CheckCircle2, AlertCircle, User, Plus } from "lucide-react";
 import { useState } from "react";
 import CreateTicketModal from "@/components/helpdesk/CreateTicketModal";
+import TicketDetailModal from "@/components/helpdesk/TicketDetailModal";
+
+interface Ticket {
+  id: string;
+  customer: string;
+  subject: string;
+  priority: string;
+  status: string;
+  time: string;
+}
 
 export default function SupportDesk() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
 
-  const tickets = [
+  const tickets: Ticket[] = [
     { id: "TKT-001234", customer: "John Doe", subject: "Account access issue", priority: "high", status: "open", time: "2 hours ago" },
     { id: "TKT-001235", customer: "Jane Smith", subject: "Billing question", priority: "medium", status: "in-progress", time: "4 hours ago" },
     { id: "TKT-001236", customer: "Bob Johnson", subject: "Feature request", priority: "low", status: "resolved", time: "1 day ago" },
@@ -67,7 +78,11 @@ export default function SupportDesk() {
 
         <TabsContent value="all" className="space-y-4">
           {tickets.map((ticket) => (
-            <Card key={ticket.id} className="cursor-pointer hover:shadow-md transition-shadow text-left">
+            <Card 
+              key={ticket.id} 
+              className="cursor-pointer hover:shadow-md transition-shadow text-left"
+              onClick={() => setSelectedTicket(ticket)}
+            >
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="space-y-1 text-left">
@@ -116,6 +131,12 @@ export default function SupportDesk() {
       <CreateTicketModal 
         open={isCreateModalOpen} 
         onOpenChange={setIsCreateModalOpen} 
+      />
+
+      <TicketDetailModal
+        open={!!selectedTicket}
+        onOpenChange={(open) => !open && setSelectedTicket(null)}
+        ticket={selectedTicket}
       />
     </div>
   );
