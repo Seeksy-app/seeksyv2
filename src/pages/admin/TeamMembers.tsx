@@ -62,6 +62,7 @@ interface TeamMember {
 const ADMIN_ROLES = [
   { value: 'super_admin', label: 'Super Admin', description: 'Full platform access' },
   { value: 'admin', label: 'Admin', description: 'Everything except platform settings' },
+  { value: 'board_member', label: 'Board Member', description: 'Board Portal access only' },
   { value: 'cfo', label: 'CFO', description: 'Financials + user list read' },
   { value: 'cmo', label: 'CMO', description: 'Marketing + Revenue Insights' },
   { value: 'cco', label: 'CCO', description: 'Creator + Content Management' },
