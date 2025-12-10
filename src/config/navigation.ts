@@ -236,6 +236,13 @@ export const NAVIGATION_CONFIG: {
       "collapsible": true,
       "items": [
         {
+          "id": "admin_milestones",
+          "label": "Milestones",
+          "icon": "flag",
+          "path": "/admin/milestones",
+          "roles": ["admin", "super_admin", "cfo", "cmo", "cco"]
+        },
+        {
           "id": "admin_cfo_assumptions",
           "label": "CFO Assumption Studio",
           "icon": "sliders",

@@ -29,10 +29,10 @@ const categories = [
   "Technology", "Business", "Health", "True Crime", "Design", "Entertainment"
 ];
 
-// Demo content for placeholders - American Warriors links to channel, others are display only
+// Demo content for placeholders - American Warriors is ALWAYS first and links to channel with all episodes
 const demoThumbnails = [
-  { id: "channel-american-warriors", title: "American Warriors", gradient: "from-blue-800 to-slate-900", imageUrl: americanWarriorsPoster, linkType: "channel", channelSlug: "american-warriors" },
-  { id: "demo-2", title: "Building a Personal Brand", gradient: "from-blue-600 to-cyan-600", imageUrl: personalBrandPoster, linkType: "none" },
+  { id: "channel-american-warriors", title: "American Warriors", gradient: "from-blue-800 to-slate-900", imageUrl: americanWarriorsPoster, linkType: "channel", channelSlug: "american-warriors", priority: 1 },
+  { id: "demo-2", title: "Building a Personal Brand", gradient: "from-blue-600 to-cyan-600", imageUrl: personalBrandPoster, linkType: "none", priority: 10 },
   { id: "demo-3", title: "Echoes of Midnight", gradient: "from-green-600 to-teal-600", imageUrl: echoesOfMidnightPoster, linkType: "none" },
   { id: "demo-4", title: "Meditation for Professionals", gradient: "from-orange-600 to-red-600", imageUrl: meditationPoster, linkType: "none" },
   { id: "demo-5", title: "Midnight Echoes Live", gradient: "from-pink-600 to-purple-600", imageUrl: midnightEchoesLivePoster, linkType: "none" },
@@ -408,8 +408,16 @@ export default function SeeksyTVHome() {
           </h2>
         </div>
         <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
-          {displayTrending.slice(0, 10).map((item, index) => {
-            const demoItem = demoThumbnails[index % demoThumbnails.length];
+          {/* Always show American Warriors first, then the rest */}
+          {[
+            demoThumbnails.find(d => d.id === "channel-american-warriors"),
+            ...displayTrending.slice(0, 9)
+          ].filter(Boolean).map((item: any, index) => {
+            // For first item (American Warriors), use its own data; for others, use demoThumbnails
+            const isAmericanWarriors = index === 0;
+            const demoItem = isAmericanWarriors 
+              ? demoThumbnails[0] 
+              : demoThumbnails[(index) % demoThumbnails.length];
             const aiPosterUrl = posterImages[demoItem?.id];
             const posterLoading = loadingPosters.has(demoItem?.id);
             const staticImageUrl = demoItem?.imageUrl;
@@ -425,7 +433,7 @@ export default function SeeksyTVHome() {
             
             return (
               <div 
-                key={item.id}
+                key={isAmericanWarriors ? 'american-warriors' : item.id}
                 className={`shrink-0 w-48 md:w-56 group relative ${demoItem?.linkType !== "none" ? "cursor-pointer" : ""}`}
                 onClick={handleClick}
               >
