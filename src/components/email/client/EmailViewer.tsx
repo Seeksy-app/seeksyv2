@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Copy, ExternalLink, FileText, Mail, Trash2, RotateCcw } from "lucide-react";
+import { Copy, ExternalLink, FileText, Mail, Trash2, RotateCcw, Reply } from "lucide-react";
 import { Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EmailTrackingPills } from "./EmailTrackingPills";
@@ -42,6 +42,7 @@ interface EmailViewerProps {
   events: EmailEvent[];
   onResend?: () => void;
   onDuplicate?: () => void;
+  onReply?: () => void;
   onViewTemplate?: () => void;
   onViewCampaign?: () => void;
   onDelete?: () => void;
@@ -76,6 +77,7 @@ export function EmailViewer({
   events,
   onResend,
   onDuplicate,
+  onReply,
   onViewTemplate,
   onViewCampaign,
   onDelete,
@@ -231,6 +233,10 @@ export function EmailViewer({
             </>
           ) : (
             <>
+              <Button variant="default" size="sm" onClick={onReply}>
+                <Reply className="h-4 w-4 mr-2" />
+                Reply
+              </Button>
               <Button variant="outline" size="sm" onClick={onResend}>
                 <Copy className="h-4 w-4 mr-2" />
                 Resend
