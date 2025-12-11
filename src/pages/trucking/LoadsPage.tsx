@@ -91,6 +91,7 @@ interface Load {
   notes: string;
   status: string;
   is_active: boolean;
+  broker_commission: number;
 }
 
 const equipmentTypes = ["Dry Van", "Reefer", "Flatbed", "Step Deck", "Power Only", "Hotshot", "Conestoga", "Double Drop", "RGN"];
@@ -156,6 +157,7 @@ export default function LoadsPage() {
     shipper_phone: "",
     contact_name: "",
     contact_phone: "",
+    broker_commission: "",
   });
 
   useEffect(() => {
@@ -237,6 +239,7 @@ export default function LoadsPage() {
         shipper_phone: formData.shipper_phone || null,
         contact_name: formData.contact_name || null,
         contact_phone: formData.contact_phone || null,
+        broker_commission: formData.broker_commission ? parseFloat(formData.broker_commission) : null,
         status: "open",
         is_active: true,
       };
@@ -370,6 +373,7 @@ export default function LoadsPage() {
       shipper_phone: (load as any).shipper_phone || "",
       contact_name: (load as any).contact_name || "",
       contact_phone: (load as any).contact_phone || "",
+      broker_commission: load.broker_commission?.toString() || "",
     });
     setDialogOpen(true);
   };
@@ -463,6 +467,7 @@ export default function LoadsPage() {
         shipper_phone: (load as any).shipper_phone || null,
         contact_name: (load as any).contact_name || null,
         contact_phone: (load as any).contact_phone || null,
+        broker_commission: load.broker_commission || null,
         status: "open",
         is_active: true,
       };
@@ -525,6 +530,7 @@ export default function LoadsPage() {
       shipper_phone: "",
       contact_name: "",
       contact_phone: "",
+      broker_commission: "",
     });
   };
 
@@ -1118,7 +1124,7 @@ export default function LoadsPage() {
               {/* Rates */}
               <div className="border rounded-lg p-4 space-y-4">
                 <h3 className="font-semibold">Rates</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <Label>Target Rate ($)</Label>
                     <Input
@@ -1138,6 +1144,17 @@ export default function LoadsPage() {
                       onChange={(e) => setFormData({ ...formData, floor_rate: e.target.value })}
                       placeholder="2200"
                     />
+                  </div>
+                  <div>
+                    <Label>Broker Commission ($)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={formData.broker_commission}
+                      onChange={(e) => setFormData({ ...formData, broker_commission: e.target.value })}
+                      placeholder="300"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Your earnings on this load</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
