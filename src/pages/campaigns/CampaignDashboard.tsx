@@ -12,10 +12,27 @@ import {
   Globe,
   Sparkles,
   Edit,
-  RefreshCw
+  RefreshCw,
+  Mail,
+  Phone,
+  Video,
+  CreditCard
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
+import { CampaignAuthModal } from "@/components/campaigns/CampaignAuthModal";
+
+// Updated brand colors - lighter Federal Benefits theme
+const colors = {
+  background: "#F7F9FC",
+  panel: "#FFFFFF",
+  panelBorder: "#E2E8F0",
+  primary: "#003A9E",
+  secondary: "#1A73E8",
+  accent: "#FFD764",
+  textDark: "#1A1A1A",
+  textMuted: "#6B7280",
+};
 
 interface Candidate {
   id: string;
@@ -36,6 +53,10 @@ const quickActions = [
   { label: "Schedule an event", icon: Calendar, path: "/campaigns/outreach" },
   { label: "Draft fundraising email", icon: DollarSign, path: "/campaigns/studio" },
   { label: "Build campaign website", icon: Globe, path: "/campaigns/site-builder" },
+  { label: "Start Email Campaign", icon: Mail, path: "/campaigns/email" },
+  { label: "Start SMS Broadcast", icon: Phone, path: "/campaigns/sms" },
+  { label: "Go Live on Streaming", icon: Video, path: "/campaigns/live" },
+  { label: "View Donation Tools", icon: CreditCard, path: "/campaigns/donations" },
 ];
 
 const suggestedTasks = [
@@ -51,21 +72,29 @@ export default function CampaignDashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user);
-      if (!data.user) navigate("/auth");
+      if (!data.user) {
+        setAuthModalOpen(true);
+      }
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
       setUser(session?.user ?? null);
-      if (!session?.user) navigate("/auth");
+      if (!session?.user) {
+        setAuthModalOpen(true);
+      }
     });
     return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
-    if (user) loadCandidate();
+    if (user) {
+      loadCandidate();
+      setAuthModalOpen(false);
+    }
   }, [user]);
 
   const loadCandidate = async () => {
@@ -85,19 +114,19 @@ export default function CampaignDashboard() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "exploring": return "bg-blue-500/20 text-blue-400";
-      case "announced": return "bg-yellow-500/20 text-yellow-400";
-      case "active": return "bg-green-500/20 text-green-400";
-      case "runoff": return "bg-purple-500/20 text-purple-400";
-      default: return "bg-gray-500/20 text-gray-400";
+      case "exploring": return { bg: "#DBEAFE", text: "#1D4ED8" };
+      case "announced": return { bg: "#FEF3C7", text: "#B45309" };
+      case "active": return { bg: "#D1FAE5", text: "#059669" };
+      case "runoff": return { bg: "#E9D5FF", text: "#7C3AED" };
+      default: return { bg: "#F3F4F6", text: "#6B7280" };
     }
   };
 
-  if (loading) {
+  if (loading && user) {
     return (
       <CampaignLayout>
         <div className="flex items-center justify-center py-20">
-          <RefreshCw className="h-8 w-8 text-[#d4af37] animate-spin" />
+          <RefreshCw className="h-8 w-8 animate-spin" style={{ color: colors.primary }} />
         </div>
       </CampaignLayout>
     );
@@ -108,21 +137,25 @@ export default function CampaignDashboard() {
       {/* Top Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-white">
+          <h1 className="text-2xl md:text-3xl font-bold" style={{ color: colors.textDark }}>
             {candidate?.display_name || "Welcome, Candidate"}
             {candidate?.office && (
-              <span className="text-white/60 font-normal text-lg ml-2">
+              <span className="font-normal text-lg ml-2" style={{ color: colors.textMuted }}>
                 for {candidate.office}
               </span>
             )}
           </h1>
           {candidate?.election_date && (
-            <p className="text-white/60 mt-1">
+            <p className="mt-1" style={{ color: colors.textMuted }}>
               Election: {new Date(candidate.election_date).toLocaleDateString()}
             </p>
           )}
         </div>
-        <Button asChild className="bg-[#d4af37] hover:bg-[#b8962e] text-[#0a1628]">
+        <Button 
+          asChild 
+          style={{ backgroundColor: colors.accent, color: colors.textDark }}
+          className="font-medium"
+        >
           <Link to="/campaigns/ai-manager">
             <MessageSquare className="h-4 w-4 mr-2" />
             Talk to AI Campaign Manager
@@ -134,10 +167,15 @@ export default function CampaignDashboard() {
         {/* Left Column */}
         <div className="space-y-6">
           {/* Campaign Snapshot */}
-          <Card className="bg-white/5 border-white/10">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-white">Campaign Snapshot</CardTitle>
-              <Button variant="ghost" size="sm" asChild className="text-[#d4af37] hover:text-[#d4af37]/80">
+          <Card style={{ backgroundColor: colors.panel, borderColor: colors.panelBorder }}>
+            <CardHeader className="flex flex-row items-center justify-between pb-4">
+              <CardTitle style={{ color: colors.textDark }}>Campaign Snapshot</CardTitle>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                asChild 
+                style={{ color: colors.primary }}
+              >
                 <Link to="/campaigns/ai-manager">
                   <Edit className="h-4 w-4 mr-1" />
                   Edit
@@ -148,27 +186,36 @@ export default function CampaignDashboard() {
               {candidate ? (
                 <>
                   <div className="flex items-center justify-between">
-                    <span className="text-white/60">Office & Jurisdiction</span>
-                    <span className="text-white">
+                    <span style={{ color: colors.textMuted }}>Office & Jurisdiction</span>
+                    <span style={{ color: colors.textDark }}>
                       {candidate.office || "Not set"} {candidate.jurisdiction ? `— ${candidate.jurisdiction}` : ""}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-white/60">Party/Affiliation</span>
-                    <span className="text-white">{candidate.party_or_affiliation || "Not set"}</span>
+                    <span style={{ color: colors.textMuted }}>Party/Affiliation</span>
+                    <span style={{ color: colors.textDark }}>{candidate.party_or_affiliation || "Not set"}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-white/60">Status</span>
-                    <Badge className={getStatusColor(candidate.campaign_status)}>
+                    <span style={{ color: colors.textMuted }}>Status</span>
+                    <Badge 
+                      style={{ 
+                        backgroundColor: getStatusColor(candidate.campaign_status).bg,
+                        color: getStatusColor(candidate.campaign_status).text
+                      }}
+                    >
                       {candidate.campaign_status}
                     </Badge>
                   </div>
                   {candidate.top_issues && candidate.top_issues.length > 0 && (
                     <div>
-                      <span className="text-white/60 block mb-2">Top Issues</span>
+                      <span className="block mb-2" style={{ color: colors.textMuted }}>Top Issues</span>
                       <div className="flex flex-wrap gap-2">
                         {candidate.top_issues.map((issue, i) => (
-                          <Badge key={i} variant="outline" className="border-[#d4af37]/50 text-[#d4af37]">
+                          <Badge 
+                            key={i} 
+                            variant="outline" 
+                            style={{ borderColor: colors.primary, color: colors.primary }}
+                          >
                             {issue}
                           </Badge>
                         ))}
@@ -178,8 +225,11 @@ export default function CampaignDashboard() {
                 </>
               ) : (
                 <div className="text-center py-6">
-                  <p className="text-white/60 mb-4">No campaign profile yet</p>
-                  <Button asChild className="bg-[#d4af37] hover:bg-[#b8962e] text-[#0a1628]">
+                  <p className="mb-4" style={{ color: colors.textMuted }}>No campaign profile yet</p>
+                  <Button 
+                    asChild 
+                    style={{ backgroundColor: colors.primary, color: "white" }}
+                  >
                     <Link to="/campaigns/ai-manager">Set Up Your Campaign</Link>
                   </Button>
                 </div>
@@ -188,13 +238,17 @@ export default function CampaignDashboard() {
           </Card>
 
           {/* Today's Action List */}
-          <Card className="bg-white/5 border-white/10">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-white flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-[#d4af37]" />
+          <Card style={{ backgroundColor: colors.panel, borderColor: colors.panelBorder }}>
+            <CardHeader className="flex flex-row items-center justify-between pb-4">
+              <CardTitle className="flex items-center gap-2" style={{ color: colors.textDark }}>
+                <Sparkles className="h-5 w-5" style={{ color: colors.accent }} />
                 Today's Action List
               </CardTitle>
-              <Button variant="ghost" size="sm" className="text-white/60 hover:text-white">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                style={{ color: colors.textMuted }}
+              >
                 <RefreshCw className="h-4 w-4 mr-1" />
                 Refresh
               </Button>
@@ -204,19 +258,24 @@ export default function CampaignDashboard() {
                 {suggestedTasks.map((task, index) => (
                   <div 
                     key={index}
-                    className="flex items-start gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+                    className="flex items-start gap-3 p-3 rounded-lg transition-colors cursor-pointer hover:bg-gray-50"
+                    style={{ backgroundColor: colors.background }}
                   >
-                    <div className="h-6 w-6 rounded-full bg-[#d4af37]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-[#d4af37] text-sm font-medium">{index + 1}</span>
+                    <div 
+                      className="h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                      style={{ backgroundColor: colors.accent }}
+                    >
+                      <span className="text-sm font-medium" style={{ color: colors.textDark }}>{index + 1}</span>
                     </div>
-                    <p className="text-white/90">{task}</p>
+                    <p style={{ color: colors.textDark }}>{task}</p>
                   </div>
                 ))}
               </div>
               <Button 
                 variant="outline" 
-                className="w-full mt-4 border-[#d4af37]/50 text-[#d4af37] hover:bg-[#d4af37]/10"
+                className="w-full mt-4"
                 asChild
+                style={{ borderColor: colors.primary, color: colors.primary }}
               >
                 <Link to="/campaigns/ai-manager">
                   <Sparkles className="h-4 w-4 mr-2" />
@@ -228,9 +287,9 @@ export default function CampaignDashboard() {
         </div>
 
         {/* Right Column - Quick Actions */}
-        <Card className="bg-white/5 border-white/10">
+        <Card style={{ backgroundColor: colors.panel, borderColor: colors.panelBorder }}>
           <CardHeader>
-            <CardTitle className="text-white">Quick Actions</CardTitle>
+            <CardTitle style={{ color: colors.textDark }}>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
@@ -238,18 +297,30 @@ export default function CampaignDashboard() {
                 <Link
                   key={index}
                   to={action.path}
-                  className="flex flex-col items-center gap-3 p-6 rounded-xl bg-white/5 hover:bg-[#d4af37]/10 border border-white/10 hover:border-[#d4af37]/30 transition-all text-center group"
+                  className="flex flex-col items-center gap-3 p-5 rounded-xl transition-all text-center group hover:shadow-md"
+                  style={{ 
+                    backgroundColor: colors.background,
+                    border: `1px solid ${colors.panelBorder}`
+                  }}
                 >
-                  <div className="h-12 w-12 rounded-lg bg-[#d4af37]/20 flex items-center justify-center group-hover:bg-[#d4af37]/30 transition-colors">
-                    <action.icon className="h-6 w-6 text-[#d4af37]" />
+                  <div 
+                    className="h-11 w-11 rounded-lg flex items-center justify-center transition-colors group-hover:scale-105"
+                    style={{ backgroundColor: `${colors.primary}15` }}
+                  >
+                    <action.icon className="h-5 w-5" style={{ color: colors.primary }} />
                   </div>
-                  <span className="text-white/90 font-medium">{action.label}</span>
+                  <span className="text-sm font-medium" style={{ color: colors.textDark }}>
+                    {action.label}
+                  </span>
                 </Link>
               ))}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Auth Modal for unauthenticated users */}
+      <CampaignAuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </CampaignLayout>
   );
 }

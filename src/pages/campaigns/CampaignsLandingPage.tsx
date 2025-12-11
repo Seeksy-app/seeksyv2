@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -163,10 +163,9 @@ const footerSections = [
 export default function CampaignsLandingPage() {
   const [raceInput, setRaceInput] = useState("");
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const navigate = useNavigate();
 
   const handleHeroCta = () => {
-    navigate("/campaigns/dashboard");
+    setAuthModalOpen(true);
   };
 
   return (
@@ -217,7 +216,7 @@ export default function CampaignsLandingPage() {
                 Sign In
               </Button>
               <Button 
-                onClick={() => navigate("/campaigns/dashboard")}
+                onClick={() => setAuthModalOpen(true)}
                 style={{ backgroundColor: colors.primary, color: colors.textOnDark }}
                 className="font-medium"
               >
@@ -495,7 +494,7 @@ export default function CampaignsLandingPage() {
                       color: plan.highlighted ? colors.textOnDark : colors.primary,
                       border: plan.highlighted ? "none" : `1px solid ${colors.primary}`
                     }}
-                    onClick={() => navigate("/campaigns/dashboard")}
+                    onClick={() => setAuthModalOpen(true)}
                   >
                     Get Started
                   </Button>

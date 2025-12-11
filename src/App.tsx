@@ -333,6 +333,10 @@ import CampaignManagerChat from "./pages/campaigns/CampaignManagerChat";
 import CampaignContentStudio from "./pages/campaigns/CampaignContentStudio";
 import CampaignOutreachPage from "./pages/campaigns/CampaignOutreachPage";
 import CampaignSiteBuilder from "./pages/campaigns/CampaignSiteBuilder";
+import CampaignEmailPage from "./pages/campaigns/CampaignEmailPage";
+import CampaignSMSPage from "./pages/campaigns/CampaignSMSPage";
+import CampaignLivePage from "./pages/campaigns/CampaignLivePage";
+import CampaignDonationsPage from "./pages/campaigns/CampaignDonationsPage";
 import EmailSettings from "./pages/EmailSettings";
 import EmailHome from "./pages/EmailHome";
 import EmailCampaigns from "./pages/EmailCampaigns";
@@ -783,6 +787,10 @@ const AppContent = () => {
               <Route path="/campaigns/studio" element={<CampaignContentStudio />} />
               <Route path="/campaigns/outreach" element={<CampaignOutreachPage />} />
               <Route path="/campaigns/site-builder" element={<CampaignSiteBuilder />} />
+              <Route path="/campaigns/email" element={<CampaignEmailPage />} />
+              <Route path="/campaigns/sms" element={<CampaignSMSPage />} />
+              <Route path="/campaigns/live" element={<CampaignLivePage />} />
+              <Route path="/campaigns/donations" element={<CampaignDonationsPage />} />
               
               <Route path="/personas" element={<Personas />} />
               <Route path="/voice-certification" element={<VoiceCertification />} />
