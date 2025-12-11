@@ -18929,6 +18929,84 @@ export type Database = {
           },
         ]
       }
+      sales_opportunities: {
+        Row: {
+          competitive_advantage: string | null
+          created_at: string
+          created_by: string | null
+          demo_url: string | null
+          description: string | null
+          display_order: number | null
+          id: string
+          is_featured: boolean | null
+          key_metrics: Json | null
+          market_size: string | null
+          name: string
+          projected_revenue_year1: number | null
+          projected_revenue_year2: number | null
+          projected_revenue_year3: number | null
+          revenue_model: string | null
+          site_url: string | null
+          slug: string
+          status: string | null
+          tagline: string | null
+          target_market: string | null
+          thumbnail_url: string | null
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          competitive_advantage?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo_url?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_featured?: boolean | null
+          key_metrics?: Json | null
+          market_size?: string | null
+          name: string
+          projected_revenue_year1?: number | null
+          projected_revenue_year2?: number | null
+          projected_revenue_year3?: number | null
+          revenue_model?: string | null
+          site_url?: string | null
+          slug: string
+          status?: string | null
+          tagline?: string | null
+          target_market?: string | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          competitive_advantage?: string | null
+          created_at?: string
+          created_by?: string | null
+          demo_url?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_featured?: boolean | null
+          key_metrics?: Json | null
+          market_size?: string | null
+          name?: string
+          projected_revenue_year1?: number | null
+          projected_revenue_year2?: number | null
+          projected_revenue_year3?: number | null
+          revenue_model?: string | null
+          site_url?: string | null
+          slug?: string
+          status?: string | null
+          tagline?: string | null
+          target_market?: string | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       sales_team_members: {
         Row: {
           commission_rate: number | null

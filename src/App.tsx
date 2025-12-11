@@ -508,6 +508,7 @@ import BoardTeamOrg from "./pages/board/BoardTeamOrg";
 import BoardSettings from "./pages/board/BoardSettings";
 import BoardSalesOpportunities from "./pages/board/BoardSalesOpportunities";
 import BoardInvestorPortal from "./pages/investor/InvestorPortal";
+import InvestOpportunityPage from "./pages/invest/InvestOpportunityPage";
 import BoardMemberManagement from "./pages/admin/BoardMemberManagement";
 import { BoardGuard } from "./components/board/BoardGuard";
 import { BoardLayout } from "./components/board/BoardLayout";
@@ -1121,6 +1122,7 @@ const AppContent = () => {
             <Route path="sales-opportunities" element={<BoardSalesOpportunities />} />
           </Route>
           <Route path="/investor/:token" element={<BoardInvestorPortal />} />
+          <Route path="/invest/:slug" element={<InvestOpportunityPage />} />
           
           {/* Admin Financials Routes (reuse Board components) */}
           <Route path="/admin/financials/key-metrics" element={<BoardKeyMetrics />} />

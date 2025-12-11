@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { 
+  Plus, 
   ExternalLink, 
   Copy, 
   Check,
@@ -34,8 +36,9 @@ interface SalesOpportunity {
   created_at: string;
 }
 
-export default function BoardSalesOpportunities() {
+export default function BoardOpportunities() {
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const { data: opportunities, isLoading } = useQuery({
     queryKey: ["board-sales-opportunities"],
@@ -83,9 +86,10 @@ export default function BoardSalesOpportunities() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-6">
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
           <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-10 w-32" />
         </div>
         <div className="grid gap-4">
           {[1, 2, 3].map((i) => (
@@ -97,13 +101,15 @@ export default function BoardSalesOpportunities() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold">Sales Opportunities</h1>
-        <p className="text-muted-foreground">
-          Share investment opportunities with potential investors
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Sales Opportunities</h1>
+          <p className="text-muted-foreground">
+            Share investment opportunities with potential investors
+          </p>
+        </div>
       </div>
 
       {/* Opportunities Grid */}
