@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import TruckingLayout from "@/components/trucking/TruckingLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -225,17 +224,14 @@ export default function TruckingContactsPage() {
 
   if (loading) {
     return (
-      <TruckingLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: '#FF9F1C' }}></div>
-        </div>
-      </TruckingLayout>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: '#FF9F1C' }}></div>
+      </div>
     );
   }
 
   return (
-    <TruckingLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -499,6 +495,5 @@ export default function TruckingContactsPage() {
           </DialogContent>
         </Dialog>
       </div>
-    </TruckingLayout>
   );
 }
