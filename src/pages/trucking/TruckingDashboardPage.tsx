@@ -8,11 +8,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TruckingPageWrapper, TruckingContentCard, TruckingEmptyState, TruckingStatCardLight } from "@/components/trucking/TruckingPageWrapper";
 import { format, formatDistanceToNow } from "date-fns";
+
 interface DashboardStats {
   openLoads: number;
   leadsToday: number;
   callsToday: number;
   confirmedLeads: number;
+}
+
+interface EarningsSummary {
+  estRevenue: number;
+  bookedRevenue: number;
+  estEarnings: number;
+  bookedEarnings: number;
 }
 
 interface ConfirmedLead {
@@ -42,6 +50,7 @@ interface CarrierLead {
 
 export default function TruckingDashboardPage() {
   const [stats, setStats] = useState<DashboardStats>({ openLoads: 0, leadsToday: 0, callsToday: 0, confirmedLeads: 0 });
+  const [earnings, setEarnings] = useState<EarningsSummary>({ estRevenue: 0, bookedRevenue: 0, estEarnings: 0, bookedEarnings: 0 });
   const [confirmedLeads, setConfirmedLeads] = useState<ConfirmedLead[]>([]);
   const [recentLeads, setRecentLeads] = useState<CarrierLead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,12 +65,14 @@ export default function TruckingDashboardPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      const today = new Date().toISOString().split("T")[0];
+
       // Fetch stats
       const [loadsResult, confirmedResult, leadsResult, callsResult] = await Promise.all([
         supabase.from("trucking_loads").select("id", { count: "exact" }).eq("owner_id", user.id).eq("status", "open"),
         supabase.from("trucking_carrier_leads").select("id", { count: "exact" }).eq("owner_id", user.id).eq("is_confirmed", true),
-        supabase.from("trucking_carrier_leads").select("id", { count: "exact" }).eq("owner_id", user.id).eq("is_confirmed", false).gte("created_at", new Date().toISOString().split("T")[0]),
-        supabase.from("trucking_call_logs").select("id", { count: "exact" }).eq("owner_id", user.id).gte("created_at", new Date().toISOString().split("T")[0]),
+        supabase.from("trucking_carrier_leads").select("id", { count: "exact" }).eq("owner_id", user.id).eq("is_confirmed", false).gte("created_at", today),
+        supabase.from("trucking_call_logs").select("id", { count: "exact" }).eq("owner_id", user.id).gte("created_at", today),
       ]);
 
       setStats({
@@ -70,6 +81,25 @@ export default function TruckingDashboardPage() {
         leadsToday: leadsResult.count || 0,
         callsToday: callsResult.count || 0,
       });
+
+      // Fetch loads for today's earnings calculation (based on pickup_date)
+      const { data: todayLoads } = await supabase
+        .from("trucking_loads")
+        .select("target_rate, broker_commission, status")
+        .eq("owner_id", user.id)
+        .eq("pickup_date", today);
+
+      if (todayLoads) {
+        const openAndConfirmed = todayLoads.filter(l => l.status === "open" || l.status === "booked");
+        const confirmedOnly = todayLoads.filter(l => l.status === "booked");
+
+        setEarnings({
+          estRevenue: openAndConfirmed.reduce((sum, l) => sum + (l.target_rate || 0), 0),
+          bookedRevenue: confirmedOnly.reduce((sum, l) => sum + (l.target_rate || 0), 0),
+          estEarnings: openAndConfirmed.reduce((sum, l) => sum + (l.broker_commission || 0), 0),
+          bookedEarnings: confirmedOnly.reduce((sum, l) => sum + (l.broker_commission || 0), 0),
+        });
+      }
 
       // Fetch confirmed leads
       const { data: confirmed } = await supabase
@@ -160,6 +190,38 @@ export default function TruckingDashboardPage() {
         </Link>
       }
     >
+      {/* Compact Earnings Summary - muted, one-line */}
+      <div className="flex items-center justify-between text-sm text-slate-500 bg-slate-50 rounded-lg px-4 py-2">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-1.5" title="Sum of all open + confirmed loads today (by pickup date)">
+            <span className="text-slate-400">Est Revenue:</span>
+            <span className="font-medium text-slate-700">
+              {earnings.estRevenue > 0 ? `$${earnings.estRevenue.toLocaleString()}` : "—"}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5" title="Sum of confirmed loads only">
+            <span className="text-slate-400">Booked Revenue:</span>
+            <span className="font-medium text-green-600">
+              {earnings.bookedRevenue > 0 ? `$${earnings.bookedRevenue.toLocaleString()}` : "—"}
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-1.5" title="Commission for all open + confirmed loads today">
+            <span className="text-slate-400">Est Earnings:</span>
+            <span className="font-medium text-slate-700">
+              {earnings.estEarnings > 0 ? `$${earnings.estEarnings.toLocaleString()}` : "—"}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5" title="Commission for confirmed loads only">
+            <span className="text-slate-400">Booked Earnings:</span>
+            <span className="font-medium text-green-600">
+              {earnings.bookedEarnings > 0 ? `$${earnings.bookedEarnings.toLocaleString()}` : "—"}
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Stats Cards - 4 cards only */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <TruckingStatCardLight 
