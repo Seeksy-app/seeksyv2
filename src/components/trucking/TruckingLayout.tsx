@@ -213,7 +213,7 @@ export default function TruckingLayout({ children }: TruckingLayoutProps) {
 
       {/* Main Content */}
       <main className="lg:ml-64 min-h-screen pt-16 lg:pt-0">
-        <div className="p-6 lg:p-8">
+        <div className="px-4 py-6 w-full">
           {children || <Outlet />}
         </div>
       </main>

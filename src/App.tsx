@@ -724,9 +724,12 @@ const AppContent = () => {
   // VenueOS is completely standalone - no Seeksy UI
   const isVenueRoute = location.pathname.startsWith('/venueOS') || location.pathname === '/invest/venueos';
   
+  // AITrucking is completely standalone - no Seeksy UI
+  const isTruckingRoute = location.pathname.startsWith('/trucking');
+  
   // Hide sidebar in tour mode or on special routes
-  const shouldShowSidebar = user && !isStudioRoute && !isClipsStudioRoute && !isTourMode && !isOnboardingComplete && !isVeteransRoute && !isCampaignRoute && !isVenueRoute;
-  const shouldShowTopNav = user && !isStudioRoute && !isTourMode && !isOnboardingComplete && !isVeteransRoute && !isCampaignRoute && !isVenueRoute;
+  const shouldShowSidebar = user && !isStudioRoute && !isClipsStudioRoute && !isTourMode && !isOnboardingComplete && !isVeteransRoute && !isCampaignRoute && !isVenueRoute && !isTruckingRoute;
+  const shouldShowTopNav = user && !isStudioRoute && !isTourMode && !isOnboardingComplete && !isVeteransRoute && !isCampaignRoute && !isVenueRoute && !isTruckingRoute;
 
   // Render Veterans Platform separately - completely standalone
   if (isVeteransRoute) {
