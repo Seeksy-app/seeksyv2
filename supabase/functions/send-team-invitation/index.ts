@@ -31,8 +31,8 @@ const generateBoardInviteHTML = (inviterName: string, inviteeName: string, signu
             <!-- Header with Seeksy branding -->
             <tr>
               <td style="background: linear-gradient(135deg, #053877 0%, #1a4a8a 50%, #053877 100%); padding: 48px 40px; text-align: center;">
-                <h1 style="margin: 0 0 8px 0; color: #ffffff; font-size: 42px; font-weight: 800; letter-spacing: -1px;">Seeksy</h1>
-                <p style="margin: 0; color: rgba(255,255,255,0.9); font-size: 16px; font-weight: 500;">Board Portal</p>
+                <img src="https://seeksy.io/lovable-uploads/1619b7c7-cd5f-4c7a-8039-e411ed027566.png" alt="Seeksy" style="width: 120px; height: auto; margin-bottom: 16px;" />
+                <p style="margin: 0; color: rgba(255,255,255,0.9); font-size: 18px; font-weight: 600;">Board Portal</p>
               </td>
             </tr>
 
@@ -87,7 +87,7 @@ const generateBoardInviteHTML = (inviterName: string, inviteeName: string, signu
                 <table width="100%" cellpadding="0" cellspacing="0">
                   <tr>
                     <td align="center">
-                      <p style="margin: 0 0 8px 0; font-size: 16px; font-weight: 700; color: #053877;">Seeksy</p>
+                      <img src="https://seeksy.io/lovable-uploads/1619b7c7-cd5f-4c7a-8039-e411ed027566.png" alt="Seeksy" style="width: 80px; height: auto; margin-bottom: 8px;" />
                       <p style="margin: 0; font-size: 13px; color: #6B7280;">Confidential Board Portal</p>
                     </td>
                   </tr>
