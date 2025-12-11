@@ -59,9 +59,8 @@ export function CampaignSolutionsDropdown() {
       {/* Dropdown Menu */}
       {isOpen && (
         <div 
-          className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[700px] rounded-xl shadow-xl border z-50"
+          className="absolute top-full left-0 mt-2 w-[700px] rounded-xl shadow-2xl border z-[100] bg-white"
           style={{ 
-            backgroundColor: colors.background,
             borderColor: colors.borderSubtle
           }}
         >
