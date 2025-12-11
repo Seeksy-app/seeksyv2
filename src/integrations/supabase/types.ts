@@ -23985,6 +23985,36 @@ export type Database = {
         }
         Relationships: []
       }
+      veteran_calculator_results: {
+        Row: {
+          calculator_id: string
+          created_at: string
+          id: string
+          input_json: Json
+          output_json: Json
+          summary: string | null
+          user_id: string | null
+        }
+        Insert: {
+          calculator_id: string
+          created_at?: string
+          id?: string
+          input_json: Json
+          output_json: Json
+          summary?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          calculator_id?: string
+          created_at?: string
+          id?: string
+          input_json?: Json
+          output_json?: Json
+          summary?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       veteran_leads: {
         Row: {
           branch_of_service: string | null

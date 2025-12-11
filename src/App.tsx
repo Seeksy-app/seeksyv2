@@ -514,6 +514,15 @@ import VeteransHome from "./pages/veterans/VeteransHome";
 import MilitaryBuyBackCalculator from "./pages/veterans/calculators/MilitaryBuyBackCalculator";
 import MRACalculator from "./pages/veterans/calculators/MRACalculator";
 import SickLeaveCalculator from "./pages/veterans/calculators/SickLeaveCalculator";
+import VACombinedRatingCalculator from "./pages/veterans/calculators/VACombinedRatingCalculator";
+import VACompensationCalculator from "./pages/veterans/calculators/VACompensationCalculator";
+import FERSPensionCalculator from "./pages/veterans/calculators/FERSPensionCalculator";
+import TSPGrowthCalculator from "./pages/veterans/calculators/TSPGrowthCalculator";
+import SeparationReadinessCalculator from "./pages/veterans/calculators/SeparationReadinessCalculator";
+import LeaveSellBackCalculator from "./pages/veterans/calculators/LeaveSellBackCalculator";
+import SBPCalculator from "./pages/veterans/calculators/SBPCalculator";
+import COLACalculator from "./pages/veterans/calculators/COLACalculator";
+import VATravelCalculator from "./pages/veterans/calculators/VATravelCalculator";
 import VeteranClaimsAgent from "./pages/veterans/ClaimsAgent";
 import BoardMemberManagement from "./pages/admin/BoardMemberManagement";
 import { BoardGuard } from "./components/board/BoardGuard";
@@ -1136,6 +1145,15 @@ const AppContent = () => {
           <Route path="/veterans/calculators/military-buyback" element={<MilitaryBuyBackCalculator />} />
           <Route path="/veterans/calculators/mra" element={<MRACalculator />} />
           <Route path="/veterans/calculators/sick-leave" element={<SickLeaveCalculator />} />
+          <Route path="/veterans/calculators/va-combined-rating" element={<VACombinedRatingCalculator />} />
+          <Route path="/veterans/calculators/va-compensation" element={<VACompensationCalculator />} />
+          <Route path="/veterans/calculators/fers-pension" element={<FERSPensionCalculator />} />
+          <Route path="/veterans/calculators/tsp-growth" element={<TSPGrowthCalculator />} />
+          <Route path="/veterans/tools/separation-readiness" element={<SeparationReadinessCalculator />} />
+          <Route path="/veterans/calculators/leave-sellback" element={<LeaveSellBackCalculator />} />
+          <Route path="/veterans/calculators/sbp" element={<SBPCalculator />} />
+          <Route path="/veterans/calculators/cola" element={<COLACalculator />} />
+          <Route path="/veterans/calculators/va-travel" element={<VATravelCalculator />} />
           <Route path="/veterans/claims-agent" element={<VeteranClaimsAgent />} />
           
           {/* Admin Financials Routes (reuse Board components) */}
