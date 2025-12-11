@@ -461,3 +461,6 @@ verify_jwt = false
 
 [functions.venue-ai-manager-chat]
 verify_jwt = true
+
+[functions.ai-trucking-call-router]
+verify_jwt = false

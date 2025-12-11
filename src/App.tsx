@@ -58,6 +58,14 @@ import ScheduleMeeting from "./pages/meetings/ScheduleMeeting";
 import MeetingJoin from "./pages/meetings/MeetingJoin";
 import PublicBookingPage from "./pages/public/PublicBookingPage";
 import PublicVideosPage from "./pages/public/PublicVideosPage";
+// AITrucking
+import TruckingLandingPage from "./pages/trucking/TruckingLandingPage";
+import TruckingDashboardPage from "./pages/trucking/TruckingDashboardPage";
+import LoadsPage from "./pages/trucking/LoadsPage";
+import CarrierLeadsPage from "./pages/trucking/CarrierLeadsPage";
+import CarriersPage from "./pages/trucking/CarriersPage";
+import TruckingSettingsPage from "./pages/trucking/TruckingSettingsPage";
+import AITruckingConsolePage from "./pages/trucking/AITruckingConsolePage";
 import AdminMeetings from "./pages/admin/AdminMeetings";
 import AdminMeetingsDashboard from "./pages/admin/meetings/AdminMeetingsDashboard";
 import AdminMeetingTypes from "./pages/admin/meetings/AdminMeetingTypes";
@@ -1431,6 +1439,16 @@ const AppContent = () => {
           <Route path="/help/zoom-integration" element={<ZoomIntegration />} />
           <Route path="/docs/zoom-integration" element={<ZoomIntegration />} />
           <Route path="/videos" element={<PublicVideosPage />} />
+          
+          {/* AITrucking Routes */}
+          <Route path="/trucking" element={<TruckingLandingPage />} />
+          <Route path="/trucking/dashboard" element={<TruckingDashboardPage />} />
+          <Route path="/trucking/loads" element={<LoadsPage />} />
+          <Route path="/trucking/leads" element={<CarrierLeadsPage />} />
+          <Route path="/trucking/carriers" element={<CarriersPage />} />
+          <Route path="/trucking/settings" element={<TruckingSettingsPage />} />
+          <Route path="/trucking/ai-console" element={<AITruckingConsolePage />} />
+          
             <Route path="/tickets" element={<ClientTickets />} />
             <Route path="/proposals" element={<Proposals />} />
             <Route path="/proposals/create" element={<CreateProposal />} />
