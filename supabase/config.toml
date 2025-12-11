@@ -458,3 +458,6 @@ verify_jwt = false
 
 [functions.campaign-chat]
 verify_jwt = false
+
+[functions.venue-ai-manager-chat]
+verify_jwt = true

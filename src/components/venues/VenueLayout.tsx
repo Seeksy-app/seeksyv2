@@ -13,7 +13,8 @@ import {
   Menu,
   LogOut,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Bot
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -45,6 +46,7 @@ const navItems = [
   { path: "/venues/clients", label: "Clients", icon: Users },
   { path: "/venues/events", label: "Events", icon: PartyPopper },
   { path: "/venues/influencers", label: "Influencers", icon: Megaphone },
+  { path: "/venues/ai-manager", label: "AI Manager", icon: Bot },
   { path: "/venues/studio", label: "Media Studio", icon: Video },
   { path: "/venues/settings", label: "Settings", icon: Settings },
 ];
