@@ -49,6 +49,14 @@ const CLAIM_STATUS_LABELS: Record<string, string> = {
   not_sure: "Unsure",
 };
 
+const PRIMARY_GOAL_LABELS: Record<string, string> = {
+  understanding: "Understanding Benefits",
+  deciding: "Deciding Whether to File",
+  intent_to_file: "Filing Intent to File",
+  initial_claim: "Preparing Initial Claim",
+  understanding_rating: "Understanding Current Rating",
+};
+
 function NotesList({ notes, intakeData }: { notes: ClaimsNote[]; intakeData?: ClaimsNotesPanelProps["intakeData"] }) {
   const hasNotes = notes.length > 0 || intakeData;
   
@@ -62,7 +70,8 @@ function NotesList({ notes, intakeData }: { notes: ClaimsNote[]; intakeData?: Cl
       content += "------------------\n";
       content += `Status: ${STATUS_LABELS[intakeData.status] || intakeData.status}\n`;
       content += `Branch: ${BRANCH_LABELS[intakeData.branch] || intakeData.branch}\n`;
-      content += `Goal: ${GOAL_LABELS[intakeData.goal] || intakeData.goal}\n\n`;
+      content += `Claim Status: ${CLAIM_STATUS_LABELS[intakeData.claimStatus] || intakeData.claimStatus}\n`;
+      content += `Goals: ${intakeData.primaryGoals.map(g => PRIMARY_GOAL_LABELS[g] || g).join(", ")}\n\n`;
     }
     
     if (notes.length > 0) {
@@ -99,8 +108,15 @@ function NotesList({ notes, intakeData }: { notes: ClaimsNote[]; intakeData?: Cl
               </div>
               <Separator />
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Filing Goal</p>
-                <p className="text-sm">• {GOAL_LABELS[intakeData.goal] || intakeData.goal}</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Claim Status</p>
+                <p className="text-sm">• {CLAIM_STATUS_LABELS[intakeData.claimStatus] || intakeData.claimStatus}</p>
+              </div>
+              <Separator />
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Goals</p>
+                {intakeData.primaryGoals.map((goal, i) => (
+                  <p key={i} className="text-sm">• {PRIMARY_GOAL_LABELS[goal] || goal}</p>
+                ))}
               </div>
               {notes.length > 0 && <Separator />}
             </>
