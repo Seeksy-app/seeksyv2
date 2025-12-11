@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Edit, Trash2, Phone, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { formatPhoneNumber } from "@/utils/phoneFormat";
 
 interface Carrier {
   id: string;
@@ -207,8 +208,9 @@ export default function CarriersPage() {
                   <Label>Phone</Label>
                   <Input
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, phone: formatPhoneNumber(e.target.value) })}
                     type="tel"
+                    placeholder="405-444-4444"
                   />
                 </div>
                 <div>

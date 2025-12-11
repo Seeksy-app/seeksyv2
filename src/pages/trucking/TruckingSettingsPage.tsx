@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { formatPhoneNumber } from "@/utils/phoneFormat";
 
 interface Settings {
   id?: string;
@@ -150,8 +151,8 @@ export default function TruckingSettingsPage() {
             <Input
               type="tel"
               value={settings.notification_sms_number}
-              onChange={(e) => setSettings({ ...settings, notification_sms_number: e.target.value })}
-              placeholder="+1 555 123 4567"
+              onChange={(e) => setSettings({ ...settings, notification_sms_number: formatPhoneNumber(e.target.value) })}
+              placeholder="405-444-4444"
             />
           </div>
         </CardContent>

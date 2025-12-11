@@ -36,6 +36,7 @@ import SelectWithRecent from "@/components/trucking/SelectWithRecent";
 import FieldLabelsSettings from "@/components/trucking/FieldLabelsSettings";
 import { useTruckingRecentValues } from "@/hooks/useTruckingRecentValues";
 import { useTruckingFieldLabels } from "@/hooks/useTruckingFieldLabels";
+import { formatPhoneNumber } from "@/utils/phoneFormat";
 
 const US_STATES = [
   "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL",
@@ -737,8 +738,9 @@ export default function LoadsPage() {
                     <SelectWithRecent
                       value={formData.pickup_contact_phone}
                       onChange={(val) => setFormData({ ...formData, pickup_contact_phone: val })}
-                      placeholder="(555) 555-5555"
+                      placeholder="405-444-4444"
                       recentValues={getRecentValues("pickup_contact_phone")}
+                      formatValue={formatPhoneNumber}
                     />
                   </div>
                 </div>
@@ -836,8 +838,9 @@ export default function LoadsPage() {
                     <SelectWithRecent
                       value={formData.delivery_contact_phone}
                       onChange={(val) => setFormData({ ...formData, delivery_contact_phone: val })}
-                      placeholder="(555) 555-5555"
+                      placeholder="405-444-4444"
                       recentValues={getRecentValues("delivery_contact_phone")}
+                      formatValue={formatPhoneNumber}
                     />
                   </div>
                 </div>

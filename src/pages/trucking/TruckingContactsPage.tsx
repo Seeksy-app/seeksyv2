@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Edit, Trash2, Star, Search, Users, Phone as PhoneIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { formatPhoneNumber } from "@/utils/phoneFormat";
 
 const EQUIPMENT_OPTIONS = ["Van", "Reefer", "Flatbed", "Stepdeck", "Power Only", "Hotshot", "Tanker", "Other"];
 const CONTACT_TYPES = [
@@ -388,8 +389,8 @@ export default function TruckingContactsPage() {
                   <Label>Phone *</Label>
                   <Input
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="(555) 123-4567"
+                    onChange={(e) => setFormData({ ...formData, phone: formatPhoneNumber(e.target.value) })}
+                    placeholder="405-444-4444"
                     required
                   />
                 </div>
@@ -400,8 +401,8 @@ export default function TruckingContactsPage() {
                   <Label>Alt Phone</Label>
                   <Input
                     value={formData.phone_alt}
-                    onChange={(e) => setFormData({ ...formData, phone_alt: e.target.value })}
-                    placeholder="(555) 987-6543"
+                    onChange={(e) => setFormData({ ...formData, phone_alt: formatPhoneNumber(e.target.value) })}
+                    placeholder="405-444-4444"
                   />
                 </div>
                 <div>

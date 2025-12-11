@@ -12,6 +12,7 @@ interface SelectWithRecentProps {
   options?: string[];
   maxRecent?: number;
   className?: string;
+  formatValue?: (value: string) => string;
 }
 
 export default function SelectWithRecent({
@@ -22,6 +23,7 @@ export default function SelectWithRecent({
   options = [],
   maxRecent = 10,
   className,
+  formatValue,
 }: SelectWithRecentProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState(value);
@@ -43,7 +45,10 @@ export default function SelectWithRecent({
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
+    let newValue = e.target.value;
+    if (formatValue) {
+      newValue = formatValue(newValue);
+    }
     setSearch(newValue);
     onChange(newValue);
     setIsOpen(true);
