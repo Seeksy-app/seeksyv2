@@ -555,6 +555,17 @@ import VeteransAuth from "./pages/veterans/VeteransAuth";
 import VeteransSettings from "./pages/veterans/VeteransSettings";
 import VeteransDashboard from "./pages/veterans/VeteransDashboard";
 import { VeteransLayout } from "./components/veterans/VeteransLayout";
+import { VenueLayout } from "./components/venues/VenueLayout";
+import VenueLandingPage from "./pages/venues/VenueLandingPage";
+import VenueDashboard from "./pages/venues/VenueDashboard";
+import VenueBookingsPage from "./pages/venues/VenueBookingsPage";
+import VenueCalendarPage from "./pages/venues/VenueCalendarPage";
+import VenueInventoryPage from "./pages/venues/VenueInventoryPage";
+import VenueClientsPage from "./pages/venues/VenueClientsPage";
+import VenueEventsPage from "./pages/venues/VenueEventsPage";
+import VenueInfluencerHub from "./pages/venues/VenueInfluencerHub";
+import VenueMediaStudio from "./pages/venues/VenueMediaStudio";
+import VenueSettingsPage from "./pages/venues/VenueSettingsPage";
 import BoardMemberManagement from "./pages/admin/BoardMemberManagement";
 import { BoardGuard } from "./components/board/BoardGuard";
 import { BoardLayout } from "./components/board/BoardLayout";
@@ -692,9 +703,12 @@ const AppContent = () => {
   // CampaignStaff.ai is completely standalone - no Seeksy UI
   const isCampaignRoute = location.pathname.startsWith('/campaign-staff');
   
+  // VenueOS is completely standalone - no Seeksy UI
+  const isVenueRoute = location.pathname.startsWith('/venues');
+  
   // Hide sidebar in tour mode or on special routes
-  const shouldShowSidebar = user && !isStudioRoute && !isClipsStudioRoute && !isTourMode && !isOnboardingComplete && !isVeteransRoute && !isCampaignRoute;
-  const shouldShowTopNav = user && !isStudioRoute && !isTourMode && !isOnboardingComplete && !isVeteransRoute && !isCampaignRoute;
+  const shouldShowSidebar = user && !isStudioRoute && !isClipsStudioRoute && !isTourMode && !isOnboardingComplete && !isVeteransRoute && !isCampaignRoute && !isVenueRoute;
+  const shouldShowTopNav = user && !isStudioRoute && !isTourMode && !isOnboardingComplete && !isVeteransRoute && !isCampaignRoute && !isVenueRoute;
 
   // Render Veterans Platform separately - completely standalone
   if (isVeteransRoute) {
@@ -797,6 +811,18 @@ const AppContent = () => {
               <Route path="/campaign-staff/sms" element={<CampaignSMSPage />} />
               <Route path="/campaign-staff/live" element={<CampaignLivePage />} />
               <Route path="/campaign-staff/donations" element={<CampaignDonationsPage />} />
+              
+              {/* VenueOS Routes */}
+              <Route path="/venues" element={<VenueLandingPage />} />
+              <Route path="/venues/dashboard" element={<VenueLayout><VenueDashboard /></VenueLayout>} />
+              <Route path="/venues/bookings" element={<VenueLayout><VenueBookingsPage /></VenueLayout>} />
+              <Route path="/venues/calendar" element={<VenueLayout><VenueCalendarPage /></VenueLayout>} />
+              <Route path="/venues/inventory" element={<VenueLayout><VenueInventoryPage /></VenueLayout>} />
+              <Route path="/venues/clients" element={<VenueLayout><VenueClientsPage /></VenueLayout>} />
+              <Route path="/venues/events" element={<VenueLayout><VenueEventsPage /></VenueLayout>} />
+              <Route path="/venues/influencers" element={<VenueLayout><VenueInfluencerHub /></VenueLayout>} />
+              <Route path="/venues/studio" element={<VenueLayout><VenueMediaStudio /></VenueLayout>} />
+              <Route path="/venues/settings" element={<VenueLayout><VenueSettingsPage /></VenueLayout>} />
               
               <Route path="/personas" element={<Personas />} />
               <Route path="/voice-certification" element={<VoiceCertification />} />
