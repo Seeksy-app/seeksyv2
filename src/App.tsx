@@ -96,6 +96,8 @@ import SecurityPublic from "./pages/SecurityPublic";
 import About from "./pages/marketing/About";
 import AppsAndTools from "./pages/marketing/AppsAndTools";
 import AdminSecurityOverview from "./pages/admin/AdminSecurityOverview";
+import AdminTasks from "./pages/admin/AdminTasks";
+import AdminProjects from "./pages/admin/AdminProjects";
 import EventsAwardsProForma from "./pages/admin/cfo/EventsAwardsProForma";
 import CombinedProForma from "./pages/admin/cfo/CombinedProForma";
 import BoardProForma from "./pages/board/BoardProForma";
@@ -1224,6 +1226,10 @@ const AppContent = () => {
           
           {/* Knowledge Base - Admin */}
           <Route path="/admin/knowledge-base" element={<KnowledgeBaseAdmin />} />
+          
+          {/* Admin Tasks & Projects */}
+          <Route path="/admin/tasks" element={<AdminTasks />} />
+          <Route path="/admin/projects" element={<AdminProjects />} />
           
           {/* Internal Knowledge Blog */}
           <Route path="/knowledge/admin" element={<AdminKnowledgeBlog />} />

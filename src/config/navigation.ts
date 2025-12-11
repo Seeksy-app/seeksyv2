@@ -414,7 +414,7 @@ export const NAVIGATION_CONFIG: {
           "id": "admin_tasks",
           "label": "Tasks",
           "icon": "list-todo",
-          "path": "/tasks",
+          "path": "/admin/tasks",
           "roles": ["admin", "super_admin", "manager", "cfo", "cmo", "cco"],
           "description": "Task management and tracking"
         },
