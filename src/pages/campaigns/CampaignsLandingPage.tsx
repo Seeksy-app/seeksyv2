@@ -1,162 +1,400 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { 
-  Users, 
-  Mic2, 
-  Globe, 
-  DollarSign, 
-  Calendar,
-  MessageSquare,
-  CheckCircle2,
+  Sparkles, 
+  ShieldCheck, 
+  Scale,
+  MessageCircle,
+  PenLine,
+  Globe,
+  Users,
   ArrowRight,
-  ChevronLeft
+  Check,
+  Play
 } from "lucide-react";
+import { CampaignAuthModal } from "@/components/campaigns/CampaignAuthModal";
 
-const problems = [
-  "No money for big consultants or full-time staff.",
-  "Confusing rules, deadlines, and paperwork.",
-  "Hard to stay consistent with messaging and content.",
-  "Very little time to plan, write, and execute."
-];
+// Brand colors from spec
+const colors = {
+  primary: "#0031A2",
+  primaryLight: "#2566FF",
+  primaryDark: "#001B5C",
+  accent: "#FFCC33",
+  accentSoft: "#FFF3C7",
+  background: "#F5F7FA",
+  backgroundAlt: "#0B1220",
+  surface: "#FFFFFF",
+  surfaceSoft: "#F3F6FC",
+  borderSubtle: "#E1E5ED",
+  textPrimary: "#0A0A0A",
+  textSecondary: "#5A6472",
+  textOnDark: "#FFFFFF",
+};
 
-const features = [
+const problemSteps = [
   {
-    icon: MessageSquare,
-    title: "AI Campaign Manager",
-    description: "Plans your race and daily priorities with personalized strategy."
+    step: 1,
+    headline: "No budget for big consultants",
+    body: "Most local and state candidates can't afford a full-time team to plan strategy, write content, and manage outreach."
   },
   {
-    icon: Mic2,
+    step: 2,
+    headline: "Complex rules and deadlines",
+    body: "Election calendars, filings, and compliance requirements change by state and office."
+  },
+  {
+    step: 3,
+    headline: "Content never keeps up",
+    body: "Websites, speeches, emails, and social posts all need to stay aligned with your message and issues."
+  },
+  {
+    step: 4,
+    headline: "Very little time to execute",
+    body: "Candidates are juggling work, family, events, and fundraising. There's no time to manage everything manually."
+  }
+];
+
+const aiTeamCards = [
+  {
+    icon: MessageCircle,
+    title: "AI Campaign Manager",
+    body: "Plans your race, sets weekly priorities, and keeps you focused on the most important tasks.",
+    linkLabel: "Open AI Manager",
+    href: "/campaigns/ai-manager"
+  },
+  {
+    icon: PenLine,
     title: "AI Speechwriter",
-    description: "Drafts speeches, emails, and social posts in your voice."
+    body: "Drafts speeches, emails, and social posts in your voice, tailored to your district and issues.",
+    linkLabel: "Open Content Studio",
+    href: "/campaigns/studio"
   },
   {
     icon: Globe,
     title: "AI Digital Director",
-    description: "Builds your website and online presence automatically."
+    body: "Builds and updates your campaign website and online presence automatically.",
+    linkLabel: "Open Site Builder",
+    href: "/campaigns/site-builder"
   },
   {
-    icon: DollarSign,
+    icon: Users,
     title: "AI Field & Fundraising",
-    description: "Manages events, outreach, and donor communications."
+    body: "Generates outreach plans, event reminders, donor touches, and follow-up messages.",
+    linkLabel: "Open Outreach & Events",
+    href: "/campaigns/outreach"
+  }
+];
+
+const launchColumns = [
+  {
+    headline: "Guided onboarding",
+    body: "Answer a few simple questions about your race, district, and priorities. CampaignStaff.ai sets up a tailored campaign plan."
+  },
+  {
+    headline: "One workspace for everything",
+    body: "Strategy, content, events, and outreach live in one dashboard—no spreadsheets, long email threads, or scattered tools."
+  },
+  {
+    headline: "You stay in control",
+    body: "AI suggests the plan and drafts content. You approve, edit, and publish. You can always see and change what's going out."
+  }
+];
+
+const pricingPlans = [
+  {
+    name: "Local Starter",
+    priceLabel: "TBD",
+    description: "City, county, and school board races.",
+    highlighted: false,
+    features: [
+      "AI Campaign Manager and weekly plan",
+      "Content Studio for speeches, emails, and social",
+      "Basic campaign site builder",
+      "Email support"
+    ]
+  },
+  {
+    name: "State & Federal",
+    priceLabel: "TBD",
+    description: "Larger teams and more complex races.",
+    highlighted: true,
+    features: [
+      "All Starter features",
+      "Advanced outreach and event planning",
+      "Multi-user access for staff and volunteers",
+      "Priority support"
+    ]
+  }
+];
+
+const footerSections = [
+  {
+    title: "Product",
+    links: [
+      { label: "Overview", href: "/campaigns" },
+      { label: "AI Manager", href: "/campaigns/ai-manager" },
+      { label: "Content Studio", href: "/campaigns/studio" },
+      { label: "Outreach & Events", href: "/campaigns/outreach" },
+      { label: "Site Builder", href: "/campaigns/site-builder" }
+    ]
+  },
+  {
+    title: "Campaign Types",
+    links: [
+      { label: "City & County Races", href: "#local" },
+      { label: "State Legislature", href: "#local" },
+      { label: "Federal Races", href: "#local" },
+      { label: "Ballot Measures", href: "#local" }
+    ]
+  },
+  {
+    title: "Company",
+    links: [
+      { label: "About", href: "/about" },
+      { label: "Investors", href: "/invest/campaignstaff" },
+      { label: "Contact", href: "/contact" }
+    ]
   }
 ];
 
 export default function CampaignsLandingPage() {
+  const [raceInput, setRaceInput] = useState("");
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleHeroCta = () => {
+    navigate("/campaigns/dashboard");
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#1e3a5f] to-[#0a1628]">
+    <div className="min-h-screen" style={{ backgroundColor: colors.background }}>
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0a1628]/95 backdrop-blur-sm">
+      <header className="sticky top-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(255,255,255,0.9)" }}>
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
-            <Link to="/" className="flex items-center gap-2 text-white/60 hover:text-white">
-              <ChevronLeft className="h-4 w-4" />
-              <span className="text-sm">Back to Seeksy</span>
-            </Link>
+            {/* Logo */}
             <Link to="/campaigns" className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#d4af37] to-[#b8962e] flex items-center justify-center">
-                <span className="text-[#0a1628] font-bold text-lg">C</span>
+              <div 
+                className="h-9 w-9 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: colors.primary }}
+              >
+                <span className="text-white font-bold text-lg">C</span>
               </div>
-              <span className="text-xl font-bold text-white">
-                Campaign<span className="text-[#d4af37]">Staff</span>.ai
+              <span className="text-xl font-bold" style={{ color: colors.textPrimary }}>
+                Campaign<span style={{ color: colors.primary }}>Staff</span>.ai
               </span>
             </Link>
+
+            {/* Nav Items */}
+            <nav className="hidden md:flex items-center gap-6">
+              <a href="#how-it-works" className="text-sm font-medium hover:opacity-80" style={{ color: colors.textSecondary }}>
+                How It Works
+              </a>
+              <a href="#tools" className="text-sm font-medium hover:opacity-80" style={{ color: colors.textSecondary }}>
+                AI Tools
+              </a>
+              <a href="#local" className="text-sm font-medium hover:opacity-80" style={{ color: colors.textSecondary }}>
+                For Local Races
+              </a>
+              <a href="#pricing" className="text-sm font-medium hover:opacity-80" style={{ color: colors.textSecondary }}>
+                Pricing
+              </a>
+              <Link to="/invest/campaignstaff" className="text-sm font-medium hover:opacity-80" style={{ color: colors.textSecondary }}>
+                Investors
+              </Link>
+            </nav>
+
+            {/* CTA Buttons */}
             <div className="flex items-center gap-3">
-              <Button variant="ghost" asChild className="text-white/80 hover:text-white hover:bg-white/10">
-                <Link to="/auth">Sign In</Link>
+              <Button 
+                variant="ghost" 
+                onClick={() => setAuthModalOpen(true)}
+                style={{ color: colors.textSecondary }}
+              >
+                Sign In
               </Button>
-              <Button asChild className="bg-[#d4af37] hover:bg-[#b8962e] text-[#0a1628] font-medium">
-                <Link to="/campaigns/dashboard">Start Your Campaign</Link>
+              <Button 
+                onClick={() => navigate("/campaigns/dashboard")}
+                style={{ backgroundColor: colors.primary, color: colors.textOnDark }}
+                className="font-medium"
+              >
+                Start Your Campaign
               </Button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="py-20 md:py-32">
-        <div className="container mx-auto px-4 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#d4af37]/20 text-[#d4af37] text-sm font-medium mb-6">
-            <Users className="h-4 w-4" />
-            Powered by Seeksy
-          </div>
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
-            Campaign<span className="text-[#d4af37]">Staff</span>.ai
+      {/* Hero Section */}
+      <section 
+        className="py-20 md:py-28 relative overflow-hidden"
+        style={{ 
+          background: `linear-gradient(180deg, ${colors.primaryDark} 0%, #003F9E 100%)`
+        }}
+      >
+        {/* Diagonal stripe pattern overlay */}
+        <div 
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: `repeating-linear-gradient(
+              45deg,
+              transparent,
+              transparent 10px,
+              rgba(255,255,255,0.05) 10px,
+              rgba(255,255,255,0.05) 20px
+            )`
+          }}
+        />
+        
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <h1 
+            className="text-4xl md:text-6xl font-bold mb-4"
+            style={{ color: colors.textOnDark }}
+          >
+            CampaignStaff.ai
           </h1>
-          <p className="text-xl md:text-2xl text-white/80 mb-8 max-w-3xl mx-auto">
+          <p 
+            className="text-xl md:text-2xl mb-4 max-w-3xl mx-auto"
+            style={{ color: "rgba(255,255,255,0.9)" }}
+          >
             Your AI-powered campaign team for local, state, and federal races.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <p 
+            className="text-base md:text-lg mb-10 max-w-2xl mx-auto"
+            style={{ color: "rgba(255,255,255,0.7)" }}
+          >
+            Most candidates can't afford big consulting firms or full-time staff. CampaignStaff.ai gives every campaign a virtual manager, digital director, speechwriter, and field team—on day one.
+          </p>
+
+          {/* Input + CTA */}
+          <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-lg mx-auto mb-8">
+            <Input
+              placeholder="Enter your race or office"
+              value={raceInput}
+              onChange={(e) => setRaceInput(e.target.value)}
+              className="h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/50"
+            />
             <Button 
-              size="lg" 
-              asChild
-              className="bg-[#d4af37] hover:bg-[#b8962e] text-[#0a1628] font-semibold text-lg px-8"
+              onClick={handleHeroCta}
+              className="h-12 px-8 font-semibold"
+              style={{ backgroundColor: colors.accent, color: colors.primaryDark }}
             >
-              <Link to="/campaigns/dashboard">
-                Start Your Campaign
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline"
-              asChild
-              className="border-white/30 text-white hover:bg-white/10"
-            >
-              <Link to="/campaigns/ai-manager">See How It Works</Link>
+              Go <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
-        </div>
-      </section>
 
-      {/* Problems Section */}
-      <section className="py-16 bg-[#0a1628]/50">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-8">
-              Campaigns are hard. Most candidates are on their own.
-            </h2>
-            <div className="grid gap-4">
-              {problems.map((problem, index) => (
-                <div 
-                  key={index}
-                  className="flex items-center gap-4 p-4 rounded-lg bg-red-500/10 border border-red-500/20"
-                >
-                  <div className="h-8 w-8 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
-                    <span className="text-red-400 font-bold">{index + 1}</span>
-                  </div>
-                  <p className="text-white/90 text-left">{problem}</p>
-                </div>
-              ))}
+          {/* Secondary CTA */}
+          <button 
+            className="inline-flex items-center gap-2 text-sm font-medium hover:opacity-80"
+            style={{ color: "rgba(255,255,255,0.8)" }}
+          >
+            <Play className="h-4 w-4" />
+            Watch a 2-minute demo
+          </button>
+
+          {/* Trust Badges */}
+          <div className="flex flex-wrap justify-center gap-6 mt-12">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10">
+              <Sparkles className="h-4 w-4" style={{ color: colors.accent }} />
+              <span className="text-sm text-white/80">Powered by Seeksy</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10">
+              <ShieldCheck className="h-4 w-4" style={{ color: colors.accent }} />
+              <span className="text-sm text-white/80">AI-assisted, you stay in control</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10">
+              <Scale className="h-4 w-4" style={{ color: colors.accent }} />
+              <span className="text-sm text-white/80">Built for compliance-friendly workflows</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Solution Section */}
-      <section className="py-20">
+      {/* Problem Section */}
+      <section id="how-it-works" className="py-20" style={{ backgroundColor: colors.surface }}>
+        <div className="container mx-auto px-4">
+          <h2 
+            className="text-3xl md:text-4xl font-bold text-center mb-12"
+            style={{ color: colors.textPrimary }}
+          >
+            Campaigns are hard. Most candidates are on their own.
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            {problemSteps.map((item) => (
+              <div 
+                key={item.step}
+                className="p-6 rounded-xl"
+                style={{ 
+                  backgroundColor: colors.surfaceSoft,
+                  border: `1px solid ${colors.borderSubtle}`
+                }}
+              >
+                <div 
+                  className="h-10 w-10 rounded-full flex items-center justify-center mb-4 font-bold"
+                  style={{ backgroundColor: colors.primary, color: colors.textOnDark }}
+                >
+                  {item.step}
+                </div>
+                <h3 className="font-semibold text-lg mb-2" style={{ color: colors.textPrimary }}>
+                  {item.headline}
+                </h3>
+                <p className="text-sm" style={{ color: colors.textSecondary }}>
+                  {item.body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* AI Team Section */}
+      <section id="tools" className="py-20" style={{ backgroundColor: colors.background }}>
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <h2 
+              className="text-3xl md:text-4xl font-bold mb-4"
+              style={{ color: colors.textPrimary }}
+            >
               An AI campaign team in your pocket.
             </h2>
-            <p className="text-lg text-white/70">
+            <p style={{ color: colors.textSecondary }}>
               Everything you need to run a winning campaign, powered by AI.
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            {features.map((feature, index) => (
+            {aiTeamCards.map((card, index) => (
               <Card 
                 key={index}
-                className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors"
+                className="hover:shadow-lg transition-shadow"
+                style={{ 
+                  backgroundColor: colors.surface,
+                  border: `1px solid ${colors.borderSubtle}`,
+                  borderRadius: "12px"
+                }}
               >
                 <CardContent className="p-6">
-                  <div className="h-12 w-12 rounded-lg bg-[#d4af37]/20 flex items-center justify-center mb-4">
-                    <feature.icon className="h-6 w-6 text-[#d4af37]" />
+                  <div 
+                    className="h-12 w-12 rounded-lg flex items-center justify-center mb-4"
+                    style={{ backgroundColor: `${colors.primary}15` }}
+                  >
+                    <card.icon className="h-6 w-6" style={{ color: colors.primary }} />
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
-                  <p className="text-sm text-white/70">{feature.description}</p>
+                  <h3 className="font-semibold text-lg mb-2" style={{ color: colors.textPrimary }}>
+                    {card.title}
+                  </h3>
+                  <p className="text-sm mb-4" style={{ color: colors.textSecondary }}>
+                    {card.body}
+                  </p>
+                  <Link 
+                    to={card.href}
+                    className="text-sm font-medium inline-flex items-center gap-1 hover:opacity-80"
+                    style={{ color: colors.primary }}
+                  >
+                    {card.linkLabel} <ArrowRight className="h-3 w-3" />
+                  </Link>
                 </CardContent>
               </Card>
             ))}
@@ -164,34 +402,197 @@ export default function CampaignsLandingPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-[#d4af37]/20 to-[#b8962e]/20">
+      {/* Launch Fast Section */}
+      <section id="local" className="py-20" style={{ backgroundColor: colors.surface }}>
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 
+              className="text-3xl md:text-4xl font-bold mb-4"
+              style={{ color: colors.textPrimary }}
+            >
+              Launch your campaign in minutes, not months.
+            </h2>
+            <p style={{ color: colors.textSecondary }}>
+              Designed for down-ballot and first-time candidates who need a professional operation quickly.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {launchColumns.map((col, index) => (
+              <div key={index} className="text-center">
+                <div 
+                  className="h-14 w-14 rounded-full flex items-center justify-center mx-auto mb-4"
+                  style={{ backgroundColor: colors.accentSoft }}
+                >
+                  <Check className="h-6 w-6" style={{ color: colors.primary }} />
+                </div>
+                <h3 className="font-semibold text-lg mb-2" style={{ color: colors.textPrimary }}>
+                  {col.headline}
+                </h3>
+                <p className="text-sm" style={{ color: colors.textSecondary }}>
+                  {col.body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="py-20" style={{ backgroundColor: colors.background }}>
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 
+              className="text-3xl md:text-4xl font-bold mb-4"
+              style={{ color: colors.textPrimary }}
+            >
+              Simple pricing for serious campaigns.
+            </h2>
+            <p style={{ color: colors.textSecondary }}>
+              Keep prices flexible; these are just placeholders for now.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+            {pricingPlans.map((plan, index) => (
+              <Card 
+                key={index}
+                className="relative overflow-hidden"
+                style={{ 
+                  backgroundColor: colors.surface,
+                  border: plan.highlighted ? `2px solid ${colors.primary}` : `1px solid ${colors.borderSubtle}`,
+                  borderRadius: "18px"
+                }}
+              >
+                {plan.highlighted && (
+                  <div 
+                    className="absolute top-0 right-0 px-3 py-1 text-xs font-medium rounded-bl-lg"
+                    style={{ backgroundColor: colors.primary, color: colors.textOnDark }}
+                  >
+                    Popular
+                  </div>
+                )}
+                <CardContent className="p-8">
+                  <h3 className="text-xl font-bold mb-2" style={{ color: colors.textPrimary }}>
+                    {plan.name}
+                  </h3>
+                  <div className="text-3xl font-bold mb-2" style={{ color: colors.primary }}>
+                    {plan.priceLabel}
+                  </div>
+                  <p className="text-sm mb-6" style={{ color: colors.textSecondary }}>
+                    {plan.description}
+                  </p>
+                  <ul className="space-y-3">
+                    {plan.features.map((feature, fIndex) => (
+                      <li key={fIndex} className="flex items-start gap-2 text-sm">
+                        <Check className="h-4 w-4 mt-0.5 flex-shrink-0" style={{ color: colors.primary }} />
+                        <span style={{ color: colors.textSecondary }}>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button 
+                    className="w-full mt-6 font-medium"
+                    style={{ 
+                      backgroundColor: plan.highlighted ? colors.primary : "transparent",
+                      color: plan.highlighted ? colors.textOnDark : colors.primary,
+                      border: plan.highlighted ? "none" : `1px solid ${colors.primary}`
+                    }}
+                    onClick={() => navigate("/campaigns/dashboard")}
+                  >
+                    Get Started
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Investor Strip */}
+      <section 
+        className="py-16"
+        style={{ backgroundColor: colors.primaryDark }}
+      >
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Launch your campaign in minutes, not months.
+          <h2 className="text-2xl md:text-3xl font-bold mb-4" style={{ color: colors.textOnDark }}>
+            CampaignStaff.ai as an investment opportunity
           </h2>
-          <p className="text-lg text-white/70 mb-8 max-w-2xl mx-auto">
-            Join thousands of candidates who are winning their races with AI-powered campaign tools.
+          <p className="mb-6 max-w-2xl mx-auto" style={{ color: "rgba(255,255,255,0.8)" }}>
+            The same AI infrastructure that powers our veteran and benefits tools now powers a reusable, scalable campaign platform that can support thousands of races each cycle.
           </p>
           <Button 
-            size="lg" 
             asChild
-            className="bg-[#d4af37] hover:bg-[#b8962e] text-[#0a1628] font-semibold text-lg px-8"
+            style={{ backgroundColor: colors.accent, color: colors.primaryDark }}
+            className="font-medium"
           >
-            <Link to="/campaigns/dashboard">
-              Create Free Campaign Account
-              <ArrowRight className="ml-2 h-5 w-5" />
+            <Link to="/invest/campaignstaff">
+              View Investor Overview <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-8 border-t border-white/10">
-        <div className="container mx-auto px-4 text-center text-white/50 text-sm">
-          <p>© {new Date().getFullYear()} CampaignStaff.ai — A Seeksy Product</p>
+      <footer style={{ backgroundColor: colors.backgroundAlt }} className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-4 gap-8 mb-12">
+            {/* Logo Column */}
+            <div>
+              <Link to="/campaigns" className="flex items-center gap-2 mb-4">
+                <div 
+                  className="h-9 w-9 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: colors.primary }}
+                >
+                  <span className="text-white font-bold text-lg">C</span>
+                </div>
+                <span className="text-xl font-bold text-white">
+                  Campaign<span style={{ color: colors.accent }}>Staff</span>.ai
+                </span>
+              </Link>
+              <p className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+                AI-powered campaign tools for every candidate.
+              </p>
+            </div>
+
+            {/* Footer Link Sections */}
+            {footerSections.map((section, index) => (
+              <div key={index}>
+                <h4 className="font-semibold text-white mb-4">{section.title}</h4>
+                <ul className="space-y-2">
+                  {section.links.map((link, lIndex) => (
+                    <li key={lIndex}>
+                      <Link 
+                        to={link.href}
+                        className="text-sm hover:opacity-80"
+                        style={{ color: "rgba(255,255,255,0.6)" }}
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom Note */}
+          <div 
+            className="border-t pt-8 text-center text-xs"
+            style={{ borderColor: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}
+          >
+            <p className="mb-2">
+              © {new Date().getFullYear()} CampaignStaff.ai — A Seeksy Product
+            </p>
+            <p className="max-w-3xl mx-auto">
+              CampaignStaff.ai is a non-partisan technology platform. You are responsible for complying with all local, state, and federal campaign rules and reporting requirements.
+            </p>
+          </div>
         </div>
       </footer>
+
+      {/* Auth Modal */}
+      <CampaignAuthModal 
+        open={authModalOpen} 
+        onOpenChange={setAuthModalOpen}
+      />
     </div>
   );
 }
