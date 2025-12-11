@@ -47,7 +47,12 @@ export function PosterHeroBackground() {
       if (data?.imageUrl) {
         setPosterImages(prev => {
           const updated = { ...prev, [poster.id]: data.imageUrl };
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+          // Try to cache, but don't fail if quota exceeded
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+          } catch (e) {
+            console.warn("LocalStorage quota exceeded, skipping cache");
+          }
           return updated;
         });
       }
