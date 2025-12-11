@@ -3,7 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, MessageSquare, Send, User, Bot, FileText, Shield, Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { ArrowLeft, MessageSquare, Send, User, Bot, FileText, Shield, Loader2, ExternalLink, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -42,6 +44,14 @@ export default function ClaimsAgent() {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showHandoffModal, setShowHandoffModal] = useState(false);
+  const [isSubmittingLead, setIsSubmittingLead] = useState(false);
+  const [leadForm, setLeadForm] = useState({
+    name: "",
+    email: "",
+    phone: ""
+  });
+  const [error, setError] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -56,6 +66,7 @@ export default function ClaimsAgent() {
 
     const userMessage = input.trim();
     setInput("");
+    setError(null);
     setMessages(prev => [...prev, { role: "user", content: userMessage }]);
     setIsLoading(true);
 
@@ -74,17 +85,70 @@ export default function ClaimsAgent() {
         throw new Error(response.error.message);
       }
 
+      // Handle specific error responses from edge function
+      if (response.data?.error) {
+        if (response.data.error.includes("Rate limit")) {
+          setError("We're experiencing high demand. Please wait a moment and try again.");
+        } else if (response.data.error.includes("credits")) {
+          setError("Service temporarily unavailable. Please try again later.");
+        } else {
+          setError(response.data.error);
+        }
+        return;
+      }
+
       const assistantMessage = response.data?.message || "I'm sorry, I couldn't process that. Could you try again?";
       setMessages(prev => [...prev, { role: "assistant", content: assistantMessage }]);
     } catch (error) {
       console.error("Chat error:", error);
-      toast.error("Failed to send message. Please try again.");
+      setError("Connection issue. Please check your internet and try again.");
       setMessages(prev => [...prev, { 
         role: "assistant", 
-        content: "I'm having trouble connecting right now. Please try again in a moment." 
+        content: "I'm having trouble connecting right now. Please try again in a moment, or if this continues, you can reach out to us directly." 
       }]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSubmitLead = async () => {
+    if (!leadForm.name || !leadForm.email) {
+      toast.error("Please provide your name and email");
+      return;
+    }
+
+    setIsSubmittingLead(true);
+
+    try {
+      // Extract conversation summary for notes
+      const conversationSummary = messages
+        .map(m => `${m.role}: ${m.content.substring(0, 200)}...`)
+        .join("\n\n");
+
+      const { error } = await supabase
+        .from("veteran_leads")
+        .insert({
+          name: leadForm.name,
+          email: leadForm.email,
+          phone: leadForm.phone || null,
+          source: "claims-agent-mvp",
+          notes: `Conversation summary:\n${conversationSummary}`,
+          status: "new"
+        });
+
+      if (error) throw error;
+
+      toast.success("Thank you! A claims specialist will contact you within 24 hours.");
+      setShowHandoffModal(false);
+      setMessages(prev => [...prev, {
+        role: "assistant",
+        content: "Great! I've connected you with our partner claims filing company. They'll reach out within 24 hours to help you file your claim. In the meantime, feel free to ask me any other questions about your benefits."
+      }]);
+    } catch (error) {
+      console.error("Lead submission error:", error);
+      toast.error("Failed to submit. Please try again or contact us directly.");
+    } finally {
+      setIsSubmittingLead(false);
     }
   };
 
@@ -136,17 +200,34 @@ export default function ClaimsAgent() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <FileText className="w-4 h-4" />
-                  Your Data
+                  Ready to File?
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                <p>Your conversation is private and secure. At the end, you can download a summary or connect with a filing partner.</p>
+              <CardContent className="text-sm">
+                <p className="text-muted-foreground mb-3">
+                  Connect with a professional claims filing partner.
+                </p>
+                <Button 
+                  size="sm" 
+                  className="w-full bg-orange-600 hover:bg-orange-700"
+                  onClick={() => setShowHandoffModal(true)}
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Send to Partner
+                </Button>
               </CardContent>
             </Card>
           </div>
 
           {/* Chat Area */}
           <div className="md:col-span-3">
+            {error && (
+              <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center gap-2 text-destructive">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span className="text-sm">{error}</span>
+              </div>
+            )}
+            
             <Card className="h-[600px] flex flex-col">
               <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
                 <div className="space-y-4">
@@ -202,11 +283,88 @@ export default function ClaimsAgent() {
                     <Send className="w-4 h-4" />
                   </Button>
                 </form>
+                
+                {/* Mobile handoff button */}
+                <div className="md:hidden mt-3">
+                  <Button 
+                    variant="outline"
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => setShowHandoffModal(true)}
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Connect with Filing Partner
+                  </Button>
+                </div>
               </div>
             </Card>
           </div>
         </div>
       </div>
+
+      {/* Lead Handoff Modal */}
+      <Dialog open={showHandoffModal} onOpenChange={setShowHandoffModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Connect with a Claims Specialist</DialogTitle>
+            <DialogDescription>
+              Enter your contact information and a professional claims filing partner will reach out within 24 hours to help you file your VA disability claim.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Full Name *</Label>
+              <Input 
+                id="name"
+                value={leadForm.name}
+                onChange={(e) => setLeadForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="John Smith"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email *</Label>
+              <Input 
+                id="email"
+                type="email"
+                value={leadForm.email}
+                onChange={(e) => setLeadForm(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="john@example.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone (Optional)</Label>
+              <Input 
+                id="phone"
+                type="tel"
+                value={leadForm.phone}
+                onChange={(e) => setLeadForm(prev => ({ ...prev, phone: e.target.value }))}
+                placeholder="(555) 123-4567"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowHandoffModal(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSubmitLead}
+              disabled={isSubmittingLead}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              {isSubmittingLead ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                "Submit"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

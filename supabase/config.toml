@@ -452,3 +452,6 @@ verify_jwt = false
 
 [functions.notify-board-invite-accepted]
 verify_jwt = false
+
+[functions.veteran-claims-chat]
+verify_jwt = false

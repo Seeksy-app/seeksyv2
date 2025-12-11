@@ -509,6 +509,12 @@ import BoardSettings from "./pages/board/BoardSettings";
 import BoardSalesOpportunities from "./pages/board/BoardSalesOpportunities";
 import BoardInvestorPortal from "./pages/investor/InvestorPortal";
 import InvestOpportunityPage from "./pages/invest/InvestOpportunityPage";
+import VeteranBenefitsOpportunity from "./pages/invest/VeteranBenefitsOpportunity";
+import VeteransHome from "./pages/veterans/VeteransHome";
+import MilitaryBuyBackCalculator from "./pages/veterans/calculators/MilitaryBuyBackCalculator";
+import MRACalculator from "./pages/veterans/calculators/MRACalculator";
+import SickLeaveCalculator from "./pages/veterans/calculators/SickLeaveCalculator";
+import VeteranClaimsAgent from "./pages/veterans/ClaimsAgent";
 import BoardMemberManagement from "./pages/admin/BoardMemberManagement";
 import { BoardGuard } from "./components/board/BoardGuard";
 import { BoardLayout } from "./components/board/BoardLayout";
@@ -1123,6 +1129,14 @@ const AppContent = () => {
           </Route>
           <Route path="/investor/:token" element={<BoardInvestorPortal />} />
           <Route path="/invest/:slug" element={<InvestOpportunityPage />} />
+          <Route path="/invest/veteran-benefits" element={<VeteranBenefitsOpportunity />} />
+          
+          {/* Veterans Platform - Public */}
+          <Route path="/veterans" element={<VeteransHome />} />
+          <Route path="/veterans/calculators/military-buyback" element={<MilitaryBuyBackCalculator />} />
+          <Route path="/veterans/calculators/mra" element={<MRACalculator />} />
+          <Route path="/veterans/calculators/sick-leave" element={<SickLeaveCalculator />} />
+          <Route path="/veterans/claims-agent" element={<VeteranClaimsAgent />} />
           
           {/* Admin Financials Routes (reuse Board components) */}
           <Route path="/admin/financials/key-metrics" element={<BoardKeyMetrics />} />

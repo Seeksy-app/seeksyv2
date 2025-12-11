@@ -23624,6 +23624,57 @@ export type Database = {
         }
         Relationships: []
       }
+      veteran_leads: {
+        Row: {
+          branch_of_service: string | null
+          conditions: string[] | null
+          created_at: string
+          email: string
+          existing_rating: number | null
+          id: string
+          name: string
+          notes: string | null
+          pdf_url: string | null
+          phone: string | null
+          service_dates: string | null
+          source: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          branch_of_service?: string | null
+          conditions?: string[] | null
+          created_at?: string
+          email: string
+          existing_rating?: number | null
+          id?: string
+          name: string
+          notes?: string | null
+          pdf_url?: string | null
+          phone?: string | null
+          service_dates?: string | null
+          source?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          branch_of_service?: string | null
+          conditions?: string[] | null
+          created_at?: string
+          email?: string
+          existing_rating?: number | null
+          id?: string
+          name?: string
+          notes?: string | null
+          pdf_url?: string | null
+          phone?: string | null
+          service_dates?: string | null
+          source?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       video_markers: {
         Row: {
           created_at: string | null
