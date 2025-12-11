@@ -122,7 +122,10 @@ export default function TruckingLayout({ children }: TruckingLayoutProps) {
                     AITrucking
                   </span>
                   <span className="text-xs" style={{ color: theme.text.muted }}>
-                    D &amp; L Logistics
+                    D and L Transport
+                  </span>
+                  <span className="text-xs" style={{ color: theme.text.muted }}>
+                    (888) 785-7499
                   </span>
                 </div>
               )}
