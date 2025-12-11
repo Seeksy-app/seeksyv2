@@ -1,13 +1,23 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Search, FileText, Calendar, Mail, Users, Megaphone, Ticket, Image, Radio, ClipboardList, Award, DollarSign, FileSpreadsheet, Newspaper, Smartphone, User, Settings } from "lucide-react";
+import { 
+  Search, FileText, Calendar, Mail, Users, Megaphone, Ticket, Image, Radio, 
+  ClipboardList, Award, DollarSign, FileSpreadsheet, Newspaper, Smartphone, 
+  User, Settings, LayoutDashboard, Inbox, CreditCard, MessageCircle, CalendarCheck,
+  Link, Clock, Flag, Sliders, Trophy, Target, Calculator, Send, GitBranch, Palette,
+  Tv, BookOpen, Library, Folder, Video, Bot, Headphones, ShieldCheck, Fingerprint,
+  UserCog, Rss, Brain, Globe, Puzzle, Key, Webhook, ScrollText, Network, Activity,
+  DatabaseBackup, HelpCircle, LayoutGrid, Wrench, ListTodo, PenTool, Package,
+  TrendingUp, BarChart2, UserPlus, CheckSquare
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { NAVIGATION_CONFIG } from "@/config/navigation";
 
 interface SearchResult {
   id: string;
@@ -22,6 +32,69 @@ interface SearchResult {
 interface GroupedResults {
   [category: string]: SearchResult[];
 }
+
+// Icon mapping from string names to components
+const iconMap: Record<string, any> = {
+  "layout-dashboard": LayoutDashboard,
+  "inbox": Inbox,
+  "mail": Mail,
+  "pen-tool": PenTool,
+  "megaphone": Megaphone,
+  "dollar-sign": DollarSign,
+  "radio": Radio,
+  "package": Package,
+  "trending-up": TrendingUp,
+  "bar-chart-2": BarChart2,
+  "user-plus": UserPlus,
+  "users": Users,
+  "globe": Globe,
+  "credit-card": CreditCard,
+  "message-circle": MessageCircle,
+  "calendar-check": CalendarCheck,
+  "calendar": Calendar,
+  "link": Link,
+  "clock": Clock,
+  "settings": Settings,
+  "flag": Flag,
+  "sliders": Sliders,
+  "trophy": Trophy,
+  "target": Target,
+  "file-spreadsheet": FileSpreadsheet,
+  "calculator": Calculator,
+  "send": Send,
+  "git-branch": GitBranch,
+  "search": Search,
+  "image": Image,
+  "layout": LayoutDashboard,
+  "palette": Palette,
+  "tv": Tv,
+  "book-open": BookOpen,
+  "library": Library,
+  "settings-2": Settings,
+  "folder": Folder,
+  "video": Video,
+  "bot": Bot,
+  "headphones": Headphones,
+  "shield-check": ShieldCheck,
+  "fingerprint": Fingerprint,
+  "user-cog": UserCog,
+  "rss": Rss,
+  "brain": Brain,
+  "puzzle": Puzzle,
+  "key": Key,
+  "webhook": Webhook,
+  "scroll-text": ScrollText,
+  "network": Network,
+  "activity": Activity,
+  "database-backup": DatabaseBackup,
+  "help-circle": HelpCircle,
+  "layout-grid": LayoutGrid,
+  "wrench": Wrench,
+  "list-todo": ListTodo,
+  "gantt-chart": BarChart2,
+  "file-text": FileText,
+  "check-square": CheckSquare,
+};
 
 export const MasterSearch = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -42,25 +115,55 @@ export const MasterSearch = () => {
     },
   });
 
-  // Static pages that are always searchable
-  const staticPages: SearchResult[] = [
-    { id: "dashboard", title: "Dashboard", type: "Page", category: "Pages", url: "/dashboard", icon: FileText },
-    { id: "meetings", title: "Meetings", type: "Page", category: "Pages", url: "/meetings", icon: Calendar },
-    { id: "events", title: "Events", type: "Page", category: "Pages", url: "/events", icon: Calendar },
-    { id: "marketing", title: "Marketing", type: "Page", category: "Pages", url: "/marketing", icon: Megaphone },
-    { id: "crm", title: "CRM & Contacts", type: "Page", category: "Pages", url: "/crm", icon: Users },
-    { id: "pm", title: "Project Management", type: "Page", category: "Pages", url: "/project-management", icon: Ticket },
-    { id: "lead", title: "Create Field Lead", type: "Page", category: "Pages", url: "/create-lead", icon: ClipboardList },
-    { id: "media", title: "Media Library", type: "Page", category: "Pages", url: "/media-library", icon: Image },
-    { id: "podcasts", title: "Podcasts", type: "Page", category: "Pages", url: "/podcasts", icon: Radio },
-    { id: "awards", title: "Awards", type: "Page", category: "Pages", url: "/awards", icon: Award },
-    { id: "cfo", title: "CFO Dashboard", type: "Page", category: "Pages", url: "/cfo-dashboard", icon: DollarSign },
-    { id: "blog", title: "Blog", type: "Page", category: "Pages", url: "/blog", icon: Newspaper },
-    { id: "sms", title: "SMS Marketing", type: "Page", category: "Pages", url: "/sms", icon: Smartphone },
-    { id: "profile", title: "Profile Settings", type: "Page", category: "Pages", url: "/profile-settings", icon: User },
-    { id: "admin", title: "Admin Dashboard", type: "Page", category: "Pages", url: "/admin", icon: Settings },
-    { id: "app-audio", title: "App Audio", type: "Page", category: "Marketing", url: "/marketing/app-audio", icon: Megaphone, description: "Manage app audio descriptions" },
-  ];
+  // Build searchable pages from navigation config + static pages
+  const staticPages: SearchResult[] = useMemo(() => {
+    const pages: SearchResult[] = [];
+    
+    // Add all pages from navigation config
+    NAVIGATION_CONFIG.navigation.forEach(group => {
+      group.items.forEach(item => {
+        const IconComponent = iconMap[item.icon] || FileText;
+        pages.push({
+          id: item.id,
+          title: item.label,
+          type: "Page",
+          category: group.group,
+          url: item.path,
+          icon: IconComponent,
+          description: item.description,
+        });
+      });
+    });
+
+    // Add additional pages not in admin nav
+    const additionalPages: SearchResult[] = [
+      { id: "tasks", title: "Tasks", type: "Page", category: "Project Management", url: "/tasks", icon: ListTodo, description: "Task management" },
+      { id: "creator-dashboard", title: "Creator Dashboard", type: "Page", category: "Creator", url: "/dashboard", icon: LayoutDashboard },
+      { id: "meetings", title: "Meetings", type: "Page", category: "Pages", url: "/meetings", icon: Calendar },
+      { id: "events", title: "Events", type: "Page", category: "Pages", url: "/events", icon: Calendar },
+      { id: "marketing", title: "Marketing", type: "Page", category: "Marketing", url: "/marketing", icon: Megaphone },
+      { id: "crm", title: "CRM & Contacts", type: "Page", category: "Pages", url: "/crm", icon: Users },
+      { id: "podcasts", title: "Podcasts", type: "Page", category: "Media", url: "/podcasts", icon: Radio },
+      { id: "awards", title: "Awards", type: "Page", category: "Pages", url: "/awards", icon: Award },
+      { id: "blog", title: "Blog", type: "Page", category: "Content", url: "/blog", icon: Newspaper },
+      { id: "profile", title: "Profile Settings", type: "Page", category: "Settings", url: "/profile-settings", icon: User },
+      { id: "app-audio", title: "App Audio", type: "Page", category: "Marketing", url: "/marketing/app-audio", icon: Megaphone, description: "Manage app audio descriptions" },
+      { id: "board-dashboard", title: "Board Dashboard", type: "Page", category: "Board Portal", url: "/board", icon: LayoutDashboard },
+      { id: "board-proforma", title: "Board Pro Forma", type: "Page", category: "Board Portal", url: "/board/proforma", icon: DollarSign },
+      { id: "board-gtm", title: "Board GTM Strategy", type: "Page", category: "Board Portal", url: "/board/gtm", icon: Target },
+      { id: "veterans", title: "Veteran Benefits", type: "Page", category: "Veterans", url: "/veterans", icon: Users },
+      { id: "veterans-claims", title: "Veteran Claims Agent", type: "Page", category: "Veterans", url: "/veterans/claims-agent", icon: MessageCircle },
+    ];
+
+    // Add additional pages, avoiding duplicates
+    additionalPages.forEach(page => {
+      if (!pages.find(p => p.url === page.url)) {
+        pages.push(page);
+      }
+    });
+
+    return pages;
+  }, []);
 
   useEffect(() => {
     const searchContent = async () => {
@@ -71,10 +174,12 @@ export const MasterSearch = () => {
 
       const query = searchQuery.toLowerCase();
       
-      // Filter static pages
+      // Filter static pages - search by title, type, category, and description
       const pageResults = staticPages.filter(page => 
         page.title.toLowerCase().includes(query) ||
-        page.type.toLowerCase().includes(query)
+        page.type.toLowerCase().includes(query) ||
+        page.category.toLowerCase().includes(query) ||
+        (page.description && page.description.toLowerCase().includes(query))
       );
 
       // Try AI search for better results

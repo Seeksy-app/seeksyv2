@@ -406,6 +406,29 @@ export const NAVIGATION_CONFIG: {
     },
 
     {
+      "group": "Project Management",
+      "description": "Tasks and project tracking",
+      "collapsible": true,
+      "items": [
+        {
+          "id": "admin_tasks",
+          "label": "Tasks",
+          "icon": "list-todo",
+          "path": "/tasks",
+          "roles": ["admin", "super_admin", "manager", "cfo", "cmo", "cco"],
+          "description": "Task management and tracking"
+        },
+        {
+          "id": "admin_projects",
+          "label": "Projects",
+          "icon": "folder",
+          "path": "/admin/projects",
+          "roles": ["admin", "super_admin", "manager"]
+        }
+      ]
+    },
+
+    {
       "group": "User Management",
       "description": "User, team, and access management",
       "collapsible": true,
