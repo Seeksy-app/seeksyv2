@@ -536,6 +536,8 @@ import VAMeansTestCalculator from "./pages/veterans/calculators/VAMeansTestCalcu
 import StateTaxBenefitsCalculator from "./pages/veterans/calculators/StateTaxBenefitsCalculator";
 import PropertyTaxExemptionCalculator from "./pages/veterans/calculators/PropertyTaxExemptionCalculator";
 import VeteransAuth from "./pages/veterans/VeteransAuth";
+import VeteransSettings from "./pages/veterans/VeteransSettings";
+import VeteransDashboard from "./pages/veterans/VeteransDashboard";
 import { VeteransLayout } from "./components/veterans/VeteransLayout";
 import BoardMemberManagement from "./pages/admin/BoardMemberManagement";
 import { BoardGuard } from "./components/board/BoardGuard";
@@ -679,6 +681,8 @@ const AppContent = () => {
       <Routes>
         <Route path="/yourbenefits" element={<VeteransHome />} />
         <Route path="/yourbenefits/auth" element={<VeteransAuth />} />
+        <Route path="/yourbenefits/dashboard" element={<VeteransLayout><VeteransDashboard /></VeteransLayout>} />
+        <Route path="/yourbenefits/settings" element={<VeteransLayout><VeteransSettings /></VeteransLayout>} />
         <Route path="/yourbenefits/claims-agent" element={<VeteransLayout><VeteranClaimsAgent /></VeteransLayout>} />
         <Route path="/yourbenefits/calculators/military-buyback" element={<VeteransLayout><MilitaryBuyBackCalculator /></VeteransLayout>} />
         <Route path="/yourbenefits/calculators/mra" element={<VeteransLayout><MRACalculator /></VeteransLayout>} />

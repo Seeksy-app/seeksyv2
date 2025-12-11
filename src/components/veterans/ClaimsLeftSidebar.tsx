@@ -25,21 +25,26 @@ export function ClaimsLeftSidebar({ currentStep, onHandoffClick, onCalculatorsCl
             Estimate your benefits with our free tools.
           </p>
           <div className="space-y-2">
-            <Link to="/veterans/calculators/va-combined-rating">
+            <Link to="/yourbenefits/calculators/va-combined-rating">
               <Button variant="ghost" size="sm" className="w-full justify-start text-sm">
                 VA Combined Rating
               </Button>
             </Link>
-            <Link to="/veterans/calculators/va-compensation">
+            <Link to="/yourbenefits/calculators/va-compensation">
               <Button variant="ghost" size="sm" className="w-full justify-start text-sm">
                 Monthly Compensation
               </Button>
             </Link>
-            <Link to="/yourbenefits">
-              <Button variant="outline" size="sm" className="w-full text-sm">
-                View All Calculators
+            <Link to="/yourbenefits/calculators/tsp-growth">
+              <Button variant="ghost" size="sm" className="w-full justify-start text-sm">
+                TSP Calculator
               </Button>
             </Link>
+            {onCalculatorsClick && (
+              <Button variant="outline" size="sm" className="w-full text-sm" onClick={onCalculatorsClick}>
+                View All Calculators
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

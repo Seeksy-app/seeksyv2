@@ -121,6 +121,7 @@ export default function ClaimsAgent() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingConversation, setIsLoadingConversation] = useState(true);
   const [showHandoffModal, setShowHandoffModal] = useState(false);
+  const [showCalculators, setShowCalculators] = useState(false);
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
   const [leadForm, setLeadForm] = useState({ name: "", email: "", phone: "" });
   const [error, setError] = useState<string | null>(null);
@@ -473,15 +474,70 @@ export default function ClaimsAgent() {
           <Button 
             variant="outline" 
             size="sm" 
-            asChild
+            onClick={() => setShowCalculators(true)}
           >
-            <Link to="/yourbenefits#calculators-section">
-              <Calculator className="w-4 h-4 mr-2" />
-              Calculators
-            </Link>
+            <Calculator className="w-4 h-4 mr-2" />
+            Calculators
           </Button>
         </div>
       </header>
+
+      {/* Calculators Modal */}
+      <Dialog open={showCalculators} onOpenChange={setShowCalculators}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calculator className="w-5 h-5 text-primary" />
+              Benefit Calculators
+            </DialogTitle>
+            <DialogDescription>
+              Estimate your military and federal benefits
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 py-4">
+            <Link to="/yourbenefits/calculators/va-combined-rating" onClick={() => setShowCalculators(false)}>
+              <Button variant="outline" className="w-full justify-start h-auto py-3">
+                <div className="text-left">
+                  <p className="font-medium">VA Combined Rating</p>
+                  <p className="text-xs text-muted-foreground">Calculate combined disability rating</p>
+                </div>
+              </Button>
+            </Link>
+            <Link to="/yourbenefits/calculators/va-compensation" onClick={() => setShowCalculators(false)}>
+              <Button variant="outline" className="w-full justify-start h-auto py-3">
+                <div className="text-left">
+                  <p className="font-medium">VA Compensation</p>
+                  <p className="text-xs text-muted-foreground">Estimate monthly compensation</p>
+                </div>
+              </Button>
+            </Link>
+            <Link to="/yourbenefits/calculators/tsp" onClick={() => setShowCalculators(false)}>
+              <Button variant="outline" className="w-full justify-start h-auto py-3">
+                <div className="text-left">
+                  <p className="font-medium">TSP Calculator</p>
+                  <p className="text-xs text-muted-foreground">Project retirement savings</p>
+                </div>
+              </Button>
+            </Link>
+            <Link to="/yourbenefits/calculators/military-buyback" onClick={() => setShowCalculators(false)}>
+              <Button variant="outline" className="w-full justify-start h-auto py-3">
+                <div className="text-left">
+                  <p className="font-medium">Military Buy-Back</p>
+                  <p className="text-xs text-muted-foreground">Calculate service credit deposit</p>
+                </div>
+              </Button>
+            </Link>
+            <Link to="/yourbenefits/calculators/sick-leave" onClick={() => setShowCalculators(false)}>
+              <Button variant="outline" className="w-full justify-start h-auto py-3">
+                <div className="text-left">
+                  <p className="font-medium">Sick Leave Credit</p>
+                  <p className="text-xs text-muted-foreground">Convert leave to service time</p>
+                </div>
+              </Button>
+            </Link>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Main Chat Area */}
       <div className="flex-1 flex overflow-hidden">
@@ -603,6 +659,7 @@ export default function ClaimsAgent() {
           <ClaimsRightSidebar 
             notes={notes} 
             userName={userName}
+            profile={profile}
           />
         </div>
       </div>

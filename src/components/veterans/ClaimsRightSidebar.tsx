@@ -9,6 +9,13 @@ export interface ClaimsNote {
   value: string;
 }
 
+interface VeteranProfile {
+  service_status: string | null;
+  branch_of_service: string | null;
+  has_intent_to_file: boolean | null;
+  last_claim_stage: string | null;
+}
+
 interface ClaimsRightSidebarProps {
   notes: ClaimsNote[];
   intakeData?: {
@@ -18,6 +25,7 @@ interface ClaimsRightSidebarProps {
     primaryGoals: string[];
   };
   userName?: string;
+  profile?: VeteranProfile | null;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -56,7 +64,7 @@ const PRIMARY_GOAL_LABELS: Record<string, string> = {
   understand_rating: "Understanding Rating",
 };
 
-export function ClaimsRightSidebar({ notes, intakeData, userName }: ClaimsRightSidebarProps) {
+export function ClaimsRightSidebar({ notes, intakeData, userName, profile }: ClaimsRightSidebarProps) {
   const claimedConditions = notes.filter(n => 
     n.category.toLowerCase().includes('condition') || 
     n.category.toLowerCase().includes('symptom')
@@ -122,7 +130,33 @@ export function ClaimsRightSidebar({ notes, intakeData, userName }: ClaimsRightS
       <CardContent className="flex-1 overflow-hidden p-0">
         <ScrollArea className="h-full">
           <div className="p-5 space-y-5">
-            {/* Status Section */}
+            {/* Profile-based Status Section (always show when profile exists) */}
+            {!intakeData && profile && (
+              <>
+                {profile.service_status && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Status</p>
+                    </div>
+                    <p className="text-[15px] pl-6">• {STATUS_LABELS[profile.service_status] || profile.service_status}</p>
+                  </div>
+                )}
+                {profile.service_status && profile.branch_of_service && <Separator />}
+                {profile.branch_of_service && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Flag className="w-4 h-4 text-muted-foreground" />
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Branch of Service</p>
+                    </div>
+                    <p className="text-[15px] pl-6">• {BRANCH_LABELS[profile.branch_of_service] || profile.branch_of_service}</p>
+                  </div>
+                )}
+                {(profile.service_status || profile.branch_of_service) && <Separator />}
+              </>
+            )}
+            
+            {/* IntakeData-based Status Section */}
             {intakeData && (
               <>
                 <div>
