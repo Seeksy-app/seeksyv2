@@ -225,27 +225,27 @@ Let's start by getting to know you. **What's your name**, and how would you like
     <CampaignLayout>
       <div className="grid lg:grid-cols-[280px_1fr_320px] gap-6 h-[calc(100vh-200px)] min-h-[600px]">
         {/* Left Sidebar */}
-        <Card className="bg-white/5 border-white/10 hidden lg:block">
+        <Card className="bg-white border-gray-200 hidden lg:block">
           <CardHeader>
-            <CardTitle className="text-white text-lg">What We'll Cover</CardTitle>
+            <CardTitle className="text-gray-900 text-lg">What We&apos;ll Cover</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {sidebarItems.map((item, index) => (
                 <div 
                   key={index}
-                  className="flex items-center gap-3 p-3 rounded-lg bg-white/5"
+                  className="flex items-center gap-3 p-3 rounded-lg bg-gray-50"
                 >
                   <div className={`h-6 w-6 rounded-full flex items-center justify-center ${
-                    item.completed ? "bg-green-500/20" : "bg-white/10"
+                    item.completed ? "bg-green-500/20" : "bg-gray-100"
                   }`}>
                     {item.completed ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-400" />
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
                     ) : (
-                      <span className="text-white/60 text-sm">{index + 1}</span>
+                      <span className="text-gray-500 text-sm">{index + 1}</span>
                     )}
                   </div>
-                  <span className={`text-sm ${item.completed ? "text-green-400" : "text-white/80"}`}>
+                  <span className={`text-sm ${item.completed ? "text-green-600" : "text-gray-700"}`}>
                     {item.label}
                   </span>
                 </div>
@@ -255,14 +255,14 @@ Let's start by getting to know you. **What's your name**, and how would you like
         </Card>
 
         {/* Main Chat */}
-        <Card className="bg-white/5 border-white/10 flex flex-col">
-          <CardHeader className="border-b border-white/10">
-            <CardTitle className="text-white flex items-center gap-2">
+        <Card className="bg-white border-gray-200 flex flex-col">
+          <CardHeader className="border-b border-gray-200">
+            <CardTitle className="text-gray-900 flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-[#d4af37]" />
               AI Campaign Manager
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex-1 flex flex-col p-0">
+          <CardContent className="flex-1 flex flex-col p-0 bg-gray-50">
             <ScrollArea className="flex-1 p-4">
               <div className="space-y-4">
                 {messages.map((message) => (
@@ -279,7 +279,7 @@ Let's start by getting to know you. **What's your name**, and how would you like
                       className={`max-w-[80%] rounded-xl px-4 py-3 ${
                         message.role === "user"
                           ? "bg-[#d4af37] text-[#0a1628]"
-                          : "bg-white/10 text-white"
+                          : "bg-white border border-gray-200 text-gray-900"
                       }`}
                     >
                       <p className="text-sm whitespace-pre-wrap" dangerouslySetInnerHTML={{
@@ -289,8 +289,8 @@ Let's start by getting to know you. **What's your name**, and how would you like
                       }} />
                     </div>
                     {message.role === "user" && (
-                      <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                        <UserCircle className="h-4 w-4 text-white" />
+                      <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                        <UserCircle className="h-4 w-4 text-gray-600" />
                       </div>
                     )}
                   </div>
@@ -300,11 +300,11 @@ Let's start by getting to know you. **What's your name**, and how would you like
                     <div className="h-8 w-8 rounded-full bg-[#d4af37]/20 flex items-center justify-center">
                       <Bot className="h-4 w-4 text-[#d4af37] animate-pulse" />
                     </div>
-                    <div className="bg-white/10 rounded-xl px-4 py-3">
+                    <div className="bg-white border border-gray-200 rounded-xl px-4 py-3">
                       <div className="flex gap-1">
-                        <span className="h-2 w-2 bg-white/40 rounded-full animate-bounce" />
-                        <span className="h-2 w-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }} />
-                        <span className="h-2 w-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
+                        <span className="h-2 w-2 bg-gray-400 rounded-full animate-bounce" />
+                        <span className="h-2 w-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }} />
+                        <span className="h-2 w-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
                       </div>
                     </div>
                   </div>
@@ -314,14 +314,14 @@ Let's start by getting to know you. **What's your name**, and how would you like
             </ScrollArea>
 
             {/* Input */}
-            <div className="p-4 border-t border-white/10">
+            <div className="p-4 border-t border-gray-200 bg-white">
               <div className="flex gap-3">
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Type your message..."
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                  className="bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400"
                   disabled={isLoading}
                 />
                 <Button 
@@ -337,43 +337,43 @@ Let's start by getting to know you. **What's your name**, and how would you like
         </Card>
 
         {/* Right Sidebar - Campaign Summary */}
-        <Card className="bg-white/5 border-white/10 hidden lg:block">
+        <Card className="bg-white border-gray-200 hidden lg:block">
           <CardHeader>
-            <CardTitle className="text-white text-lg">Campaign Summary</CardTitle>
+            <CardTitle className="text-gray-900 text-lg">Campaign Summary</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <span className="text-white/60 text-sm">Candidate Name</span>
-              <p className="text-white font-medium">{summary.candidateName || "—"}</p>
+              <span className="text-gray-500 text-sm">Candidate Name</span>
+              <p className="text-gray-900 font-medium">{summary.candidateName || "—"}</p>
             </div>
             <div>
-              <span className="text-white/60 text-sm">Preferred Name</span>
-              <p className="text-white">{summary.preferredName || "—"}</p>
+              <span className="text-gray-500 text-sm">Preferred Name</span>
+              <p className="text-gray-900">{summary.preferredName || "—"}</p>
             </div>
             <div>
-              <span className="text-white/60 text-sm">Office</span>
-              <p className="text-white">{summary.office || "—"}</p>
+              <span className="text-gray-500 text-sm">Office</span>
+              <p className="text-gray-900">{summary.office || "—"}</p>
             </div>
             <div>
-              <span className="text-white/60 text-sm">Jurisdiction</span>
-              <p className="text-white">{summary.jurisdiction || "—"}</p>
+              <span className="text-gray-500 text-sm">Jurisdiction</span>
+              <p className="text-gray-900">{summary.jurisdiction || "—"}</p>
             </div>
             <div>
-              <span className="text-white/60 text-sm">Election Date</span>
-              <p className="text-white">{summary.electionDate || "—"}</p>
+              <span className="text-gray-500 text-sm">Election Date</span>
+              <p className="text-gray-900">{summary.electionDate || "—"}</p>
             </div>
             <div>
-              <span className="text-white/60 text-sm">Status</span>
+              <span className="text-gray-500 text-sm">Status</span>
               <Badge className="bg-[#d4af37]/20 text-[#d4af37] mt-1">
                 {summary.status}
               </Badge>
             </div>
             {summary.topIssues.length > 0 && (
               <div>
-                <span className="text-white/60 text-sm">Top Issues</span>
+                <span className="text-gray-500 text-sm">Top Issues</span>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {summary.topIssues.map((issue, i) => (
-                    <Badge key={i} variant="outline" className="border-white/20 text-white/80">
+                    <Badge key={i} variant="outline" className="border-gray-300 text-gray-700">
                       {issue}
                     </Badge>
                   ))}
@@ -391,7 +391,7 @@ Let's start by getting to know you. **What's your name**, and how would you like
               </Button>
               <Button 
                 variant="outline"
-                className="w-full border-white/20 text-white hover:bg-white/10"
+                className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Download Summary PDF

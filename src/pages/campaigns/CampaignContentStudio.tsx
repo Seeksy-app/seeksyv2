@@ -198,20 +198,20 @@ Please write compelling, engaging content that would resonate with voters.`
       <div className="space-y-8">
         {/* Templates Section */}
         <section>
-          <h2 className="text-2xl font-bold text-white mb-6">What do you want to create?</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">What do you want to create?</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {templates.map((template) => (
               <Card 
                 key={template.id}
-                className="bg-white/5 border-white/10 hover:bg-white/10 cursor-pointer transition-all group"
+                className="bg-white border-gray-200 hover:shadow-lg cursor-pointer transition-all group"
                 onClick={() => setSelectedTemplate(template.id)}
               >
                 <CardContent className="p-6">
                   <div className="h-12 w-12 rounded-lg bg-[#d4af37]/20 flex items-center justify-center mb-4 group-hover:bg-[#d4af37]/30 transition-colors">
                     <template.icon className="h-6 w-6 text-[#d4af37]" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{template.label}</h3>
-                  <p className="text-sm text-white/60">{template.description}</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{template.label}</h3>
+                  <p className="text-sm text-gray-500">{template.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -220,31 +220,31 @@ Please write compelling, engaging content that would resonate with voters.`
 
         {/* Content Library */}
         <section>
-          <h2 className="text-2xl font-bold text-white mb-6">Saved Content Library</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Saved Content Library</h2>
           {loading ? (
-            <div className="text-white/60">Loading...</div>
+            <div className="text-gray-500">Loading...</div>
           ) : content.length === 0 ? (
-            <Card className="bg-white/5 border-white/10">
+            <Card className="bg-white border-gray-200">
               <CardContent className="p-12 text-center">
-                <FileText className="h-12 w-12 text-white/20 mx-auto mb-4" />
-                <p className="text-white/60">No content yet. Create your first piece above!</p>
+                <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">No content yet. Create your first piece above!</p>
               </CardContent>
             </Card>
           ) : (
             <div className="grid gap-4">
               {content.map((item) => (
-                <Card key={item.id} className="bg-white/5 border-white/10">
+                <Card key={item.id} className="bg-white border-gray-200">
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold text-white">{item.title}</h3>
+                          <h3 className="font-semibold text-gray-900">{item.title}</h3>
                           <Badge className="bg-[#d4af37]/20 text-[#d4af37]">
                             {getTypeLabel(item.type)}
                           </Badge>
                         </div>
-                        <p className="text-sm text-white/60 line-clamp-2">{item.body}</p>
-                        <p className="text-xs text-white/40 mt-2">
+                        <p className="text-sm text-gray-500 line-clamp-2">{item.body}</p>
+                        <p className="text-xs text-gray-400 mt-2">
                           Created: {new Date(item.created_at).toLocaleDateString()}
                         </p>
                       </div>
@@ -253,7 +253,7 @@ Please write compelling, engaging content that would resonate with voters.`
                           variant="ghost" 
                           size="icon"
                           onClick={() => copyContent(item.body || "")}
-                          className="text-white/60 hover:text-white"
+                          className="text-gray-500 hover:text-gray-700"
                         >
                           <Copy className="h-4 w-4" />
                         </Button>
@@ -261,7 +261,7 @@ Please write compelling, engaging content that would resonate with voters.`
                           variant="ghost" 
                           size="icon"
                           onClick={() => deleteContent(item.id)}
-                          className="text-red-400 hover:text-red-300"
+                          className="text-red-400 hover:text-red-500"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
