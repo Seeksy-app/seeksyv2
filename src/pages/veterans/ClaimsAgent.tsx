@@ -1,21 +1,48 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, MessageSquare, Send, User, Bot, FileText, Shield, Loader2, ExternalLink, AlertCircle } from "lucide-react";
+import { ArrowLeft, MessageSquare, Send, User, Bot, FileText, Shield, Loader2, ExternalLink, AlertCircle, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ClaimsIntakeFlow } from "@/components/veterans/ClaimsIntakeFlow";
+import { ClaimsNotesPanel, ClaimsNote } from "@/components/veterans/ClaimsNotesPanel";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
 }
 
-const SYSTEM_PROMPT = `You are a VA Claims Agent helping veterans understand and file their disability claims. You are compassionate, knowledgeable, and focused on helping veterans get the benefits they deserve.
+interface IntakeData {
+  status: string;
+  branch: string;
+  goal: string;
+}
+
+const GOAL_MESSAGES: Record<string, string> = {
+  intent_to_file: "filing an Intent to File",
+  first_claim: "filing your first VA claim",
+  increase: "filing for an increase",
+  secondary: "filing for a secondary condition",
+  appeal: "appealing a decision",
+  unsure: "understanding your options",
+};
+
+const createSystemPrompt = (intakeData: IntakeData, notes: ClaimsNote[]) => {
+  const notesContext = notes.length > 0 
+    ? `\n\nCurrent collected information:\n${notes.map(n => `- ${n.category}: ${n.value}`).join('\n')}`
+    : '';
+    
+  return `You are a VA Claims Agent helping veterans understand and file their disability claims. You are compassionate, knowledgeable, and focused on helping veterans get the benefits they deserve.
+
+The veteran has completed intake with the following information:
+- Status: ${intakeData.status}
+- Branch of Service: ${intakeData.branch}
+- Goal: ${intakeData.goal}
+${notesContext}
 
 Your goals:
 1. Help veterans understand what benefits they may be entitled to
@@ -24,24 +51,38 @@ Your goals:
 4. Explain the claims process in simple terms
 5. When ready, offer to connect them with a professional claims company that can file on their behalf
 
-Key information to collect during the conversation:
-- Branch of service and dates of service
-- Current symptoms and conditions
-- Whether conditions are service-connected
-- Any existing VA rating
-- Medical evidence available
+As you collect information, identify and remember key details like:
+- Years served / separation year
+- Claimed issues / symptoms
+- Evidence already available (medical records, buddy statements, etc.)
+- Existing VA rating if any
+
+IMPORTANT: After EVERY user response, include a JSON block at the END of your message (after your conversational response) in this exact format to extract key information for their summary notes:
+<notes>
+{"category": "Category Name", "value": "Extracted value"}
+</notes>
+
+Only include the notes block if there's meaningful information to extract. Categories can include:
+- Years of Service
+- Separation Year
+- Claimed Conditions
+- Current Symptoms
+- Available Evidence
+- Existing VA Rating
+- Medical History
+- Service Connection
 
 Be conversational and supportive. Many veterans find this process overwhelming - be patient and encouraging.
 
 IMPORTANT: At the end of meaningful conversations, offer to generate a claims summary and connect them with a filing partner.`;
+};
 
 export default function ClaimsAgent() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: "Hello! I'm here to help you understand your VA benefits and guide you through the claims process. Many veterans don't realize what they're entitled to, and I'm here to make this easier.\n\nLet's start with a simple question: Are you currently serving, recently separated, or have you been out for a while?"
-    }
-  ]);
+  const [intakeComplete, setIntakeComplete] = useState(false);
+  const [intakeData, setIntakeData] = useState<IntakeData | null>(null);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [notes, setNotes] = useState<ClaimsNote[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showHandoffModal, setShowHandoffModal] = useState(false);
@@ -52,17 +93,53 @@ export default function ClaimsAgent() {
     phone: ""
   });
   const [error, setError] = useState<string | null>(null);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = useCallback(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, []);
 
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    scrollToBottom();
+  }, [messages, isLoading, scrollToBottom]);
+
+  const handleIntakeComplete = (data: IntakeData) => {
+    setIntakeData(data);
+    setIntakeComplete(true);
+    setCurrentStep(2);
+    
+    const goalMessage = GOAL_MESSAGES[data.goal] || "understanding your benefits";
+    setMessages([
+      {
+        role: "assistant",
+        content: `Great, thank you for that information! I can see you're interested in ${goalMessage}. I'll guide you step by step through this process.\n\nLet's talk about the symptoms or conditions you'd like to claim. What health issues or symptoms have you experienced that you believe are connected to your military service?`
+      }
+    ]);
+  };
+
+  const extractNotes = (content: string): { cleanContent: string; note: ClaimsNote | null } => {
+    const notesMatch = content.match(/<notes>\s*({.*?})\s*<\/notes>/s);
+    if (notesMatch) {
+      try {
+        const noteData = JSON.parse(notesMatch[1]);
+        const cleanContent = content.replace(/<notes>[\s\S]*?<\/notes>/g, '').trim();
+        return { 
+          cleanContent, 
+          note: { category: noteData.category, value: noteData.value } 
+        };
+      } catch {
+        return { cleanContent: content, note: null };
+      }
     }
-  }, [messages]);
+    return { cleanContent: content, note: null };
+  };
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || !intakeData) return;
 
     const userMessage = input.trim();
     setInput("");
@@ -77,7 +154,7 @@ export default function ClaimsAgent() {
             ...messages.map(m => ({ role: m.role, content: m.content })),
             { role: "user", content: userMessage }
           ],
-          systemPrompt: SYSTEM_PROMPT
+          systemPrompt: createSystemPrompt(intakeData, notes)
         }
       });
 
@@ -85,7 +162,6 @@ export default function ClaimsAgent() {
         throw new Error(response.error.message);
       }
 
-      // Handle specific error responses from edge function
       if (response.data?.error) {
         if (response.data.error.includes("Rate limit")) {
           setError("We're experiencing high demand. Please wait a moment and try again.");
@@ -97,8 +173,19 @@ export default function ClaimsAgent() {
         return;
       }
 
-      const assistantMessage = response.data?.message || "I'm sorry, I couldn't process that. Could you try again?";
-      setMessages(prev => [...prev, { role: "assistant", content: assistantMessage }]);
+      const rawMessage = response.data?.message || "I'm sorry, I couldn't process that. Could you try again?";
+      const { cleanContent, note } = extractNotes(rawMessage);
+      
+      if (note) {
+        setNotes(prev => [...prev, note]);
+      }
+      
+      setMessages(prev => [...prev, { role: "assistant", content: cleanContent }]);
+      
+      // Update step based on conversation progress
+      if (notes.length >= 2 && currentStep === 2) {
+        setCurrentStep(3);
+      }
     } catch (error) {
       console.error("Chat error:", error);
       setError("Connection issue. Please check your internet and try again.");
@@ -120,7 +207,15 @@ export default function ClaimsAgent() {
     setIsSubmittingLead(true);
 
     try {
-      // Extract conversation summary for notes
+      const allNotes = [
+        ...(intakeData ? [
+          `Status: ${intakeData.status}`,
+          `Branch: ${intakeData.branch}`,
+          `Goal: ${intakeData.goal}`,
+        ] : []),
+        ...notes.map(n => `${n.category}: ${n.value}`),
+      ].join("\n");
+
       const conversationSummary = messages
         .map(m => `${m.role}: ${m.content.substring(0, 200)}...`)
         .join("\n\n");
@@ -132,7 +227,7 @@ export default function ClaimsAgent() {
           email: leadForm.email,
           phone: leadForm.phone || null,
           source: "claims-agent-mvp",
-          notes: `Conversation summary:\n${conversationSummary}`,
+          notes: `Summary Notes:\n${allNotes}\n\nConversation:\n${conversationSummary}`,
           status: "new"
         });
 
@@ -153,154 +248,198 @@ export default function ClaimsAgent() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Header */}
-      <div className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <Link to="/veterans" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-4">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Veterans Home
-          </Link>
+      <div className="border-b bg-card flex-shrink-0">
+        <div className="px-4 py-3">
+          {/* Breadcrumb */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+            <Link to="/veterans" className="hover:text-foreground">Veterans Home</Link>
+            <ChevronRight className="w-3 h-3" />
+            <span className="text-foreground">Claims Agent</span>
+          </div>
           
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-full bg-orange-500/10">
-              <MessageSquare className="w-6 h-6 text-orange-500" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-2 rounded-full bg-orange-500/10">
+                <MessageSquare className="w-5 h-5 text-orange-500" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold">AI Claims Agent</h1>
+                <p className="text-xs text-muted-foreground">
+                  Your guide to VA disability benefits
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-bold">AI Claims Agent</h1>
-              <p className="text-sm text-muted-foreground">
-                Your guide to VA disability benefits
-              </p>
-            </div>
+            
+            {/* Progress Indicator */}
+            {intakeComplete && (
+              <div className="hidden md:flex items-center gap-1 text-xs">
+                <span className={`px-2 py-1 rounded ${currentStep >= 1 ? 'bg-green-500/10 text-green-600' : 'bg-muted text-muted-foreground'}`}>
+                  Step 1: Intake
+                </span>
+                <ChevronRight className="w-3 h-3 text-muted-foreground" />
+                <span className={`px-2 py-1 rounded ${currentStep >= 2 ? 'bg-orange-500/10 text-orange-600' : 'bg-muted text-muted-foreground'}`}>
+                  Step 2: Conditions
+                </span>
+                <ChevronRight className="w-3 h-3 text-muted-foreground" />
+                <span className={`px-2 py-1 rounded ${currentStep >= 3 ? 'bg-orange-500/10 text-orange-600' : 'bg-muted text-muted-foreground'}`}>
+                  Step 3: Filing Options
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6 max-w-4xl">
-        <div className="grid md:grid-cols-4 gap-6">
-          {/* Sidebar */}
-          <div className="hidden md:block space-y-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Shield className="w-4 h-4" />
-                  What We'll Cover
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm space-y-2">
-                <p className="text-muted-foreground">• Understanding your benefits</p>
-                <p className="text-muted-foreground">• Intent to File explained</p>
-                <p className="text-muted-foreground">• Service-connected conditions</p>
-                <p className="text-muted-foreground">• Evidence gathering</p>
-                <p className="text-muted-foreground">• Filing options</p>
-              </CardContent>
-            </Card>
+      {/* Main Content - Full Screen 3-Column Layout */}
+      {!intakeComplete ? (
+        <div className="flex-1 overflow-auto">
+          <ClaimsIntakeFlow onComplete={handleIntakeComplete} />
+        </div>
+      ) : (
+        <div className="flex-1 flex overflow-hidden">
+          {/* Left Sidebar - What We'll Cover */}
+          <div className="hidden lg:block w-[280px] border-r bg-card flex-shrink-0 overflow-auto">
+            <div className="p-4 space-y-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Shield className="w-4 h-4" />
+                    What We'll Cover
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm space-y-2">
+                  <p className="text-muted-foreground">• Understanding your benefits</p>
+                  <p className="text-muted-foreground">• Intent to File explained</p>
+                  <p className="text-muted-foreground">• Service-connected conditions</p>
+                  <p className="text-muted-foreground">• Evidence gathering</p>
+                  <p className="text-muted-foreground">• Filing options</p>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
-                  Ready to File?
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm">
-                <p className="text-muted-foreground mb-3">
-                  Connect with a professional claims filing partner.
-                </p>
-                <Button 
-                  size="sm" 
-                  className="w-full bg-orange-600 hover:bg-orange-700"
-                  onClick={() => setShowHandoffModal(true)}
-                >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Send to Partner
-                </Button>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Ready to File?
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm">
+                  <p className="text-muted-foreground mb-3">
+                    Connect with a professional claims filing partner.
+                  </p>
+                  <Button 
+                    size="sm" 
+                    className="w-full bg-orange-600 hover:bg-orange-700"
+                    onClick={() => setShowHandoffModal(true)}
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Send to Partner
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
-          {/* Chat Area */}
-          <div className="md:col-span-3">
+          {/* Center - Chat Area */}
+          <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
             {error && (
-              <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center gap-2 text-destructive">
+              <div className="mx-4 mt-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center gap-2 text-destructive flex-shrink-0">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 <span className="text-sm">{error}</span>
               </div>
             )}
             
-            <Card className="h-[600px] flex flex-col">
-              <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-                <div className="space-y-4">
-                  {messages.map((message, index) => (
-                    <div 
-                      key={index}
-                      className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}
-                    >
-                      {message.role === "assistant" && (
-                        <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center flex-shrink-0">
-                          <Bot className="w-4 h-4 text-orange-500" />
-                        </div>
-                      )}
-                      <div 
-                        className={`max-w-[80%] rounded-lg px-4 py-3 ${
-                          message.role === "user" 
-                            ? "bg-primary text-primary-foreground" 
-                            : "bg-muted"
-                        }`}
-                      >
-                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                      </div>
-                      {message.role === "user" && (
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <User className="w-4 h-4 text-primary" />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  {isLoading && (
-                    <div className="flex gap-3 justify-start">
-                      <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center">
+            {/* Messages Area */}
+            <div 
+              ref={chatContainerRef}
+              className="flex-1 overflow-auto p-4"
+            >
+              <div className="max-w-3xl mx-auto space-y-4">
+                {messages.map((message, index) => (
+                  <div 
+                    key={index}
+                    className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                  >
+                    {message.role === "assistant" && (
+                      <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center flex-shrink-0">
                         <Bot className="w-4 h-4 text-orange-500" />
                       </div>
-                      <div className="bg-muted rounded-lg px-4 py-3">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      </div>
+                    )}
+                    <div 
+                      className={`max-w-[80%] rounded-lg px-4 py-3 ${
+                        message.role === "user" 
+                          ? "bg-primary text-primary-foreground" 
+                          : "bg-muted"
+                      }`}
+                    >
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                     </div>
-                  )}
-                </div>
-              </ScrollArea>
-
-              <div className="border-t p-4">
-                <form onSubmit={sendMessage} className="flex gap-2">
-                  <Input 
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Type your message..."
-                    disabled={isLoading}
-                    className="flex-1"
-                  />
-                  <Button type="submit" disabled={isLoading || !input.trim()}>
-                    <Send className="w-4 h-4" />
-                  </Button>
-                </form>
-                
-                {/* Mobile handoff button */}
-                <div className="md:hidden mt-3">
-                  <Button 
-                    variant="outline"
-                    size="sm" 
-                    className="w-full"
-                    onClick={() => setShowHandoffModal(true)}
-                  >
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Connect with Filing Partner
-                  </Button>
-                </div>
+                    {message.role === "user" && (
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <User className="w-4 h-4 text-primary" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="flex gap-3 justify-start">
+                    <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center">
+                      <Bot className="w-4 h-4 text-orange-500" />
+                    </div>
+                    <div className="bg-muted rounded-lg px-4 py-3">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
               </div>
-            </Card>
+            </div>
+
+            {/* Input Bar - Sticky at bottom */}
+            <div className="border-t bg-card p-4 flex-shrink-0 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+              <form onSubmit={sendMessage} className="max-w-3xl mx-auto flex gap-2">
+                <Input 
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Type your message..."
+                  disabled={isLoading}
+                  className="flex-1"
+                />
+                <Button type="submit" disabled={isLoading || !input.trim()}>
+                  <Send className="w-4 h-4" />
+                </Button>
+              </form>
+              
+              {/* Mobile actions */}
+              <div className="lg:hidden mt-3 max-w-3xl mx-auto">
+                <Button 
+                  variant="outline"
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => setShowHandoffModal(true)}
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Connect with Filing Partner
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Sidebar - Notes Panel (Desktop) */}
+          <div className="hidden lg:block w-[300px] border-l bg-card flex-shrink-0 overflow-hidden">
+            <div className="h-full p-4">
+              <ClaimsNotesPanel notes={notes} intakeData={intakeData || undefined} />
+            </div>
+          </div>
+          
+          {/* Mobile Notes Panel */}
+          <div className="lg:hidden">
+            <ClaimsNotesPanel notes={notes} intakeData={intakeData || undefined} isMobile />
           </div>
         </div>
-      </div>
+      )}
 
       {/* Lead Handoff Modal */}
       <Dialog open={showHandoffModal} onOpenChange={setShowHandoffModal}>
