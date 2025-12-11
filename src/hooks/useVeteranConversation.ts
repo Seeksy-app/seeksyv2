@@ -159,9 +159,11 @@ export function useVeteranConversation(user: User | null, conversationIdParam: s
         const allNotes: ClaimsNote[] = [];
         chatMessages.forEach(m => {
           if (m.notes && Array.isArray(m.notes)) {
-            (m.notes as ClaimsNote[]).forEach(n => {
-              if (!allNotes.some(existing => existing.category === n.category && existing.value === n.value)) {
-                allNotes.push(n);
+            (m.notes as unknown as ClaimsNote[]).forEach(n => {
+              if (n && typeof n === 'object' && 'category' in n && 'value' in n) {
+                if (!allNotes.some(existing => existing.category === n.category && existing.value === n.value)) {
+                  allNotes.push({ category: String(n.category), value: String(n.value) });
+                }
               }
             });
           }

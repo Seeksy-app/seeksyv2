@@ -50,7 +50,7 @@ export interface CreateMilestoneInput {
   owner?: string;
   due_date?: string;
   progress_type: ProgressType;
-  progress_percent?: number;
+  progress_value?: number;
   metric_key?: string;
   metric_target?: number;
   metric_current?: number;
@@ -207,7 +207,7 @@ export function useCreateMilestone() {
           owner: input.owner || null,
           due_date: input.due_date || null,
           progress_type: input.progress_type,
-          progress_percent: input.progress_percent || 0,
+          progress_value: input.progress_value || 0,
           metric_key: input.metric_key || null,
           metric_target: input.metric_target || null,
           metric_current: input.metric_current || null,

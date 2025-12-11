@@ -43,7 +43,7 @@ export function MilestoneFormDialog({
     owner: '',
     due_date: '',
     progress_type: 'manual',
-    progress_percent: 0,
+    progress_value: 0,
     metric_key: '',
     metric_target: 0,
     dependencies: [],
@@ -59,7 +59,7 @@ export function MilestoneFormDialog({
         owner: milestone.owner || '',
         due_date: milestone.due_date || '',
         progress_type: milestone.progress_type,
-        progress_percent: milestone.progress_value || 0,
+        progress_value: milestone.progress_value || 0,
         metric_key: milestone.metric_key || '',
         metric_target: milestone.metric_target || 0,
         dependencies: milestone.dependencies || [],
@@ -73,7 +73,7 @@ export function MilestoneFormDialog({
         owner: '',
         due_date: '',
         progress_type: 'manual',
-        progress_percent: 0,
+        progress_value: 0,
         metric_key: '',
         metric_target: 0,
         dependencies: [],
@@ -199,14 +199,14 @@ export function MilestoneFormDialog({
             
             {formData.progress_type === 'manual' && (
               <div className="col-span-2">
-                <Label htmlFor="progress_percent">Progress (%)</Label>
+                <Label htmlFor="progress_value">Progress (%)</Label>
                 <Input
-                  id="progress_percent"
+                  id="progress_value"
                   type="number"
                   min="0"
                   max="100"
-                  value={formData.progress_percent}
-                  onChange={(e) => setFormData({ ...formData, progress_percent: parseInt(e.target.value) || 0 })}
+                  value={formData.progress_value}
+                  onChange={(e) => setFormData({ ...formData, progress_value: parseInt(e.target.value) || 0 })}
                 />
               </div>
             )}

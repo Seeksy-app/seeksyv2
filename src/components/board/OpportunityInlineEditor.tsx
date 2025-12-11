@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -55,8 +55,8 @@ export function OpportunityInlineEditor({ opportunity, onClose }: OpportunityInl
   const [investorEmail, setInvestorEmail] = useState("");
   const [investorName, setInvestorName] = useState("");
   const [expiresAt, setExpiresAt] = useState(opportunity.expires_at?.split("T")[0] || "");
-  const [requireNdaBoard, setRequireNdaBoard] = useState(opportunity.require_nda_board || false);
-  const [requireNdaRecipient, setRequireNdaRecipient] = useState(opportunity.require_nda_recipient || false);
+  const [requireNdaBoard, setRequireNdaBoard] = useState(opportunity.require_nda_board ?? true);
+  const [requireNdaRecipient, setRequireNdaRecipient] = useState(opportunity.require_nda_recipient ?? true);
   const [selectedVideoIds, setSelectedVideoIds] = useState<string[]>([]);
   const [selectedProformaIds, setSelectedProformaIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
@@ -111,12 +111,13 @@ export function OpportunityInlineEditor({ opportunity, onClose }: OpportunityInl
   });
 
   // Sync selected videos when data loads
-  useState(() => {
+  useEffect(() => {
     if (attachedVideos) setSelectedVideoIds(attachedVideos);
-  });
-  useState(() => {
+  }, [attachedVideos]);
+  
+  useEffect(() => {
     if (attachedProformas) setSelectedProformaIds(attachedProformas);
-  });
+  }, [attachedProformas]);
 
   const generateAccessCode = () => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
