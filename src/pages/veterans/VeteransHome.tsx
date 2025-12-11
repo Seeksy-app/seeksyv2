@@ -8,8 +8,6 @@ import { FloatingBenefitsChat } from "@/components/veterans/FloatingBenefitsChat
 import { Helmet } from "react-helmet";
 import { CALCULATORS, CALCULATOR_CATEGORIES } from "@/lib/veteranCalculatorRegistry";
 
-// Import hero background
-import veteranHeroBg from "@/assets/veteran-hero-bg.jpg";
 
 const ICON_MAP: Record<string, any> = {
   DollarSign, Clock, Calculator, MessageSquare, Shield, Award, TrendingUp, Heart, 
@@ -68,24 +66,14 @@ export default function VeteransHome() {
         </div>
       </header>
 
-      {/* Netflix-Style Hero with Full-Bleed Background */}
-      <section className="relative w-full min-h-[85vh] overflow-hidden">
-        {/* Hero Background Image */}
-        <div className="absolute inset-0">
-          <img 
-            src={veteranHeroBg} 
-            alt="Military and Federal Benefits" 
-            className="w-full h-full object-cover object-center"
-          />
-          
-          {/* Dark gradient overlay for text readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-slate-900/70 to-slate-900/50" />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/60 via-slate-900/80 to-slate-900/60" />
-        </div>
+      {/* Hero Section - Clean Gradient */}
+      <section className="relative w-full min-h-[70vh] overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-primary/80">
+        {/* Subtle pattern overlay */}
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 30% 40%, rgba(255,255,255,0.2) 0%, transparent 50%), radial-gradient(circle at 70% 60%, hsl(var(--primary) / 0.3) 0%, transparent 40%)" }} />
 
         {/* Hero Content */}
-        <div className="relative z-10 container mx-auto px-4 pt-32 pb-20 flex flex-col items-center justify-center min-h-[85vh] text-center">
-          <div className="inline-flex items-center gap-2 bg-primary/20 text-primary px-4 py-2 rounded-full mb-6 border border-primary/30 backdrop-blur-sm">
+        <div className="relative z-10 container mx-auto px-4 pt-32 pb-20 flex flex-col items-center justify-center min-h-[70vh] text-center">
+          <div className="inline-flex items-center gap-2 bg-white/10 text-white px-4 py-2 rounded-full mb-6 border border-white/20 backdrop-blur-sm">
             <Shield className="w-4 h-4" />
             <span className="text-sm font-medium">Military & Federal Benefits Hub</span>
           </div>
@@ -113,9 +101,6 @@ export default function VeteransHome() {
             </Button>
           </div>
         </div>
-        
-        {/* Bottom gradient fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
       </section>
 
       {/* AI Benefits Agent Featured - Improved transition */}

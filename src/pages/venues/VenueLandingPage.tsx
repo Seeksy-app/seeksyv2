@@ -25,16 +25,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import weddingPoster from "@/assets/venue-wedding-poster.jpg";
-import concertPoster from "@/assets/venue-concert-poster.jpg";
-import corporatePoster from "@/assets/venue-corporate-poster.jpg";
-import galaPoster from "@/assets/venue-gala-poster.jpg";
-import birthdayPoster from "@/assets/venue-birthday-poster.jpg";
-import fashionPoster from "@/assets/venue-fashion-poster.jpg";
-import gardenPoster from "@/assets/venue-garden-poster.jpg";
-import fundraiserPoster from "@/assets/venue-fundraiser-poster.jpg";
-import holidayPoster from "@/assets/venue-holiday-poster.jpg";
-import launchPoster from "@/assets/venue-launch-poster.jpg";
 
 const colors = {
   primary: "#053877",
@@ -244,48 +234,15 @@ export default function VenueLandingPage() {
         </div>
       </header>
 
-      {/* Netflix-Style Hero Section */}
-      <section className="relative min-h-[85vh] overflow-hidden" style={{ backgroundColor: "#0a0a0a" }}>
-        {/* Left Side Event Posters */}
-        <div className="absolute left-0 top-0 bottom-0 w-[380px] hidden lg:flex flex-col gap-3 p-4 overflow-hidden">
-          <div className="flex gap-3 animate-fade-in" style={{ animationDelay: "0.1s" }}>
-            <img src={weddingPoster} alt="Wedding" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
-            <img src={galaPoster} alt="Gala" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
-          </div>
-          <div className="flex gap-3 animate-fade-in" style={{ animationDelay: "0.2s" }}>
-            <img src={birthdayPoster} alt="Birthday" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
-            <img src={gardenPoster} alt="Garden Party" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
-          </div>
-          <div className="flex gap-3 animate-fade-in" style={{ animationDelay: "0.3s" }}>
-            <img src={holidayPoster} alt="Holiday" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
-            <img src={fashionPoster} alt="Fashion" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
-          </div>
-          {/* Left gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#0a0a0a] pointer-events-none" />
-        </div>
-
-        {/* Right Side Event Posters */}
-        <div className="absolute right-0 top-0 bottom-0 w-[380px] hidden lg:flex flex-col gap-3 p-4 overflow-hidden">
-          <div className="flex gap-3 animate-fade-in" style={{ animationDelay: "0.15s" }}>
-            <img src={concertPoster} alt="Concert" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
-            <img src={corporatePoster} alt="Corporate" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
-          </div>
-          <div className="flex gap-3 animate-fade-in" style={{ animationDelay: "0.25s" }}>
-            <img src={launchPoster} alt="Product Launch" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
-            <img src={fundraiserPoster} alt="Fundraiser" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
-          </div>
-          <div className="flex gap-3 animate-fade-in" style={{ animationDelay: "0.35s" }}>
-            <img src={weddingPoster} alt="Wedding" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
-            <img src={concertPoster} alt="Concert" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
-          </div>
-          {/* Right gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-[#0a0a0a] pointer-events-none" />
-        </div>
-
+      {/* Hero Section - Clean Gradient */}
+      <section className="relative min-h-[70vh] overflow-hidden bg-gradient-to-br from-[#053877] via-[#0a4a8f] to-[#2C6BED]">
+        {/* Subtle pattern overlay */}
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 20% 50%, rgba(255,255,255,0.2) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.15) 0%, transparent 40%)" }} />
+        
         {/* Center Content */}
-        <div className="relative z-10 flex items-center justify-center min-h-[85vh]">
+        <div className="relative z-10 flex items-center justify-center min-h-[70vh]">
           <div className="text-center px-4 max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 backdrop-blur-sm animate-fade-in" style={{ backgroundColor: "rgba(44, 107, 237, 0.3)" }}>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 backdrop-blur-sm animate-fade-in" style={{ backgroundColor: "rgba(255, 255, 255, 0.15)", border: "1px solid rgba(255,255,255,0.2)" }}>
               <Sparkles className="h-4 w-4 text-white" />
               <span className="text-sm font-medium text-white">AI-Powered Venue Management</span>
             </div>
@@ -303,8 +260,7 @@ export default function VenueLandingPage() {
               <Button 
                 size="lg"
                 onClick={() => setAuthModalOpen(true)}
-                style={{ backgroundColor: colors.primary, color: colors.textOnDark }}
-                className="text-lg px-8 hover:opacity-90"
+                className="text-lg px-8 bg-white text-[#053877] hover:bg-white/90"
               >
                 Get Started Free
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -333,9 +289,6 @@ export default function VenueLandingPage() {
             </div>
           </div>
         </div>
-
-        {/* Bottom Gradient */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0a0a0a] to-transparent pointer-events-none" />
       </section>
 
       {/* Problem Section */}
@@ -519,42 +472,54 @@ export default function VenueLandingPage() {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            <div className="relative group overflow-hidden rounded-2xl shadow-xl">
-              <img 
-                src={weddingPoster} 
-                alt="Elegant wedding venue with crystal chandeliers" 
-                className="w-full h-72 object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <Heart className="h-5 w-5 text-pink-400" />
-                  <span className="text-white font-semibold">Weddings & Receptions</span>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+            <Card className="group hover:shadow-lg transition-shadow border-0 bg-gradient-to-br from-pink-50 to-rose-100">
+              <CardContent className="p-6 text-center">
+                <div className="w-14 h-14 rounded-full bg-pink-500/10 flex items-center justify-center mx-auto mb-4">
+                  <Heart className="h-7 w-7 text-pink-500" />
                 </div>
-                <p className="text-white/80 text-sm">
-                  Manage every detail from proposals to the big day.
+                <h3 className="font-semibold mb-2" style={{ color: colors.textPrimary }}>Weddings</h3>
+                <p className="text-sm" style={{ color: colors.textSecondary }}>
+                  Manage every detail from proposal to the big day.
                 </p>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
             
-            <div className="relative group overflow-hidden rounded-2xl shadow-xl">
-              <img 
-                src={concertPoster} 
-                alt="Vibrant concert venue with stage lighting" 
-                className="w-full h-72 object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <Music className="h-5 w-5 text-purple-400" />
-                  <span className="text-white font-semibold">Concerts & Live Events</span>
+            <Card className="group hover:shadow-lg transition-shadow border-0 bg-gradient-to-br from-purple-50 to-violet-100">
+              <CardContent className="p-6 text-center">
+                <div className="w-14 h-14 rounded-full bg-purple-500/10 flex items-center justify-center mx-auto mb-4">
+                  <Music className="h-7 w-7 text-purple-500" />
                 </div>
-                <p className="text-white/80 text-sm">
-                  Ticketing, artist coordination, and crowd management in one place.
+                <h3 className="font-semibold mb-2" style={{ color: colors.textPrimary }}>Concerts</h3>
+                <p className="text-sm" style={{ color: colors.textSecondary }}>
+                  Ticketing, artists, and crowd management.
                 </p>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="group hover:shadow-lg transition-shadow border-0 bg-gradient-to-br from-blue-50 to-indigo-100">
+              <CardContent className="p-6 text-center">
+                <div className="w-14 h-14 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
+                  <Briefcase className="h-7 w-7 text-blue-500" />
+                </div>
+                <h3 className="font-semibold mb-2" style={{ color: colors.textPrimary }}>Corporate</h3>
+                <p className="text-sm" style={{ color: colors.textSecondary }}>
+                  Conferences, meetings, and team events.
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card className="group hover:shadow-lg transition-shadow border-0 bg-gradient-to-br from-emerald-50 to-teal-100">
+              <CardContent className="p-6 text-center">
+                <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
+                  <Building2 className="h-7 w-7 text-emerald-500" />
+                </div>
+                <h3 className="font-semibold mb-2" style={{ color: colors.textPrimary }}>Private Events</h3>
+                <p className="text-sm" style={{ color: colors.textSecondary }}>
+                  Galas, fundraisers, and special occasions.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
