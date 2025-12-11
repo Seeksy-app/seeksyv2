@@ -24163,6 +24163,8 @@ export type Database = {
           auto_approve_band_flat: number | null
           auto_approve_band_per_mile: number | null
           commodity: string | null
+          contact_name: string | null
+          contact_phone: string | null
           created_at: string | null
           delivery_address: string | null
           delivery_appointment_required: boolean | null
@@ -24192,6 +24194,7 @@ export type Database = {
           length_ft: number | null
           load_number: string
           lumpers_covered: boolean | null
+          main_contact_id: string | null
           miles: number | null
           notes: string | null
           origin_city: string | null
@@ -24213,6 +24216,9 @@ export type Database = {
           pieces: number | null
           rate_unit: string | null
           reference: string | null
+          shipper_contact_id: string | null
+          shipper_name: string | null
+          shipper_phone: string | null
           special_instructions: string | null
           status: string | null
           target_rate: number | null
@@ -24228,6 +24234,8 @@ export type Database = {
           auto_approve_band_flat?: number | null
           auto_approve_band_per_mile?: number | null
           commodity?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string | null
           delivery_address?: string | null
           delivery_appointment_required?: boolean | null
@@ -24257,6 +24265,7 @@ export type Database = {
           length_ft?: number | null
           load_number: string
           lumpers_covered?: boolean | null
+          main_contact_id?: string | null
           miles?: number | null
           notes?: string | null
           origin_city?: string | null
@@ -24278,6 +24287,9 @@ export type Database = {
           pieces?: number | null
           rate_unit?: string | null
           reference?: string | null
+          shipper_contact_id?: string | null
+          shipper_name?: string | null
+          shipper_phone?: string | null
           special_instructions?: string | null
           status?: string | null
           target_rate?: number | null
@@ -24293,6 +24305,8 @@ export type Database = {
           auto_approve_band_flat?: number | null
           auto_approve_band_per_mile?: number | null
           commodity?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string | null
           delivery_address?: string | null
           delivery_appointment_required?: boolean | null
@@ -24322,6 +24336,7 @@ export type Database = {
           length_ft?: number | null
           load_number?: string
           lumpers_covered?: boolean | null
+          main_contact_id?: string | null
           miles?: number | null
           notes?: string | null
           origin_city?: string | null
@@ -24343,6 +24358,9 @@ export type Database = {
           pieces?: number | null
           rate_unit?: string | null
           reference?: string | null
+          shipper_contact_id?: string | null
+          shipper_name?: string | null
+          shipper_phone?: string | null
           special_instructions?: string | null
           status?: string | null
           target_rate?: number | null
@@ -24354,7 +24372,22 @@ export type Database = {
           updated_at?: string | null
           weight_lbs?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "trucking_loads_main_contact_id_fkey"
+            columns: ["main_contact_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trucking_loads_shipper_contact_id_fkey"
+            columns: ["shipper_contact_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trucking_profiles: {
         Row: {

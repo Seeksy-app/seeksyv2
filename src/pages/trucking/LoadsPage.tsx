@@ -233,6 +233,10 @@ export default function LoadsPage() {
         special_instructions: formData.special_instructions,
         internal_notes: formData.internal_notes,
         notes: formData.notes,
+        shipper_name: formData.shipper_name || null,
+        shipper_phone: formData.shipper_phone || null,
+        contact_name: formData.contact_name || null,
+        contact_phone: formData.contact_phone || null,
         status: "open",
         is_active: true,
       };
@@ -250,6 +254,14 @@ export default function LoadsPage() {
           .insert(loadData);
         if (error) throw error;
         toast({ title: "Load created" });
+      }
+
+      // Auto-create contacts from shipper and main contact fields
+      if (formData.shipper_name && formData.shipper_phone) {
+        await upsertContactFromLoad(user.id, formData.shipper_name, formData.shipper_phone, "shipper");
+      }
+      if (formData.contact_name && formData.contact_phone) {
+        await upsertContactFromLoad(user.id, formData.contact_name, formData.contact_phone, "customer");
       }
 
       // Save recent values for quick access next time
@@ -273,6 +285,39 @@ export default function LoadsPage() {
       fetchLoads();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  // Helper function to upsert contact from load data
+  const upsertContactFromLoad = async (userId: string, name: string, phone: string, contactType: string) => {
+    try {
+      // Check if contact already exists by name+phone
+      const { data: existingContact } = await supabase
+        .from("trucking_contacts")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("phone", phone)
+        .maybeSingle();
+
+      if (existingContact) {
+        // Update existing contact
+        await supabase
+          .from("trucking_contacts")
+          .update({ company_name: name, contact_type: contactType, last_used_at: new Date().toISOString() })
+          .eq("id", existingContact.id);
+      } else {
+        // Insert new contact
+        await supabase
+          .from("trucking_contacts")
+          .insert({
+            user_id: userId,
+            company_name: name,
+            phone: phone,
+            contact_type: contactType,
+          });
+      }
+    } catch (error) {
+      console.error("Error upserting contact:", error);
     }
   };
 
@@ -413,6 +458,11 @@ export default function LoadsPage() {
         special_instructions: load.special_instructions,
         internal_notes: load.internal_notes,
         notes: load.notes,
+        // Include shipper and contact fields in copy
+        shipper_name: (load as any).shipper_name || null,
+        shipper_phone: (load as any).shipper_phone || null,
+        contact_name: (load as any).contact_name || null,
+        contact_phone: (load as any).contact_phone || null,
         status: "open",
         is_active: true,
       };
