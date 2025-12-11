@@ -109,8 +109,8 @@ export function VenueLayout({ children }: VenueLayoutProps) {
         }`}
         style={{ backgroundColor: colors.primary }}
       >
-        {/* Logo */}
-        <div className="p-4 border-b border-white/10">
+        {/* Logo + Collapse Toggle */}
+        <div className="p-4 border-b border-white/10 flex items-center justify-between">
           <Link to="/venues" className="flex items-center gap-2">
             <div 
               className="h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -124,6 +124,17 @@ export function VenueLayout({ children }: VenueLayoutProps) {
               </span>
             )}
           </Link>
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="h-7 w-7 rounded flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {sidebarCollapsed ? (
+              <PanelLeftOpen className="h-4 w-4" />
+            ) : (
+              <PanelLeftClose className="h-4 w-4" />
+            )}
+          </button>
         </div>
 
         {/* Nav Items */}
@@ -153,18 +164,6 @@ export function VenueLayout({ children }: VenueLayoutProps) {
           )}
         </div>
 
-        {/* Collapse toggle */}
-        <button
-          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="absolute -right-4 top-20 h-8 w-8 rounded-full bg-white shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 hover:scale-105 transition-all"
-          style={{ color: colors.primary }}
-        >
-          {sidebarCollapsed ? (
-            <PanelLeftOpen className="h-4 w-4" />
-          ) : (
-            <PanelLeftClose className="h-4 w-4" />
-          )}
-        </button>
       </aside>
 
       {/* Mobile Header */}
@@ -222,7 +221,7 @@ export function VenueLayout({ children }: VenueLayoutProps) {
           sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-56'
         } pt-14 lg:pt-0`}
       >
-        <div className="p-4 lg:p-5 animate-fade-in">
+        <div className="px-6 py-6 animate-fade-in">
           {children}
         </div>
       </main>
