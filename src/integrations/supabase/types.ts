@@ -24786,6 +24786,7 @@ export type Database = {
           event_id: string | null
           hold_status: string | null
           id: string
+          is_demo: boolean | null
           signed_contract_url: string | null
           source: string | null
           source_detail: string | null
@@ -24801,6 +24802,7 @@ export type Database = {
           event_id?: string | null
           hold_status?: string | null
           id?: string
+          is_demo?: boolean | null
           signed_contract_url?: string | null
           source?: string | null
           source_detail?: string | null
@@ -24816,6 +24818,7 @@ export type Database = {
           event_id?: string | null
           hold_status?: string | null
           id?: string
+          is_demo?: boolean | null
           signed_contract_url?: string | null
           source?: string | null
           source_detail?: string | null
@@ -24852,6 +24855,7 @@ export type Database = {
           email: string | null
           first_name: string
           id: string
+          is_demo: boolean | null
           last_name: string | null
           notes: string | null
           organization: string | null
@@ -24864,6 +24868,7 @@ export type Database = {
           email?: string | null
           first_name: string
           id?: string
+          is_demo?: boolean | null
           last_name?: string | null
           notes?: string | null
           organization?: string | null
@@ -24876,6 +24881,7 @@ export type Database = {
           email?: string | null
           first_name?: string
           id?: string
+          is_demo?: boolean | null
           last_name?: string | null
           notes?: string | null
           organization?: string | null
@@ -24886,6 +24892,63 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "venue_clients_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      venue_communications: {
+        Row: {
+          body: string | null
+          channel_metadata: Json | null
+          client_id: string | null
+          created_at: string | null
+          created_by: string | null
+          direction: string
+          id: string
+          is_demo: boolean | null
+          subject: string | null
+          type: string
+          venue_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          channel_metadata?: Json | null
+          client_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          direction: string
+          id?: string
+          is_demo?: boolean | null
+          subject?: string | null
+          type: string
+          venue_id?: string | null
+        }
+        Update: {
+          body?: string | null
+          channel_metadata?: Json | null
+          client_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          direction?: string
+          id?: string
+          is_demo?: boolean | null
+          subject?: string | null
+          type?: string
+          venue_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_communications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "venue_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venue_communications_venue_id_fkey"
             columns: ["venue_id"]
             isOneToOne: false
             referencedRelation: "venues"
@@ -25408,6 +25471,85 @@ export type Database = {
           },
         ]
       }
+      venue_proposals: {
+        Row: {
+          add_ons: Json | null
+          base_price: number | null
+          client_id: string | null
+          created_at: string | null
+          event_date: string | null
+          event_type: string | null
+          guest_count: number | null
+          id: string
+          is_demo: boolean | null
+          notes: string | null
+          sent_at: string | null
+          space_id: string | null
+          status: string | null
+          total_price: number | null
+          updated_at: string | null
+          venue_id: string | null
+        }
+        Insert: {
+          add_ons?: Json | null
+          base_price?: number | null
+          client_id?: string | null
+          created_at?: string | null
+          event_date?: string | null
+          event_type?: string | null
+          guest_count?: number | null
+          id?: string
+          is_demo?: boolean | null
+          notes?: string | null
+          sent_at?: string | null
+          space_id?: string | null
+          status?: string | null
+          total_price?: number | null
+          updated_at?: string | null
+          venue_id?: string | null
+        }
+        Update: {
+          add_ons?: Json | null
+          base_price?: number | null
+          client_id?: string | null
+          created_at?: string | null
+          event_date?: string | null
+          event_type?: string | null
+          guest_count?: number | null
+          id?: string
+          is_demo?: boolean | null
+          notes?: string | null
+          sent_at?: string | null
+          space_id?: string | null
+          status?: string | null
+          total_price?: number | null
+          updated_at?: string | null
+          venue_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_proposals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "venue_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venue_proposals_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "venue_spaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venue_proposals_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       venue_spaces: {
         Row: {
           capacity: number | null
@@ -25640,6 +25782,7 @@ export type Database = {
           event_types: string[] | null
           id: string
           max_capacity: number | null
+          mode: string | null
           name: string
           onboarding_completed: boolean | null
           owner_user_id: string
@@ -25664,6 +25807,7 @@ export type Database = {
           event_types?: string[] | null
           id?: string
           max_capacity?: number | null
+          mode?: string | null
           name: string
           onboarding_completed?: boolean | null
           owner_user_id: string
@@ -25688,6 +25832,7 @@ export type Database = {
           event_types?: string[] | null
           id?: string
           max_capacity?: number | null
+          mode?: string | null
           name?: string
           onboarding_completed?: boolean | null
           owner_user_id?: string
