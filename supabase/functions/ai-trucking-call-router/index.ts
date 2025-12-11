@@ -227,13 +227,8 @@ async function sendBrokerNotification(
 ) {
   const resendApiKey = Deno.env.get("RESEND_API_KEY");
   
-  // Try to get the broker's email from the trucking profile or use a default
-  let brokerEmail = Deno.env.get("SENDER_EMAIL") || "onboarding@resend.dev";
-  
-  // If the load has associated profile with auto_notify_email, use that
-  if (load.trucking_profiles?.auto_notify_email) {
-    brokerEmail = load.trucking_profiles.auto_notify_email;
-  }
+  // Always send to D&L Transport broker email
+  const brokerEmail = "stephen@dltransport.com";
 
   if (!resendApiKey) {
     console.log("[sendBrokerNotification] RESEND_API_KEY not configured, skipping email");

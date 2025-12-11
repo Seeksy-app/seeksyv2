@@ -24067,31 +24067,63 @@ export type Database = {
           auto_approve_band_per_mile: number | null
           commodity: string | null
           created_at: string | null
+          delivery_address: string | null
+          delivery_appointment_required: boolean | null
+          delivery_contact_name: string | null
+          delivery_contact_phone: string | null
           delivery_date: string | null
+          delivery_fcfs: boolean | null
           delivery_window_end: string | null
           delivery_window_start: string | null
           destination_city: string | null
+          destination_radius_miles: number | null
           destination_state: string | null
           destination_zip: string | null
+          detention_rate_per_hour: number | null
+          equipment_notes: string | null
           equipment_type: string | null
           escalate_threshold: number | null
+          escalate_threshold_per_mile: number | null
           floor_rate: number | null
+          floor_rate_per_mile: number | null
+          hazmat: boolean | null
+          height_ft: number | null
           id: string
+          internal_notes: string | null
           is_active: boolean | null
+          layover_rate: number | null
+          length_ft: number | null
           load_number: string
+          lumpers_covered: boolean | null
           miles: number | null
           notes: string | null
           origin_city: string | null
+          origin_radius_miles: number | null
           origin_state: string | null
           origin_zip: string | null
           owner_id: string
+          pickup_address: string | null
+          pickup_appointment_required: boolean | null
+          pickup_city: string | null
+          pickup_contact_name: string | null
+          pickup_contact_phone: string | null
           pickup_date: string | null
+          pickup_fcfs: boolean | null
+          pickup_state: string | null
           pickup_window_end: string | null
           pickup_window_start: string | null
+          pickup_zip: string | null
+          pieces: number | null
           rate_unit: string | null
           reference: string | null
+          special_instructions: string | null
           status: string | null
           target_rate: number | null
+          target_rate_per_mile: number | null
+          temp_max_f: number | null
+          temp_min_f: number | null
+          temp_required: boolean | null
+          tonu_rate: number | null
           updated_at: string | null
           weight_lbs: number | null
         }
@@ -24100,31 +24132,63 @@ export type Database = {
           auto_approve_band_per_mile?: number | null
           commodity?: string | null
           created_at?: string | null
+          delivery_address?: string | null
+          delivery_appointment_required?: boolean | null
+          delivery_contact_name?: string | null
+          delivery_contact_phone?: string | null
           delivery_date?: string | null
+          delivery_fcfs?: boolean | null
           delivery_window_end?: string | null
           delivery_window_start?: string | null
           destination_city?: string | null
+          destination_radius_miles?: number | null
           destination_state?: string | null
           destination_zip?: string | null
+          detention_rate_per_hour?: number | null
+          equipment_notes?: string | null
           equipment_type?: string | null
           escalate_threshold?: number | null
+          escalate_threshold_per_mile?: number | null
           floor_rate?: number | null
+          floor_rate_per_mile?: number | null
+          hazmat?: boolean | null
+          height_ft?: number | null
           id?: string
+          internal_notes?: string | null
           is_active?: boolean | null
+          layover_rate?: number | null
+          length_ft?: number | null
           load_number: string
+          lumpers_covered?: boolean | null
           miles?: number | null
           notes?: string | null
           origin_city?: string | null
+          origin_radius_miles?: number | null
           origin_state?: string | null
           origin_zip?: string | null
           owner_id: string
+          pickup_address?: string | null
+          pickup_appointment_required?: boolean | null
+          pickup_city?: string | null
+          pickup_contact_name?: string | null
+          pickup_contact_phone?: string | null
           pickup_date?: string | null
+          pickup_fcfs?: boolean | null
+          pickup_state?: string | null
           pickup_window_end?: string | null
           pickup_window_start?: string | null
+          pickup_zip?: string | null
+          pieces?: number | null
           rate_unit?: string | null
           reference?: string | null
+          special_instructions?: string | null
           status?: string | null
           target_rate?: number | null
+          target_rate_per_mile?: number | null
+          temp_max_f?: number | null
+          temp_min_f?: number | null
+          temp_required?: boolean | null
+          tonu_rate?: number | null
           updated_at?: string | null
           weight_lbs?: number | null
         }
@@ -24133,31 +24197,63 @@ export type Database = {
           auto_approve_band_per_mile?: number | null
           commodity?: string | null
           created_at?: string | null
+          delivery_address?: string | null
+          delivery_appointment_required?: boolean | null
+          delivery_contact_name?: string | null
+          delivery_contact_phone?: string | null
           delivery_date?: string | null
+          delivery_fcfs?: boolean | null
           delivery_window_end?: string | null
           delivery_window_start?: string | null
           destination_city?: string | null
+          destination_radius_miles?: number | null
           destination_state?: string | null
           destination_zip?: string | null
+          detention_rate_per_hour?: number | null
+          equipment_notes?: string | null
           equipment_type?: string | null
           escalate_threshold?: number | null
+          escalate_threshold_per_mile?: number | null
           floor_rate?: number | null
+          floor_rate_per_mile?: number | null
+          hazmat?: boolean | null
+          height_ft?: number | null
           id?: string
+          internal_notes?: string | null
           is_active?: boolean | null
+          layover_rate?: number | null
+          length_ft?: number | null
           load_number?: string
+          lumpers_covered?: boolean | null
           miles?: number | null
           notes?: string | null
           origin_city?: string | null
+          origin_radius_miles?: number | null
           origin_state?: string | null
           origin_zip?: string | null
           owner_id?: string
+          pickup_address?: string | null
+          pickup_appointment_required?: boolean | null
+          pickup_city?: string | null
+          pickup_contact_name?: string | null
+          pickup_contact_phone?: string | null
           pickup_date?: string | null
+          pickup_fcfs?: boolean | null
+          pickup_state?: string | null
           pickup_window_end?: string | null
           pickup_window_start?: string | null
+          pickup_zip?: string | null
+          pieces?: number | null
           rate_unit?: string | null
           reference?: string | null
+          special_instructions?: string | null
           status?: string | null
           target_rate?: number | null
+          target_rate_per_mile?: number | null
+          temp_max_f?: number | null
+          temp_min_f?: number | null
+          temp_required?: boolean | null
+          tonu_rate?: number | null
           updated_at?: string | null
           weight_lbs?: number | null
         }
