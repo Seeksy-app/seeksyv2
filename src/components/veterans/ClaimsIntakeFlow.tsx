@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Eye } from "lucide-react";
 
 interface IntakeData {
   status: string;
@@ -11,6 +11,7 @@ interface IntakeData {
 
 interface ClaimsIntakeFlowProps {
   onComplete: (data: IntakeData) => void;
+  onShowSample?: () => void;
 }
 
 const STATUS_OPTIONS = [
@@ -39,7 +40,7 @@ const GOAL_OPTIONS = [
   { value: "unsure", label: "I'm not sure — I need help" },
 ];
 
-export function ClaimsIntakeFlow({ onComplete }: ClaimsIntakeFlowProps) {
+export function ClaimsIntakeFlow({ onComplete, onShowSample }: ClaimsIntakeFlowProps) {
   const [step, setStep] = useState(1);
   const [data, setData] = useState<IntakeData>({
     status: "",
@@ -128,6 +129,20 @@ export function ClaimsIntakeFlow({ onComplete }: ClaimsIntakeFlowProps) {
               </Button>
             ))}
           </div>
+          
+          {/* View Sample Button */}
+          {onShowSample && (
+            <div className="mt-6 pt-4 border-t">
+              <Button 
+                variant="ghost" 
+                className="w-full text-muted-foreground hover:text-foreground"
+                onClick={onShowSample}
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                View Sample Results
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

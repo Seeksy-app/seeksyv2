@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, MessageSquare, Send, User, Bot, FileText, Shield, Loader2, ExternalLink, AlertCircle, ChevronRight } from "lucide-react";
+import { ArrowLeft, MessageSquare, Send, User, Bot, FileText, Shield, Loader2, ExternalLink, AlertCircle, ChevronRight, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -77,12 +77,51 @@ Be conversational and supportive. Many veterans find this process overwhelming -
 IMPORTANT: At the end of meaningful conversations, offer to generate a claims summary and connect them with a filing partner.`;
 };
 
+const SAMPLE_INTAKE: IntakeData = {
+  status: "veteran",
+  branch: "army",
+  goal: "first_claim",
+};
+
+const SAMPLE_NOTES: ClaimsNote[] = [
+  { category: "Years of Service", value: "8 years (2012-2020)" },
+  { category: "Separation Year", value: "2020" },
+  { category: "Claimed Conditions", value: "Tinnitus, lower back pain, knee injury" },
+  { category: "Current Symptoms", value: "Constant ringing in ears, chronic back pain, difficulty walking" },
+  { category: "Available Evidence", value: "Service medical records, private doctor diagnosis" },
+  { category: "Existing VA Rating", value: "None - first time filing" },
+];
+
+const SAMPLE_MESSAGES: Message[] = [
+  {
+    role: "assistant",
+    content: "Great, thank you for that information! I can see you're interested in filing your first VA claim. I'll guide you step by step through this process.\n\nLet's talk about the symptoms or conditions you'd like to claim. What health issues or symptoms have you experienced that you believe are connected to your military service?"
+  },
+  {
+    role: "user",
+    content: "I have constant ringing in my ears from being around artillery. My back hurts all the time from carrying heavy gear, and my right knee is messed up from a training injury."
+  },
+  {
+    role: "assistant",
+    content: "Thank you for sharing that. Those are all very common service-connected conditions:\n\n1. **Tinnitus** - Ringing in the ears from noise exposure is one of the most commonly claimed conditions\n2. **Lower back pain** - Often caused by carrying heavy equipment, rucksacks, and body armor\n3. **Knee injury** - Training injuries are well-documented service connections\n\nDo you have any medical records or documentation for these conditions? This could include:\n- Service treatment records\n- VA medical records\n- Private doctor visits\n- Buddy statements from fellow service members"
+  },
+  {
+    role: "user", 
+    content: "I have my service medical records that show the knee injury. I also went to a private doctor last year who diagnosed the tinnitus and back problems."
+  },
+  {
+    role: "assistant",
+    content: "Excellent! Having both service medical records AND private doctor documentation significantly strengthens your claim. Here's what I recommend:\n\n**For Tinnitus:**\n- Your private diagnosis is great evidence\n- A nexus letter connecting it to your military noise exposure would help\n\n**For Back Pain:**\n- The private diagnosis helps establish current disability\n- Any documentation of heavy lifting or gear carrying in service is useful\n\n**For Knee Injury:**\n- Your service treatment records showing the injury are perfect\n- This establishes a clear service connection\n\nWould you like me to connect you with a claims filing partner who can help you organize this evidence and file your claim? They can also help you file an Intent to File right away to preserve your effective date."
+  },
+];
+
 export default function ClaimsAgent() {
   const [intakeComplete, setIntakeComplete] = useState(false);
   const [intakeData, setIntakeData] = useState<IntakeData | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [messages, setMessages] = useState<Message[]>([]);
   const [notes, setNotes] = useState<ClaimsNote[]>([]);
+  const [showingSample, setShowingSample] = useState(false);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showHandoffModal, setShowHandoffModal] = useState(false);
@@ -110,6 +149,7 @@ export default function ClaimsAgent() {
     setIntakeData(data);
     setIntakeComplete(true);
     setCurrentStep(2);
+    setShowingSample(false);
     
     const goalMessage = GOAL_MESSAGES[data.goal] || "understanding your benefits";
     setMessages([
@@ -118,6 +158,24 @@ export default function ClaimsAgent() {
         content: `Great, thank you for that information! I can see you're interested in ${goalMessage}. I'll guide you step by step through this process.\n\nLet's talk about the symptoms or conditions you'd like to claim. What health issues or symptoms have you experienced that you believe are connected to your military service?`
       }
     ]);
+  };
+
+  const handleShowSample = () => {
+    setShowingSample(true);
+    setIntakeComplete(true);
+    setIntakeData(SAMPLE_INTAKE);
+    setMessages(SAMPLE_MESSAGES);
+    setNotes(SAMPLE_NOTES);
+    setCurrentStep(3);
+  };
+
+  const handleExitSample = () => {
+    setShowingSample(false);
+    setIntakeComplete(false);
+    setIntakeData(null);
+    setMessages([]);
+    setNotes([]);
+    setCurrentStep(1);
   };
 
   const extractNotes = (content: string): { cleanContent: string; note: ClaimsNote | null } => {
@@ -292,10 +350,24 @@ export default function ClaimsAgent() {
         </div>
       </div>
 
+      {/* Sample Results Banner */}
+      {showingSample && (
+        <div className="bg-orange-500/10 border-b border-orange-500/20 px-4 py-2 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-2 text-sm text-orange-700">
+            <Eye className="w-4 h-4" />
+            <span className="font-medium">Viewing Sample Results</span>
+            <span className="text-orange-600">— This is an example of how the Claims Agent works</span>
+          </div>
+          <Button size="sm" variant="outline" onClick={handleExitSample}>
+            Start Your Own Session
+          </Button>
+        </div>
+      )}
+
       {/* Main Content - Full Screen 3-Column Layout */}
       {!intakeComplete ? (
         <div className="flex-1 overflow-auto">
-          <ClaimsIntakeFlow onComplete={handleIntakeComplete} />
+          <ClaimsIntakeFlow onComplete={handleIntakeComplete} onShowSample={handleShowSample} />
         </div>
       ) : (
         <div className="flex-1 flex overflow-hidden">
