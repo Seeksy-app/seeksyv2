@@ -217,6 +217,18 @@ serve(async (req) => {
         }
       }
 
+      // Mark onboarding as complete so they skip the wizard and go straight to dashboard
+      const { error: profileError } = await supabaseAdmin
+        .from("profiles")
+        .update({ onboarding_completed: true })
+        .eq("id", invitedUser.id);
+      
+      if (profileError) {
+        console.error("❌ Error marking onboarding complete:", profileError);
+      } else {
+        console.log("✅ Onboarding marked complete for invited user");
+      }
+
       // Also send notification email to existing user
       const resendApiKey = Deno.env.get("RESEND_API_KEY");
       console.log("🔑 Resend API Key configured:", !!resendApiKey);
