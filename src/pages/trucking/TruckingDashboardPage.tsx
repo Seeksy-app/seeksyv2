@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import TruckingLayout from "@/components/trucking/TruckingLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -117,6 +118,7 @@ export default function TruckingDashboardPage() {
   }
 
   return (
+    <TruckingLayout>
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -248,5 +250,6 @@ export default function TruckingDashboardPage() {
         </Card>
       </div>
     </div>
+    </TruckingLayout>
   );
 }

@@ -61,6 +61,8 @@ import PublicVideosPage from "./pages/public/PublicVideosPage";
 // AITrucking
 import TruckingLandingPage from "./pages/trucking/TruckingLandingPage";
 import TruckingDashboardPage from "./pages/trucking/TruckingDashboardPage";
+import TruckingAuthPage from "./pages/trucking/TruckingAuthPage";
+import TruckingProfilePage from "./pages/trucking/TruckingProfilePage";
 import LoadsPage from "./pages/trucking/LoadsPage";
 import CarrierLeadsPage from "./pages/trucking/CarrierLeadsPage";
 import CarriersPage from "./pages/trucking/CarriersPage";
@@ -1442,12 +1444,16 @@ const AppContent = () => {
           
           {/* AITrucking Routes */}
           <Route path="/trucking" element={<TruckingLandingPage />} />
+          <Route path="/trucking/login" element={<TruckingAuthPage />} />
+          <Route path="/trucking/signup" element={<TruckingAuthPage />} />
           <Route path="/trucking/dashboard" element={<TruckingDashboardPage />} />
           <Route path="/trucking/loads" element={<LoadsPage />} />
           <Route path="/trucking/leads" element={<CarrierLeadsPage />} />
           <Route path="/trucking/carriers" element={<CarriersPage />} />
           <Route path="/trucking/settings" element={<TruckingSettingsPage />} />
+          <Route path="/trucking/console" element={<AITruckingConsolePage />} />
           <Route path="/trucking/ai-console" element={<AITruckingConsolePage />} />
+          <Route path="/trucking/profile" element={<TruckingProfilePage />} />
           
             <Route path="/tickets" element={<ClientTickets />} />
             <Route path="/proposals" element={<Proposals />} />
