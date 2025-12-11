@@ -65,7 +65,7 @@ export function CampaignLayout({ children }: CampaignLayoutProps) {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate("/campaigns");
+    navigate("/campaign-staff");
   };
 
   const NavLinks = () => (
@@ -108,7 +108,7 @@ export function CampaignLayout({ children }: CampaignLayoutProps) {
         <div className="container mx-auto px-4">
           <div className="flex h-14 items-center justify-between gap-4">
             {/* Logo */}
-            <Link to="/campaigns" className="flex items-center gap-2 flex-shrink-0">
+            <Link to="/campaign-staff" className="flex items-center gap-2 flex-shrink-0">
               <div 
                 className="h-8 w-8 rounded-lg flex items-center justify-center"
                 style={{ backgroundColor: colors.accent }}

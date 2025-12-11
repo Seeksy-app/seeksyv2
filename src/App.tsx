@@ -331,6 +331,7 @@ import Marketing from "./pages/Marketing";
 import DailyBriefPage from "./pages/DailyBriefPage";
 // CampaignStaff.ai
 import CampaignsLandingPage from "./pages/campaigns/CampaignsLandingPage";
+import CampaignTeamJoin from "./pages/campaigns/CampaignTeamJoin";
 import CampaignDashboard from "./pages/campaigns/CampaignDashboard";
 import CampaignManagerChat from "./pages/campaigns/CampaignManagerChat";
 import CampaignContentStudio from "./pages/campaigns/CampaignContentStudio";
@@ -688,7 +689,7 @@ const AppContent = () => {
   const isVeteransRoute = location.pathname.startsWith('/yourbenefits');
   
   // CampaignStaff.ai is completely standalone - no Seeksy UI
-  const isCampaignRoute = location.pathname.startsWith('/campaigns');
+  const isCampaignRoute = location.pathname.startsWith('/campaign-staff');
   
   // Hide sidebar in tour mode or on special routes
   const shouldShowSidebar = user && !isStudioRoute && !isClipsStudioRoute && !isTourMode && !isOnboardingComplete && !isVeteransRoute && !isCampaignRoute;
@@ -784,16 +785,17 @@ const AppContent = () => {
               <Route path="/credits" element={<Credits />} />
               
               {/* CampaignStaff.ai Routes */}
-              <Route path="/campaigns" element={<CampaignsLandingPage />} />
-              <Route path="/campaigns/dashboard" element={<CampaignDashboard />} />
-              <Route path="/campaigns/ai-manager" element={<CampaignManagerChat />} />
-              <Route path="/campaigns/studio" element={<CampaignContentStudio />} />
-              <Route path="/campaigns/outreach" element={<CampaignOutreachPage />} />
-              <Route path="/campaigns/site-builder" element={<CampaignSiteBuilder />} />
-              <Route path="/campaigns/email" element={<CampaignEmailPage />} />
-              <Route path="/campaigns/sms" element={<CampaignSMSPage />} />
-              <Route path="/campaigns/live" element={<CampaignLivePage />} />
-              <Route path="/campaigns/donations" element={<CampaignDonationsPage />} />
+              <Route path="/campaign-staff" element={<CampaignsLandingPage />} />
+              <Route path="/campaign-staff/join" element={<CampaignTeamJoin />} />
+              <Route path="/campaign-staff/dashboard" element={<CampaignDashboard />} />
+              <Route path="/campaign-staff/ai-manager" element={<CampaignManagerChat />} />
+              <Route path="/campaign-staff/studio" element={<CampaignContentStudio />} />
+              <Route path="/campaign-staff/outreach" element={<CampaignOutreachPage />} />
+              <Route path="/campaign-staff/site-builder" element={<CampaignSiteBuilder />} />
+              <Route path="/campaign-staff/email" element={<CampaignEmailPage />} />
+              <Route path="/campaign-staff/sms" element={<CampaignSMSPage />} />
+              <Route path="/campaign-staff/live" element={<CampaignLivePage />} />
+              <Route path="/campaign-staff/donations" element={<CampaignDonationsPage />} />
               
               <Route path="/personas" element={<Personas />} />
               <Route path="/voice-certification" element={<VoiceCertification />} />

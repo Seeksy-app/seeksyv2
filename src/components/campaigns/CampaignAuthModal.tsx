@@ -66,7 +66,7 @@ export function CampaignAuthModal({ open, onOpenChange }: CampaignAuthModalProps
         });
 
         onOpenChange(false);
-        navigate("/campaigns/dashboard");
+        navigate("/campaign-staff/dashboard");
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
           email: formData.email,
@@ -81,7 +81,7 @@ export function CampaignAuthModal({ open, onOpenChange }: CampaignAuthModalProps
         });
 
         onOpenChange(false);
-        navigate("/campaigns/dashboard");
+        navigate("/campaign-staff/dashboard");
       }
     } catch (error: any) {
       toast({

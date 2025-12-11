@@ -136,11 +136,11 @@ const footerSections = [
   {
     title: "Product",
     links: [
-      { label: "Overview", href: "/campaigns" },
-      { label: "AI Manager", href: "/campaigns/ai-manager" },
-      { label: "Content Studio", href: "/campaigns/studio" },
-      { label: "Outreach & Events", href: "/campaigns/outreach" },
-      { label: "Site Builder", href: "/campaigns/site-builder" }
+      { label: "Overview", href: "/campaign-staff" },
+      { label: "AI Manager", href: "/campaign-staff/ai-manager" },
+      { label: "Content Studio", href: "/campaign-staff/studio" },
+      { label: "Outreach & Events", href: "/campaign-staff/outreach" },
+      { label: "Site Builder", href: "/campaign-staff/site-builder" }
     ]
   },
   {
@@ -177,7 +177,7 @@ export default function CampaignsLandingPage() {
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
-            <Link to="/campaigns" className="flex items-center gap-2">
+            <Link to="/campaign-staff" className="flex items-center gap-2">
               <div 
                 className="h-9 w-9 rounded-lg flex items-center justify-center"
                 style={{ backgroundColor: colors.primary }}
@@ -198,9 +198,6 @@ export default function CampaignsLandingPage() {
               <a href="#pricing" className="text-sm font-medium hover:opacity-80" style={{ color: colors.textSecondary }}>
                 Pricing
               </a>
-              <Link to="/invest/campaignstaff" className="text-sm font-medium hover:opacity-80" style={{ color: colors.textSecondary }}>
-                Investors
-              </Link>
             </nav>
 
             {/* CTA Buttons */}
