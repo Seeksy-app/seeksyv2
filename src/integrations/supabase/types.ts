@@ -26213,6 +26213,59 @@ export type Database = {
         }
         Relationships: []
       }
+      video_watch_logs: {
+        Row: {
+          completed: boolean | null
+          created_at: string | null
+          id: string
+          ip_hash: string | null
+          referrer: string | null
+          session_id: string | null
+          updated_at: string | null
+          user_agent: string | null
+          user_id: string | null
+          video_duration_seconds: number | null
+          video_id: string | null
+          watch_duration_seconds: number | null
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string | null
+          id?: string
+          ip_hash?: string | null
+          referrer?: string | null
+          session_id?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          video_duration_seconds?: number | null
+          video_id?: string | null
+          watch_duration_seconds?: number | null
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string | null
+          id?: string
+          ip_hash?: string | null
+          referrer?: string | null
+          session_id?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          video_duration_seconds?: number | null
+          video_id?: string | null
+          watch_duration_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_watch_logs_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "demo_videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       voice_ad_usage: {
         Row: {
           advertiser_id: string | null

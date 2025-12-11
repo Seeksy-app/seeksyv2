@@ -57,6 +57,7 @@ import CreatorMeetingSettings from "./pages/creator/meetings/CreatorMeetingSetti
 import ScheduleMeeting from "./pages/meetings/ScheduleMeeting";
 import MeetingJoin from "./pages/meetings/MeetingJoin";
 import PublicBookingPage from "./pages/public/PublicBookingPage";
+import PublicVideosPage from "./pages/public/PublicVideosPage";
 import AdminMeetings from "./pages/admin/AdminMeetings";
 import AdminMeetingsDashboard from "./pages/admin/meetings/AdminMeetingsDashboard";
 import AdminMeetingTypes from "./pages/admin/meetings/AdminMeetingTypes";
@@ -1429,6 +1430,7 @@ const AppContent = () => {
           <Route path="/f/:slug" element={<PublicForm />} />
           <Route path="/help/zoom-integration" element={<ZoomIntegration />} />
           <Route path="/docs/zoom-integration" element={<ZoomIntegration />} />
+          <Route path="/videos" element={<PublicVideosPage />} />
             <Route path="/tickets" element={<ClientTickets />} />
             <Route path="/proposals" element={<Proposals />} />
             <Route path="/proposals/create" element={<CreateProposal />} />
