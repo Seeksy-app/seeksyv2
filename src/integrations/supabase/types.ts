@@ -23891,6 +23891,347 @@ export type Database = {
         }
         Relationships: []
       }
+      trucking_call_logs: {
+        Row: {
+          call_direction: string | null
+          call_ended_at: string | null
+          call_started_at: string | null
+          carrier_phone: string | null
+          created_at: string | null
+          id: string
+          load_id: string | null
+          owner_id: string | null
+          recording_url: string | null
+          summary: string | null
+          transcript_url: string | null
+        }
+        Insert: {
+          call_direction?: string | null
+          call_ended_at?: string | null
+          call_started_at?: string | null
+          carrier_phone?: string | null
+          created_at?: string | null
+          id?: string
+          load_id?: string | null
+          owner_id?: string | null
+          recording_url?: string | null
+          summary?: string | null
+          transcript_url?: string | null
+        }
+        Update: {
+          call_direction?: string | null
+          call_ended_at?: string | null
+          call_started_at?: string | null
+          carrier_phone?: string | null
+          created_at?: string | null
+          id?: string
+          load_id?: string | null
+          owner_id?: string | null
+          recording_url?: string | null
+          summary?: string | null
+          transcript_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trucking_call_logs_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_loads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trucking_carrier_leads: {
+        Row: {
+          carrier_id: string | null
+          company_name: string | null
+          contact_name: string | null
+          created_at: string | null
+          dot_number: string | null
+          email: string | null
+          eta_to_pickup: string | null
+          id: string
+          load_id: string | null
+          mc_number: string | null
+          notes: string | null
+          owner_id: string | null
+          phone: string | null
+          rate_offered: number | null
+          rate_requested: number | null
+          source: string | null
+          status: string | null
+          truck_type: string | null
+        }
+        Insert: {
+          carrier_id?: string | null
+          company_name?: string | null
+          contact_name?: string | null
+          created_at?: string | null
+          dot_number?: string | null
+          email?: string | null
+          eta_to_pickup?: string | null
+          id?: string
+          load_id?: string | null
+          mc_number?: string | null
+          notes?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          rate_offered?: number | null
+          rate_requested?: number | null
+          source?: string | null
+          status?: string | null
+          truck_type?: string | null
+        }
+        Update: {
+          carrier_id?: string | null
+          company_name?: string | null
+          contact_name?: string | null
+          created_at?: string | null
+          dot_number?: string | null
+          email?: string | null
+          eta_to_pickup?: string | null
+          id?: string
+          load_id?: string | null
+          mc_number?: string | null
+          notes?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          rate_offered?: number | null
+          rate_requested?: number | null
+          source?: string | null
+          status?: string | null
+          truck_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trucking_carrier_leads_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trucking_carrier_leads_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_loads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trucking_carriers: {
+        Row: {
+          company_name: string
+          contact_name: string | null
+          created_at: string | null
+          dot_number: string | null
+          email: string | null
+          equipment_types: string | null
+          id: string
+          mc_number: string | null
+          notes: string | null
+          owner_id: string
+          phone: string | null
+        }
+        Insert: {
+          company_name: string
+          contact_name?: string | null
+          created_at?: string | null
+          dot_number?: string | null
+          email?: string | null
+          equipment_types?: string | null
+          id?: string
+          mc_number?: string | null
+          notes?: string | null
+          owner_id: string
+          phone?: string | null
+        }
+        Update: {
+          company_name?: string
+          contact_name?: string | null
+          created_at?: string | null
+          dot_number?: string | null
+          email?: string | null
+          equipment_types?: string | null
+          id?: string
+          mc_number?: string | null
+          notes?: string | null
+          owner_id?: string
+          phone?: string | null
+        }
+        Relationships: []
+      }
+      trucking_loads: {
+        Row: {
+          auto_approve_band_flat: number | null
+          auto_approve_band_per_mile: number | null
+          commodity: string | null
+          created_at: string | null
+          delivery_date: string | null
+          delivery_window_end: string | null
+          delivery_window_start: string | null
+          destination_city: string | null
+          destination_state: string | null
+          destination_zip: string | null
+          equipment_type: string | null
+          escalate_threshold: number | null
+          floor_rate: number | null
+          id: string
+          is_active: boolean | null
+          load_number: string
+          miles: number | null
+          notes: string | null
+          origin_city: string | null
+          origin_state: string | null
+          origin_zip: string | null
+          owner_id: string
+          pickup_date: string | null
+          pickup_window_end: string | null
+          pickup_window_start: string | null
+          rate_unit: string | null
+          reference: string | null
+          status: string | null
+          target_rate: number | null
+          updated_at: string | null
+          weight_lbs: number | null
+        }
+        Insert: {
+          auto_approve_band_flat?: number | null
+          auto_approve_band_per_mile?: number | null
+          commodity?: string | null
+          created_at?: string | null
+          delivery_date?: string | null
+          delivery_window_end?: string | null
+          delivery_window_start?: string | null
+          destination_city?: string | null
+          destination_state?: string | null
+          destination_zip?: string | null
+          equipment_type?: string | null
+          escalate_threshold?: number | null
+          floor_rate?: number | null
+          id?: string
+          is_active?: boolean | null
+          load_number: string
+          miles?: number | null
+          notes?: string | null
+          origin_city?: string | null
+          origin_state?: string | null
+          origin_zip?: string | null
+          owner_id: string
+          pickup_date?: string | null
+          pickup_window_end?: string | null
+          pickup_window_start?: string | null
+          rate_unit?: string | null
+          reference?: string | null
+          status?: string | null
+          target_rate?: number | null
+          updated_at?: string | null
+          weight_lbs?: number | null
+        }
+        Update: {
+          auto_approve_band_flat?: number | null
+          auto_approve_band_per_mile?: number | null
+          commodity?: string | null
+          created_at?: string | null
+          delivery_date?: string | null
+          delivery_window_end?: string | null
+          delivery_window_start?: string | null
+          destination_city?: string | null
+          destination_state?: string | null
+          destination_zip?: string | null
+          equipment_type?: string | null
+          escalate_threshold?: number | null
+          floor_rate?: number | null
+          id?: string
+          is_active?: boolean | null
+          load_number?: string
+          miles?: number | null
+          notes?: string | null
+          origin_city?: string | null
+          origin_state?: string | null
+          origin_zip?: string | null
+          owner_id?: string
+          pickup_date?: string | null
+          pickup_window_end?: string | null
+          pickup_window_start?: string | null
+          rate_unit?: string | null
+          reference?: string | null
+          status?: string | null
+          target_rate?: number | null
+          updated_at?: string | null
+          weight_lbs?: number | null
+        }
+        Relationships: []
+      }
+      trucking_profiles: {
+        Row: {
+          auto_notify_email: string | null
+          company_name: string | null
+          contact_name: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          phone: string | null
+          time_zone: string | null
+          user_id: string
+        }
+        Insert: {
+          auto_notify_email?: string | null
+          company_name?: string | null
+          contact_name?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          phone?: string | null
+          time_zone?: string | null
+          user_id: string
+        }
+        Update: {
+          auto_notify_email?: string | null
+          company_name?: string | null
+          contact_name?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          phone?: string | null
+          time_zone?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      trucking_settings: {
+        Row: {
+          ai_caller_company_name: string | null
+          ai_caller_name: string | null
+          created_at: string | null
+          demo_mode_enabled: boolean | null
+          id: string
+          notification_email: string | null
+          notification_sms_number: string | null
+          owner_id: string
+        }
+        Insert: {
+          ai_caller_company_name?: string | null
+          ai_caller_name?: string | null
+          created_at?: string | null
+          demo_mode_enabled?: boolean | null
+          id?: string
+          notification_email?: string | null
+          notification_sms_number?: string | null
+          owner_id: string
+        }
+        Update: {
+          ai_caller_company_name?: string | null
+          ai_caller_name?: string | null
+          created_at?: string | null
+          demo_mode_enabled?: boolean | null
+          id?: string
+          notification_email?: string | null
+          notification_sms_number?: string | null
+          owner_id?: string
+        }
+        Relationships: []
+      }
       tv_channels: {
         Row: {
           avatar_url: string | null
