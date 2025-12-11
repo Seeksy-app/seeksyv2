@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Truck, Phone, Shield, Zap, CheckCircle, ArrowRight, Eye, EyeOff } from "lucide-react";
-import truckingHero from "@/assets/trucking-hero.png";
+import truckingHeroBg from "@/assets/trucking-hero-bg.jpg";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -93,39 +93,37 @@ export default function TruckingLandingPage() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6 text-center lg:text-left">
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
+      {/* Hero Section with Full-Width Background */}
+      <section className="relative min-h-[600px] flex items-center">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${truckingHeroBg})` }}
+        />
+        {/* Gradient Overlay - dark on left fading to transparent on right */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-transparent" />
+        {/* Additional bottom gradient for smooth transition */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+        
+        {/* Content */}
+        <div className="relative container mx-auto px-4 py-20">
+          <div className="max-w-2xl space-y-6">
+            <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-white drop-shadow-lg">
               Let AI answer your{" "}
               <span className="text-primary">load calls</span>
             </h1>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-xl text-gray-200 drop-shadow-md">
               AITrucking listens to carrier calls, quotes rates within your rules, 
               and sends you only the loads worth your time.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
-              <Button size="lg" onClick={() => { setAuthOpen(true); setAuthTab("signup"); }}>
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <Button size="lg" onClick={() => { setAuthOpen(true); setAuthTab("signup"); }} className="shadow-lg">
                 Start Free
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <Button size="lg" variant="outline">
+              <Button size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white shadow-lg">
                 Watch How It Works
               </Button>
-            </div>
-          </div>
-          
-          {/* Truck Image with Shadow */}
-          <div className="relative flex justify-center lg:justify-end">
-            <div className="relative">
-              <img 
-                src={truckingHero} 
-                alt="Semi truck on highway" 
-                className="w-full max-w-md rounded-2xl shadow-2xl opacity-90"
-              />
-              {/* Subtle gradient overlay to blend with background */}
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-background/40 via-transparent to-transparent" />
             </div>
           </div>
         </div>
