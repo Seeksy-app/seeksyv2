@@ -71,35 +71,59 @@ export function EmailTrackingPills({ events, sentAt, onClick }: EmailTrackingPil
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="flex items-center gap-1.5 cursor-pointer" onClick={onClick}>
-            {/* Status Indicator */}
-            {hasBounced ? (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-500/10 text-red-600 dark:text-red-400">
-                <AlertTriangle className="h-3 w-3" />
-                <span className="text-xs font-medium">Bounced</span>
-              </div>
-            ) : hasClicked ? (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
-                <Circle className="h-2.5 w-2.5 fill-current" />
-                <Sparkles className="h-3 w-3" />
-                <span className="text-xs font-medium">Clicked</span>
-              </div>
-            ) : hasOpened ? (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
-                <CheckCircle2 className="h-3 w-3" />
-                <span className="text-xs font-medium">Opened</span>
-              </div>
-            ) : hasDelivered ? (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                <Circle className="h-2.5 w-2.5 fill-current" />
-                <span className="text-xs font-medium">Delivered</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-muted text-muted-foreground">
-                <Circle className="h-2.5 w-2.5 fill-current" />
-                <span className="text-xs font-medium">Sent</span>
-              </div>
-            )}
+          <div className="flex items-center gap-2 cursor-pointer flex-wrap" onClick={onClick}>
+            {/* Status Indicators - show all with colored dots */}
+            <div className="flex items-center gap-1 text-xs">
+              <Circle className={cn(
+                "h-2 w-2 fill-current",
+                hasBounced ? "text-red-500" : "text-blue-500"
+              )} />
+              <span className={cn(
+                "font-medium",
+                hasBounced ? "text-red-500" : "text-muted-foreground"
+              )}>
+                {hasBounced ? "Bounced" : "Sent"}
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-1 text-xs">
+              <Circle className={cn(
+                "h-2 w-2 fill-current",
+                hasDelivered ? "text-green-500" : "text-muted-foreground/30"
+              )} />
+              <span className={cn(
+                "font-medium",
+                hasDelivered ? "text-green-600 dark:text-green-400" : "text-muted-foreground/50"
+              )}>
+                Delivered
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-1 text-xs">
+              <Circle className={cn(
+                "h-2 w-2 fill-current",
+                hasOpened ? "text-purple-500" : "text-muted-foreground/30"
+              )} />
+              <span className={cn(
+                "font-medium",
+                hasOpened ? "text-purple-600 dark:text-purple-400" : "text-muted-foreground/50"
+              )}>
+                Opened
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-1 text-xs">
+              <Circle className={cn(
+                "h-2 w-2 fill-current",
+                hasClicked ? "text-orange-500" : "text-muted-foreground/30"
+              )} />
+              <span className={cn(
+                "font-medium",
+                hasClicked ? "text-orange-600 dark:text-orange-400" : "text-muted-foreground/50"
+              )}>
+                Clicked
+              </span>
+            </div>
 
             {/* AI Engagement Tag */}
             {engagementTag && (

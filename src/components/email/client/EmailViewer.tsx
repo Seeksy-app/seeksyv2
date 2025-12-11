@@ -272,53 +272,6 @@ export function EmailViewer({
           </Card>
         )}
 
-        {/* Event Timeline */}
-        <Card className="p-4">
-          <h3 className="font-medium mb-4">Event Timeline</h3>
-          <div className="space-y-3">
-            {eventOrder.map((eventType) => {
-              const event = events.find((e) => e.event_type === eventType);
-              const isCompleted = !!event;
-              const displayName = eventType.replace("email.", "");
-              
-              return (
-                <div key={eventType} className="flex items-center gap-3">
-                  <Circle
-                    className={cn(
-                      "h-3 w-3 fill-current flex-shrink-0",
-                      isCompleted ? "text-green-500" : "text-muted"
-                    )}
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className={cn(
-                        "font-medium",
-                        isCompleted ? "text-green-600 dark:text-green-400" : "text-muted-foreground"
-                      )}>
-                        {displayName.charAt(0).toUpperCase() + displayName.slice(1)}
-                      </span>
-                      {event && (
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(event.occurred_at).toLocaleString()}
-                        </span>
-                      )}
-                    </div>
-                    {event?.clicked_url && (
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Clicked: {event.clicked_url}
-                      </div>
-                    )}
-                    {event?.bounce_reason && (
-                      <div className="text-xs text-red-500 mt-1">
-                        {event.bounce_reason}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
 
         {/* Device & Location Info */}
         {(email.device_type || email.user_agent || email.ip_address) && (
