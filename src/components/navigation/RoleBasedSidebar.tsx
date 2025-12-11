@@ -458,9 +458,9 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
   };
 
   // Use permission-filtered navigation for admin routes/users (combines role + permission checks)
-  // On admin routes, if permission nav is empty but roles are still loading, use full config
-  // This prevents the empty sidebar flash
-  const adminNavFromConfig = shouldShowAdminNav && permissionFilteredNav.length === 0 && (rolesLoading || rbacLoading)
+  // On admin routes, if permission nav is empty (due to loading, no roles, or permission issues), 
+  // use full config to prevent empty sidebar
+  const adminNavFromConfig = shouldShowAdminNav && permissionFilteredNav.length === 0
     ? NAVIGATION_CONFIG.navigation.filter(g => g.collapsible)
     : permissionFilteredNav;
   

@@ -97,11 +97,11 @@ export default function TeamMembers() {
   const { data: members = [], isLoading } = useQuery({
     queryKey: ['admin-team-members'],
     queryFn: async () => {
-      // Get users with admin roles
+      // Get users with admin/team roles (including board members)
       const { data: roles, error: rolesError } = await supabase
         .from('user_roles')
         .select('*')
-        .in('role', ['super_admin', 'admin', 'cfo', 'cmo', 'cco', 'manager']);
+        .in('role', ['super_admin', 'admin', 'board_member', 'cfo', 'cmo', 'cco', 'manager']);
 
       if (rolesError) throw rolesError;
 
