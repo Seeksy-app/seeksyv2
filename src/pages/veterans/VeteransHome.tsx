@@ -64,7 +64,7 @@ export default function VeteransHome() {
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
               Maximize Your{" "}
-              <span className="text-primary">Military and Federal Benefits</span>
+              <span className="text-primary">Military<br className="hidden sm:inline" /> and Federal Benefits</span>
             </h1>
             
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
@@ -252,6 +252,45 @@ export default function VeteransHome() {
             <VeteransFaq />
           </div>
         </div>
+      </section>
+
+      {/* Contact Benefits Service Provider */}
+      <section className="py-16 container mx-auto px-4">
+        <Card className="max-w-2xl mx-auto border-primary/30">
+          <CardHeader>
+            <div className="flex items-center gap-2 text-primary mb-2">
+              <Shield className="w-5 h-5" />
+              <span className="text-sm font-medium">Benefits Service Provider</span>
+            </div>
+            <CardTitle>Schedule Your Free Consultation</CardTitle>
+            <CardDescription>
+              Want to discuss your benefits options? Connect with one of our federal benefits specialists.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); alert('Thank you! A specialist will contact you soon.'); }}>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Name</label>
+                  <input type="text" required className="w-full px-3 py-2 border rounded-md" placeholder="Your name" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Email</label>
+                  <input type="email" required className="w-full px-3 py-2 border rounded-md" placeholder="your@email.com" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Phone (optional)</label>
+                <input type="tel" className="w-full px-3 py-2 border rounded-md" placeholder="(555) 123-4567" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">How can we help?</label>
+                <textarea className="w-full px-3 py-2 border rounded-md min-h-[80px]" placeholder="Tell us about your situation..." />
+              </div>
+              <Button type="submit" className="w-full">Request Free Consultation</Button>
+            </form>
+          </CardContent>
+        </Card>
       </section>
 
       {/* CTA Section */}

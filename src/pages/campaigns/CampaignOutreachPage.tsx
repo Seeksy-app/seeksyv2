@@ -21,7 +21,7 @@ import {
   Clock
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import type { User } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -45,7 +45,7 @@ const recipientGroups = [
 
 export default function CampaignOutreachPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const [user, setUser] = useState<User | null>(null);
   const [events, setEvents] = useState<CampaignEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [candidateId, setCandidateId] = useState<string | null>(null);
@@ -69,11 +69,19 @@ export default function CampaignOutreachPage() {
   const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-    loadData();
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      if (!data.user) navigate("/auth");
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ?? null);
+      if (!session?.user) navigate("/auth");
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (user) loadData();
   }, [user]);
 
   const loadData = async () => {

@@ -18,7 +18,7 @@ import {
   CheckCircle2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import type { User } from "@supabase/supabase-js";
 import { toast } from "sonner";
 
 interface CampaignSite {
@@ -35,7 +35,7 @@ interface CampaignSite {
 
 export default function CampaignSiteBuilder() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [candidateId, setCandidateId] = useState<string | null>(null);
@@ -53,11 +53,19 @@ export default function CampaignSiteBuilder() {
   const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-    loadData();
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      if (!data.user) navigate("/auth");
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ?? null);
+      if (!session?.user) navigate("/auth");
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (user) loadData();
   }, [user]);
 
   const loadData = async () => {
@@ -73,9 +81,9 @@ export default function CampaignSiteBuilder() {
       const { data: newCandidate } = await supabase
         .from("campaign_candidates")
         .insert({ user_id: user.id, display_name: "My Campaign" })
-        .select("id, display_name")
+        .select("id, display_name, office, jurisdiction")
         .single();
-      candidate = newCandidate;
+      candidate = newCandidate as typeof candidate;
     }
 
     if (candidate) {

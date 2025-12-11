@@ -22,7 +22,7 @@ import {
   Plus
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import type { User } from "@supabase/supabase-js";
 import { toast } from "sonner";
 
 interface ContentItem {
@@ -45,7 +45,7 @@ const templates = [
 
 export default function CampaignContentStudio() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const [user, setUser] = useState<User | null>(null);
   const [content, setContent] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
@@ -61,11 +61,19 @@ export default function CampaignContentStudio() {
   const [candidateId, setCandidateId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-    loadData();
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      if (!data.user) navigate("/auth");
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ?? null);
+      if (!session?.user) navigate("/auth");
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (user) loadData();
   }, [user]);
 
   const loadData = async () => {

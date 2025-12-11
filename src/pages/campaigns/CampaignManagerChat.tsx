@@ -8,15 +8,15 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Send, 
-  User, 
   Bot,
   CheckCircle2,
   FileText,
   Download,
-  Sparkles
+  Sparkles,
+  UserCircle
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import type { User } from "@supabase/supabase-js";
 import { toast } from "sonner";
 
 interface Message {
@@ -71,7 +71,7 @@ Be supportive and remind them that every great campaign starts with a single ste
 
 export default function CampaignManagerChat() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const [user, setUser] = useState<User | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -88,11 +88,19 @@ export default function CampaignManagerChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-    loadExistingData();
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      if (!data.user) navigate("/auth");
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ?? null);
+      if (!session?.user) navigate("/auth");
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (user) loadExistingData();
     // Initial greeting
     if (messages.length === 0) {
       setMessages([{
@@ -282,7 +290,7 @@ Let's start by getting to know you. **What's your name**, and how would you like
                     </div>
                     {message.role === "user" && (
                       <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                        <User className="h-4 w-4 text-white" />
+                        <UserCircle className="h-4 w-4 text-white" />
                       </div>
                     )}
                   </div>
