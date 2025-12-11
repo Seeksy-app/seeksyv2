@@ -16,9 +16,16 @@ import {
   Briefcase
 } from "lucide-react";
 import { VenueAuthModal } from "@/components/venues/VenueAuthModal";
-import heroImage from "@/assets/venueos-hero.jpg";
-import weddingImage from "@/assets/venueos-wedding.jpg";
-import concertImage from "@/assets/venueos-concert.jpg";
+import weddingPoster from "@/assets/venue-wedding-poster.jpg";
+import concertPoster from "@/assets/venue-concert-poster.jpg";
+import corporatePoster from "@/assets/venue-corporate-poster.jpg";
+import galaPoster from "@/assets/venue-gala-poster.jpg";
+import birthdayPoster from "@/assets/venue-birthday-poster.jpg";
+import fashionPoster from "@/assets/venue-fashion-poster.jpg";
+import gardenPoster from "@/assets/venue-garden-poster.jpg";
+import fundraiserPoster from "@/assets/venue-fundraiser-poster.jpg";
+import holidayPoster from "@/assets/venue-holiday-poster.jpg";
+import launchPoster from "@/assets/venue-launch-poster.jpg";
 
 const colors = {
   primary: "#053877",
@@ -211,66 +218,98 @@ export default function VenueLandingPage() {
         </div>
       </header>
 
-      {/* Hero Section with Background Image */}
-      <section className="relative py-20 lg:py-32 overflow-hidden">
-        {/* Hero Background Image */}
-        <div className="absolute inset-0 z-0">
-          <img 
-            src={heroImage} 
-            alt="Venue events collage - weddings, concerts, corporate events, galas" 
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
+      {/* Netflix-Style Hero Section */}
+      <section className="relative min-h-[85vh] overflow-hidden" style={{ backgroundColor: "#0a0a0a" }}>
+        {/* Left Side Event Posters */}
+        <div className="absolute left-0 top-0 bottom-0 w-[380px] hidden lg:flex flex-col gap-3 p-4 overflow-hidden">
+          <div className="flex gap-3 animate-fade-in" style={{ animationDelay: "0.1s" }}>
+            <img src={weddingPoster} alt="Wedding" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
+            <img src={galaPoster} alt="Gala" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
+          </div>
+          <div className="flex gap-3 animate-fade-in" style={{ animationDelay: "0.2s" }}>
+            <img src={birthdayPoster} alt="Birthday" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
+            <img src={gardenPoster} alt="Garden Party" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
+          </div>
+          <div className="flex gap-3 animate-fade-in" style={{ animationDelay: "0.3s" }}>
+            <img src={holidayPoster} alt="Holiday" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
+            <img src={fashionPoster} alt="Fashion" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
+          </div>
+          {/* Left gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#0a0a0a] pointer-events-none" />
         </div>
-        
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 backdrop-blur-sm" style={{ backgroundColor: "rgba(44, 107, 237, 0.3)" }}>
-            <Sparkles className="h-4 w-4 text-white" />
-            <span className="text-sm font-medium text-white">AI-Powered Venue Management</span>
-          </div>
-          
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white drop-shadow-lg">
-            The AI Operating System<br />for Modern Venues
-          </h1>
-          
-          <p className="text-lg md:text-xl max-w-2xl mx-auto mb-8 text-white/90">
-            Streamline bookings, manage events, and grow your venue with AI-powered tools. 
-            From weddings to corporate events to concerts.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg"
-              onClick={() => setAuthModalOpen(true)}
-              style={{ backgroundColor: colors.primary, color: colors.textOnDark }}
-              className="text-lg px-8 hover:opacity-90"
-            >
-              Get Started Free
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline"
-              className="text-lg px-8 bg-white/10 border-white/30 text-white hover:bg-white/20"
-            >
-              Watch Demo
-            </Button>
-          </div>
 
-          {/* Venue Types */}
-          <div className="flex flex-wrap justify-center gap-4 mt-12">
-            {venueTypes.map((type) => (
-              <div 
-                key={type.label}
-                className="flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm"
-                style={{ backgroundColor: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)" }}
+        {/* Right Side Event Posters */}
+        <div className="absolute right-0 top-0 bottom-0 w-[380px] hidden lg:flex flex-col gap-3 p-4 overflow-hidden">
+          <div className="flex gap-3 animate-fade-in" style={{ animationDelay: "0.15s" }}>
+            <img src={concertPoster} alt="Concert" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
+            <img src={corporatePoster} alt="Corporate" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
+          </div>
+          <div className="flex gap-3 animate-fade-in" style={{ animationDelay: "0.25s" }}>
+            <img src={launchPoster} alt="Product Launch" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
+            <img src={fundraiserPoster} alt="Fundraiser" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
+          </div>
+          <div className="flex gap-3 animate-fade-in" style={{ animationDelay: "0.35s" }}>
+            <img src={weddingPoster} alt="Wedding" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
+            <img src={concertPoster} alt="Concert" className="w-44 h-56 object-cover rounded-lg opacity-70 hover:opacity-100 transition-opacity" />
+          </div>
+          {/* Right gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-[#0a0a0a] pointer-events-none" />
+        </div>
+
+        {/* Center Content */}
+        <div className="relative z-10 flex items-center justify-center min-h-[85vh]">
+          <div className="text-center px-4 max-w-3xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 backdrop-blur-sm animate-fade-in" style={{ backgroundColor: "rgba(44, 107, 237, 0.3)" }}>
+              <Sparkles className="h-4 w-4 text-white" />
+              <span className="text-sm font-medium text-white">AI-Powered Venue Management</span>
+            </div>
+            
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white drop-shadow-lg animate-fade-in" style={{ animationDelay: "0.1s" }}>
+              The AI Operating System<br />for Modern Venues
+            </h1>
+            
+            <p className="text-lg md:text-xl max-w-2xl mx-auto mb-8 text-white/80 animate-fade-in" style={{ animationDelay: "0.2s" }}>
+              Streamline bookings, manage events, and grow your venue with AI-powered tools. 
+              From weddings to corporate events to concerts.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{ animationDelay: "0.3s" }}>
+              <Button 
+                size="lg"
+                onClick={() => setAuthModalOpen(true)}
+                style={{ backgroundColor: colors.primary, color: colors.textOnDark }}
+                className="text-lg px-8 hover:opacity-90"
               >
-                <type.icon className="h-4 w-4 text-white" />
-                <span className="text-sm font-medium text-white">{type.label}</span>
-              </div>
-            ))}
+                Get Started Free
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="text-lg px-8 bg-white/10 border-white/30 text-white hover:bg-white/20"
+              >
+                Watch Demo
+              </Button>
+            </div>
+
+            {/* Venue Types */}
+            <div className="flex flex-wrap justify-center gap-4 mt-12 animate-fade-in" style={{ animationDelay: "0.4s" }}>
+              {venueTypes.map((type) => (
+                <div 
+                  key={type.label}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-sm"
+                  style={{ backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)" }}
+                >
+                  <type.icon className="h-4 w-4 text-white" />
+                  <span className="text-sm font-medium text-white">{type.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
+
+        {/* Bottom Gradient */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0a0a0a] to-transparent pointer-events-none" />
       </section>
 
       {/* Problem Section */}
@@ -386,7 +425,7 @@ export default function VenueLandingPage() {
           <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             <div className="relative group overflow-hidden rounded-2xl shadow-xl">
               <img 
-                src={weddingImage} 
+                src={weddingPoster} 
                 alt="Elegant wedding venue with crystal chandeliers" 
                 className="w-full h-72 object-cover transition-transform duration-500 group-hover:scale-105"
               />
@@ -404,7 +443,7 @@ export default function VenueLandingPage() {
             
             <div className="relative group overflow-hidden rounded-2xl shadow-xl">
               <img 
-                src={concertImage} 
+                src={concertPoster} 
                 alt="Vibrant concert venue with stage lighting" 
                 className="w-full h-72 object-cover transition-transform duration-500 group-hover:scale-105"
               />
