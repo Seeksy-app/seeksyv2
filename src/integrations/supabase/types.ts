@@ -18931,6 +18931,7 @@ export type Database = {
       }
       sales_opportunities: {
         Row: {
+          access_code: string | null
           competitive_advantage: string | null
           created_at: string
           created_by: string | null
@@ -18956,6 +18957,7 @@ export type Database = {
           video_url: string | null
         }
         Insert: {
+          access_code?: string | null
           competitive_advantage?: string | null
           created_at?: string
           created_by?: string | null
@@ -18981,6 +18983,7 @@ export type Database = {
           video_url?: string | null
         }
         Update: {
+          access_code?: string | null
           competitive_advantage?: string | null
           created_at?: string
           created_by?: string | null
@@ -19006,6 +19009,86 @@ export type Database = {
           video_url?: string | null
         }
         Relationships: []
+      }
+      sales_opportunity_access: {
+        Row: {
+          access_code_used: string | null
+          accessed_at: string | null
+          id: string
+          investor_email: string | null
+          investor_name: string | null
+          opportunity_id: string
+          pages_viewed: string[] | null
+          time_spent_seconds: number | null
+        }
+        Insert: {
+          access_code_used?: string | null
+          accessed_at?: string | null
+          id?: string
+          investor_email?: string | null
+          investor_name?: string | null
+          opportunity_id: string
+          pages_viewed?: string[] | null
+          time_spent_seconds?: number | null
+        }
+        Update: {
+          access_code_used?: string | null
+          accessed_at?: string | null
+          id?: string
+          investor_email?: string | null
+          investor_name?: string | null
+          opportunity_id?: string
+          pages_viewed?: string[] | null
+          time_spent_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_opportunity_access_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "sales_opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_opportunity_videos: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          id: string
+          opportunity_id: string
+          video_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          opportunity_id: string
+          video_id: string
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          opportunity_id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_opportunity_videos_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "sales_opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_opportunity_videos_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "demo_videos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sales_team_members: {
         Row: {
