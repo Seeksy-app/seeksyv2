@@ -23898,8 +23898,13 @@ export type Database = {
           call_started_at: string | null
           carrier_phone: string | null
           created_at: string | null
+          duration_seconds: number | null
+          failure_reason: string | null
           id: string
+          language: string | null
+          lead_id: string | null
           load_id: string | null
+          outcome: string | null
           owner_id: string | null
           recording_url: string | null
           summary: string | null
@@ -23911,8 +23916,13 @@ export type Database = {
           call_started_at?: string | null
           carrier_phone?: string | null
           created_at?: string | null
+          duration_seconds?: number | null
+          failure_reason?: string | null
           id?: string
+          language?: string | null
+          lead_id?: string | null
           load_id?: string | null
+          outcome?: string | null
           owner_id?: string | null
           recording_url?: string | null
           summary?: string | null
@@ -23924,14 +23934,26 @@ export type Database = {
           call_started_at?: string | null
           carrier_phone?: string | null
           created_at?: string | null
+          duration_seconds?: number | null
+          failure_reason?: string | null
           id?: string
+          language?: string | null
+          lead_id?: string | null
           load_id?: string | null
+          outcome?: string | null
           owner_id?: string | null
           recording_url?: string | null
           summary?: string | null
           transcript_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "trucking_call_logs_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_carrier_leads"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "trucking_call_logs_load_id_fkey"
             columns: ["load_id"]
