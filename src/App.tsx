@@ -680,9 +680,12 @@ const AppContent = () => {
   // Veterans platform is completely standalone - no Seeksy UI
   const isVeteransRoute = location.pathname.startsWith('/yourbenefits');
   
+  // CampaignStaff.ai is completely standalone - no Seeksy UI
+  const isCampaignRoute = location.pathname.startsWith('/campaigns');
+  
   // Hide sidebar in tour mode or on special routes
-  const shouldShowSidebar = user && !isStudioRoute && !isClipsStudioRoute && !isTourMode && !isOnboardingComplete && !isVeteransRoute;
-  const shouldShowTopNav = user && !isStudioRoute && !isTourMode && !isOnboardingComplete && !isVeteransRoute;
+  const shouldShowSidebar = user && !isStudioRoute && !isClipsStudioRoute && !isTourMode && !isOnboardingComplete && !isVeteransRoute && !isCampaignRoute;
+  const shouldShowTopNav = user && !isStudioRoute && !isTourMode && !isOnboardingComplete && !isVeteransRoute && !isCampaignRoute;
 
   // Render Veterans Platform separately - completely standalone
   if (isVeteransRoute) {
