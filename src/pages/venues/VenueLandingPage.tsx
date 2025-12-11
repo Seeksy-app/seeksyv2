@@ -13,9 +13,18 @@ import {
   Building2,
   Music,
   Heart,
-  Briefcase
+  Briefcase,
+  ChevronDown,
+  Bot,
+  MessageSquare
 } from "lucide-react";
 import { VenueAuthModal } from "@/components/venues/VenueAuthModal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import weddingPoster from "@/assets/venue-wedding-poster.jpg";
 import concertPoster from "@/assets/venue-concert-poster.jpg";
 import corporatePoster from "@/assets/venue-corporate-poster.jpg";
@@ -181,20 +190,37 @@ export default function VenueLandingPage() {
 
             {/* Nav Items */}
             <nav className="hidden md:flex items-center gap-6">
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium hover:opacity-80" style={{ color: colors.textSecondary }}>
+                  Features
+                  <ChevronDown className="h-4 w-4" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56 bg-white z-50">
+                  <DropdownMenuItem asChild>
+                    <a href="#features-dashboard" className="cursor-pointer">Dashboard & Analytics</a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a href="#how-it-works" className="cursor-pointer">Bookings & Calendar</a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a href="#for-venues" className="cursor-pointer">CRM & Messaging</a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a href="#features-mia" className="cursor-pointer">Mia • AI Venue Manager</a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a href="#influencers" className="cursor-pointer">Influencer Campaigns</a>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <a href="#how-it-works" className="text-sm font-medium hover:opacity-80" style={{ color: colors.textSecondary }}>
                 How It Works
-              </a>
-              <a href="#for-venues" className="text-sm font-medium hover:opacity-80" style={{ color: colors.textSecondary }}>
-                For Venues
               </a>
               <a href="#ai-tools" className="text-sm font-medium hover:opacity-80" style={{ color: colors.textSecondary }}>
                 AI Tools
               </a>
               <a href="#pricing" className="text-sm font-medium hover:opacity-80" style={{ color: colors.textSecondary }}>
                 Pricing
-              </a>
-              <a href="#influencers" className="text-sm font-medium hover:opacity-80" style={{ color: colors.textSecondary }}>
-                Influencers
               </a>
             </nav>
 
@@ -375,7 +401,78 @@ export default function VenueLandingPage() {
         </div>
       </section>
 
-      {/* Module Grid */}
+      {/* Mia AI Preview Section */}
+      <section className="py-20" id="features-mia" style={{ backgroundColor: "#0a0a0a" }}>
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4" style={{ backgroundColor: "rgba(44, 107, 237, 0.3)" }}>
+              <Bot className="h-4 w-4 text-white" />
+              <span className="text-sm font-medium text-white">AI-Powered</span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
+              Meet Mia, Your AI Venue Manager
+            </h2>
+            <p className="text-lg max-w-2xl mx-auto text-white/70">
+              Mia handles inquiries, suggests pricing, drafts proposals, and creates bookings — all through natural conversation.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto items-center">
+            {/* Chat Preview */}
+            <div className="bg-white rounded-2xl p-4 shadow-2xl">
+              <div className="flex items-center gap-2 pb-3 border-b mb-3">
+                <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-center">
+                  <Bot className="h-4 w-4 text-white" />
+                </div>
+                <span className="font-semibold text-gray-900">Mia • AI Manager</span>
+              </div>
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <div className="h-6 w-6 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-center flex-shrink-0">
+                    <Bot className="h-3 w-3 text-white" />
+                  </div>
+                  <div className="bg-gray-100 rounded-lg px-3 py-2 text-sm text-gray-800">
+                    I'd love to help create a booking! When is the event and how many guests?
+                  </div>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <div className="bg-blue-600 rounded-lg px-3 py-2 text-sm text-white">
+                    June 15th, about 120 guests for a wedding reception
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <div className="h-6 w-6 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-center flex-shrink-0">
+                    <Bot className="h-3 w-3 text-white" />
+                  </div>
+                  <div className="bg-gray-100 rounded-lg px-3 py-2 text-sm text-gray-800">
+                    Great! The Grand Ballroom is available June 15th. For 120 guests, I recommend our Premium Wedding Package at $8,500. Shall I draft a proposal?
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Mini Calendar Preview */}
+            <div className="bg-white rounded-2xl p-6 shadow-2xl">
+              <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <CalendarCheck className="h-5 w-5 text-blue-600" />
+                Suggested Availability
+              </h3>
+              <div className="grid grid-cols-3 gap-2">
+                {["Jun 15", "Jun 22", "Jun 29", "Jul 6", "Jul 13", "Jul 20"].map((date, i) => (
+                  <div 
+                    key={date}
+                    className={`p-3 rounded-lg text-center text-sm ${i === 0 ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700"}`}
+                  >
+                    {date}
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-4">Mia automatically checks your calendar and suggests available dates.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="py-20" id="ai-tools">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">

@@ -1,32 +1,32 @@
-import { VenueLayout } from "@/components/venues/VenueLayout";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { 
   CalendarPlus, 
   UserPlus, 
   FileText, 
   Megaphone, 
   Mail,
-  TrendingUp,
   CalendarCheck,
   Users,
   DollarSign,
-  Clock
+  Clock,
+  Bot,
+  Sparkles
 } from "lucide-react";
+import { NewInquiryModal } from "@/components/venues/modals/NewInquiryModal";
+import { ScheduleTourModal } from "@/components/venues/modals/ScheduleTourModal";
+import { CreateProposalModal } from "@/components/venues/modals/CreateProposalModal";
+import { SendMessageModal } from "@/components/venues/modals/SendMessageModal";
+import { MiaBookingDrawer } from "@/components/venues/MiaBookingDrawer";
 
 const stats = [
   { label: "Upcoming Events", value: "12", icon: CalendarCheck, change: "+3 this week" },
   { label: "Active Clients", value: "48", icon: Users, change: "+5 this month" },
   { label: "Revenue (MTD)", value: "$42,500", icon: DollarSign, change: "+12% vs last month" },
   { label: "Pending Inquiries", value: "7", icon: Clock, change: "Respond within 24h" },
-];
-
-const quickActions = [
-  { label: "Add new inquiry", icon: UserPlus, color: "#2C6BED" },
-  { label: "Schedule tour", icon: CalendarPlus, color: "#10B981" },
-  { label: "Create proposal", icon: FileText, color: "#8B5CF6" },
-  { label: "Plan campaign", icon: Megaphone, color: "#F59E0B" },
-  { label: "Send email", icon: Mail, color: "#EF4444" },
 ];
 
 const upcomingEvents = [
@@ -43,17 +43,51 @@ const recentLeads = [
 ];
 
 export default function VenueDashboard() {
+  const navigate = useNavigate();
+  const [isDemoMode, setIsDemoMode] = useState(() => {
+    return localStorage.getItem("venueos_mode") !== "live";
+  });
+  
+  // Modal states
+  const [inquiryOpen, setInquiryOpen] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
+  const [proposalOpen, setProposalOpen] = useState(false);
+  const [messageOpen, setMessageOpen] = useState(false);
+  const [miaOpen, setMiaOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem("venueos_mode", isDemoMode ? "demo" : "live");
+  }, [isDemoMode]);
+
+  const quickActions = [
+    { label: "Add inquiry", icon: UserPlus, color: "#2C6BED", onClick: () => setInquiryOpen(true) },
+    { label: "Schedule tour", icon: CalendarPlus, color: "#10B981", onClick: () => setTourOpen(true) },
+    { label: "Create proposal", icon: FileText, color: "#8B5CF6", onClick: () => setProposalOpen(true) },
+    { label: "Plan campaign", icon: Megaphone, color: "#F59E0B", onClick: () => navigate("/venueOS/influencers") },
+    { label: "Send email", icon: Mail, color: "#EF4444", onClick: () => setMessageOpen(true) },
+  ];
+
   return (
-    <VenueLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Welcome back!</h1>
-          <p className="text-gray-600">Here's what's happening at your venue today.</p>
+    <>
+      <div className="space-y-4">
+        {/* Header with Mode Toggle */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Welcome back!</h1>
+            <p className="text-gray-600">Here's what's happening at your venue today.</p>
+          </div>
+          <div className="flex items-center gap-3 bg-white rounded-lg px-4 py-2 shadow-sm border">
+            <span className={`text-sm font-medium ${isDemoMode ? "text-gray-500" : "text-gray-900"}`}>LIVE</span>
+            <Switch
+              checked={isDemoMode}
+              onCheckedChange={setIsDemoMode}
+            />
+            <span className={`text-sm font-medium ${isDemoMode ? "text-blue-600" : "text-gray-500"}`}>DEMO</span>
+          </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat) => (
             <Card key={stat.label} className="border-0 shadow-sm">
               <CardContent className="p-4">
@@ -63,8 +97,8 @@ export default function VenueDashboard() {
                     <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
                     <p className="text-xs text-gray-500 mt-1">{stat.change}</p>
                   </div>
-                  <div className="h-12 w-12 rounded-lg bg-blue-50 flex items-center justify-center">
-                    <stat.icon className="h-6 w-6 text-blue-600" />
+                  <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                    <stat.icon className="h-5 w-5 text-blue-600" />
                   </div>
                 </div>
               </CardContent>
@@ -72,105 +106,148 @@ export default function VenueDashboard() {
           ))}
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Quick Actions */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-3">
-              {quickActions.map((action) => (
-                <Button
-                  key={action.label}
-                  variant="outline"
-                  className="h-auto py-3 px-4 flex flex-col items-center gap-2 hover:bg-gray-50"
-                >
-                  <action.icon className="h-5 w-5" style={{ color: action.color }} />
-                  <span className="text-xs text-gray-700">{action.label}</span>
-                </Button>
-              ))}
-            </CardContent>
-          </Card>
+        <div className="grid lg:grid-cols-3 gap-4">
+          {/* Left Column: Quick Actions + Mia */}
+          <div className="space-y-4">
+            {/* Quick Actions */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 gap-2">
+                {quickActions.map((action) => (
+                  <Button
+                    key={action.label}
+                    variant="outline"
+                    className="h-auto py-2.5 px-3 flex flex-col items-center gap-1.5 hover:bg-gray-50"
+                    onClick={action.onClick}
+                  >
+                    <action.icon className="h-4 w-4" style={{ color: action.color }} />
+                    <span className="text-xs text-gray-700">{action.label}</span>
+                  </Button>
+                ))}
+              </CardContent>
+            </Card>
 
-          {/* Upcoming Events */}
-          <Card className="border-0 shadow-sm lg:col-span-2">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg">Upcoming Events</CardTitle>
-              <Button variant="ghost" size="sm" className="text-blue-600">
-                View All
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
+            {/* Mia AI Card */}
+            <Card className="border-0 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                    <Bot className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-white flex items-center gap-2">
+                      Mia
+                      <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">AI Manager</span>
+                    </h3>
+                    <p className="text-sm text-white/80 mt-1">
+                      Ask me to create bookings, draft messages, or suggest pricing.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <CardContent className="p-3">
+                <Button 
+                  variant="outline" 
+                  className="w-full gap-2"
+                  onClick={() => setMiaOpen(true)}
+                >
+                  <Sparkles className="h-4 w-4 text-blue-600" />
+                  Ask Mia to create a booking
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column: Events + Leads */}
+          <div className="lg:col-span-2 space-y-4">
+            {/* Upcoming Events */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-base">Upcoming Events</CardTitle>
+                <Button variant="ghost" size="sm" className="text-blue-600 h-8">
+                  View All
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-2">
                 {upcomingEvents.map((event, index) => (
                   <div 
                     key={index} 
                     className="flex items-center justify-between p-3 rounded-lg bg-gray-50"
                   >
                     <div>
-                      <p className="font-medium text-gray-900">{event.name}</p>
-                      <p className="text-sm text-gray-600">{event.space} • {event.guests} guests</p>
+                      <p className="font-medium text-gray-900 text-sm">{event.name}</p>
+                      <p className="text-xs text-gray-600">{event.space} • {event.guests} guests</p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">{event.date}</p>
+                    <p className="text-xs font-medium text-gray-700">{event.date}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Recent Leads */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-base">Recent Leads</CardTitle>
+                <Button variant="ghost" size="sm" className="text-blue-600 h-8">
+                  View All
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {recentLeads.map((lead, index) => (
+                  <div 
+                    key={index} 
+                    className="flex items-center justify-between p-3 rounded-lg border"
+                  >
+                    <div>
+                      <p className="font-medium text-gray-900 text-sm">{lead.name}</p>
+                      <p className="text-xs text-gray-600">{lead.event} • {lead.date}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        lead.status === 'New' ? 'bg-green-100 text-green-700' :
+                        lead.status === 'Contacted' ? 'bg-blue-100 text-blue-700' :
+                        'bg-purple-100 text-purple-700'
+                      }`}>
+                        {lead.status}
+                      </span>
+                      <Button size="sm" variant="outline" className="h-7 text-xs">
+                        Follow Up
+                      </Button>
                     </div>
                   </div>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-
-        {/* Recent Leads */}
-        <Card className="border-0 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Recent Leads</CardTitle>
-            <Button variant="ghost" size="sm" className="text-blue-600">
-              View All
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {recentLeads.map((lead, index) => (
-                <div 
-                  key={index} 
-                  className="flex items-center justify-between p-3 rounded-lg border"
-                >
-                  <div>
-                    <p className="font-medium text-gray-900">{lead.name}</p>
-                    <p className="text-sm text-gray-600">{lead.event} • Inquired {lead.date}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      lead.status === 'New' ? 'bg-green-100 text-green-700' :
-                      lead.status === 'Contacted' ? 'bg-blue-100 text-blue-700' :
-                      'bg-purple-100 text-purple-700'
-                    }`}>
-                      {lead.status}
-                    </span>
-                    <Button size="sm" variant="outline">
-                      Follow Up
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* AI Assistant Prompt */}
-        <Card className="border-0 shadow-sm bg-gradient-to-r from-blue-600 to-blue-700">
-          <CardContent className="p-6 flex items-center justify-between">
-            <div className="text-white">
-              <h3 className="text-lg font-semibold mb-1">Need help with your venue?</h3>
-              <p className="text-white/80">Ask Mia, your AI venue coordinator, for assistance with bookings, proposals, or planning.</p>
-            </div>
-            <Button variant="secondary" className="shrink-0">
-              Chat with Mia
-            </Button>
-          </CardContent>
-        </Card>
       </div>
-    </VenueLayout>
+
+      {/* Modals */}
+      <NewInquiryModal 
+        open={inquiryOpen} 
+        onOpenChange={setInquiryOpen} 
+        isDemoMode={isDemoMode}
+      />
+      <ScheduleTourModal 
+        open={tourOpen} 
+        onOpenChange={setTourOpen}
+        isDemoMode={isDemoMode}
+      />
+      <CreateProposalModal 
+        open={proposalOpen} 
+        onOpenChange={setProposalOpen}
+        isDemoMode={isDemoMode}
+      />
+      <SendMessageModal 
+        open={messageOpen} 
+        onOpenChange={setMessageOpen}
+      />
+      <MiaBookingDrawer 
+        open={miaOpen} 
+        onOpenChange={setMiaOpen}
+      />
+    </>
   );
 }

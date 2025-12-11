@@ -57,7 +57,9 @@ export function VenueLayout({ children }: VenueLayoutProps) {
   const [user, setUser] = useState<User | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    return localStorage.getItem("venueos_sidebar_collapsed") === "true";
+  });
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
@@ -66,6 +68,12 @@ export function VenueLayout({ children }: VenueLayoutProps) {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  const toggleSidebar = () => {
+    const newValue = !sidebarCollapsed;
+    setSidebarCollapsed(newValue);
+    localStorage.setItem("venueos_sidebar_collapsed", String(newValue));
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -124,18 +132,29 @@ export function VenueLayout({ children }: VenueLayoutProps) {
               </span>
             )}
           </Link>
-          <button
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="h-7 w-7 rounded flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-colors"
-            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            {sidebarCollapsed ? (
-              <PanelLeftOpen className="h-4 w-4" />
-            ) : (
+          {!sidebarCollapsed && (
+            <button
+              onClick={toggleSidebar}
+              className="h-7 w-7 rounded flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+              title="Collapse sidebar"
+            >
               <PanelLeftClose className="h-4 w-4" />
-            )}
-          </button>
+            </button>
+          )}
         </div>
+
+        {/* Expand button when collapsed */}
+        {sidebarCollapsed && (
+          <div className="p-2 flex justify-center">
+            <button
+              onClick={toggleSidebar}
+              className="h-8 w-8 rounded-lg flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+              title="Expand sidebar"
+            >
+              <PanelLeftOpen className="h-4 w-4" />
+            </button>
+          </div>
+        )}
 
         {/* Nav Items */}
         <div className="flex-1 overflow-y-auto">
@@ -221,7 +240,7 @@ export function VenueLayout({ children }: VenueLayoutProps) {
           sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-56'
         } pt-14 lg:pt-0`}
       >
-        <div className="px-6 py-6 animate-fade-in">
+        <div className="max-w-[1200px] mx-auto px-6 py-6 animate-fade-in">
           {children}
         </div>
       </main>
