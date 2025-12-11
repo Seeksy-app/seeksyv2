@@ -107,6 +107,12 @@ export default function BoardMemberJoin() {
           role: 'board_member'
         });
 
+        // Mark the invitation as accepted in team_invitations table
+        await supabase.from('team_invitations')
+          .update({ status: 'accepted' })
+          .eq('invitee_email', formData.email)
+          .eq('status', 'pending');
+
         // Notify admins
         await supabase.functions.invoke('notify-board-invite-accepted', {
           body: {
