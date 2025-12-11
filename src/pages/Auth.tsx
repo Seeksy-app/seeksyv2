@@ -205,6 +205,33 @@ const Auth = () => {
             // Don't block signup if email fails
             console.error('Welcome email failed:', emailError);
           }
+          
+          // Handle invited users - assign role and mark onboarding complete
+          if (isInvited && inviteRole) {
+            try {
+              // Insert the role into user_roles
+              const { error: roleError } = await supabase.from('user_roles').insert([{
+                user_id: data.user.id,
+                role: inviteRole as any,
+              }]);
+              
+              if (roleError) console.error('Role insert error:', roleError);
+              
+              // Mark onboarding as complete for invited users
+              await supabase.from('profiles').update({
+                onboarding_completed: true,
+              }).eq('id', data.user.id);
+              
+              // Update any pending invitations to accepted
+              await supabase.from('team_invitations').update({
+                status: 'accepted',
+              }).eq('invitee_email', email).eq('status', 'pending');
+              
+              console.log('Invited user setup complete:', inviteRole);
+            } catch (inviteError) {
+              console.error('Error setting up invited user:', inviteError);
+            }
+          }
         }
 
         toast.success("Account created! Check your email to confirm your account.");
@@ -218,6 +245,9 @@ const Auth = () => {
           // Keep the advertiser data for the advertiser signup page to process
           // The advertiser signup page will complete the advertiser record creation
           navigate("/advertiser/signup");
+        } else if (isInvited && inviteRole === 'board_member') {
+          // Board members go directly to board portal
+          navigate("/board");
         } else {
           // Redirect new users to onboarding
           navigate("/onboarding");
