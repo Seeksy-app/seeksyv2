@@ -8,30 +8,8 @@ import { FloatingBenefitsChat } from "@/components/veterans/FloatingBenefitsChat
 import { Helmet } from "react-helmet";
 import { CALCULATORS, CALCULATOR_CATEGORIES } from "@/lib/veteranCalculatorRegistry";
 
-// Import poster images
-import servicePoster from "@/assets/veteran-service-poster.jpg";
-import familyPoster from "@/assets/veteran-family-poster.jpg";
-import healthcarePoster from "@/assets/veteran-healthcare-poster.jpg";
-import homePoster from "@/assets/veteran-home-poster.jpg";
-import careerPoster from "@/assets/veteran-career-poster.jpg";
-import educationPoster from "@/assets/veteran-education-poster.jpg";
-import retirementPoster from "@/assets/veteran-retirement-poster.jpg";
-import disabilityPoster from "@/assets/veteran-disability-poster.jpg";
-import pensionPoster from "@/assets/veteran-pension-poster.jpg";
-import buybackPoster from "@/assets/veteran-buyback-poster.jpg";
-
-const benefitsPosters = [
-  { src: servicePoster, alt: "Military Service", label: "Service Recognition" },
-  { src: familyPoster, alt: "Family Benefits", label: "Family Support" },
-  { src: healthcarePoster, alt: "Healthcare", label: "VA Healthcare" },
-  { src: homePoster, alt: "Home Loans", label: "Home Loans" },
-  { src: careerPoster, alt: "Career", label: "Career Transition" },
-  { src: educationPoster, alt: "Education", label: "GI Bill Education" },
-  { src: retirementPoster, alt: "Retirement", label: "Federal Retirement" },
-  { src: disabilityPoster, alt: "Disability", label: "Disability Claims" },
-  { src: pensionPoster, alt: "Pension", label: "Pension Planning" },
-  { src: buybackPoster, alt: "Military Buyback", label: "Military Buyback" },
-];
+// Import hero background
+import veteranHeroBg from "@/assets/veteran-hero-bg.jpg";
 
 const ICON_MAP: Record<string, any> = {
   DollarSign, Clock, Calculator, MessageSquare, Shield, Award, TrendingUp, Heart, 
@@ -90,70 +68,49 @@ export default function VeteransHome() {
         </div>
       </header>
 
-      {/* Netflix-Style Hero Section */}
-      <section className="relative min-h-[600px] flex items-center overflow-hidden bg-slate-900">
-        {/* Lighter center gradient for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-900/80 to-transparent" />
-        
-        {/* Left poster column - more visible */}
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 hidden xl:flex flex-col gap-3 translate-x-4">
-          {benefitsPosters.slice(0, 5).map((poster, i) => (
-            <div
-              key={poster.label}
-              className="relative w-36 h-52 rounded-lg overflow-hidden shadow-2xl transform transition-all duration-500 hover:scale-110 hover:z-10"
-              style={{ transform: `rotate(${-3 + i * 1.5}deg) translateX(${i % 2 === 0 ? 30 : 0}px)` }}
-            >
-              <img src={poster.src} alt={poster.alt} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-              <span className="absolute bottom-2 left-2 right-2 text-[10px] font-semibold text-white/90 truncate">{poster.label}</span>
-            </div>
-          ))}
+      {/* Netflix-Style Hero with Full-Bleed Background */}
+      <section className="relative w-full min-h-[85vh] overflow-hidden">
+        {/* Hero Background Image */}
+        <div className="absolute inset-0">
+          <img 
+            src={veteranHeroBg} 
+            alt="Military and Federal Benefits" 
+            className="w-full h-full object-cover object-center"
+          />
+          
+          {/* Dark gradient overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-slate-900/70 to-slate-900/50" />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/60 via-slate-900/80 to-slate-900/60" />
         </div>
 
-        {/* Right poster column - more visible */}
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 hidden xl:flex flex-col gap-3 -translate-x-4">
-          {benefitsPosters.slice(5, 10).map((poster, i) => (
-            <div
-              key={poster.label}
-              className="relative w-36 h-52 rounded-lg overflow-hidden shadow-2xl transform transition-all duration-500 hover:scale-110 hover:z-10"
-              style={{ transform: `rotate(${3 - i * 1.5}deg) translateX(${i % 2 === 0 ? -30 : 0}px)` }}
-            >
-              <img src={poster.src} alt={poster.alt} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-              <span className="absolute bottom-2 left-2 right-2 text-[10px] font-semibold text-white/90 truncate">{poster.label}</span>
-            </div>
-          ))}
-        </div>
+        {/* Hero Content */}
+        <div className="relative z-10 container mx-auto px-4 pt-32 pb-20 flex flex-col items-center justify-center min-h-[85vh] text-center">
+          <div className="inline-flex items-center gap-2 bg-primary/20 text-primary px-4 py-2 rounded-full mb-6 border border-primary/30 backdrop-blur-sm">
+            <Shield className="w-4 h-4" />
+            <span className="text-sm font-medium">Military & Federal Benefits Hub</span>
+          </div>
+          
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 text-white drop-shadow-2xl">
+            Maximize Your{" "}
+            <span className="text-primary">Military
+            <br className="hidden sm:inline" /> and Federal Benefits</span>
+          </h1>
+          
+          <p className="text-lg md:text-xl text-white/80 mb-8 max-w-2xl mx-auto">
+            Free calculators and AI-powered guidance to help service members, veterans, and federal employees understand and claim the benefits they've&nbsp;earned.
+          </p>
 
-        {/* Center content */}
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 bg-primary/20 text-primary px-4 py-2 rounded-full mb-6 border border-primary/30">
-              <Shield className="w-4 h-4" />
-              <span className="text-sm font-medium">Military & Federal Benefits Hub</span>
-            </div>
-            
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-white">
-              Maximize Your{" "}
-              <span className="text-primary">Military<br className="hidden sm:inline" /> and Federal Benefits</span>
-            </h1>
-            
-            <p className="text-lg md:text-xl text-white/70 mb-8 max-w-2xl mx-auto">
-              Free calculators and AI-powered guidance to help service members, veterans, and federal employees understand and claim the benefits they've&nbsp;earned.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="text-lg">
-                <Link to="/yourbenefits/claims-agent">
-                  <MessageSquare className="w-5 h-5 mr-2" />
-                  Start Your Claim
-                </Link>
-              </Button>
-              <Button variant="outline" size="lg" className="text-lg bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={scrollToCalculators}>
-                <Calculator className="w-5 h-5 mr-2" />
-                Use Calculators
-              </Button>
-            </div>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild size="lg" className="text-lg shadow-lg shadow-primary/30">
+              <Link to="/yourbenefits/claims-agent">
+                <MessageSquare className="w-5 h-5 mr-2" />
+                Start Your Claim
+              </Link>
+            </Button>
+            <Button variant="outline" size="lg" className="text-lg bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm" onClick={scrollToCalculators}>
+              <Calculator className="w-5 h-5 mr-2" />
+              Use Calculators
+            </Button>
           </div>
         </div>
         
