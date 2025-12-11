@@ -7,6 +7,31 @@ import { VeteransFaq } from "@/components/veterans/VeteransFaq";
 import { Helmet } from "react-helmet";
 import { CALCULATORS, CALCULATOR_CATEGORIES } from "@/lib/veteranCalculatorRegistry";
 
+// Import poster images
+import servicePoster from "@/assets/veteran-service-poster.jpg";
+import familyPoster from "@/assets/veteran-family-poster.jpg";
+import healthcarePoster from "@/assets/veteran-healthcare-poster.jpg";
+import homePoster from "@/assets/veteran-home-poster.jpg";
+import careerPoster from "@/assets/veteran-career-poster.jpg";
+import educationPoster from "@/assets/veteran-education-poster.jpg";
+import retirementPoster from "@/assets/veteran-retirement-poster.jpg";
+import disabilityPoster from "@/assets/veteran-disability-poster.jpg";
+import pensionPoster from "@/assets/veteran-pension-poster.jpg";
+import buybackPoster from "@/assets/veteran-buyback-poster.jpg";
+
+const benefitsPosters = [
+  { src: servicePoster, alt: "Military Service", label: "Service Recognition" },
+  { src: familyPoster, alt: "Family Benefits", label: "Family Support" },
+  { src: healthcarePoster, alt: "Healthcare", label: "VA Healthcare" },
+  { src: homePoster, alt: "Home Loans", label: "Home Loans" },
+  { src: careerPoster, alt: "Career", label: "Career Transition" },
+  { src: educationPoster, alt: "Education", label: "GI Bill Education" },
+  { src: retirementPoster, alt: "Retirement", label: "Federal Retirement" },
+  { src: disabilityPoster, alt: "Disability", label: "Disability Claims" },
+  { src: pensionPoster, alt: "Pension", label: "Pension Planning" },
+  { src: buybackPoster, alt: "Military Buyback", label: "Military Buyback" },
+];
+
 const ICON_MAP: Record<string, any> = {
   DollarSign, Clock, Calculator, MessageSquare, Shield, Award, TrendingUp, Heart, 
   CheckCircle, Calendar, MapPin, GraduationCap, Stethoscope, Home, Car, Scale,
@@ -53,21 +78,55 @@ export default function VeteransHome() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-accent/10 py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full mb-6">
+      {/* Netflix-Style Hero Section */}
+      <section className="relative min-h-[600px] flex items-center overflow-hidden bg-gradient-to-b from-slate-900 via-slate-900 to-background">
+        {/* Background gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/95 to-slate-900/80" />
+        
+        {/* Left poster column */}
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 hidden xl:flex flex-col gap-3 -translate-x-1/4 opacity-60">
+          {benefitsPosters.slice(0, 5).map((poster, i) => (
+            <div
+              key={poster.label}
+              className="relative w-32 h-48 rounded-lg overflow-hidden shadow-2xl transform transition-all duration-500 hover:scale-105 hover:opacity-100"
+              style={{ transform: `rotate(${-5 + i * 2}deg) translateX(${i % 2 === 0 ? 20 : 0}px)` }}
+            >
+              <img src={poster.src} alt={poster.alt} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+              <span className="absolute bottom-2 left-2 right-2 text-[10px] font-semibold text-white/90 truncate">{poster.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Right poster column */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 hidden xl:flex flex-col gap-3 translate-x-1/4 opacity-60">
+          {benefitsPosters.slice(5, 10).map((poster, i) => (
+            <div
+              key={poster.label}
+              className="relative w-32 h-48 rounded-lg overflow-hidden shadow-2xl transform transition-all duration-500 hover:scale-105 hover:opacity-100"
+              style={{ transform: `rotate(${5 - i * 2}deg) translateX(${i % 2 === 0 ? -20 : 0}px)` }}
+            >
+              <img src={poster.src} alt={poster.alt} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+              <span className="absolute bottom-2 left-2 right-2 text-[10px] font-semibold text-white/90 truncate">{poster.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Center content */}
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 bg-primary/20 text-primary px-4 py-2 rounded-full mb-6 border border-primary/30">
               <Shield className="w-4 h-4" />
               <span className="text-sm font-medium">Military & Federal Benefits Hub</span>
             </div>
             
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-white">
               Maximize Your{" "}
               <span className="text-primary">Military<br className="hidden sm:inline" /> and Federal Benefits</span>
             </h1>
             
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+            <p className="text-lg md:text-xl text-white/70 mb-8 max-w-2xl mx-auto">
               Free calculators and AI-powered guidance to help service members, veterans, and federal employees understand and claim the benefits they've&nbsp;earned.
             </p>
 
@@ -78,7 +137,7 @@ export default function VeteransHome() {
                   Start Your Claim
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" className="text-lg" onClick={scrollToCalculators}>
+              <Button variant="outline" size="lg" className="text-lg bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={scrollToCalculators}>
                 <Calculator className="w-5 h-5 mr-2" />
                 Use Calculators
               </Button>
@@ -86,9 +145,8 @@ export default function VeteransHome() {
           </div>
         </div>
         
-        {/* Background decorations */}
-        <div className="absolute top-0 left-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
+        {/* Bottom gradient fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
       </section>
 
       {/* AI Claims Agent Featured */}
