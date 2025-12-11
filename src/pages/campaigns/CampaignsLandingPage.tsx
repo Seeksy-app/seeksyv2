@@ -16,6 +16,7 @@ import {
   Play
 } from "lucide-react";
 import { CampaignAuthModal } from "@/components/campaigns/CampaignAuthModal";
+import { CampaignHeroNetflix } from "@/components/campaigns/CampaignHeroNetflix";
 
 // Brand colors from spec
 const colors = {
@@ -227,90 +228,16 @@ export default function CampaignsLandingPage() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section 
-        className="py-20 md:py-28 relative overflow-hidden"
-        style={{ 
-          background: `linear-gradient(180deg, ${colors.primaryDark} 0%, #003F9E 100%)`
+      {/* Hero Section - Netflix Style */}
+      <CampaignHeroNetflix 
+        onGetStarted={(raceInput) => {
+          if (raceInput) {
+            setAuthModalOpen(true);
+          } else {
+            setAuthModalOpen(true);
+          }
         }}
-      >
-        {/* Diagonal stripe pattern overlay */}
-        <div 
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: `repeating-linear-gradient(
-              45deg,
-              transparent,
-              transparent 10px,
-              rgba(255,255,255,0.05) 10px,
-              rgba(255,255,255,0.05) 20px
-            )`
-          }}
-        />
-        
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <h1 
-            className="text-4xl md:text-6xl font-bold mb-4"
-            style={{ color: colors.textOnDark }}
-          >
-            CampaignStaff.ai
-          </h1>
-          <p 
-            className="text-xl md:text-2xl mb-4 max-w-3xl mx-auto"
-            style={{ color: "rgba(255,255,255,0.9)" }}
-          >
-            Your AI-powered campaign team for local, state, and federal races.
-          </p>
-          <p 
-            className="text-base md:text-lg mb-10 max-w-2xl mx-auto"
-            style={{ color: "rgba(255,255,255,0.7)" }}
-          >
-            Most candidates can't afford big consulting firms or full-time staff. CampaignStaff.ai gives every campaign a virtual manager, digital director, speechwriter, and field team—on day one.
-          </p>
-
-          {/* Input + CTA */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-lg mx-auto mb-8">
-            <Input
-              placeholder="Enter your race or office"
-              value={raceInput}
-              onChange={(e) => setRaceInput(e.target.value)}
-              className="h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/50"
-            />
-            <Button 
-              onClick={handleHeroCta}
-              className="h-12 px-8 font-semibold"
-              style={{ backgroundColor: colors.accent, color: colors.primaryDark }}
-            >
-              Go <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Secondary CTA */}
-          <button 
-            className="inline-flex items-center gap-2 text-sm font-medium hover:opacity-80"
-            style={{ color: "rgba(255,255,255,0.8)" }}
-          >
-            <Play className="h-4 w-4" />
-            Watch a 2-minute demo
-          </button>
-
-          {/* Trust Badges */}
-          <div className="flex flex-wrap justify-center gap-6 mt-12">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10">
-              <Sparkles className="h-4 w-4" style={{ color: colors.accent }} />
-              <span className="text-sm text-white/80">Powered by Seeksy</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10">
-              <ShieldCheck className="h-4 w-4" style={{ color: colors.accent }} />
-              <span className="text-sm text-white/80">AI-assisted, you stay in control</span>
-            </div>
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10">
-              <Scale className="h-4 w-4" style={{ color: colors.accent }} />
-              <span className="text-sm text-white/80">Built for compliance-friendly workflows</span>
-            </div>
-          </div>
-        </div>
-      </section>
+      />
 
       {/* Problem Section */}
       <section id="how-it-works" className="py-20" style={{ backgroundColor: colors.surface }}>
