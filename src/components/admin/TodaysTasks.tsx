@@ -86,9 +86,10 @@ export function TodaysTasks() {
           ) : (
             <>
               {tasks.map((task) => (
-                <div
+                <Link
                   key={task.id}
-                  className="flex items-start gap-3 p-3 hover:bg-muted/50 rounded-lg transition-colors border border-border/50"
+                  to={`/admin/tasks?task=${task.id}`}
+                  className="flex items-start gap-3 p-3 hover:bg-muted/50 rounded-lg transition-colors border border-border/50 cursor-pointer"
                 >
                   <div className={`h-3 w-3 rounded-full mt-1.5 ${getPriorityColor(task.priority)}`} />
                   <div className="flex-1 min-w-0">
@@ -103,7 +104,7 @@ export function TodaysTasks() {
                       </span>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
               <Button variant="outline" size="sm" className="w-full mt-2" asChild>
                 <Link to="/admin/tasks">View All Tasks</Link>
