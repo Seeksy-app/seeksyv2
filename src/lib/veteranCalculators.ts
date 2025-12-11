@@ -1,5 +1,14 @@
 // Veteran Benefits Calculator Logic
-// Based on OPM regulations and DoD military pay tables
+// Based on OPM regulations and official DoD military pay tables
+
+import {
+  getMilitaryBasePay,
+  getDepositRate,
+  calculateInterest,
+  calculateMultiPeriodDeposit,
+  GradePeriod,
+  OPM_INTEREST_RATES
+} from './dodPayTables';
 
 export interface MilitaryBuyBackInput {
   branch: string;
@@ -10,17 +19,21 @@ export interface MilitaryBuyBackInput {
   retirementPlan: 'fers' | 'csrs';
   yearsToRetirement: number;
   annualBasePay: number;
+  // Advanced mode: multiple grade periods
+  gradePeriods?: GradePeriod[];
 }
 
 export interface MilitaryBuyBackResult {
   totalMilitaryService: number;
   depositAmount: number;
+  baseDeposit: number;
   monthlyPaymentOption: number;
   interestAmount: number;
   annuityIncrease: number;
   breakEvenYears: number;
   lifetimeBenefit: number;
   recommendation: string;
+  periodBreakdown?: { grade: string; years: number; deposit: number }[];
 }
 
 export function calculateMilitaryBuyBack(input: MilitaryBuyBackInput): MilitaryBuyBackResult {
@@ -28,27 +41,58 @@ export function calculateMilitaryBuyBack(input: MilitaryBuyBackInput): MilitaryB
     (input.separationDate.getTime() - input.payEntryDate.getTime()) / 
     (1000 * 60 * 60 * 24 * 365.25);
 
-  const depositRate = input.retirementPlan === 'fers' ? 0.03 : 0.07;
-  const estimatedMilitaryPay = estimateMilitaryPay(input.separationGrade, input.separationDate.getFullYear());
-  const baseDeposit = estimatedMilitaryPay * serviceYears * depositRate;
+  let baseDeposit: number;
+  let periodBreakdown: { grade: string; years: number; deposit: number }[] | undefined;
 
-  const yearsOfInterest = 
-    (input.fedStartDate.getTime() - input.separationDate.getTime()) / 
-    (1000 * 60 * 60 * 24 * 365.25);
-  
-  const estimatedInterestRate = getEstimatedInterestRate(input.separationDate.getFullYear(), input.fedStartDate.getFullYear());
-  const interestAmount = baseDeposit * Math.pow(1 + estimatedInterestRate, Math.max(0, yearsOfInterest)) - baseDeposit;
+  // Check if using advanced mode (multiple grade periods)
+  if (input.gradePeriods && input.gradePeriods.length > 0) {
+    const multiPeriodResult = calculateMultiPeriodDeposit(input.gradePeriods, input.retirementPlan);
+    baseDeposit = multiPeriodResult.totalDeposit;
+    periodBreakdown = multiPeriodResult.periodBreakdown;
+  } else {
+    // Basic mode: calculate deposit year by year using official pay tables
+    baseDeposit = 0;
+    const startYear = input.payEntryDate.getFullYear();
+    const endYear = input.separationDate.getFullYear();
+    
+    for (let year = startYear; year <= endYear; year++) {
+      // Calculate what fraction of this year was served
+      let yearFraction = 1;
+      
+      if (year === startYear) {
+        const startMonth = input.payEntryDate.getMonth();
+        yearFraction = (12 - startMonth) / 12;
+      } else if (year === endYear) {
+        const endMonth = input.separationDate.getMonth();
+        yearFraction = (endMonth + 1) / 12;
+      }
+      
+      const annualPay = getMilitaryBasePay(input.separationGrade, year);
+      const depositRate = getDepositRate(year, input.retirementPlan);
+      baseDeposit += annualPay * yearFraction * depositRate;
+    }
+  }
+
+  // Calculate interest using OPM composite rates
+  const fedStartYear = input.fedStartDate.getFullYear();
+  const currentYear = new Date().getFullYear();
+  const interestAmount = calculateInterest(baseDeposit, fedStartYear, currentYear);
 
   const totalDeposit = baseDeposit + Math.max(0, interestAmount);
 
+  // Annuity calculation: FERS = 1% per year, CSRS = 1.5-2% per year (using 1.75% average)
   const annuityRate = input.retirementPlan === 'fers' ? 0.01 : 0.0175;
   const annualAnnuityIncrease = input.annualBasePay * serviceYears * annuityRate;
 
-  const breakEvenYears = totalDeposit / annualAnnuityIncrease;
+  const breakEvenYears = annualAnnuityIncrease > 0 ? totalDeposit / annualAnnuityIncrease : 0;
   const lifetimeBenefit = annualAnnuityIncrease * 20; // 20-year retirement assumption
 
   let recommendation = "";
-  if (breakEvenYears < 5) {
+  if (breakEvenYears < 2) {
+    recommendation = "Buying back your military time is highly recommended. You'll recover your investment in just " + 
+      breakEvenYears.toFixed(1) + " years of retirement and gain over $" + 
+      Math.round(lifetimeBenefit / 1000) + ",000 in lifetime benefits.";
+  } else if (breakEvenYears < 5) {
     recommendation = "Strongly recommended! You'll recoup your investment quickly and gain significant lifetime benefits.";
   } else if (breakEvenYears < 10) {
     recommendation = "Recommended. The investment pays off within a typical retirement period.";
@@ -59,45 +103,20 @@ export function calculateMilitaryBuyBack(input: MilitaryBuyBackInput): MilitaryB
   return {
     totalMilitaryService: serviceYears,
     depositAmount: totalDeposit,
-    monthlyPaymentOption: totalDeposit / (input.yearsToRetirement * 12),
+    baseDeposit,
+    monthlyPaymentOption: input.yearsToRetirement > 0 ? totalDeposit / (input.yearsToRetirement * 12) : 0,
     interestAmount: Math.max(0, interestAmount),
     annuityIncrease: annualAnnuityIncrease,
     breakEvenYears,
     lifetimeBenefit,
     recommendation,
+    periodBreakdown,
   };
 }
 
-function estimateMilitaryPay(grade: string, separationYear: number): number {
-  const payTable2024: { [key: string]: number } = {
-    e1: 24000, e2: 27000, e3: 30000, e4: 35000, e5: 42000,
-    e6: 50000, e7: 58000, e8: 67000, e9: 77000,
-    w1: 55000, w2: 63000, w3: 72000, w4: 84000, w5: 95000,
-    o1: 42000, o2: 51000, o3: 66000, o4: 82000, o5: 97000, o6: 115000,
-  };
-  
-  const basePay = payTable2024[grade.toLowerCase()] || 35000;
-  const yearDiff = 2024 - separationYear;
-  const adjustmentFactor = Math.pow(0.97, Math.max(0, yearDiff));
-  
-  return basePay * adjustmentFactor;
-}
+// Re-export types for use in components
+export type { GradePeriod };
 
-function getEstimatedInterestRate(separationYear: number, startYear: number): number {
-  let totalRate = 0;
-  let years = 0;
-  
-  for (let year = separationYear; year < startYear; year++) {
-    years++;
-    if (year >= 2025) totalRate += 0.04375;
-    else if (year === 2024) totalRate += 0.035;
-    else if (year === 2023) totalRate += 0.01875;
-    else if (year >= 2020) totalRate += 0.025;
-    else totalRate += 0.03;
-  }
-  
-  return years > 0 ? totalRate / years : 0.03;
-}
 
 // MRA Calculator
 export interface MRAInput {
