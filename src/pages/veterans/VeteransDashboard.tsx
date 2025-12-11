@@ -100,7 +100,7 @@ export default function VeteransDashboard() {
       title: "Talk to AI Agent",
       description: "Get personalized claims guidance",
       icon: MessageSquare,
-      href: "/veterans/claims-agent",
+      href: "/yourbenefits/claims-agent",
       color: "text-orange-500 bg-orange-500/10",
     },
     {
@@ -186,7 +186,7 @@ export default function VeteransDashboard() {
                   <CardDescription>Continue where you left off</CardDescription>
                 </div>
                 <Button asChild variant="outline" size="sm">
-                  <Link to="/veterans/claims-agent">
+                  <Link to="/yourbenefits/claims-agent">
                     <Plus className="w-4 h-4 mr-2" />
                     New Chat
                   </Link>
@@ -198,7 +198,7 @@ export default function VeteransDashboard() {
                     <MessageSquare className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
                     <p className="text-muted-foreground mb-4">No conversations yet</p>
                     <Button asChild>
-                      <Link to="/veterans/claims-agent">
+                      <Link to="/yourbenefits/claims-agent">
                         <Sparkles className="w-4 h-4 mr-2" />
                         Start Your First Chat
                       </Link>
@@ -209,7 +209,7 @@ export default function VeteransDashboard() {
                     {conversations.map((convo) => (
                       <Link
                         key={convo.id}
-                        to={`/veterans/claims-agent?conversation=${convo.id}`}
+                        to={`/yourbenefits/claims-agent?conversation=${convo.id}`}
                         className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors group"
                       >
                         <div className="flex items-center gap-3">

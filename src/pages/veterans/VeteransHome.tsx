@@ -18,7 +18,7 @@ export default function VeteransHome() {
       title: "AI Claims Agent",
       description: "Get personalized guidance on filing your VA disability claim with Intent to File support",
       icon: MessageSquare,
-      href: "/veterans/claims-agent",
+      href: "/yourbenefits/claims-agent",
       color: "text-orange-500",
       featured: true,
     },
@@ -304,7 +304,7 @@ export default function VeteransHome() {
               Our AI Claims Agent will walk you through the process step by step, help you describe your conditions in plain language, and connect you with trusted partners who can file on your&nbsp;behalf.
             </p>
             <Button asChild size="lg" variant="secondary" className="text-lg">
-              <Link to="/veterans/claims-agent">
+              <Link to="/yourbenefits/claims-agent">
                 Talk to the Claims Agent
               </Link>
             </Button>

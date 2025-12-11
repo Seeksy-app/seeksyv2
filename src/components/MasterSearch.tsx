@@ -151,8 +151,8 @@ export const MasterSearch = () => {
       { id: "board-dashboard", title: "Board Dashboard", type: "Page", category: "Board Portal", url: "/board", icon: LayoutDashboard },
       { id: "board-proforma", title: "Board Pro Forma", type: "Page", category: "Board Portal", url: "/board/proforma", icon: DollarSign },
       { id: "board-gtm", title: "Board GTM Strategy", type: "Page", category: "Board Portal", url: "/board/gtm", icon: Target },
-      { id: "veterans", title: "Veteran Benefits", type: "Page", category: "Veterans", url: "/veterans", icon: Users },
-      { id: "veterans-claims", title: "Veteran Claims Agent", type: "Page", category: "Veterans", url: "/veterans/claims-agent", icon: MessageCircle },
+      { id: "veterans", title: "Veteran Benefits", type: "Page", category: "Veterans", url: "/yourbenefits", icon: Users },
+      { id: "veterans-claims", title: "Veteran Claims Agent", type: "Page", category: "Veterans", url: "/yourbenefits/claims-agent", icon: MessageCircle },
     ];
 
     // Add additional pages, avoiding duplicates
