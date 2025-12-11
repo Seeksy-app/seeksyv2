@@ -21,73 +21,67 @@ serve(async (req) => {
     }
 
     // Build address strings
-    const pickupAddress = `${pickup.city}, ${pickup.state}${pickup.zip ? ' ' + pickup.zip : ''}`;
-    const deliveryAddress = `${delivery.city}, ${delivery.state}${delivery.zip ? ' ' + delivery.zip : ''}`;
+    const pickupAddress = `${pickup.city}, ${pickup.state}${pickup.zip ? ' ' + pickup.zip : ''}, USA`;
+    const deliveryAddress = `${delivery.city}, ${delivery.state}${delivery.zip ? ' ' + delivery.zip : ''}, USA`;
 
-    console.log(`Calculating distance from "${pickupAddress}" to "${deliveryAddress}"`);
+    console.log(`[trucking-distance] Calculating distance from "${pickupAddress}" to "${deliveryAddress}"`);
 
-    const rapidApiKey = Deno.env.get('RAPIDAPI_KEY');
-    if (!rapidApiKey) {
-      console.error('RAPIDAPI_KEY not configured');
+    const mapboxToken = Deno.env.get('MAPBOX_ACCESS_TOKEN');
+    if (!mapboxToken) {
+      console.error('[trucking-distance] MAPBOX_ACCESS_TOKEN not configured');
       return new Response(
-        JSON.stringify({ error: 'distance_lookup_failed', message: 'API key not configured' }),
+        JSON.stringify({ error: 'distance_lookup_failed', message: 'Mapbox API key not configured' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Use TrueWay Directions API via RapidAPI for driving distance
-    // First, geocode both addresses
-    const geocodeUrl = 'https://trueway-geocoding.p.rapidapi.com/Geocode';
-    
-    const [pickupGeo, deliveryGeo] = await Promise.all([
-      fetch(`${geocodeUrl}?address=${encodeURIComponent(pickupAddress)}&language=en`, {
-        headers: {
-          'X-RapidAPI-Key': rapidApiKey,
-          'X-RapidAPI-Host': 'trueway-geocoding.p.rapidapi.com'
-        }
-      }),
-      fetch(`${geocodeUrl}?address=${encodeURIComponent(deliveryAddress)}&language=en`, {
-        headers: {
-          'X-RapidAPI-Key': rapidApiKey,
-          'X-RapidAPI-Host': 'trueway-geocoding.p.rapidapi.com'
-        }
-      })
+    // First, geocode both addresses using Mapbox Geocoding API
+    const [pickupGeoRes, deliveryGeoRes] = await Promise.all([
+      fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(pickupAddress)}.json?access_token=${mapboxToken}&limit=1&types=place,locality,address`),
+      fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(deliveryAddress)}.json?access_token=${mapboxToken}&limit=1&types=place,locality,address`)
     ]);
 
-    if (!pickupGeo.ok || !deliveryGeo.ok) {
-      console.error('Geocoding failed', { pickupStatus: pickupGeo.status, deliveryStatus: deliveryGeo.status });
+    if (!pickupGeoRes.ok || !deliveryGeoRes.ok) {
+      console.error('[trucking-distance] Geocoding failed', { 
+        pickupStatus: pickupGeoRes.status, 
+        deliveryStatus: deliveryGeoRes.status 
+      });
       return new Response(
         JSON.stringify({ error: 'distance_lookup_failed', message: 'Geocoding failed' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const pickupData = await pickupGeo.json();
-    const deliveryData = await deliveryGeo.json();
+    const pickupGeo = await pickupGeoRes.json();
+    const deliveryGeo = await deliveryGeoRes.json();
 
-    if (!pickupData.results?.[0]?.location || !deliveryData.results?.[0]?.location) {
-      console.error('No geocoding results', { pickup: pickupData, delivery: deliveryData });
+    if (!pickupGeo.features?.[0]?.center || !deliveryGeo.features?.[0]?.center) {
+      console.error('[trucking-distance] No geocoding results', { 
+        pickupFeatures: pickupGeo.features?.length, 
+        deliveryFeatures: deliveryGeo.features?.length 
+      });
       return new Response(
         JSON.stringify({ error: 'distance_lookup_failed', message: 'Could not geocode addresses' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const pickupLoc = pickupData.results[0].location;
-    const deliveryLoc = deliveryData.results[0].location;
+    // Mapbox returns [longitude, latitude]
+    const pickupCoords = pickupGeo.features[0].center;
+    const deliveryCoords = deliveryGeo.features[0].center;
 
-    // Now get driving distance
-    const directionsUrl = `https://trueway-directions2.p.rapidapi.com/FindDrivingRoute?origin=${pickupLoc.lat},${pickupLoc.lng}&destination=${deliveryLoc.lat},${deliveryLoc.lng}`;
-    
-    const directionsRes = await fetch(directionsUrl, {
-      headers: {
-        'X-RapidAPI-Key': rapidApiKey,
-        'X-RapidAPI-Host': 'trueway-directions2.p.rapidapi.com'
-      }
+    console.log('[trucking-distance] Geocoded coordinates:', {
+      pickup: pickupCoords,
+      delivery: deliveryCoords
     });
 
+    // Now get driving distance using Mapbox Directions API
+    const directionsUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${pickupCoords[0]},${pickupCoords[1]};${deliveryCoords[0]},${deliveryCoords[1]}?access_token=${mapboxToken}&geometries=geojson`;
+    
+    const directionsRes = await fetch(directionsUrl);
+
     if (!directionsRes.ok) {
-      console.error('Directions API failed', { status: directionsRes.status });
+      console.error('[trucking-distance] Directions API failed', { status: directionsRes.status });
       return new Response(
         JSON.stringify({ error: 'distance_lookup_failed', message: 'Directions lookup failed' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -96,8 +90,8 @@ serve(async (req) => {
 
     const directionsData = await directionsRes.json();
     
-    if (!directionsData.route?.distance) {
-      console.error('No route found', directionsData);
+    if (!directionsData.routes?.[0]?.distance) {
+      console.error('[trucking-distance] No route found', directionsData);
       return new Response(
         JSON.stringify({ error: 'distance_lookup_failed', message: 'No route found' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -105,18 +99,23 @@ serve(async (req) => {
     }
 
     // Distance is in meters, convert to miles
-    const distanceMeters = directionsData.route.distance;
+    const distanceMeters = directionsData.routes[0].distance;
     const distanceMiles = distanceMeters / 1609.344;
+    const durationSeconds = directionsData.routes[0].duration;
+    const durationHours = durationSeconds / 3600;
 
-    console.log(`Distance calculated: ${distanceMiles.toFixed(1)} miles`);
+    console.log(`[trucking-distance] Distance calculated: ${distanceMiles.toFixed(1)} miles, ${durationHours.toFixed(1)} hours`);
 
     return new Response(
-      JSON.stringify({ distance_miles: Math.round(distanceMiles) }),
+      JSON.stringify({ 
+        distance_miles: Math.round(distanceMiles),
+        duration_hours: parseFloat(durationHours.toFixed(1))
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error calculating distance:', error);
+    console.error('[trucking-distance] Error calculating distance:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: 'distance_lookup_failed', message }),
