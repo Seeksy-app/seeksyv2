@@ -4683,6 +4683,112 @@ export type Database = {
           },
         ]
       }
+      campaign_donations: {
+        Row: {
+          amount: number
+          campaign_id: string | null
+          created_at: string
+          currency: string | null
+          donated_at: string | null
+          donor_email: string | null
+          donor_name: string | null
+          id: string
+          is_recurring: boolean | null
+          status: string | null
+          stripe_payment_intent_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          campaign_id?: string | null
+          created_at?: string
+          currency?: string | null
+          donated_at?: string | null
+          donor_email?: string | null
+          donor_name?: string | null
+          id?: string
+          is_recurring?: boolean | null
+          status?: string | null
+          stripe_payment_intent_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          campaign_id?: string | null
+          created_at?: string
+          currency?: string | null
+          donated_at?: string | null
+          donor_email?: string | null
+          donor_name?: string | null
+          id?: string
+          is_recurring?: boolean | null
+          status?: string | null
+          stripe_payment_intent_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_donations_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_email_messages: {
+        Row: {
+          body: string
+          campaign_id: string | null
+          click_count: number | null
+          created_at: string
+          id: string
+          open_count: number | null
+          recipient_list: Json | null
+          sent_at: string | null
+          status: string | null
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          campaign_id?: string | null
+          click_count?: number | null
+          created_at?: string
+          id?: string
+          open_count?: number | null
+          recipient_list?: Json | null
+          sent_at?: string | null
+          status?: string | null
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          campaign_id?: string | null
+          click_count?: number | null
+          created_at?: string
+          id?: string
+          open_count?: number | null
+          recipient_list?: Json | null
+          sent_at?: string | null
+          status?: string | null
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_email_messages_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_events: {
         Row: {
           candidate_id: string | null
@@ -4784,6 +4890,68 @@ export type Database = {
             columns: ["inventory_slot_id"]
             isOneToOne: false
             referencedRelation: "inventory_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_livestream_sessions: {
+        Row: {
+          campaign_id: string | null
+          created_at: string
+          description: string | null
+          ended_at: string | null
+          id: string
+          playback_url: string | null
+          replay_url: string | null
+          scheduled_at: string | null
+          started_at: string | null
+          status: string | null
+          stream_key: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          viewer_count: number | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string
+          description?: string | null
+          ended_at?: string | null
+          id?: string
+          playback_url?: string | null
+          replay_url?: string | null
+          scheduled_at?: string | null
+          started_at?: string | null
+          status?: string | null
+          stream_key?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          viewer_count?: number | null
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string
+          description?: string | null
+          ended_at?: string | null
+          id?: string
+          playback_url?: string | null
+          replay_url?: string | null
+          scheduled_at?: string | null
+          started_at?: string | null
+          status?: string | null
+          stream_key?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          viewer_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_livestream_sessions_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_candidates"
             referencedColumns: ["id"]
           },
         ]
@@ -5042,6 +5210,53 @@ export type Database = {
           {
             foreignKeyName: "campaign_sites_candidate_id_fkey"
             columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_sms_messages: {
+        Row: {
+          campaign_id: string | null
+          created_at: string
+          delivery_count: number | null
+          id: string
+          message: string
+          recipient_list: Json | null
+          sent_at: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string
+          delivery_count?: number | null
+          id?: string
+          message: string
+          recipient_list?: Json | null
+          sent_at?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string
+          delivery_count?: number | null
+          id?: string
+          message?: string
+          recipient_list?: Json | null
+          sent_at?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_sms_messages_campaign_id_fkey"
+            columns: ["campaign_id"]
             isOneToOne: false
             referencedRelation: "campaign_candidates"
             referencedColumns: ["id"]
