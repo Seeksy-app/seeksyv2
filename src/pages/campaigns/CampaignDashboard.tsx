@@ -15,7 +15,7 @@ import {
   RefreshCw
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import type { User } from "@supabase/supabase-js";
 
 interface Candidate {
   id: string;
@@ -48,16 +48,24 @@ const suggestedTasks = [
 
 export default function CampaignDashboard() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const [user, setUser] = useState<User | null>(null);
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-    loadCandidate();
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      if (!data.user) navigate("/auth");
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ?? null);
+      if (!session?.user) navigate("/auth");
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (user) loadCandidate();
   }, [user]);
 
   const loadCandidate = async () => {

@@ -283,6 +283,16 @@ export default function MRACalculator() {
               </Button>
             </div>
 
+            {/* Partner Image */}
+            <div className="text-center">
+              <img 
+                src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&auto=format&fit=crop" 
+                alt="Benefits service providers ready to help" 
+                className="w-full max-w-2xl mx-auto rounded-lg shadow-lg"
+              />
+              <p className="text-sm text-muted-foreground mt-2">Our network of trusted benefits specialists</p>
+            </div>
+
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-4">
               <Button 
