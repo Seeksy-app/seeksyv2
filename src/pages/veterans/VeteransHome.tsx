@@ -83,8 +83,8 @@ export default function VeteransHome() {
       <section className="py-16 container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">Your Benefits Toolkit</h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">
-            Everything you need to understand and maximize your federal retirement benefits
+          <p className="text-muted-foreground max-w-xl mx-auto text-balance">
+            Everything you need to understand and maximize your federal retirement&nbsp;benefits
           </p>
         </div>
 

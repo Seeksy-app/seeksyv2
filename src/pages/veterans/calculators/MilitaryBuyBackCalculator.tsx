@@ -110,8 +110,8 @@ export default function MilitaryBuyBackCalculator() {
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
             Calculate Your Military Service Deposit
           </h1>
-          <p className="text-muted-foreground max-w-xl mx-auto">
-            See how buying back your military time can increase your federal retirement annuity
+          <p className="text-muted-foreground max-w-xl mx-auto text-balance">
+            See how buying back your military time can increase your federal retirement&nbsp;annuity
           </p>
         </div>
 

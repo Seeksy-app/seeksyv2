@@ -53,8 +53,8 @@ export default function SickLeaveCalculator() {
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
             Convert Sick Leave to Service Credit
           </h1>
-          <p className="text-muted-foreground max-w-xl mx-auto">
-            See how your unused sick leave hours boost your retirement annuity
+          <p className="text-muted-foreground max-w-xl mx-auto text-balance">
+            See how your unused sick leave hours boost your retirement&nbsp;annuity
           </p>
         </div>
 

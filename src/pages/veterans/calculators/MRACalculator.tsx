@@ -63,8 +63,8 @@ export default function MRACalculator() {
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
             Find Your Minimum Retirement Age
           </h1>
-          <p className="text-muted-foreground max-w-xl mx-auto">
-            Discover when you're eligible for federal retirement based on your birth year
+          <p className="text-muted-foreground max-w-xl mx-auto text-balance">
+            Discover when you are eligible for federal retirement based on your birth&nbsp;year
           </p>
         </div>
 
