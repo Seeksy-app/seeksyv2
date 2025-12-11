@@ -109,11 +109,15 @@ const generateTeamInviteHTML = (inviterName: string, inviteeName: string, role: 
 `;
 
 serve(async (req) => {
+  console.log("📨 send-team-invitation function called");
+  
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
+    console.log("🔧 Initializing Supabase admin client...");
+    
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
@@ -127,13 +131,21 @@ serve(async (req) => {
 
     const authHeader = req.headers.get("Authorization")!;
     const token = authHeader.replace("Bearer ", "");
+    console.log("🔐 Authenticating user...");
+    
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
 
     if (userError || !user) {
+      console.error("❌ Auth error:", userError);
       throw new Error("Unauthorized");
     }
+    
+    console.log("✅ User authenticated:", user.id);
 
-    const { email, name, role, team_id }: InviteRequest = await req.json();
+    const body = await req.json();
+    console.log("📋 Request body:", JSON.stringify(body));
+    
+    const { email, name, role, team_id }: InviteRequest = body;
     
     if (!email || !name) {
       throw new Error("Email and name are required");
@@ -185,17 +197,24 @@ serve(async (req) => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } else {
+      console.log("📧 User doesn't exist, sending invitation email...");
+      
       // User doesn't exist - invite them to sign up via magic link
-      const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+      const resendApiKey = Deno.env.get("RESEND_API_KEY");
+      console.log("🔑 Resend API Key configured:", !!resendApiKey);
+      
+      const resend = new Resend(resendApiKey);
       
       // Get inviter's name
-      const { data: inviterProfile } = await supabaseAdmin
+      const { data: inviterProfile, error: profileError } = await supabaseAdmin
         .from("profiles")
-        .select("account_full_name, username")
+        .select("full_name, username")
         .eq("id", user.id)
         .single();
       
-      const inviterName = inviterProfile?.account_full_name || inviterProfile?.username || "A team member";
+      console.log("👤 Inviter profile:", inviterProfile, "Error:", profileError);
+      
+      const inviterName = inviterProfile?.full_name || inviterProfile?.username || "A team member";
       
       // Generate invite token for tracking
       const inviteToken = crypto.randomUUID();

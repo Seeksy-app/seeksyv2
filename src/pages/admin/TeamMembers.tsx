@@ -69,7 +69,7 @@ interface PendingInvite {
   expires_at: string;
 }
 
-const ADMIN_ROLES = [
+const ALL_ROLES = [
   { value: 'super_admin', label: 'Super Admin', description: 'Full platform access' },
   { value: 'admin', label: 'Admin', description: 'Everything except platform settings' },
   { value: 'board_member', label: 'Board Member', description: 'Board Portal access only' },
@@ -77,7 +77,14 @@ const ADMIN_ROLES = [
   { value: 'cmo', label: 'CMO', description: 'Marketing + Revenue Insights' },
   { value: 'cco', label: 'CCO', description: 'Creator + Content Management' },
   { value: 'manager', label: 'Manager', description: 'Help Desk + Billing overview' },
+  { value: 'creator', label: 'Creator', description: 'Creator Dashboard access' },
+  { value: 'member', label: 'Member', description: 'Basic member access' },
+  { value: 'advertiser', label: 'Advertiser', description: 'Advertiser portal access' },
+  { value: 'agency', label: 'Agency', description: 'Agency management access' },
 ];
+
+// Admin-level roles displayed in the role permissions card
+const ADMIN_ROLES = ALL_ROLES.slice(0, 7);
 
 export default function TeamMembers() {
   const { toast } = useToast();
@@ -261,10 +268,15 @@ export default function TeamMembers() {
     switch (role) {
       case 'super_admin': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
       case 'admin': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      case 'board_member': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200';
       case 'cfo': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200';
       case 'cmo': return 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200';
       case 'cco': return 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200';
       case 'manager': return 'bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-200';
+      case 'creator': return 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200';
+      case 'member': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+      case 'advertiser': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
+      case 'agency': return 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -323,7 +335,7 @@ export default function TeamMembers() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {ADMIN_ROLES.map((role) => (
+                    {ALL_ROLES.map((role) => (
                       <SelectItem key={role.value} value={role.value}>
                         <div className="flex flex-col">
                           <span>{role.label}</span>
@@ -406,7 +418,7 @@ export default function TeamMembers() {
                     <TableCell>{invite.invitee_name || '—'}</TableCell>
                     <TableCell>
                       <Badge className={getRoleBadgeColor(invite.role)}>
-                        {ADMIN_ROLES.find(r => r.value === invite.role)?.label || invite.role}
+                        {ALL_ROLES.find(r => r.value === invite.role)?.label || invite.role}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -486,7 +498,7 @@ export default function TeamMembers() {
                     </TableCell>
                     <TableCell>
                       <Badge className={getRoleBadgeColor(member.role)}>
-                        {ADMIN_ROLES.find(r => r.value === member.role)?.label || member.role}
+                        {ALL_ROLES.find(r => r.value === member.role)?.label || member.role}
                       </Badge>
                     </TableCell>
                     <TableCell>
