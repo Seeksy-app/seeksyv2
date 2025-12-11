@@ -576,7 +576,7 @@ export default function ClaimsAgent() {
         <div className="flex-1 overflow-hidden">
           <ResizablePanelGroup direction="horizontal" className="h-full">
             {/* Left Sidebar */}
-            <ResizablePanel defaultSize={22} minSize={15} maxSize={35} className="hidden lg:block">
+            <ResizablePanel defaultSize={25} minSize={18} maxSize={40} className="hidden lg:block">
               <div className="h-full border-r bg-card/50 overflow-auto">
                 <ClaimsLeftSidebar 
                   currentStep={currentStep} 
@@ -586,10 +586,10 @@ export default function ClaimsAgent() {
               </div>
             </ResizablePanel>
             
-            <ResizableHandle className="hidden lg:flex" />
+            <ResizableHandle withHandle className="hidden lg:flex" />
 
             {/* Chat Area */}
-            <ResizablePanel defaultSize={56} minSize={35}>
+            <ResizablePanel defaultSize={50} minSize={30}>
               <div className="h-full flex flex-col min-w-0">
                 {/* Messages */}
                 <div className="flex-1 overflow-auto px-6 py-6">
