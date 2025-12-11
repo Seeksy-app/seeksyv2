@@ -699,7 +699,7 @@ const AppContent = () => {
   const isOnboardingComplete = location.pathname === '/onboarding/complete';
   
   // Veterans platform is completely standalone - no Seeksy UI
-  const isVeteransRoute = location.pathname.startsWith('/yourbenefits');
+  const isVeteransRoute = location.pathname.startsWith('/yourbenefits') || location.pathname.startsWith('/veterans');
   
   // CampaignStaff.ai is completely standalone - no Seeksy UI
   const isCampaignRoute = location.pathname.startsWith('/campaign-staff');
@@ -742,6 +742,11 @@ const AppContent = () => {
         <Route path="/yourbenefits/calculators/state-tax-benefits" element={<VeteransLayout><StateTaxBenefitsCalculator /></VeteransLayout>} />
         <Route path="/yourbenefits/calculators/property-tax-exemption" element={<VeteransLayout><PropertyTaxExemptionCalculator /></VeteransLayout>} />
         <Route path="/yourbenefits/referral-partners" element={<ReferralPartnersPage />} />
+        
+        {/* /veterans/* redirects to /yourbenefits/* */}
+        <Route path="/veterans" element={<Navigate to="/yourbenefits" replace />} />
+        <Route path="/veterans/referral-partners" element={<ReferralPartnersPage />} />
+        <Route path="/veterans/*" element={<Navigate to="/yourbenefits" replace />} />
       </Routes>
     );
   }
