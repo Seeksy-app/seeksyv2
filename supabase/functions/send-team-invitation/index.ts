@@ -154,24 +154,49 @@ serve(async (req) => {
     }
 
     // Get or create team_id
+    console.log("🔍 Looking up team for user:", user.id);
     let actualTeamId = team_id;
     if (!actualTeamId) {
-      const { data: team } = await supabaseAdmin
+      const { data: team, error: teamError } = await supabaseAdmin
         .from("teams")
         .select("id")
         .eq("owner_id", user.id)
         .maybeSingle();
       
+      console.log("🏢 Team lookup result:", team, "Error:", teamError);
+      
       if (team) {
         actualTeamId = team.id;
       }
     }
+    console.log("🏢 Using team_id:", actualTeamId);
 
     // Check if user exists with this email using admin API
-    const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
-    if (listError) throw listError;
-
-    const invitedUser = users?.find((u: any) => u.email === email);
+    console.log("👥 Checking if user exists with email:", email);
+    const { data: existingUser, error: userLookupError } = await supabaseAdmin
+      .from("profiles")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+    
+    console.log("👥 Profile lookup result:", existingUser, "Error:", userLookupError);
+    
+    // Also check auth.users via admin API
+    let invitedUser = null;
+    if (!existingUser) {
+      console.log("👥 Listing all users to find email match...");
+      try {
+        const { data: { users }, error: authLookupError } = await supabaseAdmin.auth.admin.listUsers();
+        if (authLookupError) {
+          console.error("❌ Error listing users:", authLookupError);
+        } else {
+          invitedUser = users?.find((u: any) => u.email === email);
+          console.log("👥 Found user in auth.users:", invitedUser?.id || null);
+        }
+      } catch (listError) {
+        console.error("❌ Exception listing users:", listError);
+      }
+    }
 
     if (invitedUser) {
       // User exists, add to team_members table
