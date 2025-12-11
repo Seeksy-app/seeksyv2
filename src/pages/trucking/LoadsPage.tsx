@@ -10,7 +10,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit, Trash2, MapPin, Check, Copy, CheckCircle2, Truck, Flag, Phone } from "lucide-react";
+import { Plus, Edit, Trash2, MapPin, Check, Copy, CheckCircle2, Truck, Flag, Phone, MoreHorizontal } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import ContactPicker from "@/components/trucking/ContactPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Switch } from "@/components/ui/switch";
@@ -82,6 +100,8 @@ export default function LoadsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingLoad, setEditingLoad] = useState<Load | null>(null);
   const [activeTab, setActiveTab] = useState("open");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [loadToDelete, setLoadToDelete] = useState<string | null>(null);
   const { toast } = useToast();
   const { getRecentValues, addRecentValue } = useTruckingRecentValues();
   const { labels } = useTruckingFieldLabels();
@@ -307,16 +327,24 @@ export default function LoadsPage() {
     setDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this load?")) return;
+  const confirmDelete = (id: string) => {
+    setLoadToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!loadToDelete) return;
     
     try {
-      const { error } = await supabase.from("trucking_loads").delete().eq("id", id);
+      const { error } = await supabase.from("trucking_loads").delete().eq("id", loadToDelete);
       if (error) throw error;
       toast({ title: "Load deleted" });
       fetchLoads();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setDeleteDialogOpen(false);
+      setLoadToDelete(null);
     }
   };
 
@@ -508,21 +536,35 @@ export default function LoadsPage() {
             <TableCell>
               <Badge className={getStatusBadge(load.status)}>{load.status}</Badge>
             </TableCell>
-            <TableCell className="text-right space-x-1">
-              {showConfirmButton && (
-                <Button variant="ghost" size="icon" onClick={() => handleConfirmLoad(load.id)} title="Confirm Load">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                </Button>
-              )}
-              <Button variant="ghost" size="icon" onClick={() => handleDuplicateLoad(load)} title="Duplicate">
-                <Copy className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => handleEdit(load)}>
-                <Edit className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => handleDelete(load.id)}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
+            <TableCell className="text-right">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleEdit(load)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit load
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleDuplicateLoad(load)}>
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy load
+                  </DropdownMenuItem>
+                  {showConfirmButton && (
+                    <DropdownMenuItem onClick={() => handleConfirmLoad(load.id)}>
+                      <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                      Confirm load
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => confirmDelete(load.id)} className="text-red-600">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete load
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </TableCell>
           </TableRow>
         ))}
@@ -1067,6 +1109,24 @@ export default function LoadsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this load?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove the load from your board. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

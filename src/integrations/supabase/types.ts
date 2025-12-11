@@ -24083,6 +24083,72 @@ export type Database = {
         }
         Relationships: []
       }
+      trucking_contacts: {
+        Row: {
+          company_name: string | null
+          contact_name: string | null
+          contact_type: string
+          created_at: string | null
+          dot_number: string | null
+          email: string | null
+          equipment_types: string[] | null
+          id: string
+          is_favorite: boolean | null
+          last_used_at: string | null
+          mc_number: string | null
+          notes: string | null
+          phone: string | null
+          phone_alt: string | null
+          preferred_lanes: string | null
+          rating: number | null
+          region_short: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          company_name?: string | null
+          contact_name?: string | null
+          contact_type: string
+          created_at?: string | null
+          dot_number?: string | null
+          email?: string | null
+          equipment_types?: string[] | null
+          id?: string
+          is_favorite?: boolean | null
+          last_used_at?: string | null
+          mc_number?: string | null
+          notes?: string | null
+          phone?: string | null
+          phone_alt?: string | null
+          preferred_lanes?: string | null
+          rating?: number | null
+          region_short?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          company_name?: string | null
+          contact_name?: string | null
+          contact_type?: string
+          created_at?: string | null
+          dot_number?: string | null
+          email?: string | null
+          equipment_types?: string[] | null
+          id?: string
+          is_favorite?: boolean | null
+          last_used_at?: string | null
+          mc_number?: string | null
+          notes?: string | null
+          phone?: string | null
+          phone_alt?: string | null
+          preferred_lanes?: string | null
+          rating?: number | null
+          region_short?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       trucking_loads: {
         Row: {
           auto_approve_band_flat: number | null

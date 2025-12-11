@@ -26,9 +26,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
+import { Contact } from "lucide-react";
+
 const navItems = [
   { label: "Dashboard", href: "/trucking/dashboard", icon: Gauge },
   { label: "Loads", href: "/trucking/loads", icon: Package },
+  { label: "Contacts", href: "/trucking/contacts", icon: Contact },
   { label: "Carriers", href: "/trucking/carriers", icon: Users },
   { label: "Carrier Leads", href: "/trucking/leads", icon: Inbox },
   { label: "AI Console", href: "/trucking/console", icon: Bot },
