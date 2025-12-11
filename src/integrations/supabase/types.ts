@@ -24694,6 +24694,88 @@ export type Database = {
         }
         Relationships: []
       }
+      venue_ai_sessions: {
+        Row: {
+          created_at: string | null
+          id: string
+          messages: Json | null
+          notes: string | null
+          role: string | null
+          updated_at: string | null
+          user_id: string
+          venue_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          messages?: Json | null
+          notes?: string | null
+          role?: string | null
+          updated_at?: string | null
+          user_id: string
+          venue_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          messages?: Json | null
+          notes?: string | null
+          role?: string | null
+          updated_at?: string | null
+          user_id?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_ai_sessions_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      venue_automations: {
+        Row: {
+          active: boolean | null
+          channel: string | null
+          created_at: string | null
+          id: string
+          template_body: string | null
+          template_subject: string | null
+          trigger: string | null
+          venue_id: string
+        }
+        Insert: {
+          active?: boolean | null
+          channel?: string | null
+          created_at?: string | null
+          id?: string
+          template_body?: string | null
+          template_subject?: string | null
+          trigger?: string | null
+          venue_id: string
+        }
+        Update: {
+          active?: boolean | null
+          channel?: string | null
+          created_at?: string | null
+          id?: string
+          template_body?: string | null
+          template_subject?: string | null
+          trigger?: string | null
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_automations_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       venue_bookings: {
         Row: {
           balance_due: number | null
@@ -24890,6 +24972,57 @@ export type Database = {
           },
         ]
       }
+      venue_events_marketing: {
+        Row: {
+          booking_id: string | null
+          budget: number | null
+          channel_mix: Json | null
+          created_at: string | null
+          event_date: string | null
+          goals: Json | null
+          id: string
+          name: string
+          venue_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          budget?: number | null
+          channel_mix?: Json | null
+          created_at?: string | null
+          event_date?: string | null
+          goals?: Json | null
+          id?: string
+          name: string
+          venue_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          budget?: number | null
+          channel_mix?: Json | null
+          created_at?: string | null
+          event_date?: string | null
+          goals?: Json | null
+          id?: string
+          name?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_events_marketing_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "venue_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venue_events_marketing_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       venue_influencer_bookings: {
         Row: {
           budget: number | null
@@ -24948,6 +25081,67 @@ export type Database = {
           },
         ]
       }
+      venue_influencer_campaigns: {
+        Row: {
+          booking_id: string | null
+          campaign_name: string
+          comp_structure: Json | null
+          created_at: string | null
+          id: string
+          influencer_id: string
+          results: Json | null
+          status: string | null
+          tracking_links: Json | null
+          venue_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          campaign_name: string
+          comp_structure?: Json | null
+          created_at?: string | null
+          id?: string
+          influencer_id: string
+          results?: Json | null
+          status?: string | null
+          tracking_links?: Json | null
+          venue_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          campaign_name?: string
+          comp_structure?: Json | null
+          created_at?: string | null
+          id?: string
+          influencer_id?: string
+          results?: Json | null
+          status?: string | null
+          tracking_links?: Json | null
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_influencer_campaigns_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "venue_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venue_influencer_campaigns_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
+            referencedRelation: "venue_influencers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venue_influencer_campaigns_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       venue_influencer_profiles: {
         Row: {
           bio: string | null
@@ -24989,6 +25183,56 @@ export type Database = {
           reach_estimate?: number | null
         }
         Relationships: []
+      }
+      venue_influencers: {
+        Row: {
+          avg_engagement_rate: number | null
+          avg_reach: number | null
+          created_at: string | null
+          handle: string | null
+          id: string
+          name: string
+          niche_tags: string[] | null
+          notes: string | null
+          platforms: string[] | null
+          primary_location: string | null
+          venue_id: string | null
+        }
+        Insert: {
+          avg_engagement_rate?: number | null
+          avg_reach?: number | null
+          created_at?: string | null
+          handle?: string | null
+          id?: string
+          name: string
+          niche_tags?: string[] | null
+          notes?: string | null
+          platforms?: string[] | null
+          primary_location?: string | null
+          venue_id?: string | null
+        }
+        Update: {
+          avg_engagement_rate?: number | null
+          avg_reach?: number | null
+          created_at?: string | null
+          handle?: string | null
+          id?: string
+          name?: string
+          niche_tags?: string[] | null
+          notes?: string | null
+          platforms?: string[] | null
+          primary_location?: string | null
+          venue_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_influencers_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       venue_inventory: {
         Row: {
@@ -25214,6 +25458,38 @@ export type Database = {
           },
         ]
       }
+      venue_staff: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: string | null
+          user_id: string
+          venue_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role?: string | null
+          user_id: string
+          venue_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: string | null
+          user_id?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_staff_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       venue_streams: {
         Row: {
           created_at: string | null
@@ -25354,18 +25630,23 @@ export type Database = {
       venues: {
         Row: {
           address: string | null
+          booking_policy: Json | null
           brand_logo_url: string | null
           brand_primary_color: string | null
           capacity: number | null
           city: string | null
           country: string | null
           created_at: string | null
+          event_types: string[] | null
           id: string
+          max_capacity: number | null
           name: string
+          onboarding_completed: boolean | null
           owner_user_id: string
           phone: string | null
           slug: string | null
           state: string | null
+          stripe_account_id: string | null
           timezone: string | null
           type: string | null
           updated_at: string | null
@@ -25373,18 +25654,23 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          booking_policy?: Json | null
           brand_logo_url?: string | null
           brand_primary_color?: string | null
           capacity?: number | null
           city?: string | null
           country?: string | null
           created_at?: string | null
+          event_types?: string[] | null
           id?: string
+          max_capacity?: number | null
           name: string
+          onboarding_completed?: boolean | null
           owner_user_id: string
           phone?: string | null
           slug?: string | null
           state?: string | null
+          stripe_account_id?: string | null
           timezone?: string | null
           type?: string | null
           updated_at?: string | null
@@ -25392,18 +25678,23 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          booking_policy?: Json | null
           brand_logo_url?: string | null
           brand_primary_color?: string | null
           capacity?: number | null
           city?: string | null
           country?: string | null
           created_at?: string | null
+          event_types?: string[] | null
           id?: string
+          max_capacity?: number | null
           name?: string
+          onboarding_completed?: boolean | null
           owner_user_id?: string
           phone?: string | null
           slug?: string | null
           state?: string | null
+          stripe_account_id?: string | null
           timezone?: string | null
           type?: string | null
           updated_at?: string | null
