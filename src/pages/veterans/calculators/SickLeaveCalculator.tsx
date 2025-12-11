@@ -3,14 +3,26 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Heart, Clock, Calendar, TrendingUp } from "lucide-react";
+import { ArrowLeft, Heart, Clock, Calendar, TrendingUp, CalendarDays } from "lucide-react";
 import { Link } from "react-router-dom";
 import { calculateSickLeave, SickLeaveResult } from "@/lib/veteranCalculators";
+
+// Sample results for demonstration
+const SAMPLE_RESULTS: SickLeaveResult = {
+  totalHours: 2080,
+  daysEquivalent: 260,
+  monthsCredit: 2,
+  yearsCredit: 1,
+  pensionIncrease: "1.00%",
+  estimatedAnnualBenefit: 4850,
+  description: "Your 2,080 hours of unused sick leave will significantly boost your retirement benefits!"
+};
 
 export default function SickLeaveCalculator() {
   const [sickLeaveHours, setSickLeaveHours] = useState("");
   const [currentSalary, setCurrentSalary] = useState("");
   const [results, setResults] = useState<SickLeaveResult | null>(null);
+  const [showSampleResults, setShowSampleResults] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,6 +34,8 @@ export default function SickLeaveCalculator() {
     
     setResults(calculated);
   };
+
+  const displayResults = showSampleResults ? SAMPLE_RESULTS : results;
 
   return (
     <div className="min-h-screen bg-background py-8">
@@ -44,16 +58,27 @@ export default function SickLeaveCalculator() {
           </p>
         </div>
 
-        {!results ? (
+        {!displayResults ? (
           <Card className="max-w-2xl mx-auto">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="w-5 h-5" />
-                Enter Your Sick Leave Balance
-              </CardTitle>
-              <CardDescription>
-                Find your sick leave hours on your pay stub or leave statement
-              </CardDescription>
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="w-5 h-5" />
+                    Enter Your Sick Leave Balance
+                  </CardTitle>
+                  <CardDescription className="mt-1">
+                    Find your sick leave hours on your pay stub or leave statement
+                  </CardDescription>
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="text-destructive border-destructive/50 hover:bg-destructive hover:text-destructive-foreground"
+                  onClick={() => setShowSampleResults(true)}
+                >
+                  View Sample Results
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -88,7 +113,7 @@ export default function SickLeaveCalculator() {
                   </p>
                 </div>
 
-                <Button type="submit" size="lg" className="w-full text-lg">
+                <Button type="submit" size="lg" className="w-full text-lg bg-[#1a5490] hover:bg-[#154578]">
                   Calculate My Credit
                 </Button>
               </form>
@@ -97,15 +122,15 @@ export default function SickLeaveCalculator() {
         ) : (
           <div className="space-y-6">
             {/* Main Result */}
-            <Card className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border-purple-500/20">
-              <CardHeader>
+            <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 border-emerald-200">
+              <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-xl">
-                  <Heart className="w-6 h-6 text-purple-500" />
+                  <Heart className="w-6 h-6 text-emerald-600" />
                   Your Sick Leave Credit
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-lg">{results.description}</p>
+                <p className="text-muted-foreground">{displayResults.description}</p>
               </CardContent>
             </Card>
 
@@ -114,63 +139,56 @@ export default function SickLeaveCalculator() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3 mb-2">
-                    <Clock className="w-5 h-5 text-primary" />
-                    <span className="text-sm text-muted-foreground">Total Hours</span>
+                    <Clock className="w-5 h-5 text-muted-foreground" />
+                    <span className="text-sm font-medium">Total Hours</span>
                   </div>
-                  <p className="text-3xl font-bold">{results.totalHours.toLocaleString()}</p>
+                  <p className="text-3xl font-bold text-[#1a5490]">{displayResults.totalHours.toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground">Unused sick leave hours</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3 mb-2">
-                    <Calendar className="w-5 h-5 text-primary" />
-                    <span className="text-sm text-muted-foreground">Work Days</span>
+                    <Calendar className="w-5 h-5 text-muted-foreground" />
+                    <span className="text-sm font-medium">Days Equivalent</span>
                   </div>
-                  <p className="text-3xl font-bold">{results.daysEquivalent}</p>
+                  <p className="text-3xl font-bold text-[#1a5490]">{displayResults.daysEquivalent}</p>
+                  <p className="text-sm text-muted-foreground">Work days (8 hrs/day)</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3 mb-2">
-                    <TrendingUp className="w-5 h-5 text-emerald-500" />
-                    <span className="text-sm text-muted-foreground">Service Credit</span>
+                    <TrendingUp className="w-5 h-5 text-muted-foreground" />
+                    <span className="text-sm font-medium">Service Credit</span>
                   </div>
-                  {results.yearsCredit > 0 ? (
-                    <p className="text-3xl font-bold text-emerald-600">
-                      {results.yearsCredit}yr {results.monthsCredit}mo
-                    </p>
+                  {displayResults.yearsCredit > 0 ? (
+                    <>
+                      <p className="text-3xl font-bold text-emerald-600">
+                        {displayResults.yearsCredit} yr
+                      </p>
+                      <p className="text-lg font-semibold text-[#1a5490]">{displayResults.monthsCredit} mo</p>
+                    </>
                   ) : (
-                    <p className="text-3xl font-bold text-emerald-600">{results.monthsCredit} months</p>
+                    <p className="text-3xl font-bold text-emerald-600">{displayResults.monthsCredit} months</p>
                   )}
+                  <p className="text-sm text-muted-foreground">Added to service time</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3 mb-2">
-                    <TrendingUp className="w-5 h-5 text-amber-500" />
-                    <span className="text-sm text-muted-foreground">Pension Boost</span>
+                    <TrendingUp className="w-5 h-5 text-muted-foreground" />
+                    <span className="text-sm font-medium">Pension Boost</span>
                   </div>
-                  <p className="text-3xl font-bold text-amber-600">+{results.pensionIncrease}</p>
+                  <p className="text-3xl font-bold text-emerald-600">+{displayResults.estimatedAnnualBenefit > 0 ? displayResults.estimatedAnnualBenefit.toLocaleString() : displayResults.pensionIncrease}</p>
+                  <p className="text-sm text-muted-foreground">Estimated increase</p>
                 </CardContent>
               </Card>
             </div>
-
-            {/* Estimated Benefit */}
-            {results.estimatedAnnualBenefit > 0 && (
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground mb-2">Estimated Annual Benefit Increase</p>
-                    <p className="text-4xl font-bold text-emerald-600">
-                      ${results.estimatedAnnualBenefit.toLocaleString('en-US', { maximumFractionDigits: 0 })}/year
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
 
             {/* How It Works */}
             <Card>
@@ -179,44 +197,93 @@ export default function SickLeaveCalculator() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <span className="font-bold text-primary">1</span>
+                  <div className="w-8 h-8 rounded-full bg-[#1a5490] flex items-center justify-center flex-shrink-0">
+                    <span className="font-bold text-white">1</span>
                   </div>
                   <div>
                     <h4 className="font-semibold">Conversion to Service Credit</h4>
                     <p className="text-sm text-muted-foreground">
-                      Every 2,087 hours of sick leave = 1 full year of service credit
+                      Your unused sick leave is converted to additional service time. For every 2,087 hours of sick leave, you receive 1 full year of service credit.
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <span className="font-bold text-primary">2</span>
+                  <div className="w-8 h-8 rounded-full bg-[#1a5490] flex items-center justify-center flex-shrink-0">
+                    <span className="font-bold text-white">2</span>
                   </div>
                   <div>
                     <h4 className="font-semibold">Pension Calculation Impact</h4>
                     <p className="text-sm text-muted-foreground">
-                      Additional service time is included in your total years when calculating your annuity
+                      The additional service time is included in your total years of service when calculating your retirement annuity, increasing your monthly pension payment.
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <span className="font-bold text-primary">3</span>
+                  <div className="w-8 h-8 rounded-full bg-[#1a5490] flex items-center justify-center flex-shrink-0">
+                    <span className="font-bold text-white">3</span>
                   </div>
                   <div>
                     <h4 className="font-semibold">Automatic at Retirement</h4>
                     <p className="text-sm text-muted-foreground">
-                      Your unused sick leave is automatically applied—no special forms needed
+                      When you retire, your unused sick leave balance is automatically applied. No special forms or applications are needed.
                     </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Official Source Note */}
+            <Card className="bg-muted/30">
+              <CardContent className="pt-6">
+                <p className="text-sm text-center">
+                  <strong className="text-destructive">Official Formula:</strong> This calculator uses the OPM-approved conversion rate of 2,087 hours = 1 year of service credit, as specified in 5 USC §8415 for computing basic annuity.
+                </p>
+                <p className="text-sm text-center text-muted-foreground mt-2">
+                  <strong>Tip:</strong> Sick leave is one of the most valuable benefits for federal employees planning for retirement. Your unused sick leave balance is automatically applied when you retire—no forms needed!
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Schedule Consultation CTA */}
+            <Card className="border-destructive/30 bg-red-50">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0">
+                    <CalendarDays className="w-5 h-5 text-destructive" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-lg mb-1">Schedule Your Free Consultation</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Want to discuss your retirement timeline and options? Book a free 30-minute consultation with one of our federal benefits specialists.
+                    </p>
+                    <Button className="bg-[#1a5490] hover:bg-[#154578]">
+                      Schedule Consultation
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Main CTA */}
+            <div className="text-center">
+              <Button 
+                size="lg" 
+                className="bg-destructive hover:bg-destructive/90 text-lg px-8"
+                asChild
+              >
+                <Link to="/veterans/claims-agent">
+                  GET YOUR FREE BENEFITS REVIEW →
+                </Link>
+              </Button>
+            </div>
+
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button onClick={() => setResults(null)} variant="outline" className="flex-1">
+              <Button 
+                onClick={() => { setResults(null); setShowSampleResults(false); }} 
+                variant="outline" 
+                className="flex-1"
+              >
                 Calculate Again
               </Button>
               <Button asChild className="flex-1">
