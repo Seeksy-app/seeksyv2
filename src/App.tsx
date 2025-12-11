@@ -1188,6 +1188,9 @@ const AppContent = () => {
           <Route path="/admin/checklists/template/:templateId" element={<ChecklistTemplate />} />
           <Route path="/admin/board-members" element={<BoardMemberManagement />} />
           
+          {/* Public Board Join Route - Must be BEFORE nested board routes */}
+          <Route path="/board/join" element={<BoardMemberJoin />} />
+          
           {/* Board Member Portal Routes - All wrapped in BoardLayout */}
           <Route path="/board" element={<BoardLayout><Outlet /></BoardLayout>}>
             <Route index element={<BoardDashboard />} />
@@ -1226,7 +1229,6 @@ const AppContent = () => {
             <Route path="knowledge/:slug" element={<BoardKnowledgeArticle />} />
             <Route path="sales-opportunities" element={<BoardSalesOpportunities />} />
           </Route>
-          <Route path="/board/join" element={<BoardMemberJoin />} />
           <Route path="/investor/:token" element={<BoardInvestorPortal />} />
           <Route path="/invest/:slug" element={<InvestOpportunityPage />} />
           <Route path="/invest/veteran-benefits" element={<VeteranBenefitsOpportunity />} />
