@@ -79,35 +79,35 @@ export default function VeteransHome() {
       </header>
 
       {/* Netflix-Style Hero Section */}
-      <section className="relative min-h-[600px] flex items-center overflow-hidden bg-gradient-to-b from-slate-900 via-slate-900 to-background">
-        {/* Background gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/95 to-slate-900/80" />
+      <section className="relative min-h-[600px] flex items-center overflow-hidden bg-slate-900">
+        {/* Lighter center gradient for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-900/80 to-transparent" />
         
-        {/* Left poster column */}
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 hidden xl:flex flex-col gap-3 -translate-x-1/4 opacity-60">
+        {/* Left poster column - more visible */}
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 hidden xl:flex flex-col gap-3 translate-x-4">
           {benefitsPosters.slice(0, 5).map((poster, i) => (
             <div
               key={poster.label}
-              className="relative w-32 h-48 rounded-lg overflow-hidden shadow-2xl transform transition-all duration-500 hover:scale-105 hover:opacity-100"
-              style={{ transform: `rotate(${-5 + i * 2}deg) translateX(${i % 2 === 0 ? 20 : 0}px)` }}
+              className="relative w-36 h-52 rounded-lg overflow-hidden shadow-2xl transform transition-all duration-500 hover:scale-110 hover:z-10"
+              style={{ transform: `rotate(${-3 + i * 1.5}deg) translateX(${i % 2 === 0 ? 30 : 0}px)` }}
             >
               <img src={poster.src} alt={poster.alt} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
               <span className="absolute bottom-2 left-2 right-2 text-[10px] font-semibold text-white/90 truncate">{poster.label}</span>
             </div>
           ))}
         </div>
 
-        {/* Right poster column */}
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 hidden xl:flex flex-col gap-3 translate-x-1/4 opacity-60">
+        {/* Right poster column - more visible */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 hidden xl:flex flex-col gap-3 -translate-x-4">
           {benefitsPosters.slice(5, 10).map((poster, i) => (
             <div
               key={poster.label}
-              className="relative w-32 h-48 rounded-lg overflow-hidden shadow-2xl transform transition-all duration-500 hover:scale-105 hover:opacity-100"
-              style={{ transform: `rotate(${5 - i * 2}deg) translateX(${i % 2 === 0 ? -20 : 0}px)` }}
+              className="relative w-36 h-52 rounded-lg overflow-hidden shadow-2xl transform transition-all duration-500 hover:scale-110 hover:z-10"
+              style={{ transform: `rotate(${3 - i * 1.5}deg) translateX(${i % 2 === 0 ? -30 : 0}px)` }}
             >
               <img src={poster.src} alt={poster.alt} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
               <span className="absolute bottom-2 left-2 right-2 text-[10px] font-semibold text-white/90 truncate">{poster.label}</span>
             </div>
           ))}
