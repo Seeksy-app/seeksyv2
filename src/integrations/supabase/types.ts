@@ -25602,6 +25602,75 @@ export type Database = {
         }
         Relationships: []
       }
+      veteran_referral_partner_applications: {
+        Row: {
+          consent: boolean
+          contact_name: string
+          created_at: string
+          email: string
+          extra_notes: string | null
+          id: string
+          ideal_client: string
+          licensing: string
+          notes: string | null
+          org_name: string
+          org_type: string
+          phone: string | null
+          regions: string[]
+          response_time: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          services: string[]
+          status: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          consent?: boolean
+          contact_name: string
+          created_at?: string
+          email: string
+          extra_notes?: string | null
+          id?: string
+          ideal_client: string
+          licensing: string
+          notes?: string | null
+          org_name: string
+          org_type: string
+          phone?: string | null
+          regions: string[]
+          response_time: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          services: string[]
+          status?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          consent?: boolean
+          contact_name?: string
+          created_at?: string
+          email?: string
+          extra_notes?: string | null
+          id?: string
+          ideal_client?: string
+          licensing?: string
+          notes?: string | null
+          org_name?: string
+          org_type?: string
+          phone?: string | null
+          regions?: string[]
+          response_time?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          services?: string[]
+          status?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       video_markers: {
         Row: {
           created_at: string | null

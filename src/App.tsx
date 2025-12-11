@@ -542,6 +542,7 @@ import SBPCalculator from "./pages/veterans/calculators/SBPCalculator";
 import COLACalculator from "./pages/veterans/calculators/COLACalculator";
 import VATravelCalculator from "./pages/veterans/calculators/VATravelCalculator";
 import VeteranClaimsAgent from "./pages/veterans/ClaimsAgent";
+import ReferralPartnersPage from "./pages/veterans/ReferralPartnersPage";
 import GIBillCalculator from "./pages/veterans/calculators/GIBillCalculator";
 import InsuranceNeedsCalculator from "./pages/veterans/calculators/InsuranceNeedsCalculator";
 import BRSComparisonCalculator from "./pages/veterans/calculators/BRSComparisonCalculator";
@@ -740,6 +741,7 @@ const AppContent = () => {
         <Route path="/yourbenefits/tools/va-means-test" element={<VeteransLayout><VAMeansTestCalculator /></VeteransLayout>} />
         <Route path="/yourbenefits/calculators/state-tax-benefits" element={<VeteransLayout><StateTaxBenefitsCalculator /></VeteransLayout>} />
         <Route path="/yourbenefits/calculators/property-tax-exemption" element={<VeteransLayout><PropertyTaxExemptionCalculator /></VeteransLayout>} />
+        <Route path="/yourbenefits/referral-partners" element={<ReferralPartnersPage />} />
       </Routes>
     );
   }
