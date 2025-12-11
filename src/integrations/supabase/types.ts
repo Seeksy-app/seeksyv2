@@ -23156,6 +23156,33 @@ export type Database = {
           },
         ]
       }
+      task_sections: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          display_order: number | null
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           assigned_to: string | null
@@ -23165,6 +23192,7 @@ export type Database = {
           due_date: string | null
           id: string
           priority: string | null
+          section: string | null
           status: string | null
           title: string
           updated_at: string | null
@@ -23178,6 +23206,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           priority?: string | null
+          section?: string | null
           status?: string | null
           title: string
           updated_at?: string | null
@@ -23191,6 +23220,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           priority?: string | null
+          section?: string | null
           status?: string | null
           title?: string
           updated_at?: string | null
