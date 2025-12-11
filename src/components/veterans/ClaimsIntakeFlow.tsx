@@ -15,6 +15,7 @@ export interface IntakeData {
 interface ClaimsIntakeFlowProps {
   onComplete: (data: IntakeData) => void;
   onShowSample?: () => void;
+  initialData?: Partial<IntakeData>;
 }
 
 const STATUS_OPTIONS = [
@@ -53,13 +54,15 @@ const PRIMARY_GOAL_OPTIONS = [
   { value: "understand_rating", label: "Understanding a current rating or decision" },
 ];
 
-export function ClaimsIntakeFlow({ onComplete, onShowSample }: ClaimsIntakeFlowProps) {
-  const [step, setStep] = useState(1);
+export function ClaimsIntakeFlow({ onComplete, onShowSample, initialData }: ClaimsIntakeFlowProps) {
+  // If user has profile data, skip to step 4 (goals selection)
+  const hasProfileData = initialData?.status && initialData?.branch;
+  const [step, setStep] = useState(hasProfileData ? 4 : 1);
   const [data, setData] = useState<IntakeData>({
-    status: "",
-    branch: "",
-    claimStatus: "",
-    primaryGoals: [],
+    status: initialData?.status || "",
+    branch: initialData?.branch || "",
+    claimStatus: initialData?.claimStatus || "",
+    primaryGoals: initialData?.primaryGoals || [],
   });
 
   const handleStatusSelect = (status: string) => {

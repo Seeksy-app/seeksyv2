@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
-import { ArrowLeft, MessageSquare, Send, Loader2, ExternalLink, AlertCircle, ChevronRight, Eye, ClipboardList, Shield, LogIn, UserPlus, Calculator } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { MessageSquare, Send, Loader2, ExternalLink, AlertCircle, ChevronRight, Eye, ClipboardList, Shield, Calculator } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ClaimsIntakeFlow, IntakeData } from "@/components/veterans/ClaimsIntakeFlow";
@@ -15,6 +15,7 @@ import { ClaimsRightSidebar, ClaimsNote } from "@/components/veterans/ClaimsRigh
 import { ClaimsChatMessage } from "@/components/veterans/ClaimsChatMessage";
 import { ClaimsSavePrompt } from "@/components/veterans/ClaimsSavePrompt";
 import { QUICK_REPLY_TEMPLATES } from "@/components/veterans/ClaimsQuickReplies";
+import { useVeteranConversation } from "@/hooks/useVeteranConversation";
 
 interface Message {
   role: "user" | "assistant";
@@ -126,13 +127,12 @@ const SAMPLE_MESSAGES: Message[] = [
 ];
 
 export default function ClaimsAgent() {
-  const navigate = useNavigate();
-  const [intakeComplete, setIntakeComplete] = useState(false);
-  const [intakeData, setIntakeData] = useState<IntakeData | null>(null);
+  const [searchParams] = useSearchParams();
+  const conversationIdParam = searchParams.get('conversation');
+  const isNew = searchParams.get('new') === 'true';
+
+  const [user, setUser] = useState<any>(null);
   const [currentStep, setCurrentStep] = useState(1);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [notes, setNotes] = useState<ClaimsNote[]>([]);
-  const [userName, setUserName] = useState<string | undefined>();
   const [showingSample, setShowingSample] = useState(false);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -142,11 +142,6 @@ export default function ClaimsAgent() {
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
   const [leadForm, setLeadForm] = useState({ name: "", email: "", phone: "" });
   const [error, setError] = useState<string | null>(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('signup');
-  const [authForm, setAuthForm] = useState({ email: "", password: "" });
-  const [isAuthLoading, setIsAuthLoading] = useState(false);
-  const [user, setUser] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const calculatorsRef = useRef<HTMLDivElement>(null);
 
@@ -163,6 +158,26 @@ export default function ClaimsAgent() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Use the conversation hook
+  const {
+    conversationId,
+    messages,
+    setMessages,
+    notes,
+    setNotes,
+    intakeData,
+    setIntakeData,
+    userName,
+    setUserName,
+    profile,
+    isLoading: isLoadingConversation,
+    intakeComplete,
+    setIntakeComplete,
+    createConversation,
+    saveMessage,
+    updateContext,
+  } = useVeteranConversation(user, conversationIdParam, isNew);
+
   const scrollToBottom = useCallback(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -173,19 +188,26 @@ export default function ClaimsAgent() {
     scrollToBottom();
   }, [messages, isLoading, scrollToBottom]);
 
-  // Show save prompt after 8 messages
+  // Show save prompt after 8 messages for non-logged-in users
   useEffect(() => {
     if (messageCount === 8 && !showSavePrompt && !user) {
       setShowSavePrompt(true);
     }
   }, [messageCount, showSavePrompt, user]);
 
-  const handleIntakeComplete = (data: IntakeData) => {
+  const handleIntakeComplete = async (data: IntakeData) => {
     setIntakeData(data);
     setIntakeComplete(true);
     setCurrentStep(2);
     setShowingSample(false);
     setMessages(INTRO_SEQUENCE);
+
+    // If logged in, create conversation and save to DB
+    if (user) {
+      await createConversation(data);
+      // Save the intro message
+      await saveMessage(INTRO_SEQUENCE[0]);
+    }
   };
 
   const handleShowSample = () => {
@@ -239,13 +261,9 @@ export default function ClaimsAgent() {
     return { cleanContent: content, prompts: [] };
   };
 
-  // Clean up any raw JSON that might appear in messages
   const cleanMessageContent = (content: string): string => {
-    // Remove any JSON-like structures that look like notes
     let cleaned = content.replace(/\{"category":\s*"[^"]*",\s*"value":\s*"[^"]*"\}/g, '');
-    // Remove multiple spaces and trim
     cleaned = cleaned.replace(/\s+/g, ' ').trim();
-    // Remove trailing punctuation if content ends awkwardly
     cleaned = cleaned.replace(/\s*[,;]\s*$/, '');
     return cleaned;
   };
@@ -274,17 +292,27 @@ export default function ClaimsAgent() {
 
     setInput("");
     setError(null);
-    setMessages(prev => [...prev, { role: "user", content: userMessage }]);
+    
+    const newUserMessage: Message = { role: "user", content: userMessage };
+    setMessages(prev => [...prev, newUserMessage]);
     setMessageCount(prev => prev + 1);
     setIsLoading(true);
 
     // Capture name from first response
     if (!userName && messages.length === 1) {
-      // First user response after intro is likely their name
       const nameParts = userMessage.split(" ");
       if (nameParts.length <= 3 && nameParts[0].length > 1) {
-        setUserName(nameParts[0]);
+        const capturedName = nameParts[0];
+        setUserName(capturedName);
+        if (user) {
+          updateContext({ userName: capturedName });
+        }
       }
+    }
+
+    // Save user message to DB
+    if (user && conversationId) {
+      await saveMessage(newUserMessage);
     }
 
     try {
@@ -294,7 +322,7 @@ export default function ClaimsAgent() {
             ...messages.map(m => ({ role: m.role, content: m.content })),
             { role: "user", content: userMessage }
           ],
-          systemPrompt: createSystemPrompt(intakeData, notes, userName)
+          systemPrompt: createSystemPrompt(intakeData, notes, userName || undefined)
         }
       });
 
@@ -313,26 +341,27 @@ export default function ClaimsAgent() {
 
       let rawMessage = response.data?.message || "I'm sorry, I couldn't process that. Could you try again?";
       
-      // Extract notes
       const { cleanContent: contentAfterNotes, note } = extractNotes(rawMessage);
-      
-      // Extract prompts
       const { cleanContent: contentAfterPrompts, prompts } = extractPrompts(contentAfterNotes);
-      
-      // Clean any remaining JSON artifacts
       const finalContent = cleanMessageContent(contentAfterPrompts);
       
+      let updatedNotes = notes;
       if (note) {
-        // Deduplicate notes
-        setNotes(prev => {
-          const exists = prev.some(n => n.category === note.category && n.value === note.value);
-          return exists ? prev : [...prev, note];
-        });
+        const exists = notes.some(n => n.category === note.category && n.value === note.value);
+        if (!exists) {
+          updatedNotes = [...notes, note];
+          setNotes(updatedNotes);
+        }
       }
       
-      // Use extracted prompts or fall back to context-based quick replies
       const quickReplies = prompts.length > 0 ? prompts : getQuickRepliesForContext(finalContent);
-      setMessages(prev => [...prev, { role: "assistant", content: finalContent, quickReplies }]);
+      const assistantMessage: Message = { role: "assistant", content: finalContent, quickReplies };
+      setMessages(prev => [...prev, assistantMessage]);
+      
+      // Save assistant message to DB with notes
+      if (user && conversationId) {
+        await saveMessage(assistantMessage, updatedNotes);
+      }
       
       if (notes.length >= 2 && currentStep === 2) {
         setCurrentStep(3);
@@ -428,49 +457,21 @@ export default function ClaimsAgent() {
     }
   };
 
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsAuthLoading(true);
-    
-    try {
-      if (authMode === 'signup') {
-        const { error } = await supabase.auth.signUp({
-          email: authForm.email,
-          password: authForm.password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/veterans/claims-agent`
-          }
-        });
-        if (error) throw error;
-        toast.success("Account created! Check your email to confirm.");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: authForm.email,
-          password: authForm.password,
-        });
-        if (error) throw error;
-        toast.success("Welcome back!");
-      }
-      setShowAuthModal(false);
-      setAuthForm({ email: "", password: "" });
-    } catch (error: any) {
-      toast.error(error.message || "Authentication failed");
-    } finally {
-      setIsAuthLoading(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    toast.success("Signed out successfully");
-  };
-
   const scrollToCalculators = () => {
     calculatorsRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Show loading while fetching conversation
+  if (isLoadingConversation) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden">
+    <div className="h-full flex flex-col bg-background overflow-hidden">
       {/* Header */}
       <div className="border-b bg-card flex-shrink-0">
         <div className="px-6 py-3">
@@ -492,7 +493,6 @@ export default function ClaimsAgent() {
             </div>
             
             <div className="flex items-center gap-3">
-              {/* Calculator anchor button */}
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -502,37 +502,6 @@ export default function ClaimsAgent() {
                 <Calculator className="w-4 h-4 mr-2" />
                 Calculators
               </Button>
-
-              {/* Auth buttons */}
-              {user ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground hidden md:inline">
-                    {user.email}
-                  </span>
-                  <Button variant="ghost" size="sm" onClick={handleLogout}>
-                    Sign Out
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => { setAuthMode('login'); setShowAuthModal(true); }}
-                  >
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Login
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    onClick={() => { setAuthMode('signup'); setShowAuthModal(true); }}
-                    className="bg-orange-600 hover:bg-orange-700"
-                  >
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    Sign Up
-                  </Button>
-                </div>
-              )}
               
               {intakeComplete && (
                 <div className="hidden lg:flex items-center gap-1 text-xs">
@@ -570,7 +539,16 @@ export default function ClaimsAgent() {
       {/* Main Content */}
       {!intakeComplete ? (
         <div className="flex-1 overflow-auto">
-          <ClaimsIntakeFlow onComplete={handleIntakeComplete} onShowSample={handleShowSample} />
+          <ClaimsIntakeFlow 
+            onComplete={handleIntakeComplete} 
+            onShowSample={handleShowSample}
+            initialData={profile ? {
+              status: profile.service_status || '',
+              branch: profile.branch_of_service || '',
+              claimStatus: profile.last_claim_stage || '',
+              primaryGoals: [],
+            } : undefined}
+          />
         </div>
       ) : (
         <div className="flex-1 overflow-hidden">
@@ -669,7 +647,7 @@ export default function ClaimsAgent() {
                 <ClaimsRightSidebar 
                   notes={notes} 
                   intakeData={intakeData || undefined}
-                  userName={userName}
+                  userName={userName || undefined}
                 />
               </div>
             </ResizablePanel>
@@ -692,7 +670,7 @@ export default function ClaimsAgent() {
                 <ClaimsRightSidebar 
                   notes={notes} 
                   intakeData={intakeData || undefined}
-                  userName={userName}
+                  userName={userName || undefined}
                 />
               </SheetContent>
             </Sheet>
@@ -702,99 +680,6 @@ export default function ClaimsAgent() {
 
       {/* Calculator Anchor Target */}
       <div ref={calculatorsRef} />
-
-      {/* Auth Modal */}
-      <Dialog open={showAuthModal} onOpenChange={setShowAuthModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {authMode === 'signup' ? (
-                <>
-                  <UserPlus className="w-5 h-5 text-orange-600" />
-                  Create Your Free Account
-                </>
-              ) : (
-                <>
-                  <LogIn className="w-5 h-5 text-orange-600" />
-                  Welcome Back
-                </>
-              )}
-            </DialogTitle>
-            <DialogDescription>
-              {authMode === 'signup' 
-                ? "Save your progress and access your benefits information anytime."
-                : "Sign in to continue where you left off."
-              }
-            </DialogDescription>
-          </DialogHeader>
-          
-          <form onSubmit={handleAuth} className="space-y-4 py-4">
-            <div>
-              <Label htmlFor="auth-email">Email</Label>
-              <Input
-                id="auth-email"
-                type="email"
-                value={authForm.email}
-                onChange={(e) => setAuthForm(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="your@email.com"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="auth-password">Password</Label>
-              <Input
-                id="auth-password"
-                type="password"
-                value={authForm.password}
-                onChange={(e) => setAuthForm(prev => ({ ...prev, password: e.target.value }))}
-                placeholder="••••••••"
-                required
-                minLength={6}
-              />
-            </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full bg-orange-600 hover:bg-orange-700"
-              disabled={isAuthLoading}
-            >
-              {isAuthLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : authMode === 'signup' ? (
-                "Create Account"
-              ) : (
-                "Sign In"
-              )}
-            </Button>
-          </form>
-          
-          <div className="text-center text-sm text-muted-foreground">
-            {authMode === 'signup' ? (
-              <>
-                Already have an account?{" "}
-                <button 
-                  type="button"
-                  className="text-orange-600 hover:underline"
-                  onClick={() => setAuthMode('login')}
-                >
-                  Sign in
-                </button>
-              </>
-            ) : (
-              <>
-                Don't have an account?{" "}
-                <button 
-                  type="button"
-                  className="text-orange-600 hover:underline"
-                  onClick={() => setAuthMode('signup')}
-                >
-                  Create one
-                </button>
-              </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Handoff Modal */}
       <Dialog open={showHandoffModal} onOpenChange={setShowHandoffModal}>
