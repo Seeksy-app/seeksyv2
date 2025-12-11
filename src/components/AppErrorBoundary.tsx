@@ -18,10 +18,30 @@ export class AppErrorBoundary extends Component<Props, State> {
   }
 
   static getDerivedStateFromError(error: Error): Partial<State> {
+    // Don't treat localStorage quota errors as fatal - they're recoverable
+    if (error.message?.includes('QuotaExceeded') || error.message?.includes('exceeded the quota')) {
+      console.warn('[AppErrorBoundary] LocalStorage quota exceeded - attempting cleanup');
+      try {
+        // Try to free space by clearing expendable items
+        ['seeksy-poster-images-v1', 'seeksy_recents'].forEach(key => {
+          localStorage.removeItem(key);
+        });
+      } catch (e) {
+        // Ignore cleanup errors
+      }
+      // Return null to not set error state - let the app continue
+      return { hasError: false, error: null };
+    }
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // Skip logging for localStorage errors
+    if (error.message?.includes('QuotaExceeded') || error.message?.includes('exceeded the quota')) {
+      console.warn('[AppErrorBoundary] LocalStorage error (non-fatal):', error.message);
+      return;
+    }
+    
     console.error('[AppErrorBoundary] React error caught:', error);
     console.error('[AppErrorBoundary] Component stack:', errorInfo.componentStack);
     
