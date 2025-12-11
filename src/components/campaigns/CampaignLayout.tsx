@@ -25,7 +25,7 @@ const colors = {
   background: "#F7F9FC",
   panel: "#FFFFFF",
   panelBorder: "#E2E8F0",
-  primary: "#003A9E",
+  primary: "#0A1628",
   secondary: "#1A73E8",
   accent: "#FFD764",
   textDark: "#1A1A1A",
