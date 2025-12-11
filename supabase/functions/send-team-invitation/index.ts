@@ -109,10 +109,12 @@ const generateTeamInviteHTML = (inviterName: string, inviteeName: string, role: 
 `;
 
 serve(async (req) => {
-  console.log("📨 send-team-invitation function called");
+  console.log("📨 send-team-invitation function called at", new Date().toISOString());
+  console.log("📨 Method:", req.method);
   
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    console.log("📨 Handling OPTIONS preflight");
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
