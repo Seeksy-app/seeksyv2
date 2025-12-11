@@ -3,12 +3,11 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Package, UserCheck, Phone, Plus, ArrowRight, CheckCircle2, XCircle, PhoneCall } from "lucide-react";
+import { Package, UserCheck, Phone, Plus, ArrowRight, CheckCircle2, XCircle, PhoneCall, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TruckingPageWrapper, TruckingContentCard, TruckingEmptyState, TruckingStatCardLight } from "@/components/trucking/TruckingPageWrapper";
-import { format } from "date-fns";
-
+import { format, formatDistanceToNow } from "date-fns";
 interface DashboardStats {
   openLoads: number;
   leadsToday: number;
@@ -179,25 +178,25 @@ export default function TruckingDashboardPage() {
           icon={<Phone className="h-6 w-6 text-slate-600" />}
         />
         <TruckingStatCardLight 
-          label="Confirmed Leads" 
+          label="Confirmed Loads" 
           value={stats.confirmedLeads} 
           icon={<CheckCircle2 className="h-6 w-6 text-green-600" />}
         />
       </div>
 
-      {/* Section A: Confirmed Leads (PRIMARY) */}
+      {/* Section A: Confirmed Loads (PRIMARY) */}
       <TruckingContentCard noPadding>
         <div className="flex items-center justify-between p-5 border-b border-slate-200">
           <div>
-            <h3 className="font-semibold text-slate-900">Confirmed Leads</h3>
-            <p className="text-sm text-slate-500">Carriers ready to book loads</p>
+            <h3 className="font-semibold text-slate-900">Confirmed Loads</h3>
+            <p className="text-sm text-slate-500">Loads with confirmed carriers ready to dispatch</p>
           </div>
         </div>
         {confirmedLeads.length === 0 ? (
           <TruckingEmptyState
             icon={<CheckCircle2 className="h-6 w-6 text-slate-400" />}
-            title="No confirmed leads yet"
-            description="When carriers confirm they want to take a load, they'll appear here."
+            title="No confirmed loads yet"
+            description="When you confirm a carrier for a load, it will appear here."
           />
         ) : (
           <div className="overflow-x-auto">
@@ -276,12 +275,12 @@ export default function TruckingDashboardPage() {
         )}
       </TruckingContentCard>
 
-      {/* Section B: Recent Carrier Leads (Unconfirmed) */}
+      {/* Section B: Pending Leads (Confirmed on call, awaiting callback) */}
       <TruckingContentCard noPadding>
         <div className="flex items-center justify-between p-5 border-b border-slate-200">
           <div>
-            <h3 className="font-semibold text-slate-900">Recent Carrier Leads</h3>
-            <p className="text-sm text-slate-500">Unconfirmed inbound interest</p>
+            <h3 className="font-semibold text-slate-900">Pending Leads</h3>
+            <p className="text-sm text-slate-500">Carriers confirmed on call, ready for callback</p>
           </div>
           <Link to="/trucking/leads">
             <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
@@ -293,8 +292,8 @@ export default function TruckingDashboardPage() {
         {recentLeads.length === 0 ? (
           <TruckingEmptyState
             icon={<UserCheck className="h-6 w-6 text-slate-400" />}
-            title="No leads yet"
-            description="Carriers will appear here when they call your AITrucking line about a load."
+            title="No pending leads"
+            description="Carriers who confirm interest on a call will appear here awaiting your callback."
           />
         ) : (
           <div className="overflow-x-auto">
@@ -304,7 +303,9 @@ export default function TruckingDashboardPage() {
                   <TableHead className="text-slate-500 font-medium">Carrier</TableHead>
                   <TableHead className="text-slate-500 font-medium">Load</TableHead>
                   <TableHead className="text-slate-500 font-medium">Rate</TableHead>
+                  <TableHead className="text-slate-500 font-medium">Waiting</TableHead>
                   <TableHead className="text-slate-500 font-medium">Status</TableHead>
+                  <TableHead className="text-slate-500 font-medium text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -323,9 +324,34 @@ export default function TruckingDashboardPage() {
                       ${lead.rate_offered?.toLocaleString() || "—"}
                     </TableCell>
                     <TableCell>
+                      <div className="flex items-center gap-1.5 text-amber-600">
+                        <Clock className="h-3.5 w-3.5" />
+                        <span className="text-sm">{formatDistanceToNow(new Date(lead.created_at), { addSuffix: false })}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
                       <Badge className={getStatusBadge(lead.status)}>
                         {lead.status}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        {lead.phone && (
+                          <Button variant="outline" size="sm" className="h-8 px-2" asChild>
+                            <a href={`tel:${lead.phone}`}>
+                              <PhoneCall className="h-3.5 w-3.5" />
+                            </a>
+                          </Button>
+                        )}
+                        <Button 
+                          size="sm" 
+                          className="bg-green-600 hover:bg-green-700 text-white h-8 px-3"
+                          onClick={() => handleConfirmBooking(lead.id)}
+                        >
+                          <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                          Confirm
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

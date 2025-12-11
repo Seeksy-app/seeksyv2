@@ -23895,6 +23895,7 @@ export type Database = {
         Row: {
           call_direction: string | null
           call_ended_at: string | null
+          call_outcome: string | null
           call_started_at: string | null
           carrier_phone: string | null
           created_at: string | null
@@ -23909,13 +23910,16 @@ export type Database = {
           outcome: string | null
           owner_id: string | null
           recording_url: string | null
+          routed_to_voicemail: boolean | null
           summary: string | null
           total_characters: number | null
           transcript_url: string | null
+          voicemail_transcript: string | null
         }
         Insert: {
           call_direction?: string | null
           call_ended_at?: string | null
+          call_outcome?: string | null
           call_started_at?: string | null
           carrier_phone?: string | null
           created_at?: string | null
@@ -23930,13 +23934,16 @@ export type Database = {
           outcome?: string | null
           owner_id?: string | null
           recording_url?: string | null
+          routed_to_voicemail?: boolean | null
           summary?: string | null
           total_characters?: number | null
           transcript_url?: string | null
+          voicemail_transcript?: string | null
         }
         Update: {
           call_direction?: string | null
           call_ended_at?: string | null
+          call_outcome?: string | null
           call_started_at?: string | null
           carrier_phone?: string | null
           created_at?: string | null
@@ -23951,9 +23958,11 @@ export type Database = {
           outcome?: string | null
           owner_id?: string | null
           recording_url?: string | null
+          routed_to_voicemail?: boolean | null
           summary?: string | null
           total_characters?: number | null
           transcript_url?: string | null
+          voicemail_transcript?: string | null
         }
         Relationships: [
           {
@@ -23975,6 +23984,7 @@ export type Database = {
       trucking_carrier_leads: {
         Row: {
           call_log_id: string | null
+          call_source: string | null
           carrier_id: string | null
           company_name: string | null
           confirmed_at: string | null
@@ -23992,12 +24002,15 @@ export type Database = {
           phone: string | null
           rate_offered: number | null
           rate_requested: number | null
+          requires_callback: boolean | null
           source: string | null
           status: string | null
           truck_type: string | null
+          voicemail_transcript: string | null
         }
         Insert: {
           call_log_id?: string | null
+          call_source?: string | null
           carrier_id?: string | null
           company_name?: string | null
           confirmed_at?: string | null
@@ -24015,12 +24028,15 @@ export type Database = {
           phone?: string | null
           rate_offered?: number | null
           rate_requested?: number | null
+          requires_callback?: boolean | null
           source?: string | null
           status?: string | null
           truck_type?: string | null
+          voicemail_transcript?: string | null
         }
         Update: {
           call_log_id?: string | null
+          call_source?: string | null
           carrier_id?: string | null
           company_name?: string | null
           confirmed_at?: string | null
@@ -24038,9 +24054,11 @@ export type Database = {
           phone?: string | null
           rate_offered?: number | null
           rate_requested?: number | null
+          requires_callback?: boolean | null
           source?: string | null
           status?: string | null
           truck_type?: string | null
+          voicemail_transcript?: string | null
         }
         Relationships: [
           {
@@ -24449,7 +24467,10 @@ export type Database = {
           ai_price_per_million_chars_usd: number | null
           created_at: string | null
           demo_mode_enabled: boolean | null
+          elevenlabs_voice_id: string | null
+          elevenlabs_voice_name: string | null
           id: string
+          max_concurrent_calls: number
           notification_email: string | null
           notification_sms_number: string | null
           owner_id: string
@@ -24461,7 +24482,10 @@ export type Database = {
           ai_price_per_million_chars_usd?: number | null
           created_at?: string | null
           demo_mode_enabled?: boolean | null
+          elevenlabs_voice_id?: string | null
+          elevenlabs_voice_name?: string | null
           id?: string
+          max_concurrent_calls?: number
           notification_email?: string | null
           notification_sms_number?: string | null
           owner_id: string
@@ -24473,7 +24497,10 @@ export type Database = {
           ai_price_per_million_chars_usd?: number | null
           created_at?: string | null
           demo_mode_enabled?: boolean | null
+          elevenlabs_voice_id?: string | null
+          elevenlabs_voice_name?: string | null
           id?: string
+          max_concurrent_calls?: number
           notification_email?: string | null
           notification_sms_number?: string | null
           owner_id?: string
