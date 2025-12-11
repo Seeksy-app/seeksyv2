@@ -234,8 +234,11 @@ serve(async (req) => {
         .single();
       
       if (inviteError) {
-        console.error("Error creating invitation:", inviteError);
+        console.error("❌ Error creating invitation record:", inviteError);
+        throw new Error(`Failed to create invitation record: ${inviteError.message}`);
       }
+      
+      console.log("✅ Invitation record created:", inviteRecord);
       
       // Build signup URL with pre-filled email
       const siteUrl = Deno.env.get("SITE_URL") || "https://seeksy.io";

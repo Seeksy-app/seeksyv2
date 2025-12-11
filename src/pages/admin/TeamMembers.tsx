@@ -129,22 +129,26 @@ export default function TeamMembers() {
   });
 
   // Fetch pending invitations
-  const { data: pendingInvites = [] } = useQuery({
+  const { data: pendingInvites = [], refetch: refetchInvites } = useQuery({
     queryKey: ['admin-pending-invites'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
+      // Fetch ALL invites for the current user (not just pending)
       const { data, error } = await supabase
         .from('team_invitations')
         .select('*')
-        .eq('status', 'pending')
+        .eq('inviter_id', user.id)
         .order('invited_at', { ascending: false });
 
       if (error) throw error;
       return (data || []) as PendingInvite[];
     }
   });
+  
+  // Filter to just pending for the main display
+  const activePendingInvites = pendingInvites.filter(i => i.status === 'pending');
 
   // Invite mutation - calls edge function to send email
   const inviteMutation = useMutation({
@@ -387,16 +391,16 @@ export default function TeamMembers() {
         </CardContent>
       </Card>
 
-      {/* Pending Invitations */}
+      {/* All Invitations */}
       {pendingInvites.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Mail className="h-5 w-5" />
-              Pending Invitations
+              Invitations
             </CardTitle>
             <CardDescription>
-              {pendingInvites.length} pending invitation{pendingInvites.length !== 1 ? 's' : ''}
+              {activePendingInvites.length} pending, {pendingInvites.length} total
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -422,33 +426,49 @@ export default function TeamMembers() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
-                        Pending
-                      </Badge>
+                      {invite.status === 'pending' ? (
+                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300 dark:bg-yellow-900/20 dark:text-yellow-400">
+                          Pending
+                        </Badge>
+                      ) : invite.status === 'accepted' ? (
+                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300 dark:bg-green-900/20 dark:text-green-400">
+                          Accepted
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-300 dark:bg-gray-800 dark:text-gray-400">
+                          {invite.status}
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell>
                       {new Date(invite.invited_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => resendMutation.mutate(invite)}
-                          disabled={resendMutation.isPending}
-                        >
-                          <RefreshCw className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => cancelMutation.mutate(invite.id)}
-                          disabled={cancelMutation.isPending}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <UserX className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      {invite.status === 'pending' ? (
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => resendMutation.mutate(invite)}
+                            disabled={resendMutation.isPending}
+                            title="Resend invitation"
+                          >
+                            <RefreshCw className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => cancelMutation.mutate(invite.id)}
+                            disabled={cancelMutation.isPending}
+                            className="text-destructive hover:text-destructive"
+                            title="Cancel invitation"
+                          >
+                            <UserX className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
