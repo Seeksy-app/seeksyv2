@@ -126,6 +126,7 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
           event_type: "received",
           created_at: msg.received_at,
           snippet: msg.snippet,
+          body_html: msg.body_html,
           is_read: msg.is_read,
           is_starred: msg.is_starred,
           reply_count: 0,
@@ -370,7 +371,7 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
                     email_subject: selectedInboxMessage.email_subject,
                     event_type: "received",
                     created_at: selectedInboxMessage.created_at,
-                    html_content: selectedInboxMessage.snippet,
+                    html_content: selectedInboxMessage.body_html || selectedInboxMessage.snippet,
                     is_inbox: true,
                   }
                 : selectedEmail
