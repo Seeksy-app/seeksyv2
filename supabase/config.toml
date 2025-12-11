@@ -449,3 +449,6 @@ verify_jwt = true
 
 [functions.daily-get-meeting-info]
 verify_jwt = false
+
+[functions.notify-board-invite-accepted]
+verify_jwt = false

@@ -222,10 +222,35 @@ const Auth = () => {
                 onboarding_completed: true,
               }).eq('id', data.user.id);
               
+              // Get the invitation to find the inviter
+              const { data: invitation } = await supabase
+                .from('team_invitations')
+                .select('inviter_id, invitee_name')
+                .eq('invitee_email', email)
+                .eq('status', 'pending')
+                .single();
+              
               // Update any pending invitations to accepted
               await supabase.from('team_invitations').update({
                 status: 'accepted',
+                accepted_at: new Date().toISOString(),
               }).eq('invitee_email', email).eq('status', 'pending');
+              
+              // Notify the inviter if this is a board member
+              if (inviteRole === 'board_member' && invitation?.inviter_id) {
+                try {
+                  await supabase.functions.invoke('notify-board-invite-accepted', {
+                    body: {
+                      inviterUserId: invitation.inviter_id,
+                      inviteeName: invitation.invitee_name || fullName,
+                      inviteeEmail: email,
+                    },
+                  });
+                  console.log('Board invite acceptance notification sent');
+                } catch (notifyError) {
+                  console.error('Failed to send board invite notification:', notifyError);
+                }
+              }
               
               console.log('Invited user setup complete:', inviteRole);
             } catch (inviteError) {
