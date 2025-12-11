@@ -28,6 +28,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useTruckingCostStats } from "@/hooks/useTruckingCostStats";
 
 // Theme colors for dark sidebar
 const theme = {
@@ -70,6 +71,13 @@ export default function TruckingLayout({ children }: TruckingLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const costStats = useTruckingCostStats();
+
+  const formatCost = (cost: number) => {
+    if (cost === 0) return "—";
+    if (cost < 0.01) return "< $0.01";
+    return `$${cost.toFixed(2)}`;
+  };
 
   useEffect(() => {
     const getUser = async () => {
@@ -174,28 +182,40 @@ export default function TruckingLayout({ children }: TruckingLayoutProps) {
           {/* AI Live indicator */}
           {!collapsed && (
             <div 
-              className="flex items-center justify-between px-3 py-2 rounded-xl"
+              className="flex flex-col gap-2 px-3 py-2 rounded-xl"
               style={{ backgroundColor: theme.sidebar.hover }}
             >
-              <div className="flex items-center gap-2 text-xs" style={{ color: theme.text.muted }}>
-                <span className="relative flex h-2 w-2">
-                  <span 
-                    className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
-                    style={{ backgroundColor: `${theme.accent.green}70` }}
-                  />
-                  <span 
-                    className="relative inline-flex h-2 w-2 rounded-full"
-                    style={{ backgroundColor: theme.accent.green }}
-                  />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs" style={{ color: theme.text.muted }}>
+                  <span className="relative flex h-2 w-2">
+                    <span 
+                      className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
+                      style={{ backgroundColor: `${theme.accent.green}70` }}
+                    />
+                    <span 
+                      className="relative inline-flex h-2 w-2 rounded-full"
+                      style={{ backgroundColor: theme.accent.green }}
+                    />
+                  </span>
+                  <span style={{ color: theme.text.secondary }}>AI Calls Live</span>
+                </div>
+                <span 
+                  className="rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide font-medium"
+                  style={{ backgroundColor: theme.sidebar.bg, color: theme.accent.yellow }}
+                >
+                  Jess
                 </span>
-                <span style={{ color: theme.text.secondary }}>AI Calls Live</span>
               </div>
-              <span 
-                className="rounded-full px-2 py-0.5 text-[10px] uppercase tracking-wide font-medium"
-                style={{ backgroundColor: theme.sidebar.bg, color: theme.accent.yellow }}
+              {/* Cost Estimate */}
+              <div 
+                className="flex items-center justify-between pt-2 mt-1"
+                style={{ borderTop: `1px solid ${theme.sidebar.border}` }}
               >
-                Jess
-              </span>
+                <span className="text-[11px]" style={{ color: theme.text.muted }}>Est. Cost/Mo</span>
+                <span className="text-xs font-medium" style={{ color: theme.accent.yellow }}>
+                  {costStats.loading ? "..." : formatCost(costStats.totalCostThisMonth)}
+                </span>
+              </div>
             </div>
           )}
           

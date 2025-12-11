@@ -205,121 +205,63 @@ export default function TruckingDashboardPage() {
         </div>
       </TooltipProvider>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Hot Loads */}
-        <TruckingContentCard noPadding>
-          <div className="flex items-center justify-between p-5 border-b border-slate-200">
-            <div>
-              <h3 className="font-semibold text-slate-900">Hot Loads</h3>
-              <p className="text-sm text-slate-500">Open loads ready for carriers</p>
-            </div>
-            <Link to="/trucking/loads">
-              <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
-                View all
-                <ArrowRight className="h-4 w-4 ml-1" />
-              </Button>
-            </Link>
+      {/* Recent Leads - Full Width */}
+      <TruckingContentCard noPadding>
+        <div className="flex items-center justify-between p-5 border-b border-slate-200">
+          <div>
+            <h3 className="font-semibold text-slate-900">Recent Leads</h3>
+            <p className="text-sm text-slate-500">Carriers interested in your loads</p>
           </div>
-          {hotLoads.length === 0 ? (
-            <TruckingEmptyState
-              icon={<Package className="h-6 w-6 text-slate-400" />}
-              title="No open loads yet"
-              description="Add your first load so the AI can start taking calls for you."
-              action={
-                <Link to="/trucking/loads">
-                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700">Add Load</Button>
-                </Link>
-              }
-            />
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-b border-slate-100">
-                    <TableHead className="text-slate-500 font-medium">Load #</TableHead>
-                    <TableHead className="text-slate-500 font-medium">Lane</TableHead>
-                    <TableHead className="text-slate-500 font-medium">Pickup</TableHead>
-                    <TableHead className="text-slate-500 font-medium text-right">Rate</TableHead>
+          <Link to="/trucking/leads">
+            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+              View all
+              <ArrowRight className="h-4 w-4 ml-1" />
+            </Button>
+          </Link>
+        </div>
+        {recentLeads.length === 0 ? (
+          <TruckingEmptyState
+            icon={<UserCheck className="h-6 w-6 text-slate-400" />}
+            title="No leads yet"
+            description="Carriers will appear here when they call your AITrucking line about a load."
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b border-slate-100">
+                  <TableHead className="text-slate-500 font-medium">Carrier</TableHead>
+                  <TableHead className="text-slate-500 font-medium">Load</TableHead>
+                  <TableHead className="text-slate-500 font-medium">Rate</TableHead>
+                  <TableHead className="text-slate-500 font-medium">Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recentLeads.map((lead) => (
+                  <TableRow key={lead.id} className="border-b border-slate-50 hover:bg-slate-50">
+                    <TableCell>
+                      <div className="font-medium text-slate-900">
+                        {lead.company_name || lead.contact_name}
+                      </div>
+                      <div className="text-xs text-slate-500">{lead.phone}</div>
+                    </TableCell>
+                    <TableCell className="text-slate-600">
+                      {lead.trucking_loads?.load_number || "—"}
+                    </TableCell>
+                    <TableCell className="text-slate-600">
+                      ${lead.rate_offered?.toLocaleString() || "—"}
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getStatusBadge(lead.status)}>
+                        {lead.status}
+                      </Badge>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {hotLoads.map((load) => (
-                    <TableRow key={load.id} className="border-b border-slate-50 hover:bg-slate-50">
-                      <TableCell className="font-medium text-slate-900">{load.load_number}</TableCell>
-                      <TableCell className="text-slate-600">
-                        {load.origin_city}, {load.origin_state} → {load.destination_city}, {load.destination_state}
-                      </TableCell>
-                      <TableCell className="text-slate-600">{load.pickup_date || "—"}</TableCell>
-                      <TableCell className="text-right font-medium text-slate-900">
-                        ${load.target_rate?.toLocaleString() || "—"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </TruckingContentCard>
-
-        {/* Recent Leads */}
-        <TruckingContentCard noPadding>
-          <div className="flex items-center justify-between p-5 border-b border-slate-200">
-            <div>
-              <h3 className="font-semibold text-slate-900">Recent Leads</h3>
-              <p className="text-sm text-slate-500">Carriers interested in your loads</p>
-            </div>
-            <Link to="/trucking/leads">
-              <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
-                View all
-                <ArrowRight className="h-4 w-4 ml-1" />
-              </Button>
-            </Link>
+                ))}
+              </TableBody>
+            </Table>
           </div>
-          {recentLeads.length === 0 ? (
-            <TruckingEmptyState
-              icon={<UserCheck className="h-6 w-6 text-slate-400" />}
-              title="No leads yet"
-              description="Carriers will appear here when they call your AITrucking line about a load."
-            />
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-b border-slate-100">
-                    <TableHead className="text-slate-500 font-medium">Carrier</TableHead>
-                    <TableHead className="text-slate-500 font-medium">Load</TableHead>
-                    <TableHead className="text-slate-500 font-medium">Rate</TableHead>
-                    <TableHead className="text-slate-500 font-medium">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentLeads.map((lead) => (
-                    <TableRow key={lead.id} className="border-b border-slate-50 hover:bg-slate-50">
-                      <TableCell>
-                        <div className="font-medium text-slate-900">
-                          {lead.company_name || lead.contact_name}
-                        </div>
-                        <div className="text-xs text-slate-500">{lead.phone}</div>
-                      </TableCell>
-                      <TableCell className="text-slate-600">
-                        {lead.trucking_loads?.load_number || "—"}
-                      </TableCell>
-                      <TableCell className="text-slate-600">
-                        ${lead.rate_offered?.toLocaleString() || "—"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getStatusBadge(lead.status)}>
-                          {lead.status}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </TruckingContentCard>
-      </div>
+        )}</TruckingContentCard>
     </TruckingPageWrapper>
   );
 }
