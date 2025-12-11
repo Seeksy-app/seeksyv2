@@ -4,18 +4,20 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
-import { MessageSquare, Send, Loader2, ExternalLink, AlertCircle, ChevronRight, Eye, ClipboardList, Shield, Calculator } from "lucide-react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { 
+  MessageSquare, Send, Loader2, ExternalLink, AlertCircle, ChevronRight, 
+  ClipboardList, Shield, Calculator, Sparkles, DollarSign, FileText, TrendingUp,
+  Clock
+} from "lucide-react";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ClaimsIntakeFlow, IntakeData } from "@/components/veterans/ClaimsIntakeFlow";
-import { ClaimsLeftSidebar } from "@/components/veterans/ClaimsLeftSidebar";
 import { ClaimsRightSidebar, ClaimsNote } from "@/components/veterans/ClaimsRightSidebar";
 import { ClaimsChatMessage } from "@/components/veterans/ClaimsChatMessage";
-import { ClaimsSavePrompt } from "@/components/veterans/ClaimsSavePrompt";
 import { QUICK_REPLY_TEMPLATES } from "@/components/veterans/ClaimsQuickReplies";
-import { useVeteranConversation } from "@/hooks/useVeteranConversation";
+import { Helmet } from "react-helmet";
 
 interface Message {
   role: "user" | "assistant";
@@ -23,212 +25,228 @@ interface Message {
   quickReplies?: string[];
 }
 
-const INTRO_SEQUENCE: Message[] = [
-  {
-    role: "assistant",
-    content: "Hi there! I'm your VA claims guide. I'm here to help you understand your benefits and options — all in plain, simple terms. I'll ask a few questions, take notes along the way, and when you're ready, I can connect you with a professional who can file for you.\n\nLet's start with your name. What should I call you?",
-  }
+interface IntakeData {
+  status: string;
+  branch: string;
+  claimStatus: string;
+  primaryGoals: string[];
+}
+
+interface VeteranProfile {
+  service_status: string | null;
+  branch_of_service: string | null;
+  has_intent_to_file: boolean | null;
+  last_claim_stage: string | null;
+}
+
+const WELCOME_MESSAGE: Message = {
+  role: "assistant",
+  content: "Hi there! I'm your VA benefits guide. I can help you understand your benefits, prepare claims, run calculations, and answer questions about VA disability compensation.\n\nHow can I help you today?",
+  quickReplies: [
+    "Help me file a VA claim",
+    "Calculate my VA compensation",
+    "What is Intent to File?",
+    "Estimate my TSP growth"
+  ]
+};
+
+const SUGGESTION_PROMPTS = [
+  { title: "File a Claim", description: "Get step-by-step guidance", icon: FileText },
+  { title: "Calculate Benefits", description: "Estimate your compensation", icon: DollarSign },
+  { title: "Intent to File", description: "Preserve your effective date", icon: Clock },
+  { title: "TSP Calculator", description: "Project retirement savings", icon: TrendingUp },
 ];
 
-const createSystemPrompt = (intakeData: IntakeData, notes: ClaimsNote[], userName?: string) => {
+const createSystemPrompt = (notes: ClaimsNote[], userName?: string, profile?: VeteranProfile | null) => {
   const notesContext = notes.length > 0 
-    ? `\n\nCurrent collected information:\n${notes.map(n => `- ${n.category}: ${n.value}`).join('\n')}`
+    ? `\n\nCollected information:\n${notes.map(n => `- ${n.category}: ${n.value}`).join('\n')}`
     : '';
   
-  const goalsText = intakeData.primaryGoals.join(", ");
-  const nameGreeting = userName ? `The user's name is ${userName}. Use their name occasionally to personalize.` : '';
+  const profileContext = profile ? `
+Profile:
+- Status: ${profile.service_status || 'Unknown'}
+- Branch: ${profile.branch_of_service || 'Unknown'}
+- Intent to File: ${profile.has_intent_to_file ? 'Yes' : 'No'}` : '';
+  
+  const nameGreeting = userName ? `The user's name is ${userName}. Use their name occasionally.` : '';
     
   return `You are a VA Claims Agent helping veterans understand and file their disability claims. You speak at an 8th-grade reading level. You are calm, clear, encouraging, and non-technical.
 
 ${nameGreeting}
-
-The user has completed intake with the following information:
-- Status: ${intakeData.status}
-- Branch of Service: ${intakeData.branch}
-- Claim Status: ${intakeData.claimStatus}
-- Primary Goals: ${goalsText}
+${profileContext}
 ${notesContext}
+
+CAPABILITIES:
+1. Help veterans understand VA disability benefits
+2. Guide them through the Intent to File process
+3. Collect information about service-connected conditions
+4. Explain claims process in simple terms
+5. CALCULATOR REQUESTS: When users ask to calculate things like TSP growth, VA compensation, military buy-back, sick leave credit, or any benefit calculation, you should explain what the calculation does and offer to help them understand the inputs. Then suggest they use the calculator in the sidebar.
 
 FORMATTING RULES:
 1. Use <strong>text</strong> for emphasis, NEVER markdown **text**
 2. Keep messages to 4 sentences or fewer when possible
 3. After asking a question, add "For example:" with 1-3 very short sample answers
 4. Split long explanations into numbered steps
-5. Be encouraging and supportive — many veterans find this process overwhelming
-6. ALWAYS end your response with 2-4 suggested follow-up prompts for the user
+5. Be encouraging and supportive
 
 CRITICAL: At the END of EVERY response, include suggested prompts in this exact format:
 <prompts>["First suggestion", "Second suggestion", "Third suggestion"]</prompts>
 
-These should be short, helpful next-step suggestions like:
-- "Tell me about Intent to File"
-- "What conditions can I claim?"
-- "How do I gather evidence?"
-- "I have questions about my rating"
+These should be short, helpful next-step suggestions.
 
-Your goals:
-1. Help veterans understand what benefits they may be entitled to
-2. Guide them through the Intent to File process (explain that it preserves their effective date for up to 1 year)
-3. Collect information about their service-connected conditions and symptoms
-4. Explain the claims process in simple terms
-5. When ready, offer to connect them with a professional claims company
-
-IMPORTANT: After EVERY user response, include a JSON block at the END of your message in this exact format to extract key information:
+IMPORTANT: After user responses about their conditions/situation, include a JSON block to extract key information:
 <notes>
-{"category": "Category Name", "value": "Brief bullet phrase - no full sentences"}
+{"category": "Category Name", "value": "Brief bullet phrase"}
 </notes>
 
-Categories can include:
-- Years of Service
-- Separation Year
-- Claimed Conditions
-- Current Symptoms
-- Available Evidence
-- Existing VA Rating
-- Medical History
-- Service Connection
-- Important Dates
+Categories: Years of Service, Separation Year, Claimed Conditions, Current Symptoms, Available Evidence, Existing VA Rating, Medical History, Service Connection, Important Dates
 
-Keep note values SHORT — brief bullet phrases, not paragraphs.
-
-At the end of meaningful conversations, offer to generate a claims summary and connect them with a filing partner.`;
+At the end of meaningful conversations, offer to connect them with a filing partner.`;
 };
-
-const SAMPLE_INTAKE: IntakeData = {
-  status: "veteran",
-  branch: "army",
-  claimStatus: "not_filed",
-  primaryGoals: ["prepare_claim", "file_intent"],
-};
-
-const SAMPLE_NOTES: ClaimsNote[] = [
-  { category: "Years of Service", value: "8 years (2012-2020)" },
-  { category: "Separation Year", value: "2020" },
-  { category: "Claimed Conditions", value: "Tinnitus, lower back pain, knee injury" },
-  { category: "Current Symptoms", value: "Constant ringing, chronic back pain, difficulty walking" },
-  { category: "Available Evidence", value: "Service medical records, private doctor diagnosis" },
-];
-
-const SAMPLE_MESSAGES: Message[] = [
-  {
-    role: "assistant",
-    content: "Thanks for sharing, Mike! I can see you're interested in filing your first VA claim. Let's talk about the symptoms or conditions you'd like to claim.\n\nWhat health issues have you experienced that you believe are connected to your military service?\n\nFor example: back pain, hearing loss, knee problems, headaches, or PTSD.",
-    quickReplies: ["Back pain", "Hearing loss / Tinnitus", "PTSD / Mental health", "Joint pain", "Other condition"]
-  },
-  {
-    role: "user",
-    content: "I have constant ringing in my ears from being around artillery. My back hurts all the time from carrying heavy gear, and my right knee is messed up from a training injury."
-  },
-  {
-    role: "assistant",
-    content: "Those are very common service-connected conditions:\n\n<strong>1. Tinnitus</strong> — Ringing in the ears from noise exposure is one of the most commonly claimed conditions.\n\n<strong>2. Lower back pain</strong> — Often caused by carrying heavy equipment and body armor.\n\n<strong>3. Knee injury</strong> — Training injuries are well-documented service connections.\n\nDo you have any medical records or documentation for these conditions?\n\nFor example: service treatment records, VA medical records, or private doctor visits.",
-    quickReplies: ["I have medical records", "I have some documentation", "I need help gathering evidence", "Not sure what I have"]
-  },
-];
 
 export default function ClaimsAgent() {
   const [searchParams] = useSearchParams();
   const conversationIdParam = searchParams.get('conversation');
-  const isNew = searchParams.get('new') === 'true';
+  const isNewParam = searchParams.get('new') === 'true';
+  const navigate = useNavigate();
 
   const [user, setUser] = useState<any>(null);
-  const [currentStep, setCurrentStep] = useState(1);
-  const [showingSample, setShowingSample] = useState(false);
+  const [profile, setProfile] = useState<VeteranProfile | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [notes, setNotes] = useState<ClaimsNote[]>([]);
+  const [userName, setUserName] = useState<string | undefined>();
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingConversation, setIsLoadingConversation] = useState(true);
   const [showHandoffModal, setShowHandoffModal] = useState(false);
-  const [showSavePrompt, setShowSavePrompt] = useState(false);
-  const [messageCount, setMessageCount] = useState(0);
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
   const [leadForm, setLeadForm] = useState({ name: "", email: "", phone: "" });
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const calculatorsRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // Check auth state
+  // Check auth state and load profile
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const loadUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
-    });
+
+      if (session?.user) {
+        const { data } = await supabase
+          .from('veteran_profiles')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .single();
+        if (data) setProfile(data);
+
+        // Get user's name from metadata
+        const fullName = session.user.user_metadata?.full_name;
+        if (fullName) {
+          setUserName(fullName.split(' ')[0]);
+        }
+      }
+    };
     
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    loadUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
       setUser(session?.user ?? null);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  // Use the conversation hook
-  const {
-    conversationId,
-    messages,
-    setMessages,
-    notes,
-    setNotes,
-    intakeData,
-    setIntakeData,
-    userName,
-    setUserName,
-    profile,
-    isLoading: isLoadingConversation,
-    intakeComplete,
-    setIntakeComplete,
-    createConversation,
-    saveMessage,
-    updateContext,
-  } = useVeteranConversation(user, conversationIdParam, isNew);
+  // Load conversation or show welcome
+  useEffect(() => {
+    const loadConversation = async () => {
+      setIsLoadingConversation(true);
 
-  const scrollToBottom = useCallback(() => {
+      // New conversation requested - show welcome
+      if (isNewParam || !conversationIdParam) {
+        setMessages([WELCOME_MESSAGE]);
+        setNotes([]);
+        setConversationId(null);
+        setIsLoadingConversation(false);
+        return;
+      }
+
+      // Load specific conversation
+      if (conversationIdParam && user) {
+        try {
+          const { data: convo } = await supabase
+            .from('veteran_conversations')
+            .select('*')
+            .eq('id', conversationIdParam)
+            .single();
+
+          if (convo) {
+            setConversationId(conversationIdParam);
+
+            // Load context
+            if (convo.context_json && typeof convo.context_json === 'object') {
+              const context = convo.context_json as Record<string, unknown>;
+              if (context.userName) setUserName(context.userName as string);
+              if (context.notes && Array.isArray(context.notes)) {
+                setNotes(context.notes as ClaimsNote[]);
+              }
+            }
+
+            // Load messages
+            const { data: chatMessages } = await supabase
+              .from('veteran_chat_messages')
+              .select('*')
+              .eq('conversation_id', conversationIdParam)
+              .order('created_at', { ascending: true });
+
+            if (chatMessages && chatMessages.length > 0) {
+              const loadedMessages: Message[] = chatMessages.map((m) => ({
+                role: m.role as "user" | "assistant",
+                content: m.content,
+                quickReplies: Array.isArray(m.quick_replies) ? m.quick_replies as string[] : undefined,
+              }));
+              setMessages(loadedMessages);
+
+              // Extract notes from messages
+              const allNotes: ClaimsNote[] = [];
+              chatMessages.forEach(m => {
+                if (m.notes && Array.isArray(m.notes)) {
+                  (m.notes as unknown as ClaimsNote[]).forEach(n => {
+                    if (n && typeof n === 'object' && 'category' in n && 'value' in n) {
+                      if (!allNotes.some(existing => existing.category === n.category && existing.value === n.value)) {
+                        allNotes.push({ category: String(n.category), value: String(n.value) });
+                      }
+                    }
+                  });
+                }
+              });
+              if (allNotes.length > 0) setNotes(allNotes);
+            } else {
+              // No messages yet - show welcome
+              setMessages([WELCOME_MESSAGE]);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading conversation:', error);
+          setMessages([WELCOME_MESSAGE]);
+        }
+      } else {
+        setMessages([WELCOME_MESSAGE]);
+      }
+
+      setIsLoadingConversation(false);
+    };
+
+    loadConversation();
+  }, [conversationIdParam, isNewParam, user]);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, []);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, isLoading, scrollToBottom]);
-
-  // Show save prompt after 8 messages for non-logged-in users
-  useEffect(() => {
-    if (messageCount === 8 && !showSavePrompt && !user) {
-      setShowSavePrompt(true);
-    }
-  }, [messageCount, showSavePrompt, user]);
-
-  const handleIntakeComplete = async (data: IntakeData) => {
-    setIntakeData(data);
-    setIntakeComplete(true);
-    setCurrentStep(2);
-    setShowingSample(false);
-    setMessages(INTRO_SEQUENCE);
-
-    // If logged in, create conversation and save to DB
-    if (user) {
-      await createConversation(data);
-      // Save the intro message
-      await saveMessage(INTRO_SEQUENCE[0]);
-    }
-  };
-
-  const handleShowSample = () => {
-    setShowingSample(true);
-    setIntakeComplete(true);
-    setIntakeData(SAMPLE_INTAKE);
-    setMessages(SAMPLE_MESSAGES);
-    setNotes(SAMPLE_NOTES);
-    setUserName("Mike");
-    setCurrentStep(3);
-  };
-
-  const handleExitSample = () => {
-    setShowingSample(false);
-    setIntakeComplete(false);
-    setIntakeData(null);
-    setMessages([]);
-    setNotes([]);
-    setUserName(undefined);
-    setCurrentStep(1);
-  };
+  }, [messages, isLoading]);
 
   const extractNotes = (content: string): { cleanContent: string; note: ClaimsNote | null } => {
     const notesMatch = content.match(/<notes>\s*({.*?})\s*<\/notes>/s);
@@ -236,10 +254,7 @@ export default function ClaimsAgent() {
       try {
         const noteData = JSON.parse(notesMatch[1]);
         const cleanContent = content.replace(/<notes>[\s\S]*?<\/notes>/g, '').trim();
-        return { 
-          cleanContent, 
-          note: { category: noteData.category, value: noteData.value } 
-        };
+        return { cleanContent, note: { category: noteData.category, value: noteData.value } };
       } catch {
         return { cleanContent: content, note: null };
       }
@@ -261,68 +276,86 @@ export default function ClaimsAgent() {
     return { cleanContent: content, prompts: [] };
   };
 
-  const cleanMessageContent = (content: string): string => {
-    let cleaned = content.replace(/\{"category":\s*"[^"]*",\s*"value":\s*"[^"]*"\}/g, '');
-    cleaned = cleaned.replace(/\s+/g, ' ').trim();
-    cleaned = cleaned.replace(/\s*[,;]\s*$/, '');
-    return cleaned;
+  const createOrGetConversation = async (): Promise<string | null> => {
+    if (!user) return null;
+    if (conversationId) return conversationId;
+
+    try {
+      const { data, error } = await supabase
+        .from('veteran_conversations')
+        .insert({
+          user_id: user.id,
+          title: userName ? `Chat with ${userName}` : 'Benefits Discussion',
+          context_json: { userName, notes: [] },
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setConversationId(data.id);
+      return data.id;
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      return null;
+    }
   };
 
-  const getQuickRepliesForContext = (messageContent: string): string[] | undefined => {
-    const lowerContent = messageContent.toLowerCase();
-    
-    if (lowerContent.includes("evidence") || lowerContent.includes("documentation") || lowerContent.includes("records")) {
-      return QUICK_REPLY_TEMPLATES.evidence;
+  const saveMessage = async (message: Message, convoId: string, currentNotes?: ClaimsNote[]) => {
+    if (!user) return;
+
+    try {
+      await supabase.from('veteran_chat_messages').insert({
+        conversation_id: convoId,
+        role: message.role,
+        content: message.content,
+        quick_replies: message.quickReplies || null,
+        notes: currentNotes ? currentNotes.map(n => ({ category: n.category, value: n.value })) : null,
+      });
+
+      const contextData = { userName: userName || null, notes: (currentNotes || notes).map(n => ({ category: n.category, value: n.value })) };
+
+      await supabase
+        .from('veteran_conversations')
+        .update({
+          last_message_at: new Date().toISOString(),
+          context_json: contextData,
+          title: userName ? `Chat with ${userName}` : 'Benefits Discussion',
+        })
+        .eq('id', convoId);
+    } catch (error) {
+      console.error('Error saving message:', error);
     }
-    if (lowerContent.includes("condition") || lowerContent.includes("symptom") || lowerContent.includes("health issue")) {
-      return QUICK_REPLY_TEMPLATES.symptoms;
-    }
-    if (lowerContent.includes("would you like") || lowerContent.includes("do you want")) {
-      return QUICK_REPLY_TEMPLATES.yesNo;
-    }
-    if (lowerContent.includes("step") || lowerContent.includes("next")) {
-      return QUICK_REPLY_TEMPLATES.nextSteps;
-    }
-    return QUICK_REPLY_TEMPLATES.navigation;
   };
 
   const sendMessage = async (messageText?: string) => {
     const userMessage = (messageText || input).trim();
-    if (!userMessage || isLoading || !intakeData) return;
+    if (!userMessage || isLoading) return;
 
     setInput("");
     setError(null);
     
     const newUserMessage: Message = { role: "user", content: userMessage };
     setMessages(prev => [...prev, newUserMessage]);
-    setMessageCount(prev => prev + 1);
     setIsLoading(true);
 
-    // Capture name from first response
-    if (!userName && messages.length === 1) {
-      const nameParts = userMessage.split(" ");
-      if (nameParts.length <= 3 && nameParts[0].length > 1) {
-        const capturedName = nameParts[0];
-        setUserName(capturedName);
-        if (user) {
-          updateContext({ userName: capturedName });
-        }
-      }
+    // Create conversation if needed
+    let activeConvoId = conversationId;
+    if (user && !activeConvoId) {
+      activeConvoId = await createOrGetConversation();
     }
 
-    // Save user message to DB
-    if (user && conversationId) {
-      await saveMessage(newUserMessage);
+    // Save user message
+    if (activeConvoId) {
+      await saveMessage(newUserMessage, activeConvoId);
     }
 
     try {
       const response = await supabase.functions.invoke("veteran-claims-chat", {
         body: {
-          messages: [
-            ...messages.map(m => ({ role: m.role, content: m.content })),
-            { role: "user", content: userMessage }
-          ],
-          systemPrompt: createSystemPrompt(intakeData, notes, userName || undefined)
+          messages: messages.filter(m => m.role !== 'assistant' || !m.quickReplies?.length || messages.indexOf(m) !== 0)
+            .concat([newUserMessage])
+            .map(m => ({ role: m.role, content: m.content })),
+          systemPrompt: createSystemPrompt(notes, userName, profile)
         }
       });
 
@@ -343,7 +376,6 @@ export default function ClaimsAgent() {
       
       const { cleanContent: contentAfterNotes, note } = extractNotes(rawMessage);
       const { cleanContent: contentAfterPrompts, prompts } = extractPrompts(contentAfterNotes);
-      const finalContent = cleanMessageContent(contentAfterPrompts);
       
       let updatedNotes = notes;
       if (note) {
@@ -354,17 +386,14 @@ export default function ClaimsAgent() {
         }
       }
       
-      const quickReplies = prompts.length > 0 ? prompts : getQuickRepliesForContext(finalContent);
-      const assistantMessage: Message = { role: "assistant", content: finalContent, quickReplies };
+      const defaultPrompts = QUICK_REPLY_TEMPLATES.navigation;
+      const quickReplies = prompts.length > 0 ? prompts : defaultPrompts;
+      const assistantMessage: Message = { role: "assistant", content: contentAfterPrompts, quickReplies };
       setMessages(prev => [...prev, assistantMessage]);
       
-      // Save assistant message to DB with notes
-      if (user && conversationId) {
-        await saveMessage(assistantMessage, updatedNotes);
-      }
-      
-      if (notes.length >= 2 && currentStep === 2) {
-        setCurrentStep(3);
+      // Save assistant message
+      if (activeConvoId) {
+        await saveMessage(assistantMessage, activeConvoId, updatedNotes);
       }
     } catch (error) {
       console.error("Chat error:", error);
@@ -374,40 +403,8 @@ export default function ClaimsAgent() {
     }
   };
 
-  const handleQuickReply = (value: string) => {
-    sendMessage(value);
-  };
-
-  const handleSaveConversation = async (email: string, name?: string) => {
-    try {
-      const allNotes = [
-        ...(intakeData ? [
-          `Status: ${intakeData.status}`,
-          `Branch: ${intakeData.branch}`,
-          `Claim Status: ${intakeData.claimStatus}`,
-          `Goals: ${intakeData.primaryGoals.join(", ")}`,
-        ] : []),
-        ...notes.map(n => `${n.category}: ${n.value}`),
-      ].join("\n");
-
-      const { error } = await supabase
-        .from("veteran_leads")
-        .insert({
-          name: name || userName || "Anonymous",
-          email,
-          source: "claims-agent-save",
-          notes: allNotes,
-          status: "saved"
-        });
-
-      if (error) throw error;
-      
-      toast.success("Your progress has been saved! We'll send you a link to continue.");
-      setShowSavePrompt(false);
-    } catch (error) {
-      console.error("Save error:", error);
-      toast.error("Failed to save. Please try again.");
-    }
+  const handleSuggestionClick = (suggestion: string) => {
+    sendMessage(suggestion);
   };
 
   const handleSubmitLead = async () => {
@@ -419,15 +416,7 @@ export default function ClaimsAgent() {
     setIsSubmittingLead(true);
 
     try {
-      const allNotes = [
-        ...(intakeData ? [
-          `Status: ${intakeData.status}`,
-          `Branch: ${intakeData.branch}`,
-          `Claim Status: ${intakeData.claimStatus}`,
-          `Goals: ${intakeData.primaryGoals.join(", ")}`,
-        ] : []),
-        ...notes.map(n => `${n.category}: ${n.value}`),
-      ].join("\n");
+      const allNotes = notes.map(n => `${n.category}: ${n.value}`).join("\n");
 
       const { error } = await supabase
         .from("veteran_leads")
@@ -435,7 +424,7 @@ export default function ClaimsAgent() {
           name: leadForm.name,
           email: leadForm.email,
           phone: leadForm.phone || null,
-          source: "claims-agent-mvp",
+          source: "claims-agent",
           notes: allNotes,
           status: "new"
         });
@@ -446,22 +435,19 @@ export default function ClaimsAgent() {
       setShowHandoffModal(false);
       setMessages(prev => [...prev, {
         role: "assistant",
-        content: "Great! I've connected you with our partner claims filing company. They'll reach out within 24 hours to help you file your claim. In the meantime, feel free to ask me any other questions about your benefits.",
-        quickReplies: QUICK_REPLY_TEMPLATES.navigation
+        content: "Great! I've connected you with our partner claims filing company. They'll reach out within 24 hours to help you file your claim. In the meantime, feel free to ask me any other questions.",
+        quickReplies: ["What happens next?", "Tell me about evidence", "Calculate my compensation"]
       }]);
     } catch (error) {
       console.error("Lead submission error:", error);
-      toast.error("Failed to submit. Please try again or contact us directly.");
+      toast.error("Failed to submit. Please try again.");
     } finally {
       setIsSubmittingLead(false);
     }
   };
 
-  const scrollToCalculators = () => {
-    calculatorsRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const isEmptyChat = messages.length <= 1 && messages[0]?.role === 'assistant';
 
-  // Show loading while fetching conversation
   if (isLoadingConversation) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -471,215 +457,177 @@ export default function ClaimsAgent() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-background overflow-hidden">
+    <div className="h-full flex flex-col bg-background">
+      <Helmet>
+        <title>AI Claims Agent | Veterans Benefits Hub</title>
+      </Helmet>
+
       {/* Header */}
-      <div className="border-b bg-card flex-shrink-0">
-        <div className="px-6 py-3">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-            <Link to="/veterans" className="hover:text-foreground">Veterans Home</Link>
-            <ChevronRight className="w-3 h-3" />
-            <span className="text-foreground">Claims Agent</span>
+      <header className="border-b bg-card flex-shrink-0 px-4 py-3">
+        <div className="flex items-center justify-between max-w-4xl mx-auto">
+          <div className="flex items-center gap-3">
+            <Link to="/veterans" className="text-sm text-muted-foreground hover:text-foreground">
+              ← Veterans Home
+            </Link>
           </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-2 rounded-full bg-orange-500/10">
-                <MessageSquare className="w-5 h-5 text-orange-500" />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold">AI Claims Agent</h1>
-                <p className="text-xs text-muted-foreground">Your guide to VA disability benefits</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={scrollToCalculators}
-                className="hidden md:flex"
-              >
-                <Calculator className="w-4 h-4 mr-2" />
-                Calculators
-              </Button>
-              
-              {intakeComplete && (
-                <div className="hidden lg:flex items-center gap-1 text-xs">
-                  <span className={`px-2 py-1 rounded ${currentStep >= 1 ? 'bg-green-500/10 text-green-600' : 'bg-muted text-muted-foreground'}`}>
-                    1. Intake
-                  </span>
-                  <ChevronRight className="w-3 h-3 text-muted-foreground" />
-                  <span className={`px-2 py-1 rounded ${currentStep >= 2 ? 'bg-orange-500/10 text-orange-600' : 'bg-muted text-muted-foreground'}`}>
-                    2. Conditions
-                  </span>
-                  <ChevronRight className="w-3 h-3 text-muted-foreground" />
-                  <span className={`px-2 py-1 rounded ${currentStep >= 3 ? 'bg-orange-500/10 text-orange-600' : 'bg-muted text-muted-foreground'}`}>
-                    3. Filing Options
-                  </span>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            asChild
+          >
+            <Link to="/veterans#calculators-section">
+              <Calculator className="w-4 h-4 mr-2" />
+              Calculators
+            </Link>
+          </Button>
+        </div>
+      </header>
+
+      {/* Main Chat Area */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Chat Column */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Messages Area */}
+          <ScrollArea className="flex-1" ref={scrollAreaRef}>
+            <div className="max-w-3xl mx-auto px-4 py-6">
+              {/* Welcome Header for empty chat */}
+              {isEmptyChat && (
+                <div className="text-center mb-8 pt-8">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-500/10 mb-4">
+                    <MessageSquare className="w-8 h-8 text-orange-500" />
+                  </div>
+                  <h1 className="text-2xl font-bold mb-2">
+                    {userName ? `Hi ${userName}! How can I help?` : 'How can I help you today?'}
+                  </h1>
+                  <p className="text-muted-foreground max-w-md mx-auto">
+                    I'm your VA benefits guide. Ask me about claims, compensation, or use a calculator.
+                  </p>
                 </div>
               )}
+
+              {/* Suggestion Cards for empty chat */}
+              {isEmptyChat && (
+                <div className="grid grid-cols-2 gap-3 mb-8 max-w-lg mx-auto">
+                  {SUGGESTION_PROMPTS.map((prompt) => (
+                    <Card 
+                      key={prompt.title}
+                      className="cursor-pointer hover:border-primary/50 hover:shadow-sm transition-all"
+                      onClick={() => handleSuggestionClick(prompt.title === "File a Claim" ? "Help me file a VA claim" : 
+                        prompt.title === "Calculate Benefits" ? "Calculate my VA compensation" :
+                        prompt.title === "Intent to File" ? "What is Intent to File?" : "Estimate my TSP growth")}
+                    >
+                      <CardContent className="p-4 flex items-start gap-3">
+                        <div className="p-2 rounded-lg bg-muted">
+                          <prompt.icon className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{prompt.title}</p>
+                          <p className="text-xs text-muted-foreground">{prompt.description}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {/* Messages */}
+              <div className="space-y-6">
+              {messages.map((message, index) => {
+                // Hide initial welcome message when showing suggestion cards
+                if (isEmptyChat && index === 0) return null;
+                return (
+                  <ClaimsChatMessage
+                    key={index}
+                    role={message.role}
+                    content={message.content}
+                    quickReplies={message.quickReplies}
+                    onQuickReply={(value) => sendMessage(value)}
+                    isLatest={index === messages.length - 1}
+                    isLoading={isLoading}
+                  />
+                );
+              })}
+                
+                {isLoading && (
+                  <div className="flex gap-3">
+                    <div className="w-9 h-9 rounded-full bg-orange-500/10 flex items-center justify-center flex-shrink-0">
+                      <Loader2 className="w-5 h-5 text-orange-600 animate-spin" />
+                    </div>
+                    <div className="bg-muted/50 rounded-2xl rounded-bl-md px-4 py-3">
+                      <p className="text-muted-foreground text-sm">Thinking...</p>
+                    </div>
+                  </div>
+                )}
+                
+                {error && (
+                  <div className="flex items-center gap-2 text-destructive text-sm p-3 bg-destructive/10 rounded-lg">
+                    <AlertCircle className="w-4 h-4" />
+                    {error}
+                  </div>
+                )}
+                
+                <div ref={messagesEndRef} />
+              </div>
+            </div>
+          </ScrollArea>
+
+          {/* Input Area - Fixed at bottom */}
+          <div className="flex-shrink-0 border-t bg-background p-4">
+            <div className="max-w-3xl mx-auto">
+              <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="relative">
+                <Input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Ask about your benefits, claims, or calculations..."
+                  disabled={isLoading}
+                  className="pr-12 py-6 text-[15px] rounded-xl shadow-sm border-muted-foreground/20"
+                />
+                <Button
+                  type="submit"
+                  size="icon"
+                  disabled={!input.trim() || isLoading}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg bg-orange-600 hover:bg-orange-700"
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </form>
+              <p className="text-xs text-center text-muted-foreground mt-2">
+                Press Enter to send • Your conversation is saved automatically
+              </p>
             </div>
           </div>
+        </div>
+
+        {/* Right Sidebar - Desktop Only */}
+        <div className="hidden xl:block w-72 border-l bg-card/50 overflow-hidden">
+          <ClaimsRightSidebar 
+            notes={notes} 
+            userName={userName}
+          />
         </div>
       </div>
 
-      {/* Sample Banner */}
-      {showingSample && (
-        <div className="bg-orange-500/10 border-b border-orange-500/20 px-6 py-2 flex items-center justify-between flex-shrink-0">
-          <div className="flex items-center gap-2 text-sm text-orange-700">
-            <Eye className="w-4 h-4" />
-            <span className="font-medium">Viewing Sample Results</span>
-          </div>
-          <Button size="sm" variant="outline" onClick={handleExitSample}>
-            Start Your Own Session
-          </Button>
-        </div>
-      )}
-
-      {/* Main Content */}
-      {!intakeComplete ? (
-        <div className="flex-1 overflow-auto">
-          <ClaimsIntakeFlow 
-            onComplete={handleIntakeComplete} 
-            onShowSample={handleShowSample}
-            initialData={profile ? {
-              status: profile.service_status || '',
-              branch: profile.branch_of_service || '',
-              claimStatus: profile.last_claim_stage || '',
-              primaryGoals: [],
-            } : undefined}
-          />
-        </div>
-      ) : (
-        <div className="flex-1 overflow-hidden">
-          <ResizablePanelGroup direction="horizontal" className="h-full">
-            {/* Left Sidebar */}
-            <ResizablePanel defaultSize={25} minSize={18} maxSize={40} className="hidden lg:block">
-              <div className="h-full border-r bg-card/50 overflow-auto">
-                <ClaimsLeftSidebar 
-                  currentStep={currentStep} 
-                  onHandoffClick={() => setShowHandoffModal(true)}
-                  onCalculatorsClick={scrollToCalculators}
-                />
-              </div>
-            </ResizablePanel>
-            
-            <ResizableHandle withHandle className="hidden lg:flex" />
-
-            {/* Chat Area */}
-            <ResizablePanel defaultSize={50} minSize={30}>
-              <div className="h-full flex flex-col min-w-0">
-                {/* Messages */}
-                <div className="flex-1 overflow-auto px-6 py-6">
-                  <div className="max-w-[800px] mx-auto space-y-6">
-                    {messages.map((message, index) => (
-                      <ClaimsChatMessage
-                        key={index}
-                        role={message.role}
-                        content={message.content}
-                        quickReplies={message.quickReplies}
-                        onQuickReply={handleQuickReply}
-                        isLatest={index === messages.length - 1}
-                        isLoading={isLoading}
-                      />
-                    ))}
-                    
-                    {isLoading && (
-                      <div className="flex gap-3">
-                        <div className="w-9 h-9 rounded-full bg-orange-500/10 flex items-center justify-center">
-                          <Loader2 className="w-5 h-5 text-orange-600 animate-spin" />
-                        </div>
-                        <div className="bg-muted/50 rounded-2xl rounded-bl-md px-4 py-3">
-                          <p className="text-muted-foreground text-sm">Thinking...</p>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {error && (
-                      <div className="flex items-center gap-2 text-destructive text-sm p-3 bg-destructive/10 rounded-lg">
-                        <AlertCircle className="w-4 h-4" />
-                        {error}
-                      </div>
-                    )}
-                    
-                    <div ref={messagesEndRef} />
-                  </div>
-                </div>
-                
-                {/* Save Prompt */}
-                {showSavePrompt && (
-                  <ClaimsSavePrompt 
-                    onSave={handleSaveConversation}
-                    onDismiss={() => setShowSavePrompt(false)}
-                  />
-                )}
-
-                {/* Input Area */}
-                <div className="flex-shrink-0 px-6 pb-4">
-                  <div className="max-w-[800px] mx-auto">
-                    <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="relative">
-                      <Input
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        placeholder="Type your message..."
-                        disabled={isLoading || showingSample}
-                        className="pr-12 py-6 text-[15px] rounded-xl shadow-md border-muted-foreground/20"
-                      />
-                      <Button
-                        type="submit"
-                        size="icon"
-                        disabled={!input.trim() || isLoading || showingSample}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg bg-orange-600 hover:bg-orange-700"
-                      >
-                        <Send className="w-4 h-4" />
-                      </Button>
-                    </form>
-                  </div>
-                </div>
-              </div>
-            </ResizablePanel>
-            
-            <ResizableHandle className="hidden xl:flex" />
-
-            {/* Right Sidebar - Desktop */}
-            <ResizablePanel defaultSize={22} minSize={15} maxSize={35} className="hidden xl:block">
-              <div className="h-full border-l bg-card/50 overflow-hidden">
-                <ClaimsRightSidebar 
-                  notes={notes} 
-                  intakeData={intakeData || undefined}
-                  userName={userName || undefined}
-                />
-              </div>
-            </ResizablePanel>
-          </ResizablePanelGroup>
-
-          {/* Mobile Notes Button */}
-          <div className="xl:hidden">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="fixed bottom-20 right-4 z-50 shadow-lg rounded-full"
-                >
-                  <ClipboardList className="w-4 h-4 mr-2" />
-                  Notes ({notes.length})
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[320px] p-0">
-                <ClaimsRightSidebar 
-                  notes={notes} 
-                  intakeData={intakeData || undefined}
-                  userName={userName || undefined}
-                />
-              </SheetContent>
-            </Sheet>
-          </div>
-        </div>
-      )}
-
-      {/* Calculator Anchor Target */}
-      <div ref={calculatorsRef} />
+      {/* Mobile Notes Button */}
+      <div className="xl:hidden">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="fixed bottom-24 right-4 z-50 shadow-lg rounded-full"
+            >
+              <ClipboardList className="w-4 h-4 mr-2" />
+              Notes ({notes.length})
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-[320px] p-0">
+            <ClaimsRightSidebar 
+              notes={notes} 
+              userName={userName}
+            />
+          </SheetContent>
+        </Sheet>
+      </div>
 
       {/* Handoff Modal */}
       <Dialog open={showHandoffModal} onOpenChange={setShowHandoffModal}>
