@@ -98,6 +98,9 @@ import AppsAndTools from "./pages/marketing/AppsAndTools";
 import AdminSecurityOverview from "./pages/admin/AdminSecurityOverview";
 import AdminTasks from "./pages/admin/AdminTasks";
 import AdminProjects from "./pages/admin/AdminProjects";
+import PartnersPage from "./pages/admin/PartnersPage";
+import LeadIntelligencePage from "./pages/admin/LeadIntelligencePage";
+import PartnerPortalPage from "./pages/partner/PartnerPortalPage";
 import EventsAwardsProForma from "./pages/admin/cfo/EventsAwardsProForma";
 import CombinedProForma from "./pages/admin/cfo/CombinedProForma";
 import BoardProForma from "./pages/board/BoardProForma";
@@ -1086,6 +1089,9 @@ const AppContent = () => {
               <Route path="/admin/advertising/campaigns/:campaignId" element={<AdminCampaignDetail />} />
               <Route path="/admin/advertising/ads/create" element={<CreateAd />} />
               <Route path="/admin/advertisers" element={<AdminAdvertisers />} />
+              <Route path="/admin/partners" element={<PartnersPage />} />
+              <Route path="/admin/lead-intelligence" element={<LeadIntelligencePage />} />
+          <Route path="/partner/:slug" element={<PartnerPortalPage />} />
               <Route path="/admin/ad-campaigns" element={<AdminCampaigns />} />
             <Route path="/admin/ad-analytics" element={<AdminAdAnalytics />} />
             <Route path="/admin/onboarding" element={<OnboardingAdmin />} />

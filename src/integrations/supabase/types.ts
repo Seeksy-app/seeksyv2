@@ -17182,6 +17182,223 @@ export type Database = {
           },
         ]
       }
+      partner_billing: {
+        Row: {
+          amount: number
+          billing_period_end: string | null
+          billing_period_start: string | null
+          billing_type: string
+          created_at: string
+          description: string | null
+          id: string
+          invoiced_at: string | null
+          lead_assignment_id: string | null
+          paid_at: string | null
+          partner_id: string
+          status: string | null
+        }
+        Insert: {
+          amount: number
+          billing_period_end?: string | null
+          billing_period_start?: string | null
+          billing_type: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          invoiced_at?: string | null
+          lead_assignment_id?: string | null
+          paid_at?: string | null
+          partner_id: string
+          status?: string | null
+        }
+        Update: {
+          amount?: number
+          billing_period_end?: string | null
+          billing_period_start?: string | null
+          billing_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          invoiced_at?: string | null
+          lead_assignment_id?: string | null
+          paid_at?: string | null
+          partner_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_billing_lead_assignment_id_fkey"
+            columns: ["lead_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "partner_lead_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_billing_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_lead_assignments: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          conversion_value: number | null
+          created_at: string
+          id: string
+          lead_id: string
+          lead_source: string
+          notes: string | null
+          partner_id: string
+          partner_notes: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          conversion_value?: number | null
+          created_at?: string
+          id?: string
+          lead_id: string
+          lead_source: string
+          notes?: string | null
+          partner_id: string
+          partner_notes?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          conversion_value?: number | null
+          created_at?: string
+          id?: string
+          lead_id?: string
+          lead_source?: string
+          notes?: string | null
+          partner_id?: string
+          partner_notes?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_lead_assignments_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_users: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          id: string
+          invited_at: string | null
+          partner_id: string
+          role: string | null
+          user_id: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          invited_at?: string | null
+          partner_id: string
+          role?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          invited_at?: string | null
+          partner_id?: string
+          role?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_users_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partners: {
+        Row: {
+          billing_model: string | null
+          brand_color: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          notes: string | null
+          per_lead_rate: number | null
+          portal_enabled: boolean | null
+          product_source: string[] | null
+          slug: string
+          status: string | null
+          subscription_rate: number | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          billing_model?: string | null
+          brand_color?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          notes?: string | null
+          per_lead_rate?: number | null
+          portal_enabled?: boolean | null
+          product_source?: string[] | null
+          slug: string
+          status?: string | null
+          subscription_rate?: number | null
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          billing_model?: string | null
+          brand_color?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          notes?: string | null
+          per_lead_rate?: number | null
+          portal_enabled?: boolean | null
+          product_source?: string[] | null
+          slug?: string
+          status?: string | null
+          subscription_rate?: number | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       permission_audit_log: {
         Row: {
           action: string
