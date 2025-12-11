@@ -34,18 +34,18 @@ export default function VeteransHome() {
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-accent/10 py-20">
         <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
+          <div className="max-w-5xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full mb-6">
               <Shield className="w-4 h-4" />
               <span className="text-sm font-medium">Military & Federal Benefits Hub</span>
             </div>
             
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-balance">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
               Maximize Your{" "}
               <span className="text-primary">Federal&nbsp;Benefits</span>
             </h1>
             
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto text-balance">
+            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
               Free calculators and AI-powered guidance to help service members, veterans, and federal employees understand and claim the benefits they've&nbsp;earned.
             </p>
 
@@ -97,12 +97,12 @@ export default function VeteransHome() {
       <section className="py-16 container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">Your Benefits Toolkit</h2>
-          <p className="text-muted-foreground max-w-xl mx-auto text-balance">
+          <p className="text-muted-foreground max-w-2xl mx-auto">
             20+ calculators and tools to understand and maximize your benefits
           </p>
         </div>
 
-        <div className="max-w-6xl mx-auto space-y-12">
+        <div className="max-w-7xl mx-auto space-y-12">
           {CALCULATOR_CATEGORIES.filter(cat => cat.id !== 'Assistant').map((category) => {
             const categoryCalcs = CALCULATORS.filter(c => c.category === category.id);
             if (categoryCalcs.length === 0) return null;

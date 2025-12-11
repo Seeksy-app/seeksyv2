@@ -88,21 +88,50 @@ export function CalculatorLayout({
 
             {children}
 
-            {/* Save Button */}
+            {/* Save Button & Signup Prompt */}
             {hasResults && (
-              <div className="mt-6 flex gap-3">
-                <Button 
-                  onClick={handleSave} 
-                  disabled={saving}
-                  className="flex-1"
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  {saving ? "Saving..." : "Save Results"}
-                </Button>
-                {onReset && (
-                  <Button variant="outline" onClick={onReset}>
-                    Calculate Again
+              <div className="mt-6 space-y-4">
+                <div className="flex gap-3">
+                  <Button 
+                    onClick={handleSave} 
+                    disabled={saving}
+                    className="flex-1"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {saving ? "Saving..." : "Save Results"}
                   </Button>
+                  {onReset && (
+                    <Button variant="outline" onClick={onReset}>
+                      Calculate Again
+                    </Button>
+                  )}
+                </div>
+                
+                {/* Post-calculation signup/save reminder */}
+                {!isLoggedIn ? (
+                  <Card className="border-primary/30 bg-primary/5">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <LogIn className="w-5 h-5 text-primary mt-0.5" />
+                        <div>
+                          <p className="font-medium text-sm">Create a free account to save your results</p>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Access your calculations from any device and track your benefit estimates over time.
+                          </p>
+                          <Button asChild size="sm" className="mt-3">
+                            <Link to="/auth">Sign Up Free</Link>
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="flex items-center gap-2 p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                    <Save className="w-4 h-4 text-green-600" />
+                    <p className="text-sm text-green-700">
+                      Don't forget to <strong>Save</strong> your results to access them later!
+                    </p>
+                  </div>
                 )}
               </div>
             )}
