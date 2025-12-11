@@ -1,34 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calculator, FileText, MessageSquare, Shield, Clock, DollarSign, Award } from "lucide-react";
+import { Calculator, FileText, MessageSquare, Shield, Clock, DollarSign, Award, TrendingUp, Heart, CheckCircle, Calendar, MapPin, GraduationCap, Stethoscope, Home, Car, Scale } from "lucide-react";
 import { Link } from "react-router-dom";
 import { BenefitsOfRatingModal } from "@/components/veterans/BenefitsOfRatingModal";
 import { VeteransFaq } from "@/components/veterans/VeteransFaq";
 import { Helmet } from "react-helmet";
+import { CALCULATORS, CALCULATOR_CATEGORIES } from "@/lib/veteranCalculatorRegistry";
+
+const ICON_MAP: Record<string, any> = {
+  DollarSign, Clock, Calculator, MessageSquare, Shield, Award, TrendingUp, Heart, 
+  CheckCircle, Calendar, MapPin, GraduationCap, Stethoscope, Home, Car, Scale,
+};
 
 export default function VeteransHome() {
-  const tools = [
-    {
-      title: "Military Buy-Back Calculator",
-      description: "Calculate the cost and benefits of buying back your military time for federal retirement",
-      icon: DollarSign,
-      href: "/veterans/calculators/military-buyback",
-      color: "text-emerald-500",
-    },
-    {
-      title: "MRA Calculator",
-      description: "Find your Minimum Retirement Age and earliest retirement eligibility date",
-      icon: Clock,
-      href: "/veterans/calculators/mra",
-      color: "text-blue-500",
-    },
-    {
-      title: "Sick Leave Calculator",
-      description: "See how your unused sick leave converts to additional service credit",
-      icon: Calculator,
-      href: "/veterans/calculators/sick-leave",
-      color: "text-purple-500",
-    },
+  const featuredTools = [
     {
       title: "AI Claims Agent",
       description: "Get personalized guidance on filing your VA disability claim with Intent to File support",
@@ -86,36 +71,73 @@ export default function VeteransHome() {
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
       </section>
 
-      {/* Tools Grid */}
+      {/* AI Claims Agent Featured */}
+      <section className="py-12 container mx-auto px-4">
+        <div className="max-w-4xl mx-auto">
+          <Link to="/veterans/claims-agent">
+            <Card className="border-2 border-primary/30 bg-primary/5 transition-all hover:shadow-lg hover:border-primary/50">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="p-3 rounded-lg bg-background border text-orange-500">
+                    <MessageSquare className="w-6 h-6" />
+                  </div>
+                  <span className="text-xs font-semibold bg-primary text-primary-foreground px-2 py-1 rounded">
+                    AI-POWERED
+                  </span>
+                </div>
+                <CardTitle className="text-xl">AI Claims Agent</CardTitle>
+                <CardDescription className="text-base">Get personalized guidance on filing your VA disability claim with Intent to File support</CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+        </div>
+      </section>
+
+      {/* Calculators by Category */}
       <section className="py-16 container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">Your Benefits Toolkit</h2>
           <p className="text-muted-foreground max-w-xl mx-auto text-balance">
-            Everything you need to understand and maximize your federal retirement&nbsp;benefits
+            20+ calculators and tools to understand and maximize your benefits
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-          {tools.map((tool) => (
-            <Link key={tool.href} to={tool.href}>
-              <Card className={`h-full transition-all hover:shadow-lg hover:border-primary/50 ${tool.featured ? 'border-2 border-primary/30 bg-primary/5' : ''}`}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className={`p-3 rounded-lg bg-background border ${tool.color}`}>
-                      <tool.icon className="w-6 h-6" />
-                    </div>
-                    {tool.featured && (
-                      <span className="text-xs font-semibold bg-primary text-primary-foreground px-2 py-1 rounded">
-                        AI-POWERED
-                      </span>
-                    )}
-                  </div>
-                  <CardTitle className="text-xl">{tool.title}</CardTitle>
-                  <CardDescription className="text-base">{tool.description}</CardDescription>
-                </CardHeader>
-              </Card>
-            </Link>
-          ))}
+        <div className="max-w-6xl mx-auto space-y-12">
+          {CALCULATOR_CATEGORIES.filter(cat => cat.id !== 'Assistant').map((category) => {
+            const categoryCalcs = CALCULATORS.filter(c => c.category === category.id);
+            if (categoryCalcs.length === 0) return null;
+            
+            return (
+              <div key={category.id}>
+                <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <span className={category.color}>{category.label}</span>
+                  <span className="text-sm text-muted-foreground font-normal">({categoryCalcs.length} tools)</span>
+                </h3>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {categoryCalcs.map((calc) => {
+                    const IconComponent = ICON_MAP[calc.icon] || Calculator;
+                    return (
+                      <Link key={calc.id} to={calc.route}>
+                        <Card className="h-full transition-all hover:shadow-md hover:border-primary/30">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-start gap-3">
+                              <div className={`p-2 rounded-lg bg-muted ${calc.color}`}>
+                                <IconComponent className="w-4 h-4" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <CardTitle className="text-base leading-tight">{calc.title}</CardTitle>
+                                <CardDescription className="text-sm mt-1 line-clamp-2">{calc.description}</CardDescription>
+                              </div>
+                            </div>
+                          </CardHeader>
+                        </Card>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
 
