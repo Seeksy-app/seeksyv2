@@ -87,9 +87,10 @@ export function AIBookingAssistantModal({ open, onOpenChange, venueId, isDemoMod
         .from('venue_clients')
         .insert({
           venue_id: venueId,
-          name: 'AI-Assisted Inquiry',
+          first_name: 'AI-Assisted',
+          last_name: 'Inquiry',
           email: 'pending@placeholder.com',
-          client_type: 'individual',
+          type: 'individual',
           is_demo: isDemoMode
         })
         .select()

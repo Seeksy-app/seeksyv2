@@ -58,20 +58,18 @@ export function PlanCampaignModal({ open, onOpenChange, venueId, isDemoMode = tr
 
     setLoading(true);
     try {
+      // Use venue_events_marketing for campaigns
       const goalText = formData.goal === "Other" ? formData.customGoal : formData.goal;
       
       const { error } = await supabase
-        .from('venue_influencer_campaigns')
+        .from('venue_events_marketing')
         .insert({
           venue_id: venueId,
           name: formData.name,
-          description: formData.description,
-          status: 'planning',
-          start_date: formData.startDate || null,
-          end_date: formData.endDate || null,
+          event_date: formData.startDate || null,
           budget: parseFloat(formData.budget) || null,
-          goals: [goalText],
-          channels: selectedChannels
+          goals: { goal: goalText, channels: selectedChannels },
+          channel_mix: { channels: selectedChannels }
         });
 
       if (error) throw error;

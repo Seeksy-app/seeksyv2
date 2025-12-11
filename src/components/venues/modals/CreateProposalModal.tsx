@@ -18,8 +18,8 @@ interface CreateProposalModalProps {
   onSuccess?: () => void;
 }
 
-interface Client { id: string; name: string; email: string; }
-interface Space { id: string; name: string; base_price?: number; }
+interface Client { id: string; first_name: string; last_name?: string | null; email: string | null; }
+interface Space { id: string; name: string; }
 
 const eventTypes = ["Wedding", "Corporate Event", "Birthday Party", "Anniversary", "Gala", "Conference", "Concert", "Private Dinner", "Other"];
 const addOns = [
@@ -55,8 +55,8 @@ export function CreateProposalModal({ open, onOpenChange, venueId, isDemoMode = 
   const loadData = async () => {
     if (!venueId) return;
     const [clientsRes, spacesRes] = await Promise.all([
-      supabase.from('venue_clients').select('id, name, email').eq('venue_id', venueId),
-      supabase.from('venue_spaces').select('id, name, base_price').eq('venue_id', venueId)
+      supabase.from('venue_clients').select('id, first_name, last_name, email').eq('venue_id', venueId),
+      supabase.from('venue_spaces').select('id, name').eq('venue_id', venueId)
     ]);
     if (clientsRes.data) setClients(clientsRes.data);
     if (spacesRes.data) setSpaces(spacesRes.data);
@@ -69,11 +69,9 @@ export function CreateProposalModal({ open, onOpenChange, venueId, isDemoMode = 
   };
 
   const handleSpaceChange = (spaceId: string) => {
-    const space = spaces.find(s => s.id === spaceId);
     setFormData({ 
       ...formData, 
-      spaceId,
-      basePrice: space?.base_price?.toString() || formData.basePrice
+      spaceId
     });
   };
 
@@ -133,7 +131,7 @@ export function CreateProposalModal({ open, onOpenChange, venueId, isDemoMode = 
                 <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
                 <SelectContent>
                   {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
+                    <SelectItem key={client.id} value={client.id}>{client.first_name} {client.last_name || ''}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
