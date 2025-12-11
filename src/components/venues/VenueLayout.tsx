@@ -12,8 +12,8 @@ import {
   Settings,
   Menu,
   LogOut,
-  ChevronLeft,
-  ChevronRight
+  PanelLeftClose,
+  PanelLeftOpen
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -154,13 +154,13 @@ export function VenueLayout({ children }: VenueLayoutProps) {
         {/* Collapse toggle */}
         <button
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="absolute -right-3 top-20 h-6 w-6 rounded-full bg-white shadow-md border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+          className="absolute -right-4 top-20 h-8 w-8 rounded-full bg-white shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 hover:scale-105 transition-all"
           style={{ color: colors.primary }}
         >
           {sidebarCollapsed ? (
-            <ChevronRight className="h-4 w-4" />
+            <PanelLeftOpen className="h-4 w-4" />
           ) : (
-            <ChevronLeft className="h-4 w-4" />
+            <PanelLeftClose className="h-4 w-4" />
           )}
         </button>
       </aside>
@@ -220,7 +220,7 @@ export function VenueLayout({ children }: VenueLayoutProps) {
           sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-56'
         } pt-14 lg:pt-0`}
       >
-        <div className="p-6">
+        <div className="p-4 lg:p-5 animate-fade-in">
           {children}
         </div>
       </main>
