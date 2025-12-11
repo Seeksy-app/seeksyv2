@@ -3,9 +3,11 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Package, UserCheck, Phone, Plus, ArrowRight, CheckCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Package, UserCheck, Phone, Plus, ArrowRight, CheckCircle, DollarSign, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { TruckingPageWrapper, TruckingContentCard, TruckingEmptyState, TruckingStatCardLight } from "@/components/trucking/TruckingPageWrapper";
+import { useTruckingCostStats } from "@/hooks/useTruckingCostStats";
 
 interface LoadStats {
   openLoads: number;
@@ -42,6 +44,13 @@ export default function TruckingDashboardPage() {
   const [hotLoads, setHotLoads] = useState<Load[]>([]);
   const [recentLeads, setRecentLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+  const costStats = useTruckingCostStats();
+
+  const formatCost = (cost: number) => {
+    if (cost === 0) return "—";
+    if (cost < 0.01) return "< $0.01";
+    return `$${cost.toFixed(2)}`;
+  };
 
   useEffect(() => {
     fetchDashboardData();
@@ -123,29 +132,78 @@ export default function TruckingDashboardPage() {
         </Link>
       }
     >
-      {/* Stats Cards - 2x2 Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <TruckingStatCardLight 
-          label="Open Loads" 
-          value={stats.openLoads} 
-          icon={<Package className="h-6 w-6 text-blue-600" />}
-        />
-        <TruckingStatCardLight 
-          label="New Leads Today" 
-          value={stats.leadsToday} 
-          icon={<UserCheck className="h-6 w-6 text-green-600" />}
-        />
-        <TruckingStatCardLight 
-          label="AI Calls Today" 
-          value={stats.callsToday} 
-          icon={<Phone className="h-6 w-6 text-amber-600" />}
-        />
-        <TruckingStatCardLight 
-          label="Confirmed Loads" 
-          value={stats.confirmedLoads} 
-          icon={<CheckCircle className="h-6 w-6 text-purple-600" />}
-        />
-      </div>
+      {/* Stats Cards */}
+      <TooltipProvider>
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          <TruckingStatCardLight 
+            label="Open Loads" 
+            value={stats.openLoads} 
+            icon={<Package className="h-6 w-6 text-blue-600" />}
+          />
+          <TruckingStatCardLight 
+            label="New Leads Today" 
+            value={stats.leadsToday} 
+            icon={<UserCheck className="h-6 w-6 text-green-600" />}
+          />
+          <TruckingStatCardLight 
+            label="AI Calls Today" 
+            value={stats.callsToday} 
+            icon={<Phone className="h-6 w-6 text-amber-600" />}
+          />
+          <TruckingStatCardLight 
+            label="Confirmed Loads" 
+            value={stats.confirmedLoads} 
+            icon={<CheckCircle className="h-6 w-6 text-purple-600" />}
+          />
+          {/* Cost Metrics */}
+          <div className="bg-white rounded-xl border border-slate-200 p-4 flex flex-col">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <DollarSign className="h-6 w-6 text-emerald-600" />
+                <span className="text-sm text-slate-500">Est. Cost/Call</span>
+              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-4 w-4 text-slate-400 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[280px]">
+                  <p className="font-semibold mb-1">How this is calculated</p>
+                  <p className="text-xs">We estimate this cost by counting how many characters the AI spoke in the last 20 live calls and applying your ElevenLabs rate (e.g. $50 per 1M characters). This is an estimate only.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <p className="text-2xl font-bold text-slate-900 mt-2">
+              {costStats.loading ? "..." : costStats.error ? "—" : formatCost(costStats.avgCostPerCall)}
+            </p>
+            <p className="text-xs text-slate-400 mt-1">
+              {costStats.callsLast20 > 0 ? `Based on last ${costStats.callsLast20} calls` : "No live calls yet"}
+            </p>
+          </div>
+          <div className="bg-white rounded-xl border border-slate-200 p-4 flex flex-col">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <DollarSign className="h-6 w-6 text-teal-600" />
+                <span className="text-sm text-slate-500">Est. Cost/Mo</span>
+              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-4 w-4 text-slate-400 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[280px]">
+                  <p className="font-semibold mb-1">Monthly cost estimate</p>
+                  <p className="text-xs">This is the sum of estimated ElevenLabs cost for all live AI calls this month (demo calls excluded). Calculated using total characters spoken by the AI and your configured price per 1M characters.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <p className="text-2xl font-bold text-slate-900 mt-2">
+              {costStats.loading ? "..." : costStats.error ? "—" : formatCost(costStats.totalCostThisMonth)}
+            </p>
+            <p className="text-xs text-slate-400 mt-1">
+              {costStats.callsThisMonth > 0 ? `${costStats.callsThisMonth} calls this month` : "No live calls yet"}
+            </p>
+          </div>
+        </div>
+      </TooltipProvider>
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Hot Loads */}

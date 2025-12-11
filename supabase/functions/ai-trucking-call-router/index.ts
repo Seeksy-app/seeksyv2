@@ -201,15 +201,33 @@ async function handleCreateLead(supabase: any, body: any) {
 
   console.log("[create_lead] Lead created:", lead.id);
 
-  // Log the call
+  // Calculate estimated cost based on summary text
+  const summaryText = `Carrier ${company_name} interested in load ${load.load_number}. MC: ${mc_number || 'N/A'}. Rate: $${rate_offered || load.target_rate}`;
+  const totalCharacters = summaryText.length;
+  
+  // Get pricing from settings or use default
+  const { data: settings } = await supabase
+    .from('trucking_settings')
+    .select('ai_price_per_million_chars_usd, demo_mode_enabled')
+    .eq('owner_id', load.owner_id)
+    .single();
+  
+  const pricePerMillion = settings?.ai_price_per_million_chars_usd ?? 50;
+  const isDemo = settings?.demo_mode_enabled ?? false;
+  const estimatedCostUsd = (totalCharacters / 1_000_000) * pricePerMillion;
+
+  // Log the call with cost tracking
   await supabase.from('trucking_call_logs').insert({
     owner_id: load.owner_id,
     carrier_phone: phone,
     load_id: load_id,
     call_direction: 'inbound',
-    summary: `Carrier ${company_name} interested in load ${load.load_number}. MC: ${mc_number || 'N/A'}. Rate: $${rate_offered || load.target_rate}`,
+    summary: summaryText,
     call_started_at: new Date().toISOString(),
     call_ended_at: new Date().toISOString(),
+    total_characters: totalCharacters,
+    estimated_cost_usd: estimatedCostUsd,
+    is_demo: isDemo,
   });
 
   // Send email notification to broker

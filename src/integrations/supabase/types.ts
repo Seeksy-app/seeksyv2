@@ -23899,8 +23899,10 @@ export type Database = {
           carrier_phone: string | null
           created_at: string | null
           duration_seconds: number | null
+          estimated_cost_usd: number | null
           failure_reason: string | null
           id: string
+          is_demo: boolean | null
           language: string | null
           lead_id: string | null
           load_id: string | null
@@ -23908,6 +23910,7 @@ export type Database = {
           owner_id: string | null
           recording_url: string | null
           summary: string | null
+          total_characters: number | null
           transcript_url: string | null
         }
         Insert: {
@@ -23917,8 +23920,10 @@ export type Database = {
           carrier_phone?: string | null
           created_at?: string | null
           duration_seconds?: number | null
+          estimated_cost_usd?: number | null
           failure_reason?: string | null
           id?: string
+          is_demo?: boolean | null
           language?: string | null
           lead_id?: string | null
           load_id?: string | null
@@ -23926,6 +23931,7 @@ export type Database = {
           owner_id?: string | null
           recording_url?: string | null
           summary?: string | null
+          total_characters?: number | null
           transcript_url?: string | null
         }
         Update: {
@@ -23935,8 +23941,10 @@ export type Database = {
           carrier_phone?: string | null
           created_at?: string | null
           duration_seconds?: number | null
+          estimated_cost_usd?: number | null
           failure_reason?: string | null
           id?: string
+          is_demo?: boolean | null
           language?: string | null
           lead_id?: string | null
           load_id?: string | null
@@ -23944,6 +23952,7 @@ export type Database = {
           owner_id?: string | null
           recording_url?: string | null
           summary?: string | null
+          total_characters?: number | null
           transcript_url?: string | null
         }
         Relationships: [
@@ -24387,6 +24396,8 @@ export type Database = {
         Row: {
           ai_caller_company_name: string | null
           ai_caller_name: string | null
+          ai_calls_enabled: boolean | null
+          ai_price_per_million_chars_usd: number | null
           created_at: string | null
           demo_mode_enabled: boolean | null
           id: string
@@ -24397,6 +24408,8 @@ export type Database = {
         Insert: {
           ai_caller_company_name?: string | null
           ai_caller_name?: string | null
+          ai_calls_enabled?: boolean | null
+          ai_price_per_million_chars_usd?: number | null
           created_at?: string | null
           demo_mode_enabled?: boolean | null
           id?: string
@@ -24407,6 +24420,8 @@ export type Database = {
         Update: {
           ai_caller_company_name?: string | null
           ai_caller_name?: string | null
+          ai_calls_enabled?: boolean | null
+          ai_price_per_million_chars_usd?: number | null
           created_at?: string | null
           demo_mode_enabled?: boolean | null
           id?: string
@@ -27777,6 +27792,7 @@ export type Database = {
         Returns: number
       }
       get_current_user_email: { Args: never; Returns: string }
+      get_trucking_cost_stats: { Args: { p_owner_id: string }; Returns: Json }
       get_user_hosted_meeting_ids: {
         Args: { _user_id: string }
         Returns: string[]

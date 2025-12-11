@@ -15,6 +15,8 @@ interface Settings {
   notification_sms_number: string;
   ai_caller_name: string;
   ai_caller_company_name: string;
+  ai_calls_enabled: boolean;
+  ai_price_per_million_chars_usd: number;
 }
 
 export default function TruckingSettingsPage() {
@@ -24,6 +26,8 @@ export default function TruckingSettingsPage() {
     notification_sms_number: "",
     ai_caller_name: "Christy",
     ai_caller_company_name: "Dispatch",
+    ai_calls_enabled: true,
+    ai_price_per_million_chars_usd: 50.00,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -67,6 +71,8 @@ export default function TruckingSettingsPage() {
         notification_sms_number: settings.notification_sms_number,
         ai_caller_name: settings.ai_caller_name,
         ai_caller_company_name: settings.ai_caller_company_name,
+        ai_calls_enabled: settings.ai_calls_enabled,
+        ai_price_per_million_chars_usd: settings.ai_price_per_million_chars_usd,
       };
 
       const { error } = await supabase
@@ -155,6 +161,25 @@ export default function TruckingSettingsPage() {
                 className="mt-1"
               />
             </div>
+          </div>
+        </TruckingContentCard>
+
+        <TruckingContentCard>
+          <div className="space-y-1 mb-5">
+            <h3 className="font-semibold text-slate-900">AI Calling</h3>
+            <p className="text-sm text-slate-500">Enable or disable AI phone calls</p>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-slate-900">AI Calls Enabled</p>
+              <p className="text-sm text-slate-500">
+                When disabled, the AI agent will not make or receive calls
+              </p>
+            </div>
+            <Switch
+              checked={settings.ai_calls_enabled}
+              onCheckedChange={(checked) => setSettings({ ...settings, ai_calls_enabled: checked })}
+            />
           </div>
         </TruckingContentCard>
 
