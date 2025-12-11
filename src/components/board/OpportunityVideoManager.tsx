@@ -18,34 +18,39 @@ export function OpportunityVideoManager({ opportunityId, opportunityName }: Oppo
   const [selectedVideoIds, setSelectedVideoIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
 
-  const { data: allVideos } = useQuery({
+  type DemoVideo = { id: string; title: string; thumbnail_url: string | null; duration_seconds: number | null; category: string | null };
+  type AttachedVideo = { id: string; video_id: string; display_order: number; video?: DemoVideo };
+
+  const { data: allVideos } = useQuery<DemoVideo[]>({
     queryKey: ["all-demo-videos"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("demo_videos")
+      const result = await (supabase
+        .from("demo_videos") as any)
         .select("id, title, thumbnail_url, duration_seconds, category")
         .eq("is_active", true)
         .order("title");
-      return data || [];
+      return (result.data || []) as DemoVideo[];
     },
   });
 
-  const { data: attachedVideos, refetch: refetchAttached } = useQuery({
+  const { data: attachedVideos, refetch: refetchAttached } = useQuery<AttachedVideo[]>({
     queryKey: ["opportunity-videos", opportunityId],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("sales_opportunity_videos")
+      const result = await (supabase
+        .from("sales_opportunity_videos") as any)
         .select("id, video_id, display_order")
         .eq("opportunity_id", opportunityId)
         .order("display_order");
       
+      const data = result.data as Array<{ id: string; video_id: string; display_order: number }> | null;
       if (!data || data.length === 0) return [];
       
       const videoIds = data.map(v => v.video_id);
-      const { data: videos } = await supabase
-        .from("demo_videos")
+      const videosResult = await (supabase
+        .from("demo_videos") as any)
         .select("id, title, thumbnail_url, duration_seconds")
         .in("id", videoIds);
+      const videos = videosResult.data as DemoVideo[] | null;
       
       return data.map(item => ({
         ...item,
@@ -63,11 +68,16 @@ export function OpportunityVideoManager({ opportunityId, opportunityName }: Oppo
 
   const saveMutation = useMutation({
     mutationFn: async (videoIds: string[]) => {
-      await supabase.from("sales_opportunity_videos").delete().eq("opportunity_id", opportunityId);
+      await (supabase.from("sales_opportunity_videos") as any)
+        .delete()
+        .eq("opportunity_id", opportunityId);
       if (videoIds.length > 0) {
-        await supabase.from("sales_opportunity_videos").insert(
-          videoIds.map((videoId, index) => ({ opportunity_id: opportunityId, video_id: videoId, display_order: index }))
-        );
+        await (supabase.from("sales_opportunity_videos") as any)
+          .insert(videoIds.map((videoId, index) => ({ 
+            opportunity_id: opportunityId, 
+            video_id: videoId, 
+            display_order: index 
+          })));
       }
     },
     onSuccess: () => {
@@ -78,7 +88,10 @@ export function OpportunityVideoManager({ opportunityId, opportunityName }: Oppo
   });
 
   const removeVideo = async (videoId: string) => {
-    await supabase.from("sales_opportunity_videos").delete().eq("opportunity_id", opportunityId).eq("video_id", videoId);
+    await (supabase.from("sales_opportunity_videos") as any)
+      .delete()
+      .eq("opportunity_id", opportunityId)
+      .eq("video_id", videoId);
     refetchAttached();
     toast.success("Video removed");
   };
