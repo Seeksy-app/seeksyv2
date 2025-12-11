@@ -10,10 +10,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit, Trash2, MapPin, Check, Copy, CheckCircle2, Truck } from "lucide-react";
+import { Plus, Edit, Trash2, MapPin, Check, Copy, CheckCircle2, Truck, Flag, Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Switch } from "@/components/ui/switch";
+import SelectWithRecent from "@/components/trucking/SelectWithRecent";
+import FieldLabelsSettings from "@/components/trucking/FieldLabelsSettings";
+import { useTruckingRecentValues } from "@/hooks/useTruckingRecentValues";
+import { useTruckingFieldLabels } from "@/hooks/useTruckingFieldLabels";
+
+const US_STATES = [
+  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL",
+  "IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT",
+  "NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI",
+  "SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"
+];
 
 interface Load {
   id: string;
@@ -72,6 +83,8 @@ export default function LoadsPage() {
   const [editingLoad, setEditingLoad] = useState<Load | null>(null);
   const [activeTab, setActiveTab] = useState("open");
   const { toast } = useToast();
+  const { getRecentValues, addRecentValue } = useTruckingRecentValues();
+  const { labels } = useTruckingFieldLabels();
 
   const [formData, setFormData] = useState({
     load_number: "",
@@ -116,6 +129,11 @@ export default function LoadsPage() {
     special_instructions: "",
     internal_notes: "",
     notes: "",
+    // New contact fields
+    shipper_name: "",
+    shipper_phone: "",
+    contact_name: "",
+    contact_phone: "",
   });
 
   useEffect(() => {
@@ -212,6 +230,22 @@ export default function LoadsPage() {
         toast({ title: "Load created" });
       }
 
+      // Save recent values for quick access next time
+      addRecentValue("pickup_city", formData.origin_city);
+      addRecentValue("pickup_state", formData.origin_state);
+      addRecentValue("pickup_zip", formData.origin_zip);
+      addRecentValue("delivery_city", formData.destination_city);
+      addRecentValue("delivery_state", formData.destination_state);
+      addRecentValue("delivery_zip", formData.destination_zip);
+      addRecentValue("shipper_name", formData.shipper_name);
+      addRecentValue("shipper_phone", formData.shipper_phone);
+      addRecentValue("contact_name", formData.contact_name);
+      addRecentValue("contact_phone", formData.contact_phone);
+      addRecentValue("pickup_contact_name", formData.pickup_contact_name);
+      addRecentValue("pickup_contact_phone", formData.pickup_contact_phone);
+      addRecentValue("delivery_contact_name", formData.delivery_contact_name);
+      addRecentValue("delivery_contact_phone", formData.delivery_contact_phone);
+
       setDialogOpen(false);
       resetForm();
       fetchLoads();
@@ -265,6 +299,10 @@ export default function LoadsPage() {
       special_instructions: load.special_instructions || "",
       internal_notes: load.internal_notes || "",
       notes: load.notes || "",
+      shipper_name: (load as any).shipper_name || "",
+      shipper_phone: (load as any).shipper_phone || "",
+      contact_name: (load as any).contact_name || "",
+      contact_phone: (load as any).contact_phone || "",
     });
     setDialogOpen(true);
   };
@@ -403,6 +441,10 @@ export default function LoadsPage() {
       special_instructions: "",
       internal_notes: "",
       notes: "",
+      shipper_name: "",
+      shipper_phone: "",
+      contact_name: "",
+      contact_phone: "",
     });
   };
 
@@ -495,13 +537,15 @@ export default function LoadsPage() {
           <h1 className="text-3xl font-bold">Loads</h1>
           <p className="text-muted-foreground">Manage your freight loads for Jess to share with carriers</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Load
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          <FieldLabelsSettings />
+          <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Load
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingLoad ? "Edit Load" : "Add New Load"}</DialogTitle>
@@ -520,7 +564,7 @@ export default function LoadsPage() {
                   />
                 </div>
                 <div>
-                  <Label>Reference</Label>
+                  <Label>{labels.reference}</Label>
                   <Input
                     value={formData.reference}
                     onChange={(e) => setFormData({ ...formData, reference: e.target.value })}
@@ -529,28 +573,86 @@ export default function LoadsPage() {
                 </div>
               </div>
 
-              {/* Origin */}
+              {/* Contacts Section */}
+              <div className="border rounded-lg p-4 space-y-4">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <Phone className="h-4 w-4" /> Contacts
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>{labels.shipper_name}</Label>
+                    <SelectWithRecent
+                      value={formData.shipper_name}
+                      onChange={(val) => setFormData({ ...formData, shipper_name: val })}
+                      placeholder="Start typing shipper..."
+                      recentValues={getRecentValues("shipper_name")}
+                    />
+                  </div>
+                  <div>
+                    <Label>Shipper Phone</Label>
+                    <SelectWithRecent
+                      value={formData.shipper_phone}
+                      onChange={(val) => setFormData({ ...formData, shipper_phone: val })}
+                      placeholder="(555) 123-4567"
+                      recentValues={getRecentValues("shipper_phone")}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>{labels.contact_name}</Label>
+                    <SelectWithRecent
+                      value={formData.contact_name}
+                      onChange={(val) => setFormData({ ...formData, contact_name: val })}
+                      placeholder="Start typing contact..."
+                      recentValues={getRecentValues("contact_name")}
+                    />
+                  </div>
+                  <div>
+                    <Label>Main Contact Phone</Label>
+                    <SelectWithRecent
+                      value={formData.contact_phone}
+                      onChange={(val) => setFormData({ ...formData, contact_phone: val })}
+                      placeholder="(555) 987-6543"
+                      recentValues={getRecentValues("contact_phone")}
+                    />
+                  </div>
+                </div>
+              </div>
+              {/* Pickup Location */}
               <div className="border rounded-lg p-4 space-y-4">
                 <h3 className="font-semibold flex items-center gap-2">
                   <MapPin className="h-4 w-4" /> Pickup Location
                 </h3>
                 <div className="grid grid-cols-3 gap-4">
-                  <Input
-                    value={formData.origin_city}
-                    onChange={(e) => setFormData({ ...formData, origin_city: e.target.value })}
-                    placeholder="City"
-                  />
-                  <Input
-                    value={formData.origin_state}
-                    onChange={(e) => setFormData({ ...formData, origin_state: e.target.value })}
-                    placeholder="State"
-                    maxLength={2}
-                  />
-                  <Input
-                    value={formData.origin_zip}
-                    onChange={(e) => setFormData({ ...formData, origin_zip: e.target.value })}
-                    placeholder="ZIP"
-                  />
+                  <div>
+                    <Label>{labels.pickup_city}</Label>
+                    <SelectWithRecent
+                      value={formData.origin_city}
+                      onChange={(val) => setFormData({ ...formData, origin_city: val })}
+                      placeholder="Start typing city..."
+                      recentValues={getRecentValues("pickup_city")}
+                    />
+                  </div>
+                  <div>
+                    <Label>State</Label>
+                    <SelectWithRecent
+                      value={formData.origin_state}
+                      onChange={(val) => setFormData({ ...formData, origin_state: val })}
+                      placeholder="State"
+                      recentValues={getRecentValues("pickup_state")}
+                      options={US_STATES}
+                    />
+                  </div>
+                  <div>
+                    <Label>ZIP</Label>
+                    <SelectWithRecent
+                      value={formData.origin_zip}
+                      onChange={(val) => setFormData({ ...formData, origin_zip: val })}
+                      placeholder="ZIP"
+                      recentValues={getRecentValues("pickup_zip")}
+                    />
+                  </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
@@ -580,19 +682,21 @@ export default function LoadsPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Contact Name</Label>
-                    <Input
+                    <Label>Pickup Contact Name</Label>
+                    <SelectWithRecent
                       value={formData.pickup_contact_name}
-                      onChange={(e) => setFormData({ ...formData, pickup_contact_name: e.target.value })}
+                      onChange={(val) => setFormData({ ...formData, pickup_contact_name: val })}
                       placeholder="Shipper contact"
+                      recentValues={getRecentValues("pickup_contact_name")}
                     />
                   </div>
                   <div>
-                    <Label>Contact Phone</Label>
-                    <Input
+                    <Label>Pickup Contact Phone</Label>
+                    <SelectWithRecent
                       value={formData.pickup_contact_phone}
-                      onChange={(e) => setFormData({ ...formData, pickup_contact_phone: e.target.value })}
+                      onChange={(val) => setFormData({ ...formData, pickup_contact_phone: val })}
                       placeholder="(555) 555-5555"
+                      recentValues={getRecentValues("pickup_contact_phone")}
                     />
                   </div>
                 </div>
@@ -614,28 +718,40 @@ export default function LoadsPage() {
                 </div>
               </div>
 
-              {/* Destination */}
+              {/* Delivery Location */}
               <div className="border rounded-lg p-4 space-y-4">
                 <h3 className="font-semibold flex items-center gap-2">
-                  <MapPin className="h-4 w-4" /> Delivery Location
+                  <Flag className="h-4 w-4" /> Delivery Location
                 </h3>
                 <div className="grid grid-cols-3 gap-4">
-                  <Input
-                    value={formData.destination_city}
-                    onChange={(e) => setFormData({ ...formData, destination_city: e.target.value })}
-                    placeholder="City"
-                  />
-                  <Input
-                    value={formData.destination_state}
-                    onChange={(e) => setFormData({ ...formData, destination_state: e.target.value })}
-                    placeholder="State"
-                    maxLength={2}
-                  />
-                  <Input
-                    value={formData.destination_zip}
-                    onChange={(e) => setFormData({ ...formData, destination_zip: e.target.value })}
-                    placeholder="ZIP"
-                  />
+                  <div>
+                    <Label>{labels.delivery_city}</Label>
+                    <SelectWithRecent
+                      value={formData.destination_city}
+                      onChange={(val) => setFormData({ ...formData, destination_city: val })}
+                      placeholder="Start typing city..."
+                      recentValues={getRecentValues("delivery_city")}
+                    />
+                  </div>
+                  <div>
+                    <Label>State</Label>
+                    <SelectWithRecent
+                      value={formData.destination_state}
+                      onChange={(val) => setFormData({ ...formData, destination_state: val })}
+                      placeholder="State"
+                      recentValues={getRecentValues("delivery_state")}
+                      options={US_STATES}
+                    />
+                  </div>
+                  <div>
+                    <Label>ZIP</Label>
+                    <SelectWithRecent
+                      value={formData.destination_zip}
+                      onChange={(val) => setFormData({ ...formData, destination_zip: val })}
+                      placeholder="ZIP"
+                      recentValues={getRecentValues("delivery_zip")}
+                    />
+                  </div>
                 </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
@@ -665,19 +781,21 @@ export default function LoadsPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Contact Name</Label>
-                    <Input
+                    <Label>Delivery Contact Name</Label>
+                    <SelectWithRecent
                       value={formData.delivery_contact_name}
-                      onChange={(e) => setFormData({ ...formData, delivery_contact_name: e.target.value })}
+                      onChange={(val) => setFormData({ ...formData, delivery_contact_name: val })}
                       placeholder="Receiver contact"
+                      recentValues={getRecentValues("delivery_contact_name")}
                     />
                   </div>
                   <div>
-                    <Label>Contact Phone</Label>
-                    <Input
+                    <Label>Delivery Contact Phone</Label>
+                    <SelectWithRecent
                       value={formData.delivery_contact_phone}
-                      onChange={(e) => setFormData({ ...formData, delivery_contact_phone: e.target.value })}
+                      onChange={(val) => setFormData({ ...formData, delivery_contact_phone: val })}
                       placeholder="(555) 555-5555"
+                      recentValues={getRecentValues("delivery_contact_phone")}
                     />
                   </div>
                 </div>
@@ -906,6 +1024,7 @@ export default function LoadsPage() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
