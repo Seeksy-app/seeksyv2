@@ -207,7 +207,7 @@ export function TopNavBar() {
               </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link to="/settings/profile">
+                <Link to={location.pathname.startsWith('/admin') || location.pathname.startsWith('/cfo') ? '/admin/profile-settings' : '/settings'}>
                   <User className="h-4 w-4 mr-2" />
                   Profile
                 </Link>

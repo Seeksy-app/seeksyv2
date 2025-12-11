@@ -121,6 +121,13 @@ export function VeteransLayout({ children }: VeteransLayoutProps) {
           </div>
           
           <div className="flex items-center gap-2">
+            {user && (
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/yourbenefits/dashboard">
+                  Dashboard
+                </Link>
+              </Button>
+            )}
             <Button asChild variant="ghost" size="sm">
               <Link to="/yourbenefits#calculators-section">
                 <Calculator className="w-4 h-4 mr-2" />

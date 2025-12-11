@@ -64,7 +64,7 @@ export default function VeteransHome() {
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
               Maximize Your{" "}
-              <span className="text-primary">Federal&nbsp;Benefits</span>
+              <span className="text-primary">Military and Federal Benefits</span>
             </h1>
             
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">

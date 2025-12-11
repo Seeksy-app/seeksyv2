@@ -467,8 +467,8 @@ export default function ClaimsAgent() {
       <header className="border-b bg-card flex-shrink-0 px-4 py-3">
         <div className="flex items-center justify-between max-w-4xl mx-auto">
           <div className="flex items-center gap-3">
-            <Link to="/yourbenefits" className="text-sm text-muted-foreground hover:text-foreground">
-              ← Benefits Home
+            <Link to="/yourbenefits/dashboard" className="text-sm text-muted-foreground hover:text-foreground">
+              ← Dashboard
             </Link>
           </div>
           <Button 
@@ -482,9 +482,9 @@ export default function ClaimsAgent() {
         </div>
       </header>
 
-      {/* Calculators Modal */}
+      {/* Calculators Modal - Organized by Category */}
       <Dialog open={showCalculators} onOpenChange={setShowCalculators}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Calculator className="w-5 h-5 text-primary" />
@@ -494,47 +494,223 @@ export default function ClaimsAgent() {
               Estimate your military and federal benefits
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-3 py-4">
-            <Link to="/yourbenefits/calculators/va-combined-rating" onClick={() => setShowCalculators(false)}>
-              <Button variant="outline" className="w-full justify-start h-auto py-3">
-                <div className="text-left">
-                  <p className="font-medium">VA Combined Rating</p>
-                  <p className="text-xs text-muted-foreground">Calculate combined disability rating</p>
-                </div>
-              </Button>
-            </Link>
-            <Link to="/yourbenefits/calculators/va-compensation" onClick={() => setShowCalculators(false)}>
-              <Button variant="outline" className="w-full justify-start h-auto py-3">
-                <div className="text-left">
-                  <p className="font-medium">VA Compensation</p>
-                  <p className="text-xs text-muted-foreground">Estimate monthly compensation</p>
-                </div>
-              </Button>
-            </Link>
-            <Link to="/yourbenefits/calculators/tsp" onClick={() => setShowCalculators(false)}>
-              <Button variant="outline" className="w-full justify-start h-auto py-3">
-                <div className="text-left">
-                  <p className="font-medium">TSP Calculator</p>
-                  <p className="text-xs text-muted-foreground">Project retirement savings</p>
-                </div>
-              </Button>
-            </Link>
-            <Link to="/yourbenefits/calculators/military-buyback" onClick={() => setShowCalculators(false)}>
-              <Button variant="outline" className="w-full justify-start h-auto py-3">
-                <div className="text-left">
-                  <p className="font-medium">Military Buy-Back</p>
-                  <p className="text-xs text-muted-foreground">Calculate service credit deposit</p>
-                </div>
-              </Button>
-            </Link>
-            <Link to="/yourbenefits/calculators/sick-leave" onClick={() => setShowCalculators(false)}>
-              <Button variant="outline" className="w-full justify-start h-auto py-3">
-                <div className="text-left">
-                  <p className="font-medium">Sick Leave Credit</p>
-                  <p className="text-xs text-muted-foreground">Convert leave to service time</p>
-                </div>
-              </Button>
-            </Link>
+          <div className="space-y-6 py-4">
+            {/* VA Disability */}
+            <div>
+              <h3 className="text-sm font-semibold text-red-500 mb-2">VA Disability</h3>
+              <div className="grid gap-2">
+                <Link to="/yourbenefits/calculators/va-combined-rating" onClick={() => setShowCalculators(false)}>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2 px-3">
+                    <div className="text-left">
+                      <p className="font-medium text-sm">VA Combined Rating</p>
+                      <p className="text-xs text-muted-foreground">Calculate combined disability rating</p>
+                    </div>
+                  </Button>
+                </Link>
+                <Link to="/yourbenefits/calculators/va-compensation" onClick={() => setShowCalculators(false)}>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2 px-3">
+                    <div className="text-left">
+                      <p className="font-medium text-sm">VA Compensation</p>
+                      <p className="text-xs text-muted-foreground">Estimate monthly compensation</p>
+                    </div>
+                  </Button>
+                </Link>
+                <Link to="/yourbenefits/tools/crsc" onClick={() => setShowCalculators(false)}>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2 px-3">
+                    <div className="text-left">
+                      <p className="font-medium text-sm">CRSC Screener</p>
+                      <p className="text-xs text-muted-foreground">Combat-Related Special Compensation eligibility</p>
+                    </div>
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Retirement */}
+            <div>
+              <h3 className="text-sm font-semibold text-blue-500 mb-2">Retirement</h3>
+              <div className="grid gap-2">
+                <Link to="/yourbenefits/calculators/military-buyback" onClick={() => setShowCalculators(false)}>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2 px-3">
+                    <div className="text-left">
+                      <p className="font-medium text-sm">Military Buy-Back</p>
+                      <p className="text-xs text-muted-foreground">Calculate service credit deposit</p>
+                    </div>
+                  </Button>
+                </Link>
+                <Link to="/yourbenefits/calculators/mra" onClick={() => setShowCalculators(false)}>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2 px-3">
+                    <div className="text-left">
+                      <p className="font-medium text-sm">MRA Calculator</p>
+                      <p className="text-xs text-muted-foreground">Find your minimum retirement age</p>
+                    </div>
+                  </Button>
+                </Link>
+                <Link to="/yourbenefits/calculators/sick-leave" onClick={() => setShowCalculators(false)}>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2 px-3">
+                    <div className="text-left">
+                      <p className="font-medium text-sm">Sick Leave Credit</p>
+                      <p className="text-xs text-muted-foreground">Convert leave to service time</p>
+                    </div>
+                  </Button>
+                </Link>
+                <Link to="/yourbenefits/calculators/fers-pension" onClick={() => setShowCalculators(false)}>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2 px-3">
+                    <div className="text-left">
+                      <p className="font-medium text-sm">FERS Pension</p>
+                      <p className="text-xs text-muted-foreground">Estimate your FERS pension</p>
+                    </div>
+                  </Button>
+                </Link>
+                <Link to="/yourbenefits/calculators/tsp-growth" onClick={() => setShowCalculators(false)}>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2 px-3">
+                    <div className="text-left">
+                      <p className="font-medium text-sm">TSP Growth</p>
+                      <p className="text-xs text-muted-foreground">Project retirement savings</p>
+                    </div>
+                  </Button>
+                </Link>
+                <Link to="/yourbenefits/calculators/cola" onClick={() => setShowCalculators(false)}>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2 px-3">
+                    <div className="text-left">
+                      <p className="font-medium text-sm">COLA Estimator</p>
+                      <p className="text-xs text-muted-foreground">Project cost-of-living adjustments</p>
+                    </div>
+                  </Button>
+                </Link>
+                <Link to="/yourbenefits/calculators/brs-comparison" onClick={() => setShowCalculators(false)}>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2 px-3">
+                    <div className="text-left">
+                      <p className="font-medium text-sm">BRS vs Legacy</p>
+                      <p className="text-xs text-muted-foreground">Compare retirement systems</p>
+                    </div>
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Transition */}
+            <div>
+              <h3 className="text-sm font-semibold text-amber-500 mb-2">Transition</h3>
+              <div className="grid gap-2">
+                <Link to="/yourbenefits/tools/separation-readiness" onClick={() => setShowCalculators(false)}>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2 px-3">
+                    <div className="text-left">
+                      <p className="font-medium text-sm">Separation Readiness</p>
+                      <p className="text-xs text-muted-foreground">Check your readiness score</p>
+                    </div>
+                  </Button>
+                </Link>
+                <Link to="/yourbenefits/calculators/leave-sellback" onClick={() => setShowCalculators(false)}>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2 px-3">
+                    <div className="text-left">
+                      <p className="font-medium text-sm">Leave Sell-Back</p>
+                      <p className="text-xs text-muted-foreground">Estimate unused leave value</p>
+                    </div>
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Healthcare */}
+            <div>
+              <h3 className="text-sm font-semibold text-cyan-500 mb-2">Healthcare</h3>
+              <div className="grid gap-2">
+                <Link to="/yourbenefits/tools/champva-eligibility" onClick={() => setShowCalculators(false)}>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2 px-3">
+                    <div className="text-left">
+                      <p className="font-medium text-sm">CHAMPVA Eligibility</p>
+                      <p className="text-xs text-muted-foreground">Check CHAMPVA eligibility</p>
+                    </div>
+                  </Button>
+                </Link>
+                <Link to="/yourbenefits/tools/tricare-finder" onClick={() => setShowCalculators(false)}>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2 px-3">
+                    <div className="text-left">
+                      <p className="font-medium text-sm">TRICARE Finder</p>
+                      <p className="text-xs text-muted-foreground">Find your TRICARE options</p>
+                    </div>
+                  </Button>
+                </Link>
+                <Link to="/yourbenefits/tools/va-means-test" onClick={() => setShowCalculators(false)}>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2 px-3">
+                    <div className="text-left">
+                      <p className="font-medium text-sm">VA Means Test</p>
+                      <p className="text-xs text-muted-foreground">Estimate priority group</p>
+                    </div>
+                  </Button>
+                </Link>
+                <Link to="/yourbenefits/calculators/va-travel" onClick={() => setShowCalculators(false)}>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2 px-3">
+                    <div className="text-left">
+                      <p className="font-medium text-sm">VA Travel Reimbursement</p>
+                      <p className="text-xs text-muted-foreground">Estimate travel benefits</p>
+                    </div>
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Education */}
+            <div>
+              <h3 className="text-sm font-semibold text-purple-500 mb-2">Education</h3>
+              <div className="grid gap-2">
+                <Link to="/yourbenefits/calculators/gi-bill" onClick={() => setShowCalculators(false)}>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2 px-3">
+                    <div className="text-left">
+                      <p className="font-medium text-sm">GI Bill Estimator</p>
+                      <p className="text-xs text-muted-foreground">Estimate education benefits</p>
+                    </div>
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Protection */}
+            <div>
+              <h3 className="text-sm font-semibold text-pink-500 mb-2">Protection</h3>
+              <div className="grid gap-2">
+                <Link to="/yourbenefits/calculators/sbp" onClick={() => setShowCalculators(false)}>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2 px-3">
+                    <div className="text-left">
+                      <p className="font-medium text-sm">Survivor Benefit Plan</p>
+                      <p className="text-xs text-muted-foreground">Calculate SBP costs and benefits</p>
+                    </div>
+                  </Button>
+                </Link>
+                <Link to="/yourbenefits/calculators/insurance-needs" onClick={() => setShowCalculators(false)}>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2 px-3">
+                    <div className="text-left">
+                      <p className="font-medium text-sm">Life Insurance Needs</p>
+                      <p className="text-xs text-muted-foreground">Estimate coverage needs</p>
+                    </div>
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Taxes */}
+            <div>
+              <h3 className="text-sm font-semibold text-green-500 mb-2">Taxes</h3>
+              <div className="grid gap-2">
+                <Link to="/yourbenefits/calculators/state-tax-benefits" onClick={() => setShowCalculators(false)}>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2 px-3">
+                    <div className="text-left">
+                      <p className="font-medium text-sm">State Tax Benefits</p>
+                      <p className="text-xs text-muted-foreground">Estimate state tax savings</p>
+                    </div>
+                  </Button>
+                </Link>
+                <Link to="/yourbenefits/calculators/property-tax-exemption" onClick={() => setShowCalculators(false)}>
+                  <Button variant="outline" className="w-full justify-start h-auto py-2 px-3">
+                    <div className="text-left">
+                      <p className="font-medium text-sm">Property Tax Exemption</p>
+                      <p className="text-xs text-muted-foreground">Check property tax benefits</p>
+                    </div>
+                  </Button>
+                </Link>
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
