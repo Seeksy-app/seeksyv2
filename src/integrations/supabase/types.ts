@@ -4502,6 +4502,133 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_candidates: {
+        Row: {
+          campaign_status: string | null
+          created_at: string | null
+          display_name: string
+          election_date: string | null
+          id: string
+          jurisdiction: string | null
+          office: string | null
+          party_or_affiliation: string | null
+          preferred_name: string | null
+          timezone: string | null
+          top_issues: string[] | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          campaign_status?: string | null
+          created_at?: string | null
+          display_name: string
+          election_date?: string | null
+          id?: string
+          jurisdiction?: string | null
+          office?: string | null
+          party_or_affiliation?: string | null
+          preferred_name?: string | null
+          timezone?: string | null
+          top_issues?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          campaign_status?: string | null
+          created_at?: string | null
+          display_name?: string
+          election_date?: string | null
+          id?: string
+          jurisdiction?: string | null
+          office?: string | null
+          party_or_affiliation?: string | null
+          preferred_name?: string | null
+          timezone?: string | null
+          top_issues?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      campaign_chat_messages: {
+        Row: {
+          candidate_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          role: string
+          session_id: string | null
+        }
+        Insert: {
+          candidate_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          role: string
+          session_id?: string | null
+        }
+        Update: {
+          candidate_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          role?: string
+          session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_chat_messages_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_content_items: {
+        Row: {
+          body: string | null
+          candidate_id: string | null
+          channel: string | null
+          created_at: string | null
+          id: string
+          tags: string[] | null
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          body?: string | null
+          candidate_id?: string | null
+          channel?: string | null
+          created_at?: string | null
+          id?: string
+          tags?: string[] | null
+          title: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          body?: string | null
+          candidate_id?: string | null
+          channel?: string | null
+          created_at?: string | null
+          id?: string
+          tags?: string[] | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_content_items_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_creator_matches: {
         Row: {
           campaign_id: string
@@ -4552,6 +4679,56 @@ export type Database = {
             columns: ["creator_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_events: {
+        Row: {
+          candidate_id: string | null
+          created_at: string | null
+          datetime: string | null
+          event_type: string | null
+          id: string
+          is_virtual: boolean | null
+          location: string | null
+          notes: string | null
+          title: string
+          updated_at: string | null
+          virtual_link: string | null
+        }
+        Insert: {
+          candidate_id?: string | null
+          created_at?: string | null
+          datetime?: string | null
+          event_type?: string | null
+          id?: string
+          is_virtual?: boolean | null
+          location?: string | null
+          notes?: string | null
+          title: string
+          updated_at?: string | null
+          virtual_link?: string | null
+        }
+        Update: {
+          candidate_id?: string | null
+          created_at?: string | null
+          datetime?: string | null
+          event_type?: string | null
+          id?: string
+          is_virtual?: boolean | null
+          location?: string | null
+          notes?: string | null
+          title?: string
+          updated_at?: string | null
+          virtual_link?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_events_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_candidates"
             referencedColumns: ["id"]
           },
         ]
@@ -4664,6 +4841,53 @@ export type Database = {
           },
         ]
       }
+      campaign_plans: {
+        Row: {
+          ai_notes: string | null
+          candidate_id: string | null
+          created_at: string | null
+          daily_action_items: Json | null
+          fundraising_goal: number | null
+          high_level_strategy: string | null
+          id: string
+          key_messages: string[] | null
+          target_voter_segments: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_notes?: string | null
+          candidate_id?: string | null
+          created_at?: string | null
+          daily_action_items?: Json | null
+          fundraising_goal?: number | null
+          high_level_strategy?: string | null
+          id?: string
+          key_messages?: string[] | null
+          target_voter_segments?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_notes?: string | null
+          candidate_id?: string | null
+          created_at?: string | null
+          daily_action_items?: Json | null
+          fundraising_goal?: number | null
+          high_level_strategy?: string | null
+          id?: string
+          key_messages?: string[] | null
+          target_voter_segments?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_plans_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_properties: {
         Row: {
           allocated_budget: number
@@ -4767,6 +4991,59 @@ export type Database = {
             columns: ["multi_channel_campaign_id"]
             isOneToOne: false
             referencedRelation: "multi_channel_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_sites: {
+        Row: {
+          about_copy: string | null
+          brand_colors: Json | null
+          candidate_id: string | null
+          created_at: string | null
+          donate_url: string | null
+          id: string
+          is_published: boolean | null
+          issues_copy: string | null
+          logo_url: string | null
+          slogan: string | null
+          slug: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          about_copy?: string | null
+          brand_colors?: Json | null
+          candidate_id?: string | null
+          created_at?: string | null
+          donate_url?: string | null
+          id?: string
+          is_published?: boolean | null
+          issues_copy?: string | null
+          logo_url?: string | null
+          slogan?: string | null
+          slug?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          about_copy?: string | null
+          brand_colors?: Json | null
+          candidate_id?: string | null
+          created_at?: string | null
+          donate_url?: string | null
+          id?: string
+          is_published?: boolean | null
+          issues_copy?: string | null
+          logo_url?: string | null
+          slogan?: string | null
+          slug?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_sites_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_candidates"
             referencedColumns: ["id"]
           },
         ]
