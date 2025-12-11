@@ -19,6 +19,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-
 import { CSS } from "@dnd-kit/utilities";
 import { CategoryManager } from "@/components/tasks/CategoryManager";
 import { CategorySelect } from "@/components/tasks/CategorySelect";
+import { SectionSelect, useSections } from "@/components/tasks/SectionSelect";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTaskReminders } from "@/hooks/useTaskReminders";
 import { TaskComments } from "@/components/tasks/TaskComments";
@@ -31,6 +32,7 @@ interface Task {
   category: string;
   priority: string;
   status: string;
+  section: string | null;
   assigned_to: string | null;
   due_date: string | null;
   created_at: string;
@@ -272,9 +274,12 @@ export default function Tasks() {
     category: "general",
     priority: "medium",
     status: "backlog",
+    section: "none",
     assigned_to: "unassigned",
     due_date: "",
   });
+
+  const { sections, getSectionColor, reloadSections } = useSections();
 
   useEffect(() => {
     const initialize = async () => {
@@ -445,6 +450,7 @@ export default function Tasks() {
           .from("tasks")
           .update({
             ...formData,
+            section: formData.section === "none" ? null : formData.section,
             assigned_to: formData.assigned_to === "unassigned" ? null : formData.assigned_to,
             due_date: formData.due_date || null,
           })
@@ -461,6 +467,7 @@ export default function Tasks() {
           .from("tasks")
           .insert({
             ...formData,
+            section: formData.section === "none" ? null : formData.section,
             assigned_to: formData.assigned_to === "unassigned" ? null : formData.assigned_to,
             due_date: formData.due_date || null,
             user_id: user.id,
@@ -480,6 +487,7 @@ export default function Tasks() {
         category: "general",
         priority: "medium",
         status: "backlog",
+        section: "none",
         assigned_to: "unassigned",
         due_date: "",
       });
@@ -503,6 +511,7 @@ export default function Tasks() {
       category: task.category,
       priority: task.priority,
       status: task.status,
+      section: task.section || "none",
       assigned_to: task.assigned_to || "unassigned",
       due_date: task.due_date || "",
     });
@@ -935,6 +944,7 @@ export default function Tasks() {
                 category: "general",
                 priority: "medium",
                 status: "backlog",
+                section: "none",
                 assigned_to: "unassigned",
                 due_date: "",
               });
@@ -1015,7 +1025,14 @@ export default function Tasks() {
                       <SelectItem value="cancelled">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+              </div>
+              <div>
+                <Label htmlFor="section">Section / Group</Label>
+                <SectionSelect
+                  value={formData.section}
+                  onValueChange={(value) => setFormData({ ...formData, section: value })}
+                />
+              </div>
               </div>
               <div>
                 <Label htmlFor="assigned_to">Assign To</Label>
@@ -1226,6 +1243,12 @@ export default function Tasks() {
                     <ArrowUpDown className="ml-2 h-3 w-3" />
                   </Button>
                 </TableHead>
+                <TableHead>
+                  <Button variant="ghost" size="sm" onClick={() => handleSort("section")} className="h-8 px-2">
+                    Section
+                    <ArrowUpDown className="ml-2 h-3 w-3" />
+                  </Button>
+                </TableHead>
                 <TableHead>Assigned To</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -1290,6 +1313,18 @@ export default function Tasks() {
                         className="h-8 w-36 text-xs"
                         placeholder="Set due date"
                       />
+                    </TableCell>
+                    <TableCell className="py-2">
+                      {task.section ? (
+                        <Badge 
+                          className="text-white text-xs cursor-default"
+                          style={{ backgroundColor: getSectionColor(task.section) }}
+                        >
+                          {task.section}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
                     </TableCell>
                     <TableCell className="py-2">
                       <div className="flex items-center gap-3">
