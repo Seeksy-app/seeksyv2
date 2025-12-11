@@ -74,13 +74,13 @@ export default function VeteranBenefitsOpportunity() {
           </p>
           
           <div className="flex flex-wrap gap-4">
-            <Link to="/veterans">
+            <Link to="/yourbenefits">
               <Button size="lg" className="bg-white text-orange-700 hover:bg-orange-50">
                 View Live Demo
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </Link>
-            <Link to="/veterans/claims-agent">
+            <Link to="/yourbenefits/claims-agent">
               <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
                 Try AI Claims Agent
               </Button>
@@ -164,7 +164,7 @@ export default function VeteranBenefitsOpportunity() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Link to="/veterans/calculators/military-buyback">
+              <Link to="/yourbenefits/calculators/military-buyback">
                 <Button variant="outline" size="sm" className="w-full">
                   Try Calculator Demo
                 </Button>
@@ -181,7 +181,7 @@ export default function VeteranBenefitsOpportunity() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Link to="/veterans/claims-agent">
+              <Link to="/yourbenefits/claims-agent">
                 <Button variant="outline" size="sm" className="w-full">
                   Try Claims Agent Demo
                 </Button>

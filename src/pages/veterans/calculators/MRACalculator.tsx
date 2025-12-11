@@ -50,9 +50,9 @@ export default function MRACalculator() {
   return (
     <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4 max-w-4xl">
-        <Link to="/veterans" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6">
+        <Link to="/yourbenefits" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6">
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Veterans Home
+          Back to Benefits Home
         </Link>
 
         <div className="text-center mb-8">
@@ -235,21 +235,6 @@ export default function MRACalculator() {
               </CardContent>
             </Card>
 
-            {/* Official Source Note */}
-            <Card className="bg-muted/30">
-              <CardContent className="pt-6">
-                <p className="text-sm text-center">
-                  <strong className="text-destructive">Official Source:</strong> This calculator uses the official OPM FERS Minimum Retirement Age table as defined in 5 USC §8412. MRA ranges from 55 to 57 years depending on your birth year.
-                </p>
-                <p className="text-sm text-center text-muted-foreground mt-2">
-                  Your specific retirement eligibility may vary based on your type of federal service, special provisions, and other factors.{" "}
-                  <Link to="/veterans/claims-agent" className="text-[#1a5490] hover:underline">
-                    Consult with a benefits specialist →
-                  </Link>
-                </p>
-              </CardContent>
-            </Card>
-
             {/* Schedule Consultation CTA */}
             <Card className="border-destructive/30 bg-red-50">
               <CardContent className="pt-6">
@@ -270,40 +255,14 @@ export default function MRACalculator() {
               </CardContent>
             </Card>
 
-            {/* Main CTA */}
-            <div className="text-center">
-              <Button 
-                size="lg" 
-                className="bg-destructive hover:bg-destructive/90 text-lg px-8"
-                asChild
-              >
-                <Link to="/veterans/claims-agent">
-                  GET YOUR FREE BENEFITS REVIEW →
-                </Link>
-              </Button>
-            </div>
-
-            {/* Partner Image */}
-            <div className="text-center">
-              <img 
-                src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&auto=format&fit=crop" 
-                alt="Benefits service providers ready to help" 
-                className="w-full max-w-2xl mx-auto rounded-lg shadow-lg"
-              />
-              <p className="text-sm text-muted-foreground mt-2">Our network of trusted benefits specialists</p>
-            </div>
-
             {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex justify-center">
               <Button 
                 onClick={() => { setResults(null); setShowSampleResults(false); }} 
                 variant="outline" 
-                className="flex-1"
+                className="min-w-[200px]"
               >
                 Calculate Again
-              </Button>
-              <Button asChild className="flex-1">
-                <Link to="/veterans/claims-agent">Talk to Claims Agent</Link>
               </Button>
             </div>
           </div>

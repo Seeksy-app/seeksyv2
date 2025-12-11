@@ -40,9 +40,9 @@ export default function SickLeaveCalculator() {
   return (
     <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4 max-w-4xl">
-        <Link to="/veterans" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6">
+        <Link to="/yourbenefits" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6">
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Veterans Home
+          Back to Benefits Home
         </Link>
 
         <div className="text-center mb-8">
@@ -264,30 +264,14 @@ export default function SickLeaveCalculator() {
               </CardContent>
             </Card>
 
-            {/* Main CTA */}
-            <div className="text-center">
-              <Button 
-                size="lg" 
-                className="bg-destructive hover:bg-destructive/90 text-lg px-8"
-                asChild
-              >
-                <Link to="/veterans/claims-agent">
-                  GET YOUR FREE BENEFITS REVIEW →
-                </Link>
-              </Button>
-            </div>
-
             {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex justify-center">
               <Button 
                 onClick={() => { setResults(null); setShowSampleResults(false); }} 
                 variant="outline" 
-                className="flex-1"
+                className="min-w-[200px]"
               >
                 Calculate Again
-              </Button>
-              <Button asChild className="flex-1">
-                <Link to="/veterans/claims-agent">Talk to Claims Agent</Link>
               </Button>
             </div>
           </div>
