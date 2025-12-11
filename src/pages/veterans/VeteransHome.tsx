@@ -40,7 +40,7 @@ const ICON_MAP: Record<string, any> = {
 export default function VeteransHome() {
   const featuredTools = [
     {
-      title: "AI Claims Agent",
+      title: "AI Benefits Agent",
       description: "Get personalized guidance on filing your VA disability claim with Intent to File support",
       icon: MessageSquare,
       href: "/yourbenefits/claims-agent",
@@ -67,6 +67,17 @@ export default function VeteransHome() {
             <Shield className="w-6 h-6 text-primary" />
             <span className="font-semibold">Military & Federal Benefits Hub</span>
           </Link>
+          <nav className="hidden md:flex items-center gap-6">
+            <button onClick={scrollToCalculators} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Calculators
+            </button>
+            <Link to="/yourbenefits/referral-partners" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Referral Program
+            </Link>
+            <Link to="/yourbenefits/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              About Us
+            </Link>
+          </nav>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm">
               <Link to="/yourbenefits/auth">Login</Link>
@@ -149,23 +160,36 @@ export default function VeteransHome() {
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
       </section>
 
-      {/* AI Claims Agent Featured */}
-      <section className="py-12 container mx-auto px-4">
+      {/* AI Benefits Agent Featured - Improved transition */}
+      <section className="py-16 container mx-auto px-4 -mt-8">
         <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold mb-2">Get Started with AI-Powered Guidance</h2>
+            <p className="text-muted-foreground">Let our AI Benefits Agent walk you through the claims process step by step</p>
+          </div>
           <Link to="/yourbenefits/claims-agent">
-            <Card className="border-2 border-primary/30 bg-primary/5 transition-all hover:shadow-lg hover:border-primary/50">
-              <CardHeader>
+            <Card className="border-2 border-primary/30 bg-gradient-to-r from-primary/5 to-orange-500/5 transition-all hover:shadow-xl hover:border-primary/50 hover:-translate-y-1">
+              <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
-                  <div className="p-3 rounded-lg bg-background border text-orange-500">
-                    <MessageSquare className="w-6 h-6" />
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-lg">
+                    <MessageSquare className="w-8 h-8" />
                   </div>
-                  <span className="text-xs font-semibold bg-primary text-primary-foreground px-2 py-1 rounded">
+                  <span className="text-xs font-semibold bg-primary text-primary-foreground px-3 py-1.5 rounded-full">
                     AI-POWERED
                   </span>
                 </div>
-                <CardTitle className="text-xl">AI Claims Agent</CardTitle>
-                <CardDescription className="text-base">Get personalized guidance on filing your VA disability claim with Intent to File support</CardDescription>
+                <CardTitle className="text-2xl mt-4">AI Benefits Agent</CardTitle>
+                <CardDescription className="text-base">
+                  Get personalized guidance on filing your VA disability claim with Intent to File support. 
+                  Our AI walks you through each step and helps you gather the right documentation.
+                </CardDescription>
               </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2 text-primary font-medium">
+                  <span>Start Your Claim</span>
+                  <span className="text-lg">→</span>
+                </div>
+              </CardContent>
             </Card>
           </Link>
         </div>
