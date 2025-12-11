@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Truck, Phone, Shield, Zap, CheckCircle, ArrowRight } from "lucide-react";
+import truckingHero from "@/assets/trucking-hero.png";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -14,6 +15,7 @@ export default function TruckingLandingPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [authOpen, setAuthOpen] = useState(false);
+  const [authTab, setAuthTab] = useState<"login" | "signup">("login");
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -80,30 +82,50 @@ export default function TruckingLandingPage() {
           </div>
           <span className="font-bold text-2xl">AITrucking</span>
         </div>
-        <Button onClick={() => setAuthOpen(true)}>
-          Get Started
-        </Button>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" onClick={() => { setAuthOpen(true); setAuthTab("login"); }}>
+            Login
+          </Button>
+          <Button onClick={() => { setAuthOpen(true); setAuthTab("signup"); }}>
+            Get Started
+          </Button>
+        </div>
       </header>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20 text-center">
-        <div className="max-w-3xl mx-auto space-y-6">
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
-            Let AI answer your{" "}
-            <span className="text-primary">load calls</span>
-          </h1>
-          <p className="text-xl text-muted-foreground">
-            AITrucking listens to carrier calls, quotes rates within your rules, 
-            and sends you only the loads worth your time.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Button size="lg" onClick={() => setAuthOpen(true)}>
-              Start Free
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-            <Button size="lg" variant="outline">
-              Watch How It Works
-            </Button>
+      <section className="container mx-auto px-4 py-20">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="space-y-6 text-center lg:text-left">
+            <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
+              Let AI answer your{" "}
+              <span className="text-primary">load calls</span>
+            </h1>
+            <p className="text-xl text-muted-foreground">
+              AITrucking listens to carrier calls, quotes rates within your rules, 
+              and sends you only the loads worth your time.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
+              <Button size="lg" onClick={() => { setAuthOpen(true); setAuthTab("signup"); }}>
+                Start Free
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+              <Button size="lg" variant="outline">
+                Watch How It Works
+              </Button>
+            </div>
+          </div>
+          
+          {/* Truck Image with Shadow */}
+          <div className="relative flex justify-center lg:justify-end">
+            <div className="relative">
+              <img 
+                src={truckingHero} 
+                alt="Semi truck on highway" 
+                className="w-full max-w-md rounded-2xl shadow-2xl opacity-90"
+              />
+              {/* Subtle gradient overlay to blend with background */}
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-background/40 via-transparent to-transparent" />
+            </div>
           </div>
         </div>
       </section>
@@ -163,7 +185,7 @@ export default function TruckingLandingPage() {
           <p className="text-muted-foreground">
             Set up in minutes. Your AI dispatcher starts taking calls today.
           </p>
-          <Button size="lg" onClick={() => setAuthOpen(true)}>
+          <Button size="lg" onClick={() => { setAuthOpen(true); setAuthTab("signup"); }}>
             Get Started Free
           </Button>
         </div>
@@ -182,7 +204,7 @@ export default function TruckingLandingPage() {
             </DialogDescription>
           </DialogHeader>
           
-          <Tabs defaultValue="login" className="mt-4">
+          <Tabs value={authTab} onValueChange={(v) => setAuthTab(v as "login" | "signup")} className="mt-4">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
