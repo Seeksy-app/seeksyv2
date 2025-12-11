@@ -5,7 +5,7 @@ import { ArrowRight, Play, Sparkles, ShieldCheck, Scale } from "lucide-react";
 
 // Import political images
 import rallyImg from "@/assets/campaign/political-rally.jpg";
-import speechImg from "@/assets/campaign/political-speech.jpg";
+import rallySpeakerImg from "@/assets/campaign/rally-speaker.jpg";
 import debateImg from "@/assets/campaign/political-debate.jpg";
 import volunteersImg from "@/assets/campaign/campaign-volunteers.jpg";
 import townHallImg from "@/assets/campaign/town-hall.jpg";
@@ -24,7 +24,7 @@ const colors = {
 // Grid images for Netflix-style background
 const gridImages = [
   { src: rallyImg, alt: "Political rally" },
-  { src: speechImg, alt: "Campaign speech" },
+  { src: rallySpeakerImg, alt: "Rally speaker" },
   { src: debateImg, alt: "Political debate" },
   { src: volunteersImg, alt: "Campaign volunteers" },
   { src: townHallImg, alt: "Town hall meeting" },
@@ -116,13 +116,13 @@ export function CampaignHeroNetflix({ onGetStarted }: CampaignHeroNetflixProps) 
           </div>
         </div>
         
-        {/* Dark overlay gradient - stronger in center for text readability */}
+        {/* Dark overlay gradient - lighter for better image visibility */}
         <div 
           className="absolute inset-0"
           style={{
             background: `
-              radial-gradient(ellipse 80% 60% at 50% 50%, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.6) 50%, rgba(0, 0, 0, 0.4) 100%),
-              linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.7) 100%)
+              radial-gradient(ellipse 80% 60% at 50% 50%, rgba(0, 0, 0, 0.77) 0%, rgba(0, 0, 0, 0.52) 50%, rgba(0, 0, 0, 0.32) 100%),
+              linear-gradient(to bottom, rgba(0, 0, 0, 0.22) 0%, rgba(0, 0, 0, 0.62) 100%)
             `
           }}
         />
