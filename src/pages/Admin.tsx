@@ -17,6 +17,7 @@ import {
   Shield
 } from "lucide-react";
 import { SecurityAlertsPanel } from "@/components/admin/SecurityAlertsPanel";
+import { TodaysTasks } from "@/components/admin/TodaysTasks";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -232,6 +233,9 @@ export default function Admin() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Today's Tasks */}
+      <TodaysTasks />
 
       {/* Quick Actions & Recent Activity */}
       <div className="grid gap-4 md:grid-cols-2">
