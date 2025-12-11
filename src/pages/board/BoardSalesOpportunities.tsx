@@ -9,15 +9,12 @@ import {
   Copy, 
   Check,
   Eye,
-  ChevronDown,
   Key,
-  Video,
   DollarSign,
   Calendar
 } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
-import { OpportunityInlineEditor } from "@/components/board/OpportunityInlineEditor";
 import { format } from "date-fns";
 
 interface SalesOpportunity {
@@ -44,7 +41,6 @@ interface SalesOpportunity {
 
 export default function BoardSalesOpportunities() {
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const { data: opportunities, isLoading } = useQuery({
     queryKey: ["board-sales-opportunities"],
@@ -78,10 +74,6 @@ export default function BoardSalesOpportunities() {
     }
   };
 
-  const toggleExpanded = (id: string) => {
-    setExpandedId(expandedId === id ? null : id);
-  };
-
   if (isLoading) {
     return (
       <div className="p-6 space-y-6">
@@ -101,7 +93,7 @@ export default function BoardSalesOpportunities() {
       <div>
         <h1 className="text-2xl font-bold">Sales Opportunities</h1>
         <p className="text-muted-foreground">
-          Manage and share investment opportunities with potential investors
+          View investment opportunities to share with potential investors
         </p>
       </div>
 
@@ -183,24 +175,17 @@ export default function BoardSalesOpportunities() {
               {/* Actions */}
               <div className="flex items-center gap-2 pt-3 border-t">
                 <Button 
-                  variant="default"
+                  variant="outline"
                   size="sm"
                   className="flex-1"
-                  onClick={() => toggleExpanded(opportunity.id)}
-                >
-                  <ChevronDown className={`w-4 h-4 mr-1 transition-transform ${expandedId === opportunity.id ? "rotate-180" : ""}`} />
-                  {expandedId === opportunity.id ? "Collapse" : "Edit"}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
                   onClick={() => copyShareLink(opportunity.slug)}
                 >
                   {copiedSlug === opportunity.slug ? (
-                    <Check className="w-4 h-4 text-green-600" />
+                    <Check className="w-4 h-4 text-green-600 mr-1" />
                   ) : (
-                    <Copy className="w-4 h-4" />
+                    <Copy className="w-4 h-4 mr-1" />
                   )}
+                  Copy Link
                 </Button>
                 <a 
                   href={`/invest/${opportunity.slug}`} 
@@ -216,14 +201,6 @@ export default function BoardSalesOpportunities() {
           </Card>
         ))}
       </div>
-
-      {/* Inline Editor (displayed below the grid) */}
-      {expandedId && opportunities && (
-        <OpportunityInlineEditor
-          opportunity={opportunities.find(o => o.id === expandedId)!}
-          onClose={() => setExpandedId(null)}
-        />
-      )}
 
       {/* Empty State */}
       {opportunities?.length === 0 && (

@@ -269,6 +269,20 @@ export const NAVIGATION_CONFIG: {
           "icon": "file-spreadsheet",
           "path": "/admin/investor-spreadsheets",
           "roles": ["admin", "super_admin", "cfo"]
+        },
+        {
+          "id": "admin_sales_opportunities",
+          "label": "Sales Opportunities",
+          "icon": "briefcase",
+          "path": "/admin/cfo/sales-opportunities",
+          "roles": ["admin", "super_admin", "cfo"]
+        },
+        {
+          "id": "admin_opportunity_proformas",
+          "label": "Opportunity Pro Formas",
+          "icon": "bar-chart-3",
+          "path": "/admin/cfo/opportunity-proformas",
+          "roles": ["admin", "super_admin", "cfo"]
         }
       ]
     },
