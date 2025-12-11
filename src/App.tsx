@@ -65,6 +65,7 @@ import TruckingAuthPage from "./pages/trucking/TruckingAuthPage";
 import TruckingProfilePage from "./pages/trucking/TruckingProfilePage";
 import LoadsPage from "./pages/trucking/LoadsPage";
 import CarrierLeadsPage from "./pages/trucking/CarrierLeadsPage";
+import ConfirmedLeadsPage from "./pages/trucking/ConfirmedLeadsPage";
 import CarriersPage from "./pages/trucking/CarriersPage";
 import TruckingSettingsPage from "./pages/trucking/TruckingSettingsPage";
 import AITruckingConsolePage from "./pages/trucking/AITruckingConsolePage";
@@ -782,6 +783,7 @@ const AppContent = () => {
         <Route path="/trucking/dashboard" element={<TruckingLayout><TruckingDashboardPage /></TruckingLayout>} />
         <Route path="/trucking/loads" element={<TruckingLayout><LoadsPage /></TruckingLayout>} />
         <Route path="/trucking/leads" element={<TruckingLayout><CarrierLeadsPage /></TruckingLayout>} />
+        <Route path="/trucking/confirmed-leads" element={<TruckingLayout><ConfirmedLeadsPage /></TruckingLayout>} />
         <Route path="/trucking/carriers" element={<TruckingLayout><CarriersPage /></TruckingLayout>} />
         <Route path="/trucking/settings" element={<TruckingLayout><TruckingSettingsPage /></TruckingLayout>} />
         <Route path="/trucking/console" element={<TruckingLayout><AITruckingConsolePage /></TruckingLayout>} />

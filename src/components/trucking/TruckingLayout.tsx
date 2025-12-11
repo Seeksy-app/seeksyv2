@@ -23,7 +23,8 @@ import {
   Menu,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  CheckCircle2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -54,6 +55,7 @@ const theme = {
 const navItems = [
   { label: "Dashboard", href: "/trucking/dashboard", icon: LayoutDashboard },
   { label: "Loads", href: "/trucking/loads", icon: PackageSearch },
+  { label: "Confirmed Leads", href: "/trucking/confirmed-leads", icon: CheckCircle2 },
   { label: "Carrier Leads", href: "/trucking/leads", icon: PhoneCall },
   { label: "Carriers", href: "/trucking/carriers", icon: Users },
   { label: "Contacts", href: "/trucking/contacts", icon: BookUser },

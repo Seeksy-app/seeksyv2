@@ -3,32 +3,34 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Package, UserCheck, Phone, Plus, ArrowRight, CheckCircle, DollarSign, Info } from "lucide-react";
+import { Package, UserCheck, Phone, Plus, ArrowRight, CheckCircle2, XCircle, PhoneCall } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { TruckingPageWrapper, TruckingContentCard, TruckingEmptyState, TruckingStatCardLight } from "@/components/trucking/TruckingPageWrapper";
-import { useTruckingCostStats } from "@/hooks/useTruckingCostStats";
+import { format } from "date-fns";
 
-interface LoadStats {
+interface DashboardStats {
   openLoads: number;
   leadsToday: number;
   callsToday: number;
-  confirmedLoads: number;
+  confirmedLeads: number;
 }
 
-interface Load {
+interface ConfirmedLead {
   id: string;
-  load_number: string;
-  origin_city: string;
-  origin_state: string;
-  destination_city: string;
-  destination_state: string;
-  pickup_date: string;
-  target_rate: number;
-  status: string;
+  company_name: string;
+  contact_name: string;
+  mc_number: string;
+  dot_number: string;
+  phone: string;
+  rate_offered: number;
+  rate_requested: number;
+  confirmed_at: string;
+  created_at: string;
+  trucking_loads?: { load_number: string; origin_city: string; origin_state: string; destination_city: string; destination_state: string } | null;
 }
 
-interface Lead {
+interface CarrierLead {
   id: string;
   company_name: string;
   contact_name: string;
@@ -40,17 +42,11 @@ interface Lead {
 }
 
 export default function TruckingDashboardPage() {
-  const [stats, setStats] = useState<LoadStats>({ openLoads: 0, leadsToday: 0, callsToday: 0, confirmedLoads: 0 });
-  const [hotLoads, setHotLoads] = useState<Load[]>([]);
-  const [recentLeads, setRecentLeads] = useState<Lead[]>([]);
+  const [stats, setStats] = useState<DashboardStats>({ openLoads: 0, leadsToday: 0, callsToday: 0, confirmedLeads: 0 });
+  const [confirmedLeads, setConfirmedLeads] = useState<ConfirmedLead[]>([]);
+  const [recentLeads, setRecentLeads] = useState<CarrierLead[]>([]);
   const [loading, setLoading] = useState(true);
-  const costStats = useTruckingCostStats();
-
-  const formatCost = (cost: number) => {
-    if (cost === 0) return "—";
-    if (cost < 0.01) return "< $0.01";
-    return `$${cost.toFixed(2)}`;
-  };
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchDashboardData();
@@ -61,34 +57,38 @@ export default function TruckingDashboardPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Fetch stats
       const [loadsResult, confirmedResult, leadsResult, callsResult] = await Promise.all([
         supabase.from("trucking_loads").select("id", { count: "exact" }).eq("owner_id", user.id).eq("status", "open"),
-        supabase.from("trucking_loads").select("id", { count: "exact" }).eq("owner_id", user.id).eq("status", "booked"),
-        supabase.from("trucking_carrier_leads").select("id", { count: "exact" }).eq("owner_id", user.id).gte("created_at", new Date().toISOString().split("T")[0]),
+        supabase.from("trucking_carrier_leads").select("id", { count: "exact" }).eq("owner_id", user.id).eq("is_confirmed", true),
+        supabase.from("trucking_carrier_leads").select("id", { count: "exact" }).eq("owner_id", user.id).eq("is_confirmed", false).gte("created_at", new Date().toISOString().split("T")[0]),
         supabase.from("trucking_call_logs").select("id", { count: "exact" }).eq("owner_id", user.id).gte("created_at", new Date().toISOString().split("T")[0]),
       ]);
 
       setStats({
         openLoads: loadsResult.count || 0,
-        confirmedLoads: confirmedResult.count || 0,
+        confirmedLeads: confirmedResult.count || 0,
         leadsToday: leadsResult.count || 0,
         callsToday: callsResult.count || 0,
       });
 
-      const { data: loads } = await supabase
-        .from("trucking_loads")
-        .select("*")
+      // Fetch confirmed leads
+      const { data: confirmed } = await supabase
+        .from("trucking_carrier_leads")
+        .select("*, trucking_loads(load_number, origin_city, origin_state, destination_city, destination_state)")
         .eq("owner_id", user.id)
-        .eq("status", "open")
-        .order("created_at", { ascending: false })
-        .limit(5);
+        .eq("is_confirmed", true)
+        .order("confirmed_at", { ascending: false })
+        .limit(10);
 
-      setHotLoads(loads || []);
+      setConfirmedLeads(confirmed || []);
 
+      // Fetch recent unconfirmed leads
       const { data: leads } = await supabase
         .from("trucking_carrier_leads")
         .select("*, trucking_loads(load_number)")
         .eq("owner_id", user.id)
+        .eq("is_confirmed", false)
         .order("created_at", { ascending: false })
         .limit(5);
 
@@ -100,12 +100,41 @@ export default function TruckingDashboardPage() {
     }
   };
 
+  const handleConfirmBooking = async (leadId: string) => {
+    try {
+      const { error } = await supabase
+        .from("trucking_carrier_leads")
+        .update({ status: "booked" })
+        .eq("id", leadId);
+
+      if (error) throw error;
+      toast({ title: "Booking confirmed!" });
+      fetchDashboardData();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleRejectLead = async (leadId: string) => {
+    try {
+      const { error } = await supabase
+        .from("trucking_carrier_leads")
+        .update({ is_confirmed: false, status: "declined" })
+        .eq("id", leadId);
+
+      if (error) throw error;
+      toast({ title: "Lead rejected" });
+      fetchDashboardData();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const colors: Record<string, string> = {
-      open: "bg-green-100 text-green-700",
-      booked: "bg-blue-100 text-blue-700",
       interested: "bg-yellow-100 text-yellow-700",
       countered: "bg-orange-100 text-orange-700",
+      booked: "bg-green-100 text-green-700",
       declined: "bg-red-100 text-red-700",
     };
     return colors[status] || "bg-slate-100 text-slate-700";
@@ -132,85 +161,127 @@ export default function TruckingDashboardPage() {
         </Link>
       }
     >
-      {/* Stats Cards */}
-      <TooltipProvider>
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-          <TruckingStatCardLight 
-            label="Open Loads" 
-            value={stats.openLoads} 
-            icon={<Package className="h-6 w-6 text-blue-600" />}
-          />
-          <TruckingStatCardLight 
-            label="New Leads Today" 
-            value={stats.leadsToday} 
-            icon={<UserCheck className="h-6 w-6 text-green-600" />}
-          />
-          <TruckingStatCardLight 
-            label="AI Calls Today" 
-            value={stats.callsToday} 
-            icon={<Phone className="h-6 w-6 text-amber-600" />}
-          />
-          <TruckingStatCardLight 
-            label="Confirmed Loads" 
-            value={stats.confirmedLoads} 
-            icon={<CheckCircle className="h-6 w-6 text-purple-600" />}
-          />
-          {/* Cost Metrics */}
-          <div className="bg-white rounded-xl border border-slate-200 p-4 flex flex-col">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <DollarSign className="h-6 w-6 text-emerald-600" />
-                <span className="text-sm text-slate-500">Est. Cost/Call</span>
-              </div>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-4 w-4 text-slate-400 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-[280px]">
-                  <p className="font-semibold mb-1">How this is calculated</p>
-                  <p className="text-xs">We estimate this cost by counting how many characters the AI spoke in the last 20 live calls and applying your ElevenLabs rate (e.g. $50 per 1M characters). This is an estimate only.</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-            <p className="text-2xl font-bold text-slate-900 mt-2">
-              {costStats.loading ? "..." : costStats.error ? "—" : formatCost(costStats.avgCostPerCall)}
-            </p>
-            <p className="text-xs text-slate-400 mt-1">
-              {costStats.callsLast20 > 0 ? `Based on last ${costStats.callsLast20} calls` : "No live calls yet"}
-            </p>
-          </div>
-          <div className="bg-white rounded-xl border border-slate-200 p-4 flex flex-col">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <DollarSign className="h-6 w-6 text-teal-600" />
-                <span className="text-sm text-slate-500">Est. Cost/Mo</span>
-              </div>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-4 w-4 text-slate-400 cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-[280px]">
-                  <p className="font-semibold mb-1">Monthly cost estimate</p>
-                  <p className="text-xs">This is the sum of estimated ElevenLabs cost for all live AI calls this month (demo calls excluded). Calculated using total characters spoken by the AI and your configured price per 1M characters.</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-            <p className="text-2xl font-bold text-slate-900 mt-2">
-              {costStats.loading ? "..." : costStats.error ? "—" : formatCost(costStats.totalCostThisMonth)}
-            </p>
-            <p className="text-xs text-slate-400 mt-1">
-              {costStats.callsThisMonth > 0 ? `${costStats.callsThisMonth} calls this month` : "No live calls yet"}
-            </p>
-          </div>
-        </div>
-      </TooltipProvider>
+      {/* Stats Cards - 4 cards only */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <TruckingStatCardLight 
+          label="Open Loads" 
+          value={stats.openLoads} 
+          icon={<Package className="h-6 w-6 text-blue-600" />}
+        />
+        <TruckingStatCardLight 
+          label="New Leads Today" 
+          value={stats.leadsToday} 
+          icon={<UserCheck className="h-6 w-6 text-amber-600" />}
+        />
+        <TruckingStatCardLight 
+          label="AI Calls Today" 
+          value={stats.callsToday} 
+          icon={<Phone className="h-6 w-6 text-slate-600" />}
+        />
+        <TruckingStatCardLight 
+          label="Confirmed Leads" 
+          value={stats.confirmedLeads} 
+          icon={<CheckCircle2 className="h-6 w-6 text-green-600" />}
+        />
+      </div>
 
-      {/* Recent Leads - Full Width */}
+      {/* Section A: Confirmed Leads (PRIMARY) */}
       <TruckingContentCard noPadding>
         <div className="flex items-center justify-between p-5 border-b border-slate-200">
           <div>
-            <h3 className="font-semibold text-slate-900">Recent Leads</h3>
-            <p className="text-sm text-slate-500">Carriers interested in your loads</p>
+            <h3 className="font-semibold text-slate-900">Confirmed Leads</h3>
+            <p className="text-sm text-slate-500">Carriers ready to book loads</p>
+          </div>
+        </div>
+        {confirmedLeads.length === 0 ? (
+          <TruckingEmptyState
+            icon={<CheckCircle2 className="h-6 w-6 text-slate-400" />}
+            title="No confirmed leads yet"
+            description="When carriers confirm they want to take a load, they'll appear here."
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b border-slate-100">
+                  <TableHead className="text-slate-500 font-medium">Carrier Name</TableHead>
+                  <TableHead className="text-slate-500 font-medium">MC / DOT</TableHead>
+                  <TableHead className="text-slate-500 font-medium">Load #</TableHead>
+                  <TableHead className="text-slate-500 font-medium">Lane</TableHead>
+                  <TableHead className="text-slate-500 font-medium">Rate</TableHead>
+                  <TableHead className="text-slate-500 font-medium">Confirmed At</TableHead>
+                  <TableHead className="text-slate-500 font-medium text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {confirmedLeads.map((lead) => (
+                  <TableRow key={lead.id} className="border-b border-slate-50 hover:bg-green-50/50">
+                    <TableCell>
+                      <div className="font-medium text-slate-900">
+                        {lead.company_name || lead.contact_name}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-slate-600 text-sm">
+                      {lead.mc_number && <span>MC# {lead.mc_number}</span>}
+                      {lead.mc_number && lead.dot_number && <span className="mx-1">·</span>}
+                      {lead.dot_number && <span>DOT# {lead.dot_number}</span>}
+                      {!lead.mc_number && !lead.dot_number && "—"}
+                    </TableCell>
+                    <TableCell className="font-medium text-slate-900">
+                      {lead.trucking_loads?.load_number || "—"}
+                    </TableCell>
+                    <TableCell className="text-slate-600">
+                      {lead.trucking_loads ? (
+                        `${lead.trucking_loads.origin_city}, ${lead.trucking_loads.origin_state} → ${lead.trucking_loads.destination_city}, ${lead.trucking_loads.destination_state}`
+                      ) : "—"}
+                    </TableCell>
+                    <TableCell className="font-medium text-green-600">
+                      ${(lead.rate_requested || lead.rate_offered)?.toLocaleString() || "—"}
+                    </TableCell>
+                    <TableCell className="text-slate-500 text-sm">
+                      {lead.confirmed_at ? format(new Date(lead.confirmed_at), "MMM d, h:mm a") : "—"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button 
+                          size="sm" 
+                          className="bg-green-600 hover:bg-green-700 text-white h-8 px-3"
+                          onClick={() => handleConfirmBooking(lead.id)}
+                        >
+                          <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                          Book
+                        </Button>
+                        {lead.phone && (
+                          <Button variant="outline" size="sm" className="h-8 px-2" asChild>
+                            <a href={`tel:${lead.phone}`}>
+                              <PhoneCall className="h-3.5 w-3.5" />
+                            </a>
+                          </Button>
+                        )}
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleRejectLead(lead.id)}
+                        >
+                          <XCircle className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </TruckingContentCard>
+
+      {/* Section B: Recent Carrier Leads (Unconfirmed) */}
+      <TruckingContentCard noPadding>
+        <div className="flex items-center justify-between p-5 border-b border-slate-200">
+          <div>
+            <h3 className="font-semibold text-slate-900">Recent Carrier Leads</h3>
+            <p className="text-sm text-slate-500">Unconfirmed inbound interest</p>
           </div>
           <Link to="/trucking/leads">
             <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
@@ -261,7 +332,8 @@ export default function TruckingDashboardPage() {
               </TableBody>
             </Table>
           </div>
-        )}</TruckingContentCard>
+        )}
+      </TruckingContentCard>
     </TruckingPageWrapper>
   );
 }

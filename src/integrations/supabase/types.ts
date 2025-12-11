@@ -23974,14 +23974,17 @@ export type Database = {
       }
       trucking_carrier_leads: {
         Row: {
+          call_log_id: string | null
           carrier_id: string | null
           company_name: string | null
+          confirmed_at: string | null
           contact_name: string | null
           created_at: string | null
           dot_number: string | null
           email: string | null
           eta_to_pickup: string | null
           id: string
+          is_confirmed: boolean | null
           load_id: string | null
           mc_number: string | null
           notes: string | null
@@ -23994,14 +23997,17 @@ export type Database = {
           truck_type: string | null
         }
         Insert: {
+          call_log_id?: string | null
           carrier_id?: string | null
           company_name?: string | null
+          confirmed_at?: string | null
           contact_name?: string | null
           created_at?: string | null
           dot_number?: string | null
           email?: string | null
           eta_to_pickup?: string | null
           id?: string
+          is_confirmed?: boolean | null
           load_id?: string | null
           mc_number?: string | null
           notes?: string | null
@@ -24014,14 +24020,17 @@ export type Database = {
           truck_type?: string | null
         }
         Update: {
+          call_log_id?: string | null
           carrier_id?: string | null
           company_name?: string | null
+          confirmed_at?: string | null
           contact_name?: string | null
           created_at?: string | null
           dot_number?: string | null
           email?: string | null
           eta_to_pickup?: string | null
           id?: string
+          is_confirmed?: boolean | null
           load_id?: string | null
           mc_number?: string | null
           notes?: string | null
@@ -24034,6 +24043,13 @@ export type Database = {
           truck_type?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "trucking_carrier_leads_call_log_id_fkey"
+            columns: ["call_log_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_call_logs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "trucking_carrier_leads_carrier_id_fkey"
             columns: ["carrier_id"]
@@ -27826,6 +27842,10 @@ export type Database = {
       }
       get_current_user_email: { Args: never; Returns: string }
       get_trucking_cost_stats: { Args: { p_owner_id: string }; Returns: Json }
+      get_trucking_dashboard_stats: {
+        Args: { p_owner_id: string }
+        Returns: Json
+      }
       get_user_hosted_meeting_ids: {
         Args: { _user_id: string }
         Returns: string[]
