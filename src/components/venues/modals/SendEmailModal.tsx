@@ -21,8 +21,9 @@ interface SendEmailModalProps {
 
 interface Client {
   id: string;
-  name: string;
-  email: string;
+  first_name: string;
+  last_name?: string | null;
+  email: string | null;
 }
 
 export function SendEmailModal({ open, onOpenChange, venueId, isDemoMode = true, onSuccess, preselectedClientId }: SendEmailModalProps) {
@@ -50,7 +51,7 @@ export function SendEmailModal({ open, onOpenChange, venueId, isDemoMode = true,
     if (!venueId) return;
     const { data } = await supabase
       .from('venue_clients')
-      .select('id, name, email')
+      .select('id, first_name, last_name, email')
       .eq('venue_id', venueId);
     if (data) setClients(data);
   };
@@ -76,13 +77,13 @@ export function SendEmailModal({ open, onOpenChange, venueId, isDemoMode = true,
 
     setLoading(true);
     try {
-      const selectedClientData = clients.filter(c => selectedClients.includes(c.id));
+      const selectedClientData = clients.filter(c => selectedClients.includes(c.id) && c.email);
       
       for (const client of selectedClientData) {
         await sendVenueEmail({
           venueId,
           clientId: client.id,
-          to: client.email,
+          to: client.email!,
           subject: formData.subject,
           body: formData.body,
           isDemoMode
@@ -133,9 +134,10 @@ export function SendEmailModal({ open, onOpenChange, venueId, isDemoMode = true,
                     <Checkbox
                       checked={selectedClients.includes(client.id)}
                       onCheckedChange={() => toggleClient(client.id)}
+                      disabled={!client.email}
                     />
-                    <span className="text-sm">{client.name}</span>
-                    <span className="text-xs text-gray-500">({client.email})</span>
+                    <span className="text-sm">{client.first_name} {client.last_name || ''}</span>
+                    <span className="text-xs text-gray-500">({client.email || 'No email'})</span>
                   </label>
                 ))
               )}

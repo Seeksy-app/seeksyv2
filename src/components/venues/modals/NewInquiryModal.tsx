@@ -51,14 +51,19 @@ export function NewInquiryModal({ open, onOpenChange, venueId, isDemoMode = true
     setLoading(true);
     try {
       // Create client
+      const nameParts = formData.name.split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
       const { data: client, error: clientError } = await supabase
         .from('venue_clients')
         .insert({
           venue_id: venueId,
-          name: formData.name,
+          first_name: firstName,
+          last_name: lastName,
           email: formData.email,
           phone: formData.phone,
-          client_type: 'individual',
+          type: 'individual',
           is_demo: isDemoMode
         })
         .select()

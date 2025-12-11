@@ -19,8 +19,9 @@ interface ScheduleTourModalProps {
 
 interface Client {
   id: string;
-  name: string;
-  email: string;
+  first_name: string;
+  last_name?: string | null;
+  email: string | null;
 }
 
 interface Space {
@@ -54,7 +55,7 @@ export function ScheduleTourModal({ open, onOpenChange, venueId, isDemoMode = tr
     if (!venueId) return;
 
     const [clientsRes, spacesRes] = await Promise.all([
-      supabase.from('venue_clients').select('id, name, email').eq('venue_id', venueId),
+      supabase.from('venue_clients').select('id, first_name, last_name, email').eq('venue_id', venueId),
       supabase.from('venue_spaces').select('id, name').eq('venue_id', venueId)
     ]);
 
@@ -75,14 +76,19 @@ export function ScheduleTourModal({ open, onOpenChange, venueId, isDemoMode = tr
 
       // Create new client if needed
       if (createNewClient) {
+        const nameParts = formData.newClientName.split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        
         const { data: newClient, error: clientError } = await supabase
           .from('venue_clients')
           .insert({
             venue_id: venueId,
-            name: formData.newClientName,
+            first_name: firstName,
+            last_name: lastName,
             email: formData.newClientEmail,
             phone: formData.newClientPhone,
-            client_type: 'individual',
+            type: 'individual',
             is_demo: isDemoMode
           })
           .select()
@@ -174,7 +180,7 @@ export function ScheduleTourModal({ open, onOpenChange, venueId, isDemoMode = tr
                 <SelectContent>
                   {clients.map((client) => (
                     <SelectItem key={client.id} value={client.id}>
-                      {client.name} ({client.email})
+                      {client.first_name} {client.last_name || ''} ({client.email || 'No email'})
                     </SelectItem>
                   ))}
                 </SelectContent>
