@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Users, TrendingUp, FileText, BarChart3, Shield, Eye } from 'lucide-react';
+import boardPortalHero from '@/assets/board-portal-hero.jpg';
 
 const ROLE_CONFIG = {
   board_member: {
@@ -134,33 +135,115 @@ export default function BoardMemberJoin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#053877] via-[#0a4a8f] to-[#053877] flex items-center justify-center p-4">
-      <div className="w-full max-w-5xl grid md:grid-cols-2 gap-8 items-center">
-        {/* Left side - Role info */}
-        <div className="text-white space-y-6">
-          <div className="flex items-center gap-3">
-            <img 
-              src="/lovable-uploads/ee012793-e2be-4b76-a347-dad1dd059498.png" 
-              alt="Seeksy" 
-              className="h-10"
-            />
-            <span className="text-2xl font-bold">Board Portal</span>
-          </div>
-          
-          <div className={`inline-flex items-center gap-2 ${roleConfig.bgColor} ${roleConfig.color} px-4 py-2 rounded-full`}>
-            <IconComponent className="h-5 w-5" />
-            <span className="font-semibold">{roleConfig.title}</span>
+    <div className="min-h-screen flex">
+      {/* Left side with form */}
+      <div className="w-full lg:w-1/2 bg-gradient-to-br from-[#053877] via-[#0a4a8f] to-[#053877] flex items-center justify-center p-4 lg:p-8">
+        <div className="w-full max-w-lg space-y-8">
+          {/* Header */}
+          <div className="text-white space-y-6">
+            <div className="flex items-center gap-3">
+              <img 
+                src="/lovable-uploads/ee012793-e2be-4b76-a347-dad1dd059498.png" 
+                alt="Seeksy" 
+                className="h-10"
+              />
+              <span className="text-2xl font-bold">Board Portal</span>
+            </div>
+            
+            <div className={`inline-flex items-center gap-2 ${roleConfig.bgColor} ${roleConfig.color} px-4 py-2 rounded-full`}>
+              <IconComponent className="h-5 w-5" />
+              <span className="font-semibold">{roleConfig.title}</span>
+            </div>
+
+            <h1 className="text-3xl lg:text-4xl font-bold leading-tight">
+              Join the Seeksy<br />Board Portal
+            </h1>
+            
+            <p className="text-lg text-white/80">
+              {roleConfig.description}
+            </p>
           </div>
 
-          <h1 className="text-4xl font-bold leading-tight">
-            Join the Seeksy<br />Board Portal
-          </h1>
-          
-          <p className="text-lg text-white/80">
-            {roleConfig.description}
-          </p>
+          {/* Signup form */}
+          <Card className="bg-white/95 backdrop-blur shadow-2xl border-0">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl">Create Your Account</CardTitle>
+              <CardDescription>
+                Set up your credentials to access the Board Portal
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="John Smith"
+                    value={formData.fullName}
+                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                    required
+                    className="h-11"
+                  />
+                </div>
 
-          <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="john@example.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    required
+                    className="h-11"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    required
+                    minLength={8}
+                    className="h-11"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    required
+                    className="h-11"
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full h-12 bg-[#053877] hover:bg-[#042a5c] text-white font-semibold"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Creating Account...' : 'Join Board Portal'}
+                </Button>
+
+                <p className="text-xs text-center text-muted-foreground">
+                  By joining, you agree to the Seeksy Board Portal terms and NDA requirements.
+                </p>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Features list */}
+          <div className="text-white space-y-3">
             <p className="text-sm text-white/60 uppercase tracking-wider">You'll have access to:</p>
             <div className="grid grid-cols-2 gap-2">
               {roleConfig.features.map((feature) => (
@@ -170,91 +253,22 @@ export default function BoardMemberJoin() {
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="flex items-center gap-2 text-white/60 text-sm">
-            <BarChart3 className="h-4 w-4" />
-            <span>Secure, read-only access to company data</span>
+            <div className="flex items-center gap-2 text-white/60 text-sm pt-2">
+              <BarChart3 className="h-4 w-4" />
+              <span>Secure, read-only access to company data</span>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Right side - Signup form */}
-        <Card className="bg-white/95 backdrop-blur shadow-2xl border-0">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Create Your Account</CardTitle>
-            <CardDescription>
-              Set up your credentials to access the Board Portal
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input
-                  id="fullName"
-                  type="text"
-                  placeholder="John Smith"
-                  value={formData.fullName}
-                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                  required
-                  className="h-11"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="john@example.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                  className="h-11"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required
-                  minLength={8}
-                  className="h-11"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="••••••••"
-                  value={formData.confirmPassword}
-                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  required
-                  className="h-11"
-                />
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full h-12 bg-[#053877] hover:bg-[#042a5c] text-white font-semibold"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Creating Account...' : 'Join Board Portal'}
-              </Button>
-
-              <p className="text-xs text-center text-muted-foreground">
-                By joining, you agree to the Seeksy Board Portal terms and NDA requirements.
-              </p>
-            </form>
-          </CardContent>
-        </Card>
+      {/* Right side with image */}
+      <div className="hidden lg:block lg:w-1/2 relative">
+        <img 
+          src={boardPortalHero} 
+          alt="Business executives in boardroom meeting"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-l from-transparent to-[#053877]/30" />
       </div>
     </div>
   );
