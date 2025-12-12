@@ -1,12 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileText, Eye, Plus, CheckCircle, Clock, Send, FileCheck } from "lucide-react";
+import { FileText, Eye, Plus, CheckCircle, Clock, Send, FileCheck, Link, Copy, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
+import { toast } from "sonner";
+import { useState } from "react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface FieldValues {
   purchaser_name?: string;
@@ -20,6 +23,8 @@ interface ComputedValues {
 
 export default function LegalInstancesPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const { data: instances, isLoading } = useQuery({
     queryKey: ["legal-instances-admin"],
@@ -57,6 +62,46 @@ export default function LegalInstancesPage() {
     }
   };
 
+  const generateInviteToken = () => {
+    return Array.from(crypto.getRandomValues(new Uint8Array(16)))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+  };
+
+  const createInviteMutation = useMutation({
+    mutationFn: async (instanceId: string) => {
+      const token = generateInviteToken();
+      const { error } = await supabase
+        .from("legal_doc_instances")
+        .update({ 
+          invite_token: token,
+          invite_sent_at: new Date().toISOString(),
+          status: "submitted"
+        })
+        .eq("id", instanceId);
+      
+      if (error) throw error;
+      return token;
+    },
+    onSuccess: (token) => {
+      queryClient.invalidateQueries({ queryKey: ["legal-instances-admin"] });
+      const inviteUrl = `${window.location.origin}/legal/purchaser/${token}`;
+      navigator.clipboard.writeText(inviteUrl);
+      toast.success("Invite link copied to clipboard!");
+    },
+    onError: () => {
+      toast.error("Failed to generate invite link");
+    }
+  });
+
+  const copyInviteLink = (token: string, instanceId: string) => {
+    const inviteUrl = `${window.location.origin}/legal/purchaser/${token}`;
+    navigator.clipboard.writeText(inviteUrl);
+    setCopiedId(instanceId);
+    toast.success("Invite link copied!");
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="flex items-center justify-between mb-8">
@@ -64,7 +109,7 @@ export default function LegalInstancesPage() {
           <h1 className="text-2xl font-bold">Legal Document Instances</h1>
           <p className="text-muted-foreground">Review and manage stock purchase agreements</p>
         </div>
-        <Button onClick={() => navigate("/legal/stock-purchase/new")}>
+        <Button onClick={() => navigate("/admin/legal/stock-purchase/new")}>
           <Plus className="h-4 w-4 mr-2" />
           New Agreement
         </Button>
@@ -103,7 +148,7 @@ export default function LegalInstancesPage() {
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Updated</TableHead>
-                  <TableHead></TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -138,13 +183,55 @@ export default function LegalInstancesPage() {
                         {format(new Date(instance.updated_at), "MMM d, yyyy")}
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => navigate(`/legal/stock-purchase/${instance.id}`)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
+                        <TooltipProvider>
+                          <div className="flex items-center gap-1">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => navigate(`/admin/legal/stock-purchase/${instance.id}`)}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>View/Edit</TooltipContent>
+                            </Tooltip>
+
+                            {instance.invite_token ? (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => copyInviteLink(instance.invite_token!, instance.id)}
+                                  >
+                                    {copiedId === instance.id ? (
+                                      <Check className="h-4 w-4 text-green-600" />
+                                    ) : (
+                                      <Copy className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Copy Invite Link</TooltipContent>
+                              </Tooltip>
+                            ) : (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => createInviteMutation.mutate(instance.id)}
+                                    disabled={createInviteMutation.isPending}
+                                  >
+                                    <Link className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Generate & Copy Invite Link</TooltipContent>
+                              </Tooltip>
+                            )}
+                          </div>
+                        </TooltipProvider>
                       </TableCell>
                     </TableRow>
                   );
