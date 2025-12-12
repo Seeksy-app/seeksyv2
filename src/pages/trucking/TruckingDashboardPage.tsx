@@ -332,13 +332,34 @@ export default function TruckingDashboardPage() {
           <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
           <p className="text-slate-500 text-sm">Overview of your loads and leads</p>
         </div>
-        <Button 
-          className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-          onClick={() => setDialogOpen(true)}
-        >
-          <Plus className="h-4 w-4" />
-          Add Load
-        </Button>
+        <div className="flex items-center gap-3">
+          {/* Owner Filter Toggle */}
+          <div className="flex items-center gap-1 bg-slate-100 rounded-full p-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`rounded-full px-4 h-8 ${ownerFilter === 'all' ? 'bg-amber-400 text-slate-900 hover:bg-amber-400' : 'bg-transparent text-slate-600 hover:bg-slate-200'}`}
+              onClick={() => setOwnerFilter('all')}
+            >
+              See All Loads
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`rounded-full px-4 h-8 ${ownerFilter === 'mine' ? 'bg-white text-slate-900 shadow-sm hover:bg-white' : 'bg-transparent text-slate-600 hover:bg-slate-200'}`}
+              onClick={() => setOwnerFilter('mine')}
+            >
+              My Loads
+            </Button>
+          </div>
+          <Button 
+            className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+            onClick={() => setDialogOpen(true)}
+          >
+            <Plus className="h-4 w-4" />
+            Add Load
+          </Button>
+        </div>
       </div>
 
       {/* AI Live Banner */}
