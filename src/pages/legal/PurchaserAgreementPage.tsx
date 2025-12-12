@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { toast } from "sonner";
 import { Loader2, FileText, CheckCircle, AlertCircle } from "lucide-react";
 
@@ -198,18 +199,18 @@ export default function PurchaserAgreementPage() {
   const isPurchaserSigned = !!instance.purchaser_signature_url;
   const isSellerSigned = !!instance.seller_signature_url;
   const canSign = instance.status === "purchaser_signed" || (isSellerSigned && !isPurchaserSigned);
-  const canEdit = instance.status === "submitted" && !isPurchaserSigned;
+  const canEdit = (instance.status === "pending" || instance.status === "submitted") && !isPurchaserSigned;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen flex flex-col bg-background">
       {/* Header */}
-      <div className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
+      <div className="border-b bg-card shrink-0">
+        <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <FileText className="h-6 w-6 text-primary" />
               <div>
-                <h1 className="font-semibold">{template?.name || "Stock Purchase Agreement"}</h1>
+                <h1 className="font-semibold">{template?.name || "Common Stock Purchase Agreement"}</h1>
                 <p className="text-sm text-muted-foreground">
                   Review and sign your agreement
                 </p>
@@ -223,15 +224,18 @@ export default function PurchaserAgreementPage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* Preview */}
-          <Card className="lg:sticky lg:top-6 lg:h-[calc(100vh-120px)]">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Agreement Preview</CardTitle>
-              <CardDescription>Review the agreement terms</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0 h-[calc(100%-80px)]">
+      {/* Main Content - Full screen resizable panels like admin */}
+      <ResizablePanelGroup direction="horizontal" className="flex-1">
+        {/* Left: Document Preview */}
+        <ResizablePanel defaultSize={60} minSize={40}>
+          <div className="h-full flex flex-col">
+            <div className="border-b px-4 py-2 bg-muted/50">
+              <h2 className="text-sm font-medium flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Agreement Preview
+              </h2>
+            </div>
+            <div className="flex-1 overflow-hidden bg-white dark:bg-zinc-950">
               {template?.body_text && (
                 <LegalDocPreview
                   bodyText={template.body_text}
@@ -239,11 +243,16 @@ export default function PurchaserAgreementPage() {
                   computedValues={computedValues}
                 />
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+        </ResizablePanel>
 
-          {/* Form / Signature */}
-          <div className="space-y-6">
+        <ResizableHandle withHandle />
+
+        {/* Right: Form + Signatures */}
+        <ResizablePanel defaultSize={40} minSize={30}>
+          <div className="h-full overflow-y-auto bg-muted/30">
+            {/* Form Section */}
             {!isFinalized && canEdit && (
               <LegalDocForm
                 fieldValues={fieldValues}
@@ -260,20 +269,23 @@ export default function PurchaserAgreementPage() {
 
             {/* Signature Section */}
             {(instance.status === "admin_review" || isSellerSigned || isPurchaserSigned || isFinalized) && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Signatures</CardTitle>
-                  <CardDescription>
+              <div className="p-6 space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-1">Signatures</h3>
+                  <p className="text-sm text-muted-foreground">
                     {isFinalized 
                       ? "This agreement has been fully executed"
                       : "Sign below to complete the agreement"
                     }
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Seller Signature */}
-                  <div>
-                    <p className="text-sm font-medium mb-2">Seller Signature</p>
+                  </p>
+                </div>
+
+                {/* Seller Signature */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Seller Signature</CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     {isSellerSigned ? (
                       <div className="border rounded-md p-3 bg-muted/30">
                         <img 
@@ -290,13 +302,15 @@ export default function PurchaserAgreementPage() {
                         Awaiting seller signature
                       </div>
                     )}
-                  </div>
+                  </CardContent>
+                </Card>
 
-                  <Separator />
-
-                  {/* Purchaser Signature */}
-                  <div>
-                    <p className="text-sm font-medium mb-2">Purchaser Signature</p>
+                {/* Purchaser Signature */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Purchaser Signature</CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     {isPurchaserSigned ? (
                       <div className="border rounded-md p-3 bg-muted/30">
                         <img 
@@ -319,25 +333,25 @@ export default function PurchaserAgreementPage() {
                         Waiting for seller to sign first
                       </div>
                     )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                  </CardContent>
+                </Card>
 
-            {isFinalized && (
-              <Card className="bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
-                <CardContent className="pt-6 text-center">
-                  <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-3" />
-                  <h3 className="font-semibold text-green-800 dark:text-green-200">Agreement Finalized</h3>
-                  <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                    This agreement has been signed by all parties and is now in effect.
-                  </p>
-                </CardContent>
-              </Card>
+                {isFinalized && (
+                  <Card className="bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
+                    <CardContent className="pt-6 text-center">
+                      <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-3" />
+                      <h3 className="font-semibold text-green-800 dark:text-green-200">Agreement Finalized</h3>
+                      <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                        This agreement has been signed by all parties and is now in effect.
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
             )}
           </div>
-        </div>
-      </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
   );
 }

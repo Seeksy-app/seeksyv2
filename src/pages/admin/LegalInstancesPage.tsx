@@ -77,7 +77,7 @@ export default function LegalInstancesPage() {
         .update({ 
           invite_token: token,
           invite_sent_at: new Date().toISOString(),
-          status: "submitted"
+          status: "pending"
         })
         .eq("id", instanceId);
       
