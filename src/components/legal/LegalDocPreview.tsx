@@ -5,10 +5,16 @@ import { cn } from "@/lib/utils";
 interface FieldValues {
   purchaser_name?: string;
   purchaser_email?: string;
-  purchaser_address?: string;
+  purchaser_street?: string;
+  purchaser_city?: string;
+  purchaser_state?: string;
+  purchaser_zip?: string;
   seller_name?: string;
   seller_email?: string;
-  seller_address?: string;
+  seller_street?: string;
+  seller_city?: string;
+  seller_state?: string;
+  seller_zip?: string;
   purchase_amount?: number;
   number_of_shares?: number;
 }
@@ -35,13 +41,34 @@ export function LegalDocPreview({
   const renderedText = useMemo(() => {
     let text = bodyText;
     
+    // Format addresses from components
+    const formatAddress = (street?: string, city?: string, state?: string, zip?: string) => {
+      const parts = [];
+      if (street) parts.push(street);
+      if (city || state || zip) {
+        const cityStateZip = [city, state].filter(Boolean).join(", ") + (zip ? " " + zip : "");
+        if (cityStateZip.trim()) parts.push(cityStateZip.trim());
+      }
+      return parts.join("\n");
+    };
+    
     // Get values with fallbacks
     const purchaserName = fieldValues.purchaser_name || "[PURCHASER_NAME]";
     const purchaserEmail = fieldValues.purchaser_email || "[PURCHASER_EMAIL]";
-    const purchaserAddress = fieldValues.purchaser_address || "[PURCHASER_ADDRESS]";
+    const purchaserAddress = formatAddress(
+      fieldValues.purchaser_street,
+      fieldValues.purchaser_city,
+      fieldValues.purchaser_state,
+      fieldValues.purchaser_zip
+    ) || "[PURCHASER_ADDRESS]";
     const sellerName = fieldValues.seller_name || "[SELLER_NAME]";
     const sellerEmail = fieldValues.seller_email || "[SELLER_EMAIL]";
-    const sellerAddress = fieldValues.seller_address || "[SELLER_ADDRESS]";
+    const sellerAddress = formatAddress(
+      fieldValues.seller_street,
+      fieldValues.seller_city,
+      fieldValues.seller_state,
+      fieldValues.seller_zip
+    ) || "[SELLER_ADDRESS]";
     const pricePerShare = computedValues.price_per_share 
       ? `$${computedValues.price_per_share.toFixed(2)}` 
       : "[PRICE_PER_SHARE]";
@@ -55,14 +82,17 @@ export function LegalDocPreview({
       ? `$${purchaseAmount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
       : "[PURCHASE_AMOUNT]";
 
+    const hasPurchaserAddress = !!(fieldValues.purchaser_street || fieldValues.purchaser_city || fieldValues.purchaser_state || fieldValues.purchaser_zip);
+    const hasSellerAddress = !!(fieldValues.seller_street || fieldValues.seller_city || fieldValues.seller_state || fieldValues.seller_zip);
+
     // Replace placeholders with values or highlighted placeholders
     const replacements: Record<string, { value: string; isFilled: boolean }> = {
       "[PURCHASER_NAME]": { value: purchaserName, isFilled: !!fieldValues.purchaser_name },
       "[PURCHASER_EMAIL]": { value: purchaserEmail, isFilled: !!fieldValues.purchaser_email },
-      "[PURCHASER_ADDRESS]": { value: purchaserAddress, isFilled: !!fieldValues.purchaser_address },
+      "[PURCHASER_ADDRESS]": { value: purchaserAddress, isFilled: hasPurchaserAddress },
       "[SELLER_NAME]": { value: sellerName, isFilled: !!fieldValues.seller_name },
       "[SELLER_EMAIL]": { value: sellerEmail, isFilled: !!fieldValues.seller_email },
-      "[SELLER_ADDRESS]": { value: sellerAddress, isFilled: !!fieldValues.seller_address },
+      "[SELLER_ADDRESS]": { value: sellerAddress, isFilled: hasSellerAddress },
       "[PRICE_PER_SHARE]": { value: pricePerShare, isFilled: !!computedValues.price_per_share },
       "[NUMBER_OF_SHARES]": { value: sharesDisplay, isFilled: numberOfShares !== undefined },
       "[PURCHASE_AMOUNT]": { value: amountDisplay, isFilled: purchaseAmount !== undefined },
