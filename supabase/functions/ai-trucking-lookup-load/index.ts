@@ -84,18 +84,40 @@ serve(async (req) => {
     }
 
     // Format loads for voice agent to read
-    const formattedLoads = loads.map(load => ({
-      load_number: load.load_number,
-      origin: `${load.origin_city}, ${load.origin_state}`,
-      destination: `${load.destination_city}, ${load.destination_state}`,
-      pickup_date: load.pickup_date,
-      rate: load.rate ? `$${load.rate}` : 'Rate negotiable',
-      miles: load.miles,
-      weight: load.weight ? `${load.weight} lbs` : 'Weight TBD',
-      equipment_type: load.equipment_type || 'Dry Van',
-      commodity: load.commodity || 'General freight',
-      status: load.status
-    }));
+    const formattedLoads = loads.map(load => {
+      const rateType = load.rate_type || 'flat';
+      let rateDisplay = 'Rate negotiable';
+      
+      if (rateType === 'per_ton') {
+        const tons = load.tons || (load.weight_lbs ? load.weight_lbs / 2000 : 0);
+        if (load.desired_rate_per_ton) {
+          const totalEstimate = tons ? load.desired_rate_per_ton * tons : null;
+          rateDisplay = `$${load.desired_rate_per_ton} per ton`;
+          if (totalEstimate) {
+            rateDisplay += `. Estimated total is $${Math.round(totalEstimate)} based on ${tons.toFixed(1)} tons`;
+          }
+        }
+      } else {
+        // Flat rate
+        if (load.target_rate) {
+          rateDisplay = `$${load.target_rate}`;
+        }
+      }
+
+      return {
+        load_number: load.load_number,
+        origin: `${load.origin_city}, ${load.origin_state}`,
+        destination: `${load.destination_city}, ${load.destination_state}`,
+        pickup_date: load.pickup_date,
+        rate_type: rateType,
+        rate: rateDisplay,
+        miles: load.miles,
+        weight: load.weight_lbs ? `${load.weight_lbs} lbs` : 'Weight TBD',
+        equipment_type: load.equipment_type || 'Dry Van',
+        commodity: load.commodity || 'General freight',
+        status: load.status
+      };
+    });
 
     return new Response(JSON.stringify({
       success: true,

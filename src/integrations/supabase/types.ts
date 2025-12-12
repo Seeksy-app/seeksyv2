@@ -24209,6 +24209,7 @@ export type Database = {
           delivery_fcfs: boolean | null
           delivery_window_end: string | null
           delivery_window_start: string | null
+          desired_rate_per_ton: number | null
           destination_city: string | null
           destination_radius_miles: number | null
           destination_state: string | null
@@ -24220,6 +24221,7 @@ export type Database = {
           escalate_threshold_per_mile: number | null
           floor_rate: number | null
           floor_rate_per_mile: number | null
+          floor_rate_per_ton: number | null
           hazmat: boolean | null
           height_ft: number | null
           id: string
@@ -24231,6 +24233,8 @@ export type Database = {
           lumpers_covered: boolean | null
           main_contact_id: string | null
           miles: number | null
+          negotiated_rate: number | null
+          negotiated_rate_per_ton: number | null
           notes: string | null
           origin_city: string | null
           origin_radius_miles: number | null
@@ -24249,6 +24253,7 @@ export type Database = {
           pickup_window_start: string | null
           pickup_zip: string | null
           pieces: number | null
+          rate_type: string | null
           rate_unit: string | null
           reference: string | null
           shipper_contact_id: string | null
@@ -24261,6 +24266,7 @@ export type Database = {
           temp_max_f: number | null
           temp_min_f: number | null
           temp_required: boolean | null
+          tons: number | null
           tonu_rate: number | null
           updated_at: string | null
           weight_lbs: number | null
@@ -24281,6 +24287,7 @@ export type Database = {
           delivery_fcfs?: boolean | null
           delivery_window_end?: string | null
           delivery_window_start?: string | null
+          desired_rate_per_ton?: number | null
           destination_city?: string | null
           destination_radius_miles?: number | null
           destination_state?: string | null
@@ -24292,6 +24299,7 @@ export type Database = {
           escalate_threshold_per_mile?: number | null
           floor_rate?: number | null
           floor_rate_per_mile?: number | null
+          floor_rate_per_ton?: number | null
           hazmat?: boolean | null
           height_ft?: number | null
           id?: string
@@ -24303,6 +24311,8 @@ export type Database = {
           lumpers_covered?: boolean | null
           main_contact_id?: string | null
           miles?: number | null
+          negotiated_rate?: number | null
+          negotiated_rate_per_ton?: number | null
           notes?: string | null
           origin_city?: string | null
           origin_radius_miles?: number | null
@@ -24321,6 +24331,7 @@ export type Database = {
           pickup_window_start?: string | null
           pickup_zip?: string | null
           pieces?: number | null
+          rate_type?: string | null
           rate_unit?: string | null
           reference?: string | null
           shipper_contact_id?: string | null
@@ -24333,6 +24344,7 @@ export type Database = {
           temp_max_f?: number | null
           temp_min_f?: number | null
           temp_required?: boolean | null
+          tons?: number | null
           tonu_rate?: number | null
           updated_at?: string | null
           weight_lbs?: number | null
@@ -24353,6 +24365,7 @@ export type Database = {
           delivery_fcfs?: boolean | null
           delivery_window_end?: string | null
           delivery_window_start?: string | null
+          desired_rate_per_ton?: number | null
           destination_city?: string | null
           destination_radius_miles?: number | null
           destination_state?: string | null
@@ -24364,6 +24377,7 @@ export type Database = {
           escalate_threshold_per_mile?: number | null
           floor_rate?: number | null
           floor_rate_per_mile?: number | null
+          floor_rate_per_ton?: number | null
           hazmat?: boolean | null
           height_ft?: number | null
           id?: string
@@ -24375,6 +24389,8 @@ export type Database = {
           lumpers_covered?: boolean | null
           main_contact_id?: string | null
           miles?: number | null
+          negotiated_rate?: number | null
+          negotiated_rate_per_ton?: number | null
           notes?: string | null
           origin_city?: string | null
           origin_radius_miles?: number | null
@@ -24393,6 +24409,7 @@ export type Database = {
           pickup_window_start?: string | null
           pickup_zip?: string | null
           pieces?: number | null
+          rate_type?: string | null
           rate_unit?: string | null
           reference?: string | null
           shipper_contact_id?: string | null
@@ -24405,6 +24422,7 @@ export type Database = {
           temp_max_f?: number | null
           temp_min_f?: number | null
           temp_required?: boolean | null
+          tons?: number | null
           tonu_rate?: number | null
           updated_at?: string | null
           weight_lbs?: number | null
