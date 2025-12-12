@@ -993,12 +993,19 @@ serve(async (req) => {
     });
 
     const buffer = await Packer.toBuffer(doc);
+    
+    // Convert buffer to base64
+    const uint8Array = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < uint8Array.length; i++) {
+      binary += String.fromCharCode(uint8Array[i]);
+    }
+    const base64 = btoa(binary);
 
-    return new Response(buffer, {
+    return new Response(JSON.stringify({ document: base64 }), {
       headers: {
         ...corsHeaders,
-        "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "Content-Disposition": `attachment; filename="Stock_Purchase_Agreement_${data.buyerName.replace(/\s+/g, "_")}.docx"`,
+        "Content-Type": "application/json",
       },
     });
   } catch (error: unknown) {
