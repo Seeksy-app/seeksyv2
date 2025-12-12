@@ -104,6 +104,24 @@ export function AdAnalyticsDashboard({ impressions, placements, ads }: AdAnalyti
     a.click();
   };
 
+  // Show empty state if no data at all
+  if (impressions.length === 0 && placements.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-16">
+          <div className="text-center">
+            <TrendingUp className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No Analytics Data Yet</h3>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              Analytics will appear here once ads start playing on Seeksy TV videos. 
+              Create placements to target your ads to channels or specific videos.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Date Range Selector */}
@@ -124,7 +142,7 @@ export function AdAnalyticsDashboard({ impressions, placements, ads }: AdAnalyti
             ))}
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={exportToCSV}>
+        <Button variant="outline" size="sm" onClick={exportToCSV} disabled={impressionsByAd.length === 0}>
           <Download className="h-4 w-4 mr-2" />
           Export CSV
         </Button>

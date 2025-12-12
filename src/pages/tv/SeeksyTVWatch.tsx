@@ -43,9 +43,11 @@ export default function SeeksyTVWatch() {
   const [postAd, setPostAd] = useState<AdData | null>(null);
   const [prePlacementId, setPrePlacementId] = useState<string | null>(null);
   const [postPlacementId, setPostPlacementId] = useState<string | null>(null);
-  const [adSkipTimer, setAdSkipTimer] = useState(5);
+  const skipDelaySeconds = 5; // Configurable skip delay
+  const [adSkipTimer, setAdSkipTimer] = useState(skipDelaySeconds);
   const [canSkipAd, setCanSkipAd] = useState(false);
   const [viewerSessionId] = useState(() => crypto.randomUUID());
+  const [adError, setAdError] = useState(false);
 
   // Check if videoId is a valid UUID
   const isValidUUID = videoId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(videoId);
@@ -71,7 +73,7 @@ export default function SeeksyTVWatch() {
     enabled: !!videoId && isValidUUID
   });
 
-  // Fetch ads for this video
+  // Fetch ads for this video - with error fallback
   useEffect(() => {
     if (!video) return;
     
@@ -84,6 +86,8 @@ export default function SeeksyTVWatch() {
         
         if (error) {
           console.error('[SeeksyTVWatch] Error fetching ads:', error);
+          // Fallback: just play the content
+          setAdError(true);
           return;
         }
         
@@ -98,6 +102,8 @@ export default function SeeksyTVWatch() {
         }
       } catch (err) {
         console.error('[SeeksyTVWatch] Failed to fetch ads:', err);
+        // Fallback: just play the content without ads
+        setAdError(true);
       }
     };
     
@@ -143,12 +149,18 @@ export default function SeeksyTVWatch() {
     if (playingAd === 'pre') {
       setPlayingAd(null);
       setCanSkipAd(false);
-      setAdSkipTimer(5);
+      setAdSkipTimer(skipDelaySeconds);
       // Auto-play main content
       setTimeout(() => videoRef.current?.play(), 100);
     } else if (playingAd === 'post') {
       setPlayingAd(null);
     }
+  };
+
+  // Handle ad loading errors - fallback to content
+  const handleAdError = () => {
+    console.warn('[SeeksyTVWatch] Ad failed to load, skipping to content');
+    handleAdEnded();
   };
 
   const skipAd = () => {
@@ -161,7 +173,7 @@ export default function SeeksyTVWatch() {
     if (postAd && postPlacementId) {
       setPlayingAd('post');
       setCanSkipAd(false);
-      setAdSkipTimer(5);
+      setAdSkipTimer(skipDelaySeconds);
       setTimeout(() => {
         adVideoRef.current?.play();
         logImpression(postAd.id, postPlacementId, 'post');
@@ -334,24 +346,36 @@ export default function SeeksyTVWatch() {
                     src={currentAd.asset_url}
                     className="w-full h-full object-contain"
                     onEnded={handleAdEnded}
+                    onError={handleAdError}
                     autoPlay
                     onClick={() => currentAd.click_url && window.open(currentAd.click_url, '_blank')}
                   />
-                  {/* Ad overlay */}
-                  <div className="absolute top-4 left-4">
-                    <Badge className="bg-amber-500 text-white">Ad</Badge>
+                  {/* Ad label overlay - subtle top-left */}
+                  <div className="absolute top-3 left-3 pointer-events-none">
+                    <Badge className="bg-amber-500/90 text-white text-xs px-2 py-0.5 font-medium shadow-md">
+                      Ad
+                    </Badge>
                   </div>
+                  {/* Skip controls - bottom right */}
                   <div className="absolute bottom-4 right-4">
                     {canSkipAd ? (
-                      <Button size="sm" onClick={skipAd} className="bg-white text-black hover:bg-gray-200">
+                      <Button size="sm" onClick={skipAd} className="bg-white text-black hover:bg-gray-200 shadow-lg">
                         Skip Ad <SkipForward className="h-4 w-4 ml-1" />
                       </Button>
                     ) : (
-                      <Badge variant="secondary" className="bg-black/70 text-white">
+                      <Badge variant="secondary" className="bg-black/80 text-white px-3 py-1.5 text-sm shadow-lg">
                         Skip in {adSkipTimer}s
                       </Badge>
                     )}
                   </div>
+                  {/* Click CTA if click_url exists */}
+                  {currentAd.click_url && (
+                    <div className="absolute bottom-4 left-4 pointer-events-none">
+                      <Badge variant="outline" className="bg-black/60 text-white border-white/30 text-xs">
+                        Click to learn more
+                      </Badge>
+                    </div>
+                  )}
                 </div>
               )}
 
