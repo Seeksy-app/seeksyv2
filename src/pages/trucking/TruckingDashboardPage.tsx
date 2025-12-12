@@ -380,11 +380,9 @@ export default function TruckingDashboardPage() {
                           <div className="text-xs text-slate-500">{load.miles} mi</div>
                         </div>
                         <Badge className={getStatusBadge(load.status)}>{load.status}</Badge>
-                        {load.pickup_date && (
-                          <div className="text-sm text-slate-500">
-                            {format(new Date(load.pickup_date), "MMM d")}
-                          </div>
-                        )}
+                        <div className="text-sm text-slate-500 w-16 text-right">
+                          {load.pickup_date ? format(new Date(load.pickup_date), "MMM d") : "—"}
+                        </div>
                       </div>
                     </div>
                     
