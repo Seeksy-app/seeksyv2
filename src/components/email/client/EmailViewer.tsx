@@ -93,13 +93,24 @@ export function EmailViewer({
     mutationFn: async () => {
       if (!email) return;
       
-      // Permanently delete from database
-      const { error } = await supabase
-        .from("email_events")
-        .delete()
-        .eq("id", email.id);
+      // Check if this is an inbox message
+      const isInboxEmail = (email as any).is_inbox || email.event_type === "received";
       
-      if (error) throw error;
+      if (isInboxEmail) {
+        // Permanently delete from inbox_messages
+        const { error } = await supabase
+          .from("inbox_messages")
+          .delete()
+          .eq("id", email.id);
+        if (error) throw error;
+      } else {
+        // Permanently delete from email_events
+        const { error } = await supabase
+          .from("email_events")
+          .delete()
+          .eq("id", email.id);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       toast({ title: "Email permanently deleted" });
@@ -120,16 +131,27 @@ export function EmailViewer({
     mutationFn: async () => {
       if (!email) return;
       
-      // Restore email by clearing deleted_at
-      const { error } = await supabase
-        .from("email_events")
-        .update({ 
-          deleted_at: null,
-          original_event_type: null
-        })
-        .eq("id", email.id);
+      // Check if this is an inbox message
+      const isInboxEmail = (email as any).is_inbox || email.event_type === "received";
       
-      if (error) throw error;
+      if (isInboxEmail) {
+        // Restore inbox message by clearing deleted_at
+        const { error } = await supabase
+          .from("inbox_messages")
+          .update({ deleted_at: null })
+          .eq("id", email.id);
+        if (error) throw error;
+      } else {
+        // Restore email_events by clearing deleted_at
+        const { error } = await supabase
+          .from("email_events")
+          .update({ 
+            deleted_at: null,
+            original_event_type: null
+          })
+          .eq("id", email.id);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       toast({ title: "Email restored" });

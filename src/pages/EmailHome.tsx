@@ -135,6 +135,52 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
         }));
       }
       
+      // Trash folder: combine deleted emails from both tables
+      if (selectedFolder === "trash") {
+        // Get deleted inbox messages
+        const { data: deletedInbox } = await supabase
+          .from("inbox_messages")
+          .select("*")
+          .eq("user_id", user.id)
+          .not("deleted_at", "is", null)
+          .order("received_at", { ascending: false });
+
+        const inboxTrashed = (deletedInbox || []).map(msg => ({
+          id: msg.id,
+          to_email: msg.to_address,
+          from_email: msg.from_address,
+          from_name: msg.from_name,
+          email_subject: msg.subject,
+          event_type: "received",
+          created_at: msg.received_at,
+          snippet: msg.snippet,
+          body_html: msg.body_html,
+          is_read: msg.is_read,
+          is_starred: msg.is_starred,
+          reply_count: 0,
+          is_inbox: true,
+          deleted_at: msg.deleted_at,
+          gmail_message_id: msg.gmail_message_id,
+        }));
+
+        // Get deleted sent emails
+        const { data: deletedSent } = await supabase
+          .from("email_events")
+          .select("*, email_campaigns(campaign_name)")
+          .eq("user_id", user.id)
+          .not("deleted_at", "is", null)
+          .order("created_at", { ascending: false });
+
+        const sentTrashed = (deletedSent || []).map(e => ({ ...e, is_inbox: false }));
+
+        // Combine and sort by date
+        const allTrashed = [...inboxTrashed, ...sentTrashed].sort((a, b) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+
+        return allTrashed;
+      }
+
       // Sent and other folders use email_events table
       let query = supabase
         .from("email_events")
@@ -142,21 +188,15 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      // Apply folder filter with soft-delete support
-      if (selectedFolder === "trash") {
-        // Trash folder: show emails with deleted_at set
-        query = query.not("deleted_at", "is", null);
-      } else {
-        // All other folders: exclude trashed emails (deleted_at is null)
-        query = query.is("deleted_at", null);
-        
-        if (selectedFolder === "sent") {
-          query = query.eq("event_type", "sent");
-        } else if (selectedFolder === "bounced") {
-          query = query.eq("event_type", "email.bounced");
-        } else if (selectedFolder === "unsubscribed") {
-          query = query.eq("event_type", "email.unsubscribed");
-        }
+      // All other folders: exclude trashed emails (deleted_at is null)
+      query = query.is("deleted_at", null);
+      
+      if (selectedFolder === "sent") {
+        query = query.eq("event_type", "sent");
+      } else if (selectedFolder === "bounced") {
+        query = query.eq("event_type", "email.bounced");
+      } else if (selectedFolder === "unsubscribed") {
+        query = query.eq("event_type", "email.unsubscribed");
       }
 
       // Apply status filter

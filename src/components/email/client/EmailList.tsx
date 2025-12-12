@@ -33,6 +33,7 @@ interface Email {
   opened?: boolean;
   deleted_at?: string | null;
   original_event_type?: string | null;
+  is_inbox?: boolean;
 }
 
 interface EmailListProps {
@@ -114,12 +115,21 @@ export function EmailList({
         const email = emails.find((e: any) => e.id === emailId);
         
         if (email?.event_type === "draft") {
+          // Drafts are permanently deleted
           const { error } = await supabase
             .from("email_campaigns")
             .delete()
             .eq("id", emailId);
           if (error) throw error;
+        } else if (email?.is_inbox || email?.event_type === "received") {
+          // Inbox messages use inbox_messages table - soft delete
+          const { error } = await supabase
+            .from("inbox_messages")
+            .update({ deleted_at: new Date().toISOString() })
+            .eq("id", emailId);
+          if (error) throw error;
         } else {
+          // Sent/other emails use email_events table - soft delete
           const { error } = await supabase
             .from("email_events")
             .update({ 
