@@ -55,15 +55,23 @@ serve(async (req) => {
   try {
     const input: StockAgreementInput = await req.json();
     
+    console.log("Received input:", JSON.stringify(input));
+    
+    // Safely parse numbers
+    const numShares = Number(input.numberOfShares) || 0;
+    const sharePrice = Number(input.pricePerShare) || 0.20;
+    
+    console.log("Parsed values - shares:", numShares, "price:", sharePrice);
+    
     // Transform frontend input to full agreement data with defaults
     const data: StockAgreementData = {
       agreementDate: input.agreementDate || new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
       sellerName: "Parade Deck Holdings, Inc.",
-      buyerName: input.purchaserName,
+      buyerName: input.purchaserName || "Unknown Purchaser",
       companyName: "Parade Deck Holdings, Inc.",
-      numberOfShares: Number(input.numberOfShares) || 0,
-      pricePerShare: Number(input.pricePerShare) || 0.20,
-      totalPrice: (Number(input.numberOfShares) || 0) * (Number(input.pricePerShare) || 0.20),
+      numberOfShares: numShares,
+      pricePerShare: sharePrice,
+      totalPrice: numShares * sharePrice,
       sellerAddress: "7400 Beaufont Springs Drive, Suite 300, Richmond VA 23225",
       sellerEmail: "info@paradedeck.com",
       buyerAddress: input.purchaserAddress || "",
@@ -72,6 +80,8 @@ serve(async (req) => {
       chairmanName: "Andrew Appleton",
       chairmanTitle: "Chairman of the Board",
     };
+    
+    console.log("Constructed data - numberOfShares:", data.numberOfShares, "type:", typeof data.numberOfShares);
 
     const doc = new Document({
       sections: [
