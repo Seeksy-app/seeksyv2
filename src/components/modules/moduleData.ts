@@ -213,7 +213,7 @@ export const SEEKSY_MODULES: SeeksyModule[] = [
   },
   {
     id: "email",
-    name: "Email Client",
+    name: "Inbox",
     description: "Full email inbox with templates, sequences, and multi-account support",
     icon: Mail,
     category: "campaigns",
@@ -542,8 +542,8 @@ export const SEEKSY_MODULES: SeeksyModule[] = [
   // Email Signatures
   {
     id: "email-signatures",
-    name: "Email Signatures",
-    description: "Smart email signatures with open/click tracking for Gmail",
+    name: "Settings",
+    description: "Email settings, signatures, and tracking configuration",
     icon: Mail,
     category: "campaigns",
     route: "/signatures",

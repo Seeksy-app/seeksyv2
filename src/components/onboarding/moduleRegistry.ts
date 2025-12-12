@@ -187,8 +187,8 @@ export const MODULE_REGISTRY: Record<string, RecommendedModule> = {
   },
   "email-signatures": {
     id: "email-signatures",
-    name: "Email Signatures",
-    description: "Smart signatures with open/click tracking",
+    name: "Settings",
+    description: "Email settings, signatures, and tracking configuration",
     category: "marketing",
     priority: "recommended",
   },
