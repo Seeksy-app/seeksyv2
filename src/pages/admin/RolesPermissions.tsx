@@ -19,8 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Shield, Users, Key, History, Search, UserPlus, Settings2, TestTube } from 'lucide-react';
-import { PermissionEnforcementTest } from '@/components/rbac/PermissionEnforcementTest';
+import { Shield, Users, Key, History, Search, UserPlus, Settings2 } from 'lucide-react';
 
 interface RoleDefinition {
   id: string;

@@ -28,7 +28,7 @@ import ScriptEditor from "@/components/voice/ScriptEditor";
 import confetti from "canvas-confetti";
 import { VoiceCertifiedBadge } from "@/components/VoiceCertifiedBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { testVoiceNFTMinting } from "@/test-voice-profile";
+
 
 type CloneType = 'instant' | 'professional';
 

@@ -265,7 +265,7 @@ import CFOCalculators from "./pages/CFOCalculators";
 import ProForma from "./pages/ProForma";
 import TechStack from "./pages/TechStack";
 import Onboarding from "./pages/Onboarding";
-import OnboardingTest from "./pages/OnboardingTest";
+
 import OnboardingComplete from "./pages/OnboardingComplete";
 import SalesDashboard from "./pages/SalesDashboard";
 import SalesAdLibrary from "./pages/SalesAdLibrary";
