@@ -71,6 +71,7 @@ import TruckingSettingsPage from "./pages/trucking/TruckingSettingsPage";
 import AITruckingConsolePage from "./pages/trucking/AITruckingConsolePage";
 import TruckingContactsPage from "./pages/trucking/TruckingContactsPage";
 import CallLogsPage from "./pages/trucking/CallLogsPage";
+import TruckingCitiesPage from "./pages/trucking/TruckingCitiesPage";
 import TruckingLayout from "./components/trucking/TruckingLayout";
 import AdminMeetings from "./pages/admin/AdminMeetings";
 import AdminMeetingsDashboard from "./pages/admin/meetings/AdminMeetingsDashboard";

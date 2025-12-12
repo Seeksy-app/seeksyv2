@@ -24126,6 +24126,45 @@ export type Database = {
         }
         Relationships: []
       }
+      trucking_cities: {
+        Row: {
+          aliases: string[] | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          is_favorite: boolean | null
+          name: string
+          state_code: string
+          updated_at: string | null
+          zip: string | null
+        }
+        Insert: {
+          aliases?: string[] | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_favorite?: boolean | null
+          name: string
+          state_code: string
+          updated_at?: string | null
+          zip?: string | null
+        }
+        Update: {
+          aliases?: string[] | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_favorite?: boolean | null
+          name?: string
+          state_code?: string
+          updated_at?: string | null
+          zip?: string | null
+        }
+        Relationships: []
+      }
       trucking_contacts: {
         Row: {
           company_name: string | null

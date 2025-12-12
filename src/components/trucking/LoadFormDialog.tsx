@@ -4,19 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-const US_STATES = [
-  "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL",
-  "IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT",
-  "NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI",
-  "SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"
-];
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MapPin, Loader2 } from "lucide-react";
+import CityCombobox from "./CityCombobox";
+import { useDistanceCalculation } from "@/hooks/trucking/useDistanceCalculation";
 
 const equipmentTypes = ["Dry Van", "Reefer", "Flatbed", "Step Deck", "Power Only", "Hotshot", "Conestoga", "Double Drop", "RGN"];
 
@@ -30,6 +25,7 @@ interface LoadFormDialogProps {
 export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingLoadId }: LoadFormDialogProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const { calculateDistance, loading: distanceLoading } = useDistanceCalculation();
   const [formData, setFormData] = useState({
     load_number: "",
     origin_city: "",
@@ -119,6 +115,17 @@ export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingL
     });
   };
 
+  const handleCalculateDistance = async () => {
+    const result = await calculateDistance(
+      { city: formData.origin_city, state: formData.origin_state },
+      { city: formData.destination_city, state: formData.destination_state }
+    );
+    if (result) {
+      setFormData(prev => ({ ...prev, miles: result.distance_miles.toString() }));
+      toast({ title: `Distance: ${result.distance_miles} miles (${result.duration_hours}h drive)` });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -177,6 +184,9 @@ export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingL
     }
   }, [formData.weight_lbs, formData.rate_type]);
 
+  const canCalculateDistance = formData.origin_city && formData.origin_state && 
+                                formData.destination_city && formData.destination_state;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh]">
@@ -197,53 +207,50 @@ export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingL
               />
             </div>
 
-            {/* Origin & Destination */}
+            {/* Origin & Destination with City Combobox */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Origin</Label>
-                <Input
-                  placeholder="City"
-                  value={formData.origin_city}
-                  onChange={(e) => setFormData({ ...formData, origin_city: e.target.value })}
-                  required
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Origin *</Label>
+                <CityCombobox
+                  value={{ city: formData.origin_city, state: formData.origin_state }}
+                  onChange={({ city, state }) => setFormData({ ...formData, origin_city: city, origin_state: state })}
+                  placeholder="Select origin city..."
                 />
-                <Select
-                  value={formData.origin_state}
-                  onValueChange={(v) => setFormData({ ...formData, origin_state: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="State" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {US_STATES.map((s) => (
-                      <SelectItem key={s} value={s}>{s}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Destination</Label>
-                <Input
-                  placeholder="City"
-                  value={formData.destination_city}
-                  onChange={(e) => setFormData({ ...formData, destination_city: e.target.value })}
-                  required
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Destination *</Label>
+                <CityCombobox
+                  value={{ city: formData.destination_city, state: formData.destination_state }}
+                  onChange={({ city, state }) => setFormData({ ...formData, destination_city: city, destination_state: state })}
+                  placeholder="Select destination city..."
                 />
-                <Select
-                  value={formData.destination_state}
-                  onValueChange={(v) => setFormData({ ...formData, destination_state: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="State" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {US_STATES.map((s) => (
-                      <SelectItem key={s} value={s}>{s}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
             </div>
+
+            {/* Calculate Distance Button */}
+            {canCalculateDistance && (
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCalculateDistance}
+                  disabled={distanceLoading}
+                >
+                  {distanceLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <MapPin className="h-4 w-4 mr-2" />
+                  )}
+                  Calculate Distance
+                </Button>
+                {formData.miles && (
+                  <span className="text-sm text-muted-foreground">
+                    {formData.miles} miles
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Pickup Date & Window */}
             <div className="grid grid-cols-3 gap-4">
