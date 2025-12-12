@@ -2,14 +2,20 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Package, Plus, MoreHorizontal, Settings, Edit, Trash2, Copy, CheckCircle2 } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { 
+  Package, Plus, MoreHorizontal, Settings, Edit, Trash2, Copy, CheckCircle2, 
+  ChevronDown, Phone, Users, Search, Sun, Moon 
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { useTheme } from "next-themes";
 import LoadFormDialog from "@/components/trucking/LoadFormDialog";
 
 interface Load {
@@ -30,30 +36,47 @@ interface Load {
   equipment_type: string;
   miles: number;
   status: string;
+  broker_commission?: number;
+}
+
+interface Lead {
+  id: string;
+  company_name: string;
+  contact_name: string;
+  status: string;
+  created_at: string;
 }
 
 export default function TruckingDashboardPage() {
   const [loads, setLoads] = useState<Load[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [callsToday, setCallsToday] = useState(0);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("open");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingLoad, setEditingLoad] = useState<Load | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { theme: appTheme, setTheme } = useTheme();
 
   useEffect(() => {
-    fetchLoads();
+    fetchData();
   }, []);
 
-  const fetchLoads = async () => {
+  const fetchData = async () => {
     try {
-      const { data, error } = await supabase
-        .from("trucking_loads")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const [loadsRes, leadsRes, callsRes] = await Promise.all([
+        supabase.from("trucking_loads").select("*").order("created_at", { ascending: false }),
+        supabase.from("trucking_carrier_leads").select("*").order("created_at", { ascending: false }),
+        supabase.from("trucking_call_logs").select("id").gte("created_at", new Date().toISOString().split("T")[0])
+      ]);
 
-      if (error) throw error;
-      setLoads((data as Load[]) || []);
+      if (loadsRes.error) throw loadsRes.error;
+      if (leadsRes.error) throw leadsRes.error;
+
+      setLoads((loadsRes.data as Load[]) || []);
+      setLeads((leadsRes.data as Lead[]) || []);
+      setCallsToday(callsRes.data?.length || 0);
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
@@ -62,9 +85,22 @@ export default function TruckingDashboardPage() {
   };
 
   const openLoads = loads.filter((l) => l.status === "open");
+  const pendingLeads = leads.filter((l) => l.status === "pending" || l.status === "interested");
   const confirmedLoads = loads.filter((l) => l.status === "booked");
 
-  const displayedLoads = activeTab === "open" ? openLoads : confirmedLoads;
+  // Earnings calculations
+  const estRevenue = openLoads.reduce((sum, l) => sum + (l.target_rate || 0), 0) + confirmedLoads.reduce((sum, l) => sum + (l.target_rate || 0), 0);
+  const bookedRevenue = confirmedLoads.reduce((sum, l) => sum + (l.target_rate || 0), 0);
+  const estEarnings = openLoads.reduce((sum, l) => sum + (l.broker_commission || 0), 0) + confirmedLoads.reduce((sum, l) => sum + (l.broker_commission || 0), 0);
+  const bookedEarnings = confirmedLoads.reduce((sum, l) => sum + (l.broker_commission || 0), 0);
+
+  const getDisplayedLoads = () => {
+    if (activeTab === "open") return openLoads;
+    if (activeTab === "pending") return []; // pending leads shown separately
+    return confirmedLoads;
+  };
+
+  const displayedLoads = getDisplayedLoads();
 
   const formatRate = (load: Load) => {
     if (load.rate_type === "per_ton" && load.desired_rate_per_ton) {
@@ -118,7 +154,7 @@ export default function TruckingDashboardPage() {
       const { error } = await supabase.from("trucking_loads").insert([newLoad]);
       if (error) throw error;
       toast({ title: "Load duplicated" });
-      fetchLoads();
+      fetchData();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     }
@@ -129,7 +165,7 @@ export default function TruckingDashboardPage() {
       const { error } = await supabase.from("trucking_loads").delete().eq("id", id);
       if (error) throw error;
       toast({ title: "Load deleted" });
-      fetchLoads();
+      fetchData();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     }
@@ -143,7 +179,7 @@ export default function TruckingDashboardPage() {
         .eq("id", id);
       if (error) throw error;
       toast({ title: "Load confirmed" });
-      fetchLoads();
+      fetchData();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     }
@@ -155,6 +191,9 @@ export default function TruckingDashboardPage() {
     }
     if (status === "booked") {
       return <Badge className="bg-blue-100 text-blue-700 border-0">booked</Badge>;
+    }
+    if (status === "pending" || status === "interested") {
+      return <Badge className="bg-amber-100 text-amber-700 border-0">pending</Badge>;
     }
     return <Badge variant="secondary">{status}</Badge>;
   };
@@ -168,159 +207,299 @@ export default function TruckingDashboardPage() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Loads</h1>
-          <p className="text-slate-500 mt-1">Manage your freight loads for Jess to share with carriers</p>
+    <div className="space-y-6">
+      {/* Top Bar - Search + Theme Toggle */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input
+            type="text"
+            placeholder="Search loads, carriers, leads..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 bg-white border-slate-200"
+          />
         </div>
-        <div className="flex items-center gap-3">
-          <Link to="/trucking/settings">
-            <Button variant="outline" className="gap-2">
-              <Settings className="h-4 w-4" />
-              Custom Labels
-            </Button>
-          </Link>
-          <Button 
-            className="bg-green-500 hover:bg-green-600 text-white gap-2"
-            onClick={() => setDialogOpen(true)}
-          >
-            <Plus className="h-4 w-4" />
-            Add Load
-          </Button>
+        <Button 
+          variant="ghost" 
+          size="icon"
+          onClick={() => setTheme(appTheme === 'dark' ? 'light' : 'dark')}
+          className="h-10 w-10"
+        >
+          {appTheme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </Button>
+      </div>
+
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
+          <p className="text-slate-500 text-sm">Overview of your loads and leads</p>
+        </div>
+        <Button 
+          className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+          onClick={() => setDialogOpen(true)}
+        >
+          <Plus className="h-4 w-4" />
+          Add Load
+        </Button>
+      </div>
+
+      {/* AI Live Banner */}
+      <Card className="bg-green-50 border-green-200 p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="relative flex h-3 w-3">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+              <span className="relative inline-flex h-3 w-3 rounded-full bg-green-500" />
+            </span>
+            <div>
+              <p className="font-semibold text-green-800">AI Live — Jess is Ready</p>
+              <p className="text-sm text-green-600">Answering carrier calls • {callsToday} calls today</p>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Earnings Row */}
+      <div className="flex items-center justify-between text-sm text-slate-500">
+        <div className="flex items-center gap-6">
+          <span>Est Revenue: <strong className="text-slate-700">${estRevenue.toLocaleString()}</strong></span>
+          <span>Booked: <strong className="text-slate-700">{bookedRevenue > 0 ? `$${bookedRevenue.toLocaleString()}` : "—"}</strong></span>
+        </div>
+        <div className="flex items-center gap-6">
+          <span>Est Earnings: <strong className="text-slate-700">{estEarnings > 0 ? `$${estEarnings.toLocaleString()}` : "—"}</strong></span>
+          <span>Booked: <strong className="text-slate-700">{bookedEarnings > 0 ? `$${bookedEarnings.toLocaleString()}` : "—"}</strong></span>
         </div>
       </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
-        <TabsList className="bg-slate-100 p-1 rounded-full">
-          <TabsTrigger 
-            value="open" 
-            className="rounded-full px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-          >
-            Open Loads
-            <Badge className="ml-2 bg-amber-400 text-amber-900 border-0">{openLoads.length}</Badge>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="confirmed"
-            className="rounded-full px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-          >
-            Confirmed
-            <Badge className="ml-2 bg-slate-300 text-slate-700 border-0">{confirmedLoads.length}</Badge>
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-4 gap-4">
+        <Card className="p-4 bg-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-500">Open Loads</p>
+              <p className="text-3xl font-bold text-slate-900">{openLoads.length}</p>
+            </div>
+            <div className="h-12 w-12 rounded-xl bg-blue-100 flex items-center justify-center">
+              <Package className="h-6 w-6 text-blue-600" />
+            </div>
+          </div>
+        </Card>
+        <Card className="p-4 bg-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-500">New Leads Today</p>
+              <p className="text-3xl font-bold text-slate-900">{leads.filter(l => new Date(l.created_at).toDateString() === new Date().toDateString()).length}</p>
+            </div>
+            <div className="h-12 w-12 rounded-xl bg-amber-100 flex items-center justify-center">
+              <Users className="h-6 w-6 text-amber-600" />
+            </div>
+          </div>
+        </Card>
+        <Card className="p-4 bg-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-500">AI Calls Today</p>
+              <p className="text-3xl font-bold text-slate-900">{callsToday}</p>
+            </div>
+            <div className="h-12 w-12 rounded-xl bg-slate-100 flex items-center justify-center">
+              <Phone className="h-6 w-6 text-slate-600" />
+            </div>
+          </div>
+        </Card>
+        <Card className="p-4 bg-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-500">Confirmed Loads</p>
+              <p className="text-3xl font-bold text-slate-900">{confirmedLoads.length}</p>
+            </div>
+            <div className="h-12 w-12 rounded-xl bg-green-100 flex items-center justify-center">
+              <CheckCircle2 className="h-6 w-6 text-green-600" />
+            </div>
+          </div>
+        </Card>
+      </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-slate-50 border-b border-slate-200">
-              <TableHead className="w-[140px] font-medium text-slate-600">Load #</TableHead>
-              <TableHead className="font-medium text-slate-600">Lane</TableHead>
-              <TableHead className="w-[100px] font-medium text-slate-600">Distance</TableHead>
-              <TableHead className="w-[160px] font-medium text-slate-600">Pickup</TableHead>
-              <TableHead className="w-[120px] font-medium text-slate-600">Equipment</TableHead>
-              <TableHead className="w-[120px] font-medium text-slate-600">Rate</TableHead>
-              <TableHead className="w-[100px] font-medium text-slate-600">Status</TableHead>
-              <TableHead className="w-[80px] font-medium text-slate-600">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {displayedLoads.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center py-12">
-                  <div className="flex flex-col items-center gap-2 text-slate-500">
-                    <Package className="h-10 w-10 text-slate-300" />
-                    <p>No {activeTab === "open" ? "open" : "confirmed"} loads</p>
-                    {activeTab === "open" && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="mt-2"
-                        onClick={() => setDialogOpen(true)}
-                      >
-                        <Plus className="h-4 w-4 mr-1" />
-                        Add your first load
-                      </Button>
-                    )}
-                  </div>
-                </TableCell>
+      {/* Navigation Buttons + Tabs */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Link to="/trucking/loads">
+            <Button variant="outline" size="sm">See All Loads</Button>
+          </Link>
+          <Link to="/trucking/leads">
+            <Button variant="outline" size="sm">My Leads</Button>
+          </Link>
+        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="bg-slate-100 p-1 rounded-full">
+            <TabsTrigger 
+              value="open" 
+              className="rounded-full px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+              Open
+              <Badge className="ml-2 bg-amber-400 text-amber-900 border-0">{openLoads.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="pending"
+              className="rounded-full px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+              Pending
+              <Badge className="ml-2 bg-orange-400 text-orange-900 border-0">{pendingLeads.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="confirmed"
+              className="rounded-full px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+              Confirmed
+              <Badge className="ml-2 bg-green-400 text-green-900 border-0">{confirmedLoads.length}</Badge>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {/* Loads Table */}
+      {activeTab !== "pending" ? (
+        <Card className="bg-white border border-slate-200 overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-slate-50 border-b border-slate-200">
+                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Load #</TableHead>
+                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Lane</TableHead>
+                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Distance</TableHead>
+                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Pickup</TableHead>
+                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Equipment</TableHead>
+                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Rate</TableHead>
+                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Status</TableHead>
+                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Actions</TableHead>
               </TableRow>
-            ) : (
-              displayedLoads.map((load) => (
-                <TableRow key={load.id} className="hover:bg-slate-50">
-                  <TableCell className="font-medium">{load.load_number}</TableCell>
-                  <TableCell>
-                    <span className="text-slate-700">
-                      {load.origin_city}, {load.origin_state}
-                    </span>
-                    <span className="mx-2 text-slate-400">→</span>
-                    <span className="text-slate-700">
-                      {load.destination_city}, {load.destination_state}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-slate-600">{load.miles ? `${load.miles} mi` : "—"}</TableCell>
-                  <TableCell>
-                    <div className="text-slate-700">
-                      {load.pickup_date ? format(new Date(load.pickup_date), "yyyy-MM-dd") : "—"}
-                    </div>
-                    {load.pickup_window_start && load.pickup_window_end && (
-                      <div className="text-xs text-slate-500">
-                        {load.pickup_window_start} - {load.pickup_window_end}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-slate-600">{load.equipment_type || "—"}</TableCell>
-                  <TableCell>{formatRate(load)}</TableCell>
-                  <TableCell>{getStatusBadge(load.status)}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(load)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDuplicate(load)}>
-                          <Copy className="h-4 w-4 mr-2" />
-                          Duplicate
-                        </DropdownMenuItem>
-                        {load.status === "open" && (
-                          <DropdownMenuItem onClick={() => handleConfirm(load.id)}>
-                            <CheckCircle2 className="h-4 w-4 mr-2" />
-                            Confirm
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          onClick={() => handleDelete(load.id)}
-                          className="text-red-600"
+            </TableHeader>
+            <TableBody>
+              {displayedLoads.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-12">
+                    <div className="flex flex-col items-center gap-2 text-slate-500">
+                      <Package className="h-10 w-10 text-slate-300" />
+                      <p>No {activeTab} loads</p>
+                      {activeTab === "open" && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-2"
+                          onClick={() => setDialogOpen(true)}
                         >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add your first load
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ) : (
+                displayedLoads.map((load) => (
+                  <TableRow key={load.id} className="hover:bg-slate-50">
+                    <TableCell className="font-medium whitespace-nowrap">{load.load_number}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      <span className="text-slate-700">{load.origin_city}, {load.origin_state}</span>
+                      <span className="mx-2 text-slate-400">→</span>
+                      <span className="text-slate-700">{load.destination_city}, {load.destination_state}</span>
+                    </TableCell>
+                    <TableCell className="text-slate-600 whitespace-nowrap">{load.miles ? `${load.miles} mi` : "—"}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      <div className="text-slate-700">
+                        {load.pickup_date ? format(new Date(load.pickup_date), "yyyy-MM-dd") : "—"}
+                      </div>
+                      {load.pickup_window_start && load.pickup_window_end && (
+                        <div className="text-xs text-slate-500">
+                          {load.pickup_window_start} - {load.pickup_window_end}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-slate-600 whitespace-nowrap">{load.equipment_type || "—"}</TableCell>
+                    <TableCell className="whitespace-nowrap">{formatRate(load)}</TableCell>
+                    <TableCell className="whitespace-nowrap">{getStatusBadge(load.status)}</TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleEdit(load)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDuplicate(load)}>
+                            <Copy className="h-4 w-4 mr-2" />
+                            Duplicate
+                          </DropdownMenuItem>
+                          {load.status === "open" && (
+                            <DropdownMenuItem onClick={() => handleConfirm(load.id)}>
+                              <CheckCircle2 className="h-4 w-4 mr-2" />
+                              Confirm
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={() => handleDelete(load.id)}
+                            className="text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </Card>
+      ) : (
+        /* Pending Leads Table */
+        <Card className="bg-white border border-slate-200 overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-slate-50 border-b border-slate-200">
+                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Carrier</TableHead>
+                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Status</TableHead>
+                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Created</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pendingLeads.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center py-12">
+                    <div className="flex flex-col items-center gap-2 text-slate-500">
+                      <Users className="h-10 w-10 text-slate-300" />
+                      <p>No pending leads</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                pendingLeads.map((lead) => (
+                  <TableRow key={lead.id} className="hover:bg-slate-50">
+                    <TableCell className="font-medium whitespace-nowrap">{lead.company_name || lead.contact_name || "Unknown"}</TableCell>
+                    <TableCell className="whitespace-nowrap">{getStatusBadge(lead.status)}</TableCell>
+                    <TableCell className="text-slate-600 whitespace-nowrap">
+                      {format(new Date(lead.created_at), "MMM d, yyyy")}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </Card>
+      )}
 
       {/* Add Load Dialog */}
       <LoadFormDialog 
         open={dialogOpen} 
         onOpenChange={setDialogOpen} 
         onSuccess={() => {
-          fetchLoads();
+          fetchData();
           setDialogOpen(false);
         }}
       />
