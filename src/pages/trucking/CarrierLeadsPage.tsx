@@ -49,7 +49,7 @@ export default function CarrierLeadsPage() {
 
       const { data, error } = await supabase
         .from("trucking_carrier_leads")
-        .select("*, trucking_loads(load_number, origin_city, origin_state, destination_city, destination_state), trucking_call_logs(transcript_url)")
+        .select("*, trucking_loads(load_number, origin_city, origin_state, destination_city, destination_state), trucking_call_logs!trucking_carrier_leads_call_log_id_fkey(transcript_url)")
         .eq("owner_id", user.id)
         .eq("is_confirmed", false)
         .order("created_at", { ascending: false });
