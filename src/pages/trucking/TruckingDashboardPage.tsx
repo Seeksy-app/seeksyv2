@@ -98,12 +98,12 @@ export default function TruckingDashboardPage() {
 
       const today = new Date().toISOString().split("T")[0];
 
-      // Fetch stats
+      // Fetch stats - ALL agents see ALL loads (no owner_id filter)
       const [loadsResult, confirmedResult, leadsResult, callsResult] = await Promise.all([
-        supabase.from("trucking_loads").select("id", { count: "exact" }).eq("owner_id", user.id).eq("status", "open"),
-        supabase.from("trucking_carrier_leads").select("id", { count: "exact" }).eq("owner_id", user.id).eq("is_confirmed", true),
-        supabase.from("trucking_carrier_leads").select("id", { count: "exact" }).eq("owner_id", user.id).eq("is_confirmed", false).gte("created_at", today),
-        supabase.from("trucking_call_logs").select("id", { count: "exact" }).eq("owner_id", user.id).gte("created_at", today),
+        supabase.from("trucking_loads").select("id", { count: "exact" }).eq("status", "open"),
+        supabase.from("trucking_carrier_leads").select("id", { count: "exact" }).eq("is_confirmed", true),
+        supabase.from("trucking_carrier_leads").select("id", { count: "exact" }).eq("is_confirmed", false).gte("created_at", today),
+        supabase.from("trucking_call_logs").select("id", { count: "exact" }).gte("created_at", today),
       ]);
 
       setStats({
@@ -113,11 +113,10 @@ export default function TruckingDashboardPage() {
         callsToday: callsResult.count || 0,
       });
 
-      // Fetch open loads
+      // Fetch open loads - ALL agents see ALL loads
       const { data: openLoads } = await supabase
         .from("trucking_loads")
         .select("*")
-        .eq("owner_id", user.id)
         .eq("status", "open")
         .order("pickup_date", { ascending: true })
         .limit(10);
@@ -128,7 +127,6 @@ export default function TruckingDashboardPage() {
       const { data: todayLoads } = await supabase
         .from("trucking_loads")
         .select("target_rate, broker_commission, status")
-        .eq("owner_id", user.id)
         .eq("pickup_date", today);
 
       if (todayLoads) {
@@ -143,12 +141,11 @@ export default function TruckingDashboardPage() {
         });
       }
 
-      // Fetch call metrics and settings
+      // Fetch call metrics and settings - ALL agents see ALL data
       const [settingsResult, activeCallsResult] = await Promise.all([
-        supabase.from("trucking_settings").select("max_concurrent_calls").eq("owner_id", user.id).maybeSingle(),
+        supabase.from("trucking_settings").select("max_concurrent_calls").maybeSingle(),
         supabase.from("trucking_call_logs")
           .select("id, call_started_at, call_ended_at")
-          .eq("owner_id", user.id)
           .gte("call_started_at", new Date(Date.now() - 5 * 60 * 1000).toISOString())
           .is("call_ended_at", null),
       ]);
@@ -163,22 +160,20 @@ export default function TruckingDashboardPage() {
         avgCallDuration: 0,
       });
 
-      // Fetch confirmed leads
+      // Fetch confirmed leads - ALL agents see ALL leads
       const { data: confirmed } = await supabase
         .from("trucking_carrier_leads")
         .select("*, trucking_loads(load_number, origin_city, origin_state, destination_city, destination_state)")
-        .eq("owner_id", user.id)
         .eq("is_confirmed", true)
         .order("confirmed_at", { ascending: false })
         .limit(10);
 
       setConfirmedLeads(confirmed || []);
 
-      // Fetch recent unconfirmed leads
+      // Fetch recent unconfirmed leads - ALL agents see ALL leads
       const { data: leads } = await supabase
         .from("trucking_carrier_leads")
         .select("*, trucking_loads(load_number)")
-        .eq("owner_id", user.id)
         .eq("is_confirmed", false)
         .order("created_at", { ascending: false })
         .limit(5);

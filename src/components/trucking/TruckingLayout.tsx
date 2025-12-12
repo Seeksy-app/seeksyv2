@@ -25,12 +25,15 @@ import {
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
-  ClipboardList
+  ClipboardList,
+  Sun,
+  Moon
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useTruckingCostStats } from "@/hooks/useTruckingCostStats";
+import { useTheme } from "next-themes";
 
 // Theme colors for dark sidebar
 const theme = {
@@ -72,6 +75,7 @@ interface TruckingLayoutProps {
 export default function TruckingLayout({ children }: TruckingLayoutProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { theme: appTheme, setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -135,14 +139,25 @@ export default function TruckingLayout({ children }: TruckingLayoutProps) {
               </div>
             )}
           </div>
-          <button
-            type="button"
-            onClick={() => setCollapsed((v) => !v)}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-white/10"
-            style={{ color: theme.text.secondary }}
-          >
-            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setTheme(appTheme === 'dark' ? 'light' : 'dark')}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-white/10"
+              style={{ color: theme.text.secondary }}
+              title={appTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {appTheme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+            <button
+              type="button"
+              onClick={() => setCollapsed((v) => !v)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-white/10"
+              style={{ color: theme.text.secondary }}
+            >
+              {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </button>
+          </div>
         </div>
 
         {/* Navigation */}
