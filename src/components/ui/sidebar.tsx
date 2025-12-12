@@ -14,7 +14,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
-const SIDEBAR_WIDTH = "16rem";
+const SIDEBAR_WIDTH_DEFAULT = "16rem";
+const SIDEBAR_WIDTH_MIN = 200;
+const SIDEBAR_WIDTH_MAX = 400;
 const SIDEBAR_WIDTH_MOBILE = "18rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
 const SIDEBAR_KEYBOARD_SHORTCUT = "b";
@@ -27,6 +29,8 @@ type SidebarContext = {
   setOpenMobile: (open: boolean) => void;
   isMobile: boolean;
   toggleSidebar: () => void;
+  sidebarWidth: number;
+  setSidebarWidth: (width: number) => void;
 };
 
 const SidebarContext = React.createContext<SidebarContext | null>(null);
@@ -50,6 +54,21 @@ const SidebarProvider = React.forwardRef<
 >(({ defaultOpen = true, open: openProp, onOpenChange: setOpenProp, className, style, children, ...props }, ref) => {
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
+
+  // Resizable sidebar width state - stored in localStorage
+  const [sidebarWidth, setSidebarWidthState] = React.useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('sidebar:width');
+      return saved ? parseInt(saved, 10) : 256; // Default 16rem = 256px
+    }
+    return 256;
+  });
+
+  const setSidebarWidth = React.useCallback((width: number) => {
+    const clampedWidth = Math.min(Math.max(width, SIDEBAR_WIDTH_MIN), SIDEBAR_WIDTH_MAX);
+    setSidebarWidthState(clampedWidth);
+    localStorage.setItem('sidebar:width', String(clampedWidth));
+  }, []);
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
@@ -101,8 +120,10 @@ const SidebarProvider = React.forwardRef<
       openMobile,
       setOpenMobile,
       toggleSidebar,
+      sidebarWidth,
+      setSidebarWidth,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar],
+    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar, sidebarWidth, setSidebarWidth],
   );
 
   return (
@@ -111,7 +132,7 @@ const SidebarProvider = React.forwardRef<
         <div
           style={
             {
-              "--sidebar-width": SIDEBAR_WIDTH,
+              "--sidebar-width": `${sidebarWidth}px`,
               "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
               ...style,
             } as React.CSSProperties
@@ -127,6 +148,52 @@ const SidebarProvider = React.forwardRef<
   );
 });
 SidebarProvider.displayName = "SidebarProvider";
+
+// Resize handle component for dragging sidebar width
+const SidebarResizeHandle = ({ side = "left" }: { side?: "left" | "right" }) => {
+  const { setSidebarWidth, sidebarWidth, state } = useSidebar();
+  const [isDragging, setIsDragging] = React.useState(false);
+
+  const handleMouseDown = React.useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newWidth = side === "left" ? e.clientX : window.innerWidth - e.clientX;
+      setSidebarWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging, side, setSidebarWidth]);
+
+  // Don't show resize handle when collapsed
+  if (state === "collapsed") return null;
+
+  return (
+    <div
+      onMouseDown={handleMouseDown}
+      className={cn(
+        "absolute top-0 bottom-0 w-1 cursor-col-resize z-20 transition-colors hover:bg-primary/20",
+        isDragging && "bg-primary/30",
+        side === "left" ? "right-0" : "left-0"
+      )}
+    />
+  );
+};
 
 const Sidebar = React.forwardRef<
   HTMLDivElement,
@@ -206,9 +273,10 @@ const Sidebar = React.forwardRef<
       >
         <div
           data-sidebar="sidebar"
-          className="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
+          className="relative flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
         >
           {children}
+          <SidebarResizeHandle side={side} />
         </div>
       </div>
     </div>

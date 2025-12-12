@@ -479,8 +479,28 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Listen for auth state changes to refetch workspaces when user logs in
   useEffect(() => {
     fetchWorkspaces();
+    
+    // Subscribe to auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('[WorkspaceContext] Auth state changed:', event, session?.user?.email);
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        // User just logged in - refetch workspaces
+        fetchWorkspaces();
+      } else if (event === 'SIGNED_OUT') {
+        // Clear workspace state on logout
+        setWorkspaces([]);
+        setCurrentWorkspaceState(null);
+        setWorkspaceModules([]);
+        localStorage.removeItem('currentWorkspaceId');
+      }
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [fetchWorkspaces]);
 
   return (
