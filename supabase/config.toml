@@ -476,3 +476,9 @@ verify_jwt = false
 
 [functions.ai-trucking-call-complete]
 verify_jwt = false
+
+[functions.seeksy-tv-get-ads]
+verify_jwt = false
+
+[functions.seeksy-tv-log-impression]
+verify_jwt = false

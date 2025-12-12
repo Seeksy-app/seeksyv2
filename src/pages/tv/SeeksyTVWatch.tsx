@@ -13,10 +13,21 @@ import { TVFooter } from "@/components/tv/TVFooter";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+interface AdData {
+  id: string;
+  title: string;
+  type: string;
+  asset_url: string;
+  duration_seconds: number;
+  click_url?: string | null;
+  thumbnail_url?: string | null;
+}
+
 export default function SeeksyTVWatch() {
   const { videoId } = useParams();
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const adVideoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [progress, setProgress] = useState([0]);
@@ -25,6 +36,16 @@ export default function SeeksyTVWatch() {
   const [isLiked, setIsLiked] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  
+  // Ad states
+  const [playingAd, setPlayingAd] = useState<'pre' | 'post' | null>(null);
+  const [preAd, setPreAd] = useState<AdData | null>(null);
+  const [postAd, setPostAd] = useState<AdData | null>(null);
+  const [prePlacementId, setPrePlacementId] = useState<string | null>(null);
+  const [postPlacementId, setPostPlacementId] = useState<string | null>(null);
+  const [adSkipTimer, setAdSkipTimer] = useState(5);
+  const [canSkipAd, setCanSkipAd] = useState(false);
+  const [viewerSessionId] = useState(() => crypto.randomUUID());
 
   // Check if videoId is a valid UUID
   const isValidUUID = videoId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(videoId);
@@ -50,6 +71,112 @@ export default function SeeksyTVWatch() {
     enabled: !!videoId && isValidUUID
   });
 
+  // Fetch ads for this video
+  useEffect(() => {
+    if (!video) return;
+    
+    const fetchAds = async () => {
+      try {
+        const channelId = video.channel ? (video.channel as { id: string }).id : null;
+        const { data, error } = await supabase.functions.invoke('seeksy-tv-get-ads', {
+          body: { video_id: videoId, channel_id: channelId }
+        });
+        
+        if (error) {
+          console.error('[SeeksyTVWatch] Error fetching ads:', error);
+          return;
+        }
+        
+        if (data?.preAd) {
+          setPreAd(data.preAd);
+          setPrePlacementId(data.prePlacementId);
+          setPlayingAd('pre');
+        }
+        if (data?.postAd) {
+          setPostAd(data.postAd);
+          setPostPlacementId(data.postPlacementId);
+        }
+      } catch (err) {
+        console.error('[SeeksyTVWatch] Failed to fetch ads:', err);
+      }
+    };
+    
+    fetchAds();
+  }, [video, videoId]);
+
+  // Ad skip timer
+  useEffect(() => {
+    if (playingAd && adSkipTimer > 0) {
+      const timer = setInterval(() => {
+        setAdSkipTimer(prev => {
+          if (prev <= 1) {
+            setCanSkipAd(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [playingAd, adSkipTimer]);
+
+  // Log impression when ad starts
+  const logImpression = async (adId: string, placementId: string, position: 'pre' | 'post') => {
+    try {
+      const channelId = video?.channel ? (video.channel as { id: string }).id : null;
+      await supabase.functions.invoke('seeksy-tv-log-impression', {
+        body: {
+          ad_id: adId,
+          placement_id: placementId,
+          video_id: videoId,
+          channel_id: channelId,
+          position,
+          viewer_session_id: viewerSessionId
+        }
+      });
+    } catch (err) {
+      console.error('[SeeksyTVWatch] Failed to log impression:', err);
+    }
+  };
+
+  const handleAdEnded = () => {
+    if (playingAd === 'pre') {
+      setPlayingAd(null);
+      setCanSkipAd(false);
+      setAdSkipTimer(5);
+      // Auto-play main content
+      setTimeout(() => videoRef.current?.play(), 100);
+    } else if (playingAd === 'post') {
+      setPlayingAd(null);
+    }
+  };
+
+  const skipAd = () => {
+    if (canSkipAd) {
+      handleAdEnded();
+    }
+  };
+
+  const handleMainVideoEnded = () => {
+    if (postAd && postPlacementId) {
+      setPlayingAd('post');
+      setCanSkipAd(false);
+      setAdSkipTimer(5);
+      setTimeout(() => {
+        adVideoRef.current?.play();
+        logImpression(postAd.id, postPlacementId, 'post');
+      }, 100);
+    }
+  };
+
+  // Start pre-roll ad when it loads
+  useEffect(() => {
+    if (playingAd === 'pre' && preAd && prePlacementId && adVideoRef.current) {
+      adVideoRef.current.play();
+      logImpression(preAd.id, prePlacementId, 'pre');
+    }
+  }, [playingAd, preAd, prePlacementId]);
+
   // Fetch related videos
   const { data: relatedVideos } = useQuery({
     queryKey: ['tv-related-videos', videoId],
@@ -74,6 +201,7 @@ export default function SeeksyTVWatch() {
   };
 
   const handlePlayPause = () => {
+    if (playingAd) return;
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
@@ -94,6 +222,7 @@ export default function SeeksyTVWatch() {
   };
 
   const handleProgressChange = (value: number[]) => {
+    if (playingAd) return;
     if (videoRef.current && videoRef.current.duration) {
       const newTime = (value[0] / 100) * videoRef.current.duration;
       videoRef.current.currentTime = newTime;
@@ -106,14 +235,20 @@ export default function SeeksyTVWatch() {
     if (videoRef.current) {
       videoRef.current.volume = value[0] / 100;
     }
+    if (adVideoRef.current) {
+      adVideoRef.current.volume = value[0] / 100;
+    }
     setIsMuted(value[0] === 0);
   };
 
   const toggleMute = () => {
     if (videoRef.current) {
       videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
     }
+    if (adVideoRef.current) {
+      adVideoRef.current.muted = !isMuted;
+    }
+    setIsMuted(!isMuted);
   };
 
   const handleLoadedMetadata = () => {
@@ -150,6 +285,7 @@ export default function SeeksyTVWatch() {
 
   const channelName = video.channel ? (video.channel as { name: string }).name : video.series_name || "Seeksy TV";
   const channelSlug = video.channel ? (video.channel as { slug: string }).slug : null;
+  const currentAd = playingAd === 'pre' ? preAd : playingAd === 'post' ? postAd : null;
 
   return (
     <div className="min-h-screen bg-[#0a0a14] text-white">
@@ -190,19 +326,50 @@ export default function SeeksyTVWatch() {
           <div className="lg:col-span-2">
             {/* Video Player */}
             <div className="relative aspect-video bg-black rounded-xl overflow-hidden mb-4">
+              {/* Ad Video Layer */}
+              {playingAd && currentAd && (
+                <div className="absolute inset-0 z-20">
+                  <video
+                    ref={adVideoRef}
+                    src={currentAd.asset_url}
+                    className="w-full h-full object-contain"
+                    onEnded={handleAdEnded}
+                    autoPlay
+                    onClick={() => currentAd.click_url && window.open(currentAd.click_url, '_blank')}
+                  />
+                  {/* Ad overlay */}
+                  <div className="absolute top-4 left-4">
+                    <Badge className="bg-amber-500 text-white">Ad</Badge>
+                  </div>
+                  <div className="absolute bottom-4 right-4">
+                    {canSkipAd ? (
+                      <Button size="sm" onClick={skipAd} className="bg-white text-black hover:bg-gray-200">
+                        Skip Ad <SkipForward className="h-4 w-4 ml-1" />
+                      </Button>
+                    ) : (
+                      <Badge variant="secondary" className="bg-black/70 text-white">
+                        Skip in {adSkipTimer}s
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Main Video */}
               <video
                 ref={videoRef}
                 src={video.video_url}
                 poster={video.thumbnail_url || undefined}
-                className="w-full h-full object-contain"
+                className={`w-full h-full object-contain ${playingAd ? 'invisible' : ''}`}
                 onTimeUpdate={handleTimeUpdate}
                 onLoadedMetadata={handleLoadedMetadata}
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
+                onEnded={handleMainVideoEnded}
               />
               
-              {/* Play overlay - only show when not playing */}
-              {!isPlaying && (
+              {/* Play overlay - only show when not playing and no ad */}
+              {!isPlaying && !playingAd && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                   <button
                     onClick={handlePlayPause}
@@ -213,75 +380,77 @@ export default function SeeksyTVWatch() {
                 </div>
               )}
 
-              {/* Controls */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                {/* Progress bar */}
-                <div className="mb-3">
-                  <Slider
-                    value={progress}
-                    onValueChange={handleProgressChange}
-                    max={100}
-                    step={0.1}
-                    className="w-full"
-                  />
-                </div>
+              {/* Controls - hide during ads */}
+              {!playingAd && (
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                  {/* Progress bar */}
+                  <div className="mb-3">
+                    <Slider
+                      value={progress}
+                      onValueChange={handleProgressChange}
+                      max={100}
+                      step={0.1}
+                      className="w-full"
+                    />
+                  </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
-                      <SkipBack className="h-5 w-5" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={handlePlayPause}
-                      className="text-white hover:bg-white/20"
-                    >
-                      {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-                    </Button>
-                    <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
-                      <SkipForward className="h-5 w-5" />
-                    </Button>
-                    
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
+                        <SkipBack className="h-5 w-5" />
+                      </Button>
                       <Button 
                         variant="ghost" 
-                        size="icon"
-                        onClick={toggleMute}
+                        size="icon" 
+                        onClick={handlePlayPause}
                         className="text-white hover:bg-white/20"
                       >
-                        {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                        {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
                       </Button>
-                      <div className="w-20">
-                        <Slider
-                          value={isMuted ? [0] : volume}
-                          onValueChange={handleVolumeChange}
-                          max={100}
-                          step={1}
-                        />
+                      <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
+                        <SkipForward className="h-5 w-5" />
+                      </Button>
+                      
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={toggleMute}
+                          className="text-white hover:bg-white/20"
+                        >
+                          {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                        </Button>
+                        <div className="w-20">
+                          <Slider
+                            value={isMuted ? [0] : volume}
+                            onValueChange={handleVolumeChange}
+                            max={100}
+                            step={1}
+                          />
+                        </div>
                       </div>
+
+                      <span className="text-sm text-gray-300">
+                        {formatTime(currentTime)} / {formatTime(duration || video.duration_seconds || 0)}
+                      </span>
                     </div>
 
-                    <span className="text-sm text-gray-300">
-                      {formatTime(currentTime)} / {formatTime(duration || video.duration_seconds || 0)}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
-                      <Settings className="h-5 w-5" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="text-white hover:bg-white/20"
-                      onClick={() => videoRef.current?.requestFullscreen()}
-                    >
-                      <Maximize className="h-5 w-5" />
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
+                        <Settings className="h-5 w-5" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-white hover:bg-white/20"
+                        onClick={() => videoRef.current?.requestFullscreen()}
+                      >
+                        <Maximize className="h-5 w-5" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Video Info */}

@@ -516,6 +516,7 @@ import ChecklistTemplate from "./pages/admin/ChecklistTemplate";
 import AdminSeeksyTV from "./pages/admin/AdminSeeksyTV";
 import AdminTVChannels from "./pages/admin/AdminTVChannels";
 import TVContentSeeder from "./pages/admin/TVContentSeeder";
+import SeeksyTVAdvertising from "./pages/admin/SeeksyTVAdvertising";
 import BoardDashboard from "./pages/board/BoardDashboard";
 import BoardBusinessModel from "./pages/board/BoardBusinessModel";
 import BoardGTM from "./pages/board/BoardGTM";
@@ -1174,6 +1175,7 @@ const AppContent = () => {
           <Route path="/admin/demo-videos" element={<DemoVideos />} />
           <Route path="/admin/seeksy-tv" element={<AdminSeeksyTV />} />
           <Route path="/admin/seeksy-tv/channels" element={<AdminTVChannels />} />
+          <Route path="/admin/seeksy-tv/advertising" element={<SeeksyTVAdvertising />} />
           <Route path="/admin/tv-seeder" element={<TVContentSeeder />} />
           <Route path="/marketing-gtm" element={<MarketingGTMPlan />} />
             <Route path="/admin/hero-generator" element={<HeroImageGeneratorPage />} />
