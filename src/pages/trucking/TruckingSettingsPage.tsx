@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { formatPhoneNumber } from "@/utils/phoneFormat";
@@ -17,6 +19,13 @@ interface Settings {
   ai_caller_company_name: string;
   ai_calls_enabled: boolean;
   ai_price_per_million_chars_usd: number;
+  max_concurrent_calls: number;
+  elevenlabs_voice_id: string;
+  elevenlabs_voice_name: string;
+  ai_opening_message: string;
+  voicemail_enabled: boolean;
+  voicemail_transcribe: boolean;
+  voicemail_create_lead: boolean;
 }
 
 export default function TruckingSettingsPage() {
@@ -24,10 +33,17 @@ export default function TruckingSettingsPage() {
     demo_mode_enabled: true,
     notification_email: "",
     notification_sms_number: "",
-    ai_caller_name: "Christy",
-    ai_caller_company_name: "Dispatch",
+    ai_caller_name: "Jess",
+    ai_caller_company_name: "D and L Transport",
     ai_calls_enabled: true,
     ai_price_per_million_chars_usd: 50.00,
+    max_concurrent_calls: 2,
+    elevenlabs_voice_id: "09AoN6tYyW3VSTQqCo7C",
+    elevenlabs_voice_name: "Jess",
+    ai_opening_message: "Hi, this is Jess from D and L Transport. How can I help you today?",
+    voicemail_enabled: true,
+    voicemail_transcribe: true,
+    voicemail_create_lead: true,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -49,7 +65,17 @@ export default function TruckingSettingsPage() {
         .single();
 
       if (data) {
-        setSettings(data);
+        setSettings({
+          ...settings,
+          ...data,
+          max_concurrent_calls: data.max_concurrent_calls || 2,
+          elevenlabs_voice_id: data.elevenlabs_voice_id || "09AoN6tYyW3VSTQqCo7C",
+          elevenlabs_voice_name: data.elevenlabs_voice_name || "Jess",
+          ai_opening_message: data.ai_opening_message || "Hi, this is Jess from D and L Transport. How can I help you today?",
+          voicemail_enabled: data.voicemail_enabled ?? true,
+          voicemail_transcribe: data.voicemail_transcribe ?? true,
+          voicemail_create_lead: data.voicemail_create_lead ?? true,
+        });
       }
     } catch (error) {
       // No settings yet, use defaults
@@ -73,6 +99,13 @@ export default function TruckingSettingsPage() {
         ai_caller_company_name: settings.ai_caller_company_name,
         ai_calls_enabled: settings.ai_calls_enabled,
         ai_price_per_million_chars_usd: settings.ai_price_per_million_chars_usd,
+        max_concurrent_calls: settings.max_concurrent_calls,
+        elevenlabs_voice_id: settings.elevenlabs_voice_id,
+        elevenlabs_voice_name: settings.elevenlabs_voice_name,
+        ai_opening_message: settings.ai_opening_message,
+        voicemail_enabled: settings.voicemail_enabled,
+        voicemail_transcribe: settings.voicemail_transcribe,
+        voicemail_create_lead: settings.voicemail_create_lead,
       };
 
       const { error } = await supabase
@@ -102,39 +135,128 @@ export default function TruckingSettingsPage() {
       description="Configure your AITrucking preferences"
     >
       <div className="max-w-2xl space-y-6">
+        {/* Voice Configuration */}
         <TruckingContentCard>
           <div className="space-y-1 mb-5">
-            <h3 className="font-semibold text-slate-900">AI Caller Settings</h3>
-            <p className="text-sm text-slate-500">Configure how your AI assistant introduces itself to carriers</p>
+            <h3 className="font-semibold text-slate-900">Voice Configuration</h3>
+            <p className="text-sm text-slate-500">Configure the AI voice agent settings</p>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="text-slate-700">AI Caller Name</Label>
-              <Input
-                value={settings.ai_caller_name}
-                onChange={(e) => setSettings({ ...settings, ai_caller_name: e.target.value })}
-                placeholder="Christy"
-                className="mt-1"
-              />
-              <p className="text-xs text-slate-500 mt-1">
-                "Hi, this is [Name] with..."
-              </p>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-slate-700">Voice Name</Label>
+                <Input
+                  value={settings.elevenlabs_voice_name}
+                  onChange={(e) => setSettings({ ...settings, elevenlabs_voice_name: e.target.value, ai_caller_name: e.target.value })}
+                  placeholder="Jess"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-slate-700">ElevenLabs Voice ID</Label>
+                <Input
+                  value={settings.elevenlabs_voice_id}
+                  onChange={(e) => setSettings({ ...settings, elevenlabs_voice_id: e.target.value })}
+                  placeholder="09AoN6tYyW3VSTQqCo7C"
+                  className="mt-1 font-mono text-sm"
+                />
+              </div>
             </div>
             <div>
               <Label className="text-slate-700">Company Name</Label>
               <Input
                 value={settings.ai_caller_company_name}
                 onChange={(e) => setSettings({ ...settings, ai_caller_company_name: e.target.value })}
-                placeholder="Dispatch"
+                placeholder="D and L Transport"
                 className="mt-1"
               />
+            </div>
+            <div>
+              <Label className="text-slate-700">AI Opening Message</Label>
+              <Textarea
+                value={settings.ai_opening_message}
+                onChange={(e) => setSettings({ ...settings, ai_opening_message: e.target.value })}
+                placeholder="Hi, this is Jess from D and L Transport. How can I help you today?"
+                className="mt-1"
+                rows={3}
+              />
               <p className="text-xs text-slate-500 mt-1">
-                "...on behalf of [Company]"
+                The greeting message Jess uses when answering calls
               </p>
             </div>
           </div>
         </TruckingContentCard>
 
+        {/* Concurrency Settings */}
+        <TruckingContentCard>
+          <div className="space-y-1 mb-5">
+            <h3 className="font-semibold text-slate-900">Call Capacity</h3>
+            <p className="text-sm text-slate-500">How many simultaneous calls Jess can handle</p>
+          </div>
+          <div>
+            <Label className="text-slate-700">Max Concurrent Calls</Label>
+            <Select
+              value={settings.max_concurrent_calls.toString()}
+              onValueChange={(val) => setSettings({ ...settings, max_concurrent_calls: parseInt(val) })}
+            >
+              <SelectTrigger className="mt-1 w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1 call</SelectItem>
+                <SelectItem value="2">2 calls</SelectItem>
+                <SelectItem value="3">3 calls</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-slate-500 mt-1">
+              Additional callers will go to voicemail when at capacity
+            </p>
+          </div>
+        </TruckingContentCard>
+
+        {/* Voicemail Settings */}
+        <TruckingContentCard>
+          <div className="space-y-1 mb-5">
+            <h3 className="font-semibold text-slate-900">Voicemail</h3>
+            <p className="text-sm text-slate-500">What happens when Jess is busy or caller leaves a message</p>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-slate-900">Voicemail Enabled</p>
+                <p className="text-sm text-slate-500">Allow callers to leave voicemails</p>
+              </div>
+              <Switch
+                checked={settings.voicemail_enabled}
+                onCheckedChange={(checked) => setSettings({ ...settings, voicemail_enabled: checked })}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-slate-900">Auto-Transcribe Voicemails</p>
+                <p className="text-sm text-slate-500">Convert voicemail audio to text</p>
+              </div>
+              <Switch
+                checked={settings.voicemail_transcribe}
+                onCheckedChange={(checked) => setSettings({ ...settings, voicemail_transcribe: checked })}
+                disabled={!settings.voicemail_enabled}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-slate-900">Create Lead from Voicemail</p>
+                <p className="text-sm text-slate-500">Automatically create a carrier lead from voicemail</p>
+              </div>
+              <Switch
+                checked={settings.voicemail_create_lead}
+                onCheckedChange={(checked) => setSettings({ ...settings, voicemail_create_lead: checked })}
+                disabled={!settings.voicemail_enabled}
+              />
+            </div>
+          </div>
+        </TruckingContentCard>
+
+        {/* Notifications */}
         <TruckingContentCard>
           <div className="space-y-1 mb-5">
             <h3 className="font-semibold text-slate-900">Notifications</h3>
@@ -164,6 +286,7 @@ export default function TruckingSettingsPage() {
           </div>
         </TruckingContentCard>
 
+        {/* AI Calling Toggle */}
         <TruckingContentCard>
           <div className="space-y-1 mb-5">
             <h3 className="font-semibold text-slate-900">AI Calling</h3>
@@ -183,6 +306,7 @@ export default function TruckingSettingsPage() {
           </div>
         </TruckingContentCard>
 
+        {/* Demo Mode */}
         <TruckingContentCard>
           <div className="space-y-1 mb-5">
             <h3 className="font-semibold text-slate-900">Demo Mode</h3>
@@ -202,6 +326,7 @@ export default function TruckingSettingsPage() {
           </div>
         </TruckingContentCard>
 
+        {/* Twilio Integration */}
         <TruckingContentCard>
           <div className="space-y-1 mb-5">
             <h3 className="font-semibold text-slate-900">Twilio Integration</h3>

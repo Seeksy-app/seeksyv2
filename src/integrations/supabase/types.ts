@@ -24467,6 +24467,7 @@ export type Database = {
           ai_caller_company_name: string | null
           ai_caller_name: string | null
           ai_calls_enabled: boolean | null
+          ai_opening_message: string | null
           ai_price_per_million_chars_usd: number | null
           created_at: string | null
           demo_mode_enabled: boolean | null
@@ -24477,11 +24478,15 @@ export type Database = {
           notification_email: string | null
           notification_sms_number: string | null
           owner_id: string
+          voicemail_create_lead: boolean | null
+          voicemail_enabled: boolean | null
+          voicemail_transcribe: boolean | null
         }
         Insert: {
           ai_caller_company_name?: string | null
           ai_caller_name?: string | null
           ai_calls_enabled?: boolean | null
+          ai_opening_message?: string | null
           ai_price_per_million_chars_usd?: number | null
           created_at?: string | null
           demo_mode_enabled?: boolean | null
@@ -24492,11 +24497,15 @@ export type Database = {
           notification_email?: string | null
           notification_sms_number?: string | null
           owner_id: string
+          voicemail_create_lead?: boolean | null
+          voicemail_enabled?: boolean | null
+          voicemail_transcribe?: boolean | null
         }
         Update: {
           ai_caller_company_name?: string | null
           ai_caller_name?: string | null
           ai_calls_enabled?: boolean | null
+          ai_opening_message?: string | null
           ai_price_per_million_chars_usd?: number | null
           created_at?: string | null
           demo_mode_enabled?: boolean | null
@@ -24507,6 +24516,9 @@ export type Database = {
           notification_email?: string | null
           notification_sms_number?: string | null
           owner_id?: string
+          voicemail_create_lead?: boolean | null
+          voicemail_enabled?: boolean | null
+          voicemail_transcribe?: boolean | null
         }
         Relationships: []
       }

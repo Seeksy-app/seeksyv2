@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Package, UserCheck, Phone, Plus, ArrowRight, CheckCircle2, XCircle, PhoneCall, Clock } from "lucide-react";
+import { Package, UserCheck, Phone, Plus, ArrowRight, CheckCircle2, XCircle, PhoneCall, Clock, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TruckingPageWrapper, TruckingContentCard, TruckingEmptyState, TruckingStatCardLight } from "@/components/trucking/TruckingPageWrapper";
@@ -21,6 +21,13 @@ interface EarningsSummary {
   bookedRevenue: number;
   estEarnings: number;
   bookedEarnings: number;
+}
+
+interface CallMetrics {
+  activeCallCount: number;
+  maxConcurrentCalls: number;
+  totalCallsToday: number;
+  avgCallDuration: number;
 }
 
 interface ConfirmedLead {
@@ -51,6 +58,7 @@ interface CarrierLead {
 export default function TruckingDashboardPage() {
   const [stats, setStats] = useState<DashboardStats>({ openLoads: 0, leadsToday: 0, callsToday: 0, confirmedLeads: 0 });
   const [earnings, setEarnings] = useState<EarningsSummary>({ estRevenue: 0, bookedRevenue: 0, estEarnings: 0, bookedEarnings: 0 });
+  const [callMetrics, setCallMetrics] = useState<CallMetrics>({ activeCallCount: 0, maxConcurrentCalls: 2, totalCallsToday: 0, avgCallDuration: 0 });
   const [confirmedLeads, setConfirmedLeads] = useState<ConfirmedLead[]>([]);
   const [recentLeads, setRecentLeads] = useState<CarrierLead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -100,6 +108,26 @@ export default function TruckingDashboardPage() {
           bookedEarnings: confirmedOnly.reduce((sum, l) => sum + (l.broker_commission || 0), 0),
         });
       }
+
+      // Fetch call metrics and settings
+      const [settingsResult, activeCallsResult] = await Promise.all([
+        supabase.from("trucking_settings").select("max_concurrent_calls").eq("owner_id", user.id).single(),
+        supabase.from("trucking_call_logs")
+          .select("id, call_started_at, call_ended_at")
+          .eq("owner_id", user.id)
+          .gte("call_started_at", new Date(Date.now() - 5 * 60 * 1000).toISOString()) // Last 5 mins
+          .is("call_ended_at", null),
+      ]);
+
+      const maxConcurrent = settingsResult.data?.max_concurrent_calls || 2;
+      const activeCalls = activeCallsResult.data?.length || 0;
+
+      setCallMetrics({
+        activeCallCount: activeCalls,
+        maxConcurrentCalls: maxConcurrent,
+        totalCallsToday: callsResult.count || 0,
+        avgCallDuration: 0,
+      });
 
       // Fetch confirmed leads
       const { data: confirmed } = await supabase
@@ -177,17 +205,35 @@ export default function TruckingDashboardPage() {
     );
   }
 
+  const isAiBusy = callMetrics.activeCallCount >= callMetrics.maxConcurrentCalls;
+
   return (
     <TruckingPageWrapper 
       title="Dashboard" 
       description="Overview of your loads and leads"
       action={
-        <Link to="/trucking/loads">
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Load
-          </Button>
-        </Link>
+        <div className="flex items-center gap-3">
+          {isAiBusy ? (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-100 text-amber-700 rounded-full text-sm font-medium">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              AI Busy ({callMetrics.activeCallCount}/{callMetrics.maxConcurrentCalls})
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+              </span>
+              AI Live
+            </div>
+          )}
+          <Link to="/trucking/loads">
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Load
+            </Button>
+          </Link>
+        </div>
       }
     >
       {/* Compact Earnings Summary - muted, one-line */}
