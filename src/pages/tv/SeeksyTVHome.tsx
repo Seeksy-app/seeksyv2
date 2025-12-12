@@ -389,7 +389,7 @@ export default function SeeksyTVHome() {
       {/* Category Filter */}
       <section className="container mx-auto px-4 py-6 -mt-8 relative z-10">
         <ScrollArea className="w-full">
-          <div className="flex gap-2">
+          <div className="flex gap-2 justify-center">
             {categories.map((category) => (
               <Button
                 key={category}
@@ -413,7 +413,7 @@ export default function SeeksyTVHome() {
       {/* Trending Now - Netflix Style with Big Numbers */}
       <section className="py-8">
         <div className="container mx-auto px-4 mb-4">
-          <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3 text-white justify-start">
+        <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3 text-white">
             <Flame className="h-6 w-6 text-amber-400" />
             Trending Now
           </h2>
@@ -437,8 +437,8 @@ export default function SeeksyTVHome() {
               if (demoItem?.linkType === "channel" && demoItem?.channelSlug) {
                 navigate(`/tv/channel/${demoItem.channelSlug}`);
               } else {
-                // All other items now navigate to watch page
-                navigate(`/tv/watch/${demoItem?.id || item.id}`);
+                // All demo items go to American Warriors channel since they don't have real content
+                navigate(`/tv/channel/american-warriors`);
               }
             };
             
@@ -494,7 +494,7 @@ export default function SeeksyTVHome() {
       <section id="featured-podcasts" className="py-8 scroll-mt-24">
         <div className="container mx-auto px-4 mb-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3 text-white justify-start">
+            <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3 text-white">
               <Podcast className="h-6 w-6 text-amber-400" />
               Featured Podcasts
             </h2>
@@ -579,7 +579,7 @@ export default function SeeksyTVHome() {
       {/* Popular Channels Grid */}
       <section className="py-8">
         <div className="container mx-auto px-4 mb-6">
-          <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3 text-white justify-start">
+          <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3 text-white">
             <Film className="h-6 w-6 text-amber-400" />
             Popular Channels
           </h2>
@@ -630,7 +630,7 @@ export default function SeeksyTVHome() {
       {/* Trending Creators */}
       <section className="py-8 mb-8">
         <div className="container mx-auto px-4 mb-4">
-          <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3 text-white justify-start">
+          <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3 text-white">
             <TrendingUp className="h-6 w-6 text-amber-400" />
             Trending This Week
           </h2>

@@ -88,7 +88,7 @@ export function TVContentRow({
       {/* Section Header */}
       <div className="container mx-auto px-4 mb-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3 text-white justify-start">
+          <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3 text-white">
             {Icon && <Icon className="h-6 w-6 text-amber-400" />}
             {title}
           </h2>
