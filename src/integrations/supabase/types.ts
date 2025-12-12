@@ -14552,6 +14552,50 @@ export type Database = {
           },
         ]
       }
+      legal_acceptances: {
+        Row: {
+          accepted_at: string
+          document_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          template_id: string | null
+          user_agent: string | null
+          user_id: string | null
+          version_accepted: string
+        }
+        Insert: {
+          accepted_at?: string
+          document_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          template_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          version_accepted: string
+        }
+        Update: {
+          accepted_at?: string
+          document_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          template_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          version_accepted?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_acceptances_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "legal_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       legal_doc_instances: {
         Row: {
           chairman_signature_url: string | null
@@ -14559,6 +14603,7 @@ export type Database = {
           computed_values_json: Json
           created_at: string
           created_by: string | null
+          document_type: string | null
           field_values_json: Json
           final_pdf_url: string | null
           id: string
@@ -14568,6 +14613,8 @@ export type Database = {
           purchaser_signature_url: string | null
           purchaser_signed_at: string | null
           purchaser_user_id: string | null
+          recipient_email: string | null
+          recipient_name: string | null
           rendered_text_cache: string | null
           seller_signature_url: string | null
           seller_signed_at: string | null
@@ -14584,6 +14631,7 @@ export type Database = {
           computed_values_json?: Json
           created_at?: string
           created_by?: string | null
+          document_type?: string | null
           field_values_json?: Json
           final_pdf_url?: string | null
           id?: string
@@ -14593,6 +14641,8 @@ export type Database = {
           purchaser_signature_url?: string | null
           purchaser_signed_at?: string | null
           purchaser_user_id?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
           rendered_text_cache?: string | null
           seller_signature_url?: string | null
           seller_signed_at?: string | null
@@ -14609,6 +14659,7 @@ export type Database = {
           computed_values_json?: Json
           created_at?: string
           created_by?: string | null
+          document_type?: string | null
           field_values_json?: Json
           final_pdf_url?: string | null
           id?: string
@@ -14618,6 +14669,8 @@ export type Database = {
           purchaser_signature_url?: string | null
           purchaser_signed_at?: string | null
           purchaser_user_id?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
           rendered_text_cache?: string | null
           seller_signature_url?: string | null
           seller_signed_at?: string | null
@@ -14671,26 +14724,50 @@ export type Database = {
       legal_templates: {
         Row: {
           body_text: string
+          category: string | null
           created_at: string
           created_by: string | null
+          description: string | null
           id: string
+          is_active: boolean | null
           name: string
+          placeholders: Json | null
+          requires_signature: boolean | null
+          slug: string | null
+          target_roles: string[] | null
+          updated_at: string | null
           version: string
         }
         Insert: {
           body_text: string
+          category?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           id?: string
+          is_active?: boolean | null
           name: string
+          placeholders?: Json | null
+          requires_signature?: boolean | null
+          slug?: string | null
+          target_roles?: string[] | null
+          updated_at?: string | null
           version?: string
         }
         Update: {
           body_text?: string
+          category?: string | null
           created_at?: string
           created_by?: string | null
+          description?: string | null
           id?: string
+          is_active?: boolean | null
           name?: string
+          placeholders?: Json | null
+          requires_signature?: boolean | null
+          slug?: string | null
+          target_roles?: string[] | null
+          updated_at?: string | null
           version?: string
         }
         Relationships: []
