@@ -52,6 +52,9 @@ interface Lead {
   status: string;
   created_at: string;
   load_id: string | null;
+  trucking_loads?: {
+    load_number: string;
+  } | null;
 }
 
 export default function TruckingDashboardPage() {
@@ -78,7 +81,7 @@ export default function TruckingDashboardPage() {
     try {
       const [loadsRes, leadsRes, callsRes] = await Promise.all([
         supabase.from("trucking_loads").select("*").order("created_at", { ascending: false }),
-        supabase.from("trucking_carrier_leads").select("*").order("created_at", { ascending: false }),
+        supabase.from("trucking_carrier_leads").select("*, trucking_loads(load_number)").order("created_at", { ascending: false }),
         supabase.from("trucking_call_logs").select("id").gte("created_at", new Date().toISOString().split("T")[0])
       ]);
 
@@ -112,6 +115,33 @@ export default function TruckingDashboardPage() {
   };
 
   const displayedLoads = getDisplayedLoads();
+
+  const confirmLead = async (lead: Lead) => {
+    try {
+      // Update lead status to confirmed
+      const { error: leadError } = await supabase
+        .from("trucking_carrier_leads")
+        .update({ status: "confirmed", is_confirmed: true })
+        .eq("id", lead.id);
+
+      if (leadError) throw leadError;
+
+      // If the lead has a load_id, update the load status to booked
+      if (lead.load_id) {
+        const { error: loadError } = await supabase
+          .from("trucking_loads")
+          .update({ status: "booked" })
+          .eq("id", lead.load_id);
+
+        if (loadError) throw loadError;
+      }
+
+      toast({ title: "Lead confirmed", description: `${lead.company_name} has been confirmed and load booked.` });
+      fetchData();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
 
   const formatRate = (load: Load) => {
     if (load.rate_type === "per_ton" && load.desired_rate_per_ton) {
@@ -406,17 +436,19 @@ export default function TruckingDashboardPage() {
           <Table>
             <TableHeader>
               <TableRow className="bg-slate-50 border-b border-slate-200">
+                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Load #</TableHead>
                 <TableHead className="font-medium text-slate-600 whitespace-nowrap">Company</TableHead>
                 <TableHead className="font-medium text-slate-600 whitespace-nowrap">MC #</TableHead>
                 <TableHead className="font-medium text-slate-600 whitespace-nowrap">Phone</TableHead>
                 <TableHead className="font-medium text-slate-600 whitespace-nowrap">Status</TableHead>
                 <TableHead className="font-medium text-slate-600 whitespace-nowrap">Created</TableHead>
+                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {pendingLeads.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-12">
+                  <TableCell colSpan={7} className="text-center py-12">
                     <div className="flex flex-col items-center gap-2 text-slate-500">
                       <Phone className="h-10 w-10 text-slate-300" />
                       <p>No pending leads yet</p>
@@ -427,12 +459,25 @@ export default function TruckingDashboardPage() {
               ) : (
                 pendingLeads.map((lead) => (
                   <TableRow key={lead.id} className="hover:bg-slate-50">
+                    <TableCell className="font-medium text-blue-600">
+                      {lead.trucking_loads?.load_number || "—"}
+                    </TableCell>
                     <TableCell className="font-medium">{lead.company_name || "—"}</TableCell>
                     <TableCell>{lead.mc_number || "—"}</TableCell>
                     <TableCell>{lead.phone || "—"}</TableCell>
                     <TableCell>{getStatusBadge(lead.status)}</TableCell>
                     <TableCell className="text-slate-500 text-sm">
                       {format(new Date(lead.created_at), "MMM d, h:mm a")}
+                    </TableCell>
+                    <TableCell>
+                      <Button 
+                        size="sm" 
+                        onClick={() => confirmLead(lead)}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <CheckCircle2 className="h-4 w-4 mr-1" />
+                        Confirm
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
