@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -11,7 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   Package, Plus, MoreHorizontal, Settings, Edit, Trash2, Copy, CheckCircle2, 
-  ChevronDown, Phone, Users, Search, Sun, Moon 
+  ChevronDown, ChevronUp, Phone, Users, Search, Sun, Moon 
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -38,6 +38,9 @@ interface Load {
   miles: number;
   status: string;
   broker_commission?: number;
+  commodity?: string;
+  weight_lbs?: number;
+  notes?: string;
 }
 
 interface Lead {
@@ -53,10 +56,12 @@ export default function TruckingDashboardPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [callsToday, setCallsToday] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<"loads" | "leads">("loads");
   const [activeTab, setActiveTab] = useState("open");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [aiCallsEnabled, setAiCallsEnabled] = useState(true);
+  const [expandedLoadId, setExpandedLoadId] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { theme: appTheme, setTheme } = useTheme();
@@ -341,49 +346,55 @@ export default function TruckingDashboardPage() {
         </Card>
       </div>
 
-      {/* Navigation Buttons + Tabs */}
+      {/* View Mode Toggle + Status Tabs */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Link to="/trucking/loads">
-            <Button variant="outline" size="sm">See All Loads</Button>
-          </Link>
-          <Link to="/trucking/leads">
-            <Button variant="outline" size="sm">My Leads</Button>
-          </Link>
+          <Button 
+            variant={viewMode === "loads" ? "default" : "outline"} 
+            size="sm"
+            onClick={() => setViewMode("loads")}
+            className={viewMode === "loads" ? "bg-amber-400 hover:bg-amber-500 text-amber-900 border-amber-400" : ""}
+          >
+            See All Loads
+          </Button>
+          <Button 
+            variant={viewMode === "leads" ? "default" : "outline"} 
+            size="sm"
+            onClick={() => setViewMode("leads")}
+            className={viewMode === "leads" ? "bg-amber-400 hover:bg-amber-500 text-amber-900 border-amber-400" : ""}
+          >
+            My Leads
+          </Button>
         </div>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-slate-100 p-1 rounded-full">
-            <TabsTrigger 
-              value="open" 
-              className="rounded-full px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-            >
-              Open
-              <Badge className="ml-2 bg-amber-400 text-amber-900 border-0">{openLoads.length}</Badge>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="pending"
-              className="rounded-full px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-            >
-              Pending
-              <Badge className="ml-2 bg-orange-400 text-orange-900 border-0">{pendingLeads.length}</Badge>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="confirmed"
-              className="rounded-full px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-            >
-              Confirmed
-              <Badge className="ml-2 bg-green-400 text-green-900 border-0">{confirmedLoads.length}</Badge>
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {viewMode === "loads" && (
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="bg-slate-100 p-1 rounded-full">
+              <TabsTrigger 
+                value="open" 
+                className="rounded-full px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
+                Open
+                <Badge className="ml-2 bg-amber-400 text-amber-900 border-0">{openLoads.length}</Badge>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="confirmed"
+                className="rounded-full px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
+                Confirmed
+                <Badge className="ml-2 bg-green-400 text-green-900 border-0">{confirmedLoads.length}</Badge>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
       </div>
 
       {/* Loads Table */}
-      {activeTab !== "pending" ? (
+      {viewMode === "loads" ? (
         <Card className="bg-white border border-slate-200 overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="bg-slate-50 border-b border-slate-200">
+                <TableHead className="font-medium text-slate-600 whitespace-nowrap w-8"></TableHead>
                 <TableHead className="font-medium text-slate-600 whitespace-nowrap">Load #</TableHead>
                 <TableHead className="font-medium text-slate-600 whitespace-nowrap">Lane</TableHead>
                 <TableHead className="font-medium text-slate-600 whitespace-nowrap">Distance</TableHead>
@@ -397,7 +408,7 @@ export default function TruckingDashboardPage() {
             <TableBody>
               {displayedLoads.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12">
+                  <TableCell colSpan={9} className="text-center py-12">
                     <div className="flex flex-col items-center gap-2 text-slate-500">
                       <Package className="h-10 w-10 text-slate-300" />
                       <p>No {activeTab} loads</p>
@@ -417,68 +428,111 @@ export default function TruckingDashboardPage() {
                 </TableRow>
               ) : (
                 displayedLoads.map((load) => (
-                  <TableRow key={load.id} className="hover:bg-slate-50">
-                    <TableCell className="font-medium whitespace-nowrap">{load.load_number}</TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      <span className="text-slate-700">{load.origin_city}, {load.origin_state}</span>
-                      <span className="mx-2 text-slate-400">→</span>
-                      <span className="text-slate-700">{load.destination_city}, {load.destination_state}</span>
-                    </TableCell>
-                    <TableCell className="text-slate-600 whitespace-nowrap">{load.miles ? `${load.miles} mi` : "—"}</TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      <div className="text-slate-700">
-                        {load.pickup_date ? format(new Date(load.pickup_date), "yyyy-MM-dd") : "—"}
-                      </div>
-                      {load.pickup_window_start && load.pickup_window_end && (
-                        <div className="text-xs text-slate-500">
-                          {load.pickup_window_start} - {load.pickup_window_end}
+                  <>
+                    <TableRow 
+                      key={load.id} 
+                      className="hover:bg-slate-50 cursor-pointer"
+                      onClick={() => setExpandedLoadId(expandedLoadId === load.id ? null : load.id)}
+                    >
+                      <TableCell className="w-8">
+                        {expandedLoadId === load.id ? (
+                          <ChevronUp className="h-4 w-4 text-slate-400" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 text-slate-400" />
+                        )}
+                      </TableCell>
+                      <TableCell className="font-medium whitespace-nowrap">{load.load_number}</TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        <span className="text-slate-700">{load.origin_city}, {load.origin_state}</span>
+                        <span className="mx-2 text-slate-400">→</span>
+                        <span className="text-slate-700">{load.destination_city}, {load.destination_state}</span>
+                      </TableCell>
+                      <TableCell className="text-slate-600 whitespace-nowrap">{load.miles ? `${load.miles} mi` : "—"}</TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        <div className="text-slate-700">
+                          {load.pickup_date ? format(new Date(load.pickup_date), "yyyy-MM-dd") : "—"}
                         </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-slate-600 whitespace-nowrap">{load.equipment_type || "—"}</TableCell>
-                    <TableCell className="whitespace-nowrap">{formatRate(load)}</TableCell>
-                    <TableCell className="whitespace-nowrap">{getStatusBadge(load.status)}</TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEdit(load)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDuplicate(load)}>
-                            <Copy className="h-4 w-4 mr-2" />
-                            Duplicate
-                          </DropdownMenuItem>
-                          {load.status === "open" && (
-                            <DropdownMenuItem onClick={() => handleConfirm(load.id)}>
-                              <CheckCircle2 className="h-4 w-4 mr-2" />
-                              Confirm
+                        {load.pickup_window_start && load.pickup_window_end && (
+                          <div className="text-xs text-slate-500">
+                            {load.pickup_window_start} - {load.pickup_window_end}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-slate-600 whitespace-nowrap">{load.equipment_type || "—"}</TableCell>
+                      <TableCell className="whitespace-nowrap">{formatRate(load)}</TableCell>
+                      <TableCell className="whitespace-nowrap">{getStatusBadge(load.status)}</TableCell>
+                      <TableCell className="whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEdit(load)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
                             </DropdownMenuItem>
-                          )}
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => handleDelete(load.id)}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
+                            <DropdownMenuItem onClick={() => handleDuplicate(load)}>
+                              <Copy className="h-4 w-4 mr-2" />
+                              Duplicate
+                            </DropdownMenuItem>
+                            {load.status === "open" && (
+                              <DropdownMenuItem onClick={() => handleConfirm(load.id)}>
+                                <CheckCircle2 className="h-4 w-4 mr-2" />
+                                Confirm
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => handleDelete(load.id)}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                    {expandedLoadId === load.id && (
+                      <TableRow key={`${load.id}-details`} className="bg-slate-50">
+                        <TableCell colSpan={9} className="p-4">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div>
+                              <p className="text-slate-500 text-xs">Commodity</p>
+                              <p className="font-medium">{load.commodity || "General Freight"}</p>
+                            </div>
+                            <div>
+                              <p className="text-slate-500 text-xs">Weight</p>
+                              <p className="font-medium">{load.weight_lbs ? `${load.weight_lbs.toLocaleString()} lbs` : "—"}</p>
+                            </div>
+                            <div>
+                              <p className="text-slate-500 text-xs">Floor Rate</p>
+                              <p className="font-medium">{load.floor_rate ? `$${load.floor_rate.toLocaleString()}` : "—"}</p>
+                            </div>
+                            <div>
+                              <p className="text-slate-500 text-xs">Commission</p>
+                              <p className="font-medium">{load.broker_commission ? `$${load.broker_commission.toLocaleString()}` : "—"}</p>
+                            </div>
+                            {load.notes && (
+                              <div className="col-span-4">
+                                <p className="text-slate-500 text-xs">Notes</p>
+                                <p className="font-medium">{load.notes}</p>
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </>
                 ))
               )}
             </TableBody>
           </Table>
         </Card>
       ) : (
-        /* Pending Leads Table */
+        /* Leads Table */
         <Card className="bg-white border border-slate-200 overflow-hidden">
           <Table>
             <TableHeader>
@@ -489,17 +543,17 @@ export default function TruckingDashboardPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pendingLeads.length === 0 ? (
+              {leads.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={3} className="text-center py-12">
                     <div className="flex flex-col items-center gap-2 text-slate-500">
                       <Users className="h-10 w-10 text-slate-300" />
-                      <p>No pending leads</p>
+                      <p>No leads yet</p>
                     </div>
                   </TableCell>
                 </TableRow>
               ) : (
-                pendingLeads.map((lead) => (
+                leads.map((lead) => (
                   <TableRow key={lead.id} className="hover:bg-slate-50">
                     <TableCell className="font-medium whitespace-nowrap">{lead.company_name || lead.contact_name || "Unknown"}</TableCell>
                     <TableCell className="whitespace-nowrap">{getStatusBadge(lead.status)}</TableCell>
