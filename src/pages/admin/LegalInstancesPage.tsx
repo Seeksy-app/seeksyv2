@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileText, Eye, Plus, CheckCircle, Clock, Send, FileCheck, Link, Copy, Check } from "lucide-react";
+import { FileText, Eye, Plus, CheckCircle, Clock, Send, FileCheck, Link, Copy, Check, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -101,6 +102,23 @@ export default function LegalInstancesPage() {
     toast.success("Invite link copied!");
     setTimeout(() => setCopiedId(null), 2000);
   };
+
+  const deleteMutation = useMutation({
+    mutationFn: async (instanceId: string) => {
+      const { error } = await supabase
+        .from("legal_doc_instances")
+        .delete()
+        .eq("id", instanceId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["legal-instances-admin"] });
+      toast.success("Draft deleted");
+    },
+    onError: () => {
+      toast.error("Failed to delete");
+    }
+  });
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -229,6 +247,38 @@ export default function LegalInstancesPage() {
                                 </TooltipTrigger>
                                 <TooltipContent>Generate & Copy Invite Link</TooltipContent>
                               </Tooltip>
+                            )}
+
+                            {instance.status !== "finalized" && (
+                              <AlertDialog>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <AlertDialogTrigger asChild>
+                                      <Button variant="ghost" size="sm">
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Delete</TooltipContent>
+                                </Tooltip>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete this agreement?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This will permanently delete this draft. This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => deleteMutation.mutate(instance.id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             )}
                           </div>
                         </TooltipProvider>
