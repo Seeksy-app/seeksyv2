@@ -70,6 +70,7 @@ import CarriersPage from "./pages/trucking/CarriersPage";
 import TruckingSettingsPage from "./pages/trucking/TruckingSettingsPage";
 import AITruckingConsolePage from "./pages/trucking/AITruckingConsolePage";
 import TruckingContactsPage from "./pages/trucking/TruckingContactsPage";
+import CallLogsPage from "./pages/trucking/CallLogsPage";
 import TruckingLayout from "./components/trucking/TruckingLayout";
 import AdminMeetings from "./pages/admin/AdminMeetings";
 import AdminMeetingsDashboard from "./pages/admin/meetings/AdminMeetingsDashboard";
@@ -790,6 +791,7 @@ const AppContent = () => {
         <Route path="/trucking/ai-console" element={<TruckingLayout><AITruckingConsolePage /></TruckingLayout>} />
         <Route path="/trucking/profile" element={<TruckingLayout><TruckingProfilePage /></TruckingLayout>} />
         <Route path="/trucking/contacts" element={<TruckingLayout><TruckingContactsPage /></TruckingLayout>} />
+        <Route path="/trucking/call-logs" element={<TruckingLayout><CallLogsPage /></TruckingLayout>} />
       </Routes>
     );
   }
