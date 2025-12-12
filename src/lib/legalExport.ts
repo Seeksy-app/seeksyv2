@@ -35,6 +35,11 @@ interface ExportData {
  * Replace placeholders in body text with actual values
  */
 function renderBodyText(bodyText: string, data: ExportData): string {
+  // Get current date formatted
+  const currentDate = new Date().toLocaleDateString('en-US', { 
+    year: 'numeric', month: 'long', day: 'numeric' 
+  });
+  
   let text = bodyText
     .replace(/\[PURCHASER_NAME\]/g, data.purchaserName)
     .replace(/\[PURCHASER_EMAIL\]/g, data.purchaserEmail)
@@ -45,13 +50,18 @@ function renderBodyText(bodyText: string, data: ExportData): string {
     .replace(/\[PRICE_PER_SHARE\]/g, `$${data.pricePerShare.toFixed(2)}`)
     .replace(/\[NUMBER_OF_SHARES\]/g, data.numberOfShares.toLocaleString())
     .replace(/\[PURCHASE_AMOUNT\]/g, `$${data.purchaseAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)
-    // Replace checkbox placeholders with checked/unchecked boxes
-    .replace(/\[ \] Individual with net worth/g, data.accreditedNetWorth ? '[X] Individual with net worth' : '[ ] Individual with net worth')
-    .replace(/\[ \] Individual with income exceeding/g, data.accreditedIncome ? '[X] Individual with income exceeding' : '[ ] Individual with income exceeding')
-    .replace(/\[ \] Director, executive officer/g, data.accreditedDirector ? '[X] Director, executive officer' : '[ ] Director, executive officer')
-    .replace(/\[ \] Other \(please specify\)/g, data.accreditedOther ? `[X] Other (please specify): ${data.accreditedOtherText || ''}` : '[ ] Other (please specify):');
+    // Date placeholders - use current date
+    .replace(/\[SELLER_DATE\]/g, currentDate)
+    .replace(/\[PURCHASER_DATE\]/g, currentDate)
+    .replace(/\[CHAIRMAN_DATE\]/g, currentDate)
+    // Checkbox placeholders with checkmarks
+    .replace(/\[CHECKBOX_NET_WORTH\]/g, data.accreditedNetWorth ? '☑' : '☐')
+    .replace(/\[CHECKBOX_INCOME\]/g, data.accreditedIncome ? '☑' : '☐')
+    .replace(/\[CHECKBOX_DIRECTOR\]/g, data.accreditedDirector ? '☑' : '☐')
+    .replace(/\[CHECKBOX_OTHER\]/g, data.accreditedOther ? '☑' : '☐')
+    .replace(/\[ACCREDITED_OTHER_TEXT\]/g, data.accreditedOtherText || '___');
   
-  // Replace chairman placeholders if present
+  // Replace chairman placeholders
   if (data.chairmanName) {
     text = text.replace(/\[CHAIRMAN_NAME\]/g, data.chairmanName);
   }

@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
 
 interface FieldValues {
   purchaser_name?: string;
@@ -15,8 +14,15 @@ interface FieldValues {
   seller_city?: string;
   seller_state?: string;
   seller_zip?: string;
+  chairman_name?: string;
+  chairman_title?: string;
   purchase_amount?: number;
   number_of_shares?: number;
+  accredited_net_worth?: boolean;
+  accredited_income?: boolean;
+  accredited_director?: boolean;
+  accredited_other?: boolean;
+  accredited_other_text?: string;
 }
 
 interface ComputedValues {
@@ -52,6 +58,11 @@ export function LegalDocPreview({
       return parts.join("\n");
     };
     
+    // Get current date formatted
+    const currentDate = new Date().toLocaleDateString('en-US', { 
+      year: 'numeric', month: 'long', day: 'numeric' 
+    });
+    
     // Get values with fallbacks
     const purchaserName = fieldValues.purchaser_name || "[PURCHASER_NAME]";
     const purchaserEmail = fieldValues.purchaser_email || "[PURCHASER_EMAIL]";
@@ -69,6 +80,8 @@ export function LegalDocPreview({
       fieldValues.seller_state,
       fieldValues.seller_zip
     ) || "[SELLER_ADDRESS]";
+    const chairmanName = fieldValues.chairman_name || "[CHAIRMAN_NAME]";
+    const chairmanTitle = fieldValues.chairman_title || "[CHAIRMAN_TITLE]";
     const pricePerShare = computedValues.price_per_share 
       ? `$${computedValues.price_per_share.toFixed(2)}` 
       : "[PRICE_PER_SHARE]";
@@ -93,13 +106,32 @@ export function LegalDocPreview({
       "[SELLER_NAME]": { value: sellerName, isFilled: !!fieldValues.seller_name },
       "[SELLER_EMAIL]": { value: sellerEmail, isFilled: !!fieldValues.seller_email },
       "[SELLER_ADDRESS]": { value: sellerAddress, isFilled: hasSellerAddress },
+      "[CHAIRMAN_NAME]": { value: chairmanName, isFilled: !!fieldValues.chairman_name },
+      "[CHAIRMAN_TITLE]": { value: chairmanTitle, isFilled: !!fieldValues.chairman_title },
       "[PRICE_PER_SHARE]": { value: pricePerShare, isFilled: !!computedValues.price_per_share },
       "[NUMBER_OF_SHARES]": { value: sharesDisplay, isFilled: numberOfShares !== undefined },
       "[PURCHASE_AMOUNT]": { value: amountDisplay, isFilled: purchaseAmount !== undefined },
+      "[SELLER_DATE]": { value: currentDate, isFilled: true },
+      "[PURCHASER_DATE]": { value: currentDate, isFilled: true },
+      "[CHAIRMAN_DATE]": { value: currentDate, isFilled: true },
+      "[ACCREDITED_OTHER_TEXT]": { value: fieldValues.accredited_other_text || "___", isFilled: !!fieldValues.accredited_other_text },
     };
 
+    // Checkbox replacements
+    const checkboxReplacements: Record<string, string> = {
+      "[CHECKBOX_NET_WORTH]": fieldValues.accredited_net_worth ? "☑" : "☐",
+      "[CHECKBOX_INCOME]": fieldValues.accredited_income ? "☑" : "☐",
+      "[CHECKBOX_DIRECTOR]": fieldValues.accredited_director ? "☑" : "☐",
+      "[CHECKBOX_OTHER]": fieldValues.accredited_other ? "☑" : "☐",
+    };
+
+    // Replace checkboxes first
+    for (const [placeholder, value] of Object.entries(checkboxReplacements)) {
+      text = text.replace(new RegExp(placeholder.replace(/[[\]]/g, '\\$&'), 'g'), value);
+    }
+
     // Create regex pattern for all placeholders
-    const placeholderPattern = /\[(PURCHASER_NAME|PURCHASER_EMAIL|PURCHASER_ADDRESS|SELLER_NAME|SELLER_EMAIL|SELLER_ADDRESS|PRICE_PER_SHARE|NUMBER_OF_SHARES|PURCHASE_AMOUNT)\]/g;
+    const placeholderPattern = /\[(PURCHASER_NAME|PURCHASER_EMAIL|PURCHASER_ADDRESS|SELLER_NAME|SELLER_EMAIL|SELLER_ADDRESS|CHAIRMAN_NAME|CHAIRMAN_TITLE|PRICE_PER_SHARE|NUMBER_OF_SHARES|PURCHASE_AMOUNT|SELLER_DATE|PURCHASER_DATE|CHAIRMAN_DATE|ACCREDITED_OTHER_TEXT)\]/g;
     
     text = text.replace(placeholderPattern, (match) => {
       const replacement = replacements[match];
@@ -120,12 +152,11 @@ export function LegalDocPreview({
     // Format RECITALS, AGREEMENT, etc. - centered, bold, underlined
     text = text.replace(/^(RECITALS|AGREEMENT|EXHIBITS?)$/gm, '<h2 class="text-base font-bold text-center mt-8 mb-4 text-foreground underline">$1</h2>');
     
-    // Format EXHIBIT headers with letters
-    text = text.replace(/^(EXHIBIT [A-Z])\n(.+)$/gm, '<h2 class="text-base font-bold text-center mt-8 mb-2 text-foreground">$1</h2><h3 class="text-sm font-bold text-center mb-4 text-foreground uppercase">$2</h3>');
+    // Format EXHIBIT headers - only the first line, not duplicate
+    text = text.replace(/^(EXHIBIT [A-Z])\n([A-Z][A-Z\s]+)$/gm, '<h2 class="text-base font-bold text-center mt-8 mb-2 text-foreground">$1</h2><h3 class="text-sm font-bold text-center mb-4 text-foreground uppercase">$2</h3>');
     
     // Format numbered section headers (1. Purchase and Sale...) - bold with underlined title
     text = text.replace(/(\d+\.)\s+([^.]+\.)/g, (match, num, title) => {
-      // Check if this looks like a section header (starts with capital, contains mostly caps or title case)
       if (/^[A-Z]/.test(title.trim())) {
         return `<span class="font-bold">${num}</span> <span class="font-bold underline">${title.trim()}</span>`;
       }
