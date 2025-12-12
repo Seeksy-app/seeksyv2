@@ -4,6 +4,11 @@ import { cn } from "@/lib/utils";
 
 interface FieldValues {
   purchaser_name?: string;
+  purchaser_email?: string;
+  purchaser_address?: string;
+  seller_name?: string;
+  seller_email?: string;
+  seller_address?: string;
   purchase_amount?: number;
   number_of_shares?: number;
 }
@@ -32,6 +37,11 @@ export function LegalDocPreview({
     
     // Get values with fallbacks
     const purchaserName = fieldValues.purchaser_name || "[PURCHASER_NAME]";
+    const purchaserEmail = fieldValues.purchaser_email || "[PURCHASER_EMAIL]";
+    const purchaserAddress = fieldValues.purchaser_address || "[PURCHASER_ADDRESS]";
+    const sellerName = fieldValues.seller_name || "[SELLER_NAME]";
+    const sellerEmail = fieldValues.seller_email || "[SELLER_EMAIL]";
+    const sellerAddress = fieldValues.seller_address || "[SELLER_ADDRESS]";
     const pricePerShare = computedValues.price_per_share 
       ? `$${computedValues.price_per_share.toFixed(2)}` 
       : "[PRICE_PER_SHARE]";
@@ -48,13 +58,18 @@ export function LegalDocPreview({
     // Replace placeholders with values or highlighted placeholders
     const replacements: Record<string, { value: string; isFilled: boolean }> = {
       "[PURCHASER_NAME]": { value: purchaserName, isFilled: !!fieldValues.purchaser_name },
+      "[PURCHASER_EMAIL]": { value: purchaserEmail, isFilled: !!fieldValues.purchaser_email },
+      "[PURCHASER_ADDRESS]": { value: purchaserAddress, isFilled: !!fieldValues.purchaser_address },
+      "[SELLER_NAME]": { value: sellerName, isFilled: !!fieldValues.seller_name },
+      "[SELLER_EMAIL]": { value: sellerEmail, isFilled: !!fieldValues.seller_email },
+      "[SELLER_ADDRESS]": { value: sellerAddress, isFilled: !!fieldValues.seller_address },
       "[PRICE_PER_SHARE]": { value: pricePerShare, isFilled: !!computedValues.price_per_share },
       "[NUMBER_OF_SHARES]": { value: sharesDisplay, isFilled: numberOfShares !== undefined },
       "[PURCHASE_AMOUNT]": { value: amountDisplay, isFilled: purchaseAmount !== undefined },
     };
 
     // Create regex pattern for all placeholders
-    const placeholderPattern = /\[(PURCHASER_NAME|PRICE_PER_SHARE|NUMBER_OF_SHARES|PURCHASE_AMOUNT)\]/g;
+    const placeholderPattern = /\[(PURCHASER_NAME|PURCHASER_EMAIL|PURCHASER_ADDRESS|SELLER_NAME|SELLER_EMAIL|SELLER_ADDRESS|PRICE_PER_SHARE|NUMBER_OF_SHARES|PURCHASE_AMOUNT)\]/g;
     
     text = text.replace(placeholderPattern, (match) => {
       const replacement = replacements[match];

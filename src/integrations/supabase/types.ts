@@ -14556,11 +14556,19 @@ export type Database = {
         Row: {
           computed_values_json: Json
           created_at: string
+          created_by: string | null
           field_values_json: Json
+          final_pdf_url: string | null
           id: string
+          invite_sent_at: string | null
+          invite_token: string | null
           purchaser_email: string | null
+          purchaser_signature_url: string | null
+          purchaser_signed_at: string | null
           purchaser_user_id: string | null
           rendered_text_cache: string | null
+          seller_signature_url: string | null
+          seller_signed_at: string | null
           status: string
           template_id: string
           updated_at: string
@@ -14568,11 +14576,19 @@ export type Database = {
         Insert: {
           computed_values_json?: Json
           created_at?: string
+          created_by?: string | null
           field_values_json?: Json
+          final_pdf_url?: string | null
           id?: string
+          invite_sent_at?: string | null
+          invite_token?: string | null
           purchaser_email?: string | null
+          purchaser_signature_url?: string | null
+          purchaser_signed_at?: string | null
           purchaser_user_id?: string | null
           rendered_text_cache?: string | null
+          seller_signature_url?: string | null
+          seller_signed_at?: string | null
           status?: string
           template_id: string
           updated_at?: string
@@ -14580,11 +14596,19 @@ export type Database = {
         Update: {
           computed_values_json?: Json
           created_at?: string
+          created_by?: string | null
           field_values_json?: Json
+          final_pdf_url?: string | null
           id?: string
+          invite_sent_at?: string | null
+          invite_token?: string | null
           purchaser_email?: string | null
+          purchaser_signature_url?: string | null
+          purchaser_signed_at?: string | null
           purchaser_user_id?: string | null
           rendered_text_cache?: string | null
+          seller_signature_url?: string | null
+          seller_signed_at?: string | null
           status?: string
           template_id?: string
           updated_at?: string

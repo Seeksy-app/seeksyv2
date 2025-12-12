@@ -11,6 +11,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface FieldValues {
   purchaser_name?: string;
+  purchaser_email?: string;
+  purchaser_address?: string;
+  seller_name?: string;
+  seller_email?: string;
+  seller_address?: string;
   input_mode?: "amount" | "shares";
   purchase_amount?: number;
   number_of_shares?: number;
@@ -155,6 +160,51 @@ export function LegalDocForm({
         </Badge>
       </div>
 
+      {/* Seller Info Section - Admin Only */}
+      {isAdmin && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              Seller Information
+              <Badge variant="outline" className="text-xs">Admin Only</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="seller_name">Seller Name</Label>
+              <Input
+                id="seller_name"
+                value={fieldValues.seller_name || ""}
+                onChange={(e) => onFieldChange("seller_name", e.target.value)}
+                placeholder="Enter seller's full legal name"
+                disabled={isFinalized}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="seller_email">Seller Email</Label>
+              <Input
+                id="seller_email"
+                type="email"
+                value={fieldValues.seller_email || ""}
+                onChange={(e) => onFieldChange("seller_email", e.target.value)}
+                placeholder="seller@example.com"
+                disabled={isFinalized}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="seller_address">Seller Address</Label>
+              <Input
+                id="seller_address"
+                value={fieldValues.seller_address || ""}
+                onChange={(e) => onFieldChange("seller_address", e.target.value)}
+                placeholder="Street, City, State ZIP"
+                disabled={isFinalized}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Purchaser Info Section */}
       <Card>
         <CardHeader className="pb-3">
@@ -168,6 +218,27 @@ export function LegalDocForm({
               value={fieldValues.purchaser_name || ""}
               onChange={(e) => onFieldChange("purchaser_name", e.target.value)}
               placeholder="Enter full legal name"
+              disabled={!canEdit}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="purchaser_email">Purchaser Email</Label>
+            <Input
+              id="purchaser_email"
+              type="email"
+              value={fieldValues.purchaser_email || ""}
+              onChange={(e) => onFieldChange("purchaser_email", e.target.value)}
+              placeholder="purchaser@example.com"
+              disabled={!canEdit}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="purchaser_address">Purchaser Address</Label>
+            <Input
+              id="purchaser_address"
+              value={fieldValues.purchaser_address || ""}
+              onChange={(e) => onFieldChange("purchaser_address", e.target.value)}
+              placeholder="Street, City, State ZIP"
               disabled={!canEdit}
             />
           </div>
