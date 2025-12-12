@@ -352,7 +352,7 @@ export default function TruckingDashboardPage() {
           <Button 
             variant={viewMode === "loads" ? "default" : "outline"} 
             size="sm"
-            onClick={() => setViewMode("loads")}
+            onClick={() => navigate("/trucking/loads")}
             className={viewMode === "loads" ? "bg-amber-400 hover:bg-amber-500 text-amber-900 border-amber-400" : ""}
           >
             See All Loads
@@ -360,10 +360,10 @@ export default function TruckingDashboardPage() {
           <Button 
             variant={viewMode === "leads" ? "default" : "outline"} 
             size="sm"
-            onClick={() => setViewMode("leads")}
+            onClick={() => navigate("/trucking/leads")}
             className={viewMode === "leads" ? "bg-amber-400 hover:bg-amber-500 text-amber-900 border-amber-400" : ""}
           >
-            My Leads
+            My Loads
           </Button>
         </div>
         {viewMode === "loads" && (

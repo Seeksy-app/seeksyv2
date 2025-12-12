@@ -59,10 +59,7 @@ const theme = {
 const navItems = [
   { label: "Dashboard", href: "/trucking/dashboard", icon: LayoutDashboard },
   { label: "Loads", href: "/trucking/loads", icon: PackageSearch },
-  { label: "Confirmed Leads", href: "/trucking/confirmed-leads", icon: CheckCircle2 },
-  { label: "Carrier Leads", href: "/trucking/leads", icon: PhoneCall },
   { label: "Call Logs", href: "/trucking/call-logs", icon: ClipboardList },
-  { label: "Carriers", href: "/trucking/carriers", icon: Users },
   { label: "Contacts", href: "/trucking/contacts", icon: BookUser },
   { label: "AI Console", href: "/trucking/console", icon: Network },
   { label: "Settings", href: "/trucking/settings", icon: Settings },
