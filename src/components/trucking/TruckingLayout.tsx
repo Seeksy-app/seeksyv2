@@ -24,7 +24,8 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  CheckCircle2
+  CheckCircle2,
+  ClipboardList
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -57,6 +58,7 @@ const navItems = [
   { label: "Loads", href: "/trucking/loads", icon: PackageSearch },
   { label: "Confirmed Leads", href: "/trucking/confirmed-leads", icon: CheckCircle2 },
   { label: "Carrier Leads", href: "/trucking/leads", icon: PhoneCall },
+  { label: "Call Logs", href: "/trucking/call-logs", icon: ClipboardList },
   { label: "Carriers", href: "/trucking/carriers", icon: Users },
   { label: "Contacts", href: "/trucking/contacts", icon: BookUser },
   { label: "AI Console", href: "/trucking/console", icon: Network },
