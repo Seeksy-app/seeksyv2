@@ -27,12 +27,14 @@ import {
   Unplug,
   PlugZap,
   Loader2,
+  Shield,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { GoogleVerifiedBadge } from "@/components/ui/google-verified-badge";
 
 interface Integration {
   id: string;

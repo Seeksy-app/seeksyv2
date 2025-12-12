@@ -4,8 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { ArrowLeft, ArrowRight, ChevronRight, Copy, Check, Mail, Calendar, Users } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ChevronRight, Copy, Check, Mail, Calendar, Users, Shield } from 'lucide-react';
 import { toast } from 'sonner';
+import { GoogleVerifiedBadge } from '@/components/ui/google-verified-badge';
 import confetti from 'canvas-confetti';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -524,12 +525,16 @@ export function MondayOnboarding() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
-          className="space-y-3 max-w-md"
+          className="space-y-4 max-w-md"
         >
+          <div className="flex items-center gap-2 mb-2">
+            <GoogleVerifiedBadge variant="pill" />
+          </div>
+          
           <Button
             variant="outline"
             size="lg"
-            className="w-full justify-start gap-3 h-14 text-base font-medium border-2"
+            className="w-full justify-start gap-3 h-14 text-base font-medium border-2 hover:bg-accent/50"
             onClick={() => setData(prev => ({ ...prev, integrationType: suggestedIntegration === 'email' ? 'google_email' : 'google_calendar' }))}
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -538,7 +543,7 @@ export function MondayOnboarding() {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            Connect Google account
+            Connect Google Account
           </Button>
 
           <button
@@ -546,11 +551,11 @@ export function MondayOnboarding() {
             onClick={() => setData(prev => ({ ...prev, integrationType: 'skip' }))}
             className="w-full text-center text-muted-foreground hover:text-foreground transition-colors py-2"
           >
-            Continue without syncing
+            Skip for now
           </button>
 
-          <p className="text-xs text-muted-foreground text-center pt-4">
-            Your privacy matters. Read our <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a> here.
+          <p className="text-xs text-muted-foreground text-center pt-2">
+            Secure, Google-verified integration. <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>
           </p>
         </motion.div>
       </div>
