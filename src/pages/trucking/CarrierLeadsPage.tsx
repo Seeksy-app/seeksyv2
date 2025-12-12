@@ -27,7 +27,7 @@ interface Lead {
   created_at: string;
   call_log_id: string | null;
   trucking_loads?: { load_number: string; origin_city: string; origin_state: string; destination_city: string; destination_state: string } | null;
-  trucking_call_logs?: { transcript_url: string } | null;
+  call_log?: { transcript_url: string } | null;
 }
 
 const statusOptions = ["interested", "countered", "booked", "declined", "no_answer"];
@@ -49,7 +49,11 @@ export default function CarrierLeadsPage() {
 
       const { data, error } = await supabase
         .from("trucking_carrier_leads")
-        .select("*, trucking_loads(load_number, origin_city, origin_state, destination_city, destination_state), trucking_call_logs!trucking_carrier_leads_call_log_id_fkey(transcript_url)")
+        .select(`
+          *,
+          trucking_loads(load_number, origin_city, origin_state, destination_city, destination_state),
+          call_log:trucking_call_logs!call_log_id(transcript_url)
+        `)
         .eq("owner_id", user.id)
         .eq("is_confirmed", false)
         .order("created_at", { ascending: false });
@@ -247,9 +251,9 @@ export default function CarrierLeadsPage() {
                             </a>
                           </Button>
                         )}
-                        {lead.trucking_call_logs?.transcript_url && (
+                        {lead.call_log?.transcript_url && (
                           <Button variant="outline" size="sm" className="h-8 px-2" asChild>
-                            <a href={lead.trucking_call_logs.transcript_url} target="_blank" rel="noopener noreferrer">
+                            <a href={lead.call_log.transcript_url} target="_blank" rel="noopener noreferrer">
                               <FileText className="h-3.5 w-3.5" />
                             </a>
                           </Button>

@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Package, UserCheck, Phone, Plus, ArrowRight, CheckCircle2, XCircle, PhoneCall, Clock, Loader2 } from "lucide-react";
+import { Package, UserCheck, Phone, Plus, ArrowRight, CheckCircle2, XCircle, PhoneCall, Clock, Loader2, ChevronDown, ChevronRight, MapPin, DollarSign, Truck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TruckingPageWrapper, TruckingContentCard, TruckingEmptyState, TruckingStatCardLight } from "@/components/trucking/TruckingPageWrapper";
 import { format, formatDistanceToNow } from "date-fns";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface DashboardStats {
   openLoads: number;
@@ -28,6 +28,24 @@ interface CallMetrics {
   maxConcurrentCalls: number;
   totalCallsToday: number;
   avgCallDuration: number;
+}
+
+interface Load {
+  id: string;
+  load_number: string;
+  origin_city: string;
+  origin_state: string;
+  destination_city: string;
+  destination_state: string;
+  pickup_date: string;
+  target_rate: number;
+  floor_rate: number;
+  equipment_type: string;
+  miles: number;
+  status: string;
+  weight_lbs: number;
+  commodity: string;
+  special_instructions: string;
 }
 
 interface ConfirmedLead {
@@ -59,9 +77,14 @@ export default function TruckingDashboardPage() {
   const [stats, setStats] = useState<DashboardStats>({ openLoads: 0, leadsToday: 0, callsToday: 0, confirmedLeads: 0 });
   const [earnings, setEarnings] = useState<EarningsSummary>({ estRevenue: 0, bookedRevenue: 0, estEarnings: 0, bookedEarnings: 0 });
   const [callMetrics, setCallMetrics] = useState<CallMetrics>({ activeCallCount: 0, maxConcurrentCalls: 2, totalCallsToday: 0, avgCallDuration: 0 });
+  const [loads, setLoads] = useState<Load[]>([]);
   const [confirmedLeads, setConfirmedLeads] = useState<ConfirmedLead[]>([]);
   const [recentLeads, setRecentLeads] = useState<CarrierLead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedLoadId, setExpandedLoadId] = useState<string | null>(null);
+  const [loadsOpen, setLoadsOpen] = useState(true);
+  const [confirmedOpen, setConfirmedOpen] = useState(true);
+  const [pendingOpen, setPendingOpen] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -90,6 +113,17 @@ export default function TruckingDashboardPage() {
         callsToday: callsResult.count || 0,
       });
 
+      // Fetch open loads
+      const { data: openLoads } = await supabase
+        .from("trucking_loads")
+        .select("*")
+        .eq("owner_id", user.id)
+        .eq("status", "open")
+        .order("pickup_date", { ascending: true })
+        .limit(10);
+
+      setLoads(openLoads || []);
+
       // Fetch loads for today's earnings calculation (based on pickup_date)
       const { data: todayLoads } = await supabase
         .from("trucking_loads")
@@ -111,11 +145,11 @@ export default function TruckingDashboardPage() {
 
       // Fetch call metrics and settings
       const [settingsResult, activeCallsResult] = await Promise.all([
-        supabase.from("trucking_settings").select("max_concurrent_calls").eq("owner_id", user.id).single(),
+        supabase.from("trucking_settings").select("max_concurrent_calls").eq("owner_id", user.id).maybeSingle(),
         supabase.from("trucking_call_logs")
           .select("id, call_started_at, call_ended_at")
           .eq("owner_id", user.id)
-          .gte("call_started_at", new Date(Date.now() - 5 * 60 * 1000).toISOString()) // Last 5 mins
+          .gte("call_started_at", new Date(Date.now() - 5 * 60 * 1000).toISOString())
           .is("call_ended_at", null),
       ]);
 
@@ -193,6 +227,7 @@ export default function TruckingDashboardPage() {
       countered: "bg-orange-100 text-orange-700",
       booked: "bg-green-100 text-green-700",
       declined: "bg-red-100 text-red-700",
+      open: "bg-blue-100 text-blue-700",
     };
     return colors[status] || "bg-slate-100 text-slate-700";
   };
@@ -236,31 +271,31 @@ export default function TruckingDashboardPage() {
         </div>
       }
     >
-      {/* Compact Earnings Summary - muted, one-line */}
+      {/* Compact Earnings Summary */}
       <div className="flex items-center justify-between text-sm text-slate-500 bg-slate-50 rounded-lg px-4 py-2">
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-1.5" title="Sum of all open + confirmed loads today (by pickup date)">
+          <div className="flex items-center gap-1.5" title="Sum of all open + confirmed loads today">
             <span className="text-slate-400">Est Revenue:</span>
             <span className="font-medium text-slate-700">
               {earnings.estRevenue > 0 ? `$${earnings.estRevenue.toLocaleString()}` : "—"}
             </span>
           </div>
           <div className="flex items-center gap-1.5" title="Sum of confirmed loads only">
-            <span className="text-slate-400">Booked Revenue:</span>
+            <span className="text-slate-400">Booked:</span>
             <span className="font-medium text-green-600">
               {earnings.bookedRevenue > 0 ? `$${earnings.bookedRevenue.toLocaleString()}` : "—"}
             </span>
           </div>
         </div>
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-1.5" title="Commission for all open + confirmed loads today">
+          <div className="flex items-center gap-1.5" title="Commission for all loads today">
             <span className="text-slate-400">Est Earnings:</span>
             <span className="font-medium text-slate-700">
               {earnings.estEarnings > 0 ? `$${earnings.estEarnings.toLocaleString()}` : "—"}
             </span>
           </div>
           <div className="flex items-center gap-1.5" title="Commission for confirmed loads only">
-            <span className="text-slate-400">Booked Earnings:</span>
+            <span className="text-slate-400">Booked:</span>
             <span className="font-medium text-green-600">
               {earnings.bookedEarnings > 0 ? `$${earnings.bookedEarnings.toLocaleString()}` : "—"}
             </span>
@@ -268,7 +303,7 @@ export default function TruckingDashboardPage() {
         </div>
       </div>
 
-      {/* Stats Cards - 4 cards only */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <TruckingStatCardLight 
           label="Open Loads" 
@@ -292,77 +327,261 @@ export default function TruckingDashboardPage() {
         />
       </div>
 
-      {/* Section A: Confirmed Loads (PRIMARY) */}
-      <TruckingContentCard noPadding>
-        <div className="flex items-center justify-between p-5 border-b border-slate-200">
-          <div>
-            <h3 className="font-semibold text-slate-900">Confirmed Loads</h3>
-            <p className="text-sm text-slate-500">Loads with confirmed carriers ready to dispatch</p>
-          </div>
-        </div>
-        {confirmedLeads.length === 0 ? (
-          <TruckingEmptyState
-            icon={<CheckCircle2 className="h-6 w-6 text-slate-400" />}
-            title="No confirmed loads yet"
-            description="When you confirm a carrier for a load, it will appear here."
-          />
-        ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-b border-slate-100">
-                  <TableHead className="text-slate-500 font-medium">Carrier Name</TableHead>
-                  <TableHead className="text-slate-500 font-medium">MC / DOT</TableHead>
-                  <TableHead className="text-slate-500 font-medium">Load #</TableHead>
-                  <TableHead className="text-slate-500 font-medium">Lane</TableHead>
-                  <TableHead className="text-slate-500 font-medium">Rate</TableHead>
-                  <TableHead className="text-slate-500 font-medium">Confirmed At</TableHead>
-                  <TableHead className="text-slate-500 font-medium text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {confirmedLeads.map((lead) => (
-                  <TableRow key={lead.id} className="border-b border-slate-50 hover:bg-green-50/50">
-                    <TableCell>
-                      <div className="font-medium text-slate-900">
-                        {lead.company_name || lead.contact_name}
+      {/* SECTION 1: Open Loads (PRIMARY - First thing they see) */}
+      <Collapsible open={loadsOpen} onOpenChange={setLoadsOpen}>
+        <TruckingContentCard noPadding>
+          <CollapsibleTrigger asChild>
+            <div className="flex items-center justify-between p-5 border-b border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+              <div className="flex items-center gap-3">
+                {loadsOpen ? <ChevronDown className="h-5 w-5 text-slate-400" /> : <ChevronRight className="h-5 w-5 text-slate-400" />}
+                <div>
+                  <h3 className="font-semibold text-slate-900">Open Loads</h3>
+                  <p className="text-sm text-slate-500">Active loads available for carriers</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge className="bg-blue-100 text-blue-700">{loads.length} loads</Badge>
+                <Link to="/trucking/loads" onClick={(e) => e.stopPropagation()}>
+                  <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                    View all <ArrowRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            {loads.length === 0 ? (
+              <TruckingEmptyState
+                icon={<Package className="h-6 w-6 text-slate-400" />}
+                title="No open loads"
+                description="Add a load to start receiving carrier calls."
+              />
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {loads.map((load) => (
+                  <div key={load.id}>
+                    {/* Load Row - Clickable to expand */}
+                    <div 
+                      className="flex items-center justify-between p-4 hover:bg-slate-50 cursor-pointer transition-colors"
+                      onClick={() => setExpandedLoadId(expandedLoadId === load.id ? null : load.id)}
+                    >
+                      <div className="flex items-center gap-4">
+                        {expandedLoadId === load.id ? (
+                          <ChevronDown className="h-4 w-4 text-slate-400" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 text-slate-400" />
+                        )}
+                        <div>
+                          <div className="font-semibold text-slate-900">{load.load_number}</div>
+                          <div className="text-sm text-slate-500 flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {load.origin_city}, {load.origin_state} → {load.destination_city}, {load.destination_state}
+                          </div>
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-slate-600 text-sm">
-                      {lead.mc_number && <span>MC# {lead.mc_number}</span>}
-                      {lead.mc_number && lead.dot_number && <span className="mx-1">·</span>}
-                      {lead.dot_number && <span>DOT# {lead.dot_number}</span>}
-                      {!lead.mc_number && !lead.dot_number && "—"}
-                    </TableCell>
-                    <TableCell className="font-medium text-slate-900">
-                      {lead.trucking_loads?.load_number || "—"}
-                    </TableCell>
-                    <TableCell className="text-slate-600">
-                      {lead.trucking_loads ? (
-                        `${lead.trucking_loads.origin_city}, ${lead.trucking_loads.origin_state} → ${lead.trucking_loads.destination_city}, ${lead.trucking_loads.destination_state}`
-                      ) : "—"}
-                    </TableCell>
-                    <TableCell className="font-medium text-green-600">
-                      ${(lead.rate_requested || lead.rate_offered)?.toLocaleString() || "—"}
-                    </TableCell>
-                    <TableCell className="text-slate-500 text-sm">
-                      {lead.confirmed_at ? format(new Date(lead.confirmed_at), "MMM d, h:mm a") : "—"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
+                      <div className="flex items-center gap-6">
+                        <div className="text-right">
+                          <div className="font-semibold text-green-600">${load.target_rate?.toLocaleString() || "—"}</div>
+                          <div className="text-xs text-slate-500">{load.miles} mi</div>
+                        </div>
+                        <Badge className={getStatusBadge(load.status)}>{load.status}</Badge>
+                        {load.pickup_date && (
+                          <div className="text-sm text-slate-500">
+                            {format(new Date(load.pickup_date), "MMM d")}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Expanded Load Details */}
+                    {expandedLoadId === load.id && (
+                      <div className="px-12 pb-4 bg-slate-50/50 border-t border-slate-100">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-3">
+                          <div>
+                            <div className="text-xs text-slate-500 uppercase tracking-wide">Equipment</div>
+                            <div className="font-medium text-slate-900 flex items-center gap-1">
+                              <Truck className="h-3.5 w-3.5" />
+                              {load.equipment_type || "—"}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-slate-500 uppercase tracking-wide">Weight</div>
+                            <div className="font-medium text-slate-900">{load.weight_lbs?.toLocaleString() || "—"} lbs</div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-slate-500 uppercase tracking-wide">Commodity</div>
+                            <div className="font-medium text-slate-900">{load.commodity || "—"}</div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-slate-500 uppercase tracking-wide">Floor Rate</div>
+                            <div className="font-medium text-slate-900">${load.floor_rate?.toLocaleString() || "—"}</div>
+                          </div>
+                        </div>
+                        {load.special_instructions && (
+                          <div className="mt-2 p-2 bg-amber-50 rounded text-sm text-amber-700">
+                            <span className="font-medium">Notes:</span> {load.special_instructions}
+                          </div>
+                        )}
+                        <div className="flex gap-2 mt-3">
+                          <Link to="/trucking/loads">
+                            <Button size="sm" variant="outline">Edit Load</Button>
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CollapsibleContent>
+        </TruckingContentCard>
+      </Collapsible>
+
+      {/* SECTION 2: Pending Leads (Carriers who called) */}
+      <Collapsible open={pendingOpen} onOpenChange={setPendingOpen}>
+        <TruckingContentCard noPadding>
+          <CollapsibleTrigger asChild>
+            <div className="flex items-center justify-between p-5 border-b border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+              <div className="flex items-center gap-3">
+                {pendingOpen ? <ChevronDown className="h-5 w-5 text-slate-400" /> : <ChevronRight className="h-5 w-5 text-slate-400" />}
+                <div>
+                  <h3 className="font-semibold text-slate-900">Pending Leads</h3>
+                  <p className="text-sm text-slate-500">Carriers interested, awaiting confirmation</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge className="bg-amber-100 text-amber-700">{recentLeads.length} leads</Badge>
+                <Link to="/trucking/leads" onClick={(e) => e.stopPropagation()}>
+                  <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                    View all <ArrowRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            {recentLeads.length === 0 ? (
+              <TruckingEmptyState
+                icon={<UserCheck className="h-6 w-6 text-slate-400" />}
+                title="No pending leads"
+                description="Carriers who call about your loads will appear here."
+              />
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {recentLeads.map((lead) => (
+                  <div key={lead.id} className="flex items-center justify-between p-4 hover:bg-slate-50">
+                    <div className="flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
+                        <UserCheck className="h-5 w-5 text-amber-600" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-slate-900">{lead.company_name || lead.contact_name}</div>
+                        <div className="text-sm text-slate-500">{lead.phone}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <div className="text-sm text-slate-600">{lead.trucking_loads?.load_number || "—"}</div>
+                        <div className="text-sm font-medium text-green-600">${lead.rate_offered?.toLocaleString() || "—"}</div>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-amber-600">
+                        <Clock className="h-3.5 w-3.5" />
+                        <span className="text-sm">{formatDistanceToNow(new Date(lead.created_at), { addSuffix: false })}</span>
+                      </div>
+                      <Badge className={getStatusBadge(lead.status)}>{lead.status}</Badge>
+                      <div className="flex gap-1">
+                        {lead.phone && (
+                          <Button variant="outline" size="sm" className="h-8 px-2" asChild>
+                            <a href={`tel:${lead.phone}`}><PhoneCall className="h-3.5 w-3.5" /></a>
+                          </Button>
+                        )}
                         <Button 
                           size="sm" 
                           className="bg-green-600 hover:bg-green-700 text-white h-8 px-3"
                           onClick={() => handleConfirmBooking(lead.id)}
                         >
-                          <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
-                          Book
+                          <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Confirm
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CollapsibleContent>
+        </TruckingContentCard>
+      </Collapsible>
+
+      {/* SECTION 3: Confirmed Loads */}
+      <Collapsible open={confirmedOpen} onOpenChange={setConfirmedOpen}>
+        <TruckingContentCard noPadding>
+          <CollapsibleTrigger asChild>
+            <div className="flex items-center justify-between p-5 border-b border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+              <div className="flex items-center gap-3">
+                {confirmedOpen ? <ChevronDown className="h-5 w-5 text-slate-400" /> : <ChevronRight className="h-5 w-5 text-slate-400" />}
+                <div>
+                  <h3 className="font-semibold text-slate-900">Confirmed Loads</h3>
+                  <p className="text-sm text-slate-500">Loads with confirmed carriers ready to dispatch</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge className="bg-green-100 text-green-700">{confirmedLeads.length} confirmed</Badge>
+                <Link to="/trucking/confirmed-leads" onClick={(e) => e.stopPropagation()}>
+                  <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                    View all <ArrowRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            {confirmedLeads.length === 0 ? (
+              <TruckingEmptyState
+                icon={<CheckCircle2 className="h-6 w-6 text-slate-400" />}
+                title="No confirmed loads yet"
+                description="When you confirm a carrier for a load, it will appear here."
+              />
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {confirmedLeads.map((lead) => (
+                  <div key={lead.id} className="flex items-center justify-between p-4 hover:bg-green-50/50">
+                    <div className="flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                        <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-slate-900">{lead.company_name || lead.contact_name}</div>
+                        <div className="text-sm text-slate-500">
+                          {lead.mc_number && <span>MC# {lead.mc_number}</span>}
+                          {lead.mc_number && lead.dot_number && <span className="mx-1">·</span>}
+                          {lead.dot_number && <span>DOT# {lead.dot_number}</span>}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <div className="font-medium text-slate-900">{lead.trucking_loads?.load_number || "—"}</div>
+                        <div className="text-sm text-slate-500">
+                          {lead.trucking_loads ? `${lead.trucking_loads.origin_city}, ${lead.trucking_loads.origin_state} → ${lead.trucking_loads.destination_city}, ${lead.trucking_loads.destination_state}` : "—"}
+                        </div>
+                      </div>
+                      <div className="font-semibold text-green-600">
+                        ${(lead.rate_requested || lead.rate_offered)?.toLocaleString() || "—"}
+                      </div>
+                      <div className="text-sm text-slate-500">
+                        {lead.confirmed_at ? format(new Date(lead.confirmed_at), "MMM d, h:mm a") : "—"}
+                      </div>
+                      <div className="flex gap-1">
+                        <Button 
+                          size="sm" 
+                          className="bg-green-600 hover:bg-green-700 text-white h-8 px-3"
+                          onClick={() => handleConfirmBooking(lead.id)}
+                        >
+                          <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Book
                         </Button>
                         {lead.phone && (
                           <Button variant="outline" size="sm" className="h-8 px-2" asChild>
-                            <a href={`tel:${lead.phone}`}>
-                              <PhoneCall className="h-3.5 w-3.5" />
-                            </a>
+                            <a href={`tel:${lead.phone}`}><PhoneCall className="h-3.5 w-3.5" /></a>
                           </Button>
                         )}
                         <Button 
@@ -374,100 +593,14 @@ export default function TruckingDashboardPage() {
                           <XCircle className="h-3.5 w-3.5" />
                         </Button>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </TruckingContentCard>
-
-      {/* Section B: Pending Leads (Confirmed on call, awaiting callback) */}
-      <TruckingContentCard noPadding>
-        <div className="flex items-center justify-between p-5 border-b border-slate-200">
-          <div>
-            <h3 className="font-semibold text-slate-900">Pending Leads</h3>
-            <p className="text-sm text-slate-500">Carriers confirmed on call, ready for callback</p>
-          </div>
-          <Link to="/trucking/leads">
-            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
-              View all
-              <ArrowRight className="h-4 w-4 ml-1" />
-            </Button>
-          </Link>
-        </div>
-        {recentLeads.length === 0 ? (
-          <TruckingEmptyState
-            icon={<UserCheck className="h-6 w-6 text-slate-400" />}
-            title="No pending leads"
-            description="Carriers who confirm interest on a call will appear here awaiting your callback."
-          />
-        ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-b border-slate-100">
-                  <TableHead className="text-slate-500 font-medium">Carrier</TableHead>
-                  <TableHead className="text-slate-500 font-medium">Load</TableHead>
-                  <TableHead className="text-slate-500 font-medium">Rate</TableHead>
-                  <TableHead className="text-slate-500 font-medium">Waiting</TableHead>
-                  <TableHead className="text-slate-500 font-medium">Status</TableHead>
-                  <TableHead className="text-slate-500 font-medium text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentLeads.map((lead) => (
-                  <TableRow key={lead.id} className="border-b border-slate-50 hover:bg-slate-50">
-                    <TableCell>
-                      <div className="font-medium text-slate-900">
-                        {lead.company_name || lead.contact_name}
-                      </div>
-                      <div className="text-xs text-slate-500">{lead.phone}</div>
-                    </TableCell>
-                    <TableCell className="text-slate-600">
-                      {lead.trucking_loads?.load_number || "—"}
-                    </TableCell>
-                    <TableCell className="text-slate-600">
-                      ${lead.rate_offered?.toLocaleString() || "—"}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1.5 text-amber-600">
-                        <Clock className="h-3.5 w-3.5" />
-                        <span className="text-sm">{formatDistanceToNow(new Date(lead.created_at), { addSuffix: false })}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusBadge(lead.status)}>
-                        {lead.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        {lead.phone && (
-                          <Button variant="outline" size="sm" className="h-8 px-2" asChild>
-                            <a href={`tel:${lead.phone}`}>
-                              <PhoneCall className="h-3.5 w-3.5" />
-                            </a>
-                          </Button>
-                        )}
-                        <Button 
-                          size="sm" 
-                          className="bg-green-600 hover:bg-green-700 text-white h-8 px-3"
-                          onClick={() => handleConfirmBooking(lead.id)}
-                        >
-                          <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
-                          Confirm
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </TruckingContentCard>
+              </div>
+            )}
+          </CollapsibleContent>
+        </TruckingContentCard>
+      </Collapsible>
     </TruckingPageWrapper>
   );
 }
