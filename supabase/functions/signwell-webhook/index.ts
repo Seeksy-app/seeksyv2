@@ -38,11 +38,12 @@ serve(async (req) => {
       );
     }
 
-    // Handle different SignWell events
+    // Handle different SignWell events for 3-party sequential signing
+    // Order: Seller (1) -> Purchaser (2) -> Chairman (3)
     switch (event_type) {
       case "document_completed": {
-        // All parties have signed - download and save the signed PDF
-        console.log("Document completed, updating instance status");
+        // All 3 parties have signed - download and save the signed PDF
+        console.log("Document completed - all parties signed");
         
         // Get the signed PDF URL
         const signedPdfUrl = data?.document?.files?.[0]?.url;
@@ -64,23 +65,39 @@ serve(async (req) => {
           throw updateError;
         }
 
-        console.log("Instance marked as completed");
+        console.log("Instance marked as completed with signed PDF");
         break;
       }
 
       case "document_signed": {
-        // A recipient has signed
+        // A recipient has signed - track which party
         const recipientEmail = data?.recipient?.email;
-        console.log("Recipient signed:", recipientEmail);
+        const recipientName = data?.recipient?.name;
+        const signingOrder = data?.recipient?.signing_order;
+        console.log(`Recipient signed: ${recipientName} (${recipientEmail}) - Order: ${signingOrder}`);
 
-        // Update signwell status
+        // Determine which signature field to update based on signing order
+        const updateFields: Record<string, unknown> = {
+          signwell_status: "partially_signed",
+          signwell_document_id: documentId,
+          updated_at: new Date().toISOString(),
+        };
+
+        // Track signature timestamps based on order
+        if (signingOrder === 1) {
+          updateFields.seller_signed_at = new Date().toISOString();
+          console.log("Seller signature recorded");
+        } else if (signingOrder === 2) {
+          updateFields.purchaser_signed_at = new Date().toISOString();
+          console.log("Purchaser signature recorded");
+        } else if (signingOrder === 3) {
+          // This is handled by document_completed event
+          console.log("Chairman signature - awaiting document_completed");
+        }
+
         const { error: updateError } = await supabase
           .from("legal_doc_instances")
-          .update({
-            signwell_status: "partially_signed",
-            signwell_document_id: documentId,
-            updated_at: new Date().toISOString(),
-          })
+          .update(updateFields)
           .eq("id", instanceId);
 
         if (updateError) {

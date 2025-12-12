@@ -142,11 +142,6 @@ import SocialAnalytics from "./pages/SocialAnalytics";
 import AgencyDiscovery from "./pages/AgencyDiscovery";
 import RSSMigrationPage from "./pages/RSSMigrationPage";
 import PaidAdsTerms from "./pages/legal/PaidAdsTerms";
-import StockPurchaseAgreement from "./pages/legal/StockPurchaseAgreement";
-import LegalTemplatesPage from "./pages/admin/LegalTemplatesPage";
-import LegalInstancesPage from "./pages/admin/LegalInstancesPage";
-import PurchaserAgreementPage from "./pages/legal/PurchaserAgreementPage";
-import ChairmanSignaturePage from "./pages/legal/ChairmanSignaturePage";
 import StockAgreementGenerator from "./pages/admin/legal/StockAgreementGenerator";
 import SignedConfirmation from "./pages/legal/SignedConfirmation";
 import DeclinedConfirmation from "./pages/legal/DeclinedConfirmation";
@@ -928,9 +923,7 @@ const AppContent = () => {
               <Route path="/certificate/:clipId" element={<Certificate />} />
               <Route path="/verified" element={<Verified />} />
               
-              {/* Legal Purchaser Page - Public with token */}
-              <Route path="/legal/purchaser/:token" element={<PurchaserAgreementPage />} />
-              <Route path="/legal/chairman/:token" element={<ChairmanSignaturePage />} />
+              {/* Podcast Studio Flow */}
               
               {/* Podcast Studio Flow */}
               <Route path="/podcast-studio" element={<PodcastStudioHome />} />
@@ -1146,10 +1139,6 @@ const AppContent = () => {
             <Route path="/admin/hero-manager" element={<HeroManager />} />
             <Route path="/admin/brand-settings" element={<BrandSettings />} />
             <Route path="/admin/legal" element={<AdminLegal />} />
-            <Route path="/admin/legal/templates" element={<LegalTemplatesPage />} />
-            <Route path="/admin/legal/instances" element={<LegalInstancesPage />} />
-            <Route path="/admin/legal/stock-purchase/new" element={<StockPurchaseAgreement />} />
-            <Route path="/admin/legal/stock-purchase/:instanceId" element={<StockPurchaseAgreement />} />
             <Route path="/admin/legal/generate-docx" element={<StockAgreementGenerator />} />
             <Route path="/admin/conversational-demo" element={<AdminConversationalDemo />} />
             <Route path="/admin/architecture" element={<SeeksyArchitecture />} />

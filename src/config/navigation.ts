@@ -149,17 +149,10 @@ export const NAVIGATION_CONFIG: {
       "collapsible": true,
       "items": [
         {
-          "id": "admin_legal_templates",
-          "label": "Templates",
-          "icon": "file-text",
-          "path": "/admin/legal/templates",
-          "roles": ["admin", "super_admin", "cfo"]
-        },
-        {
-          "id": "admin_legal_instances",
-          "label": "Instances",
-          "icon": "file-check",
-          "path": "/admin/legal/instances",
+          "id": "admin_legal_agreements",
+          "label": "Stock Agreements",
+          "icon": "file-signature",
+          "path": "/admin/legal/generate-docx",
           "roles": ["admin", "super_admin", "cfo"]
         }
       ]

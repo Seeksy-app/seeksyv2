@@ -44,9 +44,10 @@ serve(async (req) => {
     console.log("Creating SignWell document:", documentName);
     console.log("Recipients:", recipients.map(r => r.email));
 
-    // Create document in SignWell
+    // Create document in SignWell with sequential 3-party signing
+    // Order: 1) Seller -> 2) Purchaser -> 3) Chairman
     const signWellPayload = {
-      test_mode: false, // Set to true for testing
+      test_mode: false,
       files: [
         {
           name: documentName,
@@ -63,13 +64,14 @@ serve(async (req) => {
         send_email: true,
         send_email_delay: 0,
         placeholder_name: r.role || `Signer ${index + 1}`,
+        signing_order: index + 1, // Sequential: Seller=1, Purchaser=2, Chairman=3
       })),
-      apply_signing_order: true,
+      apply_signing_order: true, // Enforce sequential signing
       custom_requester_name: "Seeksy Legal",
       custom_requester_email: "legal@seeksy.io",
       redirect_url: `${Deno.env.get("SITE_URL") || "https://seeksy.io"}/legal/signed?instance=${instanceId || ""}`,
       decline_redirect_url: `${Deno.env.get("SITE_URL") || "https://seeksy.io"}/legal/declined?instance=${instanceId || ""}`,
-      expires_in: 30, // 30 days
+      expires_in: 30,
       reminders: true,
       text_tags: false,
       allow_decline: true,
