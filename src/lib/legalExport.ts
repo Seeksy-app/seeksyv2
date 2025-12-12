@@ -393,6 +393,31 @@ export async function exportToPdf(data: ExportData): Promise<void> {
       currentSection = 'purchaser';
     }
     
+    // Insert chairman signature after "By: [Chairman Name]" line (no underline in template)
+    if (currentSection === 'chairman' && trimmedLine.startsWith('By:') && data.chairmanName && trimmedLine.includes(data.chairmanName) && signatureImages.chairman) {
+      // First render the "By:" line
+      if (yPosition > pageHeight - bottomMargin) {
+        pdf.addPage();
+        yPosition = margin;
+      }
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(trimmedLine, margin, yPosition);
+      yPosition += lineHeight;
+      
+      // Then add the chairman signature image below it
+      if (yPosition + signatureHeight + 5 > pageHeight - bottomMargin) {
+        pdf.addPage();
+        yPosition = margin;
+      }
+      try {
+        pdf.addImage(signatureImages.chairman, 'PNG', margin + 10, yPosition - 5, signatureWidth, signatureHeight);
+        yPosition += signatureHeight + 2;
+      } catch (e) {
+        console.error('Failed to add chairman signature image:', e);
+      }
+      continue; // Skip the normal rendering of this line since we already rendered it
+    }
+    
     // Skip empty lines at the very end of the document
     if (i === lines.length - 1 && !trimmedLine) {
       continue;
