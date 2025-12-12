@@ -305,6 +305,20 @@ export function WorkspaceSidebar() {
     }
   };
 
+  const handleRemoveSection = async (groupName: string, modules: Array<{ id: string; name: string }>) => {
+    try {
+      // Remove all modules in the section
+      for (const module of modules) {
+        await removeModule(module.id);
+      }
+      toast.success("Section removed", {
+        description: `${groupName} and all its modules have been removed.`,
+      });
+    } catch (error) {
+      toast.error("Failed to remove section");
+    }
+  };
+
   const toggleGroup = (groupId: string) => {
     setExpandedGroups(prev => {
       const next = new Set(prev);
@@ -586,12 +600,40 @@ export function WorkspaceSidebar() {
                               </CollapsibleTrigger>
                               <SidebarMenuButton
                                 tooltip={groupName}
-                                className="flex-1 text-sidebar-foreground hover:bg-sidebar-accent"
+                                className="flex-1 text-sidebar-foreground hover:bg-sidebar-accent pr-8"
                                 onClick={() => toggleGroup(groupKey)}
                               >
                                 <GroupIcon className="h-5 w-5" />
                                 {!isCollapsed && <span className="font-bold text-[15px]">{groupName}</span>}
                               </SidebarMenuButton>
+                              
+                              {/* Section overflow menu */}
+                              {!isCollapsed && (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="absolute right-0 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover/item:opacity-100 transition-opacity"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <MoreHorizontal className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="w-48 bg-popover border shadow-lg z-50">
+                                    <DropdownMenuItem
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleRemoveSection(groupName, allModules);
+                                      }}
+                                      className="text-destructive focus:text-destructive"
+                                    >
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Remove Section
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              )}
                             </div>
                           </SidebarMenuItem>
                           
