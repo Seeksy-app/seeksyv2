@@ -144,7 +144,7 @@ export const NAVIGATION_CONFIG: {
     },
 
     {
-      "group": "Legal Documents",
+      "group": "Admin Legal",
       "description": "Legal agreements and document management",
       "collapsible": true,
       "items": [

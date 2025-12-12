@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Loader2, FileText, CheckCircle, AlertCircle } from "lucide-react";
+import { sendLegalAgreementEmail } from "@/lib/legal/emails";
 
 interface ChairmanFieldValues {
   chairman_name?: string;
@@ -58,9 +59,28 @@ export default function ChairmanSignaturePage() {
       
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ["legal-instance-chairman", token] });
-      toast.success("Signature saved - Agreement finalized");
+      
+      // Send completion emails
+      const fv = instance?.field_values_json as any || {};
+      const cv = instance?.computed_values_json as any || {};
+      const viewLink = `${window.location.origin}/legal/purchaser/${token}`;
+      
+      await sendLegalAgreementEmail({
+        type: "completed",
+        purchaserEmail: fv.purchaser_email || instance?.purchaser_email || "",
+        purchaserName: fv.purchaser_name,
+        sellerName: fv.seller_name,
+        chairmanEmail: fv.chairman_email,
+        chairmanName: fv.chairman_name,
+        purchaserLink: viewLink,
+        numberOfShares: fv.number_of_shares,
+        purchaseAmount: fv.purchase_amount,
+        pricePerShare: cv.price_per_share,
+      });
+      
+      toast.success("Signature saved - Agreement finalized. Confirmation emails sent.");
     },
     onError: () => {
       toast.error("Failed to save signature");

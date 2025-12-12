@@ -15,6 +15,7 @@ import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/componen
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Json } from "@/integrations/supabase/types";
 import { exportToDocx, exportToPdf } from "@/lib/legalExport";
+import { sendLegalAgreementEmail } from "@/lib/legal/emails";
 
 
 interface FieldValues {
@@ -191,11 +192,34 @@ export default function StockPurchaseAgreement() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["legal-instance"] });
+      
+      // Send emails to purchaser and chairman
+      const purchaserEmail = fieldValues.purchaser_email || data.purchaser_email;
+      const chairmanEmail = fieldValues.chairman_email;
+      const purchaserLink = data.invite_token ? `${window.location.origin}/legal/purchaser/${data.invite_token}` : undefined;
+      const chairmanLink = data.invite_token ? `${window.location.origin}/legal/chairman/${data.invite_token}` : undefined;
+      
+      if (purchaserEmail || chairmanEmail) {
+        await sendLegalAgreementEmail({
+          type: "finalize",
+          purchaserEmail: purchaserEmail || "",
+          purchaserName: fieldValues.purchaser_name,
+          sellerName: fieldValues.seller_name,
+          chairmanEmail: chairmanEmail,
+          chairmanName: fieldValues.chairman_name,
+          purchaserLink,
+          chairmanLink,
+          numberOfShares: fieldValues.number_of_shares,
+          purchaseAmount: fieldValues.purchase_amount,
+          pricePerShare: computedValues.price_per_share,
+        });
+      }
+      
       toast({
         title: "Agreement Finalized",
-        description: "The agreement has been finalized and locked.",
+        description: "The agreement has been finalized. Emails sent to signers.",
       });
     },
   });

@@ -4,22 +4,35 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileText, Eye, Plus, CheckCircle, Clock, Send, FileCheck, Link, Copy, Check, Trash2 } from "lucide-react";
+import { FileText, Eye, Plus, CheckCircle, Clock, Send, FileCheck, Link, Copy, Check, Trash2, Mail } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { sendLegalAgreementEmail } from "@/lib/legal/emails";
 
 interface FieldValues {
   purchaser_name?: string;
+  purchaser_email?: string;
   purchase_amount?: number;
   number_of_shares?: number;
 }
 
 interface ComputedValues {
   price_per_share?: number;
+}
+
+interface LegalInstance {
+  id: string;
+  purchaser_email?: string;
+  invite_token?: string;
+  field_values_json: FieldValues | null;
+  computed_values_json: ComputedValues | null;
+  status: string;
+  updated_at: string;
+  legal_templates?: { name: string };
 }
 
 export default function LegalInstancesPage() {
@@ -70,7 +83,7 @@ export default function LegalInstancesPage() {
   };
 
   const createInviteMutation = useMutation({
-    mutationFn: async (instanceId: string) => {
+    mutationFn: async (instance: LegalInstance) => {
       const token = generateInviteToken();
       const { error } = await supabase
         .from("legal_doc_instances")
@@ -79,16 +92,35 @@ export default function LegalInstancesPage() {
           invite_sent_at: new Date().toISOString(),
           status: "pending"
         })
-        .eq("id", instanceId);
+        .eq("id", instance.id);
       
       if (error) throw error;
-      return token;
+      return { token, instance };
     },
-    onSuccess: (token) => {
+    onSuccess: async ({ token, instance }) => {
       queryClient.invalidateQueries({ queryKey: ["legal-instances-admin"] });
       const inviteUrl = `${window.location.origin}/legal/purchaser/${token}`;
       navigator.clipboard.writeText(inviteUrl);
-      toast.success("Invite link copied to clipboard!");
+      
+      // Send email to purchaser
+      const fv = instance.field_values_json || {};
+      const cv = instance.computed_values_json || {};
+      const email = fv.purchaser_email || instance.purchaser_email;
+      
+      if (email) {
+        await sendLegalAgreementEmail({
+          type: "invite",
+          purchaserEmail: email,
+          purchaserName: fv.purchaser_name,
+          purchaserLink: inviteUrl,
+          numberOfShares: fv.number_of_shares,
+          purchaseAmount: fv.purchase_amount,
+          pricePerShare: cv.price_per_share,
+        });
+        toast.success("Invite link copied & email sent to purchaser!");
+      } else {
+        toast.success("Invite link copied to clipboard!");
+      }
     },
     onError: () => {
       toast.error("Failed to generate invite link");
@@ -239,7 +271,7 @@ export default function LegalInstancesPage() {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => createInviteMutation.mutate(instance.id)}
+                                    onClick={() => createInviteMutation.mutate(instance as LegalInstance)}
                                     disabled={createInviteMutation.isPending}
                                   >
                                     <Link className="h-4 w-4" />
