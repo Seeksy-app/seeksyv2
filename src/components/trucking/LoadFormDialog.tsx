@@ -184,6 +184,17 @@ export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingL
     }
   }, [formData.weight_lbs, formData.rate_type]);
 
+  // Auto-calculate distance when origin and destination change
+  useEffect(() => {
+    const shouldCalculate = formData.origin_city && formData.origin_state && 
+                            formData.destination_city && formData.destination_state &&
+                            !formData.miles; // Only auto-calc if miles not already set
+    
+    if (shouldCalculate && !distanceLoading) {
+      handleCalculateDistance();
+    }
+  }, [formData.origin_city, formData.origin_state, formData.destination_city, formData.destination_state]);
+
   const canCalculateDistance = formData.origin_city && formData.origin_state && 
                                 formData.destination_city && formData.destination_state;
 
