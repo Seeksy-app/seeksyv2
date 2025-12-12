@@ -144,6 +144,28 @@ export const NAVIGATION_CONFIG: {
     },
 
     {
+      "group": "Legal Documents",
+      "description": "Legal agreements and document management",
+      "collapsible": true,
+      "items": [
+        {
+          "id": "admin_legal_templates",
+          "label": "Templates",
+          "icon": "file-text",
+          "path": "/admin/legal/templates",
+          "roles": ["admin", "super_admin", "cfo"]
+        },
+        {
+          "id": "admin_legal_instances",
+          "label": "Instances",
+          "icon": "file-check",
+          "path": "/admin/legal/instances",
+          "roles": ["admin", "super_admin", "cfo"]
+        }
+      ]
+    },
+
+    {
       "group": "Business Operations",
       "description": "Support, sales, billing, and operations",
       "collapsible": true,

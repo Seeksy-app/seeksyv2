@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Lock, Save, Send, CheckCircle } from "lucide-react";
+import { Lock, Save, Send, CheckCircle, Download, FileDown, AlertCircle } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface FieldValues {
   purchaser_name?: string;
@@ -33,6 +35,7 @@ interface LegalDocFormProps {
   onSaveDraft: () => void;
   onSubmitForReview: () => void;
   onFinalize?: () => void;
+  onExport?: (format: 'pdf' | 'docx') => void;
   isSaving?: boolean;
 }
 
@@ -46,6 +49,7 @@ export function LegalDocForm({
   onSaveDraft,
   onSubmitForReview,
   onFinalize,
+  onExport,
   isSaving,
 }: LegalDocFormProps) {
   const [localAmount, setLocalAmount] = useState<string>(
@@ -114,10 +118,22 @@ export function LegalDocForm({
   }, [inputMode, pricePerShare, roundingMode]);
 
   const isFinalized = status === "finalized";
+  const isSubmitted = status === "submitted" || status === "admin_review";
   const canEdit = !isFinalized && (isAdmin || status === "draft");
+  const canExport = isFinalized || (isAdmin && isSubmitted);
 
   return (
     <div className="space-y-6 p-6">
+      {/* Finalized Lock Alert */}
+      {isFinalized && (
+        <Alert>
+          <Lock className="h-4 w-4" />
+          <AlertDescription>
+            This agreement has been finalized and is now read-only. You can export the final document.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Status Badge */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Investment Details</h2>
@@ -299,6 +315,28 @@ export function LegalDocForm({
               </Button>
             )}
           </>
+        )}
+
+        {/* Export buttons when finalized or for admin during review */}
+        {onExport && canExport && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Export Document
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => onExport('pdf')}>
+                <FileDown className="h-4 w-4 mr-2" />
+                Export as PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onExport('docx')}>
+                <FileDown className="h-4 w-4 mr-2" />
+                Export as DOCX
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
     </div>

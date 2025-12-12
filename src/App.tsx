@@ -142,6 +142,9 @@ import SocialAnalytics from "./pages/SocialAnalytics";
 import AgencyDiscovery from "./pages/AgencyDiscovery";
 import RSSMigrationPage from "./pages/RSSMigrationPage";
 import PaidAdsTerms from "./pages/legal/PaidAdsTerms";
+import StockPurchaseAgreement from "./pages/legal/StockPurchaseAgreement";
+import LegalTemplatesPage from "./pages/admin/LegalTemplatesPage";
+import LegalInstancesPage from "./pages/admin/LegalInstancesPage";
 import SubscriptionSettings from "./pages/SubscriptionSettings";
 // Holiday features completely disabled - removed all imports
 import { CommandPaletteProvider } from "./components/command/CommandPaletteProvider";
@@ -1099,6 +1102,8 @@ const AppContent = () => {
               <Route path="/podcasts/:podcastId/episodes/:episodeId" element={<EpisodeDetailPublic />} />
               <Route path="/podcasts/:id/migrate" element={<RSSMigrationPage />} />
               <Route path="/legal/paid-ads-terms" element={<PaidAdsTerms />} />
+              <Route path="/legal/stock-purchase/new" element={<StockPurchaseAgreement />} />
+              <Route path="/legal/stock-purchase/:instanceId" element={<StockPurchaseAgreement />} />
               <Route path="/my-blog" element={<Blog />} />
               <Route path="/my-blog/create" element={<CreateBlogPost />} />
               <Route path="/my-blog/edit/:id" element={<CreateBlogPost />} />
@@ -1127,6 +1132,8 @@ const AppContent = () => {
             <Route path="/admin/hero-manager" element={<HeroManager />} />
             <Route path="/admin/brand-settings" element={<BrandSettings />} />
             <Route path="/admin/legal" element={<AdminLegal />} />
+            <Route path="/admin/legal/templates" element={<LegalTemplatesPage />} />
+            <Route path="/admin/legal/instances" element={<LegalInstancesPage />} />
             <Route path="/admin/conversational-demo" element={<AdminConversationalDemo />} />
             <Route path="/admin/architecture" element={<SeeksyArchitecture />} />
             <Route path="/admin/master-blog" element={<AdminMasterBlog />} />

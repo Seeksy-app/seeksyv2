@@ -5,10 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { LegalDocPreview } from "@/components/legal/LegalDocPreview";
 import { LegalDocForm } from "@/components/legal/LegalDocForm";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, FileText, Download } from "lucide-react";
+import { Loader2, FileText, Download, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Json } from "@/integrations/supabase/types";
+import { exportToDocx, exportToPdf } from "@/lib/legalExport";
 
 interface FieldValues {
   purchaser_name?: string;
@@ -213,6 +215,30 @@ export default function StockPurchaseAgreement() {
     finalizeMutation.mutate();
   };
 
+  const handleExport = async (format: 'pdf' | 'docx') => {
+    if (!template || !instanceId) return;
+    
+    const exportData = {
+      purchaserName: fieldValues.purchaser_name || 'Unknown',
+      pricePerShare: computedValues.price_per_share || 0,
+      numberOfShares: fieldValues.number_of_shares ?? computedValues.computed_number_of_shares ?? 0,
+      purchaseAmount: fieldValues.purchase_amount ?? computedValues.computed_purchase_amount ?? 0,
+      bodyText: template.body_text,
+      instanceId: instanceId,
+    };
+    
+    try {
+      if (format === 'pdf') {
+        await exportToPdf(exportData);
+      } else {
+        await exportToDocx(exportData);
+      }
+      toast({ title: `Exported as ${format.toUpperCase()}` });
+    } catch (error) {
+      toast({ title: "Export failed", variant: "destructive" });
+    }
+  };
+
   if (templateLoading || instanceLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -231,6 +257,7 @@ export default function StockPurchaseAgreement() {
   }
 
   const status = instance?.status || "draft";
+  const canExport = status === "finalized" || (isAdmin && (status === "submitted" || status === "admin_review"));
 
   return (
     <div className="h-screen flex flex-col">
@@ -242,11 +269,25 @@ export default function StockPurchaseAgreement() {
             {instanceId === "new" ? "New Agreement" : `Instance: ${instanceId?.slice(0, 8)}...`}
           </p>
         </div>
-        {status === "finalized" && (
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Export PDF
-          </Button>
+        {canExport && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                <FileDown className="h-4 w-4 mr-2" />
+                Export as PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('docx')}>
+                <FileDown className="h-4 w-4 mr-2" />
+                Export as DOCX
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
 
@@ -287,6 +328,7 @@ export default function StockPurchaseAgreement() {
               onSaveDraft={handleSaveDraft}
               onSubmitForReview={handleSubmitForReview}
               onFinalize={isAdmin ? handleFinalize : undefined}
+              onExport={handleExport}
               isSaving={saveMutation.isPending || finalizeMutation.isPending}
             />
           </div>
