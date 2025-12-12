@@ -74,7 +74,7 @@ export default function TruckingLandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-screen bg-white dark:bg-slate-900">
       {/* Header */}
       <header className="container mx-auto px-4 py-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -130,7 +130,7 @@ export default function TruckingLandingPage() {
       </section>
 
       {/* Features Grid */}
-      <section className="container mx-auto px-4 py-20">
+      <section className="container mx-auto px-4 py-20 bg-white dark:bg-slate-900">
         <h2 className="text-3xl font-bold text-center mb-12">
           Built for busy freight brokers
         </h2>
@@ -157,9 +157,9 @@ export default function TruckingLandingPage() {
       </section>
 
       {/* Benefits Section */}
-      <section className="container mx-auto px-4 py-20">
-        <div className="max-w-4xl mx-auto">
-          <Card className="bg-primary/5 border-primary/20">
+      <section className="bg-slate-50 dark:bg-slate-800/50 py-20">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <Card className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 shadow-lg">
             <CardHeader className="text-center">
               <CardTitle className="text-2xl">Everything you need to automate carrier calls</CardTitle>
             </CardHeader>
@@ -178,7 +178,7 @@ export default function TruckingLandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="container mx-auto px-4 py-20 text-center">
+      <section className="container mx-auto px-4 py-20 text-center bg-white dark:bg-slate-900">
         <div className="max-w-2xl mx-auto space-y-6">
           <h2 className="text-3xl font-bold">Ready to stop answering the same questions?</h2>
           <p className="text-muted-foreground">
