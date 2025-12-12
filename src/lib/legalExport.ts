@@ -40,6 +40,17 @@ function renderBodyText(bodyText: string, data: ExportData): string {
     year: 'numeric', month: 'long', day: 'numeric' 
   });
   
+  // Use actual signed dates if available, otherwise use current date
+  const sellerDate = data.sellerSignedAt 
+    ? new Date(data.sellerSignedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    : currentDate;
+  const purchaserDate = data.purchaserSignedAt 
+    ? new Date(data.purchaserSignedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    : currentDate;
+  const chairmanDate = data.chairmanSignedAt 
+    ? new Date(data.chairmanSignedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    : currentDate;
+  
   let text = bodyText
     .replace(/\[PURCHASER_NAME\]/g, data.purchaserName)
     .replace(/\[PURCHASER_EMAIL\]/g, data.purchaserEmail)
@@ -50,10 +61,10 @@ function renderBodyText(bodyText: string, data: ExportData): string {
     .replace(/\[PRICE_PER_SHARE\]/g, `$${data.pricePerShare.toFixed(2)}`)
     .replace(/\[NUMBER_OF_SHARES\]/g, data.numberOfShares.toLocaleString())
     .replace(/\[PURCHASE_AMOUNT\]/g, `$${data.purchaseAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)
-    // Date placeholders - use current date
-    .replace(/\[SELLER_DATE\]/g, currentDate)
-    .replace(/\[PURCHASER_DATE\]/g, currentDate)
-    .replace(/\[CHAIRMAN_DATE\]/g, currentDate)
+    // Date placeholders - use actual signed dates
+    .replace(/\[SELLER_DATE\]/g, sellerDate)
+    .replace(/\[PURCHASER_DATE\]/g, purchaserDate)
+    .replace(/\[CHAIRMAN_DATE\]/g, chairmanDate)
     // Checkbox placeholders with checkmarks
     .replace(/\[CHECKBOX_NET_WORTH\]/g, data.accreditedNetWorth ? '☑' : '☐')
     .replace(/\[CHECKBOX_INCOME\]/g, data.accreditedIncome ? '☑' : '☐')
@@ -70,6 +81,25 @@ function renderBodyText(bodyText: string, data: ExportData): string {
   }
   
   return text;
+}
+
+/**
+ * Convert image URL to base64 for PDF embedding
+ */
+async function imageUrlToBase64(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error('Failed to convert image to base64:', error);
+    return null;
+  }
 }
 
 /**
@@ -201,6 +231,18 @@ export async function exportToDocx(data: ExportData): Promise<void> {
 export async function exportToPdf(data: ExportData): Promise<void> {
   const renderedText = renderBodyText(data.bodyText, data);
   
+  // Pre-load signature images
+  const signatureImages: Record<string, string | null> = {};
+  if (data.sellerSignatureUrl) {
+    signatureImages.seller = await imageUrlToBase64(data.sellerSignatureUrl);
+  }
+  if (data.purchaserSignatureUrl) {
+    signatureImages.purchaser = await imageUrlToBase64(data.purchaserSignatureUrl);
+  }
+  if (data.chairmanSignatureUrl) {
+    signatureImages.chairman = await imageUrlToBase64(data.chairmanSignatureUrl);
+  }
+  
   const pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -214,16 +256,32 @@ export async function exportToPdf(data: ExportData): Promise<void> {
   const lineHeight = 5;
   const pageHeight = pdf.internal.pageSize.getHeight();
   const bottomMargin = 25;
+  const signatureHeight = 15; // Height for signature images in mm
+  const signatureWidth = 50; // Width for signature images in mm
   
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
   
   const lines = renderedText.split('\n');
   let seenTitle = false;
+  let currentSection = ''; // Track which section we're in for signature placement
   
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmedLine = line.trim();
+    
+    // Track section for signature context
+    if (trimmedLine.includes('SELLER:') || trimmedLine.startsWith('SELLER')) {
+      currentSection = 'seller';
+    } else if (trimmedLine.includes('BUYER:') || trimmedLine.includes('BUYER') || trimmedLine.includes('[PURCHASER_NAME]')) {
+      currentSection = 'purchaser';
+    } else if (trimmedLine.includes('PARADE DECK HOLDINGS') || trimmedLine.includes('Chairman')) {
+      currentSection = 'chairman';
+    } else if (trimmedLine.includes('EXHIBIT A') || trimmedLine.includes('STOCK POWER')) {
+      currentSection = 'seller'; // Stock power is seller
+    } else if (trimmedLine.includes('EXHIBIT B') || trimmedLine.includes('EXHIBIT C') || trimmedLine.includes('JOINDER')) {
+      currentSection = 'purchaser';
+    }
     
     // Skip empty lines at the very end of the document
     if (i === lines.length - 1 && !trimmedLine) {
@@ -232,7 +290,7 @@ export async function exportToPdf(data: ExportData): Promise<void> {
     
     // Handle the main title specially - only render once and centered
     if (trimmedLine === 'COMMON STOCK PURCHASE AGREEMENT') {
-      if (seenTitle) continue; // Skip duplicate
+      if (seenTitle) continue;
       seenTitle = true;
       pdf.setFontSize(14);
       pdf.setFont('helvetica', 'bold');
@@ -244,9 +302,8 @@ export async function exportToPdf(data: ExportData): Promise<void> {
       continue;
     }
     
-    // Check for intentionally blank page markers - render centered, then continue (no double page break)
+    // Check for intentionally blank page markers
     if (trimmedLine.includes('[THIS PAGE INTENTIONALLY LEFT BLANK]')) {
-      // Move to next page first
       pdf.addPage();
       yPosition = pageHeight / 2;
       pdf.setFont('helvetica', 'italic');
@@ -254,8 +311,7 @@ export async function exportToPdf(data: ExportData): Promise<void> {
       const blankWidth = pdf.getTextWidth(blankText);
       pdf.text(blankText, (pageWidth - blankWidth) / 2, yPosition);
       pdf.setFont('helvetica', 'normal');
-      // Do NOT add another page here - let natural flow continue
-      yPosition = pageHeight; // Force next content to new page
+      yPosition = pageHeight;
       continue;
     }
     
@@ -269,10 +325,80 @@ export async function exportToPdf(data: ExportData): Promise<void> {
       continue;
     }
     
+    // Handle signature lines - replace with actual signatures if available
+    if (trimmedLine.startsWith('Signature:') && trimmedLine.includes('___')) {
+      // Check if we need a new page
+      if (yPosition + signatureHeight + 5 > pageHeight - bottomMargin) {
+        pdf.addPage();
+        yPosition = margin;
+      }
+      
+      // Determine which signature to use based on context
+      let signatureImage: string | null = null;
+      if (currentSection === 'seller' && signatureImages.seller) {
+        signatureImage = signatureImages.seller;
+      } else if (currentSection === 'purchaser' && signatureImages.purchaser) {
+        signatureImage = signatureImages.purchaser;
+      } else if (currentSection === 'chairman' && signatureImages.chairman) {
+        signatureImage = signatureImages.chairman;
+      }
+      
+      pdf.text('Signature:', margin, yPosition);
+      
+      if (signatureImage) {
+        // Add signature image
+        try {
+          pdf.addImage(signatureImage, 'PNG', margin + 25, yPosition - 10, signatureWidth, signatureHeight);
+          yPosition += signatureHeight + 2;
+        } catch (e) {
+          console.error('Failed to add signature image:', e);
+          pdf.text('___________________________', margin + 25, yPosition);
+          yPosition += lineHeight;
+        }
+      } else {
+        pdf.text('___________________________', margin + 25, yPosition);
+        yPosition += lineHeight;
+      }
+      continue;
+    }
+    
+    // Handle standalone signature underlines (often used after "By:")
+    if (trimmedLine === '___________________________' || trimmedLine.match(/^_{10,}$/)) {
+      // Check if we need a new page
+      if (yPosition + signatureHeight + 5 > pageHeight - bottomMargin) {
+        pdf.addPage();
+        yPosition = margin;
+      }
+      
+      // Determine which signature to use based on context
+      let signatureImage: string | null = null;
+      if (currentSection === 'seller' && signatureImages.seller) {
+        signatureImage = signatureImages.seller;
+      } else if (currentSection === 'purchaser' && signatureImages.purchaser) {
+        signatureImage = signatureImages.purchaser;
+      } else if (currentSection === 'chairman' && signatureImages.chairman) {
+        signatureImage = signatureImages.chairman;
+      }
+      
+      if (signatureImage) {
+        try {
+          pdf.addImage(signatureImage, 'PNG', margin, yPosition - 10, signatureWidth, signatureHeight);
+          yPosition += signatureHeight + 2;
+        } catch (e) {
+          console.error('Failed to add signature image:', e);
+          pdf.text(trimmedLine, margin, yPosition);
+          yPosition += lineHeight;
+        }
+      } else {
+        pdf.text(trimmedLine, margin, yPosition);
+        yPosition += lineHeight;
+      }
+      continue;
+    }
+    
     // Handle empty lines
     if (!trimmedLine) {
       yPosition += lineHeight;
-      // Check page break for empty lines too
       if (yPosition > pageHeight - bottomMargin) {
         pdf.addPage();
         yPosition = margin;
@@ -285,7 +411,6 @@ export async function exportToPdf(data: ExportData): Promise<void> {
     
     if (isBold) {
       pdf.setFont('helvetica', 'bold');
-      // Check if it's a major section that needs larger font
       if (/^(EXHIBIT [A-Z]|STOCK POWER|JOINDER AGREEMENT|ACCREDITED INVESTOR)$/i.test(trimmedLine)) {
         pdf.setFontSize(12);
       }
@@ -298,7 +423,6 @@ export async function exportToPdf(data: ExportData): Promise<void> {
     const splitLines = pdf.splitTextToSize(trimmedLine, maxWidth);
     
     for (const splitLine of splitLines) {
-      // Check if we need a new page
       if (yPosition > pageHeight - bottomMargin) {
         pdf.addPage();
         yPosition = margin;
@@ -313,9 +437,8 @@ export async function exportToPdf(data: ExportData): Promise<void> {
       yPosition += lineHeight;
     }
     
-    // Reset font size after headers
     pdf.setFontSize(10);
-    yPosition += lineHeight * 0.3; // Paragraph spacing
+    yPosition += lineHeight * 0.3;
   }
   
   pdf.save(generateFilename(data.purchaserName, data.instanceId, 'pdf'));
