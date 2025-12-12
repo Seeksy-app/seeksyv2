@@ -80,8 +80,15 @@ interface Load {
   length_ft: number;
   pieces: number;
   miles: number;
+  // Rate fields
+  rate_type: 'flat' | 'per_ton';
   target_rate: number;
   floor_rate: number;
+  negotiated_rate: number;
+  desired_rate_per_ton: number;
+  negotiated_rate_per_ton: number;
+  floor_rate_per_ton: number;
+  tons: number;
   detention_rate_per_hour: number;
   layover_rate: number;
   tonu_rate: number;
@@ -143,8 +150,18 @@ export default function LoadsPage() {
     length_ft: "",
     pieces: "",
     miles: "",
+    // Rate type
+    rate_type: "flat" as 'flat' | 'per_ton',
+    // Flat rate fields
     target_rate: "",
     floor_rate: "",
+    negotiated_rate: "",
+    // Per-ton rate fields
+    desired_rate_per_ton: "",
+    negotiated_rate_per_ton: "",
+    floor_rate_per_ton: "",
+    tons: "",
+    // Accessorials
     detention_rate_per_hour: "",
     layover_rate: "",
     tonu_rate: "",
@@ -152,7 +169,7 @@ export default function LoadsPage() {
     special_instructions: "",
     internal_notes: "",
     notes: "",
-    // New contact fields
+    // Contact fields
     shipper_name: "",
     shipper_phone: "",
     contact_name: "",
@@ -226,8 +243,15 @@ export default function LoadsPage() {
         length_ft: formData.length_ft ? parseInt(formData.length_ft) : null,
         pieces: formData.pieces ? parseInt(formData.pieces) : null,
         miles: formData.miles ? parseInt(formData.miles) : null,
+        // Rate type and fields
+        rate_type: formData.rate_type,
         target_rate: formData.target_rate ? parseFloat(formData.target_rate) : null,
         floor_rate: formData.floor_rate ? parseFloat(formData.floor_rate) : null,
+        negotiated_rate: formData.negotiated_rate ? parseFloat(formData.negotiated_rate) : null,
+        desired_rate_per_ton: formData.desired_rate_per_ton ? parseFloat(formData.desired_rate_per_ton) : null,
+        negotiated_rate_per_ton: formData.negotiated_rate_per_ton ? parseFloat(formData.negotiated_rate_per_ton) : null,
+        floor_rate_per_ton: formData.floor_rate_per_ton ? parseFloat(formData.floor_rate_per_ton) : null,
+        tons: formData.tons ? parseFloat(formData.tons) : null,
         detention_rate_per_hour: formData.detention_rate_per_hour ? parseFloat(formData.detention_rate_per_hour) : null,
         layover_rate: formData.layover_rate ? parseFloat(formData.layover_rate) : null,
         tonu_rate: formData.tonu_rate ? parseFloat(formData.tonu_rate) : null,
@@ -360,8 +384,14 @@ export default function LoadsPage() {
       length_ft: load.length_ft?.toString() || "",
       pieces: load.pieces?.toString() || "",
       miles: load.miles?.toString() || "",
+      rate_type: load.rate_type || "flat",
       target_rate: load.target_rate?.toString() || "",
       floor_rate: load.floor_rate?.toString() || "",
+      negotiated_rate: load.negotiated_rate?.toString() || "",
+      desired_rate_per_ton: load.desired_rate_per_ton?.toString() || "",
+      negotiated_rate_per_ton: load.negotiated_rate_per_ton?.toString() || "",
+      floor_rate_per_ton: load.floor_rate_per_ton?.toString() || "",
+      tons: load.tons?.toString() || "",
       detention_rate_per_hour: load.detention_rate_per_hour?.toString() || "",
       layover_rate: load.layover_rate?.toString() || "",
       tonu_rate: load.tonu_rate?.toString() || "",
@@ -453,8 +483,14 @@ export default function LoadsPage() {
         length_ft: load.length_ft,
         pieces: load.pieces,
         miles: load.miles,
+        rate_type: load.rate_type || 'flat',
         target_rate: load.target_rate,
         floor_rate: load.floor_rate,
+        negotiated_rate: null, // Reset negotiated on copy
+        desired_rate_per_ton: load.desired_rate_per_ton,
+        negotiated_rate_per_ton: null,
+        floor_rate_per_ton: load.floor_rate_per_ton,
+        tons: load.tons,
         detention_rate_per_hour: load.detention_rate_per_hour,
         layover_rate: load.layover_rate,
         tonu_rate: load.tonu_rate,
@@ -517,8 +553,14 @@ export default function LoadsPage() {
       length_ft: "",
       pieces: "",
       miles: "",
+      rate_type: "flat" as 'flat' | 'per_ton',
       target_rate: "",
       floor_rate: "",
+      negotiated_rate: "",
+      desired_rate_per_ton: "",
+      negotiated_rate_per_ton: "",
+      floor_rate_per_ton: "",
+      tons: "",
       detention_rate_per_hour: "",
       layover_rate: "",
       tonu_rate: "",
@@ -609,11 +651,36 @@ export default function LoadsPage() {
   }
 
   const formatRatePerMile = (load: Load) => {
+    if (load.rate_type === 'per_ton') return null;
     if (load.miles && load.miles > 0 && load.target_rate && load.target_rate > 0) {
       return (load.target_rate / load.miles).toFixed(2);
     }
     return null;
   };
+
+  const formatRateDisplay = (load: Load) => {
+    if (load.rate_type === 'per_ton') {
+      const tons = load.tons || (load.weight_lbs ? load.weight_lbs / 2000 : 0);
+      const desiredTotal = load.desired_rate_per_ton && tons ? load.desired_rate_per_ton * tons : null;
+      const negotiatedTotal = load.negotiated_rate_per_ton && tons ? load.negotiated_rate_per_ton * tons : null;
+      return {
+        primary: load.desired_rate_per_ton ? `$${load.desired_rate_per_ton}/ton` : '—',
+        secondary: tons ? `× ${tons.toFixed(1)}t` : '',
+        total: desiredTotal ? `≈ $${desiredTotal.toLocaleString()}` : '',
+        negotiated: negotiatedTotal ? `Neg: $${negotiatedTotal.toLocaleString()}` : null,
+      };
+    }
+    // Flat rate
+    return {
+      primary: load.target_rate ? `$${load.target_rate.toLocaleString()}` : '—',
+      secondary: formatRatePerMile(load) ? `~$${formatRatePerMile(load)}/mi` : '',
+      total: '',
+      negotiated: load.negotiated_rate ? `Neg: $${load.negotiated_rate.toLocaleString()}` : null,
+    };
+  };
+
+  // Auto-calculate tons from weight
+  const calculatedTons = formData.weight_lbs ? (parseFloat(formData.weight_lbs) / 2000).toFixed(2) : '';
 
   const LoadsTable = ({ loadsData, showConfirmButton = false }: { loadsData: Load[], showConfirmButton?: boolean }) => (
     <Table>
@@ -653,10 +720,19 @@ export default function LoadsPage() {
               {load.temp_required && <Badge variant="secondary" className="text-xs">TEMP</Badge>}
             </TableCell>
             <TableCell>
-              <div>${load.target_rate?.toLocaleString() || "—"}</div>
-              {formatRatePerMile(load) && (
-                <div className="text-xs text-muted-foreground">~${formatRatePerMile(load)}/mi</div>
-              )}
+              {(() => {
+                const rateInfo = formatRateDisplay(load);
+                return (
+                  <div>
+                    <div className="flex items-center gap-1">
+                      <span>{rateInfo.primary}</span>
+                      {rateInfo.secondary && <span className="text-xs text-muted-foreground">{rateInfo.secondary}</span>}
+                    </div>
+                    {rateInfo.total && <div className="text-xs text-muted-foreground">{rateInfo.total}</div>}
+                    {rateInfo.negotiated && <div className="text-xs text-green-600">{rateInfo.negotiated}</div>}
+                  </div>
+                );
+              })()}
             </TableCell>
             <TableCell>
               <Badge className={getStatusBadge(load.status)}>{load.status}</Badge>
@@ -1123,78 +1199,206 @@ export default function LoadsPage() {
 
               {/* Rates */}
               <div className="border rounded-lg p-4 space-y-4">
-                <h3 className="font-semibold">Rates</h3>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label>Target Rate ($)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={formData.target_rate}
-                      onChange={(e) => setFormData({ ...formData, target_rate: e.target.value })}
-                      placeholder="2500"
-                    />
-                  </div>
-                  <div>
-                    <Label>Floor Rate ($)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={formData.floor_rate}
-                      onChange={(e) => setFormData({ ...formData, floor_rate: e.target.value })}
-                      placeholder="2200"
-                    />
-                  </div>
-                  <div>
-                    <Label>Broker Commission ($)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={formData.broker_commission}
-                      onChange={(e) => setFormData({ ...formData, broker_commission: e.target.value })}
-                      placeholder="300"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">Your earnings on this load</p>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold">Rates</h3>
+                  <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                    <button
+                      type="button"
+                      className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                        formData.rate_type === 'flat' 
+                          ? 'bg-background text-foreground shadow-sm' 
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                      onClick={() => setFormData({ ...formData, rate_type: 'flat' })}
+                    >
+                      Flat Rate
+                    </button>
+                    <button
+                      type="button"
+                      className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                        formData.rate_type === 'per_ton' 
+                          ? 'bg-background text-foreground shadow-sm' 
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                      onClick={() => setFormData({ ...formData, rate_type: 'per_ton' })}
+                    >
+                      Per Ton
+                    </button>
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label>Detention ($/hr)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={formData.detention_rate_per_hour}
-                      onChange={(e) => setFormData({ ...formData, detention_rate_per_hour: e.target.value })}
-                      placeholder="75"
-                    />
+
+                {formData.rate_type === 'flat' ? (
+                  <>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <Label>Target Rate ($)</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={formData.target_rate}
+                          onChange={(e) => setFormData({ ...formData, target_rate: e.target.value })}
+                          placeholder="2500"
+                        />
+                      </div>
+                      <div>
+                        <Label>Floor Rate ($)</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={formData.floor_rate}
+                          onChange={(e) => setFormData({ ...formData, floor_rate: e.target.value })}
+                          placeholder="2200"
+                        />
+                      </div>
+                      <div>
+                        <Label>Negotiated Rate ($)</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={formData.negotiated_rate}
+                          onChange={(e) => setFormData({ ...formData, negotiated_rate: e.target.value })}
+                          placeholder="2350"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Set when carrier agrees</p>
+                      </div>
+                    </div>
+                    {formData.target_rate && formData.floor_rate && (
+                      <p className="text-xs text-muted-foreground">
+                        Est. broker earnings: ${(parseFloat(formData.target_rate) - parseFloat(formData.floor_rate)).toLocaleString()}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <Label>Desired Rate ($/ton)</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={formData.desired_rate_per_ton}
+                          onChange={(e) => setFormData({ ...formData, desired_rate_per_ton: e.target.value })}
+                          placeholder="75"
+                        />
+                      </div>
+                      <div>
+                        <Label>Floor Rate ($/ton)</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={formData.floor_rate_per_ton}
+                          onChange={(e) => setFormData({ ...formData, floor_rate_per_ton: e.target.value })}
+                          placeholder="65"
+                        />
+                      </div>
+                      <div>
+                        <Label>Negotiated Rate ($/ton)</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={formData.negotiated_rate_per_ton}
+                          onChange={(e) => setFormData({ ...formData, negotiated_rate_per_ton: e.target.value })}
+                          placeholder="70"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Tons</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={formData.tons || calculatedTons}
+                          onChange={(e) => setFormData({ ...formData, tons: e.target.value })}
+                          placeholder={calculatedTons || "Enter tons"}
+                        />
+                        {calculatedTons && !formData.tons && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Auto-calculated from weight ({formData.weight_lbs} lbs ÷ 2000)
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <Label>Broker Commission ($)</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={formData.broker_commission}
+                          onChange={(e) => setFormData({ ...formData, broker_commission: e.target.value })}
+                          placeholder="300"
+                        />
+                      </div>
+                    </div>
+                    {formData.desired_rate_per_ton && (formData.tons || calculatedTons) && (
+                      <div className="p-3 bg-muted rounded-lg text-sm space-y-1">
+                        <p>Est. Total (Desired): <span className="font-medium">${(parseFloat(formData.desired_rate_per_ton) * parseFloat(formData.tons || calculatedTons)).toLocaleString()}</span></p>
+                        {formData.negotiated_rate_per_ton && (
+                          <p>Est. Total (Negotiated): <span className="font-medium text-green-600">${(parseFloat(formData.negotiated_rate_per_ton) * parseFloat(formData.tons || calculatedTons)).toLocaleString()}</span></p>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Broker Commission for Flat Rate */}
+                {formData.rate_type === 'flat' && (
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label>Broker Commission ($)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={formData.broker_commission}
+                        onChange={(e) => setFormData({ ...formData, broker_commission: e.target.value })}
+                        placeholder="300"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Your earnings on this load</p>
+                    </div>
                   </div>
-                  <div>
-                    <Label>Layover Rate ($)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={formData.layover_rate}
-                      onChange={(e) => setFormData({ ...formData, layover_rate: e.target.value })}
-                      placeholder="300"
-                    />
+                )}
+
+                {/* Accessorials - shown for both rate types */}
+                <div className="border-t pt-4 mt-4">
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wide mb-3 block">Accessorials</Label>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label>Detention ($/hr)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={formData.detention_rate_per_hour}
+                        onChange={(e) => setFormData({ ...formData, detention_rate_per_hour: e.target.value })}
+                        placeholder="75"
+                      />
+                    </div>
+                    <div>
+                      <Label>Layover Rate ($)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={formData.layover_rate}
+                        onChange={(e) => setFormData({ ...formData, layover_rate: e.target.value })}
+                        placeholder="300"
+                      />
+                    </div>
+                    <div>
+                      <Label>TONU Rate ($)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={formData.tonu_rate}
+                        onChange={(e) => setFormData({ ...formData, tonu_rate: e.target.value })}
+                        placeholder="250"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <Label>TONU Rate ($)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={formData.tonu_rate}
-                      onChange={(e) => setFormData({ ...formData, tonu_rate: e.target.value })}
-                      placeholder="250"
+                  <div className="flex items-center gap-2 mt-3">
+                    <Switch
+                      checked={formData.lumpers_covered}
+                      onCheckedChange={(checked) => setFormData({ ...formData, lumpers_covered: checked })}
                     />
+                    <Label>Lumpers Covered</Label>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={formData.lumpers_covered}
-                    onCheckedChange={(checked) => setFormData({ ...formData, lumpers_covered: checked })}
-                  />
-                  <Label>Lumpers Covered</Label>
                 </div>
               </div>
 
