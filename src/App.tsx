@@ -281,7 +281,7 @@ import SupportDesk from "./pages/admin/SupportDesk";
 import SupportDeskCRM from "./pages/admin/support/SupportDeskCRM";
 import DataRecovery from "./pages/admin/DataRecovery";
 import AdminChangelog from "./pages/admin/Changelog";
-import { SeeksyTVHome, SeeksyTVChannel, SeeksyTVWatch, SeeksyTVBrowse, SeeksyTVClips, SeeksyTVLive, SeeksyTVTrending } from "./pages/tv";
+import { SeeksyTVHome, SeeksyTVChannel, SeeksyTVWatch, SeeksyTVBrowse, SeeksyTVClips, SeeksyTVLive, SeeksyTVTrending, SeeksyTVPodcasts } from "./pages/tv";
 // Help Desk (Zendesk-style support system)
 import HelpDeskLayout from "./pages/helpdesk/HelpDeskLayout";
 import TicketsInbox from "./pages/helpdesk/TicketsInbox";
@@ -984,6 +984,7 @@ const AppContent = () => {
               <Route path="/tv/channel/:channelId" element={<SeeksyTVChannel />} />
               <Route path="/tv/watch/:videoId" element={<SeeksyTVWatch />} />
               <Route path="/tv/clip/:clipId" element={<SeeksyTVWatch />} />
+              <Route path="/tv/podcasts" element={<SeeksyTVPodcasts />} />
               
               {/* Lead Magnet Landing Pages */}
               <Route path="/blueprint" element={<LeadMagnetLanding />} />

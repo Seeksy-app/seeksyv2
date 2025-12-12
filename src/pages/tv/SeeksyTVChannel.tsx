@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Tv } from "lucide-react";
 import { TVFooter } from "@/components/tv/TVFooter";
+import americanWarriorsLogo from "@/assets/american-warriors-logo.png";
 
 export default function SeeksyTVChannel() {
   const { channelId } = useParams();
@@ -73,6 +74,10 @@ export default function SeeksyTVChannel() {
   }
 
   const socialLinks = (channel.social_links as Record<string, string>) || {};
+  
+  // Check if this is American Warriors channel for custom styling
+  const isAmericanWarriors = channelId === "american-warriors" || channel.slug === "american-warriors";
+  const avatarImage = isAmericanWarriors ? americanWarriorsLogo : channel.avatar_url;
 
   return (
     <div className="min-h-screen bg-[#0a0a14] text-white">
@@ -107,12 +112,15 @@ export default function SeeksyTVChannel() {
         </div>
       </header>
 
-      {/* Cover Image */}
+      {/* Cover Image / Backdrop */}
       <div className="relative h-64 md:h-80">
-        <div className="absolute inset-0 bg-gradient-to-r from-[#053877] to-[#2C6BED]">
-          {channel.cover_url && (
+        <div className={`absolute inset-0 ${isAmericanWarriors ? 'bg-gradient-to-r from-[#1a3a5c] via-[#2d5a87] to-[#053877]' : 'bg-gradient-to-r from-[#053877] to-[#2C6BED]'}`}>
+          {channel.cover_url ? (
             <img src={channel.cover_url} alt="" className="w-full h-full object-cover opacity-50" />
-          )}
+          ) : isAmericanWarriors ? (
+            /* American Warriors special backdrop with flag-like gradient */
+            <div className="w-full h-full bg-gradient-to-br from-[#8b4513]/30 via-[#1a3a5c]/60 to-[#2d5a87] opacity-80" />
+          ) : null}
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14] to-transparent" />
       </div>
@@ -123,8 +131,8 @@ export default function SeeksyTVChannel() {
           {/* Avatar */}
           <div className="relative">
             <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden border-4 border-[#0a0a14] bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-              {channel.avatar_url ? (
-                <img src={channel.avatar_url} alt={channel.name} className="w-full h-full object-cover" />
+              {avatarImage ? (
+                <img src={avatarImage} alt={channel.name} className="w-full h-full object-cover" />
               ) : (
                 <span className="text-5xl font-bold text-white">{channel.name.charAt(0)}</span>
               )}

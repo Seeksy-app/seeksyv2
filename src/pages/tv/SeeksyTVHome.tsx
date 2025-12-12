@@ -304,7 +304,7 @@ export default function SeeksyTVHome() {
             <nav className="hidden md:flex items-center gap-6">
               <a href="#" className="text-white font-medium hover:text-amber-400 transition-colors">Home</a>
               <a href="#" className="text-gray-400 hover:text-white transition-colors">Shows</a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">Podcasts</a>
+              <a href="#podcasts" className="text-gray-400 hover:text-white transition-colors">Podcasts</a>
               <a href="#" className="text-gray-400 hover:text-white transition-colors">Clips</a>
               <a href="#" className="text-gray-400 hover:text-white transition-colors">Live</a>
               <a href="#" className="text-gray-400 hover:text-white transition-colors">My List</a>
@@ -489,7 +489,7 @@ export default function SeeksyTVHome() {
       </section>
 
       {/* Featured Podcasts */}
-      <section className="py-8">
+      <section id="podcasts" className="py-8">
         <div className="container mx-auto px-4 mb-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3 text-white">
@@ -499,7 +499,7 @@ export default function SeeksyTVHome() {
             <Button 
               variant="ghost" 
               className="text-amber-400 hover:text-amber-300 hover:bg-white/5"
-              onClick={() => navigate("/tv/browse?type=podcasts")}
+              onClick={() => navigate("/tv/podcasts")}
             >
               See More <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
