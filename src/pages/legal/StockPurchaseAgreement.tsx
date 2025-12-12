@@ -153,6 +153,7 @@ export default function StockPurchaseAgreement() {
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["legal-instance"] });
+      queryClient.invalidateQueries({ queryKey: ["legal-instances-admin"] });
       toast({
         title: variables.status === "submitted" ? "Submitted for Review" : "Saved",
         description: variables.status === "submitted" 
@@ -161,7 +162,7 @@ export default function StockPurchaseAgreement() {
       });
       
       if (!instanceId || instanceId === "new") {
-        navigate(`/legal/stock-purchase/${data.id}`);
+        navigate(`/admin/legal/stock-purchase/${data.id}`);
       }
     },
     onError: (error) => {
@@ -263,6 +264,43 @@ export default function StockPurchaseAgreement() {
 
   const handleFinalize = () => {
     finalizeMutation.mutate();
+  };
+
+  const handleUseDefaults = () => {
+    // Pre-fill seller info
+    setFieldValues(prev => ({
+      ...prev,
+      seller_name: "Andrew Appleton",
+      seller_email: "appletonab@gmail.com",
+      seller_street: "413 Independence Ave SE",
+      seller_city: "Washington",
+      seller_state: "DC",
+      seller_zip: "20003",
+      // Pre-fill chairman info
+      chairman_name: "Paul Mujane",
+      chairman_title: "Chairman of the Board",
+      chairman_email: "pmajane@gmail.com",
+      // Pre-fill sample purchaser info
+      purchaser_name: "Test Purchaser",
+      purchaser_email: "test@example.com",
+      purchaser_street: "123 Main Street",
+      purchaser_city: "Atlanta",
+      purchaser_state: "GA",
+      purchaser_zip: "30301",
+      // Pre-fill investment details
+      input_mode: "amount",
+      purchase_amount: 10000,
+      is_sophisticated_investor: true,
+      accredited_net_worth: true,
+    }));
+    // Set price per share
+    setComputedValues(prev => ({
+      ...prev,
+      price_per_share: 0.25,
+      rounding_mode: "whole_share",
+      computed_number_of_shares: 40000,
+    }));
+    toast({ title: "Default test data loaded" });
   };
 
   const handleExport = async (format: 'pdf' | 'docx') => {
@@ -412,6 +450,7 @@ export default function StockPurchaseAgreement() {
               onFinalize={isAdmin ? handleFinalize : undefined}
               onExport={handleExport}
               isSaving={saveMutation.isPending || finalizeMutation.isPending}
+              onUseDefaults={handleUseDefaults}
             />
             
             {/* Signature Section for Admin */}
