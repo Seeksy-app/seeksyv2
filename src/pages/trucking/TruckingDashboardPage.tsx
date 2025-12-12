@@ -41,6 +41,7 @@ interface Load {
   commodity?: string;
   weight_lbs?: number;
   notes?: string;
+  owner_id?: string;
 }
 
 interface Lead {
@@ -83,7 +84,7 @@ export default function TruckingDashboardPage() {
   const [voicemails, setVoicemails] = useState<CallLog[]>([]);
   const [callsToday, setCallsToday] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<"loads" | "leads">("loads");
+  const [ownerFilter, setOwnerFilter] = useState<"all" | "mine">("all");
   const [activeTab, setActiveTab] = useState("open");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingLoadId, setEditingLoadId] = useState<string | null>(null);
@@ -92,13 +93,20 @@ export default function TruckingDashboardPage() {
   const [expandedLoadId, setExpandedLoadId] = useState<string | null>(null);
   const [expandedLeadId, setExpandedLeadId] = useState<string | null>(null);
   const [playingVoicemailId, setPlayingVoicemailId] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { theme: appTheme, setTheme } = useTheme();
 
   useEffect(() => {
+    fetchCurrentUser();
     fetchData();
   }, []);
+
+  const fetchCurrentUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setCurrentUserId(user?.id || null);
+  };
 
   const fetchData = async () => {
     try {
@@ -123,9 +131,14 @@ export default function TruckingDashboardPage() {
     }
   };
 
-  const openLoads = loads.filter((l) => l.status === "open");
+  // Filter loads based on owner filter
+  const filteredLoads = ownerFilter === "mine" && currentUserId 
+    ? loads.filter(l => l.owner_id === currentUserId)
+    : loads;
+
+  const openLoads = filteredLoads.filter((l) => l.status === "open");
   const pendingLeads = leads.filter((l) => l.status === "pending" || l.status === "interested" || l.status === "new");
-  const confirmedLoads = loads.filter((l) => l.status === "booked");
+  const confirmedLoads = filteredLoads.filter((l) => l.status === "booked");
 
   // Earnings calculations
   const estRevenue = openLoads.reduce((sum, l) => sum + (l.target_rate || 0), 0) + confirmedLoads.reduce((sum, l) => sum + (l.target_rate || 0), 0);
@@ -404,7 +417,10 @@ export default function TruckingDashboardPage() {
             </div>
           </div>
         </Card>
-        <Card className="p-4 bg-white">
+        <Card 
+          className="p-4 bg-white cursor-pointer transition-all hover:shadow-md"
+          onClick={() => navigate("/trucking/console")}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-500">AI Calls Today</p>
@@ -449,18 +465,18 @@ export default function TruckingDashboardPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Button 
-            variant={viewMode === "loads" ? "default" : "outline"} 
+            variant={ownerFilter === "all" ? "default" : "outline"} 
             size="sm"
-            onClick={() => navigate("/trucking/loads")}
-            className={viewMode === "loads" ? "bg-amber-400 hover:bg-amber-500 text-amber-900 border-amber-400" : ""}
+            onClick={() => setOwnerFilter("all")}
+            className={ownerFilter === "all" ? "bg-amber-400 hover:bg-amber-500 text-amber-900 border-amber-400" : ""}
           >
             See All Loads
           </Button>
           <Button 
-            variant={viewMode === "leads" ? "default" : "outline"} 
+            variant={ownerFilter === "mine" ? "default" : "outline"} 
             size="sm"
-            onClick={() => navigate("/trucking/leads")}
-            className={viewMode === "leads" ? "bg-amber-400 hover:bg-amber-500 text-amber-900 border-amber-400" : ""}
+            onClick={() => setOwnerFilter("mine")}
+            className={ownerFilter === "mine" ? "bg-amber-400 hover:bg-amber-500 text-amber-900 border-amber-400" : ""}
           >
             My Loads
           </Button>
@@ -478,7 +494,7 @@ export default function TruckingDashboardPage() {
               value="pending"
               className="rounded-full px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
-              Pending
+              Pending Loads
               <Badge className="ml-2 bg-blue-400 text-blue-900 border-0">{pendingLeads.length}</Badge>
             </TabsTrigger>
             <TabsTrigger 
@@ -535,7 +551,7 @@ export default function TruckingDashboardPage() {
             </div>
           )}
         </Card>
-      ) : viewMode === "loads" && activeTab === "pending" ? (
+      ) : activeTab === "pending" ? (
         <Card className="bg-white border border-slate-200 overflow-hidden">
           <Table>
             <TableHeader>
@@ -651,7 +667,7 @@ export default function TruckingDashboardPage() {
             </TableBody>
           </Table>
         </Card>
-      ) : viewMode === "loads" ? (
+      ) : (
         <Card className="bg-white border border-slate-200 overflow-hidden">
           <Table>
             <TableHeader>
@@ -788,41 +804,6 @@ export default function TruckingDashboardPage() {
                       </TableRow>
                     )}
                   </>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </Card>
-      ) : (
-        /* Leads Table */
-        <Card className="bg-white border border-slate-200 overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-slate-50 border-b border-slate-200">
-                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Carrier</TableHead>
-                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Status</TableHead>
-                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Created</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {leads.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center py-12">
-                    <div className="flex flex-col items-center gap-2 text-slate-500">
-                      <Users className="h-10 w-10 text-slate-300" />
-                      <p>No leads yet</p>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                leads.map((lead) => (
-                  <TableRow key={lead.id} className="hover:bg-slate-50">
-                    <TableCell className="font-medium whitespace-nowrap">{lead.company_name || lead.contact_name || "Unknown"}</TableCell>
-                    <TableCell className="whitespace-nowrap">{getStatusBadge(lead.status)}</TableCell>
-                    <TableCell className="text-slate-600 whitespace-nowrap">
-                      {format(new Date(lead.created_at), "MMM d, yyyy")}
-                    </TableCell>
-                  </TableRow>
                 ))
               )}
             </TableBody>
