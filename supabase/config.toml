@@ -473,3 +473,6 @@ verify_jwt = false
 
 [functions.ai-trucking-create-lead]
 verify_jwt = false
+
+[functions.ai-trucking-call-complete]
+verify_jwt = false
