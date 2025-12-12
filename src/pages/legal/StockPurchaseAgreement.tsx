@@ -4,9 +4,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { LegalDocPreview } from "@/components/legal/LegalDocPreview";
 import { LegalDocForm } from "@/components/legal/LegalDocForm";
+import { SignaturePad } from "@/components/legal/SignaturePad";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, FileText, Download, FileDown } from "lucide-react";
+import { Loader2, FileText, Download, FileDown, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Json } from "@/integrations/supabase/types";
@@ -196,6 +200,27 @@ export default function StockPurchaseAgreement() {
     },
   });
 
+  // Seller signature mutation
+  const signMutation = useMutation({
+    mutationFn: async (signatureUrl: string) => {
+      if (!instanceId) throw new Error("No instance");
+      
+      const { error } = await supabase
+        .from("legal_doc_instances")
+        .update({
+          seller_signature_url: signatureUrl,
+          seller_signed_at: new Date().toISOString(),
+        })
+        .eq("id", instanceId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["legal-instance"] });
+      toast({ title: "Seller signature saved" });
+    },
+  });
+
   const handleFieldChange = (field: keyof FieldValues, value: any) => {
     setFieldValues(prev => ({ ...prev, [field]: value }));
   };
@@ -316,7 +341,7 @@ export default function StockPurchaseAgreement() {
 
         <ResizableHandle withHandle />
 
-        {/* Right: Form */}
+        {/* Right: Form + Signatures */}
         <ResizablePanel defaultSize={40} minSize={30}>
           <div className="h-full overflow-y-auto bg-muted/30">
             <LegalDocForm
@@ -332,6 +357,52 @@ export default function StockPurchaseAgreement() {
               onExport={handleExport}
               isSaving={saveMutation.isPending || finalizeMutation.isPending}
             />
+            
+            {/* Signature Section for Admin */}
+            {isAdmin && instance && (status === "admin_review" || status === "submitted" || instance.seller_signature_url) && (
+              <div className="p-6 border-t">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Signatures</CardTitle>
+                    <CardDescription>Sign the agreement as seller</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <p className="text-sm font-medium mb-2">Seller Signature</p>
+                      {instance.seller_signature_url ? (
+                        <div className="border rounded-md p-3 bg-muted/30">
+                          <img src={instance.seller_signature_url} alt="Seller Signature" className="max-h-20 mx-auto" />
+                          <p className="text-xs text-center text-muted-foreground mt-2">
+                            Signed {new Date(instance.seller_signed_at!).toLocaleDateString()}
+                          </p>
+                        </div>
+                      ) : (
+                        <SignaturePad
+                          title="Your Signature (Seller)"
+                          onSign={(sig) => signMutation.mutate(sig)}
+                        />
+                      )}
+                    </div>
+                    <Separator />
+                    <div>
+                      <p className="text-sm font-medium mb-2">Purchaser Signature</p>
+                      {instance.purchaser_signature_url ? (
+                        <div className="border rounded-md p-3 bg-muted/30">
+                          <img src={instance.purchaser_signature_url} alt="Purchaser Signature" className="max-h-20 mx-auto" />
+                          <p className="text-xs text-center text-muted-foreground mt-2">
+                            Signed {new Date(instance.purchaser_signed_at!).toLocaleDateString()}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="border rounded-md p-4 bg-muted/30 text-center text-sm text-muted-foreground">
+                          Awaiting purchaser signature
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>

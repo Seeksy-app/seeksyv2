@@ -114,29 +114,35 @@ export function LegalDocPreview({
       return replacement.value;
     });
 
-    // Format section headers (lines starting with numbers like "1.", "2.", etc. followed by ALL CAPS or title case)
-    text = text.replace(/^(\d+\.)\s+([A-Z][A-Z\s]+[A-Z]\.?)/gm, '<strong class="text-base">$1 $2</strong>');
+    // Format section headers (lines starting with numbers like "1.", "2.", etc.)
+    text = text.replace(/^(\d+\.)\s+([A-Z][A-Z\s,]+[A-Z]\.?)/gm, '<h2 class="text-base font-bold mt-8 mb-3 text-foreground">$1 $2</h2>');
     
     // Format sub-sections (lines like "(a)", "(b)", "(i)", "(ii)")
     text = text.replace(/^(\([a-z]\)|\([ivx]+\))/gm, '<span class="font-semibold text-foreground/80">$1</span>');
     
+    // Add paragraph spacing - convert double newlines to paragraph breaks
+    text = text.replace(/\n\n/g, '</p><p class="mb-4">');
+    
     // Add extra spacing before numbered sections
-    text = text.replace(/\n(\d+\.)/g, '\n\n$1');
+    text = text.replace(/\n(\d+\.)/g, '</p><p class="mb-4">$1');
     
     // Format the title if present
-    text = text.replace(/^(COMMON STOCK PURCHASE AGREEMENT)/m, '<h1 class="text-xl font-bold text-center mb-6 text-foreground">$1</h1>');
+    text = text.replace(/^(COMMON STOCK PURCHASE AGREEMENT)/m, '<h1 class="text-xl font-bold text-center mb-8 text-foreground">$1</h1>');
     
     // Format RECITALS, WITNESSETH, etc.
-    text = text.replace(/^(RECITALS|WITNESSETH|NOW, THEREFORE|IN WITNESS WHEREOF)/gm, '<strong class="block mt-4 mb-2">$1</strong>');
+    text = text.replace(/^(RECITALS|WITNESSETH|NOW, THEREFORE|IN WITNESS WHEREOF)/gm, '<h3 class="font-bold mt-6 mb-3 text-foreground">$1</h3>');
+
+    // Wrap in paragraph tags
+    text = '<p class="mb-4">' + text + '</p>';
 
     return text;
   }, [bodyText, fieldValues, computedValues, highlightPlaceholders]);
 
   return (
     <ScrollArea className="h-full">
-      <div className="p-8 font-serif text-sm leading-loose">
+      <div className="p-8 font-serif text-sm leading-relaxed">
         <div 
-          className="whitespace-pre-wrap space-y-1 [&>h1]:whitespace-normal [&>strong]:block [&>strong]:mt-6 [&>strong]:mb-2"
+          className="[&>h1]:whitespace-normal [&>h2]:whitespace-normal [&>h3]:whitespace-normal [&>p]:whitespace-pre-wrap"
           dangerouslySetInnerHTML={{ __html: renderedText }}
         />
       </div>
