@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { MyPageTheme, defaultTheme } from "@/config/myPageThemes";
 import { cn } from "@/lib/utils";
 import { VoiceCertifiedBadge } from "@/components/VoiceCertifiedBadge";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Video, Store, Calendar, Share2, Eye, Radio } from "lucide-react";
 import { Helmet } from "react-helmet";
 import { PublicSectionRenderer } from "@/components/mypage-v2/PublicSectionRenderer";
 import { MyPageSection } from "@/lib/mypage/sectionTypes";
@@ -32,6 +29,7 @@ export default function MyPagePublic() {
   const [hasVoiceCertification, setHasVoiceCertification] = useState(false);
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<MyPageTheme>(defaultTheme);
+  const [sections, setSections] = useState<MyPageSection[]>([]);
 
   // If no username provided (root path matched incorrectly), skip loading
   const hasValidUsername = username && username.trim() !== '';
@@ -62,6 +60,18 @@ export default function MyPagePublic() {
       }
 
       setProfile(profileData);
+
+      // Load sections from my_page_sections table
+      const sectionsResult: any = await supabase
+        .from("my_page_sections")
+        .select("*")
+        .eq("user_id", profileData.id)
+        .eq("is_enabled", true)
+        .order("display_order");
+      
+      if (sectionsResult.data) {
+        setSections(sectionsResult.data as MyPageSection[]);
+      }
 
       // Load voice certification status
       // @ts-ignore - Avoid type issues with Supabase
@@ -218,7 +228,7 @@ export default function MyPagePublic() {
           </div>
 
           {/* New Sections System */}
-          <PublicSectionRenderer sections={[]} username={profile.username} />
+          <PublicSectionRenderer sections={sections} username={profile.username} />
         </div>
       </div>
     </>
