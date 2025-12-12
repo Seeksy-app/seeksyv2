@@ -65,11 +65,11 @@ function renderBodyText(bodyText: string, data: ExportData): string {
     .replace(/\[SELLER_DATE\]/g, sellerDate)
     .replace(/\[PURCHASER_DATE\]/g, purchaserDate)
     .replace(/\[CHAIRMAN_DATE\]/g, chairmanDate)
-    // Checkbox placeholders with checkmarks
-    .replace(/\[CHECKBOX_NET_WORTH\]/g, data.accreditedNetWorth ? '☑' : '☐')
-    .replace(/\[CHECKBOX_INCOME\]/g, data.accreditedIncome ? '☑' : '☐')
-    .replace(/\[CHECKBOX_DIRECTOR\]/g, data.accreditedDirector ? '☑' : '☐')
-    .replace(/\[CHECKBOX_OTHER\]/g, data.accreditedOther ? '☑' : '☐')
+    // Checkbox placeholders - use ASCII-safe symbols for PDF compatibility
+    .replace(/\[CHECKBOX_NET_WORTH\]/g, data.accreditedNetWorth ? '[X]' : '[ ]')
+    .replace(/\[CHECKBOX_INCOME\]/g, data.accreditedIncome ? '[X]' : '[ ]')
+    .replace(/\[CHECKBOX_DIRECTOR\]/g, data.accreditedDirector ? '[X]' : '[ ]')
+    .replace(/\[CHECKBOX_OTHER\]/g, data.accreditedOther ? '[X]' : '[ ]')
     .replace(/\[ACCREDITED_OTHER_TEXT\]/g, data.accreditedOtherText || '___');
   
   // Replace chairman placeholders
@@ -226,6 +226,112 @@ export async function exportToDocx(data: ExportData): Promise<void> {
 }
 
 /**
+ * Add page numbers to all pages
+ */
+function addPageNumbers(pdf: jsPDF) {
+  const totalPages = pdf.getNumberOfPages();
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  
+  for (let i = 1; i <= totalPages; i++) {
+    pdf.setPage(i);
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'normal');
+    const pageText = `Page ${i} of ${totalPages}`;
+    const textWidth = pdf.getTextWidth(pageText);
+    pdf.text(pageText, (pageWidth - textWidth) / 2, pageHeight - 10);
+  }
+}
+
+/**
+ * Add final signature summary page
+ */
+function addSignatureSummaryPage(pdf: jsPDF, data: ExportData) {
+  pdf.addPage();
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const margin = 25;
+  let yPosition = 40;
+  
+  // Title
+  pdf.setFontSize(16);
+  pdf.setFont('helvetica', 'bold');
+  const title = 'Signature Summary';
+  const titleWidth = pdf.getTextWidth(title);
+  pdf.text(title, (pageWidth - titleWidth) / 2, yPosition);
+  yPosition += 15;
+  
+  // Document info
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text('Common Stock Purchase Agreement', margin, yPosition);
+  yPosition += 8;
+  pdf.text(`Purchaser: ${data.purchaserName}`, margin, yPosition);
+  yPosition += 8;
+  pdf.text(`Shares: ${data.numberOfShares.toLocaleString()} @ $${data.pricePerShare.toFixed(2)} per share`, margin, yPosition);
+  yPosition += 8;
+  pdf.text(`Total: $${data.purchaseAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, margin, yPosition);
+  yPosition += 20;
+  
+  // Signature table header
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Signatory', margin, yPosition);
+  pdf.text('Role', margin + 60, yPosition);
+  pdf.text('Date Signed', margin + 100, yPosition);
+  yPosition += 3;
+  
+  // Draw line under header
+  pdf.setDrawColor(0);
+  pdf.line(margin, yPosition, pageWidth - margin, yPosition);
+  yPosition += 8;
+  
+  // Seller row
+  pdf.setFont('helvetica', 'normal');
+  pdf.text(data.sellerName || 'Andrew Appleton', margin, yPosition);
+  pdf.text('Seller', margin + 60, yPosition);
+  if (data.sellerSignedAt) {
+    pdf.text(new Date(data.sellerSignedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), margin + 100, yPosition);
+  } else {
+    pdf.text('—', margin + 100, yPosition);
+  }
+  yPosition += 10;
+  
+  // Purchaser row
+  pdf.text(data.purchaserName, margin, yPosition);
+  pdf.text('Purchaser', margin + 60, yPosition);
+  if (data.purchaserSignedAt) {
+    pdf.text(new Date(data.purchaserSignedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), margin + 100, yPosition);
+  } else {
+    pdf.text('—', margin + 100, yPosition);
+  }
+  yPosition += 10;
+  
+  // Chairman row
+  pdf.text(data.chairmanName || 'Chairman', margin, yPosition);
+  pdf.text('Chairman of the Board', margin + 60, yPosition);
+  if (data.chairmanSignedAt) {
+    pdf.text(new Date(data.chairmanSignedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), margin + 100, yPosition);
+  } else {
+    pdf.text('—', margin + 100, yPosition);
+  }
+  yPosition += 20;
+  
+  // Draw bottom line
+  pdf.line(margin, yPosition - 5, pageWidth - margin, yPosition - 5);
+  
+  // Status
+  yPosition += 10;
+  const allSigned = data.sellerSignedAt && data.purchaserSignedAt && data.chairmanSignedAt;
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(`Status: ${allSigned ? 'Fully Executed' : 'Pending Signatures'}`, margin, yPosition);
+  
+  // Generated timestamp
+  yPosition += 20;
+  pdf.setFont('helvetica', 'italic');
+  pdf.setFontSize(8);
+  pdf.text(`Document generated: ${new Date().toLocaleString()}`, margin, yPosition);
+}
+
+/**
  * Export agreement as PDF with proper page breaks
  */
 export async function exportToPdf(data: ExportData): Promise<void> {
@@ -255,30 +361,32 @@ export async function exportToPdf(data: ExportData): Promise<void> {
   let yPosition = margin;
   const lineHeight = 5;
   const pageHeight = pdf.internal.pageSize.getHeight();
-  const bottomMargin = 25;
-  const signatureHeight = 15; // Height for signature images in mm
-  const signatureWidth = 50; // Width for signature images in mm
+  const bottomMargin = 30; // Increased for page numbers
+  const signatureHeight = 15;
+  const signatureWidth = 50;
   
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
   
   const lines = renderedText.split('\n');
   let seenTitle = false;
-  let currentSection = ''; // Track which section we're in for signature placement
+  let currentSection = '';
   
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmedLine = line.trim();
     
-    // Track section for signature context
+    // Track section for signature context - improved chairman detection
     if (trimmedLine.includes('SELLER:') || trimmedLine.startsWith('SELLER')) {
       currentSection = 'seller';
     } else if (trimmedLine.includes('BUYER:') || trimmedLine.includes('BUYER') || trimmedLine.includes('[PURCHASER_NAME]')) {
       currentSection = 'purchaser';
-    } else if (trimmedLine.includes('PARADE DECK HOLDINGS') || trimmedLine.includes('Chairman')) {
+    } else if (trimmedLine.includes('PARADE DECK HOLDINGS') || trimmedLine.includes('Chairman') || trimmedLine.includes('Agreed and Acknowledged')) {
+      currentSection = 'chairman';
+    } else if (trimmedLine.includes('By:') && trimmedLine.includes(data.chairmanName || '')) {
       currentSection = 'chairman';
     } else if (trimmedLine.includes('EXHIBIT A') || trimmedLine.includes('STOCK POWER')) {
-      currentSection = 'seller'; // Stock power is seller
+      currentSection = 'seller';
     } else if (trimmedLine.includes('EXHIBIT B') || trimmedLine.includes('EXHIBIT C') || trimmedLine.includes('JOINDER')) {
       currentSection = 'purchaser';
     }
@@ -327,13 +435,11 @@ export async function exportToPdf(data: ExportData): Promise<void> {
     
     // Handle signature lines - replace with actual signatures if available
     if (trimmedLine.startsWith('Signature:') && trimmedLine.includes('___')) {
-      // Check if we need a new page
       if (yPosition + signatureHeight + 5 > pageHeight - bottomMargin) {
         pdf.addPage();
         yPosition = margin;
       }
       
-      // Determine which signature to use based on context
       let signatureImage: string | null = null;
       if (currentSection === 'seller' && signatureImages.seller) {
         signatureImage = signatureImages.seller;
@@ -346,7 +452,6 @@ export async function exportToPdf(data: ExportData): Promise<void> {
       pdf.text('Signature:', margin, yPosition);
       
       if (signatureImage) {
-        // Add signature image
         try {
           pdf.addImage(signatureImage, 'PNG', margin + 25, yPosition - 10, signatureWidth, signatureHeight);
           yPosition += signatureHeight + 2;
@@ -364,13 +469,11 @@ export async function exportToPdf(data: ExportData): Promise<void> {
     
     // Handle standalone signature underlines (often used after "By:")
     if (trimmedLine === '___________________________' || trimmedLine.match(/^_{10,}$/)) {
-      // Check if we need a new page
       if (yPosition + signatureHeight + 5 > pageHeight - bottomMargin) {
         pdf.addPage();
         yPosition = margin;
       }
       
-      // Determine which signature to use based on context
       let signatureImage: string | null = null;
       if (currentSection === 'seller' && signatureImages.seller) {
         signatureImage = signatureImages.seller;
@@ -440,6 +543,12 @@ export async function exportToPdf(data: ExportData): Promise<void> {
     pdf.setFontSize(10);
     yPosition += lineHeight * 0.3;
   }
+  
+  // Add the signature summary final page
+  addSignatureSummaryPage(pdf, data);
+  
+  // Add page numbers to all pages
+  addPageNumbers(pdf);
   
   pdf.save(generateFilename(data.purchaserName, data.instanceId, 'pdf'));
 }
