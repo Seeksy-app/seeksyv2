@@ -736,9 +736,12 @@ const AppContent = () => {
   // AITrucking is completely standalone - no Seeksy UI
   const isTruckingRoute = location.pathname.startsWith('/trucking');
   
+  // Legal signing pages are public standalone pages - no Seeksy UI
+  const isLegalPublicRoute = location.pathname.startsWith('/legal/purchaser') || location.pathname.startsWith('/legal/chairman');
+  
   // Hide sidebar in tour mode or on special routes
-  const shouldShowSidebar = user && !isStudioRoute && !isClipsStudioRoute && !isTourMode && !isOnboardingComplete && !isVeteransRoute && !isCampaignRoute && !isVenueRoute && !isTruckingRoute;
-  const shouldShowTopNav = user && !isStudioRoute && !isTourMode && !isOnboardingComplete && !isVeteransRoute && !isCampaignRoute && !isVenueRoute && !isTruckingRoute;
+  const shouldShowSidebar = user && !isStudioRoute && !isClipsStudioRoute && !isTourMode && !isOnboardingComplete && !isVeteransRoute && !isCampaignRoute && !isVenueRoute && !isTruckingRoute && !isLegalPublicRoute;
+  const shouldShowTopNav = user && !isStudioRoute && !isTourMode && !isOnboardingComplete && !isVeteransRoute && !isCampaignRoute && !isVenueRoute && !isTruckingRoute && !isLegalPublicRoute;
 
   // Render Veterans Platform separately - completely standalone
   if (isVeteransRoute) {

@@ -119,6 +119,12 @@ function WorkspaceLayoutInner({
     return <>{children}</>;
   }
 
+  // Legal public signing pages should render standalone - no nav, no sidebar
+  const isLegalPublicRoute = location.pathname.startsWith('/legal/purchaser') || location.pathname.startsWith('/legal/chairman');
+  if (isLegalPublicRoute) {
+    return <>{children}</>;
+  }
+
   // Board routes have their own complete layout (BoardLayout) - skip WorkspaceLayout wrapper
   const isBoardRoute = location.pathname.startsWith('/board');
   if (isBoardRoute) {
