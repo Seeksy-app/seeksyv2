@@ -28,6 +28,13 @@ interface FieldValues {
   input_mode?: "amount" | "shares";
   purchase_amount?: number;
   number_of_shares?: number;
+  // Investor certification fields
+  is_sophisticated_investor?: boolean;
+  accredited_net_worth?: boolean;
+  accredited_income?: boolean;
+  accredited_director?: boolean;
+  accredited_other?: boolean;
+  accredited_other_text?: string;
 }
 
 interface ComputedValues {

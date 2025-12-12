@@ -244,13 +244,36 @@ export default function StockPurchaseAgreement() {
   const handleExport = async (format: 'pdf' | 'docx') => {
     if (!template || !instanceId) return;
     
+    // Format addresses
+    const formatAddress = (street?: string, city?: string, state?: string, zip?: string) => {
+      const parts = [];
+      if (street) parts.push(street);
+      if (city || state || zip) {
+        const cityStateZip = [city, state].filter(Boolean).join(", ") + (zip ? " " + zip : "");
+        if (cityStateZip.trim()) parts.push(cityStateZip.trim());
+      }
+      return parts.join(", ");
+    };
+    
     const exportData = {
       purchaserName: fieldValues.purchaser_name || 'Unknown',
+      purchaserEmail: fieldValues.purchaser_email || '',
+      purchaserAddress: formatAddress(fieldValues.purchaser_street, fieldValues.purchaser_city, fieldValues.purchaser_state, fieldValues.purchaser_zip),
+      sellerName: fieldValues.seller_name || 'Andrew Appleton',
+      sellerEmail: fieldValues.seller_email || 'appletonab@gmail.com',
+      sellerAddress: formatAddress(fieldValues.seller_street, fieldValues.seller_city, fieldValues.seller_state, fieldValues.seller_zip) || '413 Independence Ave SE, Washington DC 20003',
       pricePerShare: computedValues.price_per_share || 0,
       numberOfShares: fieldValues.number_of_shares ?? computedValues.computed_number_of_shares ?? 0,
       purchaseAmount: fieldValues.purchase_amount ?? computedValues.computed_purchase_amount ?? 0,
       bodyText: template.body_text,
       instanceId: instanceId,
+      // Certification fields
+      isSophisticatedInvestor: fieldValues.is_sophisticated_investor,
+      accreditedNetWorth: fieldValues.accredited_net_worth,
+      accreditedIncome: fieldValues.accredited_income,
+      accreditedDirector: fieldValues.accredited_director,
+      accreditedOther: fieldValues.accredited_other,
+      accreditedOtherText: fieldValues.accredited_other_text,
     };
     
     try {

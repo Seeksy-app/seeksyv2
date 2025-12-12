@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Lock, Save, Send, CheckCircle, Download, FileDown, AlertCircle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface FieldValues {
   purchaser_name?: string;
@@ -25,6 +26,13 @@ interface FieldValues {
   input_mode?: "amount" | "shares";
   purchase_amount?: number;
   number_of_shares?: number;
+  // Investor certification fields
+  is_sophisticated_investor?: boolean;
+  accredited_net_worth?: boolean;
+  accredited_income?: boolean;
+  accredited_director?: boolean;
+  accredited_other?: boolean;
+  accredited_other_text?: string;
 }
 
 interface ComputedValues {
@@ -439,6 +447,91 @@ export function LegalDocForm({
               onChange={(e) => handleSharesChange(e.target.value)}
               disabled={!canEdit || inputMode === "amount"}
             />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Investor Certification Section */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Exhibit B: Accredited Investor Certification</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Sophisticated Investor Checkbox */}
+          <div className="flex items-start space-x-3">
+            <Checkbox
+              id="is_sophisticated_investor"
+              checked={fieldValues.is_sophisticated_investor || false}
+              onCheckedChange={(checked) => onFieldChange("is_sophisticated_investor", checked)}
+              disabled={!canEdit}
+            />
+            <Label htmlFor="is_sophisticated_investor" className="font-normal text-sm leading-relaxed">
+              The investor is acquiring the Shares as a Sophisticated Investor in a private shareholder-to-shareholder transaction exempt under Section 4(a)(1) of the Securities Act of 1933.
+            </Label>
+          </div>
+
+          <div className="pt-2 border-t">
+            <p className="text-sm font-medium mb-3">Please check all applicable boxes indicating your status as an Accredited Investor:</p>
+            
+            <div className="space-y-3">
+              <div className="flex items-start space-x-3">
+                <Checkbox
+                  id="accredited_net_worth"
+                  checked={fieldValues.accredited_net_worth || false}
+                  onCheckedChange={(checked) => onFieldChange("accredited_net_worth", checked)}
+                  disabled={!canEdit}
+                />
+                <Label htmlFor="accredited_net_worth" className="font-normal text-sm leading-relaxed">
+                  Individual with net worth (or joint net worth with spouse) exceeding $1,000,000, excluding primary residence
+                </Label>
+              </div>
+
+              <div className="flex items-start space-x-3">
+                <Checkbox
+                  id="accredited_income"
+                  checked={fieldValues.accredited_income || false}
+                  onCheckedChange={(checked) => onFieldChange("accredited_income", checked)}
+                  disabled={!canEdit}
+                />
+                <Label htmlFor="accredited_income" className="font-normal text-sm leading-relaxed">
+                  Individual with income exceeding $200,000 in each of the two most recent years (or joint income with spouse exceeding $300,000) with reasonable expectation of reaching the same income level in the current year
+                </Label>
+              </div>
+
+              <div className="flex items-start space-x-3">
+                <Checkbox
+                  id="accredited_director"
+                  checked={fieldValues.accredited_director || false}
+                  onCheckedChange={(checked) => onFieldChange("accredited_director", checked)}
+                  disabled={!canEdit}
+                />
+                <Label htmlFor="accredited_director" className="font-normal text-sm leading-relaxed">
+                  Director, executive officer, or general partner of the issuer
+                </Label>
+              </div>
+
+              <div className="flex items-start space-x-3">
+                <Checkbox
+                  id="accredited_other"
+                  checked={fieldValues.accredited_other || false}
+                  onCheckedChange={(checked) => onFieldChange("accredited_other", checked)}
+                  disabled={!canEdit}
+                />
+                <Label htmlFor="accredited_other" className="font-normal text-sm">
+                  Other (please specify):
+                </Label>
+              </div>
+              
+              {fieldValues.accredited_other && (
+                <Input
+                  value={fieldValues.accredited_other_text || ""}
+                  onChange={(e) => onFieldChange("accredited_other_text", e.target.value)}
+                  placeholder="Please specify..."
+                  className="ml-6"
+                  disabled={!canEdit}
+                />
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
