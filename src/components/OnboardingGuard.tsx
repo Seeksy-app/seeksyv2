@@ -39,9 +39,9 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
     const publicPaths = [
       '/auth', '/onboarding', '/signup-select', '/', '/pricing', '/comparison',
       '/privacy', '/terms', '/cookies', '/security', '/about', '/apps-and-tools',
-      '/advertiser', '/advertiser/signup', '/demo', '/investor', '/demo-videos'
+      '/advertiser', '/advertiser/signup', '/demo', '/investor', '/demo-videos', '/videos'
     ];
-    const isPublicPath = publicPaths.some(path => location.pathname === path || location.pathname.startsWith('/c/') || location.pathname.startsWith('/book/') || location.pathname.startsWith('/proforma/') || location.pathname.startsWith('/investor') || location.pathname.startsWith('/tv') || location.pathname.startsWith('/veterans') || location.pathname.startsWith('/invest/'));
+    const isPublicPath = publicPaths.some(path => location.pathname === path || location.pathname.startsWith('/c/') || location.pathname.startsWith('/book/') || location.pathname.startsWith('/proforma/') || location.pathname.startsWith('/investor') || location.pathname.startsWith('/tv') || location.pathname.startsWith('/veterans') || location.pathname.startsWith('/invest/') || location.pathname.startsWith('/videos'));
     const isBoardPath = location.pathname.startsWith('/board');
     
     // Admin-only paths that should NEVER show onboarding (CFO, GTM, Financial Models, Admin)
