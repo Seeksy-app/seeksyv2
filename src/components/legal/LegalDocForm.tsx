@@ -620,7 +620,7 @@ export function LegalDocForm({
             {onFinalize && (
               <Button onClick={onFinalize} disabled={isSaving}>
                 <CheckCircle className="h-4 w-4 mr-2" />
-                Finalize Agreement
+                {status === "draft" ? "Send Agreement" : "Finalize Agreement"}
               </Button>
             )}
           </>
