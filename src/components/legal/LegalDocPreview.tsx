@@ -114,26 +114,56 @@ export function LegalDocPreview({
       return replacement.value;
     });
 
-    // Format section headers (lines starting with numbers like "1.", "2.", etc.)
-    text = text.replace(/^(\d+\.)\s+([A-Z][A-Z\s,]+[A-Z]\.?)/gm, '<h2 class="text-base font-bold mt-8 mb-3 text-foreground">$1 $2</h2>');
+    // Format the title if present - centered and bold
+    text = text.replace(/^(COMMON STOCK PURCHASE AGREEMENT)/m, '<h1 class="text-lg font-bold text-center mb-8 text-foreground uppercase">$1</h1>');
     
-    // Format sub-sections (lines like "(a)", "(b)", "(i)", "(ii)")
-    text = text.replace(/^(\([a-z]\)|\([ivx]+\))/gm, '<span class="font-semibold text-foreground/80">$1</span>');
+    // Format RECITALS, AGREEMENT, etc. - centered, bold, underlined
+    text = text.replace(/^(RECITALS|AGREEMENT|EXHIBITS?)$/gm, '<h2 class="text-base font-bold text-center mt-8 mb-4 text-foreground underline">$1</h2>');
+    
+    // Format EXHIBIT headers with letters
+    text = text.replace(/^(EXHIBIT [A-Z])\n(.+)$/gm, '<h2 class="text-base font-bold text-center mt-8 mb-2 text-foreground">$1</h2><h3 class="text-sm font-bold text-center mb-4 text-foreground uppercase">$2</h3>');
+    
+    // Format numbered section headers (1. Purchase and Sale...) - bold with underlined title
+    text = text.replace(/(\d+\.)\s+([^.]+\.)/g, (match, num, title) => {
+      // Check if this looks like a section header (starts with capital, contains mostly caps or title case)
+      if (/^[A-Z]/.test(title.trim())) {
+        return `<span class="font-bold">${num}</span> <span class="font-bold underline">${title.trim()}</span>`;
+      }
+      return match;
+    });
+    
+    // Format sub-sections with underlined titles (a), (b), (i), (ii) etc.
+    text = text.replace(/(\([a-z]\)|\([ivx]+\))\s+([^.]+\.)/g, (match, letter, title) => {
+      if (/^[A-Z]/.test(title.trim()) && title.length < 80) {
+        return `<span class="ml-8">${letter}</span> <span class="underline">${title.trim()}</span>`;
+      }
+      return `<span class="ml-8">${letter}</span> ${title}`;
+    });
+    
+    // Format roman numeral sub-sub-sections
+    text = text.replace(/^\s*(i+\.)\s+/gm, '<span class="ml-16">$1</span> ');
+    
+    // Format NOW, THEREFORE and IN WITNESS WHEREOF
+    text = text.replace(/(NOW, THEREFORE,)/g, '<span class="font-bold">$1</span>');
+    text = text.replace(/(IN WITNESS WHEREOF,?)/g, '<span class="font-bold">$1</span>');
+    
+    // Format SELLER:, BUYER:, etc.
+    text = text.replace(/^(SELLER|BUYER|AGREED AND ACKNOWLEDGED):?$/gm, '<h3 class="font-bold mt-6 mb-2 text-foreground uppercase">$1:</h3>');
+    
+    // Format [REMAINDER OF PAGE INTENTIONALLY LEFT BLANK]
+    text = text.replace(/\[(REMAINDER OF PAGE INTENTIONALLY LEFT BLANK|SIGNATURE PAGE[^\]]*)\]/g, '<p class="text-center italic my-8 text-muted-foreground">[$1]</p>');
+    
+    // Format signature lines
+    text = text.replace(/_{3,}/g, '<span class="border-b border-foreground inline-block min-w-[200px]">&nbsp;</span>');
     
     // Add paragraph spacing - convert double newlines to paragraph breaks
-    text = text.replace(/\n\n/g, '</p><p class="mb-4">');
+    text = text.replace(/\n\n+/g, '</p><p class="mb-4 text-justify">');
     
-    // Add extra spacing before numbered sections
-    text = text.replace(/\n(\d+\.)/g, '</p><p class="mb-4">$1');
-    
-    // Format the title if present
-    text = text.replace(/^(COMMON STOCK PURCHASE AGREEMENT)/m, '<h1 class="text-xl font-bold text-center mb-8 text-foreground">$1</h1>');
-    
-    // Format RECITALS, WITNESSETH, etc.
-    text = text.replace(/^(RECITALS|WITNESSETH|NOW, THEREFORE|IN WITNESS WHEREOF)/gm, '<h3 class="font-bold mt-6 mb-3 text-foreground">$1</h3>');
+    // Single newlines within paragraphs
+    text = text.replace(/\n/g, '<br/>');
 
     // Wrap in paragraph tags
-    text = '<p class="mb-4">' + text + '</p>';
+    text = '<p class="mb-4 text-justify">' + text + '</p>';
 
     return text;
   }, [bodyText, fieldValues, computedValues, highlightPlaceholders]);
