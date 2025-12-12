@@ -188,7 +188,21 @@ export default function StockAgreementGenerator() {
         }
       );
 
-      if (signWellError) throw signWellError;
+      if (signWellError) {
+        console.error("SignWell invoke error:", signWellError);
+        throw new Error(signWellError.message || "SignWell function call failed");
+      }
+
+      // Check if the result contains an error from the edge function
+      if (signWellResult?.error) {
+        console.error("SignWell API error:", signWellResult.error, signWellResult.details);
+        throw new Error(signWellResult.details || signWellResult.error);
+      }
+
+      if (!signWellResult?.documentId) {
+        console.error("No document ID returned:", signWellResult);
+        throw new Error("No document ID returned from SignWell");
+      }
 
       // Update the instance with SignWell document ID
       await supabase
@@ -200,9 +214,10 @@ export default function StockAgreementGenerator() {
         .eq("id", instance.id);
 
       toast.success("Document sent for e-signature via SignWell!");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error sending for signature:", err);
-      toast.error("Failed to send document for signature");
+      const errorMessage = err?.message || "Unknown error occurred";
+      toast.error(`Failed to send document: ${errorMessage}`);
     } finally {
       setSendingForSignature(false);
     }
