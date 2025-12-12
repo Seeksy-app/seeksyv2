@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 // Updated to support all role types
-export type UserRole = 'creator' | 'advertiser' | 'subscriber' | 'influencer' | 'agency' | 'admin' | 'super_admin';
+export type UserRole = 'creator' | 'advertiser' | 'subscriber' | 'influencer' | 'agency' | 'admin' | 'super_admin' | 'ad_manager';
 
 interface RoleContextType {
   currentRole: UserRole | null;

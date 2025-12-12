@@ -75,6 +75,7 @@ const ROLE_PATH_ACCESS: Record<UserRole, string[]> = {
   cmo: ['/admin/marketing', '/admin/lead-magnets', '/admin/advertising', '/admin/cmo', '/admin/rd-feeds'],
   cco: ['/admin/content', '/admin/master-blog', '/admin/cco', '/admin/logo-manager', '/admin/hero-manager'],
   manager: ['/helpdesk', '/admin/billing', '/admin/crm', '/meetings'],
+  ad_manager: ['/admin/seeksy-tv/advertising'],
 };
 
 export function useRoleBasedNavigation(): UseRoleBasedNavigationReturn {

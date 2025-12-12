@@ -5,7 +5,7 @@
  * Creator navigation is handled by useNavPreferences hook.
  */
 
-export type UserRole = 'creator' | 'subscriber' | 'advertiser' | 'influencer' | 'agency' | 'admin' | 'super_admin' | 'board_member' | 'platform_owner' | 'support_admin' | 'support_agent' | 'team_manager' | 'read_only_analyst' | 'cfo' | 'cmo' | 'cco' | 'manager';
+export type UserRole = 'creator' | 'subscriber' | 'advertiser' | 'influencer' | 'agency' | 'admin' | 'super_admin' | 'board_member' | 'platform_owner' | 'support_admin' | 'support_agent' | 'team_manager' | 'read_only_analyst' | 'cfo' | 'cmo' | 'cco' | 'manager' | 'ad_manager';
 
 export interface NavigationItem {
   id: string;

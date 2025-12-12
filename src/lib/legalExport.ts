@@ -381,9 +381,11 @@ export async function exportToPdf(data: ExportData): Promise<void> {
       currentSection = 'seller';
     } else if (trimmedLine.includes('BUYER:') || trimmedLine.includes('BUYER') || trimmedLine.includes('[PURCHASER_NAME]')) {
       currentSection = 'purchaser';
-    } else if (trimmedLine.includes('PARADE DECK HOLDINGS') || trimmedLine.includes('Chairman') || trimmedLine.includes('Agreed and Acknowledged')) {
+    } else if (trimmedLine.includes('PARADE DECK HOLDINGS') || trimmedLine.includes('Chairman') || trimmedLine.includes('Agreed and Acknowledged') || trimmedLine.includes('[CHAIRMAN_NAME]')) {
       currentSection = 'chairman';
-    } else if (trimmedLine.includes('By:') && trimmedLine.includes(data.chairmanName || '')) {
+    } else if (trimmedLine.includes('By:') && data.chairmanName && trimmedLine.includes(data.chairmanName)) {
+      currentSection = 'chairman';
+    } else if (trimmedLine.includes('Name:') && data.chairmanName && trimmedLine.includes(data.chairmanName)) {
       currentSection = 'chairman';
     } else if (trimmedLine.includes('EXHIBIT A') || trimmedLine.includes('STOCK POWER')) {
       currentSection = 'seller';
