@@ -24,6 +24,7 @@ serve(async (req) => {
     const params = body.parameters || body;
     const { 
       load_number,
+      load_id: provided_load_id, // ElevenLabs might send load_id directly
       company_name, 
       mc_number, 
       dot_number,
@@ -35,17 +36,23 @@ serve(async (req) => {
       notes 
     } = params;
 
-    console.log('Parsed params:', { load_number, company_name, contact_name, phone, mc_number });
+    // Use load_number OR load_id (some configs use one or the other)
+    const searchLoadNumber = load_number || provided_load_id;
+    console.log('Parsed params:', { searchLoadNumber, company_name, contact_name, phone, mc_number });
 
     // Find the load by load_number to get the load_id and owner_id
     let load_id = null;
     let owner_id = null;
     
-    if (load_number) {
+    if (searchLoadNumber) {
+      // Normalize the load number by removing dashes, spaces, and other non-alphanumeric chars
+      const normalizedLoadNumber = String(searchLoadNumber).replace(/[^a-zA-Z0-9]/g, '');
+      console.log('Searching for load with normalized number:', normalizedLoadNumber);
+      
       const { data: loadData, error: loadError } = await supabase
         .from('trucking_loads')
         .select('id, owner_id, rate')
-        .ilike('load_number', `%${load_number}%`)
+        .ilike('load_number', `%${normalizedLoadNumber}%`)
         .limit(1)
         .single();
       
