@@ -142,7 +142,7 @@ export function LegalDocForm({
 
   const isFinalized = status === "finalized";
   const isSubmitted = status === "submitted" || status === "admin_review";
-  const canEdit = !isFinalized && (isAdmin || status === "draft");
+  const canEdit = !isFinalized && (isAdmin || status === "draft" || status === "pending");
   const canExport = isFinalized || (isAdmin && isSubmitted);
 
   return (
