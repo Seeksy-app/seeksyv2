@@ -122,7 +122,7 @@ export const NAV_ITEMS: NavItem[] = [
   },
   { 
     id: 'email', 
-    label: 'Email', 
+    label: 'Email Suite', 
     path: '/email/inbox',
     level: 0,
     moduleId: 'email',
@@ -131,6 +131,7 @@ export const NAV_ITEMS: NavItem[] = [
       { id: 'email_scheduled', label: 'Scheduled', path: '/email/scheduled' },
       { id: 'email_drafts', label: 'Drafts', path: '/email/drafts' },
       { id: 'email_sent', label: 'Sent', path: '/email/sent' },
+      { id: 'email_settings', label: 'Settings', path: '/email-settings' },
     ]
   },
   { 

@@ -64,24 +64,17 @@ export const NAVIGATION_CONFIG: {
       "collapsible": true,
       "items": [
         {
-          "id": "admin_email_client",
-          "label": "Email Client",
-          "icon": "mail",
-          "path": "/admin/email-client",
-          "roles": ["admin", "super_admin", "cmo", "cco"]
-        },
-        {
-          "id": "admin_email_signatures",
-          "label": "Signatures",
-          "icon": "pen-tool",
-          "path": "/admin/signatures",
-          "roles": ["admin", "super_admin", "cmo", "cco"]
-        },
-        {
           "id": "admin_email_inbox",
           "label": "Inbox",
           "icon": "inbox",
           "path": "/admin/email-client",
+          "roles": ["admin", "super_admin", "cmo", "cco"]
+        },
+        {
+          "id": "admin_email_settings",
+          "label": "Settings",
+          "icon": "settings",
+          "path": "/email-settings",
           "roles": ["admin", "super_admin", "cmo", "cco"]
         }
       ]

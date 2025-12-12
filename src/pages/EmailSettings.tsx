@@ -61,12 +61,12 @@ export default function EmailSettings() {
   const connectGmail = async () => {
     try {
       const { data, error } = await supabase.functions.invoke("gmail-auth", {
-        body: { redirectUrl: `${window.location.origin}/email/settings` },
+        body: { returnPath: "/email-settings" },
       });
 
       if (error) throw error;
-      if (data?.url) {
-        window.location.href = data.url;
+      if (data?.authUrl) {
+        window.location.href = data.authUrl;
       }
     } catch (error) {
       toast({
@@ -166,6 +166,13 @@ export default function EmailSettings() {
               >
                 <List className="h-4 w-4 mr-2" />
                 Subscriber Lists
+              </TabsTrigger>
+              <TabsTrigger 
+                value="signatures"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#1e3a8a] data-[state=active]:to-[#1e40af] data-[state=active]:text-white px-6 py-2.5 rounded-lg"
+              >
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Signature & Tracking
               </TabsTrigger>
               <TabsTrigger 
                 value="preferences"
@@ -268,6 +275,80 @@ export default function EmailSettings() {
             <TabsContent value="lists" className="mt-6">
               <SubscriberListManager />
             </TabsContent>
+
+            <TabsContent value="signatures" className="mt-6 space-y-6">
+              {/* Default Signature */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    <CardTitle>Default Signature</CardTitle>
+                  </div>
+                  <CardDescription>
+                    Choose a default signature for your outgoing emails
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Signature</Label>
+                    <Select defaultValue={signatures.find(s => s.is_active)?.id || "none"}>
+                      <SelectTrigger className="w-full max-w-xs">
+                        <SelectValue placeholder="Select a signature" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">No signature</SelectItem>
+                        {signatures.map((sig) => (
+                          <SelectItem key={sig.id} value={sig.id}>
+                            {sig.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      This signature will be added to all outgoing emails
+                    </p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => navigate('/signatures')}>
+                    Manage Signatures
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Email Tracking */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    <CardTitle>Email Tracking</CardTitle>
+                  </div>
+                  <CardDescription>
+                    Track opens and clicks on your outgoing emails
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>Track Email Opens</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Know when recipients open your emails
+                      </p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>Track Link Clicks</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Know when recipients click links in your emails
+                      </p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
 
             <TabsContent value="preferences" className="mt-6 space-y-6">
               {/* Default Signature */}
