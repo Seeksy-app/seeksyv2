@@ -12,10 +12,16 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 interface FieldValues {
   purchaser_name?: string;
   purchaser_email?: string;
-  purchaser_address?: string;
+  purchaser_street?: string;
+  purchaser_city?: string;
+  purchaser_state?: string;
+  purchaser_zip?: string;
   seller_name?: string;
   seller_email?: string;
-  seller_address?: string;
+  seller_street?: string;
+  seller_city?: string;
+  seller_state?: string;
+  seller_zip?: string;
   input_mode?: "amount" | "shares";
   purchase_amount?: number;
   number_of_shares?: number;
@@ -192,14 +198,46 @@ export function LegalDocForm({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="seller_address">Seller Address</Label>
+              <Label htmlFor="seller_street">Street Address</Label>
               <Input
-                id="seller_address"
-                value={fieldValues.seller_address || ""}
-                onChange={(e) => onFieldChange("seller_address", e.target.value)}
-                placeholder="Street, City, State ZIP"
+                id="seller_street"
+                value={fieldValues.seller_street || ""}
+                onChange={(e) => onFieldChange("seller_street", e.target.value)}
+                placeholder="123 Main Street"
                 disabled={isFinalized}
               />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="seller_city">City</Label>
+                <Input
+                  id="seller_city"
+                  value={fieldValues.seller_city || ""}
+                  onChange={(e) => onFieldChange("seller_city", e.target.value)}
+                  placeholder="City"
+                  disabled={isFinalized}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="seller_state">State</Label>
+                <Input
+                  id="seller_state"
+                  value={fieldValues.seller_state || ""}
+                  onChange={(e) => onFieldChange("seller_state", e.target.value)}
+                  placeholder="CA"
+                  disabled={isFinalized}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="seller_zip">ZIP</Label>
+                <Input
+                  id="seller_zip"
+                  value={fieldValues.seller_zip || ""}
+                  onChange={(e) => onFieldChange("seller_zip", e.target.value)}
+                  placeholder="90210"
+                  disabled={isFinalized}
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -233,14 +271,46 @@ export function LegalDocForm({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="purchaser_address">Purchaser Address</Label>
+            <Label htmlFor="purchaser_street">Street Address</Label>
             <Input
-              id="purchaser_address"
-              value={fieldValues.purchaser_address || ""}
-              onChange={(e) => onFieldChange("purchaser_address", e.target.value)}
-              placeholder="Street, City, State ZIP"
+              id="purchaser_street"
+              value={fieldValues.purchaser_street || ""}
+              onChange={(e) => onFieldChange("purchaser_street", e.target.value)}
+              placeholder="123 Main Street"
               disabled={!canEdit}
             />
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="purchaser_city">City</Label>
+              <Input
+                id="purchaser_city"
+                value={fieldValues.purchaser_city || ""}
+                onChange={(e) => onFieldChange("purchaser_city", e.target.value)}
+                placeholder="City"
+                disabled={!canEdit}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="purchaser_state">State</Label>
+              <Input
+                id="purchaser_state"
+                value={fieldValues.purchaser_state || ""}
+                onChange={(e) => onFieldChange("purchaser_state", e.target.value)}
+                placeholder="CA"
+                disabled={!canEdit}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="purchaser_zip">ZIP</Label>
+              <Input
+                id="purchaser_zip"
+                value={fieldValues.purchaser_zip || ""}
+                onChange={(e) => onFieldChange("purchaser_zip", e.target.value)}
+                placeholder="90210"
+                disabled={!canEdit}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
