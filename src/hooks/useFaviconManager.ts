@@ -13,21 +13,9 @@ interface FaviconSettings {
 
 const DEFAULT_FAVICON_SETTINGS: FaviconSettings = {
   mode: "auto",
-  defaultPack: [
-    "/spark/base/spark-icon-32.png",
-    "/spark/base/spark-happy-icon-32.png",
-    "/spark/base/spark-waving-icon-32.png",
-  ],
-  holidayPack: [
-    "/spark/holiday/spark-santa-icon-32.png",
-    "/spark/holiday/spark-santa-happy-icon-32.png",
-    "/spark/holiday/spark-santa-waving-icon-32.png",
-  ],
-  winterPack: [
-    "/spark/base/spark-icon-32.png",
-    "/spark/base/spark-happy-icon-32.png",
-    "/spark/base/spark-waving-icon-32.png",
-  ],
+  defaultPack: ["/favicon-orange.png"],
+  holidayPack: ["/favicon-orange.png"],
+  winterPack: ["/favicon-orange.png"],
 };
 
 // Random rotation interval: 4-6 hours (in milliseconds)
