@@ -693,20 +693,20 @@ export function WorkspaceSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
             
-            {/* AI Agent / Ask Seeksy - Opens chat panel - Subtle style */}
+            {/* AI Agent / Ask Seeksy - Opens chat panel */}
             <SidebarMenuItem>
               <button
                 onClick={() => document.dispatchEvent(new Event('open-spark-assistant'))}
                 className={cn(
                   "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
-                  "bg-primary/10 hover:bg-primary/20",
-                  "border border-primary/20",
+                  "hover:bg-sidebar-accent",
+                  "border border-transparent hover:border-sidebar-border",
                   isCollapsed && "justify-center px-2"
                 )}
               >
                 <SparkIcon variant="holiday" size={24} className="flex-shrink-0" />
                 {!isCollapsed && (
-                  <span className="text-primary font-semibold text-base">
+                  <span className="text-sidebar-foreground font-semibold text-base">
                     Ask Seeksy
                   </span>
                 )}
