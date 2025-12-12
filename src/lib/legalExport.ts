@@ -482,7 +482,7 @@ export async function exportToPdf(data: ExportData): Promise<void> {
     
     // SKIP the "AGREED AND ACKNOWLEDGED" section from main signature page (page 6)
     // This section should ONLY appear in the Joinder Agreement (EXHIBIT C)
-    if (!inJoinderSection && upperLine === 'AGREED AND ACKNOWLEDGED:') {
+    if (!inJoinderSection && (upperLine === 'AGREED AND ACKNOWLEDGED:' || upperLine === 'AGREED AND ACKNOWLEDGED')) {
       // Skip this entire section until we hit an Exhibit
       skipUntilExhibit = true;
       mainAgreedRendered = true;
@@ -499,15 +499,20 @@ export async function exportToPdf(data: ExportData): Promise<void> {
       }
     }
     
-    // Track section for signature context
+    // Track section for signature context - determines which signature to use
+    // EXHIBIT A (Stock Power) = SELLER signs
+    // EXHIBIT B (Accredited Investor) = PURCHASER signs  
+    // EXHIBIT C (Joinder) = PURCHASER signs, then CHAIRMAN acknowledges
     if (trimmedLine.includes('SELLER:') || trimmedLine.startsWith('SELLER')) {
       currentSection = 'seller';
     } else if (trimmedLine.includes('BUYER:') || trimmedLine.includes('BUYER') || trimmedLine.includes('[PURCHASER_NAME]')) {
       currentSection = 'purchaser';
     } else if (upperLine.includes('EXHIBIT A') || upperLine.includes('STOCK POWER')) {
-      currentSection = 'seller';
-    } else if (upperLine.includes('EXHIBIT B') || upperLine.includes('EXHIBIT C') || upperLine.includes('JOINDER')) {
-      currentSection = 'purchaser';
+      currentSection = 'seller'; // Stock Power is signed by SELLER
+    } else if (upperLine.includes('EXHIBIT B') || upperLine.includes('ACCREDITED INVESTOR') || upperLine.includes('CERTIFICATE OF STATUS')) {
+      currentSection = 'purchaser'; // Accredited Investor is signed by PURCHASER
+    } else if (upperLine.includes('EXHIBIT C') || upperLine.includes('JOINDER')) {
+      currentSection = 'purchaser'; // Joinder is signed by PURCHASER
     }
     
     // Chairman signature ONLY appears in Joinder section (EXHIBIT C) after "Agreed and Acknowledged:" with "By:"

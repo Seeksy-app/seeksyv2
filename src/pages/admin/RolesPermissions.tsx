@@ -272,9 +272,6 @@ export default function RolesPermissions() {
           <TabsTrigger value="audit" className="flex items-center gap-2">
             <History className="h-4 w-4" /> Audit Log
           </TabsTrigger>
-          <TabsTrigger value="test" className="flex items-center gap-2">
-            <TestTube className="h-4 w-4" /> Test RBAC
-          </TabsTrigger>
         </TabsList>
 
         {/* Users Tab */}
@@ -561,10 +558,6 @@ export default function RolesPermissions() {
           </Card>
         </TabsContent>
 
-        {/* RBAC Test Tab */}
-        <TabsContent value="test" className="space-y-4">
-          <PermissionEnforcementTest />
-        </TabsContent>
       </Tabs>
     </div>
   );

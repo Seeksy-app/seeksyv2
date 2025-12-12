@@ -37,7 +37,7 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
     
     // Public paths that don't require onboarding
     const publicPaths = [
-      '/auth', '/onboarding', '/onboarding-test', '/signup-select', '/', '/pricing', '/comparison',
+      '/auth', '/onboarding', '/signup-select', '/', '/pricing', '/comparison',
       '/privacy', '/terms', '/cookies', '/security', '/about', '/apps-and-tools',
       '/advertiser', '/advertiser/signup', '/demo', '/investor', '/demo-videos'
     ];
