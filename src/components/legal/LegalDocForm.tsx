@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Lock, Save, Send, CheckCircle, Download, FileDown, AlertCircle } from "lucide-react";
+import { Lock, Save, Send, CheckCircle, Download, FileDown, AlertCircle, UserCheck } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -60,6 +60,7 @@ interface LegalDocFormProps {
   onFinalize?: () => void;
   onExport?: (format: 'pdf' | 'docx') => void;
   isSaving?: boolean;
+  onUseDefaults?: () => void;
 }
 
 export function LegalDocForm({
@@ -74,6 +75,7 @@ export function LegalDocForm({
   onFinalize,
   onExport,
   isSaving,
+  onUseDefaults,
 }: LegalDocFormProps) {
   const [localAmount, setLocalAmount] = useState<string>(
     fieldValues.purchase_amount?.toString() || ""
@@ -177,6 +179,14 @@ export function LegalDocForm({
           )}
         </Badge>
       </div>
+
+      {/* Use Defaults Button - Admin Only */}
+      {isAdmin && onUseDefaults && !isFinalized && (
+        <Button variant="outline" onClick={onUseDefaults} className="w-full">
+          <UserCheck className="h-4 w-4 mr-2" />
+          Use Default Test Data
+        </Button>
+      )}
 
       {/* Seller Info Section - Admin Only */}
       {isAdmin && (
