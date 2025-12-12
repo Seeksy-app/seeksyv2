@@ -388,6 +388,14 @@ export const NAVIGATION_CONFIG: {
           "description": "Manage Seeksy TV content and imports"
         },
         {
+          "id": "admin_seeksy_tv_advertising",
+          "label": "TV Advertising",
+          "icon": "megaphone",
+          "path": "/admin/seeksy-tv/advertising",
+          "roles": ["admin", "super_admin", "ad_manager"],
+          "description": "Manage Seeksy TV ad inventory and placements"
+        },
+        {
           "id": "admin_master_blog",
           "label": "Articles / Blog",
           "icon": "book-open",
