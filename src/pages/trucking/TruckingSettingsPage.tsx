@@ -5,10 +5,24 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { formatPhoneNumber } from "@/utils/phoneFormat";
 import { TruckingPageWrapper, TruckingContentCard } from "@/components/trucking/TruckingPageWrapper";
+import { Info } from "lucide-react";
+
+// Helper component for inline tooltips
+const InfoTip = ({ tip }: { tip: string }) => (
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <Info className="h-4 w-4 text-slate-400 hover:text-slate-600 inline-block ml-1.5 cursor-default" />
+    </TooltipTrigger>
+    <TooltipContent side="top" className="max-w-[250px] text-sm">
+      {tip}
+    </TooltipContent>
+  </Tooltip>
+);
 
 interface Settings {
   id?: string;
@@ -33,14 +47,14 @@ export default function TruckingSettingsPage() {
     demo_mode_enabled: true,
     notification_email: "",
     notification_sms_number: "",
-    ai_caller_name: "Jess",
+    ai_caller_name: "Jessica",
     ai_caller_company_name: "D and L Transport",
     ai_calls_enabled: true,
     ai_price_per_million_chars_usd: 50.00,
     max_concurrent_calls: 2,
-    elevenlabs_voice_id: "09AoN6tYyW3VSTQqCo7C",
-    elevenlabs_voice_name: "Jess",
-    ai_opening_message: "Hi, this is Jess from D and L Transport. How can I help you today?",
+    elevenlabs_voice_id: "cgSgspJ2msm6clMCkdW9",
+    elevenlabs_voice_name: "Jessica",
+    ai_opening_message: "Hi, this is Jessica from D and L Transport. How can I help you today?",
     voicemail_enabled: true,
     voicemail_transcribe: true,
     voicemail_create_lead: true,
@@ -69,9 +83,9 @@ export default function TruckingSettingsPage() {
           ...settings,
           ...data,
           max_concurrent_calls: data.max_concurrent_calls || 2,
-          elevenlabs_voice_id: data.elevenlabs_voice_id || "09AoN6tYyW3VSTQqCo7C",
-          elevenlabs_voice_name: data.elevenlabs_voice_name || "Jess",
-          ai_opening_message: data.ai_opening_message || "Hi, this is Jess from D and L Transport. How can I help you today?",
+          elevenlabs_voice_id: data.elevenlabs_voice_id || "cgSgspJ2msm6clMCkdW9",
+          elevenlabs_voice_name: data.elevenlabs_voice_name || "Jessica",
+          ai_opening_message: data.ai_opening_message || "Hi, this is Jessica from D and L Transport. How can I help you today?",
           voicemail_enabled: data.voicemail_enabled ?? true,
           voicemail_transcribe: data.voicemail_transcribe ?? true,
           voicemail_create_lead: data.voicemail_create_lead ?? true,
@@ -130,62 +144,72 @@ export default function TruckingSettingsPage() {
   }
 
   return (
-    <TruckingPageWrapper 
-      title="Settings" 
-      description="Configure your AITrucking preferences"
-    >
-      <div className="max-w-2xl space-y-6">
-        {/* Voice Configuration */}
-        <TruckingContentCard>
-          <div className="space-y-1 mb-5">
-            <h3 className="font-semibold text-slate-900">Voice Configuration</h3>
-            <p className="text-sm text-slate-500">Configure the AI voice agent settings</p>
-          </div>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+    <TooltipProvider>
+      <TruckingPageWrapper 
+        title="Settings" 
+        description="Configure your AITrucking preferences"
+      >
+        <div className="max-w-2xl space-y-6">
+          {/* Voice Configuration */}
+          <TruckingContentCard>
+            <div className="space-y-1 mb-5">
+              <h3 className="font-semibold text-slate-900">Voice Configuration</h3>
+              <p className="text-sm text-slate-500">Configure the AI voice agent settings</p>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-slate-700">
+                    Voice Name
+                    <InfoTip tip="The name your AI agent uses when introducing herself to callers" />
+                  </Label>
+                  <Input
+                    value={settings.elevenlabs_voice_name}
+                    onChange={(e) => setSettings({ ...settings, elevenlabs_voice_name: e.target.value, ai_caller_name: e.target.value })}
+                    placeholder="Jessica"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-slate-700">
+                    ElevenLabs Voice ID
+                    <InfoTip tip="Find voice IDs at elevenlabs.io/voice-library. Jessica (female) is recommended." />
+                  </Label>
+                  <Input
+                    value={settings.elevenlabs_voice_id}
+                    onChange={(e) => setSettings({ ...settings, elevenlabs_voice_id: e.target.value })}
+                    placeholder="cgSgspJ2msm6clMCkdW9"
+                    className="mt-1 font-mono text-sm"
+                  />
+                </div>
+              </div>
               <div>
-                <Label className="text-slate-700">Voice Name</Label>
+                <Label className="text-slate-700">
+                  Company Name
+                  <InfoTip tip="Your company name that the AI will use when answering calls" />
+                </Label>
                 <Input
-                  value={settings.elevenlabs_voice_name}
-                  onChange={(e) => setSettings({ ...settings, elevenlabs_voice_name: e.target.value, ai_caller_name: e.target.value })}
-                  placeholder="Jess"
+                  value={settings.ai_caller_company_name}
+                  onChange={(e) => setSettings({ ...settings, ai_caller_company_name: e.target.value })}
+                  placeholder="D and L Transport"
                   className="mt-1"
                 />
               </div>
               <div>
-                <Label className="text-slate-700">ElevenLabs Voice ID</Label>
-                <Input
-                  value={settings.elevenlabs_voice_id}
-                  onChange={(e) => setSettings({ ...settings, elevenlabs_voice_id: e.target.value })}
-                  placeholder="09AoN6tYyW3VSTQqCo7C"
-                  className="mt-1 font-mono text-sm"
+                <Label className="text-slate-700">
+                  AI Opening Message
+                  <InfoTip tip="The first thing the AI says when answering a call" />
+                </Label>
+                <Textarea
+                  value={settings.ai_opening_message}
+                  onChange={(e) => setSettings({ ...settings, ai_opening_message: e.target.value })}
+                  placeholder="Hi, this is Jessica from D and L Transport. How can I help you today?"
+                  className="mt-1"
+                  rows={3}
                 />
               </div>
             </div>
-            <div>
-              <Label className="text-slate-700">Company Name</Label>
-              <Input
-                value={settings.ai_caller_company_name}
-                onChange={(e) => setSettings({ ...settings, ai_caller_company_name: e.target.value })}
-                placeholder="D and L Transport"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label className="text-slate-700">AI Opening Message</Label>
-              <Textarea
-                value={settings.ai_opening_message}
-                onChange={(e) => setSettings({ ...settings, ai_opening_message: e.target.value })}
-                placeholder="Hi, this is Jess from D and L Transport. How can I help you today?"
-                className="mt-1"
-                rows={3}
-              />
-              <p className="text-xs text-slate-500 mt-1">
-                The greeting message Jess uses when answering calls
-              </p>
-            </div>
-          </div>
-        </TruckingContentCard>
+          </TruckingContentCard>
 
         {/* Concurrency Settings */}
         <TruckingContentCard>
@@ -352,5 +376,6 @@ export default function TruckingSettingsPage() {
         </div>
       </div>
     </TruckingPageWrapper>
+    </TooltipProvider>
   );
 }
