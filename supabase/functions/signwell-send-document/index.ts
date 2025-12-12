@@ -1,0 +1,129 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+interface SignWellRecipient {
+  id: string;
+  email: string;
+  name: string;
+  role?: string;
+}
+
+interface SignWellRequest {
+  documentBase64: string;
+  documentName: string;
+  recipients: SignWellRecipient[];
+  subject?: string;
+  message?: string;
+  instanceId?: string;
+}
+
+serve(async (req) => {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const SIGNWELL_API_KEY = Deno.env.get("SIGNWELL_API_KEY");
+    
+    if (!SIGNWELL_API_KEY) {
+      console.error("SIGNWELL_API_KEY not configured");
+      return new Response(
+        JSON.stringify({ error: "SignWell API key not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const body: SignWellRequest = await req.json();
+    const { documentBase64, documentName, recipients, subject, message, instanceId } = body;
+
+    console.log("Creating SignWell document:", documentName);
+    console.log("Recipients:", recipients.map(r => r.email));
+
+    // Create document in SignWell
+    const signWellPayload = {
+      test_mode: false, // Set to true for testing
+      files: [
+        {
+          name: documentName,
+          file_base64: documentBase64,
+        }
+      ],
+      name: documentName,
+      subject: subject || `Please sign: ${documentName}`,
+      message: message || "Please review and sign this document at your earliest convenience.",
+      recipients: recipients.map((r, index) => ({
+        id: r.id,
+        email: r.email,
+        name: r.name,
+        send_email: true,
+        send_email_delay: 0,
+        placeholder_name: r.role || `Signer ${index + 1}`,
+      })),
+      apply_signing_order: true,
+      custom_requester_name: "Seeksy Legal",
+      custom_requester_email: "legal@seeksy.io",
+      redirect_url: `${Deno.env.get("SITE_URL") || "https://seeksy.io"}/legal/signed?instance=${instanceId || ""}`,
+      decline_redirect_url: `${Deno.env.get("SITE_URL") || "https://seeksy.io"}/legal/declined?instance=${instanceId || ""}`,
+      expires_in: 30, // 30 days
+      reminders: true,
+      text_tags: false,
+      allow_decline: true,
+      allow_reassign: false,
+      metadata: instanceId ? { instanceId } : undefined,
+    };
+
+    console.log("Sending to SignWell API...");
+
+    const signWellResponse = await fetch("https://www.signwell.com/api/v1/documents/", {
+      method: "POST",
+      headers: {
+        "X-Api-Key": SIGNWELL_API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(signWellPayload),
+    });
+
+    const responseText = await signWellResponse.text();
+    console.log("SignWell response status:", signWellResponse.status);
+    console.log("SignWell response:", responseText);
+
+    if (!signWellResponse.ok) {
+      console.error("SignWell API error:", responseText);
+      return new Response(
+        JSON.stringify({ 
+          error: "Failed to create SignWell document", 
+          details: responseText 
+        }),
+        { status: signWellResponse.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const signWellData = JSON.parse(responseText);
+
+    console.log("SignWell document created:", signWellData.id);
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        documentId: signWellData.id,
+        status: signWellData.status,
+        recipients: signWellData.recipients,
+        embeddedSigningUrl: signWellData.embedded_signing_url,
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+
+  } catch (error: unknown) {
+    console.error("Error in signwell-send-document:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return new Response(
+      JSON.stringify({ error: errorMessage }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});

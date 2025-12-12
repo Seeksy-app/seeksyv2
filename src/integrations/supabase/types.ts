@@ -14571,6 +14571,9 @@ export type Database = {
           rendered_text_cache: string | null
           seller_signature_url: string | null
           seller_signed_at: string | null
+          signed_pdf_url: string | null
+          signwell_document_id: string | null
+          signwell_status: string | null
           status: string
           template_id: string
           updated_at: string
@@ -14593,6 +14596,9 @@ export type Database = {
           rendered_text_cache?: string | null
           seller_signature_url?: string | null
           seller_signed_at?: string | null
+          signed_pdf_url?: string | null
+          signwell_document_id?: string | null
+          signwell_status?: string | null
           status?: string
           template_id: string
           updated_at?: string
@@ -14615,6 +14621,9 @@ export type Database = {
           rendered_text_cache?: string | null
           seller_signature_url?: string | null
           seller_signed_at?: string | null
+          signed_pdf_url?: string | null
+          signwell_document_id?: string | null
+          signwell_status?: string | null
           status?: string
           template_id?: string
           updated_at?: string

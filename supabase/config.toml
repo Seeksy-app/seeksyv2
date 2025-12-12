@@ -482,3 +482,15 @@ verify_jwt = false
 
 [functions.seeksy-tv-log-impression]
 verify_jwt = false
+
+[functions.signwell-send-document]
+verify_jwt = true
+
+[functions.signwell-webhook]
+verify_jwt = false
+
+[functions.signwell-get-document]
+verify_jwt = true
+
+[functions.generate-stock-agreement-docx]
+verify_jwt = true

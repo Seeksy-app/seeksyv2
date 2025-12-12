@@ -148,6 +148,8 @@ import LegalInstancesPage from "./pages/admin/LegalInstancesPage";
 import PurchaserAgreementPage from "./pages/legal/PurchaserAgreementPage";
 import ChairmanSignaturePage from "./pages/legal/ChairmanSignaturePage";
 import StockAgreementGenerator from "./pages/admin/legal/StockAgreementGenerator";
+import SignedConfirmation from "./pages/legal/SignedConfirmation";
+import DeclinedConfirmation from "./pages/legal/DeclinedConfirmation";
 import SubscriptionSettings from "./pages/SubscriptionSettings";
 // Holiday features completely disabled - removed all imports
 import { CommandPaletteProvider } from "./components/command/CommandPaletteProvider";
@@ -968,6 +970,8 @@ const AppContent = () => {
             <Route path="/invoices" element={<Invoices />} />
             <Route path="/invoices/create" element={<CreateInvoice />} />
             <Route path="/sign/:token" element={<SignDocument />} />
+            <Route path="/legal/signed" element={<SignedConfirmation />} />
+            <Route path="/legal/declined" element={<DeclinedConfirmation />} />
             <Route path="/podcast-distribution" element={<PodcastDistribution />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
