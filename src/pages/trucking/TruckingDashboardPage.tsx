@@ -96,7 +96,7 @@ export default function TruckingDashboardPage() {
   };
 
   const openLoads = loads.filter((l) => l.status === "open");
-  const pendingLeads = leads.filter((l) => l.status === "pending" || l.status === "interested");
+  const pendingLeads = leads.filter((l) => l.status === "pending" || l.status === "interested" || l.status === "new");
   const confirmedLoads = loads.filter((l) => l.status === "booked");
 
   // Earnings calculations
