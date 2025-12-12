@@ -147,6 +147,7 @@ import LegalTemplatesPage from "./pages/admin/LegalTemplatesPage";
 import LegalInstancesPage from "./pages/admin/LegalInstancesPage";
 import PurchaserAgreementPage from "./pages/legal/PurchaserAgreementPage";
 import ChairmanSignaturePage from "./pages/legal/ChairmanSignaturePage";
+import StockAgreementGenerator from "./pages/admin/legal/StockAgreementGenerator";
 import SubscriptionSettings from "./pages/SubscriptionSettings";
 // Holiday features completely disabled - removed all imports
 import { CommandPaletteProvider } from "./components/command/CommandPaletteProvider";
@@ -1145,6 +1146,7 @@ const AppContent = () => {
             <Route path="/admin/legal/instances" element={<LegalInstancesPage />} />
             <Route path="/admin/legal/stock-purchase/new" element={<StockPurchaseAgreement />} />
             <Route path="/admin/legal/stock-purchase/:instanceId" element={<StockPurchaseAgreement />} />
+            <Route path="/admin/legal/generate-docx" element={<StockAgreementGenerator />} />
             <Route path="/admin/conversational-demo" element={<AdminConversationalDemo />} />
             <Route path="/admin/architecture" element={<SeeksyArchitecture />} />
             <Route path="/admin/master-blog" element={<AdminMasterBlog />} />
