@@ -154,7 +154,7 @@ export function TopNavBar() {
                 Ask AI Assistant
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/kb">
+                <Link to="/helpdesk">
                   <HelpCircle className="h-4 w-4 mr-2" />
                   Help Center
                 </Link>

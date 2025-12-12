@@ -127,7 +127,7 @@ export function GlobalTopNav() {
             <Button 
               variant="ghost" 
               size="icon"
-              onClick={() => navigate('/kb')}
+              onClick={() => navigate('/helpdesk')}
               className="text-[hsl(var(--header-foreground))] hover:bg-white/10"
               title="Help Center"
             >

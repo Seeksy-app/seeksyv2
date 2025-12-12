@@ -50,6 +50,7 @@ import {
   ExternalLink,
   Star,
   GripVertical,
+  HelpCircle,
   // Module icons
   Mic,
   Podcast,
@@ -636,21 +637,34 @@ export function WorkspaceSidebar() {
                 {!isCollapsed && <span>Knowledge Hub</span>}
               </SidebarMenuButton>
             </SidebarMenuItem>
+
+            {/* Help Desk */}
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => navigate('/helpdesk')}
+                isActive={isActive('/helpdesk')}
+                tooltip="Help Desk"
+                className="text-sidebar-foreground hover:bg-sidebar-accent"
+              >
+                <HelpCircle className="h-4 w-4" />
+                {!isCollapsed && <span>Help Desk</span>}
+              </SidebarMenuButton>
+            </SidebarMenuItem>
             
-            {/* AI Agent / Ask Seeksy - Opens chat panel - Brand blue style */}
+            {/* AI Agent / Ask Seeksy - Opens chat panel - Subtle style */}
             <SidebarMenuItem>
               <button
                 onClick={() => document.dispatchEvent(new Event('open-spark-assistant'))}
                 className={cn(
                   "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
-                  "bg-[hsl(217,80%,50%)] hover:bg-[hsl(217,80%,45%)]",
-                  "border border-[hsl(217,80%,40%)]",
+                  "bg-primary/10 hover:bg-primary/20",
+                  "border border-primary/20",
                   isCollapsed && "justify-center px-2"
                 )}
               >
                 <SparkIcon variant="holiday" size={24} className="flex-shrink-0" />
                 {!isCollapsed && (
-                  <span className="text-white font-semibold text-base">
+                  <span className="text-primary font-semibold text-base">
                     Ask Seeksy
                   </span>
                 )}

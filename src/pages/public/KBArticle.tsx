@@ -108,22 +108,22 @@ export default function KBArticle() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-[hsl(213,92%,24%)] text-white py-8">
+      <div className="bg-gradient-to-b from-muted to-background py-8">
         <div className="container mx-auto px-4">
-          <div className="flex items-center gap-2 text-sm text-white/70 mb-4">
-            <button onClick={() => navigate("/kb")} className="hover:text-white">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+            <button onClick={() => navigate("/kb")} className="hover:text-foreground">
               Knowledge Base
             </button>
             <span>/</span>
             <button 
               onClick={() => navigate(`/kb/${categorySlug}`)}
-              className="hover:text-white"
+              className="hover:text-foreground"
             >
               {article.kb_categories?.name}
             </button>
           </div>
-          <h1 className="text-3xl font-bold">{article.title}</h1>
-          <div className="flex items-center gap-4 mt-4 text-white/70 text-sm">
+          <h1 className="text-3xl font-bold text-foreground">{article.title}</h1>
+          <div className="flex items-center gap-4 mt-4 text-muted-foreground text-sm">
             <span className="flex items-center gap-1">
               <Eye className="h-4 w-4" />
               {article.view_count || 0} views

@@ -58,21 +58,21 @@ export default function KBCategory() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-[hsl(213,92%,24%)] text-white py-12">
+      <div className="bg-gradient-to-b from-muted to-background py-12">
         <div className="container mx-auto px-4">
           <Button
             variant="ghost"
-            className="text-white/80 hover:text-white hover:bg-white/10 mb-4"
+            className="text-muted-foreground hover:text-foreground hover:bg-muted mb-4"
             onClick={() => navigate("/kb")}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Knowledge Base
           </Button>
           <div className="flex items-center gap-3">
-            <BookOpen className="h-8 w-8" />
+            <BookOpen className="h-8 w-8 text-primary" />
             <div>
-              <h1 className="text-3xl font-bold">{category.name}</h1>
-              <p className="text-white/70 mt-1">{category.description}</p>
+              <h1 className="text-3xl font-bold text-foreground">{category.name}</h1>
+              <p className="text-muted-foreground mt-1">{category.description}</p>
             </div>
           </div>
         </div>

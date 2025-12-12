@@ -84,16 +84,16 @@ export default function KnowledgeBase() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section - Seeksy Deep Blue */}
-      <div className="bg-[hsl(213,92%,24%)] text-white">
+      {/* Hero Section - Subtle gradient */}
+      <div className="bg-gradient-to-b from-muted to-background">
         <div className="container mx-auto px-4 py-16 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <BookOpen className="h-10 w-10" />
-            <h1 className="text-4xl md:text-5xl font-bold">
-              How can we <span className="text-[hsl(220,85%,55%)]">help you?</span>
+            <BookOpen className="h-10 w-10 text-primary" />
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground">
+              How can we <span className="text-primary">help you?</span>
             </h1>
           </div>
-          <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
             Search our knowledge base to find answers to your questions
           </p>
           
@@ -104,7 +104,7 @@ export default function KnowledgeBase() {
               placeholder="Search our knowledge base..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 h-14 text-lg bg-white text-foreground border-0 shadow-xl"
+              className="pl-12 h-14 text-lg bg-background text-foreground border shadow-lg"
             />
           </div>
 
@@ -114,7 +114,7 @@ export default function KnowledgeBase() {
               <Badge
                 key={term}
                 variant="outline"
-                className="cursor-pointer border-white/30 text-white hover:bg-white/10 px-4 py-1.5"
+                className="cursor-pointer border-primary/30 text-primary hover:bg-primary/10 px-4 py-1.5"
                 onClick={() => setSearchQuery(term)}
               >
                 {term}
