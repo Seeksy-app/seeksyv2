@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -55,6 +56,7 @@ export default function TruckingDashboardPage() {
   const [activeTab, setActiveTab] = useState("open");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [aiCallsEnabled, setAiCallsEnabled] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { theme: appTheme, setTheme } = useTheme();
@@ -246,17 +248,35 @@ export default function TruckingDashboardPage() {
       </div>
 
       {/* AI Live Banner */}
-      <Card className="bg-green-50 border-green-200 p-4">
+      <Card className={`p-4 ${aiCallsEnabled ? 'bg-green-50 border-green-200' : 'bg-slate-100 border-slate-200'}`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="relative flex h-3 w-3">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
-              <span className="relative inline-flex h-3 w-3 rounded-full bg-green-500" />
-            </span>
+            {aiCallsEnabled ? (
+              <span className="relative flex h-3 w-3">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex h-3 w-3 rounded-full bg-green-500" />
+              </span>
+            ) : (
+              <span className="relative flex h-3 w-3">
+                <span className="relative inline-flex h-3 w-3 rounded-full bg-slate-400" />
+              </span>
+            )}
             <div>
-              <p className="font-semibold text-green-800">AI Live — Jess is Ready</p>
-              <p className="text-sm text-green-600">Answering carrier calls • {callsToday} calls today</p>
+              <p className={`font-semibold ${aiCallsEnabled ? 'text-green-800' : 'text-slate-600'}`}>
+                {aiCallsEnabled ? 'AI Live — Jess is Ready' : 'AI Calls Paused'}
+              </p>
+              <p className={`text-sm ${aiCallsEnabled ? 'text-green-600' : 'text-slate-500'}`}>
+                {aiCallsEnabled ? `Answering carrier calls • ${callsToday} calls today` : 'Toggle on to resume taking calls'}
+              </p>
             </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-slate-500">{aiCallsEnabled ? 'On' : 'Off'}</span>
+            <Switch 
+              checked={aiCallsEnabled} 
+              onCheckedChange={setAiCallsEnabled}
+              className="data-[state=checked]:bg-green-500"
+            />
           </div>
         </div>
       </Card>
