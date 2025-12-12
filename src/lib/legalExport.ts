@@ -125,11 +125,40 @@ function shouldCenter(line: string): boolean {
     /^STOCK POWER$/,
     /^JOINDER AGREEMENT$/,
     /^ACCREDITED INVESTOR/,
+    /^CERTIFICATE OF STATUS/,
     /^\[SIGNATURE PAGE/,
     /^\[REMAINDER OF PAGE/,
     /^\[THIS PAGE INTENTIONALLY/,
+    /^\(ATTACHED\)$/i,
   ];
   return centeredPatterns.some(p => p.test(trimmed));
+}
+
+/**
+ * Check if line is an exhibit header that needs a cover page
+ */
+function isExhibitCoverHeader(line: string): { isExhibit: boolean; exhibitLetter: string; title: string } {
+  const trimmed = line.trim().toUpperCase();
+  
+  // Match "EXHIBIT A", "EXHIBIT B", "EXHIBIT C"
+  const exhibitMatch = trimmed.match(/^EXHIBIT ([A-Z])$/);
+  if (exhibitMatch) {
+    return { isExhibit: true, exhibitLetter: exhibitMatch[1], title: '' };
+  }
+  
+  return { isExhibit: false, exhibitLetter: '', title: '' };
+}
+
+/**
+ * Get exhibit title based on letter
+ */
+function getExhibitTitle(letter: string): string {
+  const titles: Record<string, string> = {
+    'A': 'STOCK POWER',
+    'B': 'CERTIFICATE OF STATUS AS A SOPHISTICATED OR ACCREDITED INVESTOR',
+    'C': 'JOINDER AGREEMENT',
+  };
+  return titles[letter] || '';
 }
 
 /**
@@ -375,13 +404,99 @@ export async function exportToPdf(data: ExportData): Promise<void> {
   // Track if we're in the Joinder section (EXHIBIT C) - this is where chairman signature goes
   let inJoinderSection = false;
   
+  // Track if we've already rendered "AGREED AND ACKNOWLEDGED" section in main body (skip duplicate in page 6)
+  let mainAgreedRendered = false;
+  let skipUntilExhibit = false;
+  
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmedLine = line.trim();
+    const upperLine = trimmedLine.toUpperCase();
     
-    // Track when we enter Joinder section
-    if (trimmedLine.includes('EXHIBIT C') || trimmedLine === 'JOINDER AGREEMENT') {
+    // Check for exhibit cover page headers
+    const exhibitCheck = isExhibitCoverHeader(trimmedLine);
+    if (exhibitCheck.isExhibit) {
+      // Reset skip flag when we hit an exhibit
+      skipUntilExhibit = false;
+      
+      // Force new page for exhibit cover
+      pdf.addPage();
+      yPosition = margin + 60; // Start lower on the page for centered look
+      
+      // Render exhibit cover page: EXHIBIT X (underlined)
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      const exhibitText = `EXHIBIT ${exhibitCheck.exhibitLetter}`;
+      const exhibitWidth = pdf.getTextWidth(exhibitText);
+      const exhibitX = (pageWidth - exhibitWidth) / 2;
+      pdf.text(exhibitText, exhibitX, yPosition);
+      // Underline
+      pdf.setLineWidth(0.5);
+      pdf.line(exhibitX, yPosition + 1, exhibitX + exhibitWidth, yPosition + 1);
+      yPosition += lineHeight * 3;
+      
+      // Title
+      const exhibitTitle = getExhibitTitle(exhibitCheck.exhibitLetter);
+      if (exhibitTitle) {
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        const titleWidth = pdf.getTextWidth(exhibitTitle);
+        pdf.text(exhibitTitle, (pageWidth - titleWidth) / 2, yPosition);
+        yPosition += lineHeight * 2;
+      }
+      
+      // "(Attached)"
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'normal');
+      const attachedText = '(Attached)';
+      const attachedWidth = pdf.getTextWidth(attachedText);
+      pdf.text(attachedText, (pageWidth - attachedWidth) / 2, yPosition);
+      
+      // Start new page for actual exhibit content
+      pdf.addPage();
+      yPosition = margin;
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      
+      // Track Joinder section
+      if (exhibitCheck.exhibitLetter === 'C') {
+        inJoinderSection = true;
+      }
+      continue;
+    }
+    
+    // Skip duplicate exhibit title lines that follow (e.g., "STOCK POWER" right after "EXHIBIT A")
+    if (upperLine === 'STOCK POWER' || upperLine === 'JOINDER AGREEMENT' || 
+        upperLine.includes('CERTIFICATE OF STATUS AS A SOPHISTICATED')) {
+      // These are now part of the cover page, skip if immediately after exhibit
+      const prevLine = i > 0 ? lines[i - 1].trim().toUpperCase() : '';
+      if (prevLine.match(/^EXHIBIT [A-Z]$/)) {
+        continue;
+      }
+    }
+    
+    // Track when we enter Joinder section content
+    if (upperLine.includes('JOINDER AGREEMENT') && !exhibitCheck.isExhibit) {
       inJoinderSection = true;
+    }
+    
+    // SKIP the "AGREED AND ACKNOWLEDGED" section from main signature page (page 6)
+    // This section should ONLY appear in the Joinder Agreement (EXHIBIT C)
+    if (!inJoinderSection && upperLine === 'AGREED AND ACKNOWLEDGED:') {
+      // Skip this entire section until we hit an Exhibit
+      skipUntilExhibit = true;
+      mainAgreedRendered = true;
+      continue;
+    }
+    
+    // If we're skipping until exhibit, continue
+    if (skipUntilExhibit) {
+      if (upperLine.match(/^EXHIBIT [A-Z]$/)) {
+        skipUntilExhibit = false;
+        // Let this fall through to be processed as exhibit
+      } else {
+        continue;
+      }
     }
     
     // Track section for signature context
@@ -389,13 +504,13 @@ export async function exportToPdf(data: ExportData): Promise<void> {
       currentSection = 'seller';
     } else if (trimmedLine.includes('BUYER:') || trimmedLine.includes('BUYER') || trimmedLine.includes('[PURCHASER_NAME]')) {
       currentSection = 'purchaser';
-    } else if (trimmedLine.includes('EXHIBIT A') || trimmedLine.includes('STOCK POWER')) {
+    } else if (upperLine.includes('EXHIBIT A') || upperLine.includes('STOCK POWER')) {
       currentSection = 'seller';
-    } else if (trimmedLine.includes('EXHIBIT B') || trimmedLine.includes('EXHIBIT C') || trimmedLine.includes('JOINDER')) {
+    } else if (upperLine.includes('EXHIBIT B') || upperLine.includes('EXHIBIT C') || upperLine.includes('JOINDER')) {
       currentSection = 'purchaser';
     }
     
-    // Chairman signature ONLY appears in Joinder section (EXHIBIT C) after "By: [Chairman Name]"
+    // Chairman signature ONLY appears in Joinder section (EXHIBIT C) after "Agreed and Acknowledged:" with "By:"
     if (inJoinderSection && trimmedLine.startsWith('By:') && data.chairmanName && trimmedLine.includes(data.chairmanName) && signatureImages.chairman) {
       // First render the "By:" line
       if (yPosition > pageHeight - bottomMargin) {
