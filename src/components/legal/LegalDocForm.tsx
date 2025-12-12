@@ -23,6 +23,9 @@ interface FieldValues {
   seller_city?: string;
   seller_state?: string;
   seller_zip?: string;
+  // Chairman of the Board (Agreed & Acknowledged)
+  chairman_name?: string;
+  chairman_email?: string;
   input_mode?: "amount" | "shares";
   purchase_amount?: number;
   number_of_shares?: number;
@@ -246,6 +249,42 @@ export function LegalDocForm({
                   disabled={isFinalized}
                 />
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Chairman of the Board Section - Admin Only (Agreed & Acknowledged) */}
+      {isAdmin && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              Chairman of the Board
+              <Badge variant="outline" className="text-xs">Admin Only</Badge>
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">For the "Agreed and Acknowledged" signature section</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="chairman_name">Chairman Name</Label>
+              <Input
+                id="chairman_name"
+                value={fieldValues.chairman_name || ""}
+                onChange={(e) => onFieldChange("chairman_name", e.target.value)}
+                placeholder="Enter Chairman's full name"
+                disabled={isFinalized}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="chairman_email">Chairman Email (for signature request)</Label>
+              <Input
+                id="chairman_email"
+                type="email"
+                value={fieldValues.chairman_email || ""}
+                onChange={(e) => onFieldChange("chairman_email", e.target.value)}
+                placeholder="chairman@company.com"
+                disabled={isFinalized}
+              />
             </div>
           </CardContent>
         </Card>
