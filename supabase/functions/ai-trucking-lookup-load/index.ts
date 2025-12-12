@@ -7,6 +7,9 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log('=== AI Trucking Lookup Load Called ===');
+  console.log('Method:', req.method);
+  
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -17,21 +20,28 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const body = await req.json();
+    let body = {};
+    try {
+      body = await req.json();
+    } catch (e) {
+      console.log('No JSON body or empty body - returning all open loads');
+    }
+    
     console.log('Received lookup_load request:', JSON.stringify(body));
 
     // ElevenLabs sends parameters in different possible structures
-    const params = body.parameters || body;
-    const { load_number, origin_city, destination_city, pickup_date } = params;
+    const params = (body as any).parameters || body;
+    const { load_number, origin_city, destination_city, pickup_date } = params as any;
 
     console.log('Parsed params:', { load_number, origin_city, destination_city, pickup_date });
 
+    // Start with base query for open loads
     let query = supabase
       .from('trucking_loads')
       .select('*')
       .eq('status', 'open');
 
-    // Filter by load number if provided
+    // Filter by load number if provided (override base query to search all statuses)
     if (load_number) {
       query = supabase
         .from('trucking_loads')
