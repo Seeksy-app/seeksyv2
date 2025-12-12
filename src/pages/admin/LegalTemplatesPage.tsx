@@ -68,7 +68,7 @@ export default function LegalTemplatesPage() {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => navigate(`/legal/stock-purchase/new`)}
+                    onClick={() => navigate(`/admin/legal/stock-purchase/new`)}
                   >
                     <Eye className="h-4 w-4 mr-2" />
                     Preview

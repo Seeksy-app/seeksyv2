@@ -12,6 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Json } from "@/integrations/supabase/types";
 import { exportToDocx, exportToPdf } from "@/lib/legalExport";
 
+
 interface FieldValues {
   purchaser_name?: string;
   input_mode?: "amount" | "shares";

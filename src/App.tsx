@@ -1102,8 +1102,6 @@ const AppContent = () => {
               <Route path="/podcasts/:podcastId/episodes/:episodeId" element={<EpisodeDetailPublic />} />
               <Route path="/podcasts/:id/migrate" element={<RSSMigrationPage />} />
               <Route path="/legal/paid-ads-terms" element={<PaidAdsTerms />} />
-              <Route path="/legal/stock-purchase/new" element={<StockPurchaseAgreement />} />
-              <Route path="/legal/stock-purchase/:instanceId" element={<StockPurchaseAgreement />} />
               <Route path="/my-blog" element={<Blog />} />
               <Route path="/my-blog/create" element={<CreateBlogPost />} />
               <Route path="/my-blog/edit/:id" element={<CreateBlogPost />} />
@@ -1134,6 +1132,8 @@ const AppContent = () => {
             <Route path="/admin/legal" element={<AdminLegal />} />
             <Route path="/admin/legal/templates" element={<LegalTemplatesPage />} />
             <Route path="/admin/legal/instances" element={<LegalInstancesPage />} />
+            <Route path="/admin/legal/stock-purchase/new" element={<StockPurchaseAgreement />} />
+            <Route path="/admin/legal/stock-purchase/:instanceId" element={<StockPurchaseAgreement />} />
             <Route path="/admin/conversational-demo" element={<AdminConversationalDemo />} />
             <Route path="/admin/architecture" element={<SeeksyArchitecture />} />
             <Route path="/admin/master-blog" element={<AdminMasterBlog />} />
