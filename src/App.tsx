@@ -828,7 +828,7 @@ const AppContent = () => {
               <Route path="/signup-select" element={<SignupSelect />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/onboarding/complete" element={<OnboardingComplete />} />
-              <Route path="/onboarding-test" element={<OnboardingTest />} />
+              
               <Route path="/seekies" element={<Apps />} />
               
               {/* Integrations */}

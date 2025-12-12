@@ -79,11 +79,6 @@ export default function VoiceProtection() {
     },
   });
 
-  // Debug: Load test function
-  useEffect(() => {
-    (window as any).testVoiceNFT = testVoiceNFTMinting;
-    console.log('🧪 Voice NFT test function loaded. Run: window.testVoiceNFT()');
-  }, []);
 
   // Check if user is admin
   const { data: userRoles } = useQuery({
