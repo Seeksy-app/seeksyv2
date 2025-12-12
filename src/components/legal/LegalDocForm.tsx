@@ -180,11 +180,12 @@ export function LegalDocForm({
           <CardTitle className="text-base">Investment Details</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Price Per Share - Read-only for purchasers */}
+          {/* Price Per Share - Editable for Admin, Read-only for purchasers */}
           <div className="space-y-2">
             <Label htmlFor="price_per_share" className="flex items-center gap-2">
               Price Per Share
               {!isAdmin && <Lock className="h-3 w-3 text-muted-foreground" />}
+              {isAdmin && <Badge variant="outline" className="text-xs">Admin Only</Badge>}
             </Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
@@ -192,16 +193,30 @@ export function LegalDocForm({
                 id="price_per_share"
                 type="number"
                 step="0.01"
+                min="0.01"
                 value={computedValues.price_per_share || ""}
                 onChange={(e) => onComputedChange("price_per_share", parseFloat(e.target.value))}
                 className="pl-7"
+                placeholder="Enter price per share"
                 disabled={!isAdmin || isFinalized}
               />
             </div>
-            {!isAdmin && (
+            {!isAdmin ? (
               <p className="text-xs text-muted-foreground">
                 Price per share is set by the Company and cannot be changed.
               </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Set the price per share. Shares will auto-calculate when purchaser enters investment amount.
+              </p>
+            )}
+            {isAdmin && !computedValues.price_per_share && (
+              <Alert variant="destructive" className="mt-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  You must set a Price Per Share before the purchaser can complete their investment details.
+                </AlertDescription>
+              </Alert>
             )}
           </div>
 
