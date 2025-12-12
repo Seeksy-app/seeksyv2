@@ -14552,6 +14552,53 @@ export type Database = {
           },
         ]
       }
+      legal_doc_instances: {
+        Row: {
+          computed_values_json: Json
+          created_at: string
+          field_values_json: Json
+          id: string
+          purchaser_email: string | null
+          purchaser_user_id: string | null
+          rendered_text_cache: string | null
+          status: string
+          template_id: string
+          updated_at: string
+        }
+        Insert: {
+          computed_values_json?: Json
+          created_at?: string
+          field_values_json?: Json
+          id?: string
+          purchaser_email?: string | null
+          purchaser_user_id?: string | null
+          rendered_text_cache?: string | null
+          status?: string
+          template_id: string
+          updated_at?: string
+        }
+        Update: {
+          computed_values_json?: Json
+          created_at?: string
+          field_values_json?: Json
+          id?: string
+          purchaser_email?: string | null
+          purchaser_user_id?: string | null
+          rendered_text_cache?: string | null
+          status?: string
+          template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_doc_instances_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "legal_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       legal_documents: {
         Row: {
           content: string
@@ -14579,6 +14626,33 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      legal_templates: {
+        Row: {
+          body_text: string
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          version: string
+        }
+        Insert: {
+          body_text: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          version?: string
+        }
+        Update: {
+          body_text?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          version?: string
         }
         Relationships: []
       }
