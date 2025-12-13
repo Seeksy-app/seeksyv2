@@ -68,6 +68,7 @@ interface InvestorSettings {
   is_active: boolean;
   confidentiality_notice: string;
   minimum_investment: number;
+  template_name: string | null; // Selected Word template for this application
   has_investor_access: boolean; // True if any investor verified email (activates the offer)
 }
 
@@ -167,6 +168,7 @@ export default function PendingInvestments() {
           is_active: d.is_active ?? true,
           confidentiality_notice: d.confidentiality_notice || "",
           minimum_investment: Number(d.minimum_investment) || 100,
+          template_name: d.template_name || null,
           has_investor_access: hasAccess,
         };
       });
@@ -236,6 +238,7 @@ export default function PendingInvestments() {
           is_active: settings.is_active,
           confidentiality_notice: settings.confidentiality_notice,
           minimum_investment: settings.minimum_investment,
+          template_name: settings.template_name,
         })
         .eq("id", settings.id);
 
@@ -367,9 +370,10 @@ export default function PendingInvestments() {
   };
 
   const handleDelete = async (investment: PendingInvestment) => {
-    // Only allow deletion of pending investments
-    if (investment.status !== "pending") {
-      toast.error("Only pending applications can be deleted. This application has already been shared.");
+    // Allow deletion if not yet sent for signature
+    const sentStatuses = ["pending_signatures", "partially_signed", "completed"];
+    if (sentStatuses.includes(investment.status) || sentStatuses.includes(investment.signwell_status || "")) {
+      toast.error("Cannot delete applications that have been sent for signature. You can only archive them.");
       return;
     }
     if (!confirm(`Are you sure you want to delete the application for ${investment.recipient_name || investment.field_values_json.purchaser_name}? This cannot be undone.`)) {
@@ -1091,6 +1095,19 @@ export default function PendingInvestments() {
                 <p className="text-xs text-muted-foreground">
                   This notice is shown before users can access the application form
                 </p>
+              </div>
+
+              {/* Agreement Document Template */}
+              <div className="space-y-2">
+                <Label>Agreement Document</Label>
+                <p className="text-sm text-muted-foreground">
+                  Select the Word template to use when generating the agreement
+                </p>
+                <TemplateSelector
+                  value={settings?.template_name || ""}
+                  onChange={(templateName) => updateSettings({ template_name: templateName })}
+                  disabled={settings?.has_investor_access}
+                />
               </div>
 
               {!settings?.has_investor_access ? (

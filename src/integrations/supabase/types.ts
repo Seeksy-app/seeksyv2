@@ -13566,6 +13566,7 @@ export type Database = {
           price_per_share: number
           price_per_share_tier2: number | null
           slug: string | null
+          template_name: string | null
           tier2_start_date: string | null
           updated_at: string
         }
@@ -13580,6 +13581,7 @@ export type Database = {
           price_per_share?: number
           price_per_share_tier2?: number | null
           slug?: string | null
+          template_name?: string | null
           tier2_start_date?: string | null
           updated_at?: string
         }
@@ -13594,6 +13596,7 @@ export type Database = {
           price_per_share?: number
           price_per_share_tier2?: number | null
           slug?: string | null
+          template_name?: string | null
           tier2_start_date?: string | null
           updated_at?: string
         }

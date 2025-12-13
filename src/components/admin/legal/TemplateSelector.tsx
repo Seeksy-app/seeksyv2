@@ -19,9 +19,10 @@ interface TemplateSelectorProps {
   value: string;
   onChange: (templateName: string) => void;
   label?: string;
+  disabled?: boolean;
 }
 
-export default function TemplateSelector({ value, onChange, label = "Document Template" }: TemplateSelectorProps) {
+export default function TemplateSelector({ value, onChange, label = "Document Template", disabled = false }: TemplateSelectorProps) {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -91,7 +92,7 @@ export default function TemplateSelector({ value, onChange, label = "Document Te
   return (
     <div className="space-y-2">
       <Label>{label}</Label>
-      <Select value={value} onValueChange={onChange}>
+      <Select value={value} onValueChange={onChange} disabled={disabled}>
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Select a template">
             {value && (
