@@ -82,11 +82,13 @@ export function TopNavBar() {
   const isAdminRoute = location.pathname.startsWith('/admin') || location.pathname.startsWith('/cfo');
   const isBoardRoute = location.pathname.startsWith('/board');
   
-  // Help menu items - all open modals/drawers (no navigation)
+  // Help menu items - portal-scoped (Glossary is Admin-only per KB memory)
+  const isAdminPortal = effectivePortal === 'admin';
   const helpMenuItems: { id: HelpActionKey; label: string; icon: 'book' | 'file' | 'help' | 'mail' }[] = [
     { id: 'knowledge_hub', label: 'Knowledge Hub', icon: 'book' },
     { id: 'daily_brief', label: 'Daily Brief', icon: 'file' },
-    { id: 'glossary', label: 'Glossary', icon: 'book' },
+    // Glossary only for Admin portal
+    ...(isAdminPortal ? [{ id: 'glossary' as HelpActionKey, label: 'Glossary', icon: 'book' as const }] : []),
   ];
 
   return (
