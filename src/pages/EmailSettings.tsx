@@ -9,7 +9,6 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { SubscriberListManager } from "@/components/email/SubscriberListManager";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -23,9 +22,9 @@ import {
   Star, 
   Unlink, 
   Shield, 
-  ChevronDown, 
   Plus,
-  RefreshCw
+  RefreshCw,
+  Save
 } from "lucide-react";
 import { GoogleVerifiedBadge } from "@/components/ui/google-verified-badge";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -42,7 +41,7 @@ import {
 export default function EmailSettings() {
   const [activeTab, setActiveTab] = useState("accounts");
   const [connecting, setConnecting] = useState(false);
-  const [infoOpen, setInfoOpen] = useState(false);
+  const [selectedSignature, setSelectedSignature] = useState<string>("none");
   const [permissionsDialogOpen, setPermissionsDialogOpen] = useState(false);
   const [selectedAccountEmail, setSelectedAccountEmail] = useState<string | null>(null);
   const { toast } = useToast();
@@ -210,6 +209,43 @@ export default function EmailSettings() {
     setPermissionsDialogOpen(true);
   };
 
+  // Initialize selected signature from active signature
+  useEffect(() => {
+    const activeSignature = signatures.find(s => s.is_active);
+    if (activeSignature) {
+      setSelectedSignature(activeSignature.id);
+    }
+  }, [signatures]);
+
+  const saveDefaultSignature = useMutation({
+    mutationFn: async (signatureId: string) => {
+      if (!user) throw new Error("Not authenticated");
+      
+      // Deactivate all signatures first
+      await supabase
+        .from("email_signatures")
+        .update({ is_active: false })
+        .eq("user_id", user.id);
+      
+      // Activate the selected one if not "none"
+      if (signatureId !== "none") {
+        const { error } = await supabase
+          .from("email_signatures")
+          .update({ is_active: true })
+          .eq("id", signatureId);
+        
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["email-signatures-list"] });
+      toast({ title: "Default signature saved" });
+    },
+    onError: () => {
+      toast({ title: "Failed to save default signature", variant: "destructive" });
+    },
+  });
+
   const hasAccounts = accounts.length > 0;
 
   return (
@@ -334,8 +370,8 @@ export default function EmailSettings() {
                         className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center border shadow-sm">
-                            <img src={gmailIcon} alt="Gmail" className="h-5 w-5" />
+                          <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center border shadow-sm overflow-hidden">
+                            <img src={gmailIcon} alt="Gmail" className="h-5 w-5 object-contain" />
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
@@ -389,39 +425,30 @@ export default function EmailSettings() {
                 </Card>
               ) : null}
 
-              {/* Collapsible Info Section */}
-              <Collapsible open={infoOpen} onOpenChange={setInfoOpen}>
-                <Card>
-                  <CollapsibleTrigger asChild>
-                    <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors rounded-t-lg">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-base font-medium">
-                          What Connecting Gmail Enables
-                        </CardTitle>
-                        <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${infoOpen ? "rotate-180" : ""}`} />
-                      </div>
-                    </CardHeader>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <CardContent className="pt-0">
-                      <ul className="space-y-3">
-                        <li className="flex items-center gap-3">
-                          <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
-                          <span className="text-sm">Send emails from your own address</span>
-                        </li>
-                        <li className="flex items-center gap-3">
-                          <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
-                          <span className="text-sm">Receive replies in Seeksy inbox</span>
-                        </li>
-                        <li className="flex items-center gap-3">
-                          <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
-                          <span className="text-sm">Track email opens and clicks</span>
-                        </li>
-                      </ul>
-                    </CardContent>
-                  </CollapsibleContent>
-                </Card>
-              </Collapsible>
+              {/* Gmail Benefits - Always visible */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base font-medium">
+                    What Connecting Gmail Enables
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <ul className="space-y-3">
+                    <li className="flex items-center gap-3">
+                      <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+                      <span className="text-sm">Send emails from your own address</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+                      <span className="text-sm">Receive replies in Seeksy inbox</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+                      <span className="text-sm">Track email opens and clicks</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             {/* Subscriber Lists Tab */}
@@ -444,19 +471,29 @@ export default function EmailSettings() {
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label>Signature</Label>
-                    <Select defaultValue={signatures.find(s => s.is_active)?.id || "none"}>
-                      <SelectTrigger className="w-full max-w-xs">
-                        <SelectValue placeholder="Select a signature" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">No signature</SelectItem>
-                        {signatures.map((sig) => (
-                          <SelectItem key={sig.id} value={sig.id}>
-                            {sig.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center gap-2">
+                      <Select value={selectedSignature} onValueChange={setSelectedSignature}>
+                        <SelectTrigger className="w-full max-w-xs">
+                          <SelectValue placeholder="Select a signature" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No signature</SelectItem>
+                          {signatures.map((sig) => (
+                            <SelectItem key={sig.id} value={sig.id}>
+                              {sig.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button 
+                        size="sm"
+                        onClick={() => saveDefaultSignature.mutate(selectedSignature)}
+                        disabled={saveDefaultSignature.isPending}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        {saveDefaultSignature.isPending ? "Saving..." : "Save"}
+                      </Button>
+                    </div>
                     <p className="text-xs text-muted-foreground">
                       This signature will be added to all outgoing emails
                     </p>
