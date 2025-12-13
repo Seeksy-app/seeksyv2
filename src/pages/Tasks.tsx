@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, List, LayoutGrid, User, ArrowUpDown, CheckCircle, Clock, Rows3, Check } from "lucide-react";
+import { Plus, Edit, Trash2, List, LayoutGrid, User, ArrowUpDown, CheckCircle, Clock, Rows3, Check, Search } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -239,6 +239,7 @@ export default function Tasks() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [activeId, setActiveId] = useState<string | null>(null);
   const [filterMode, setFilterMode] = useState<"my" | "all" | "due">("my");
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [categoryManagerOpen, setCategoryManagerOpen] = useState(false);
   const [categories, setCategories] = useState<{ id: string; name: string; color: string }[]>([]);
@@ -655,13 +656,13 @@ export default function Tasks() {
   };
 
   const getFilteredTasks = () => {
-    if (filterMode === "all") return tasks;
+    let result = tasks;
+    
+    // Apply filter mode
     if (filterMode === "my") {
-      return tasks.filter(t => t.assigned_to === currentUserId);
-    }
-    if (filterMode === "due") {
-      // Show tasks with due dates, sorted by due date (earliest first)
-      return [...tasks]
+      result = result.filter(t => t.assigned_to === currentUserId);
+    } else if (filterMode === "due") {
+      result = [...result]
         .filter(t => t.due_date)
         .sort((a, b) => {
           if (!a.due_date) return 1;
@@ -669,7 +670,19 @@ export default function Tasks() {
           return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
         });
     }
-    return tasks;
+    
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(t => 
+        t.title.toLowerCase().includes(query) ||
+        t.description?.toLowerCase().includes(query) ||
+        t.category?.toLowerCase().includes(query) ||
+        t.section?.toLowerCase().includes(query)
+      );
+    }
+    
+    return result;
   };
 
   const filteredTasks = getFilteredTasks();
@@ -1175,6 +1188,15 @@ export default function Tasks() {
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search tasks..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9 w-64"
+                    />
+                  </div>
                   <div className="flex items-center gap-2">
                     <Button
                       variant={filterMode === "my" ? "default" : "outline"}
