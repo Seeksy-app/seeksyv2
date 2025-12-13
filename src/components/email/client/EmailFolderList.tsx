@@ -1,6 +1,8 @@
-import { Inbox, Send, Clock, FileText, Archive, AlertCircle, UserX, Edit3, Trash2 } from "lucide-react";
+import { Inbox, Send, Clock, FileText, Archive, AlertCircle, UserX, Edit3, Trash2, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { useNavigate } from "react-router-dom";
 
 interface EmailFolderListProps {
   selectedFolder: string;
@@ -32,6 +34,12 @@ const folders = [
 ];
 
 export function EmailFolderList({ selectedFolder, onFolderSelect, onCompose, counts, isAdmin = false }: EmailFolderListProps) {
+  const navigate = useNavigate();
+  
+  const handleSettingsClick = () => {
+    navigate(isAdmin ? "/admin/email-settings" : "/email-settings");
+  };
+
   return (
     <div className="h-full border-r bg-muted/30 p-3 flex flex-col w-[240px]">
       <Button 
@@ -79,6 +87,16 @@ export function EmailFolderList({ selectedFolder, onFolderSelect, onCompose, cou
           );
         })}
       </nav>
+      
+      <Separator className="my-2" />
+      
+      <button
+        onClick={handleSettingsClick}
+        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors hover:bg-muted text-muted-foreground"
+      >
+        <Settings className="h-4 w-4" />
+        <span>Settings</span>
+      </button>
     </div>
   );
 }
