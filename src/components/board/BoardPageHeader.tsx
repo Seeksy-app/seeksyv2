@@ -9,7 +9,7 @@ import { DailyBriefButton } from '@/components/daily-brief/DailyBriefButton';
 import { GlossaryButton } from './GlossaryModal';
 import { AdminViewSwitcher } from '@/components/admin/AdminViewSwitcher';
 import { useUserRoles } from '@/hooks/useUserRoles';
-import { ThemeSlider } from '@/components/ThemeSlider';
+import { ThemeDropdown } from '@/components/ThemeDropdown';
 
 interface BoardPageHeaderProps {
   icon?: ReactNode;
@@ -59,8 +59,8 @@ export function BoardPageHeader({
         <div className="flex items-center gap-2 flex-shrink-0">
           <DataModePill />
           
-          {/* Theme Slider */}
-          <ThemeSlider />
+          {/* Theme Dropdown */}
+          <ThemeDropdown />
           
           {/* Glossary */}
           <GlossaryButton />

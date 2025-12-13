@@ -8,7 +8,7 @@ const seeksyLogo = "/seeksy-logo.png";
 import { MasterSearch } from "@/components/MasterSearch";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CreditBalance } from "@/components/credits/CreditBalance";
-import { ThemeSlider } from "@/components/ThemeSlider";
+import { ThemeDropdown } from "@/components/ThemeDropdown";
 
 interface HeaderProps {
   user?: User | null;
@@ -54,7 +54,7 @@ const Header = ({ user }: HeaderProps) => {
             {user && (
               <>
                 <CreditBalance />
-                <ThemeSlider />
+                <ThemeDropdown />
                 <NotificationBell />
               </>
             )}

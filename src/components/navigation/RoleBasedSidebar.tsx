@@ -843,20 +843,20 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
       
       {/* Firecrawl-style Bottom Section: What's New only (removed Ask Seeksy and user profile) */}
       <div className="border-t border-sidebar-border bg-sidebar mt-auto">
-        {/* What's New Card - Firecrawl style */}
+        {/* What's New Card - Theme-aware */}
         {!collapsed && (
           <div className="p-3">
             <button
               onClick={() => navigate(shouldShowAdminNav ? '/admin/changelog' : '/changelog')}
-              className="w-full flex items-center gap-3 p-3 rounded-lg bg-orange-50 dark:bg-orange-950/30 hover:bg-orange-100 dark:hover:bg-orange-950/50 transition-colors border border-orange-200/50 dark:border-orange-800/30"
+              className="w-full flex items-center gap-3 p-3 rounded-lg bg-accent/50 hover:bg-accent transition-colors border border-border"
             >
-              <div className="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center">
-                <Megaphone className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Megaphone className="h-4 w-4 text-primary" />
               </div>
               <div className="flex-1 text-left">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-sidebar-foreground">What's New</span>
-                  <span className="text-xs font-medium text-orange-600 dark:text-orange-400">(3)</span>
+                  <span className="text-sm font-medium text-foreground">What's New</span>
+                  <span className="text-xs font-medium text-primary">(3)</span>
                 </div>
                 <p className="text-xs text-muted-foreground">View our latest updates</p>
               </div>
