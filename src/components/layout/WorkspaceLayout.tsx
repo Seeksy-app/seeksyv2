@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { WorkspaceProvider, useWorkspace } from "@/contexts/WorkspaceContext";
 import { WorkspaceSidebar } from "@/components/workspace/WorkspaceSidebar";
-import { GlobalTopNav } from "@/components/workspace/GlobalTopNav";
+// GlobalTopNav removed - using TopNavBar for both Admin and Creator
 import { RoleBasedSidebar } from "@/components/navigation/RoleBasedSidebar";
 import { AdvertiserSidebarNav } from "@/components/advertiser/AdvertiserSidebarNav";
 import { TopNavBar } from "@/components/TopNavBar";
@@ -174,11 +174,12 @@ function WorkspaceLayoutInner({
   }
 
   // Use new workspace-based navigation for regular users (creators)
+  // But use the same TopNavBar header for consistency
   return (
     <div className="min-h-screen flex w-full bg-background">
       {shouldShowSidebar && <WorkspaceSidebar />}
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
-        {shouldShowTopNav && <GlobalTopNav />}
+        {shouldShowTopNav && <TopNavBar />}
         <main className="flex-1 flex flex-col bg-background overflow-auto">
           {children}
         </main>
