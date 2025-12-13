@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Send, Eye, Clock, CheckCircle, XCircle, RefreshCw, Settings, Plus, X, Activity } from "lucide-react";
+import { Loader2, Send, Eye, Clock, CheckCircle, XCircle, RefreshCw, Settings, Plus, X, Activity, FileText } from "lucide-react";
 import { format } from "date-fns";
 import {
   Table,
@@ -27,6 +27,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import TemplateUpload from "@/components/admin/legal/TemplateUpload";
 
 interface PendingInvestment {
   id: string;
@@ -324,9 +325,9 @@ export default function PendingInvestments() {
       const numberOfShares = computedValues.numberOfShares || parseInt(fieldValues.numberOfShares || "0");
       const pricePerShare = computedValues.pricePerShare || parseFloat(fieldValues.pricePerShare || "0.20");
 
-      // Generate the document
+      // Generate the document using template
       const { data: docData, error: docError } = await supabase.functions.invoke(
-        "generate-stock-agreement-docx",
+        "generate-from-template",
         {
           body: {
             purchaserName,
@@ -427,6 +428,10 @@ export default function PendingInvestments() {
           </div>
           <TabsList>
             <TabsTrigger value="applications">Applications</TabsTrigger>
+            <TabsTrigger value="template">
+              <FileText className="h-4 w-4 mr-2" />
+              Template
+            </TabsTrigger>
             <TabsTrigger value="activity">
               <Activity className="h-4 w-4 mr-2" />
               Activity
@@ -518,6 +523,10 @@ export default function PendingInvestments() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="template">
+          <TemplateUpload />
         </TabsContent>
 
         <TabsContent value="activity">
