@@ -343,6 +343,8 @@ export default function PendingInvestments() {
             sellerAddress: sellerAddress || "",
             sellerEmail,
             chairmanName: chairmanName || "Chairman",
+            chairmanTitle: "Chairman of the Board",
+            companyName: "Seeksy, Inc.",
             numberOfShares,
             pricePerShare,
             agreementDate: new Date().toLocaleDateString("en-US", {
@@ -350,7 +352,7 @@ export default function PendingInvestments() {
               day: "numeric",
               year: "numeric",
             }),
-            investorCertification: fieldValues.investor_certification || "Individual with net worth or joint net worth with spouse exceeding $1 million",
+            investorCertification: fieldValues.investor_certification || "",
           },
         }
       );

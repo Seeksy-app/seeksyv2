@@ -19,10 +19,17 @@ interface RequestBody {
   sellerAddress?: string;
   sellerEmail?: string;
   chairmanName?: string;
+  chairmanTitle?: string;
+  companyName?: string;
   numberOfShares: number;
   pricePerShare: number;
   agreementDate?: string;
   investorCertification?: string;
+  // Checkbox markers for investor certification
+  certNetWorth?: string;
+  certIncome?: string;
+  certDirector?: string;
+  certSophisticated?: string;
 }
 
 // Convert number to words (for shares)
@@ -60,11 +67,25 @@ serve(async (req) => {
       sellerAddress = "",
       sellerEmail = "",
       chairmanName = "",
+      chairmanTitle = "Chairman of the Board",
+      companyName = "Seeksy, Inc.",
       numberOfShares, 
       pricePerShare, 
       agreementDate,
-      investorCertification = "Individual with net worth or joint net worth with spouse exceeding $1 million",
+      investorCertification = "",
     } = body;
+
+    // Determine which certification checkbox should be checked
+    const isSophisticated = investorCertification.includes("Sophisticated Investor") || investorCertification.includes("Section 4(a)(1)");
+    const isNetWorth = investorCertification.includes("net worth");
+    const isIncome = investorCertification.includes("income");
+    const isDirector = investorCertification.includes("Director") || investorCertification.includes("executive officer");
+    
+    // Unicode checkbox characters: ☑ (checked) or ☐ (unchecked)
+    const certSophisticated = isSophisticated ? "☑" : "☐";
+    const certNetWorth = isNetWorth && !isSophisticated ? "☑" : "☐";
+    const certIncome = isIncome && !isSophisticated ? "☑" : "☐";
+    const certDirector = isDirector && !isSophisticated ? "☑" : "☐";
 
     // Construct template path - check if it's in the investment-documents folder
     const templatePath = templateName.includes('/') 
@@ -122,7 +143,7 @@ serve(async (req) => {
 
     // Set template data - matches placeholders like [PURCHASER_NAME]
     const templateData = {
-      // Buyer/Purchaser placeholders
+      // Buyer/Purchaser placeholders (used on multiple signature pages)
       PURCHASER_NAME: purchaserName,
       PURCHASER_ADDRESS: purchaserAddress,
       PURCHASER_EMAIL: purchaserEmail,
@@ -135,8 +156,10 @@ serve(async (req) => {
       SELLER_ADDRESS: sellerAddress,
       SELLER_EMAIL: sellerEmail,
       
-      // Chairman placeholder
+      // Chairman and Company placeholders (for Joinder Agreement)
       CHAIRMAN_NAME: chairmanName,
+      CHAIRMAN_TITLE: chairmanTitle,
+      COMPANY_NAME: companyName,
       
       // Share/Amount placeholders
       NUMBER_OF_SHARES: numberOfShares.toLocaleString(),
@@ -145,9 +168,17 @@ serve(async (req) => {
       PURCHASE_AMOUNT: totalAmount.toFixed(2),
       TOTAL_AMOUNT: totalAmount.toFixed(2),
       AGREEMENT_DATE: formattedDate,
+      DATE: formattedDate,
       
-      // Investor certification placeholder
-      INVESTOR_CERTIFICATION: investorCertification,
+      // Investor certification placeholder and checkboxes
+      INVESTOR_CERTIFICATION: investorCertification || "N/A",
+      CERT_NET_WORTH: certNetWorth,
+      CERT_INCOME: certIncome,
+      CERT_DIRECTOR: certDirector,
+      CERT_SOPHISTICATED: certSophisticated,
+      
+      // Transferee name for Stock Power (Exhibit A)
+      TRANSFEREE_NAME: purchaserName,
       
       // Alternative formats users might use (camelCase)
       purchaserName,
@@ -157,13 +188,21 @@ serve(async (req) => {
       sellerAddress,
       sellerEmail,
       chairmanName,
+      chairmanTitle,
+      companyName,
       numberOfShares: numberOfShares.toLocaleString(),
       numberOfSharesWords: sharesInWords,
       pricePerShare: pricePerShare.toFixed(2),
       totalAmount: totalAmount.toFixed(2),
       purchaseAmount: totalAmount.toFixed(2),
       agreementDate: formattedDate,
-      investorCertification,
+      date: formattedDate,
+      investorCertification: investorCertification || "N/A",
+      certNetWorth,
+      certIncome,
+      certDirector,
+      certSophisticated,
+      transfereeName: purchaserName,
     };
 
     console.log("Rendering document with data:", JSON.stringify(templateData, null, 2));
