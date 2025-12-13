@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,7 @@ import { format } from "date-fns";
 import { Loader2, CheckCircle, DollarSign, Hash, Lock, Shield, Clock, AlertTriangle } from "lucide-react";
 
 interface InvestorSettings {
+  name: string;
   price_per_share: number;
   price_per_share_tier2: number | null;
   tier2_start_date: string | null;
@@ -22,6 +24,7 @@ interface InvestorSettings {
 }
 
 export default function InvestorApplication() {
+  const { slug } = useParams<{ slug?: string }>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [investmentMode, setInvestmentMode] = useState<"shares" | "amount">("shares");
@@ -84,15 +87,22 @@ export default function InvestorApplication() {
 
   const fetchSettings = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("investor_application_settings")
-        .select("*")
-        .limit(1)
-        .maybeSingle();
+        .select("*");
+      
+      if (slug) {
+        query = query.eq("slug", slug);
+      } else {
+        query = query.eq("is_active", true);
+      }
+      
+      const { data, error } = await query.limit(1).maybeSingle();
 
       if (error) throw error;
       if (data) {
         setSettings({
+          name: data.name || "Investment Application",
           price_per_share: Number(data.price_per_share),
           price_per_share_tier2: data.price_per_share_tier2 ? Number(data.price_per_share_tier2) : null,
           tier2_start_date: data.tier2_start_date || null,

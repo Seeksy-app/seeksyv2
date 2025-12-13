@@ -13562,8 +13562,10 @@ export type Database = {
           id: string
           is_active: boolean | null
           minimum_investment: number | null
+          name: string
           price_per_share: number
           price_per_share_tier2: number | null
+          slug: string | null
           tier2_start_date: string | null
           updated_at: string
         }
@@ -13574,8 +13576,10 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           minimum_investment?: number | null
+          name?: string
           price_per_share?: number
           price_per_share_tier2?: number | null
+          slug?: string | null
           tier2_start_date?: string | null
           updated_at?: string
         }
@@ -13586,8 +13590,10 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           minimum_investment?: number | null
+          name?: string
           price_per_share?: number
           price_per_share_tier2?: number | null
+          slug?: string | null
           tier2_start_date?: string | null
           updated_at?: string
         }
