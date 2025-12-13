@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,8 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useNavigate, Link } from "react-router-dom";
-import { Search, Calendar, Eye, ArrowRight, Sparkles } from "lucide-react";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { Search, Calendar, Eye, ArrowRight, Sparkles, X } from "lucide-react";
 import { format } from "date-fns";
 import { NewsletterSignupForm } from "@/components/NewsletterSignupForm";
 import blogHeroImage from "@/assets/blog-hero.jpg";
@@ -33,10 +33,12 @@ interface BlogPost {
 
 const PublicBlog = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
+  const activeTag = searchParams.get("tag");
 
   const { data: posts, isLoading } = useQuery({
-    queryKey: ["public-blog-posts", searchQuery],
+    queryKey: ["public-blog-posts", searchQuery, activeTag],
     queryFn: async () => {
       let query = supabase
         .from("blog_posts")
@@ -48,6 +50,10 @@ const PublicBlog = () => {
 
       if (searchQuery) {
         query = query.or(`title.ilike.%${searchQuery}%,excerpt.ilike.%${searchQuery}%`);
+      }
+
+      if (activeTag) {
+        query = query.contains("seo_keywords", [activeTag]);
       }
 
       const { data, error } = await query;
@@ -108,6 +114,20 @@ const PublicBlog = () => {
                 className="pl-12 h-12 text-base bg-background/90 backdrop-blur-sm border-border/50"
               />
             </div>
+
+            {/* Active Tag Filter */}
+            {activeTag && (
+              <div className="mt-4 flex items-center justify-center gap-2">
+                <span className="text-sm text-foreground/70">Filtering by:</span>
+                <Badge variant="default" className="gap-1">
+                  {activeTag}
+                  <X 
+                    className="w-3 h-3 cursor-pointer hover:text-destructive" 
+                    onClick={() => setSearchParams({})}
+                  />
+                </Badge>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -153,14 +173,20 @@ const PublicBlog = () => {
                       <div className="p-8 md:p-10 flex flex-col justify-center">
                         <div className="flex items-center gap-3 mb-4">
                           <Avatar className="h-10 w-10 border-2 border-background">
-                            <AvatarImage src={featuredPost.profile?.avatar_url || undefined} />
-                            <AvatarFallback className="bg-primary/10 text-primary">
-                              {featuredPost.profile?.full_name?.[0] || featuredPost.profile?.username?.[0] || "U"}
-                            </AvatarFallback>
+                            {featuredPost.is_ai_generated ? (
+                              <AvatarFallback className="bg-primary/10 text-primary font-semibold">AS</AvatarFallback>
+                            ) : (
+                              <>
+                                <AvatarImage src={featuredPost.profile?.avatar_url || undefined} />
+                                <AvatarFallback className="bg-primary/10 text-primary">
+                                  {featuredPost.profile?.full_name?.[0] || featuredPost.profile?.username?.[0] || "U"}
+                                </AvatarFallback>
+                              </>
+                            )}
                           </Avatar>
                           <div>
                             <p className="text-sm font-medium">
-                              {featuredPost.profile?.full_name || featuredPost.profile?.username || "Anonymous"}
+                              {featuredPost.is_ai_generated ? "Ask Seeksy" : (featuredPost.profile?.full_name || featuredPost.profile?.username || "Anonymous")}
                             </p>
                             <div className="flex items-center gap-3 text-xs text-muted-foreground">
                               <span className="flex items-center gap-1">
@@ -173,11 +199,6 @@ const PublicBlog = () => {
                               </span>
                             </div>
                           </div>
-                          {featuredPost.is_ai_generated && (
-                            <Badge variant="secondary" className="ml-auto text-xs">
-                              AI Generated
-                            </Badge>
-                          )}
                         </div>
                         <h3 className="text-2xl md:text-3xl font-bold mb-4 group-hover:text-primary transition-colors">
                           {featuredPost.title}
@@ -225,19 +246,20 @@ const PublicBlog = () => {
                         <CardHeader className="flex-1">
                           <div className="flex items-center gap-2 mb-3">
                             <Avatar className="h-6 w-6">
-                              <AvatarImage src={post.profile?.avatar_url || undefined} />
-                              <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                                {post.profile?.full_name?.[0] || post.profile?.username?.[0] || "U"}
-                              </AvatarFallback>
+                              {post.is_ai_generated ? (
+                                <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">AS</AvatarFallback>
+                              ) : (
+                                <>
+                                  <AvatarImage src={post.profile?.avatar_url || undefined} />
+                                  <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                                    {post.profile?.full_name?.[0] || post.profile?.username?.[0] || "U"}
+                                  </AvatarFallback>
+                                </>
+                              )}
                             </Avatar>
                             <span className="text-xs text-muted-foreground">
-                              {post.profile?.full_name || post.profile?.username}
+                              {post.is_ai_generated ? "Ask Seeksy" : (post.profile?.full_name || post.profile?.username)}
                             </span>
-                            {post.is_ai_generated && (
-                              <Badge variant="secondary" className="ml-auto text-xs py-0 px-1.5">
-                                AI
-                              </Badge>
-                            )}
                           </div>
                           <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">
                             {post.title}
