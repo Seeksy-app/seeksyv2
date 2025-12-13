@@ -9,6 +9,7 @@ import { AdvertiserSidebarNav } from "@/components/advertiser/AdvertiserSidebarN
 import { TopNavBar } from "@/components/TopNavBar";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { useAdminViewMode } from "@/hooks/useAdminViewMode";
+import { AdminNotesFloatingButton } from "@/components/admin/notes/AdminNotesFloatingButton";
 
 interface WorkspaceLayoutProps {
   user: User | null;
@@ -157,6 +158,11 @@ function WorkspaceLayoutInner({
   }
 
   // Use legacy navigation for admin/advertiser routes OR admin users
+  // Check if this is an admin route for floating button
+  const isAdminRouteForNotes = location.pathname.startsWith('/admin') || 
+                                location.pathname.startsWith('/cfo') ||
+                                location.pathname.startsWith('/helpdesk');
+
   if (useLegacyNav || isPublicRoute || !user) {
     return (
       <div className="min-h-screen flex w-full bg-background">
@@ -169,6 +175,7 @@ function WorkspaceLayoutInner({
             {children}
           </main>
         </div>
+        {isAdminRouteForNotes && <AdminNotesFloatingButton />}
       </div>
     );
   }

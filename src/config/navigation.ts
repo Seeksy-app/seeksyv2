@@ -591,6 +591,13 @@ export const NAVIGATION_CONFIG: {
           "icon": "database-backup",
           "path": "/admin/data-recovery",
           "roles": ["admin", "super_admin"]
+        },
+        {
+          "id": "admin_notes",
+          "label": "Notes",
+          "icon": "notebook-pen",
+          "path": "/admin/notes",
+          "roles": ["admin", "super_admin"]
         }
       ]
     },

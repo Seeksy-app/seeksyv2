@@ -154,6 +154,7 @@ import { AIAssistantPanel } from "./components/ai/AIAssistantPanel";
 import { CommandPalette } from "./components/command/CommandPalette";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import AdminSettings from "./pages/admin/Settings";
+import AdminNotes from "./pages/admin/AdminNotes";
 import UserManagement from "./pages/admin/UserManagement";
 import LogoManagerV2 from "./pages/admin/LogoManagerV2";
 import HeroManager from "./pages/admin/HeroManager";
@@ -1166,6 +1167,7 @@ const AppContent = () => {
               <Route path="/admin/system-tools" element={<SystemTools />} />
               <Route path="/admin/security" element={<AdminSecurityOverview />} />
               <Route path="/admin/data-recovery" element={<DataRecovery />} />
+              <Route path="/admin/notes" element={<AdminNotes />} />
               <Route path="/admin/data-mode" element={<AdminDataModeSettings />} />
               <Route path="/admin/users" element={<UserManagement />} />
           <Route path="/demo-videos" element={<DemoVideos />} />
