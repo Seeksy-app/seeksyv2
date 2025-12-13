@@ -340,8 +340,8 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
   return (
     <div className="h-screen flex flex-col">
       <ResizablePanelGroup direction="horizontal" className="flex-1">
-        {/* Left Panel - Folders */}
-        <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+        {/* Left Panel - Folders (240px fixed) */}
+        <ResizablePanel defaultSize={15} minSize={12} maxSize={20}>
           <EmailFolderList
             selectedFolder={selectedFolder}
             onFolderSelect={setSelectedFolder}
@@ -356,8 +356,6 @@ export default function EmailHome({ isAdmin = false }: EmailHomeProps) {
               trash: 0,
               bounced: 0,
               suppressed: 0,
-              automated: 0,
-              unsubscribed: 0,
             }}
           />
         </ResizablePanel>

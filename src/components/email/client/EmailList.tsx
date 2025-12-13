@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
-import { Circle, Mail, Trash2 } from "lucide-react";
-import { EmailTrackingPills } from "./EmailTrackingPills";
+import { Circle, Mail, Trash2, Eye, MousePointer } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -29,8 +27,9 @@ interface Email {
   created_at: string;
   campaign_name?: string;
   from_email?: string;
+  from_name?: string;
   reply_count?: number;
-  opened?: boolean;
+  is_read?: boolean;
   deleted_at?: string | null;
   original_event_type?: string | null;
   is_inbox?: boolean;
@@ -44,6 +43,9 @@ interface EmailListProps {
   onFilterChange: (filter: string) => void;
   sortBy: string;
   onSortChange: (sort: string) => void;
+  onCompose: () => void;
+  onOpenTimeline?: () => void;
+  emailEvents?: any[];
 }
 
 const getStatusColor = (eventType: string) => {
@@ -58,8 +60,8 @@ const getStatusColor = (eventType: string) => {
       return "text-purple-500";
     case "bounced":
       return "text-red-500";
-    case "unsubscribed":
-      return "text-orange-500";
+    case "received":
+      return "text-emerald-500";
     case "sent":
       return "text-blue-400";
     case "draft":
@@ -69,17 +71,17 @@ const getStatusColor = (eventType: string) => {
   }
 };
 
-const getStatusLabel = (eventType: string, deletedAt?: string | null) => {
-  if (deletedAt) return "Trashed";
-  const normalized = eventType.replace("email.", "");
-  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+const formatTimestamp = (dateStr: string) => {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const isToday = date.toDateString() === now.toDateString();
+  
+  if (isToday) {
+    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  }
+  
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 };
-
-interface EmailListActions {
-  onCompose: () => void;
-  onOpenTimeline?: () => void;
-  emailEvents?: any[];
-}
 
 const DONT_SHOW_DELETE_CONFIRM_KEY = "seeksy_email_delete_dont_show";
 
@@ -94,7 +96,7 @@ export function EmailList({
   onCompose,
   onOpenTimeline,
   emailEvents = [],
-}: EmailListProps & EmailListActions) {
+}: EmailListProps) {
   const queryClient = useQueryClient();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -109,27 +111,32 @@ export function EmailList({
     }
   }, []);
 
+  // Filter emails based on selected filter
+  const filteredEmails = emails.filter(email => {
+    if (filter === "all") return true;
+    if (filter === "unread") return email.is_read === false;
+    if (filter === "replied") return (email.reply_count || 0) > 0;
+    return true;
+  });
+
   const deleteEmailMutation = useMutation({
     mutationFn: async (emailIds: string[]) => {
       for (const emailId of emailIds) {
         const email = emails.find((e: any) => e.id === emailId);
         
         if (email?.event_type === "draft") {
-          // Drafts are permanently deleted
           const { error } = await supabase
             .from("email_campaigns")
             .delete()
             .eq("id", emailId);
           if (error) throw error;
         } else if (email?.is_inbox || email?.event_type === "received") {
-          // Inbox messages use inbox_messages table - soft delete
           const { error } = await supabase
             .from("inbox_messages")
             .update({ deleted_at: new Date().toISOString() })
             .eq("id", emailId);
           if (error) throw error;
         } else {
-          // Sent/other emails use email_events table - soft delete
           const { error } = await supabase
             .from("email_events")
             .update({ 
@@ -151,9 +158,7 @@ export function EmailList({
       setSelectedIds(new Set());
     },
     onError: (error: any) => {
-      toast.error("Failed to delete email", {
-        description: error.message,
-      });
+      toast.error("Failed to delete email", { description: error.message });
     },
   });
 
@@ -200,55 +205,49 @@ export function EmailList({
   };
 
   const toggleSelectAll = () => {
-    if (selectedIds.size === emails.length) {
+    if (selectedIds.size === filteredEmails.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(emails.map(e => e.id)));
+      setSelectedIds(new Set(filteredEmails.map(e => e.id)));
     }
+  };
+
+  // Check if email has tracking events
+  const getTrackingIndicators = (email: Email) => {
+    const events = emailEvents.filter((e: any) => e.resend_email_id === (email as any).resend_email_id);
+    const hasOpened = events.some((e: any) => e.event_type === "email.opened" || e.event_type === "opened");
+    const hasClicked = events.some((e: any) => e.event_type === "email.clicked" || e.event_type === "clicked");
+    return { opened: hasOpened, clicked: hasClicked };
   };
 
   return (
     <>
-      <div className="h-full border-r flex flex-col">
-        
-        {/* Filters and Sorting */}
-        <div className="p-4 border-b bg-background">
-          <div className="flex gap-2 mb-3">
-            <Select value={filter} onValueChange={onFilterChange}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Filter" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="delivered">Delivered</SelectItem>
-                <SelectItem value="opened">Opened</SelectItem>
-                <SelectItem value="clicked">Clicked</SelectItem>
-                <SelectItem value="bounced">Bounced</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select value={sortBy} onValueChange={onSortChange}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="date">Date</SelectItem>
-                <SelectItem value="engagement">Engagement</SelectItem>
-                <SelectItem value="campaign">Campaign</SelectItem>
-                <SelectItem value="sender">Sender</SelectItem>
-              </SelectContent>
-            </Select>
+      <div className="h-full border-r flex flex-col bg-background">
+        {/* Filter Bar */}
+        <div className="p-3 border-b bg-muted/30">
+          <div className="flex items-center gap-1 mb-3">
+            {["all", "unread", "replied"].map((f) => (
+              <Button
+                key={f}
+                variant={filter === f ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => onFilterChange(f)}
+                className="text-xs h-7 px-3"
+              >
+                {f.charAt(0).toUpperCase() + f.slice(1)}
+              </Button>
+            ))}
           </div>
           
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Checkbox
-                checked={emails.length > 0 && selectedIds.size === emails.length}
+                checked={filteredEmails.length > 0 && selectedIds.size === filteredEmails.length}
                 onCheckedChange={toggleSelectAll}
                 aria-label="Select all emails"
               />
-              <span className="text-sm text-muted-foreground">
-                {selectedIds.size > 0 ? `${selectedIds.size} selected` : `${emails.length} email${emails.length !== 1 ? "s" : ""}`}
+              <span className="text-xs text-muted-foreground">
+                {selectedIds.size > 0 ? `${selectedIds.size} selected` : `${filteredEmails.length} email${filteredEmails.length !== 1 ? "s" : ""}`}
               </span>
             </div>
             
@@ -258,9 +257,10 @@ export function EmailList({
                 size="sm"
                 onClick={handleBulkDelete}
                 disabled={deleteEmailMutation.isPending}
+                className="h-7 text-xs"
               >
-                <Trash2 className="h-4 w-4 mr-1" />
-                Delete ({selectedIds.size})
+                <Trash2 className="h-3.5 w-3.5 mr-1" />
+                Delete
               </Button>
             )}
           </div>
@@ -268,103 +268,105 @@ export function EmailList({
 
         {/* Email List */}
         <div className="flex-1 overflow-y-auto">
-          {emails.length === 0 ? (
+          {filteredEmails.length === 0 ? (
             <div className="flex items-center justify-center h-full text-muted-foreground">
-              No emails found
+              <div className="text-center">
+                <Mail className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No emails found</p>
+              </div>
             </div>
           ) : (
             <div className="divide-y">
-              {emails.map((email) => (
-                <div
-                  key={email.id}
-                  onClick={() => onEmailSelect(email.id)}
-                  className={cn(
-                    "w-full p-4 text-left hover:bg-muted/50 transition-colors group cursor-pointer",
-                    selectedEmailId === email.id && "bg-muted"
-                  )}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="flex items-center gap-2">
+              {filteredEmails.map((email) => {
+                const tracking = getTrackingIndicators(email);
+                const displayName = email.is_inbox 
+                  ? (email.from_name || email.from_email || email.to_email)
+                  : email.to_email;
+                
+                return (
+                  <div
+                    key={email.id}
+                    onClick={() => onEmailSelect(email.id)}
+                    className={cn(
+                      "w-full px-3 py-3 text-left hover:bg-muted/50 transition-colors group cursor-pointer",
+                      selectedEmailId === email.id && "bg-muted"
+                    )}
+                  >
+                    <div className="flex items-start gap-2.5">
                       <Checkbox
                         checked={selectedIds.has(email.id)}
                         onCheckedChange={() => {}}
                         onClick={(e) => toggleSelection(e, email.id)}
-                        aria-label={`Select email from ${email.to_email}`}
+                        aria-label={`Select email`}
+                        className="mt-1"
                       />
-                      <Avatar className="h-10 w-10 flex-shrink-0">
-                        <AvatarFallback>
-                          {email.to_email?.charAt(0).toUpperCase() || "?"}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2 mb-1">
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-0.5">
+                          <div className="flex items-center gap-2 min-w-0">
+                            {email.is_read === false && (
+                              <Circle className="h-2 w-2 fill-primary text-primary flex-shrink-0" />
+                            )}
+                            <span className={cn(
+                              "truncate text-sm",
+                              email.is_read === false ? "font-semibold" : "font-medium"
+                            )}>
+                              {displayName}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            <span className="text-xs text-muted-foreground">
+                              {formatTimestamp(email.created_at)}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={(e) => handleSingleDelete(e, email.id)}
+                            >
+                              <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div className={cn(
+                          "text-sm mb-1 truncate",
+                          email.is_read === false ? "font-medium text-foreground" : "text-foreground/80"
+                        )}>
+                          {email.email_subject || "(No subject)"}
+                        </div>
+                        
                         <div className="flex items-center gap-2">
-                          {email.opened === false && (
-                            <Circle className="h-2 w-2 fill-blue-500 text-blue-500 flex-shrink-0" />
-                          )}
-                          <span className="font-medium truncate">
-                            {email.to_email}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={(e) => handleSingleDelete(e, email.id)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
-                          </Button>
-                          <Circle
-                            className={cn("h-2 w-2 fill-current flex-shrink-0", getStatusColor(email.event_type))}
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="text-sm font-medium text-foreground mb-1 truncate">
-                        {email.email_subject || "(No subject)"}
-                      </div>
-                      
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Badge 
-                          variant={email.deleted_at ? "destructive" : "secondary"} 
-                          className="text-xs"
-                        >
-                          {getStatusLabel(email.event_type, email.deleted_at)}
-                        </Badge>
-                        {email.campaign_name && (
-                          <span className="text-xs text-muted-foreground truncate">
-                            {email.campaign_name}
-                          </span>
-                        )}
-                        {email.reply_count !== undefined && email.reply_count > 0 && (
-                          <Badge variant="outline" className="text-xs">
-                            <Mail className="h-3 w-3 mr-1" />
-                            {email.reply_count} {email.reply_count === 1 ? 'reply' : 'replies'}
+                          {/* Status indicator */}
+                          <Badge variant="secondary" className="text-xs h-5 px-1.5">
+                            {email.is_inbox ? "Received" : email.event_type.replace("email.", "").charAt(0).toUpperCase() + email.event_type.replace("email.", "").slice(1)}
                           </Badge>
-                        )}
-                      </div>
-                      
-                      {/* Tracking Pills */}
-                      {email.event_type !== "draft" && (
-                        <div className="mt-2" onClick={(e) => e.stopPropagation()}>
-                          <EmailTrackingPills
-                            events={emailEvents.filter((e: any) => e.resend_email_id === (email as any).resend_email_id)}
-                            sentAt={email.created_at}
-                            onClick={() => onOpenTimeline?.()}
-                          />
+                          
+                          {/* Tracking indicators */}
+                          {!email.is_inbox && (
+                            <div className="flex items-center gap-1">
+                              {tracking.opened && (
+                                <Eye className="h-3 w-3 text-blue-500" />
+                              )}
+                              {tracking.clicked && (
+                                <MousePointer className="h-3 w-3 text-purple-500" />
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Reply count */}
+                          {(email.reply_count || 0) > 0 && (
+                            <Badge variant="outline" className="text-xs h-5 px-1.5">
+                              <Mail className="h-2.5 w-2.5 mr-1" />
+                              {email.reply_count}
+                            </Badge>
+                          )}
                         </div>
-                      )}
-                      
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {new Date(email.created_at).toLocaleString()}
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -377,8 +379,8 @@ export function EmailList({
             <AlertDialogTitle>Move to trash?</AlertDialogTitle>
             <AlertDialogDescription>
               {pendingDeleteIds.length === 1 
-                ? "This email will be moved to trash. It will still be in your Gmail."
-                : `${pendingDeleteIds.length} emails will be moved to trash. They will still be in your Gmail.`
+                ? "This email will be moved to trash."
+                : `${pendingDeleteIds.length} emails will be moved to trash.`
               }
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -397,9 +399,7 @@ export function EmailList({
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete}>
-              Delete
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleConfirmDelete}>Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
