@@ -10,6 +10,7 @@ import { TopNavBar } from "@/components/TopNavBar";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { useAdminViewMode } from "@/hooks/useAdminViewMode";
 import { AdminNotesFloatingButton } from "@/components/admin/notes/AdminNotesFloatingButton";
+import { HelpDrawer } from "@/components/help/HelpDrawer";
 
 interface WorkspaceLayoutProps {
   user: User | null;
@@ -191,6 +192,8 @@ function WorkspaceLayoutInner({
           {children}
         </main>
       </div>
+      {/* Portal-scoped Help Drawer - opens without navigation */}
+      <HelpDrawer />
     </div>
   );
 }

@@ -25,7 +25,7 @@ interface KnowledgeHubPanelProps {
   contentKey: string;
 }
 
-// Fallback static articles when database is empty
+// Fallback static articles when database is empty - Creator-focused content
 const FALLBACK_ARTICLES: Record<PortalType, Array<{
   id: string;
   title: string;
@@ -38,8 +38,12 @@ const FALLBACK_ARTICLES: Record<PortalType, Array<{
     { id: 'admin-2', title: 'User Management', content: 'How to manage users, roles, and permissions.', category: 'Administration', tags: ['users', 'roles'] },
   ],
   creator: [
-    { id: 'creator-1', title: 'Getting Started as a Creator', content: 'Set up your creator profile and start creating content.', category: 'Getting Started', tags: ['onboarding'] },
-    { id: 'creator-2', title: 'Podcast Studio Guide', content: 'Learn how to use the podcast recording studio.', category: 'Studio', tags: ['studio', 'recording'] },
+    { id: 'creator-1', title: 'Getting Started as a Creator', content: 'Welcome to Seeksy! This guide will help you set up your creator profile, connect your social accounts, and start building your audience. Start by completing your profile, then explore the Studio for recording.', category: 'Getting Started', tags: ['onboarding', 'profile'] },
+    { id: 'creator-2', title: 'Podcast Studio Guide', content: 'Learn how to use the podcast recording studio. Record solo episodes or invite guests. Features include noise reduction, AI transcription, and automatic clip generation.', category: 'Studio', tags: ['studio', 'recording', 'podcast'] },
+    { id: 'creator-3', title: 'Monetization Strategies', content: 'Discover multiple revenue streams: sponsorships, dynamic ads, tips, paid subscriptions, and merchandise. Learn which monetization methods work best for your audience size.', category: 'Monetization', tags: ['monetization', 'revenue', 'ads'] },
+    { id: 'creator-4', title: 'Growing Your Podcast Audience', content: 'Proven strategies for podcast growth: SEO optimization, cross-promotion, social media clips, guest appearances, and newsletter integration.', category: 'Growth', tags: ['growth', 'audience', 'marketing'] },
+    { id: 'creator-5', title: 'AI Tools for Creators', content: 'Use AI to supercharge your workflow: auto-transcription, clip suggestions, show notes generation, social post drafts, and voice cloning for intros.', category: 'AI Tools', tags: ['ai', 'automation', 'tools'] },
+    { id: 'creator-6', title: 'Distribution & RSS', content: 'Get your podcast on Spotify, Apple Podcasts, and more. Manage your RSS feed, track analytics across platforms, and optimize for discovery.', category: 'Distribution', tags: ['distribution', 'rss', 'spotify'] },
   ],
   advertiser: [
     { id: 'adv-1', title: 'Campaign Setup Guide', content: 'Create and manage your advertising campaigns.', category: 'Campaigns', tags: ['campaigns'] },

@@ -51,12 +51,12 @@ import {
   Star,
   GripVertical,
   HelpCircle,
+  Mail,
   // Module icons
   Mic,
   Podcast,
   Scissors,
   FileText,
-  Mail,
   Megaphone,
   Zap,
   Users,
@@ -89,6 +89,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useModuleGroups } from "@/hooks/useModuleGroups";
 import { useQueryClient } from "@tanstack/react-query";
+import { useHelpMenuActions } from "@/hooks/useHelpDrawer";
 
 // Icon mapping for modules - ensure correct icons for each module
 const MODULE_ICONS: Record<string, React.ElementType> = {
@@ -664,69 +665,8 @@ export function WorkspaceSidebar() {
           </ScrollArea>
         </SidebarContent>
 
-        {/* Sticky Footer - always visible even when scrolling */}
-        <SidebarFooter className="p-3 pt-2 border-t border-sidebar-border bg-sidebar mt-auto">
-          <SidebarMenu>
-            {/* Knowledge Hub */}
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => navigate('/knowledge/creator')}
-                isActive={isActive('/knowledge/creator')}
-                tooltip="Knowledge Hub"
-                className="text-sidebar-foreground hover:bg-sidebar-accent"
-              >
-                <BookOpen className="h-4 w-4" />
-                {!isCollapsed && <span>Knowledge Hub</span>}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            {/* Help Desk */}
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => navigate('/helpdesk')}
-                isActive={isActive('/helpdesk')}
-                tooltip="Help Desk"
-                className="text-sidebar-foreground hover:bg-sidebar-accent"
-              >
-                <HelpCircle className="h-4 w-4" />
-                {!isCollapsed && <span>Help Desk</span>}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            
-            {/* AI Agent / Ask Seeksy - Opens chat panel */}
-            <SidebarMenuItem>
-              <button
-                onClick={() => document.dispatchEvent(new Event('open-spark-assistant'))}
-                className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
-                  "hover:bg-sidebar-accent",
-                  "border border-transparent hover:border-sidebar-border",
-                  isCollapsed && "justify-center px-2"
-                )}
-              >
-                <SparkIcon variant="holiday" size={24} className="flex-shrink-0" />
-                {!isCollapsed && (
-                  <span className="text-sidebar-foreground font-semibold text-base">
-                    Ask Seeksy
-                  </span>
-                )}
-              </button>
-            </SidebarMenuItem>
-            
-            {/* Settings */}
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => navigate('/settings')}
-                isActive={isActive('/settings')}
-                tooltip="Settings"
-                className="text-sidebar-foreground hover:bg-sidebar-accent"
-              >
-                <Settings className="h-4 w-4" />
-                {!isCollapsed && <span>Settings</span>}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarFooter>
+        {/* Sticky Footer - Creator Help Menu (SPA actions, no redirects) */}
+        <CreatorHelpFooter isCollapsed={isCollapsed} navigate={navigate} isActive={isActive} />
       </Sidebar>
       
       {/* Module Center Modal */}
@@ -749,5 +689,108 @@ export function WorkspaceSidebar() {
         }}
       />
     </>
+  );
+}
+
+/**
+ * Creator Help Footer - Uses SPA actions, no page navigation
+ * Opens modals/drawers for Knowledge Hub, Daily Brief, Help Center, Contact Support
+ */
+function CreatorHelpFooter({ 
+  isCollapsed, 
+  navigate, 
+  isActive 
+}: { 
+  isCollapsed: boolean; 
+  navigate: (path: string) => void;
+  isActive: (path: string) => boolean;
+}) {
+  const { handleHelpMenuAction } = useHelpMenuActions();
+  
+  return (
+    <SidebarFooter className="p-3 pt-2 border-t border-sidebar-border bg-sidebar mt-auto">
+      <SidebarMenu>
+        {/* Knowledge Hub - Opens drawer, no navigation */}
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            onClick={() => handleHelpMenuAction('knowledge_hub')}
+            tooltip="Knowledge Hub"
+            className="text-sidebar-foreground hover:bg-sidebar-accent"
+          >
+            <BookOpen className="h-4 w-4" />
+            {!isCollapsed && <span>Knowledge Hub</span>}
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+
+        {/* Daily Brief - Opens drawer, no navigation */}
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            onClick={() => handleHelpMenuAction('daily_brief')}
+            tooltip="Daily Brief"
+            className="text-sidebar-foreground hover:bg-sidebar-accent"
+          >
+            <Newspaper className="h-4 w-4" />
+            {!isCollapsed && <span>Daily Brief</span>}
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+
+        {/* Help Center - Opens drawer, no navigation */}
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            onClick={() => handleHelpMenuAction('help_center')}
+            tooltip="Help Center"
+            className="text-sidebar-foreground hover:bg-sidebar-accent"
+          >
+            <HelpCircle className="h-4 w-4" />
+            {!isCollapsed && <span>Help Center</span>}
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+
+        {/* Contact Support - Opens drawer, no navigation */}
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            onClick={() => handleHelpMenuAction('contact_support')}
+            tooltip="Contact Support"
+            className="text-sidebar-foreground hover:bg-sidebar-accent"
+          >
+            <Mail className="h-4 w-4" />
+            {!isCollapsed && <span>Contact Support</span>}
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        
+        {/* AI Agent / Ask Seeksy - Opens chat panel */}
+        <SidebarMenuItem>
+          <button
+            onClick={() => handleHelpMenuAction('ai_assistant')}
+            className={cn(
+              "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
+              "hover:bg-sidebar-accent",
+              "border border-transparent hover:border-sidebar-border",
+              isCollapsed && "justify-center px-2"
+            )}
+          >
+            <SparkIcon variant="holiday" size={24} className="flex-shrink-0" />
+            {!isCollapsed && (
+              <span className="text-sidebar-foreground font-semibold text-base">
+                Ask Seeksy
+              </span>
+            )}
+          </button>
+        </SidebarMenuItem>
+        
+        {/* Settings - Still navigates to settings page */}
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            onClick={() => navigate('/settings')}
+            isActive={isActive('/settings')}
+            tooltip="Settings"
+            className="text-sidebar-foreground hover:bg-sidebar-accent"
+          >
+            <Settings className="h-4 w-4" />
+            {!isCollapsed && <span>Settings</span>}
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    </SidebarFooter>
   );
 }

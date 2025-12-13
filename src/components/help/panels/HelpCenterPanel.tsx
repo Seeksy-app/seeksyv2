@@ -25,7 +25,7 @@ interface HelpTopic {
   icon: 'faq' | 'guide' | 'video' | 'article';
 }
 
-// Portal-specific help topics
+// Portal-specific help topics - Creator-focused content
 const PORTAL_HELP: Record<PortalType, HelpTopic[]> = {
   admin: [
     { id: 'ah1', title: 'Admin Quick Start', description: 'Get started with platform administration.', icon: 'guide' },
@@ -34,10 +34,15 @@ const PORTAL_HELP: Record<PortalType, HelpTopic[]> = {
     { id: 'ah4', title: 'Admin FAQ', description: 'Common questions about administration.', icon: 'faq' },
   ],
   creator: [
-    { id: 'ch1', title: 'Creator Quick Start', description: 'Begin your creator journey.', icon: 'guide' },
-    { id: 'ch2', title: 'Recording Your First Episode', description: 'Step-by-step recording guide.', icon: 'video' },
-    { id: 'ch3', title: 'Monetization Guide', description: 'Learn how to earn from your content.', icon: 'article' },
-    { id: 'ch4', title: 'Creator FAQ', description: 'Common questions from creators.', icon: 'faq' },
+    { id: 'ch1', title: 'Getting Started', description: 'Set up your creator profile and start your journey.', icon: 'guide' },
+    { id: 'ch2', title: 'Recording Your First Episode', description: 'Step-by-step guide to recording in the Studio.', icon: 'video' },
+    { id: 'ch3', title: 'Booking Links Setup', description: 'Create and share booking links for guest appearances.', icon: 'article' },
+    { id: 'ch4', title: 'Monetization Guide', description: 'Unlock revenue with ads, sponsorships, and subscriptions.', icon: 'article' },
+    { id: 'ch5', title: 'Podcast Distribution', description: 'Get your show on Spotify, Apple, and more.', icon: 'guide' },
+    { id: 'ch6', title: 'AI Clip Generation', description: 'Auto-generate clips for social media.', icon: 'video' },
+    { id: 'ch7', title: 'Analytics & Insights', description: 'Track your downloads, listens, and audience growth.', icon: 'article' },
+    { id: 'ch8', title: 'Creator FAQ', description: 'Common questions from creators and podcasters.', icon: 'faq' },
+    { id: 'ch9', title: 'Troubleshooting Audio', description: 'Fix common recording and playback issues.', icon: 'article' },
   ],
   advertiser: [
     { id: 'advh1', title: 'Advertiser Quick Start', description: 'Launch your first campaign.', icon: 'guide' },
