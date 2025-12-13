@@ -127,7 +127,7 @@ export default function BlogManagement() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Blog Management</h1>
+          <h1 className="text-2xl font-bold">Blog Content Generator</h1>
           <p className="text-muted-foreground">Manage RSS sources, content generation, and articles</p>
         </div>
         <div className="flex gap-2">

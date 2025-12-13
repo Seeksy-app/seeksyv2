@@ -6,10 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { Plus, Edit, Trash2, Eye, Search, ArrowLeft, LayoutGrid, List as ListIcon, ArrowUpDown, Sparkles } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Search, ArrowLeft, LayoutGrid, List as ListIcon, ArrowUpDown, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const AdminMasterBlog = () => {
   const navigate = useNavigate();
@@ -19,6 +21,7 @@ const AdminMasterBlog = () => {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [filterType, setFilterType] = useState<"all" | "ai" | "user">("all");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<any>(null);
 
   // Helper to decode HTML entities
   const decodeHtmlEntities = (text: string): string => {
@@ -327,7 +330,7 @@ const AdminMasterBlog = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open(`/blog/${post.slug}`, "_blank")}
+                      onClick={() => setSelectedPost(post)}
                     >
                       <Eye className="w-3 h-3 mr-1" />
                       View
@@ -423,7 +426,7 @@ const AdminMasterBlog = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => window.open(`/blog/${post.slug}`, "_blank")}
+                        onClick={() => setSelectedPost(post)}
                       >
                         <Eye className="w-3 h-3 mr-1" />
                         View
@@ -442,6 +445,26 @@ const AdminMasterBlog = () => {
             </TableBody>
           </Table>
         )}
+
+        {/* Article Preview Modal */}
+        <Dialog open={!!selectedPost} onOpenChange={() => setSelectedPost(null)}>
+          <DialogContent className="max-w-3xl max-h-[80vh]">
+            <DialogHeader>
+              <DialogTitle>{selectedPost && decodeHtmlEntities(selectedPost.title)}</DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="max-h-[60vh]">
+              {selectedPost && (
+                <div className="space-y-4">
+                  {selectedPost.featured_image_url && (
+                    <img src={selectedPost.featured_image_url} alt={selectedPost.title} className="w-full rounded-lg" />
+                  )}
+                  <p className="text-muted-foreground">{selectedPost.excerpt}</p>
+                  <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: selectedPost.content }} />
+                </div>
+              )}
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useSensors, useSensor, PointerSensor } from "@dnd-kit/core";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { WorkspaceSelector } from "./WorkspaceSelector";
 import { MoveToSectionMenu } from "./MoveToSectionMenu";
@@ -184,33 +185,34 @@ interface ModuleRegistryItem {
 export function WorkspaceSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { state, open, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
   const { currentWorkspace, workspaceModules, removeModule, toggleStandalone, togglePinned } = useWorkspace();
   const [moduleRegistry, setModuleRegistry] = useState<ModuleRegistryItem[]>([]);
   const [showModuleCenter, setShowModuleCenter] = useState(false);
-  const [moduleCenterDefaultToApps, setModuleCenterDefaultToApps] = useState(false);
   const [showCreateWorkspace, setShowCreateWorkspace] = useState(false);
+  const [moduleCenterDefaultToApps, setModuleCenterDefaultToApps] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+  const [contextMenuModule, setContextMenuModule] = useState<string | null>(null);
+  const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
+  const [draggedModule, setDraggedModule] = useState<string | null>(null);
   const [removingModule, setRemovingModule] = useState<string | null>(null);
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['studio', 'campaigns', 'events', 'crm']));
+  const [, setForceUpdate] = useState(0);
 
-  // Fetch module registry
+  // Sensors for drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
+
+  // Effect to re-render when sidebar collapses/expands
   useEffect(() => {
-    const fetchRegistry = async () => {
-      const { data } = await supabase
-        .from('module_registry')
-        .select('*')
-        .eq('is_active', true)
-        .order('display_order');
-      
-      if (data) {
-        setModuleRegistry(data);
-      }
-    };
-    fetchRegistry();
-  }, []);
+    setForceUpdate(prev => prev + 1);
+  }, [state]);
 
   const isCollapsed = state === 'collapsed';
-  const toggleSidebar = toggleSidebarState;
 
   // Fetch module groupings from DB
   const { data: dbModuleGroups } = useModuleGroups();
@@ -324,15 +326,10 @@ export function WorkspaceSidebar() {
   };
 
   const toggleGroup = (groupId: string) => {
-    setExpandedGroups(prev => {
-      const next = new Set(prev);
-      if (next.has(groupId)) {
-        next.delete(groupId);
-      } else {
-        next.add(groupId);
-      }
-      return next;
-    });
+    setExpandedGroups(prev => ({
+      ...prev,
+      [groupId]: !prev[groupId]
+    }));
   };
 
   const queryClient = useQueryClient();
@@ -631,7 +628,7 @@ export function WorkspaceSidebar() {
                 <SidebarMenu>
                   {/* Grouped modules */}
                   {Array.from(groupedModules.entries()).map(([groupKey, { groupName, allModules }]) => {
-                    const isExpanded = expandedGroups.has(groupKey);
+                    const isExpanded = expandedGroups[groupKey] ?? false;
                     // Use first module's icon for group header, or a default
                     const firstModule = allModules[0];
                     const GroupIcon = firstModule ? (MODULE_ICONS[firstModule.id] || FolderOpen) : FolderOpen;

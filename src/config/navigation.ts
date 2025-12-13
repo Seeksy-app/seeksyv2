@@ -390,7 +390,7 @@ export const NAVIGATION_CONFIG: {
         },
         {
           "id": "admin_master_blog",
-          "label": "Articles / Blog",
+          "label": "Master Blog",
           "icon": "book-open",
           "path": "/admin/master-blog",
           "roles": ["admin", "super_admin", "cco"]
@@ -399,12 +399,12 @@ export const NAVIGATION_CONFIG: {
           "id": "admin_knowledge_hub",
           "label": "Knowledge Hub",
           "icon": "library",
-          "path": "/knowledge/admin",
+          "path": "/admin/knowledge-base",
           "roles": ["admin", "super_admin", "cfo", "cmo", "cco"]
         },
         {
           "id": "admin_blog_management",
-          "label": "Blog Management",
+          "label": "Blog Content Generator",
           "icon": "settings-2",
           "path": "/admin/blog-management",
           "roles": ["admin", "super_admin", "cco"]
