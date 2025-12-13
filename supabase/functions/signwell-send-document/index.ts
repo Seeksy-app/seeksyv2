@@ -46,11 +46,11 @@ serve(async (req) => {
 
     // Create document in SignWell with sequential 3-party signing
     // Order: 1) Seller -> 2) Purchaser -> 3) Chairman
-    // Note: We use text_tags=true so SignWell looks for [[signature_seller]] etc. in the document
-    // Or we define fields explicitly with page/coordinates
+    // Using draft mode to add fields, then finalize
     
     const signWellPayload = {
       test_mode: false,
+      draft: true, // Create as draft first to add fields
       files: [
         {
           name: documentName,
@@ -67,78 +67,6 @@ serve(async (req) => {
         placeholder_name: r.role || `Signer ${index + 1}`,
         signing_order: index + 1, // Sequential: Seller=1, Purchaser=2, Chairman=3
       })),
-      fields: [
-        // Signature fields for each recipient - positioned on the last page
-        // Seller signature (first signer)
-        recipients[0] ? [
-          {
-            type: "signature",
-            required: true,
-            recipient_id: recipients[0].id,
-            page: -1, // Last page
-            x: 10,
-            y: 70,
-            width: 30,
-            height: 5,
-          },
-          {
-            type: "date",
-            required: true,
-            recipient_id: recipients[0].id,
-            page: -1,
-            x: 45,
-            y: 70,
-            width: 15,
-            height: 3,
-          }
-        ] : [],
-        // Purchaser signature (second signer)
-        recipients[1] ? [
-          {
-            type: "signature",
-            required: true,
-            recipient_id: recipients[1].id,
-            page: -1,
-            x: 10,
-            y: 80,
-            width: 30,
-            height: 5,
-          },
-          {
-            type: "date",
-            required: true,
-            recipient_id: recipients[1].id,
-            page: -1,
-            x: 45,
-            y: 80,
-            width: 15,
-            height: 3,
-          }
-        ] : [],
-        // Chairman signature (third signer)
-        recipients[2] ? [
-          {
-            type: "signature",
-            required: true,
-            recipient_id: recipients[2].id,
-            page: -1,
-            x: 10,
-            y: 90,
-            width: 30,
-            height: 5,
-          },
-          {
-            type: "date",
-            required: true,
-            recipient_id: recipients[2].id,
-            page: -1,
-            x: 45,
-            y: 90,
-            width: 15,
-            height: 3,
-          }
-        ] : [],
-      ].flat(),
       apply_signing_order: true, // Enforce sequential signing
       custom_requester_name: "Seeksy Legal",
       custom_requester_email: "legal@seeksy.io",
@@ -151,7 +79,7 @@ serve(async (req) => {
       metadata: instanceId ? { instanceId } : undefined,
     };
 
-    console.log("Sending to SignWell API...");
+    console.log("Sending to SignWell API (draft mode)...");
 
     const signWellResponse = await fetch("https://www.signwell.com/api/v1/documents/", {
       method: "POST",
@@ -178,16 +106,93 @@ serve(async (req) => {
     }
 
     const signWellData = JSON.parse(responseText);
+    const documentId = signWellData.id;
+    
+    console.log("SignWell draft document created:", documentId);
 
-    console.log("SignWell document created:", signWellData.id);
+    // Now add signature fields to the document for each recipient
+    const fieldsPayload = {
+      fields: recipients.map((r, index) => ([
+        {
+          type: "signature",
+          required: true,
+          recipient_id: r.id,
+          page: 1, // First page - SignWell uses 1-indexed
+          x: 10,
+          y: 85 + (index * 5), // Stack signatures vertically
+          width: 30,
+          height: 4,
+        },
+        {
+          type: "date",
+          required: true,
+          recipient_id: r.id,
+          page: 1,
+          x: 45,
+          y: 85 + (index * 5),
+          width: 15,
+          height: 4,
+        }
+      ])).flat(),
+    };
+
+    console.log("Adding fields to document:", documentId);
+
+    const fieldsResponse = await fetch(`https://www.signwell.com/api/v1/documents/${documentId}/fields`, {
+      method: "POST",
+      headers: {
+        "X-Api-Key": SIGNWELL_API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(fieldsPayload),
+    });
+
+    const fieldsResponseText = await fieldsResponse.text();
+    console.log("Fields response status:", fieldsResponse.status);
+    console.log("Fields response:", fieldsResponseText);
+
+    if (!fieldsResponse.ok) {
+      console.error("SignWell fields API error:", fieldsResponseText);
+      // Continue even if fields fail - the document is still usable
+    }
+
+    // Now finalize the document (send it out)
+    console.log("Sending document for signing:", documentId);
+
+    const sendResponse = await fetch(`https://www.signwell.com/api/v1/documents/${documentId}/send`, {
+      method: "POST",
+      headers: {
+        "X-Api-Key": SIGNWELL_API_KEY,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const sendResponseText = await sendResponse.text();
+    console.log("Send response status:", sendResponse.status);
+    console.log("Send response:", sendResponseText);
+
+    if (!sendResponse.ok) {
+      console.error("SignWell send API error:", sendResponseText);
+      return new Response(
+        JSON.stringify({ 
+          error: "Failed to send SignWell document", 
+          details: sendResponseText 
+        }),
+        { status: sendResponse.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const sendData = JSON.parse(sendResponseText);
+
+    console.log("SignWell document sent:", sendData.id);
 
     return new Response(
       JSON.stringify({
         success: true,
-        documentId: signWellData.id,
-        status: signWellData.status,
-        recipients: signWellData.recipients,
-        embeddedSigningUrl: signWellData.embedded_signing_url,
+        documentId: sendData.id,
+        status: sendData.status,
+        recipients: sendData.recipients,
+        embeddedSigningUrl: sendData.embedded_signing_url,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
