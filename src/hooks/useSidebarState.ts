@@ -45,9 +45,10 @@ const ROUTE_TO_GROUP: Record<string, string> = {
 
 const DEFAULT_STATE: SidebarState = {
   openGroups: {
-    "Email": true,
-    "Marketing": true,
-    "Media": true,
+    "Email Suite": false,
+    "Email": false,
+    "Marketing": false,
+    "Media": false,
     "User Management": false,
     "Advertising and Sales": false,
     "Business Operations": false,
@@ -56,6 +57,9 @@ const DEFAULT_STATE: SidebarState = {
     "Content Management": false,
     "Developer Tools": false,
     "Support": false,
+    "Admin Legal": false,
+    "Project Management": false,
+    "Financials (CFO)": false,
   }
 };
 

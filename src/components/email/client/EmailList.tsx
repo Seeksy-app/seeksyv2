@@ -121,6 +121,9 @@ export function EmailList({
 
   const deleteEmailMutation = useMutation({
     mutationFn: async (emailIds: string[]) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+      
       for (const emailId of emailIds) {
         const email = emails.find((e: any) => e.id === emailId);
         
@@ -128,13 +131,15 @@ export function EmailList({
           const { error } = await supabase
             .from("email_campaigns")
             .delete()
-            .eq("id", emailId);
+            .eq("id", emailId)
+            .eq("user_id", user.id);
           if (error) throw error;
         } else if (email?.is_inbox || email?.event_type === "received") {
           const { error } = await supabase
             .from("inbox_messages")
             .update({ deleted_at: new Date().toISOString() })
-            .eq("id", emailId);
+            .eq("id", emailId)
+            .eq("user_id", user.id);
           if (error) throw error;
         } else {
           const { error } = await supabase
@@ -143,7 +148,8 @@ export function EmailList({
               deleted_at: new Date().toISOString(),
               original_event_type: email?.event_type 
             })
-            .eq("id", emailId);
+            .eq("id", emailId)
+            .eq("user_id", user.id);
           if (error) throw error;
         }
       }

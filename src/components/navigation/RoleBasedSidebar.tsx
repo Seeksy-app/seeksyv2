@@ -675,52 +675,54 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
           </SidebarMenu>
         )}
 
-        {/* Pinned Items Section - Admin only, above the separator */}
+        {/* Pinned Items Section - Admin only, sticky at top */}
         {shouldShowAdminNav && pinnedItems.length > 0 && (
-          <SidebarGroup className="border-b border-sidebar-border pb-2 mb-2">
-            <SidebarGroupLabel className="text-sidebar-foreground/60 font-medium text-xs px-3 py-1 uppercase tracking-wider">
-              Pinned
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {pinnedItems.map((item) => {
-                  const Icon = ICON_MAP[item.icon] || Grid3x3;
-                  return (
-                    <ContextMenu key={`pinned-${item.id}`}>
-                      <ContextMenuTrigger asChild>
-                        <SidebarMenuItem>
-                          <SidebarMenuButton asChild tooltip={collapsed ? item.label : undefined}>
-                            <NavLink
-                              to={item.path}
-                              className="flex items-center gap-3 transition-all duration-150 text-sidebar-foreground hover:bg-sidebar-accent"
-                              activeClassName="bg-sidebar-primary/15 text-sidebar-primary font-medium border-l-2 border-sidebar-primary"
-                            >
-                              <Icon className="h-4 w-4 shrink-0" />
-                              {!collapsed && (
-                                <>
-                                  <span className="truncate flex-1">{item.label}</span>
-                                  <Pin className="h-3 w-3 text-amber-500 shrink-0" />
-                                </>
-                              )}
-                            </NavLink>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      </ContextMenuTrigger>
-                      <ContextMenuContent className="bg-popover border border-border shadow-lg z-50">
-                        <ContextMenuItem 
-                          onClick={() => handleTogglePin(item.id, item.label)}
-                          className="flex items-center gap-2 cursor-pointer"
-                        >
-                          <PinOff className="h-4 w-4" />
-                          Unpin from Top
-                        </ContextMenuItem>
-                      </ContextMenuContent>
-                    </ContextMenu>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <div className="sticky top-0 z-10 bg-sidebar border-b border-sidebar-border pb-2 mb-2">
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-sidebar-foreground/60 font-medium text-xs px-3 py-1 uppercase tracking-wider">
+                Pinned
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {pinnedItems.map((item) => {
+                    const Icon = ICON_MAP[item.icon] || Grid3x3;
+                    return (
+                      <ContextMenu key={`pinned-${item.id}`}>
+                        <ContextMenuTrigger asChild>
+                          <SidebarMenuItem>
+                            <SidebarMenuButton asChild tooltip={collapsed ? item.label : undefined}>
+                              <NavLink
+                                to={item.path}
+                                className="flex items-center gap-3 transition-all duration-150 text-sidebar-foreground hover:bg-sidebar-accent"
+                                activeClassName="bg-sidebar-primary/15 text-sidebar-primary font-medium border-l-2 border-sidebar-primary"
+                              >
+                                <Icon className="h-4 w-4 shrink-0" />
+                                {!collapsed && (
+                                  <>
+                                    <span className="truncate flex-1">{item.label}</span>
+                                    <Pin className="h-3 w-3 text-amber-500 shrink-0" />
+                                  </>
+                                )}
+                              </NavLink>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        </ContextMenuTrigger>
+                        <ContextMenuContent className="bg-popover border border-border shadow-lg z-50">
+                          <ContextMenuItem 
+                            onClick={() => handleTogglePin(item.id, item.label)}
+                            className="flex items-center gap-2 cursor-pointer"
+                          >
+                            <PinOff className="h-4 w-4" />
+                            Unpin from Top
+                          </ContextMenuItem>
+                        </ContextMenuContent>
+                      </ContextMenu>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </div>
         )}
 
         {/* Admin-only collapsible sections */}
