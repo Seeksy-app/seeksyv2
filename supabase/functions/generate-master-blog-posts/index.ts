@@ -9,8 +9,13 @@ const corsHeaders = {
 // Only admins and editors can generate master blog posts
 const ALLOWED_ROLES = ['admin', 'super_admin', 'editor'];
 
-// Generate an image using Lovable AI (google/gemini-2.5-flash-image-preview)
-async function generateImage(prompt: string, lovableApiKey: string): Promise<string | null> {
+// Generate an image using Lovable AI and upload to storage
+async function generateImage(
+  prompt: string, 
+  lovableApiKey: string, 
+  supabase: any,
+  filename: string
+): Promise<string | null> {
   try {
     console.log('🖼️ Generating image with prompt:', prompt.substring(0, 80) + '...');
     
@@ -39,17 +44,53 @@ async function generateImage(prompt: string, lovableApiKey: string): Promise<str
     }
 
     const data = await response.json();
-    console.log('🖼️ Image API response keys:', Object.keys(data));
+    const base64DataUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    if (!base64DataUrl) {
+      console.warn('⚠️ No image URL in response');
+      return null;
+    }
+
+    console.log('✅ Image generated, uploading to storage...');
     
-    if (imageUrl) {
-      console.log('✅ Image generated successfully (base64 length:', imageUrl.length, ')');
-      return imageUrl;
+    // Extract base64 data and convert to binary
+    const base64Match = base64DataUrl.match(/^data:image\/(\w+);base64,(.+)$/);
+    if (!base64Match) {
+      console.error('❌ Invalid base64 data URL format');
+      return null;
     }
     
-    console.warn('⚠️ No image URL in response:', JSON.stringify(data).substring(0, 200));
-    return null;
+    const imageFormat = base64Match[1];
+    const base64Data = base64Match[2];
+    
+    // Convert base64 to Uint8Array
+    const binaryString = atob(base64Data);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    
+    // Upload to Supabase storage
+    const storagePath = `blog-images/${filename}.${imageFormat}`;
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('blog-assets')
+      .upload(storagePath, bytes, {
+        contentType: `image/${imageFormat}`,
+        upsert: true
+      });
+    
+    if (uploadError) {
+      console.error('❌ Failed to upload image:', uploadError.message);
+      return null;
+    }
+    
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('blog-assets')
+      .getPublicUrl(storagePath);
+    
+    console.log('✅ Image uploaded successfully:', publicUrl);
+    return publicUrl;
   } catch (error) {
     console.error('❌ Error generating image:', error);
     return null;
@@ -231,18 +272,21 @@ Return this exact JSON structure (no markdown, no code blocks):
 
       console.log(`📰 Parsed article: "${blogData.title}"`);
 
+      // Generate unique filename base
+      const filenameBase = `${Date.now()}-${i}`;
+
       // Generate featured image (REQUIRED)
       let featuredImageUrl = null;
       if (blogData.featured_image_prompt) {
         const imagePrompt = `Professional blog header illustration: ${blogData.featured_image_prompt}. Modern minimalist design, subtle blue color palette (#053877, #2C6BED), abstract shapes, no text, no human faces, 16:9 aspect ratio, high quality editorial style.`;
-        featuredImageUrl = await generateImage(imagePrompt, lovableApiKey);
+        featuredImageUrl = await generateImage(imagePrompt, lovableApiKey, supabase, `featured-${filenameBase}`);
       }
       
       // If featured image failed, try a generic prompt
       if (!featuredImageUrl) {
         console.log('⚠️ Featured image failed, trying fallback prompt...');
         const fallbackPrompt = `Abstract modern blog header illustration for article about ${blogData.title}. Minimalist design with blue gradient colors, geometric shapes, professional editorial style, no text, no faces, 16:9 aspect ratio.`;
-        featuredImageUrl = await generateImage(fallbackPrompt, lovableApiKey);
+        featuredImageUrl = await generateImage(fallbackPrompt, lovableApiKey, supabase, `featured-${filenameBase}-fallback`);
       }
 
       // Generate inline images and replace placeholders
@@ -250,7 +294,7 @@ Return this exact JSON structure (no markdown, no code blocks):
       if (blogData.inline_image_prompts && Array.isArray(blogData.inline_image_prompts)) {
         for (let j = 0; j < blogData.inline_image_prompts.length; j++) {
           const inlinePrompt = `Blog illustration: ${blogData.inline_image_prompts[j]}. Clean professional modern style, suitable for inline article content, no text overlay.`;
-          const inlineImageUrl = await generateImage(inlinePrompt, lovableApiKey);
+          const inlineImageUrl = await generateImage(inlinePrompt, lovableApiKey, supabase, `inline-${filenameBase}-${j}`);
           
           if (inlineImageUrl) {
             finalContent = finalContent.replace(`INLINE_IMAGE_${j + 1}`, inlineImageUrl);
