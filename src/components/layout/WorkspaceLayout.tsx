@@ -60,7 +60,7 @@ function useRoleBasedRouting(user: User | null) {
       const isCreatorRoute = !location.pathname.startsWith('/admin') && 
                              !location.pathname.startsWith('/board') && 
                              !location.pathname.startsWith('/cfo');
-      if (isCreatorRoute && !location.pathname.startsWith('/settings') && !location.pathname.startsWith('/email-settings')) {
+      if (isCreatorRoute && !location.pathname.startsWith('/settings') && !location.pathname.startsWith('/email-settings') && !location.pathname.startsWith('/signatures')) {
         console.log('[WorkspaceLayout] Admin on creator route, redirecting to /admin');
         navigate('/admin', { replace: true });
       }

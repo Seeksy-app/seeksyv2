@@ -40,7 +40,7 @@ export function CommandPalette() {
     { id: "clips", label: "Clips", icon: Video, category: "Navigation", action: () => navigate("/clips") },
     { id: "contacts", label: "Contacts", icon: Users, category: "Navigation", action: () => navigate("/contacts") },
     { id: "campaigns", label: "Email Campaigns", icon: Mail, category: "Navigation", action: () => navigate("/campaigns") },
-    { id: "analytics", label: "Analytics", icon: BarChart3, category: "Navigation", action: () => navigate("/analytics") },
+    { id: "analytics", label: "Analytics", icon: BarChart3, category: "Navigation", action: () => navigate("/email/analytics") },
     { id: "settings", label: "Settings", icon: Settings, category: "Navigation", action: () => navigate("/settings") },
     
     // Quick Actions
