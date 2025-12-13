@@ -10,6 +10,8 @@ import { NotificationsBell } from "@/components/NotificationsBell";
 import { DataModePill } from "@/components/data-mode/DataModePill";
 import { GlossaryButton } from "@/components/board/GlossaryModal";
 import { AdminViewSwitcher } from "@/components/admin/AdminViewSwitcher";
+import { DailyBriefButton } from "@/components/daily-brief/DailyBriefButton";
+import { SparkIcon } from "@/components/spark/SparkIcon";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,7 +22,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { HelpCircle, FileText, ChevronDown, Sparkles, ExternalLink, Settings, LogOut, User } from "lucide-react";
+import { HelpCircle, FileText, ChevronDown, Sparkles, ExternalLink, Settings, LogOut, User, BookOpen } from "lucide-react";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { supabase } from "@/integrations/supabase/client";
 import { useLocation, useNavigate, Link } from "react-router-dom";
@@ -133,6 +135,43 @@ export function TopNavBar() {
         <div className="flex items-center gap-1">
           {/* Data Mode Pill */}
           <DataModePill />
+
+          {/* Ask Seeksy - for Admin routes */}
+          {isAdminRoute && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={openAIChat}
+              className="gap-1.5 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+            >
+              <SparkIcon variant="holiday" size={16} />
+              <span className="hidden sm:inline">Ask Seeksy</span>
+            </Button>
+          )}
+
+          {/* Daily Brief - for Admin routes */}
+          {isAdminRoute && (
+            <DailyBriefButton 
+              audienceType="ceo" 
+              variant="ghost" 
+              size="sm"
+            />
+          )}
+
+          {/* Knowledge Hub - for Admin routes */}
+          {isAdminRoute && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1.5"
+              asChild
+            >
+              <Link to="/helpdesk">
+                <BookOpen className="h-4 w-4" />
+                <span className="hidden sm:inline">Knowledge</span>
+              </Link>
+            </Button>
+          )}
 
           {/* Notifications */}
           <NotificationsBell />
