@@ -19,17 +19,19 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { HelpCircle, FileText, ChevronDown, Sparkles, ExternalLink, Settings, LogOut, User, BookOpen, MessageCircle } from "lucide-react";
+import { HelpCircle, FileText, ChevronDown, Sparkles, ExternalLink, Settings, LogOut, User, BookOpen, MessageCircle, Pin, PinOff } from "lucide-react";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { supabase } from "@/integrations/supabase/client";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { usePinnedHeaderItems, headerItems, HeaderItemId } from "@/hooks/usePinnedHeaderItems";
 
 export function TopNavBar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAdmin } = useUserRoles();
+  const { pinnedItems, togglePin, isPinned } = usePinnedHeaderItems();
   const [teamName, setTeamName] = useState("Personal Workspace");
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
@@ -73,6 +75,16 @@ export function TopNavBar() {
 
   const openAIChat = () => {
     document.dispatchEvent(new Event('open-spark-assistant'));
+  };
+
+  const handleHeaderItemClick = (item: typeof headerItems[0]) => {
+    if (item.action === 'glossary') {
+      document.dispatchEvent(new Event('open-glossary'));
+    } else if (item.action === 'daily-brief') {
+      document.dispatchEvent(new CustomEvent('open-daily-brief', { detail: { audienceType: 'ceo' } }));
+    } else if (item.route) {
+      navigate(item.route);
+    }
   };
 
   const isAdminRoute = location.pathname.startsWith('/admin') || location.pathname.startsWith('/cfo');
@@ -133,6 +145,23 @@ export function TopNavBar() {
           {/* Data Mode Pill */}
           <DataModePill />
 
+          {/* Pinned Header Items */}
+          {headerItems.filter(item => isPinned(item.id)).map(item => (
+            <Button
+              key={item.id}
+              variant="ghost"
+              size="sm"
+              onClick={() => handleHeaderItemClick(item)}
+              className="gap-2 hidden sm:flex"
+            >
+              {item.id === 'knowledge-hub' && <BookOpen className="h-4 w-4" />}
+              {item.id === 'daily-brief' && <FileText className="h-4 w-4" />}
+              {item.id === 'docs' && <FileText className="h-4 w-4" />}
+              {item.id === 'glossary' && <BookOpen className="h-4 w-4" />}
+              <span className="text-sm font-medium">{item.label}</span>
+            </Button>
+          ))}
+
           {/* Ask Seeksy - for Admin routes (styled like Creator header) */}
           {isAdminRoute && (
             <Button 
@@ -157,40 +186,44 @@ export function TopNavBar() {
                 <span className="hidden sm:inline">Help</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-64">
               <DropdownMenuItem onClick={openAIChat} className="bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400">
                 <Sparkles className="h-4 w-4 mr-2" />
                 Ask AI Assistant
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link to="/helpdesk">
-                  <BookOpen className="h-4 w-4 mr-2" />
-                  Knowledge Hub
-                </Link>
-              </DropdownMenuItem>
-              {isAdminRoute && (
-                <DropdownMenuItem asChild>
-                  <div onClick={() => document.dispatchEvent(new CustomEvent('open-daily-brief', { detail: { audienceType: 'ceo' } }))} className="cursor-pointer flex items-center">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Daily Brief
+              {headerItems.map(item => (
+                <DropdownMenuItem 
+                  key={item.id}
+                  className="flex items-center justify-between group cursor-pointer"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleHeaderItemClick(item);
+                  }}
+                >
+                  <div className="flex items-center">
+                    {item.id === 'knowledge-hub' && <BookOpen className="h-4 w-4 mr-2" />}
+                    {item.id === 'daily-brief' && <FileText className="h-4 w-4 mr-2" />}
+                    {item.id === 'docs' && <FileText className="h-4 w-4 mr-2" />}
+                    {item.id === 'glossary' && <BookOpen className="h-4 w-4 mr-2" />}
+                    {item.label}
                   </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      togglePin(item.id);
+                    }}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-muted rounded"
+                    title={isPinned(item.id) ? 'Unpin from header' : 'Pin to header'}
+                  >
+                    {isPinned(item.id) ? (
+                      <PinOff className="h-3.5 w-3.5 text-muted-foreground" />
+                    ) : (
+                      <Pin className="h-3.5 w-3.5 text-muted-foreground" />
+                    )}
+                  </button>
                 </DropdownMenuItem>
-              )}
-              <DropdownMenuItem asChild>
-                <Link to="/docs">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Docs
-                </Link>
-              </DropdownMenuItem>
-              {(isAdminRoute || isBoardRoute) && (
-                <DropdownMenuItem asChild>
-                  <div onClick={() => document.dispatchEvent(new Event('open-glossary'))} className="cursor-pointer flex items-center">
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    Glossary
-                  </div>
-                </DropdownMenuItem>
-              )}
+              ))}
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link to="/helpdesk">
