@@ -11,12 +11,31 @@ const corsHeaders = {
 };
 
 interface RequestBody {
+  templateName?: string;
   purchaserName: string;
   purchaserAddress: string;
+  purchaserEmail?: string;
+  sellerName?: string;
+  sellerAddress?: string;
+  sellerEmail?: string;
+  chairmanName?: string;
   numberOfShares: number;
   pricePerShare: number;
   agreementDate?: string;
-  templatePath?: string;
+}
+
+// Convert number to words (for shares)
+function numberToWords(num: number): string {
+  const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+    'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  
+  if (num === 0) return 'Zero';
+  if (num < 20) return ones[num];
+  if (num < 100) return tens[Math.floor(num / 10)] + (num % 10 ? '-' + ones[num % 10] : '');
+  if (num < 1000) return ones[Math.floor(num / 100)] + ' Hundred' + (num % 100 ? ' ' + numberToWords(num % 100) : '');
+  if (num < 1000000) return numberToWords(Math.floor(num / 1000)) + ' Thousand' + (num % 1000 ? ' ' + numberToWords(num % 1000) : '');
+  return num.toLocaleString();
 }
 
 serve(async (req) => {
@@ -32,19 +51,30 @@ serve(async (req) => {
 
     const body: RequestBody = await req.json();
     const { 
+      templateName = "stock-purchase-agreement.docx",
       purchaserName, 
-      purchaserAddress, 
+      purchaserAddress,
+      purchaserEmail = "",
+      sellerName = "Seeksy, Inc.",
+      sellerAddress = "",
+      sellerEmail = "",
+      chairmanName = "",
       numberOfShares, 
       pricePerShare, 
       agreementDate,
-      templatePath = "stock-purchase-agreement.docx" 
     } = body;
+
+    // Construct template path - check if it's in the investment-documents folder
+    const templatePath = templateName.includes('/') 
+      ? templateName 
+      : `investment-documents/${templateName}`;
 
     console.log("Generating document from template for:", purchaserName);
     console.log("Template path:", templatePath);
 
     // Calculate total amount
     const totalAmount = numberOfShares * pricePerShare;
+    const sharesInWords = numberToWords(numberOfShares);
 
     // Download template from storage
     const { data: templateBlob, error: downloadError } = await supabase.storage
@@ -90,30 +120,44 @@ serve(async (req) => {
 
     // Set template data - matches placeholders like [PURCHASER_NAME]
     const templateData = {
-      // Primary placeholders (uppercase with underscores)
+      // Buyer/Purchaser placeholders
       PURCHASER_NAME: purchaserName,
       PURCHASER_ADDRESS: purchaserAddress,
+      PURCHASER_EMAIL: purchaserEmail,
+      BUYER_NAME: purchaserName,
+      BUYER_ADDRESS: purchaserAddress,
+      BUYER_EMAIL: purchaserEmail,
+      
+      // Seller placeholders
+      SELLER_NAME: sellerName,
+      SELLER_ADDRESS: sellerAddress,
+      SELLER_EMAIL: sellerEmail,
+      
+      // Chairman placeholder
+      CHAIRMAN_NAME: chairmanName,
+      
+      // Share/Amount placeholders
       NUMBER_OF_SHARES: numberOfShares.toLocaleString(),
+      NUMBER_OF_SHARES_WORDS: sharesInWords,
       PRICE_PER_SHARE: pricePerShare.toFixed(2),
       PURCHASE_AMOUNT: totalAmount.toFixed(2),
       TOTAL_AMOUNT: totalAmount.toFixed(2),
       AGREEMENT_DATE: formattedDate,
       
-      // Alternative formats users might use
+      // Alternative formats users might use (camelCase)
       purchaserName,
       purchaserAddress,
+      purchaserEmail,
+      sellerName,
+      sellerAddress,
+      sellerEmail,
+      chairmanName,
       numberOfShares: numberOfShares.toLocaleString(),
+      numberOfSharesWords: sharesInWords,
       pricePerShare: pricePerShare.toFixed(2),
       totalAmount: totalAmount.toFixed(2),
       purchaseAmount: totalAmount.toFixed(2),
       agreementDate: formattedDate,
-      
-      // Variations
-      Purchaser_Name: purchaserName,
-      Purchaser_Address: purchaserAddress,
-      Number_of_Shares: numberOfShares.toLocaleString(),
-      Price_Per_Share: pricePerShare.toFixed(2),
-      Purchase_Amount: totalAmount.toFixed(2),
     };
 
     console.log("Rendering document with data:", JSON.stringify(templateData, null, 2));

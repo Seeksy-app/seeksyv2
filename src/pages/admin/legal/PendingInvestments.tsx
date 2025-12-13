@@ -27,7 +27,8 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import TemplateUpload from "@/components/admin/legal/TemplateUpload";
+import TemplateLibrary from "@/components/admin/legal/TemplateLibrary";
+import TemplateSelector from "@/components/admin/legal/TemplateSelector";
 
 interface PendingInvestment {
   id: string;
@@ -106,6 +107,7 @@ export default function PendingInvestments() {
   // Admin signature info
   const [sellerEmail, setSellerEmail] = useState("");
   const [chairmanName, setChairmanName] = useState("");
+  const [selectedTemplate, setSelectedTemplate] = useState("");
   const [chairmanEmail, setChairmanEmail] = useState("");
 
   const fetchInvestments = async () => {
@@ -330,8 +332,13 @@ export default function PendingInvestments() {
         "generate-from-template",
         {
           body: {
+            templateName: selectedTemplate || "stock-purchase-agreement.docx",
             purchaserName,
             purchaserAddress,
+            purchaserEmail,
+            sellerName: "Seeksy, Inc.",
+            sellerEmail,
+            chairmanName: chairmanName || "Chairman",
             numberOfShares,
             pricePerShare,
             agreementDate: new Date().toLocaleDateString("en-US", {
@@ -526,7 +533,7 @@ export default function PendingInvestments() {
         </TabsContent>
 
         <TabsContent value="template">
-          <TemplateUpload />
+          <TemplateLibrary />
         </TabsContent>
 
         <TabsContent value="activity">
@@ -873,6 +880,13 @@ export default function PendingInvestments() {
                   </span>
                 </div>
               </div>
+
+              {/* Template Selection */}
+              <TemplateSelector
+                value={selectedTemplate}
+                onChange={setSelectedTemplate}
+                label="Select Document Template"
+              />
 
               {/* Signature Party Emails */}
               <div className="space-y-3">
