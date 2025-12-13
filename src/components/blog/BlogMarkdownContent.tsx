@@ -20,6 +20,11 @@ export const BlogMarkdownContent = ({ content }: BlogMarkdownContentProps) => {
     // H4: #### heading
     html = html.replace(/^#### (.+)$/gm, '<h4 class="text-lg font-medium mt-4 mb-2 text-foreground">$1</h4>');
     
+    // Convert markdown images ![alt](url) to img tags
+    html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, 
+      '<figure class="my-6"><img src="$2" alt="$1" class="w-full rounded-lg shadow-md" loading="lazy" /><figcaption class="text-sm text-muted-foreground text-center mt-2">$1</figcaption></figure>'
+    );
+    
     // Convert bold **text** to <strong>
     html = html.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold">$1</strong>');
     

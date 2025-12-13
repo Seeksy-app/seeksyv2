@@ -11,6 +11,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Search, Calendar, Eye, ArrowRight, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { NewsletterSignupForm } from "@/components/NewsletterSignupForm";
+import blogHeroImage from "@/assets/blog-hero.jpg";
 
 interface BlogPost {
   id: string;
@@ -75,18 +76,24 @@ const PublicBlog = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary/10 via-background to-primary/5 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMyQzZCRUQiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
+      <section className="relative overflow-hidden">
+        {/* Hero Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${blogHeroImage})` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/60" />
+        
         <div className="container mx-auto px-4 py-16 md:py-24 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            <Badge variant="secondary" className="mb-4 px-4 py-1">
+            <Badge variant="secondary" className="mb-4 px-4 py-1 bg-background/80 backdrop-blur-sm">
               <Sparkles className="w-3 h-3 mr-1" />
               Seeksy Blog
             </Badge>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 text-foreground drop-shadow-sm">
               Stories from Creators
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-foreground/80 mb-8 max-w-2xl mx-auto drop-shadow-sm">
               Discover insights, tutorials, and stories from the Seeksy creator community. 
               Expert perspectives on podcasting, content creation, and building your audience.
             </p>
@@ -98,7 +105,7 @@ const PublicBlog = () => {
                 placeholder="Search articles..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-12 text-base bg-background/80 backdrop-blur-sm border-border/50"
+                className="pl-12 h-12 text-base bg-background/90 backdrop-blur-sm border-border/50"
               />
             </div>
           </div>
