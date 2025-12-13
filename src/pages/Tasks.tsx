@@ -276,9 +276,16 @@ export default function Tasks() {
     priority: "medium",
     status: "backlog",
     section: "none",
-    assigned_to: "unassigned",
+    assigned_to: "unassigned", // Will be updated when currentUserId is loaded
     due_date: "",
   });
+
+  // Auto-assign to current user when they're loaded
+  useEffect(() => {
+    if (currentUserId && formData.assigned_to === "unassigned") {
+      setFormData(prev => ({ ...prev, assigned_to: currentUserId }));
+    }
+  }, [currentUserId]);
 
   const { sections, getSectionColor, reloadSections } = useSections();
 
@@ -469,7 +476,7 @@ export default function Tasks() {
           .insert({
             ...formData,
             section: formData.section === "none" ? null : formData.section,
-            assigned_to: formData.assigned_to === "unassigned" ? null : formData.assigned_to,
+            assigned_to: formData.assigned_to === "unassigned" ? user.id : formData.assigned_to,
             due_date: formData.due_date || null,
             user_id: user.id,
           });
@@ -1233,7 +1240,7 @@ export default function Tasks() {
               priority: "medium",
               status: "todo",
               section: sectionName,
-              assigned_to: "unassigned",
+              assigned_to: currentUserId || "unassigned",
               due_date: "",
             });
             setDialogOpen(true);
