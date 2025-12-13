@@ -9,6 +9,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { DataModePill } from "@/components/data-mode/DataModePill";
 import { GlossaryButton } from "@/components/board/GlossaryModal";
+import { AdminViewSwitcher } from "@/components/admin/AdminViewSwitcher";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,6 +21,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { HelpCircle, FileText, ChevronDown, Sparkles, ExternalLink, Settings, LogOut, User } from "lucide-react";
+import { useUserRoles } from "@/hooks/useUserRoles";
 import { supabase } from "@/integrations/supabase/client";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -28,6 +30,7 @@ import { toast } from "sonner";
 export function TopNavBar() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isAdmin } = useUserRoles();
   const [teamName, setTeamName] = useState("Personal Workspace");
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
@@ -79,15 +82,9 @@ export function TopNavBar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 items-center justify-between gap-4 px-4">
-        {/* Left: Context indicator - Admin/Board/Workspace */}
-        {isAdminRoute ? (
-          // Admin context - no workspace dropdown
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-destructive/10 flex items-center justify-center">
-              <span className="text-xs font-bold text-destructive">A</span>
-            </div>
-            <span className="font-medium text-foreground">Admin Panel</span>
-          </div>
+        {/* Left: Admin View Switcher for admins, context indicator for others */}
+        {isAdmin ? (
+          <AdminViewSwitcher />
         ) : isBoardRoute ? (
           // Board context - no workspace dropdown
           <div className="flex items-center gap-2">
