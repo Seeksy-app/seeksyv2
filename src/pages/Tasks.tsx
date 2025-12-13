@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, List, LayoutGrid, User, ArrowUpDown, CheckCircle, Clock, Rows3 } from "lucide-react";
+import { Plus, Edit, Trash2, List, LayoutGrid, User, ArrowUpDown, CheckCircle, Clock, Rows3, Check } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -25,6 +25,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useTaskReminders } from "@/hooks/useTaskReminders";
 import { TaskComments } from "@/components/tasks/TaskComments";
 import { Separator } from "@/components/ui/separator";
+import { TaskBulkActions } from "@/components/tasks/TaskBulkActions";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Task {
   id: string;
@@ -240,6 +242,7 @@ export default function Tasks() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [categoryManagerOpen, setCategoryManagerOpen] = useState(false);
   const [categories, setCategories] = useState<{ id: string; name: string; color: string }[]>([]);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
   const { toast } = useToast();
 
   // Enable Chrome notifications for task reminders
@@ -685,6 +688,26 @@ export default function Tasks() {
       return sortDirection === "asc" ? comparison : -comparison;
     });
   };
+
+  // Selection handlers for bulk actions
+  const toggleTaskSelection = (taskId: string) => {
+    setSelectedTaskIds(prev => 
+      prev.includes(taskId) 
+        ? prev.filter(id => id !== taskId)
+        : [...prev, taskId]
+    );
+  };
+
+  const toggleAllSelection = () => {
+    const sortedTasks = getSortedTasks();
+    if (selectedTaskIds.length === sortedTasks.length) {
+      setSelectedTaskIds([]);
+    } else {
+      setSelectedTaskIds(sortedTasks.map(t => t.id));
+    }
+  };
+
+  const clearSelection = () => setSelectedTaskIds([]);
 
   const handleDragStart = (event: DragEndEvent) => {
     setActiveId(event.active.id as string);
@@ -1302,6 +1325,13 @@ export default function Tasks() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <Checkbox
+                    checked={selectedTaskIds.length > 0 && selectedTaskIds.length === getSortedTasks().length}
+                    onCheckedChange={toggleAllSelection}
+                    aria-label="Select all"
+                  />
+                </TableHead>
                 <TableHead>
                   <Button variant="ghost" size="sm" onClick={() => handleSort("title")} className="h-8 px-2">
                     Title
@@ -1348,9 +1378,16 @@ export default function Tasks() {
                 return (
                   <TableRow 
                     key={task.id} 
-                    className="cursor-pointer hover:bg-accent/50"
+                    className={`cursor-pointer hover:bg-accent/50 ${selectedTaskIds.includes(task.id) ? 'bg-accent/30' : ''}`}
                     onClick={() => handleEdit(task)}
                   >
+                    <TableCell className="py-2" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={selectedTaskIds.includes(task.id)}
+                        onCheckedChange={() => toggleTaskSelection(task.id)}
+                        aria-label={`Select ${task.title}`}
+                      />
+                    </TableCell>
                     <TableCell className="py-2">
                       <div className="font-medium">{task.title}</div>
                     </TableCell>
@@ -1531,6 +1568,14 @@ export default function Tasks() {
             (window as any)._reloadTaskCategories();
           }
         }}
+      />
+
+      {/* Bulk Actions Toolbar */}
+      <TaskBulkActions
+        selectedIds={selectedTaskIds}
+        sections={sections}
+        onClearSelection={clearSelection}
+        onRefresh={fetchTasks}
       />
     </div>
   );
