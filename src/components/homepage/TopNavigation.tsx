@@ -34,6 +34,7 @@ const useCases = [
 const navLinks = [
   { label: "Pricing", href: "/pricing" },
   { label: "Apps & Tools", href: "/apps-and-tools" },
+  { label: "Blog", href: "/blog" },
   { label: "About", href: "/about" },
 ];
 
