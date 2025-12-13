@@ -14,7 +14,8 @@ import {
   Users,
   Mic,
   Calendar,
-  HelpCircle
+  HelpCircle,
+  ArrowRight
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SparkIcon } from "@/components/spark/SparkIcon";
@@ -38,7 +39,7 @@ export function VisitorChatWidget() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showStarters, setShowStarters] = useState(true);
+  const [suggestedPrompts, setSuggestedPrompts] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const welcomeMessage = `Hi there! 👋 I'm Spark, your Seeksy guide.
@@ -55,7 +56,7 @@ I can help you learn about Seeksy's features for podcasters, creators, event hos
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
-    setShowStarters(false);
+    setSuggestedPrompts([]); // Clear prompts while loading
 
     try {
       const { data, error } = await supabase.functions.invoke("visitor-chat", {
@@ -70,6 +71,11 @@ I can help you learn about Seeksy's features for podcasters, creators, event hos
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
+      
+      // Set new suggested prompts from AI response
+      if (data.suggestedPrompts && Array.isArray(data.suggestedPrompts)) {
+        setSuggestedPrompts(data.suggestedPrompts.slice(0, 3));
+      }
     } catch (error: any) {
       console.error("Visitor chat error:", error);
       setMessages((prev) => [
@@ -79,6 +85,7 @@ I can help you learn about Seeksy's features for podcasters, creators, event hos
           content: "I'm having trouble connecting right now. Please try again or visit our Help Center at /kb for more information.",
         },
       ]);
+      setSuggestedPrompts(["Visit Help Center", "How do I sign up?"]);
     } finally {
       setLoading(false);
     }
@@ -89,7 +96,11 @@ I can help you learn about Seeksy's features for podcasters, creators, event hos
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, suggestedPrompts]);
+
+  // Show whether to display initial starters or dynamic prompts
+  const showInitialStarters = messages.length === 0;
+  const showDynamicPrompts = !loading && suggestedPrompts.length > 0 && messages.length > 0;
 
   return (
     <>
@@ -149,7 +160,7 @@ I can help you learn about Seeksy's features for podcasters, creators, event hos
 
             {/* Chat Area */}
             <ScrollArea ref={scrollRef} className="flex-1 p-4">
-              {messages.length === 0 ? (
+              {showInitialStarters ? (
                 <div className="space-y-4">
                   {/* Welcome Message */}
                   <div className="flex gap-3">
@@ -168,28 +179,26 @@ I can help you learn about Seeksy's features for podcasters, creators, event hos
                     </div>
                   </div>
 
-                  {/* Quick Starters */}
-                  {showStarters && (
-                    <div className="space-y-2 mt-4">
-                      <p className="text-xs font-medium text-muted-foreground px-1">Popular questions:</p>
-                      <div className="flex flex-col gap-2">
-                        {VISITOR_QUICK_STARTERS.slice(0, 4).map((starter, idx) => {
-                          const Icon = starter.icon;
-                          return (
-                            <button
-                              key={idx}
-                              onClick={() => sendMessage(starter.text)}
-                              disabled={loading}
-                              className="flex items-center gap-2 text-left text-xs px-3 py-2 rounded-lg border border-border/60 bg-card hover:bg-muted transition-colors disabled:opacity-50"
-                            >
-                              <Icon className="h-3.5 w-3.5 text-primary shrink-0" />
-                              <span className="line-clamp-1">{starter.text}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
+                  {/* Initial Quick Starters */}
+                  <div className="space-y-2 mt-4">
+                    <p className="text-xs font-medium text-muted-foreground px-1">Popular questions:</p>
+                    <div className="flex flex-col gap-2">
+                      {VISITOR_QUICK_STARTERS.slice(0, 4).map((starter, idx) => {
+                        const Icon = starter.icon;
+                        return (
+                          <button
+                            key={idx}
+                            onClick={() => sendMessage(starter.text)}
+                            disabled={loading}
+                            className="flex items-center gap-2 text-left text-xs px-3 py-2 rounded-lg border border-border/60 bg-card hover:bg-muted transition-colors disabled:opacity-50"
+                          >
+                            <Icon className="h-3.5 w-3.5 text-primary shrink-0" />
+                            <span className="line-clamp-1">{starter.text}</span>
+                          </button>
+                        );
+                      })}
                     </div>
-                  )}
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -227,6 +236,31 @@ I can help you learn about Seeksy's features for podcasters, creators, event hos
                         </div>
                       </div>
                     </div>
+                  )}
+
+                  {/* Dynamic Suggested Prompts */}
+                  {showDynamicPrompts && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="space-y-2 mt-2 pt-2 border-t border-border/40"
+                    >
+                      <p className="text-xs font-medium text-muted-foreground px-1">Continue exploring:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {suggestedPrompts.map((prompt, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => sendMessage(prompt)}
+                            disabled={loading}
+                            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-primary/30 bg-primary/5 hover:bg-primary/10 text-primary transition-colors disabled:opacity-50"
+                          >
+                            <span>{prompt}</span>
+                            <ArrowRight className="h-3 w-3" />
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
                   )}
                 </div>
               )}
