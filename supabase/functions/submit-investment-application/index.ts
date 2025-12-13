@@ -67,7 +67,7 @@ serve(async (req) => {
     const { data: instance, error: insertError } = await supabase
       .from("legal_doc_instances")
       .insert({
-        template_id: "00000000-0000-0000-0000-000000000001", // Stock purchase agreement template ID
+        template_id: "3369d427-1854-4a8d-986d-7c8d64a3b2e5", // Common Stock Purchase Agreement template ID
         status: "pending",
         purchaser_email: email.toLowerCase(),
         recipient_name: name,
