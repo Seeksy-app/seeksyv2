@@ -899,6 +899,7 @@ const AppContent = () => {
               
               {/* Investor Application */}
               <Route path="/invest/apply" element={<InvestorApplication />} />
+              <Route path="/invest/apply/:slug" element={<InvestorApplication />} />
               
               <Route path="/personas" element={<Personas />} />
               <Route path="/voice-certification" element={<VoiceCertification />} />

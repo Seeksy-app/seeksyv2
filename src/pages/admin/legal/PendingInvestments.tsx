@@ -55,6 +55,8 @@ interface PendingInvestment {
 
 interface InvestorSettings {
   id: string;
+  name: string;
+  slug: string | null;
   price_per_share: number;
   price_per_share_tier2: number | null;
   tier2_start_date: string | null;
@@ -86,9 +88,14 @@ export default function PendingInvestments() {
   const [activeTab, setActiveTab] = useState("applications");
   
   // Settings state
-  const [settings, setSettings] = useState<InvestorSettings | null>(null);
+  const [allSettings, setAllSettings] = useState<InvestorSettings[]>([]);
+  const [selectedSettingsId, setSelectedSettingsId] = useState<string | null>(null);
   const [savingSettings, setSavingSettings] = useState(false);
   const [newEmail, setNewEmail] = useState("");
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newAppName, setNewAppName] = useState("");
+  
+  const settings = allSettings.find(s => s.id === selectedSettingsId) || null;
   
   // Activity log state
   const [accessLogs, setAccessLogs] = useState<AccessLog[]>([]);
@@ -125,21 +132,24 @@ export default function PendingInvestments() {
       const { data, error } = await supabase
         .from("investor_application_settings")
         .select("*")
-        .limit(1)
-        .maybeSingle();
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
-      if (data) {
-        setSettings({
-          id: data.id,
-          price_per_share: Number(data.price_per_share),
-          price_per_share_tier2: data.price_per_share_tier2 ? Number(data.price_per_share_tier2) : null,
-          tier2_start_date: data.tier2_start_date || null,
-          allowed_emails: data.allowed_emails || [],
-          is_active: data.is_active ?? true,
-          confidentiality_notice: data.confidentiality_notice || "",
-          minimum_investment: Number(data.minimum_investment) || 100,
-        });
+      const mapped = (data || []).map((d: any) => ({
+        id: d.id,
+        name: d.name || "Default Application",
+        slug: d.slug,
+        price_per_share: Number(d.price_per_share),
+        price_per_share_tier2: d.price_per_share_tier2 ? Number(d.price_per_share_tier2) : null,
+        tier2_start_date: d.tier2_start_date || null,
+        allowed_emails: d.allowed_emails || [],
+        is_active: d.is_active ?? true,
+        confidentiality_notice: d.confidentiality_notice || "",
+        minimum_investment: Number(d.minimum_investment) || 100,
+      }));
+      setAllSettings(mapped);
+      if (mapped.length > 0 && !selectedSettingsId) {
+        setSelectedSettingsId(mapped[0].id);
       }
     } catch (err) {
       console.error("Error fetching settings:", err);
@@ -190,9 +200,12 @@ export default function PendingInvestments() {
     if (!settings) return;
     setSavingSettings(true);
     try {
+      const slug = settings.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
       const { error } = await supabase
         .from("investor_application_settings")
         .update({
+          name: settings.name,
+          slug: slug,
           price_per_share: settings.price_per_share,
           price_per_share_tier2: settings.price_per_share_tier2,
           tier2_start_date: settings.tier2_start_date,
@@ -205,12 +218,51 @@ export default function PendingInvestments() {
 
       if (error) throw error;
       toast.success("Settings saved");
+      fetchSettings();
     } catch (err) {
       console.error("Error saving settings:", err);
       toast.error("Failed to save settings");
     } finally {
       setSavingSettings(false);
     }
+  };
+
+  const createNewApplication = async () => {
+    if (!newAppName.trim()) {
+      toast.error("Please enter an application name");
+      return;
+    }
+    try {
+      const slug = newAppName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const { data, error } = await supabase
+        .from("investor_application_settings")
+        .insert({
+          name: newAppName.trim(),
+          slug: slug,
+          price_per_share: 0.20,
+          is_active: false,
+          allowed_emails: [],
+          minimum_investment: 100,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      toast.success("Application created");
+      setShowCreateModal(false);
+      setNewAppName("");
+      await fetchSettings();
+      if (data) setSelectedSettingsId(data.id);
+    } catch (err: any) {
+      console.error("Error creating application:", err);
+      toast.error(err.message || "Failed to create application");
+    }
+  };
+
+  const updateSettings = (updates: Partial<InvestorSettings>) => {
+    setAllSettings(prev => prev.map(s => 
+      s.id === selectedSettingsId ? { ...s, ...updates } : s
+    ));
   };
 
   const addEmail = () => {
@@ -224,18 +276,12 @@ export default function PendingInvestments() {
       toast.error("Email already in list");
       return;
     }
-    setSettings(prev => prev ? {
-      ...prev,
-      allowed_emails: [...prev.allowed_emails, email]
-    } : null);
+    updateSettings({ allowed_emails: [...(settings?.allowed_emails || []), email] });
     setNewEmail("");
   };
 
   const removeEmail = (email: string) => {
-    setSettings(prev => prev ? {
-      ...prev,
-      allowed_emails: prev.allowed_emails.filter(e => e !== email)
-    } : null);
+    updateSettings({ allowed_emails: settings?.allowed_emails.filter(e => e !== email) || [] });
   };
 
   const getStatusBadge = (status: string, signwellStatus?: string) => {
@@ -570,13 +616,58 @@ export default function PendingInvestments() {
 
         <TabsContent value="settings">
           <Card>
-            <CardHeader>
-              <CardTitle>Application Settings</CardTitle>
-              <CardDescription>
-                Configure price per share, allowed emails, and disclosure notice
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Application Settings</CardTitle>
+                <CardDescription>
+                  Configure price per share, allowed emails, and disclosure notice
+                </CardDescription>
+              </div>
+              <Button variant="outline" onClick={() => setShowCreateModal(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                New Application
+              </Button>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Application Selector */}
+              {allSettings.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Select Application</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {allSettings.map((app) => (
+                      <Button
+                        key={app.id}
+                        variant={selectedSettingsId === app.id ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedSettingsId(app.id)}
+                      >
+                        {app.name}
+                        {app.is_active && <Badge variant="secondary" className="ml-2 text-xs">Active</Badge>}
+                      </Button>
+                    ))}
+                  </div>
+                  {settings?.slug && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Link: <code className="bg-muted px-1 rounded">/invest/apply/{settings.slug}</code>
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Application Name */}
+              {settings && (
+                <div className="space-y-2">
+                  <Label htmlFor="appName">Application Name</Label>
+                  <Input
+                    id="appName"
+                    value={settings.name}
+                    onChange={(e) => updateSettings({ name: e.target.value })}
+                    placeholder="e.g., Series A Round"
+                    className="max-w-sm"
+                  />
+                </div>
+              )}
+
               {/* Active Toggle */}
               <div className="flex items-center justify-between">
                 <div>
@@ -587,7 +678,7 @@ export default function PendingInvestments() {
                 </div>
                 <Switch
                   checked={settings?.is_active ?? true}
-                  onCheckedChange={(checked) => setSettings(prev => prev ? { ...prev, is_active: checked } : null)}
+                  onCheckedChange={(checked) => updateSettings({ is_active: checked })}
                 />
               </div>
 
@@ -609,7 +700,7 @@ export default function PendingInvestments() {
                       step="0.0001"
                       min="0.0001"
                       value={settings?.price_per_share || ""}
-                      onChange={(e) => setSettings(prev => prev ? { ...prev, price_per_share: parseFloat(e.target.value) || 0 } : null)}
+                      onChange={(e) => updateSettings({ price_per_share: parseFloat(e.target.value) || 0 })}
                     />
                     <p className="text-xs text-muted-foreground">
                       Active price shown to investors
@@ -624,7 +715,7 @@ export default function PendingInvestments() {
                       step="0.0001"
                       min="0.0001"
                       value={settings?.price_per_share_tier2 || ""}
-                      onChange={(e) => setSettings(prev => prev ? { ...prev, price_per_share_tier2: parseFloat(e.target.value) || null } : null)}
+                      onChange={(e) => updateSettings({ price_per_share_tier2: parseFloat(e.target.value) || null })}
                       placeholder="Optional"
                     />
                     <p className="text-xs text-muted-foreground">
@@ -639,7 +730,7 @@ export default function PendingInvestments() {
                     id="tier2Date"
                     type="date"
                     value={settings?.tier2_start_date || ""}
-                    onChange={(e) => setSettings(prev => prev ? { ...prev, tier2_start_date: e.target.value || null } : null)}
+                    onChange={(e) => updateSettings({ tier2_start_date: e.target.value || null })}
                     className="max-w-xs"
                   />
                   <p className="text-xs text-muted-foreground">
@@ -657,7 +748,7 @@ export default function PendingInvestments() {
                   step="1"
                   min="1"
                   value={settings?.minimum_investment || ""}
-                  onChange={(e) => setSettings(prev => prev ? { ...prev, minimum_investment: parseFloat(e.target.value) || 0 } : null)}
+                  onChange={(e) => updateSettings({ minimum_investment: parseFloat(e.target.value) || 0 })}
                   className="max-w-xs"
                 />
                 <p className="text-xs text-muted-foreground">
@@ -714,7 +805,7 @@ export default function PendingInvestments() {
                 <Textarea
                   id="notice"
                   value={settings?.confidentiality_notice || ""}
-                  onChange={(e) => setSettings(prev => prev ? { ...prev, confidentiality_notice: e.target.value } : null)}
+                  onChange={(e) => updateSettings({ confidentiality_notice: e.target.value })}
                   rows={4}
                   placeholder="Enter the confidentiality disclosure text..."
                 />
@@ -825,6 +916,43 @@ export default function PendingInvestments() {
                   Send for Signature
                 </>
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create New Application Modal */}
+      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New Application</DialogTitle>
+            <DialogDescription>
+              Create a new investment application with its own settings
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="newAppName">Application Name *</Label>
+              <Input
+                id="newAppName"
+                value={newAppName}
+                onChange={(e) => setNewAppName(e.target.value)}
+                placeholder="e.g., Series A Round, Friends & Family"
+              />
+              <p className="text-xs text-muted-foreground">
+                This will create a unique link for this application
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={createNewApplication}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Application
             </Button>
           </DialogFooter>
         </DialogContent>
