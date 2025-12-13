@@ -798,7 +798,7 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                         return (
                           <ContextMenu key={item.id}>
                             <ContextMenuTrigger asChild>
-                              <SidebarMenuItem className="group relative">
+                              <SidebarMenuItem className="group/item relative">
                                 <SidebarMenuButton asChild tooltip={collapsed ? item.label : undefined}>
                                   <NavLink
                                     to={item.path}
@@ -817,7 +817,7 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
                                 
                                 {/* Hover dropdown menu - same as Creator sidebar */}
                                 {!collapsed && (
-                                  <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/item:opacity-100 transition-opacity">
                                     <DropdownMenu>
                                       <DropdownMenuTrigger asChild>
                                         <Button

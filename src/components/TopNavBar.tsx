@@ -47,7 +47,7 @@ export function TopNavBar() {
         setUserEmail(user.email || "");
         const { data: profile } = await supabase
           .from('profiles')
-          .select('full_name, account_full_name, avatar_url')
+          .select('full_name, account_full_name, avatar_url, account_avatar_url')
           .eq('id', user.id)
           .single();
         
@@ -57,8 +57,9 @@ export function TopNavBar() {
             setTeamName(`${name.split(' ')[0]}'s Workspace`);
             setUserName(name);
           }
-          if (profile.avatar_url) {
-            setAvatarUrl(profile.avatar_url);
+          const avatar = profile.avatar_url || profile.account_avatar_url;
+          if (avatar) {
+            setAvatarUrl(avatar);
           }
         }
       }
@@ -268,7 +269,7 @@ export function TopNavBar() {
               </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link to={location.pathname.startsWith('/admin') || location.pathname.startsWith('/cfo') ? '/admin/profile-settings' : '/settings'}>
+                <Link to={isAdminRoute ? '/admin/profile-settings' : '/profile-settings'}>
                   <User className="h-4 w-4 mr-2" />
                   Profile
                 </Link>
