@@ -8,10 +8,7 @@ import { GlobalSearch } from "@/components/GlobalSearch";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { DataModePill } from "@/components/data-mode/DataModePill";
-import { GlossaryButton } from "@/components/board/GlossaryModal";
 import { AdminViewSwitcher } from "@/components/admin/AdminViewSwitcher";
-import { DailyBriefButton } from "@/components/daily-brief/DailyBriefButton";
-import { SparkIcon } from "@/components/spark/SparkIcon";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,7 +19,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { HelpCircle, FileText, ChevronDown, Sparkles, ExternalLink, Settings, LogOut, User, BookOpen } from "lucide-react";
+import { HelpCircle, FileText, ChevronDown, Sparkles, ExternalLink, Settings, LogOut, User, BookOpen, MessageCircle } from "lucide-react";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { supabase } from "@/integrations/supabase/client";
 import { useLocation, useNavigate, Link } from "react-router-dom";
@@ -136,47 +133,23 @@ export function TopNavBar() {
           {/* Data Mode Pill */}
           <DataModePill />
 
-          {/* Ask Seeksy - for Admin routes */}
+          {/* Ask Seeksy - for Admin routes (styled like Creator header) */}
           {isAdminRoute && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={openAIChat}
-              className="gap-1.5 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
-            >
-              <SparkIcon variant="holiday" size={16} />
-              <span className="hidden sm:inline">Ask Seeksy</span>
-            </Button>
-          )}
-
-          {/* Daily Brief - for Admin routes */}
-          {isAdminRoute && (
-            <DailyBriefButton 
-              audienceType="ceo" 
+            <Button 
               variant="ghost" 
               size="sm"
-            />
-          )}
-
-          {/* Knowledge Hub - for Admin routes */}
-          {isAdminRoute && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-1.5"
-              asChild
+              onClick={openAIChat}
+              className="gap-2 hidden sm:flex"
             >
-              <Link to="/helpdesk">
-                <BookOpen className="h-4 w-4" />
-                <span className="hidden sm:inline">Knowledge</span>
-              </Link>
+              <MessageCircle className="h-4 w-4" />
+              <span className="text-sm font-medium">Ask Seeksy</span>
             </Button>
           )}
 
           {/* Notifications */}
           <NotificationsBell />
 
-          {/* Help - Firecrawl style */}
+          {/* Help Dropdown - contains Knowledge Hub, Daily Brief, Docs, Glossary, Ask AI Assistant */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5">
@@ -184,11 +157,41 @@ export function TopNavBar() {
                 <span className="hidden sm:inline">Help</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={openAIChat}>
-                <Sparkles className="h-4 w-4 mr-2 text-primary" />
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={openAIChat} className="bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400">
+                <Sparkles className="h-4 w-4 mr-2" />
                 Ask AI Assistant
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/helpdesk">
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Knowledge Hub
+                </Link>
+              </DropdownMenuItem>
+              {isAdminRoute && (
+                <DropdownMenuItem asChild>
+                  <div onClick={() => document.dispatchEvent(new CustomEvent('open-daily-brief', { detail: { audienceType: 'ceo' } }))} className="cursor-pointer flex items-center">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Daily Brief
+                  </div>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem asChild>
+                <Link to="/docs">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Docs
+                </Link>
+              </DropdownMenuItem>
+              {(isAdminRoute || isBoardRoute) && (
+                <DropdownMenuItem asChild>
+                  <div onClick={() => document.dispatchEvent(new Event('open-glossary'))} className="cursor-pointer flex items-center">
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    Glossary
+                  </div>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link to="/helpdesk">
                   <HelpCircle className="h-4 w-4 mr-2" />
@@ -203,22 +206,6 @@ export function TopNavBar() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          {/* Docs - Firecrawl style */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5 hidden sm:flex"
-            asChild
-          >
-            <Link to="/docs">
-              <FileText className="h-4 w-4" />
-              Docs
-            </Link>
-          </Button>
-
-          {/* Glossary for Admin/CFO routes */}
-          {(isAdminRoute || isBoardRoute) && <GlossaryButton />}
 
           {/* Theme Toggle */}
           <ThemeToggle />
