@@ -58,6 +58,7 @@ import ScheduleMeeting from "./pages/meetings/ScheduleMeeting";
 import MeetingJoin from "./pages/meetings/MeetingJoin";
 import PublicBookingPage from "./pages/public/PublicBookingPage";
 import PublicVideosPage from "./pages/public/PublicVideosPage";
+import VideoCollectionPage from "./pages/public/VideoCollectionPage";
 // AITrucking
 import TruckingLandingPage from "./pages/trucking/TruckingLandingPage";
 import TruckingDashboardPage from "./pages/trucking/TruckingDashboardPage";

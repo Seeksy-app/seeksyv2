@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { AdminShell } from "@/components/admin/AdminShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
@@ -34,7 +33,6 @@ export default function AdminVideoPages() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newPage, setNewPage] = useState({ slug: "", title: "", description: "", is_private: false });
 
-  // Fetch all video pages
   const { data: pages = [], isLoading } = useQuery({
     queryKey: ["admin-video-pages"],
     queryFn: async () => {
@@ -47,7 +45,6 @@ export default function AdminVideoPages() {
     },
   });
 
-  // Create page mutation
   const createMutation = useMutation({
     mutationFn: async (page: typeof newPage) => {
       const { error } = await supabase.from("video_pages").insert({
@@ -68,87 +65,85 @@ export default function AdminVideoPages() {
   });
 
   return (
-    <AdminShell>
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Video Pages</h1>
-            <p className="text-muted-foreground">Manage gated video collections</p>
-          </div>
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
-                New Page
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create Video Page</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label>Slug</Label>
-                  <Input
-                    value={newPage.slug}
-                    onChange={(e) => setNewPage({ ...newPage, slug: e.target.value })}
-                    placeholder="alchify-demos"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    URL: seeksy.io/videos/{newPage.slug || "slug"}
-                  </p>
-                </div>
-                <div>
-                  <Label>Title</Label>
-                  <Input
-                    value={newPage.title}
-                    onChange={(e) => setNewPage({ ...newPage, title: e.target.value })}
-                    placeholder="Alchify Demo Videos"
-                  />
-                </div>
-                <div>
-                  <Label>Description</Label>
-                  <Textarea
-                    value={newPage.description}
-                    onChange={(e) => setNewPage({ ...newPage, description: e.target.value })}
-                    placeholder="Private demos for partners..."
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={newPage.is_private}
-                    onCheckedChange={(checked) => setNewPage({ ...newPage, is_private: checked })}
-                  />
-                  <Label>Private (requires email access)</Label>
-                </div>
-                <Button onClick={() => createMutation.mutate(newPage)} disabled={!newPage.slug || !newPage.title}>
-                  Create Page
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Video Pages</h1>
+          <p className="text-muted-foreground">Manage gated video collections</p>
         </div>
-
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        ) : pages.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            No video pages yet. Create one to get started.
-          </div>
-        ) : (
-          <div className="grid gap-4">
-            {pages.map((page) => (
-              <VideoPageCard
-                key={page.id}
-                page={page}
-                onEdit={() => setEditingPage(page)}
-              />
-            ))}
-          </div>
-        )}
+        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              New Page
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create Video Page</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label>Slug</Label>
+                <Input
+                  value={newPage.slug}
+                  onChange={(e) => setNewPage({ ...newPage, slug: e.target.value })}
+                  placeholder="alchify-demos"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  URL: seeksy.io/videos/{newPage.slug || "slug"}
+                </p>
+              </div>
+              <div>
+                <Label>Title</Label>
+                <Input
+                  value={newPage.title}
+                  onChange={(e) => setNewPage({ ...newPage, title: e.target.value })}
+                  placeholder="Alchify Demo Videos"
+                />
+              </div>
+              <div>
+                <Label>Description</Label>
+                <Textarea
+                  value={newPage.description}
+                  onChange={(e) => setNewPage({ ...newPage, description: e.target.value })}
+                  placeholder="Private demos for partners..."
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={newPage.is_private}
+                  onCheckedChange={(checked) => setNewPage({ ...newPage, is_private: checked })}
+                />
+                <Label>Private (requires email access)</Label>
+              </div>
+              <Button onClick={() => createMutation.mutate(newPage)} disabled={!newPage.slug || !newPage.title}>
+                Create Page
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      ) : pages.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          No video pages yet. Create one to get started.
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {pages.map((page) => (
+            <VideoPageCard
+              key={page.id}
+              page={page}
+              onEdit={() => setEditingPage(page)}
+            />
+          ))}
+        </div>
+      )}
 
       {editingPage && (
         <VideoPageEditor
@@ -156,7 +151,7 @@ export default function AdminVideoPages() {
           onClose={() => setEditingPage(null)}
         />
       )}
-    </AdminShell>
+    </div>
   );
 }
 
@@ -220,8 +215,7 @@ function VideoPageEditor({ page, onClose }: { page: VideoPage; onClose: () => vo
   const [emails, setEmails] = useState("");
   const [selectedVideoIds, setSelectedVideoIds] = useState<string[]>([]);
 
-  // Fetch current access list
-  const { data: accessList = [] } = useQuery({
+  useQuery({
     queryKey: ["video-page-access", page.id],
     queryFn: async () => {
       const { data } = await supabase.from("video_page_access").select("email").eq("page_id", page.id);
@@ -231,7 +225,6 @@ function VideoPageEditor({ page, onClose }: { page: VideoPage; onClose: () => vo
     },
   });
 
-  // Fetch all demo videos
   const { data: allVideos = [] } = useQuery({
     queryKey: ["all-demo-videos"],
     queryFn: async () => {
@@ -240,7 +233,6 @@ function VideoPageEditor({ page, onClose }: { page: VideoPage; onClose: () => vo
     },
   });
 
-  // Fetch current page videos
   useQuery({
     queryKey: ["video-page-videos-edit", page.id],
     queryFn: async () => {
@@ -251,13 +243,10 @@ function VideoPageEditor({ page, onClose }: { page: VideoPage; onClose: () => vo
     },
   });
 
-  // Save mutation
   const saveMutation = useMutation({
     mutationFn: async () => {
-      // Update page privacy
       await supabase.from("video_pages").update({ is_private: isPrivate }).eq("id", page.id);
 
-      // Update access list
       await supabase.from("video_page_access").delete().eq("page_id", page.id);
       const emailList = emails.split("\n").map((e) => e.trim().toLowerCase()).filter(Boolean);
       if (emailList.length > 0) {
@@ -266,7 +255,6 @@ function VideoPageEditor({ page, onClose }: { page: VideoPage; onClose: () => vo
         );
       }
 
-      // Update videos
       await supabase.from("video_page_videos").delete().eq("page_id", page.id);
       if (selectedVideoIds.length > 0) {
         await supabase.from("video_page_videos").insert(
@@ -300,7 +288,6 @@ function VideoPageEditor({ page, onClose }: { page: VideoPage; onClose: () => vo
           <DialogTitle>Edit: {page.title}</DialogTitle>
         </DialogHeader>
         <div className="space-y-6">
-          {/* Privacy Toggle */}
           <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
             <div>
               <Label className="text-base font-medium">Private Access</Label>
@@ -311,7 +298,6 @@ function VideoPageEditor({ page, onClose }: { page: VideoPage; onClose: () => vo
             <Switch checked={isPrivate} onCheckedChange={setIsPrivate} />
           </div>
 
-          {/* Access List */}
           {isPrivate && (
             <div>
               <Label>Allowed Emails (one per line)</Label>
@@ -325,7 +311,6 @@ function VideoPageEditor({ page, onClose }: { page: VideoPage; onClose: () => vo
             </div>
           )}
 
-          {/* Video Selection */}
           <div>
             <Label className="mb-2 block">Videos in Collection</Label>
             <div className="border rounded-lg max-h-64 overflow-y-auto">
