@@ -46,6 +46,9 @@ serve(async (req) => {
 
     // Create document in SignWell with sequential 3-party signing
     // Order: 1) Seller -> 2) Purchaser -> 3) Chairman
+    // Note: We use text_tags=true so SignWell looks for [[signature_seller]] etc. in the document
+    // Or we define fields explicitly with page/coordinates
+    
     const signWellPayload = {
       test_mode: false,
       files: [
@@ -61,11 +64,81 @@ serve(async (req) => {
         id: r.id,
         email: r.email,
         name: r.name,
-        send_email: true,
-        send_email_delay: 0,
         placeholder_name: r.role || `Signer ${index + 1}`,
         signing_order: index + 1, // Sequential: Seller=1, Purchaser=2, Chairman=3
       })),
+      fields: [
+        // Signature fields for each recipient - positioned on the last page
+        // Seller signature (first signer)
+        recipients[0] ? [
+          {
+            type: "signature",
+            required: true,
+            recipient_id: recipients[0].id,
+            page: -1, // Last page
+            x: 10,
+            y: 70,
+            width: 30,
+            height: 5,
+          },
+          {
+            type: "date",
+            required: true,
+            recipient_id: recipients[0].id,
+            page: -1,
+            x: 45,
+            y: 70,
+            width: 15,
+            height: 3,
+          }
+        ] : [],
+        // Purchaser signature (second signer)
+        recipients[1] ? [
+          {
+            type: "signature",
+            required: true,
+            recipient_id: recipients[1].id,
+            page: -1,
+            x: 10,
+            y: 80,
+            width: 30,
+            height: 5,
+          },
+          {
+            type: "date",
+            required: true,
+            recipient_id: recipients[1].id,
+            page: -1,
+            x: 45,
+            y: 80,
+            width: 15,
+            height: 3,
+          }
+        ] : [],
+        // Chairman signature (third signer)
+        recipients[2] ? [
+          {
+            type: "signature",
+            required: true,
+            recipient_id: recipients[2].id,
+            page: -1,
+            x: 10,
+            y: 90,
+            width: 30,
+            height: 5,
+          },
+          {
+            type: "date",
+            required: true,
+            recipient_id: recipients[2].id,
+            page: -1,
+            x: 45,
+            y: 90,
+            width: 15,
+            height: 3,
+          }
+        ] : [],
+      ].flat(),
       apply_signing_order: true, // Enforce sequential signing
       custom_requester_name: "Seeksy Legal",
       custom_requester_email: "legal@seeksy.io",
@@ -73,7 +146,6 @@ serve(async (req) => {
       decline_redirect_url: `${Deno.env.get("SITE_URL") || "https://seeksy.io"}/legal/declined?instance=${instanceId || ""}`,
       expires_in: 30,
       reminders: true,
-      text_tags: false,
       allow_decline: true,
       allow_reassign: false,
       metadata: instanceId ? { instanceId } : undefined,
