@@ -519,7 +519,7 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-3 bg-sidebar">
-        <div className="flex items-center justify-between w-full">
+        <div className="flex items-center justify-between w-full gap-2">
           {!collapsed && (
             <button 
               onClick={handleLogoClick}
@@ -539,14 +539,30 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
               <SparkIcon variant="holiday" size={32} animated pose="idle" />
             </button>
           )}
-          {/* Customize Nav Icon Button */}
-          <button
-            onClick={() => window.dispatchEvent(new Event('openNavCustomization'))}
-            className="p-2 rounded-lg bg-sidebar-accent hover:bg-sidebar-primary/20 text-sidebar-foreground/80 hover:text-sidebar-foreground transition-all duration-200 border border-sidebar-border shadow-sm"
-            title="Customize Navigation"
-          >
-            <Sliders className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-1">
+            {/* Customize Nav Icon Button */}
+            {!collapsed && (
+              <button
+                onClick={() => window.dispatchEvent(new Event('openNavCustomization'))}
+                className="p-2 rounded-lg bg-sidebar-accent hover:bg-sidebar-primary/20 text-sidebar-foreground/80 hover:text-sidebar-foreground transition-all duration-200 border border-sidebar-border shadow-sm"
+                title="Customize Navigation"
+              >
+                <Sliders className="h-4 w-4" />
+              </button>
+            )}
+            {/* Collapse Sidebar Button */}
+            <button
+              onClick={toggleSidebar}
+              className="p-2 rounded-lg hover:bg-sidebar-accent text-sidebar-foreground/70 hover:text-sidebar-foreground transition-all duration-200"
+              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {collapsed ? (
+                <ChevronRight className="h-4 w-4" />
+              ) : (
+                <ChevronLeft className="h-4 w-4" />
+              )}
+            </button>
+          </div>
         </div>
       </SidebarHeader>
 
@@ -864,58 +880,6 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
           </div>
         )}
         
-        {/* User Account - Firecrawl style */}
-        <div className="p-3 pt-0">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                className={`w-full flex items-center gap-3 p-2 rounded-lg hover:bg-sidebar-accent transition-colors ${collapsed ? 'justify-center' : ''}`}
-              >
-                <Avatar className="h-8 w-8 border border-sidebar-border">
-                  <AvatarImage src={avatarUrl || undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-                    {userInitials}
-                  </AvatarFallback>
-                </Avatar>
-                {!collapsed && (
-                  <span className="flex-1 text-left text-sm text-sidebar-foreground truncate">
-                    {userEmail}
-                  </span>
-                )}
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
-              <DropdownMenuItem onClick={() => navigate(shouldShowAdminNav ? '/admin/profile-settings' : '/settings')}>
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        {/* Collapse Button - Firecrawl style */}
-        <div className="p-3 pt-0">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleSidebar}
-            className={`w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent ${collapsed ? 'justify-center px-2' : ''}`}
-          >
-            {collapsed ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <>
-                <ChevronLeft className="h-4 w-4 mr-2" />
-                Collapse
-              </>
-            )}
-          </Button>
-        </div>
       </div>
     </Sidebar>
   );
