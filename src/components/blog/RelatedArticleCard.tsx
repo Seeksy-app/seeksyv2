@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import { extractFirstImageFromContent, getCategoryImage } from '@/utils/extractFirstImage';
 
 interface RelatedArticleCardProps {
   id: string;
@@ -9,6 +10,8 @@ interface RelatedArticleCardProps {
   excerpt?: string | null;
   featuredImageUrl?: string | null;
   publishedAt?: string | null;
+  content?: string | null;
+  category?: string | null;
 }
 
 const DEFAULT_PLACEHOLDER = '/placeholder.svg';
@@ -27,11 +30,22 @@ export const RelatedArticleCard = ({
   excerpt,
   featuredImageUrl,
   publishedAt,
+  content,
+  category,
 }: RelatedArticleCardProps) => {
   const navigate = useNavigate();
   
-  // Image fallback logic
-  const imageUrl = featuredImageUrl || DEFAULT_PLACEHOLDER;
+  // Image fallback chain: featured_image → first content image → category default → placeholder
+  const imageUrl = useMemo(() => {
+    if (featuredImageUrl) return featuredImageUrl;
+    
+    const contentImage = extractFirstImageFromContent(content);
+    if (contentImage) return contentImage;
+    
+    if (category) return getCategoryImage(category);
+    
+    return DEFAULT_PLACEHOLDER;
+  }, [featuredImageUrl, content, category]);
 
   return (
     <div
