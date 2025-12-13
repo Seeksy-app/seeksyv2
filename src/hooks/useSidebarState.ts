@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
 
 const STORAGE_KEY = 'seeksy-admin-sidebar-v1';
 
@@ -96,24 +95,10 @@ function saveState(state: SidebarState): void {
 }
 
 export function useSidebarState() {
-  const location = useLocation();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const saved = loadState();
-    // Ensure the group containing the active route is open
-    const activeGroup = getGroupForPath(location.pathname);
-    if (activeGroup) {
-      return { ...saved.openGroups, [activeGroup]: true };
-    }
     return saved.openGroups;
   });
-
-  // When route changes, ensure the active group is expanded
-  useEffect(() => {
-    const activeGroup = getGroupForPath(location.pathname);
-    if (activeGroup && !openGroups[activeGroup]) {
-      setOpenGroups(prev => ({ ...prev, [activeGroup]: true }));
-    }
-  }, [location.pathname]);
 
   // Persist state changes
   useEffect(() => {
@@ -128,7 +113,7 @@ export function useSidebarState() {
   }, []);
 
   const isGroupOpen = useCallback((groupName: string): boolean => {
-    return openGroups[groupName] ?? true;
+    return openGroups[groupName] ?? false;
   }, [openGroups]);
 
   return {
