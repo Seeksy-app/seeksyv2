@@ -46,11 +46,10 @@ serve(async (req) => {
 
     // Create document in SignWell with sequential 3-party signing
     // Order: 1) Seller -> 2) Purchaser -> 3) Chairman
-    // Using draft mode to add fields, then finalize
+    // Include fields directly in the document creation request
     
     const signWellPayload = {
       test_mode: false,
-      draft: true, // Create as draft first to add fields
       files: [
         {
           name: documentName,
@@ -67,6 +66,31 @@ serve(async (req) => {
         placeholder_name: r.role || `Signer ${index + 1}`,
         signing_order: index + 1, // Sequential: Seller=1, Purchaser=2, Chairman=3
       })),
+      // Add fields for each recipient - signature and date
+      fields: recipients.flatMap((r, index) => [
+        [
+          {
+            type: "signature",
+            required: true,
+            recipient_id: r.id,
+            page: 1,
+            x: 10,
+            y: 80 + (index * 6),
+            width: 30,
+            height: 5,
+          },
+          {
+            type: "date",
+            required: true,
+            recipient_id: r.id,
+            page: 1,
+            x: 45,
+            y: 80 + (index * 6),
+            width: 15,
+            height: 5,
+          }
+        ]
+      ]).flat(),
       apply_signing_order: true, // Enforce sequential signing
       custom_requester_name: "Seeksy Legal",
       custom_requester_email: "legal@seeksy.io",
@@ -79,7 +103,9 @@ serve(async (req) => {
       metadata: instanceId ? { instanceId } : undefined,
     };
 
-    console.log("Sending to SignWell API (draft mode)...");
+    console.log("Sending to SignWell API...");
+    console.log("Payload recipients:", JSON.stringify(signWellPayload.recipients));
+    console.log("Payload fields count:", signWellPayload.fields.length);
 
     const signWellResponse = await fetch("https://www.signwell.com/api/v1/documents/", {
       method: "POST",
@@ -105,84 +131,7 @@ serve(async (req) => {
       );
     }
 
-    const signWellData = JSON.parse(responseText);
-    const documentId = signWellData.id;
-    
-    console.log("SignWell draft document created:", documentId);
-
-    // Now add signature fields to the document for each recipient
-    const fieldsPayload = {
-      fields: recipients.map((r, index) => ([
-        {
-          type: "signature",
-          required: true,
-          recipient_id: r.id,
-          page: 1, // First page - SignWell uses 1-indexed
-          x: 10,
-          y: 85 + (index * 5), // Stack signatures vertically
-          width: 30,
-          height: 4,
-        },
-        {
-          type: "date",
-          required: true,
-          recipient_id: r.id,
-          page: 1,
-          x: 45,
-          y: 85 + (index * 5),
-          width: 15,
-          height: 4,
-        }
-      ])).flat(),
-    };
-
-    console.log("Adding fields to document:", documentId);
-
-    const fieldsResponse = await fetch(`https://www.signwell.com/api/v1/documents/${documentId}/fields`, {
-      method: "POST",
-      headers: {
-        "X-Api-Key": SIGNWELL_API_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(fieldsPayload),
-    });
-
-    const fieldsResponseText = await fieldsResponse.text();
-    console.log("Fields response status:", fieldsResponse.status);
-    console.log("Fields response:", fieldsResponseText);
-
-    if (!fieldsResponse.ok) {
-      console.error("SignWell fields API error:", fieldsResponseText);
-      // Continue even if fields fail - the document is still usable
-    }
-
-    // Now finalize the document (send it out)
-    console.log("Sending document for signing:", documentId);
-
-    const sendResponse = await fetch(`https://www.signwell.com/api/v1/documents/${documentId}/send`, {
-      method: "POST",
-      headers: {
-        "X-Api-Key": SIGNWELL_API_KEY,
-        "Content-Type": "application/json",
-      },
-    });
-
-    const sendResponseText = await sendResponse.text();
-    console.log("Send response status:", sendResponse.status);
-    console.log("Send response:", sendResponseText);
-
-    if (!sendResponse.ok) {
-      console.error("SignWell send API error:", sendResponseText);
-      return new Response(
-        JSON.stringify({ 
-          error: "Failed to send SignWell document", 
-          details: sendResponseText 
-        }),
-        { status: sendResponse.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const sendData = JSON.parse(sendResponseText);
+    const sendData = JSON.parse(responseText);
 
     console.log("SignWell document sent:", sendData.id);
 
