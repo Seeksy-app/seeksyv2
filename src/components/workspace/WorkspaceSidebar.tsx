@@ -47,11 +47,13 @@ import {
   Trash2,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   ExternalLink,
   Star,
   GripVertical,
   HelpCircle,
   Mail,
+  Sliders,
   // Module icons
   Mic,
   Podcast,
@@ -182,7 +184,7 @@ interface ModuleRegistryItem {
 export function WorkspaceSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { state } = useSidebar();
+  const { state, open, toggleSidebar } = useSidebar();
   const { currentWorkspace, workspaceModules, removeModule, toggleStandalone, togglePinned } = useWorkspace();
   const [moduleRegistry, setModuleRegistry] = useState<ModuleRegistryItem[]>([]);
   const [showModuleCenter, setShowModuleCenter] = useState(false);
@@ -208,6 +210,7 @@ export function WorkspaceSidebar() {
   }, []);
 
   const isCollapsed = state === 'collapsed';
+  const toggleSidebar = toggleSidebarState;
 
   // Fetch module groupings from DB
   const { data: dbModuleGroups } = useModuleGroups();
@@ -443,18 +446,63 @@ export function WorkspaceSidebar() {
         className="border-r border-sidebar-border" 
         collapsible="icon"
       >
-        <SidebarHeader className="p-3 pb-2">
-          {/* Seeksy Santa Logo */}
-          <div className={cn("flex items-center mb-2", isCollapsed ? "justify-center" : "px-2")}>
-            <img 
-              src="/spark/holiday/seeksy-logo-santa.png" 
-              alt="Seeksy" 
-              className={cn(
-                "transition-all duration-200",
-                isCollapsed ? "h-8 w-8" : "h-8"
+        <SidebarHeader className="border-b border-sidebar-border px-4 py-3 bg-sidebar">
+          <div className="flex items-center justify-between w-full gap-2">
+            {!isCollapsed && (
+              <button 
+                onClick={() => navigate('/my-day')}
+                className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+                title="Go to Dashboard"
+              >
+                <img 
+                  src="/spark/holiday/seeksy-logo-santa.png" 
+                  alt="Seeksy" 
+                  className="h-10 w-10"
+                />
+                <span className="text-sidebar-foreground text-2xl font-bold">Seeksy</span>
+              </button>
+            )}
+            {isCollapsed && (
+              <button 
+                onClick={() => navigate('/my-day')}
+                className="flex items-center justify-center flex-1 hover:opacity-80 transition-opacity cursor-pointer"
+                title="Go to Dashboard"
+              >
+                <img 
+                  src="/spark/holiday/seeksy-logo-santa.png" 
+                  alt="Seeksy" 
+                  className="h-8 w-8"
+                />
+              </button>
+            )}
+            <div className="flex items-center gap-1">
+              {/* Customize Nav Icon Button */}
+              {!isCollapsed && (
+                <button
+                  onClick={() => setShowModuleCenter(true)}
+                  className="p-2 rounded-lg bg-sidebar-accent hover:bg-sidebar-primary/20 text-sidebar-foreground/80 hover:text-sidebar-foreground transition-all duration-200 border border-sidebar-border shadow-sm"
+                  title="Customize Navigation"
+                >
+                  <Sliders className="h-4 w-4" />
+                </button>
               )}
-            />
+              {/* Collapse Sidebar Button */}
+              <button
+                onClick={toggleSidebar}
+                className="p-2 rounded-lg hover:bg-sidebar-accent text-sidebar-foreground/70 hover:text-sidebar-foreground transition-all duration-200"
+                title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              >
+                {isCollapsed ? (
+                  <ChevronRight className="h-4 w-4" />
+                ) : (
+                  <ChevronLeft className="h-4 w-4" />
+                )}
+              </button>
+            </div>
           </div>
+        </SidebarHeader>
+
+        <SidebarContent>
           {/* Global Navigation - My Day, My Work, Recents */}
           <SidebarMenu>
             <SidebarMenuItem>
@@ -548,7 +596,7 @@ export function WorkspaceSidebar() {
           <Separator className="my-2 bg-sidebar-border" />
 
           {/* Workspace Selector below global nav - Monday style */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-2">
             <div className="flex-1 min-w-0 max-w-[160px]">
               <WorkspaceSelector />
             </div>
@@ -562,9 +610,9 @@ export function WorkspaceSidebar() {
               />
             )}
           </div>
-        </SidebarHeader>
 
-        <SidebarContent>
+          <Separator className="my-2 bg-sidebar-border" />
+
           <ScrollArea className="flex-1">
             {/* Modules Section Header */}
             <div className="px-3 py-2">
