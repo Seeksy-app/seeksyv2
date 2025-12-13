@@ -1,80 +1,33 @@
 /**
  * Portal-scoped Daily Brief Panel
  * Shows daily brief content specific to the current portal
+ * Powered by Firecrawl for live competitive intelligence
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, RefreshCw, Calendar, TrendingUp, AlertTriangle, CheckCircle2, ExternalLink } from 'lucide-react';
 import { PortalType, PORTAL_LABELS } from '@/hooks/useHelpDrawer';
 import { useNavigate } from 'react-router-dom';
 import { useHelpDrawerStore } from '@/hooks/useHelpDrawer';
+import { useDailyBrief, useRefreshDailyBrief } from '@/hooks/useDailyBrief';
 
 interface DailyBriefPanelProps {
   portal: PortalType;
   contentKey: string;
 }
 
-// Portal-specific brief sections
-const PORTAL_BRIEFS: Record<PortalType, {
-  title: string;
-  sections: Array<{
-    id: string;
-    title: string;
-    content: string;
-    type: 'info' | 'success' | 'warning' | 'trend';
-  }>;
-}> = {
-  admin: {
-    title: 'Admin Daily Brief',
-    sections: [
-      { id: 'a1', title: 'Platform Health', content: 'All systems operational. No critical issues detected.', type: 'success' },
-      { id: 'a2', title: 'User Activity', content: 'Active users up 12% from yesterday. 45 new signups.', type: 'trend' },
-      { id: 'a3', title: 'Pending Actions', content: '3 support tickets awaiting response.', type: 'warning' },
-      { id: 'a4', title: 'System Updates', content: 'Scheduled maintenance window: Sunday 2AM-4AM UTC.', type: 'info' },
-    ],
-  },
-  creator: {
-    title: 'Creator Daily Brief',
-    sections: [
-      { id: 'c1', title: 'Audience Growth', content: 'You gained 23 new followers this week.', type: 'trend' },
-      { id: 'c2', title: 'Content Performance', content: 'Your latest episode has 150 plays.', type: 'success' },
-      { id: 'c3', title: 'Engagement', content: '5 new comments on your content.', type: 'info' },
-      { id: 'c4', title: 'Monetization', content: 'Earnings this month: $45.00', type: 'trend' },
-    ],
-  },
-  advertiser: {
-    title: 'Advertiser Daily Brief',
-    sections: [
-      { id: 'ad1', title: 'Campaign Performance', content: 'Active campaigns: 3. Total impressions today: 12,500.', type: 'trend' },
-      { id: 'ad2', title: 'Budget Status', content: '65% of monthly budget utilized.', type: 'info' },
-      { id: 'ad3', title: 'Top Performing', content: 'Summer Sale campaign: 2.3% CTR', type: 'success' },
-      { id: 'ad4', title: 'Attention Needed', content: '1 campaign approaching budget limit.', type: 'warning' },
-    ],
-  },
-  board: {
-    title: 'Board Daily Brief',
-    sections: [
-      { id: 'b1', title: 'Key Metrics', content: 'MRR: $45,000 (+8% MoM). Active creators: 1,200.', type: 'trend' },
-      { id: 'b2', title: 'Growth Update', content: 'On track for Q4 targets.', type: 'success' },
-      { id: 'b3', title: 'Market Intel', content: '2 new competitor announcements to review.', type: 'info' },
-      { id: 'b4', title: 'Action Items', content: 'Board meeting scheduled for next Tuesday.', type: 'warning' },
-    ],
-  },
-};
-
 export function DailyBriefPanel({ portal, contentKey }: DailyBriefPanelProps) {
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { close } = useHelpDrawerStore();
-  
-  const brief = PORTAL_BRIEFS[portal];
+  const { data: brief, isLoading } = useDailyBrief(portal);
+  const refreshBrief = useRefreshDailyBrief();
   
   const handleRefresh = () => {
-    setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 1000);
+    refreshBrief.mutate(portal);
   };
   
   const handleViewFullBrief = () => {
@@ -92,6 +45,17 @@ export function DailyBriefPanel({ portal, contentKey }: DailyBriefPanelProps) {
     }
   };
   
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+      </div>
+    );
+  }
+  
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -104,8 +68,12 @@ export function DailyBriefPanel({ portal, contentKey }: DailyBriefPanelProps) {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={isLoading}>
-            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={refreshBrief.isPending}>
+            {refreshBrief.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
           </Button>
           <Button variant="outline" size="sm" onClick={handleViewFullBrief}>
             <ExternalLink className="h-4 w-4 mr-1" />
@@ -115,7 +83,7 @@ export function DailyBriefPanel({ portal, contentKey }: DailyBriefPanelProps) {
       </div>
       
       <div className="space-y-3">
-        {brief.sections.map(section => (
+        {brief?.sections.map(section => (
           <Card key={section.id}>
             <CardHeader className="pb-2 pt-3 px-4">
               <div className="flex items-center gap-2">
@@ -127,6 +95,11 @@ export function DailyBriefPanel({ portal, contentKey }: DailyBriefPanelProps) {
               <CardDescription className="text-sm">
                 {section.content}
               </CardDescription>
+              {section.source && (
+                <Badge variant="secondary" className="mt-2 text-xs">
+                  Source: {section.source}
+                </Badge>
+              )}
             </CardContent>
           </Card>
         ))}

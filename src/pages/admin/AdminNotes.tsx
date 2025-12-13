@@ -14,6 +14,7 @@ import { useAdminNotes, useCreateNote, useUpdateNote, useDeleteNote, type AdminN
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
+import { AdminNotesUrlFetcher } from '@/components/admin/AdminNotesUrlFetcher';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -176,10 +177,16 @@ export default function AdminNotes() {
           <h1 className="text-2xl font-bold">Admin Notes</h1>
           <p className="text-muted-foreground">Save prompts, snippets, and thoughts</p>
         </div>
-        <Button onClick={handleNewNote} disabled={createNote.isPending}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Note
-        </Button>
+        <div className="flex gap-2">
+          <AdminNotesUrlFetcher onContentFetched={async (title, content) => {
+            const result = await createNote.mutateAsync({ title, content, tags: ['imported'] });
+            selectNote(result);
+          }} />
+          <Button onClick={handleNewNote} disabled={createNote.isPending}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Note
+          </Button>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6 min-h-[600px]">

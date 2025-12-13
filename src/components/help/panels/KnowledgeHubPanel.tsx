@@ -1,77 +1,101 @@
 /**
  * Portal-scoped Knowledge Hub Panel
- * Content is filtered/loaded based on portal context
+ * Content is loaded from database, filtered by portal context
+ * Articles can be auto-generated via Firecrawl
  */
 
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, BookOpen, ExternalLink } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Search, BookOpen, ExternalLink, Sparkles } from 'lucide-react';
 import { PortalType, PORTAL_LABELS } from '@/hooks/useHelpDrawer';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useHelpDrawerStore } from '@/hooks/useHelpDrawer';
+import { supabase } from '@/integrations/supabase/client';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import ReactMarkdown from 'react-markdown';
 
 interface KnowledgeHubPanelProps {
   portal: PortalType;
   contentKey: string;
 }
 
-// Portal-specific knowledge articles
-const PORTAL_ARTICLES: Record<PortalType, Array<{
+// Fallback static articles when database is empty
+const FALLBACK_ARTICLES: Record<PortalType, Array<{
   id: string;
   title: string;
-  description: string;
+  content: string;
   category: string;
-  route?: string;
+  tags: string[];
 }>> = {
   admin: [
-    { id: 'admin-1', title: 'Admin Dashboard Overview', description: 'Learn how to navigate the admin dashboard and manage platform settings.', category: 'Getting Started' },
-    { id: 'admin-2', title: 'User Management', description: 'How to manage users, roles, and permissions.', category: 'Administration' },
-    { id: 'admin-3', title: 'System Configuration', description: 'Configure platform-wide settings and integrations.', category: 'Configuration' },
-    { id: 'admin-4', title: 'Analytics & Reporting', description: 'Access platform analytics and generate reports.', category: 'Analytics' },
+    { id: 'admin-1', title: 'Admin Dashboard Overview', content: 'Learn how to navigate the admin dashboard and manage platform settings.', category: 'Getting Started', tags: ['admin', 'dashboard'] },
+    { id: 'admin-2', title: 'User Management', content: 'How to manage users, roles, and permissions.', category: 'Administration', tags: ['users', 'roles'] },
   ],
   creator: [
-    { id: 'creator-1', title: 'Getting Started as a Creator', description: 'Set up your creator profile and start creating content.', category: 'Getting Started' },
-    { id: 'creator-2', title: 'Podcast Studio Guide', description: 'Learn how to use the podcast recording studio.', category: 'Studio' },
-    { id: 'creator-3', title: 'Monetization Options', description: 'Explore ways to monetize your content.', category: 'Monetization' },
-    { id: 'creator-4', title: 'Growing Your Audience', description: 'Tips and strategies for audience growth.', category: 'Growth' },
+    { id: 'creator-1', title: 'Getting Started as a Creator', content: 'Set up your creator profile and start creating content.', category: 'Getting Started', tags: ['onboarding'] },
+    { id: 'creator-2', title: 'Podcast Studio Guide', content: 'Learn how to use the podcast recording studio.', category: 'Studio', tags: ['studio', 'recording'] },
   ],
   advertiser: [
-    { id: 'adv-1', title: 'Campaign Setup Guide', description: 'Create and manage your advertising campaigns.', category: 'Campaigns' },
-    { id: 'adv-2', title: 'Targeting Options', description: 'Learn about audience targeting and segmentation.', category: 'Targeting' },
-    { id: 'adv-3', title: 'Budget Management', description: 'Manage your advertising budget and bidding.', category: 'Budget' },
-    { id: 'adv-4', title: 'Campaign Analytics', description: 'Track and analyze campaign performance.', category: 'Analytics' },
+    { id: 'adv-1', title: 'Campaign Setup Guide', content: 'Create and manage your advertising campaigns.', category: 'Campaigns', tags: ['campaigns'] },
+    { id: 'adv-2', title: 'Targeting Options', content: 'Learn about audience targeting and segmentation.', category: 'Targeting', tags: ['targeting'] },
   ],
   board: [
-    { id: 'board-1', title: 'Board Dashboard Overview', description: 'Navigate the board member dashboard.', category: 'Getting Started' },
-    { id: 'board-2', title: 'Financial Reports', description: 'Access and understand financial reports.', category: 'Finance' },
-    { id: 'board-3', title: 'Company Metrics', description: 'Key metrics and KPIs for board members.', category: 'Metrics' },
-    { id: 'board-4', title: 'Investor Relations', description: 'Manage investor communications and updates.', category: 'Investors' },
+    { id: 'board-1', title: 'Board Dashboard Overview', content: 'Navigate the board member dashboard.', category: 'Getting Started', tags: ['dashboard'] },
+    { id: 'board-2', title: 'Financial Reports', content: 'Access and understand financial reports.', category: 'Finance', tags: ['finance', 'reports'] },
   ],
 };
 
 export function KnowledgeHubPanel({ portal, contentKey }: KnowledgeHubPanelProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedArticle, setSelectedArticle] = useState<{id: string; title: string; content: string} | null>(null);
   const navigate = useNavigate();
   const { close } = useHelpDrawerStore();
   
-  const articles = PORTAL_ARTICLES[portal] || [];
+  // Fetch from ai_knowledge_base table
+  const { data: dbArticles, isLoading } = useQuery({
+    queryKey: ['kb-articles', portal, searchQuery],
+    queryFn: async () => {
+      let query = supabase
+        .from('ai_knowledge_base')
+        .select('id, title, content, category, tags, priority')
+        .eq('is_active', true)
+        .eq('category', portal)
+        .order('priority', { ascending: false })
+        .limit(20);
+      
+      if (searchQuery) {
+        query = query.or(`title.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`);
+      }
+      
+      const { data } = await query;
+      return data || [];
+    },
+  });
   
-  const filteredArticles = articles.filter(article =>
-    article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    article.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    article.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  
-  const categories = [...new Set(filteredArticles.map(a => a.category))];
+  const articles = dbArticles && dbArticles.length > 0 ? dbArticles : FALLBACK_ARTICLES[portal] || [];
   
   const handleViewFullHub = () => {
     close();
     const route = portal === 'admin' ? '/admin/knowledge-base' : '/knowledge-hub';
     navigate(route);
   };
+  
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-4">
@@ -95,35 +119,64 @@ export function KnowledgeHubPanel({ portal, contentKey }: KnowledgeHubPanelProps
         />
       </div>
       
-      {categories.map(category => (
-        <div key={category} className="space-y-2">
-          <h3 className="text-sm font-medium text-muted-foreground">{category}</h3>
-          {filteredArticles
-            .filter(a => a.category === category)
-            .map(article => (
-              <Card key={article.id} className="cursor-pointer hover:bg-accent/50 transition-colors">
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <CardTitle className="text-sm font-medium">{article.title}</CardTitle>
-                    <BookOpen className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <CardDescription className="text-xs">
-                    {article.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            ))}
-        </div>
-      ))}
-      
-      {filteredArticles.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">
-          <BookOpen className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p>No articles found</p>
+      {dbArticles && dbArticles.length > 0 && (
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <Sparkles className="h-3 w-3" />
+          <span>AI-powered articles from Firecrawl</span>
         </div>
       )}
+      
+      <ScrollArea className="h-[400px]">
+        <div className="space-y-2 pr-4">
+          {articles.map(article => (
+            <Card 
+              key={article.id} 
+              className="cursor-pointer hover:bg-accent/50 transition-colors"
+              onClick={() => setSelectedArticle(article)}
+            >
+              <CardHeader className="pb-2">
+                <div className="flex items-start justify-between">
+                  <CardTitle className="text-sm font-medium">{article.title}</CardTitle>
+                  <BookOpen className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <CardDescription className="text-xs line-clamp-2">
+                  {article.content.slice(0, 150)}...
+                </CardDescription>
+                {article.tags && article.tags.length > 0 && (
+                  <div className="flex gap-1 mt-2 flex-wrap">
+                    {article.tags.slice(0, 3).map(tag => (
+                      <Badge key={tag} variant="secondary" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+          
+          {articles.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              <BookOpen className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p>No articles found</p>
+            </div>
+          )}
+        </div>
+      </ScrollArea>
+      
+      {/* Article Detail Dialog */}
+      <Dialog open={!!selectedArticle} onOpenChange={() => setSelectedArticle(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedArticle?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="prose prose-sm dark:prose-invert max-w-none">
+            <ReactMarkdown>{selectedArticle?.content || ''}</ReactMarkdown>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
