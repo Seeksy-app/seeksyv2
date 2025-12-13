@@ -841,27 +841,11 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
 
       </SidebarContent>
       
-      {/* Firecrawl-style Bottom Section: AI Chat + What's New + User + Collapse */}
+      {/* Firecrawl-style Bottom Section: What's New only (removed Ask Seeksy and user profile) */}
       <div className="border-t border-sidebar-border bg-sidebar mt-auto">
-        {/* Ask Seeksy - AI Chat */}
-        <div className="p-3 pb-0">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton 
-                tooltip={collapsed ? "Ask Seeksy" : undefined}
-                onClick={() => document.dispatchEvent(new Event('open-spark-assistant'))}
-                className="flex items-center gap-3 transition-all duration-150 cursor-pointer text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
-              >
-                <SparkIcon variant="holiday" size={20} className="shrink-0" />
-                {!collapsed && <span className="truncate text-amber-600 font-medium">Ask Seeksy</span>}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </div>
-        
         {/* What's New Card - Firecrawl style */}
         {!collapsed && (
-          <div className="p-3 pb-0">
+          <div className="p-3">
             <button
               onClick={() => navigate(shouldShowAdminNav ? '/admin/changelog' : '/changelog')}
               className="w-full flex items-center gap-3 p-3 rounded-lg bg-orange-50 dark:bg-orange-950/30 hover:bg-orange-100 dark:hover:bg-orange-950/50 transition-colors border border-orange-200/50 dark:border-orange-800/30"
@@ -879,7 +863,6 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
             </button>
           </div>
         )}
-        
       </div>
     </Sidebar>
   );
