@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { ThemeDropdown } from "@/components/ThemeDropdown";
+import { ThemeSliderPopover } from "@/components/ThemeSliderPopover";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { ModuleCenterModal } from "@/components/modules";
 import { SparkMascot } from "@/components/myday/SparkMascot";
@@ -171,9 +171,9 @@ export function GlobalTopNav() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Theme dropdown */}
+            {/* Theme slider */}
             <div className="hidden sm:block">
-              <ThemeDropdown />
+              <ThemeSliderPopover />
             </div>
 
             {/* User menu */}

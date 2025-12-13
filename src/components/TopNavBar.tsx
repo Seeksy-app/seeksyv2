@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { GlobalSearch } from "@/components/GlobalSearch";
-import { ThemeDropdown } from "@/components/ThemeDropdown";
+import { ThemeSliderPopover } from "@/components/ThemeSliderPopover";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { DataModePill } from "@/components/data-mode/DataModePill";
 import { AdminViewSwitcher } from "@/components/admin/AdminViewSwitcher";
@@ -239,8 +239,8 @@ export function TopNavBar() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          {/* Theme Dropdown */}
-          <ThemeDropdown />
+          {/* Theme Slider */}
+          <ThemeSliderPopover />
 
           {/* User Menu with Logout */}
           <DropdownMenu>

@@ -35,8 +35,8 @@ export function usePinnedHeaderItems() {
 }
 
 export const headerItems: HeaderItem[] = [
-  { id: 'knowledge-hub', label: 'Knowledge Hub', route: '/kb' },
-  { id: 'daily-brief', label: 'Daily Brief', route: '/daily-brief' },
+  { id: 'knowledge-hub', label: 'Knowledge Hub', route: '/admin/knowledge-base' },
+  { id: 'daily-brief', label: 'Daily Brief', action: 'daily-brief' },
   { id: 'docs', label: 'Docs', route: '/board/docs' },
   { id: 'glossary', label: 'Glossary', action: 'glossary' },
 ];
