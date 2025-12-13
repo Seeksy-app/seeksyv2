@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Send, Eye, Clock, CheckCircle, XCircle, RefreshCw, Settings, Plus, X, Activity, FileText, Copy, Share2, FileX } from "lucide-react";
+import { Loader2, Send, Eye, Clock, CheckCircle, XCircle, RefreshCw, Settings, Plus, X, Activity, FileText, Copy, Share2, FileX, Trash2, CopyPlus } from "lucide-react";
 import { format } from "date-fns";
 import {
   Table,
@@ -313,6 +313,46 @@ export default function PendingInvestments() {
     toast.success("Link copied to clipboard");
   };
 
+  const handleDelete = async (investment: PendingInvestment) => {
+    if (!confirm(`Are you sure you want to delete the application for ${investment.recipient_name || investment.field_values_json.purchaser_name}?`)) {
+      return;
+    }
+    try {
+      const { error } = await supabase
+        .from("legal_doc_instances")
+        .delete()
+        .eq("id", investment.id);
+      if (error) throw error;
+      toast.success("Application deleted");
+      fetchInvestments();
+    } catch (err: any) {
+      console.error("Error deleting application:", err);
+      toast.error(err.message || "Failed to delete application");
+    }
+  };
+
+  const handleClone = async (investment: PendingInvestment) => {
+    try {
+      const insertData: any = {
+        document_type: "stock_purchase_agreement",
+        status: "pending",
+        purchaser_email: investment.purchaser_email,
+        recipient_name: investment.recipient_name,
+        field_values_json: investment.field_values_json,
+        computed_values_json: investment.computed_values_json,
+      };
+      const { error } = await supabase
+        .from("legal_doc_instances")
+        .insert(insertData);
+      if (error) throw error;
+      toast.success("Application cloned");
+      fetchInvestments();
+    } catch (err: any) {
+      console.error("Error cloning application:", err);
+      toast.error(err.message || "Failed to clone application");
+    }
+  };
+
   const handleApprove = (investment: PendingInvestment) => {
     setSelectedInvestment(investment);
     setShowApproveModal(true);
@@ -519,7 +559,15 @@ export default function PendingInvestments() {
                           {format(new Date(inv.created_at), "MMM d, yyyy")}
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleClone(inv)}
+                              title="Clone application"
+                            >
+                              <CopyPlus className="h-4 w-4" />
+                            </Button>
                             {inv.status === "pending" && (
                               <>
                                 <Button
@@ -549,6 +597,15 @@ export default function PendingInvestments() {
                                 View
                               </Button>
                             )}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDelete(inv)}
+                              title="Delete application"
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
