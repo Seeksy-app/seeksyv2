@@ -13530,6 +13530,30 @@ export type Database = {
         }
         Relationships: []
       }
+      investor_application_access_logs: {
+        Row: {
+          accessed_at: string
+          email: string
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          accessed_at?: string
+          email: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          accessed_at?: string
+          email?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       investor_application_settings: {
         Row: {
           allowed_emails: string[] | null
