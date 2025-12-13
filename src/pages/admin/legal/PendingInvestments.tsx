@@ -45,6 +45,7 @@ interface PendingInvestment {
     purchaser_address?: string;
     numberOfShares?: string;
     pricePerShare?: string;
+    investor_certification?: string;
   };
   computed_values_json: {
     totalAmount?: string | number;
@@ -106,6 +107,7 @@ export default function PendingInvestments() {
   
   // Admin signature info
   const [sellerName, setSellerName] = useState("Seeksy, Inc.");
+  const [sellerAddress, setSellerAddress] = useState("");
   const [sellerEmail, setSellerEmail] = useState("");
   const [chairmanName, setChairmanName] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState("");
@@ -338,6 +340,7 @@ export default function PendingInvestments() {
             purchaserAddress,
             purchaserEmail,
             sellerName: sellerName || "Seeksy, Inc.",
+            sellerAddress: sellerAddress || "",
             sellerEmail,
             chairmanName: chairmanName || "Chairman",
             numberOfShares,
@@ -347,6 +350,7 @@ export default function PendingInvestments() {
               day: "numeric",
               year: "numeric",
             }),
+            investorCertification: fieldValues.investor_certification || "Individual with net worth or joint net worth with spouse exceeding $1 million",
           },
         }
       );
@@ -900,6 +904,15 @@ export default function PendingInvestments() {
                     value={sellerName}
                     onChange={(e) => setSellerName(e.target.value)}
                     placeholder="Seeksy, Inc."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sellerAddress">Seller Address *</Label>
+                  <Input
+                    id="sellerAddress"
+                    value={sellerAddress}
+                    onChange={(e) => setSellerAddress(e.target.value)}
+                    placeholder="123 Business Ave, City, State 12345"
                   />
                 </div>
                 <div className="space-y-2">

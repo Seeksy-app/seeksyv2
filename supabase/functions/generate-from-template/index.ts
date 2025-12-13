@@ -22,6 +22,7 @@ interface RequestBody {
   numberOfShares: number;
   pricePerShare: number;
   agreementDate?: string;
+  investorCertification?: string;
 }
 
 // Convert number to words (for shares)
@@ -62,6 +63,7 @@ serve(async (req) => {
       numberOfShares, 
       pricePerShare, 
       agreementDate,
+      investorCertification = "Individual with net worth or joint net worth with spouse exceeding $1 million",
     } = body;
 
     // Construct template path - check if it's in the investment-documents folder
@@ -144,6 +146,9 @@ serve(async (req) => {
       TOTAL_AMOUNT: totalAmount.toFixed(2),
       AGREEMENT_DATE: formattedDate,
       
+      // Investor certification placeholder
+      INVESTOR_CERTIFICATION: investorCertification,
+      
       // Alternative formats users might use (camelCase)
       purchaserName,
       purchaserAddress,
@@ -158,6 +163,7 @@ serve(async (req) => {
       totalAmount: totalAmount.toFixed(2),
       purchaseAmount: totalAmount.toFixed(2),
       agreementDate: formattedDate,
+      investorCertification,
     };
 
     console.log("Rendering document with data:", JSON.stringify(templateData, null, 2));

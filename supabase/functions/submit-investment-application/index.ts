@@ -17,6 +17,7 @@ interface InvestmentApplication {
   pricePerShare: number;
   totalAmount: number;
   investmentMode: "shares" | "amount";
+  investorCertification?: string;
 }
 
 serve(async (req) => {
@@ -32,7 +33,7 @@ serve(async (req) => {
     );
 
     const body: InvestmentApplication = await req.json();
-    const { name, email, street, city, state, zip, numberOfShares, pricePerShare, totalAmount } = body;
+    const { name, email, street, city, state, zip, numberOfShares, pricePerShare, totalAmount, investorCertification } = body;
 
     console.log("Received investment application:", { name, email, numberOfShares, totalAmount });
 
@@ -83,6 +84,7 @@ serve(async (req) => {
           purchaser_address: fullAddress,
           numberOfShares: numberOfShares.toString(),
           pricePerShare: pricePerShare.toString(),
+          investor_certification: investorCertification || "Individual with net worth or joint net worth with spouse exceeding $1 million",
         },
         computed_values_json: {
           totalAmount: totalAmount.toFixed(2),

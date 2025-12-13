@@ -46,6 +46,7 @@ export default function InvestorApplication() {
     zip: "",
     numberOfShares: "",
     investmentAmount: "",
+    investorCertification: "",
   });
 
   // Countdown state
@@ -243,6 +244,7 @@ export default function InvestorApplication() {
           pricePerShare: pricePerShare,
           totalAmount: parseFloat(calculateTotal()),
           investmentMode,
+          investorCertification: formData.investorCertification || "Individual with net worth or joint net worth with spouse exceeding $1 million",
         },
       });
 
@@ -622,6 +624,40 @@ export default function InvestorApplication() {
                   />
                 </div>
               </div>
+            </div>
+
+            <Separator />
+
+            {/* Investor Certification */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Investor Certification</h3>
+              <p className="text-xs text-muted-foreground">
+                Please select the statement that applies to you as a sophisticated investor:
+              </p>
+              <RadioGroup
+                value={formData.investorCertification}
+                onValueChange={(v) => handleChange("investorCertification", v)}
+                className="space-y-3"
+              >
+                <div className="flex items-start space-x-2 border rounded-lg p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                  <RadioGroupItem value="Individual with net worth or joint net worth with spouse exceeding $1 million" id="cert1" className="mt-0.5" />
+                  <Label htmlFor="cert1" className="text-sm cursor-pointer">
+                    Individual with net worth or joint net worth with spouse exceeding $1 million (excluding primary residence)
+                  </Label>
+                </div>
+                <div className="flex items-start space-x-2 border rounded-lg p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                  <RadioGroupItem value="Individual with income exceeding $200,000 in each of the two most recent years" id="cert2" className="mt-0.5" />
+                  <Label htmlFor="cert2" className="text-sm cursor-pointer">
+                    Individual with income exceeding $200,000 in each of the two most recent years (or $300,000 combined income with spouse)
+                  </Label>
+                </div>
+                <div className="flex items-start space-x-2 border rounded-lg p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                  <RadioGroupItem value="Director, executive officer, or general partner of the issuer" id="cert3" className="mt-0.5" />
+                  <Label htmlFor="cert3" className="text-sm cursor-pointer">
+                    Director, executive officer, or general partner of the issuer
+                  </Label>
+                </div>
+              </RadioGroup>
             </div>
 
             <Button
