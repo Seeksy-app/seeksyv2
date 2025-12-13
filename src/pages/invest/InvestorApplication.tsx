@@ -657,6 +657,12 @@ export default function InvestorApplication() {
                     Director, executive officer, or general partner of the issuer
                   </Label>
                 </div>
+                <div className="flex items-start space-x-2 border rounded-lg p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                  <RadioGroupItem value="Buyer is acquiring the Shares as a Sophisticated Investor in a private shareholder-to-shareholder transaction exempt under Section 4(a)(1) of the Securities Act of 1933" id="cert4" className="mt-0.5" />
+                  <Label htmlFor="cert4" className="text-sm cursor-pointer">
+                    Buyer is acquiring the Shares as a Sophisticated Investor in a private shareholder-to-shareholder transaction exempt under Section 4(a)(1) of the Securities Act of 1933
+                  </Label>
+                </div>
               </RadioGroup>
             </div>
 
