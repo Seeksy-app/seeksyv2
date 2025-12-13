@@ -10,6 +10,7 @@ import { Plus, Edit, Trash2, Eye, Search, ArrowLeft, LayoutGrid, List as ListIco
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { CreateBlogPostModal } from "@/components/admin/CreateBlogPostModal";
 
 const AdminMasterBlog = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const AdminMasterBlog = () => {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [filterType, setFilterType] = useState<"all" | "ai" | "user">("all");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Helper to decode HTML entities
   const decodeHtmlEntities = (text: string): string => {
@@ -161,12 +163,18 @@ const AdminMasterBlog = () => {
               <Sparkles className="w-4 h-4 mr-2" />
               {isGenerating ? "Generating..." : "Generate AI Posts"}
             </Button>
-            <Button onClick={() => navigate("/blog/create")}>
+            <Button onClick={() => setIsCreateModalOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Create Post
             </Button>
           </div>
         </div>
+
+        <CreateBlogPostModal
+          open={isCreateModalOpen}
+          onOpenChange={setIsCreateModalOpen}
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ["master-blog-admin"] })}
+        />
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
