@@ -260,9 +260,33 @@ export default function PendingInvestments() {
       setNewAppName("");
       await fetchSettings();
       if (data) setSelectedSettingsId(data.id);
+      // Switch to Applications tab after creating
+      setActiveTab("applications");
     } catch (err: any) {
       console.error("Error creating application:", err);
       toast.error(err.message || "Failed to create application");
+    }
+  };
+
+  const deleteApplication = async (appId: string, appName: string) => {
+    if (!confirm(`Are you sure you want to delete "${appName}"? This cannot be undone.`)) {
+      return;
+    }
+    try {
+      const { error } = await supabase
+        .from("investor_application_settings")
+        .delete()
+        .eq("id", appId);
+      if (error) throw error;
+      toast.success("Application deleted");
+      await fetchSettings();
+      // If we deleted the selected one, reset selection
+      if (selectedSettingsId === appId) {
+        setSelectedSettingsId(allSettings.find(s => s.id !== appId)?.id || null);
+      }
+    } catch (err: any) {
+      console.error("Error deleting application:", err);
+      toast.error(err.message || "Failed to delete application");
     }
   };
 
@@ -738,15 +762,25 @@ export default function PendingInvestments() {
                   <Label>Select Application</Label>
                   <div className="flex flex-wrap gap-2">
                     {allSettings.map((app) => (
-                      <Button
-                        key={app.id}
-                        variant={selectedSettingsId === app.id ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setSelectedSettingsId(app.id)}
-                      >
-                        {app.name}
-                        {app.is_active && <Badge variant="secondary" className="ml-2 text-xs">Active</Badge>}
-                      </Button>
+                      <div key={app.id} className="flex items-center gap-1">
+                        <Button
+                          variant={selectedSettingsId === app.id ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setSelectedSettingsId(app.id)}
+                        >
+                          {app.name}
+                          {app.is_active && <Badge variant="secondary" className="ml-2 text-xs">Active</Badge>}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                          onClick={() => deleteApplication(app.id, app.name)}
+                          title="Delete application"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     ))}
                   </div>
                   {settings?.slug && (
