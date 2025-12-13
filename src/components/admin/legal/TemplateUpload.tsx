@@ -97,15 +97,33 @@ export default function TemplateUpload() {
           <Info className="h-4 w-4" />
           <AlertTitle>Template Placeholders</AlertTitle>
           <AlertDescription>
-            Use these placeholders in your Word document (with square brackets):
-            <ul className="mt-2 space-y-1 text-sm">
-              <li><code className="bg-muted px-1 rounded">[PURCHASER_NAME]</code> - Investor's full name</li>
-              <li><code className="bg-muted px-1 rounded">[PURCHASER_ADDRESS]</code> - Full address</li>
-              <li><code className="bg-muted px-1 rounded">[NUMBER_OF_SHARES]</code> - Number of shares</li>
-              <li><code className="bg-muted px-1 rounded">[PRICE_PER_SHARE]</code> - Price per share</li>
-              <li><code className="bg-muted px-1 rounded">[PURCHASE_AMOUNT]</code> - Total investment amount</li>
-              <li><code className="bg-muted px-1 rounded">[AGREEMENT_DATE]</code> - Date of agreement</li>
-            </ul>
+            <p className="mb-2">Use these placeholders in your Word document:</p>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+              <div className="font-medium mt-2 col-span-2 text-foreground">Parties & Dates:</div>
+              <li><code className="bg-muted px-1 rounded">[PURCHASER_NAME]</code></li>
+              <li><code className="bg-muted px-1 rounded">[PURCHASER_ADDRESS]</code></li>
+              <li><code className="bg-muted px-1 rounded">[SELLER_NAME]</code></li>
+              <li><code className="bg-muted px-1 rounded">[SELLER_ADDRESS]</code></li>
+              <li><code className="bg-muted px-1 rounded">[SELLER_EMAIL]</code></li>
+              <li><code className="bg-muted px-1 rounded">[BUYER_EMAIL]</code></li>
+              <li><code className="bg-muted px-1 rounded">[CHAIRMAN_NAME]</code></li>
+              <li><code className="bg-muted px-1 rounded">[CHAIRMAN_TITLE]</code></li>
+              <li><code className="bg-muted px-1 rounded">[COMPANY_NAME]</code></li>
+              <li><code className="bg-muted px-1 rounded">[AGREEMENT_DATE]</code></li>
+              
+              <div className="font-medium mt-2 col-span-2 text-foreground">Investment Details:</div>
+              <li><code className="bg-muted px-1 rounded">[NUMBER_OF_SHARES]</code></li>
+              <li><code className="bg-muted px-1 rounded">[NUMBER_OF_SHARES_WORDS]</code></li>
+              <li><code className="bg-muted px-1 rounded">[PRICE_PER_SHARE]</code></li>
+              <li><code className="bg-muted px-1 rounded">[PURCHASE_AMOUNT]</code></li>
+              
+              <div className="font-medium mt-2 col-span-2 text-foreground">Investor Certification Checkboxes:</div>
+              <li className="col-span-2"><code className="bg-muted px-1 rounded">[CERT_NET_WORTH]</code> - ☑/☐ Net worth</li>
+              <li className="col-span-2"><code className="bg-muted px-1 rounded">[CERT_INCOME]</code> - ☑/☐ Income</li>
+              <li className="col-span-2"><code className="bg-muted px-1 rounded">[CERT_DIRECTOR]</code> - ☑/☐ Director/Officer</li>
+              <li className="col-span-2"><code className="bg-muted px-1 rounded">[CERT_SOPHISTICATED]</code> - ☑/☐ Sophisticated Investor</li>
+              <li className="col-span-2"><code className="bg-muted px-1 rounded">[INVESTOR_CERTIFICATION]</code> - Full text description</li>
+            </div>
           </AlertDescription>
         </Alert>
 
