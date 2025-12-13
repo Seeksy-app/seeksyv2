@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Send, Eye, Clock, CheckCircle, XCircle, RefreshCw } from "lucide-react";
+import { Loader2, Send, Eye, Clock, CheckCircle, XCircle, RefreshCw, Settings, Plus, X } from "lucide-react";
 import { format } from "date-fns";
 import {
   Table,
@@ -24,6 +24,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 
 interface PendingInvestment {
   id: string;
@@ -50,12 +53,26 @@ interface PendingInvestment {
   signwell_status?: string;
 }
 
+interface InvestorSettings {
+  id: string;
+  price_per_share: number;
+  allowed_emails: string[];
+  is_active: boolean;
+  confidentiality_notice: string;
+}
+
 export default function PendingInvestments() {
   const [investments, setInvestments] = useState<PendingInvestment[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedInvestment, setSelectedInvestment] = useState<PendingInvestment | null>(null);
   const [sendingSignature, setSendingSignature] = useState(false);
   const [showApproveModal, setShowApproveModal] = useState(false);
+  const [activeTab, setActiveTab] = useState("applications");
+  
+  // Settings state
+  const [settings, setSettings] = useState<InvestorSettings | null>(null);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
   
   // Admin signature info
   const [sellerEmail, setSellerEmail] = useState("");
@@ -82,9 +99,83 @@ export default function PendingInvestments() {
     }
   };
 
+  const fetchSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("investor_application_settings")
+        .select("*")
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data) {
+        setSettings({
+          id: data.id,
+          price_per_share: Number(data.price_per_share),
+          allowed_emails: data.allowed_emails || [],
+          is_active: data.is_active ?? true,
+          confidentiality_notice: data.confidentiality_notice || "",
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching settings:", err);
+      toast.error("Failed to load settings");
+    }
+  };
+
   useEffect(() => {
     fetchInvestments();
+    fetchSettings();
   }, []);
+
+  const saveSettings = async () => {
+    if (!settings) return;
+    setSavingSettings(true);
+    try {
+      const { error } = await supabase
+        .from("investor_application_settings")
+        .update({
+          price_per_share: settings.price_per_share,
+          allowed_emails: settings.allowed_emails,
+          is_active: settings.is_active,
+          confidentiality_notice: settings.confidentiality_notice,
+        })
+        .eq("id", settings.id);
+
+      if (error) throw error;
+      toast.success("Settings saved");
+    } catch (err) {
+      console.error("Error saving settings:", err);
+      toast.error("Failed to save settings");
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
+  const addEmail = () => {
+    const email = newEmail.trim().toLowerCase();
+    if (!email) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error("Please enter a valid email");
+      return;
+    }
+    if (settings?.allowed_emails.includes(email)) {
+      toast.error("Email already in list");
+      return;
+    }
+    setSettings(prev => prev ? {
+      ...prev,
+      allowed_emails: [...prev.allowed_emails, email]
+    } : null);
+    setNewEmail("");
+  };
+
+  const removeEmail = (email: string) => {
+    setSettings(prev => prev ? {
+      ...prev,
+      allowed_emails: prev.allowed_emails.filter(e => e !== email)
+    } : null);
+  };
 
   const getStatusBadge = (status: string, signwellStatus?: string) => {
     if (signwellStatus === "sent" || status === "pending_signatures") {
@@ -221,85 +312,215 @@ export default function PendingInvestments() {
 
   return (
     <div className="container max-w-5xl py-8">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <CardTitle>Pending Investments</CardTitle>
-            <CardDescription>
-              Review and approve investor applications for stock purchase
-            </CardDescription>
+            <h1 className="text-2xl font-bold">Investment Applications</h1>
+            <p className="text-muted-foreground">Manage investor applications and settings</p>
           </div>
-          <Button variant="outline" size="sm" onClick={fetchInvestments}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {investments.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No pending investment applications
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Investor</TableHead>
-                  <TableHead>Shares</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Submitted</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {investments.map((inv) => (
-                  <TableRow key={inv.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{inv.recipient_name || inv.field_values_json.purchaser_name}</p>
-                        <p className="text-sm text-muted-foreground">{inv.purchaser_email}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {(inv.computed_values_json.numberOfShares || parseInt(inv.field_values_json.numberOfShares || "0")).toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      ${parseFloat(String(inv.computed_values_json.totalAmount) || "0").toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      {getStatusBadge(inv.status, inv.signwell_status)}
-                    </TableCell>
-                    <TableCell>
-                      {format(new Date(inv.created_at), "MMM d, yyyy")}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {inv.status === "pending" && (
+          <TabsList>
+            <TabsTrigger value="applications">Applications</TabsTrigger>
+            <TabsTrigger value="settings">
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="applications">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Pending Investments</CardTitle>
+                <CardDescription>
+                  Review and approve investor applications for stock purchase
+                </CardDescription>
+              </div>
+              <Button variant="outline" size="sm" onClick={fetchInvestments}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {investments.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No pending investment applications
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Investor</TableHead>
+                      <TableHead>Shares</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Submitted</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {investments.map((inv) => (
+                      <TableRow key={inv.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{inv.recipient_name || inv.field_values_json.purchaser_name}</p>
+                            <p className="text-sm text-muted-foreground">{inv.purchaser_email}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {(inv.computed_values_json.numberOfShares || parseInt(inv.field_values_json.numberOfShares || "0")).toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          ${parseFloat(String(inv.computed_values_json.totalAmount) || "0").toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          {getStatusBadge(inv.status, inv.signwell_status)}
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(inv.created_at), "MMM d, yyyy")}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {inv.status === "pending" && (
+                            <Button
+                              size="sm"
+                              onClick={() => handleApprove(inv)}
+                            >
+                              <Send className="h-4 w-4 mr-2" />
+                              Approve & Send
+                            </Button>
+                          )}
+                          {inv.status !== "pending" && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setSelectedInvestment(inv)}
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              View
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="settings">
+          <Card>
+            <CardHeader>
+              <CardTitle>Application Settings</CardTitle>
+              <CardDescription>
+                Configure price per share, allowed emails, and disclosure notice
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Active Toggle */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Accept Applications</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Enable or disable the application form
+                  </p>
+                </div>
+                <Switch
+                  checked={settings?.is_active ?? true}
+                  onCheckedChange={(checked) => setSettings(prev => prev ? { ...prev, is_active: checked } : null)}
+                />
+              </div>
+
+              {/* Price Per Share */}
+              <div className="space-y-2">
+                <Label htmlFor="pps">Price Per Share ($)</Label>
+                <Input
+                  id="pps"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={settings?.price_per_share || ""}
+                  onChange={(e) => setSettings(prev => prev ? { ...prev, price_per_share: parseFloat(e.target.value) || 0 } : null)}
+                  className="max-w-xs"
+                />
+                <p className="text-xs text-muted-foreground">
+                  This will be displayed to investors on the application form
+                </p>
+              </div>
+
+              {/* Allowed Emails */}
+              <div className="space-y-3">
+                <div>
+                  <Label>Allowed Emails</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Only these emails can access the application. Leave empty to allow anyone.
+                  </p>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Input
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="investor@example.com"
+                    className="max-w-sm"
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addEmail())}
+                  />
+                  <Button type="button" variant="outline" onClick={addEmail}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add
+                  </Button>
+                </div>
+
+                {settings?.allowed_emails && settings.allowed_emails.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {settings.allowed_emails.map((email) => (
+                      <Badge key={email} variant="secondary" className="pl-3 pr-1 py-1">
+                        {email}
                         <Button
-                          size="sm"
-                          onClick={() => handleApprove(inv)}
-                        >
-                          <Send className="h-4 w-4 mr-2" />
-                          Approve & Send
-                        </Button>
-                      )}
-                      {inv.status !== "pending" && (
-                        <Button
-                          size="sm"
                           variant="ghost"
-                          onClick={() => setSelectedInvestment(inv)}
+                          size="sm"
+                          className="h-5 w-5 p-0 ml-2 hover:bg-destructive/20"
+                          onClick={() => removeEmail(email)}
                         >
-                          <Eye className="h-4 w-4 mr-2" />
-                          View
+                          <X className="h-3 w-3" />
                         </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Confidentiality Notice */}
+              <div className="space-y-2">
+                <Label htmlFor="notice">Confidentiality Notice</Label>
+                <Textarea
+                  id="notice"
+                  value={settings?.confidentiality_notice || ""}
+                  onChange={(e) => setSettings(prev => prev ? { ...prev, confidentiality_notice: e.target.value } : null)}
+                  rows={4}
+                  placeholder="Enter the confidentiality disclosure text..."
+                />
+                <p className="text-xs text-muted-foreground">
+                  This notice is shown before users can access the application form
+                </p>
+              </div>
+
+              <Button onClick={saveSettings} disabled={savingSettings}>
+                {savingSettings ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Settings"
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Approve & Send Modal */}
       <Dialog open={showApproveModal} onOpenChange={setShowApproveModal}>

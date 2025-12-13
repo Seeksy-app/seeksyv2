@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,12 +7,27 @@ import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, CheckCircle, DollarSign, Hash } from "lucide-react";
+import { Loader2, CheckCircle, DollarSign, Hash, Lock, Shield } from "lucide-react";
+
+interface InvestorSettings {
+  price_per_share: number;
+  allowed_emails: string[];
+  is_active: boolean;
+  confidentiality_notice: string;
+}
 
 export default function InvestorApplication() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [investmentMode, setInvestmentMode] = useState<"shares" | "amount">("shares");
+  const [settings, setSettings] = useState<InvestorSettings | null>(null);
+  const [loadingSettings, setLoadingSettings] = useState(true);
+  
+  // Email gating state
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [gateEmail, setGateEmail] = useState("");
+  const [verifyingEmail, setVerifyingEmail] = useState(false);
+  const [acceptedDisclosure, setAcceptedDisclosure] = useState(false);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -25,8 +40,35 @@ export default function InvestorApplication() {
     investmentAmount: "",
   });
 
-  // Default price per share (admin can configure later)
-  const pricePerShare = 0.20;
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("investor_application_settings")
+        .select("*")
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data) {
+        setSettings({
+          price_per_share: Number(data.price_per_share),
+          allowed_emails: data.allowed_emails || [],
+          is_active: data.is_active ?? true,
+          confidentiality_notice: data.confidentiality_notice || "",
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching settings:", err);
+    } finally {
+      setLoadingSettings(false);
+    }
+  };
+
+  const pricePerShare = settings?.price_per_share || 0.20;
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -52,6 +94,32 @@ export default function InvestorApplication() {
 
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const handleVerifyEmail = async () => {
+    if (!gateEmail.trim() || !validateEmail(gateEmail)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    setVerifyingEmail(true);
+    try {
+      const normalizedEmail = gateEmail.trim().toLowerCase();
+      const allowedEmails = (settings?.allowed_emails || []).map(e => e.toLowerCase());
+      
+      if (allowedEmails.length === 0 || allowedEmails.includes(normalizedEmail)) {
+        setEmailVerified(true);
+        setFormData(prev => ({ ...prev, email: normalizedEmail }));
+        toast.success("Email verified. Please continue with your application.");
+      } else {
+        toast.error("This email is not authorized to access this page.");
+      }
+    } catch (err) {
+      console.error("Error verifying email:", err);
+      toast.error("Failed to verify email");
+    } finally {
+      setVerifyingEmail(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,7 +148,6 @@ export default function InvestorApplication() {
     setIsSubmitting(true);
 
     try {
-      // Call edge function to submit investment application (bypasses RLS)
       const response = await supabase.functions.invoke("submit-investment-application", {
         body: {
           name: formData.name.trim(),
@@ -114,6 +181,31 @@ export default function InvestorApplication() {
     }
   };
 
+  if (loadingSettings) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!settings?.is_active) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md text-center">
+          <CardContent className="pt-8 pb-8 space-y-4">
+            <Lock className="h-16 w-16 text-muted-foreground mx-auto" />
+            <h2 className="text-2xl font-bold">Applications Closed</h2>
+            <p className="text-muted-foreground">
+              Investment applications are not currently being accepted. 
+              Please check back later.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (submitted) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -128,6 +220,78 @@ export default function InvestorApplication() {
             <p className="text-sm text-muted-foreground">
               Check your email ({formData.email}) for next steps.
             </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Email Gate Screen
+  if (!emailVerified) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 p-3 rounded-full bg-primary/10">
+              <Shield className="h-8 w-8 text-primary" />
+            </div>
+            <CardTitle className="text-2xl">Investment Application</CardTitle>
+            <CardDescription>
+              Please verify your email to access the investment application
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Confidentiality Notice */}
+            <div className="rounded-lg bg-muted p-4 text-sm">
+              <p className="font-medium mb-2">Confidentiality Notice</p>
+              <p className="text-muted-foreground">
+                {settings?.confidentiality_notice || 
+                  "All information provided is strictly confidential and will only be used for the purpose of processing your investment application."}
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-start space-x-2">
+                <input
+                  type="checkbox"
+                  id="acceptDisclosure"
+                  checked={acceptedDisclosure}
+                  onChange={(e) => setAcceptedDisclosure(e.target.checked)}
+                  className="mt-1"
+                />
+                <Label htmlFor="acceptDisclosure" className="text-sm cursor-pointer">
+                  I acknowledge that all information I provide will be kept confidential 
+                  and used solely for processing my investment application.
+                </Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="gateEmail">Your Email Address</Label>
+                <Input
+                  id="gateEmail"
+                  type="email"
+                  value={gateEmail}
+                  onChange={(e) => setGateEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  disabled={!acceptedDisclosure}
+                />
+              </div>
+
+              <Button
+                className="w-full"
+                onClick={handleVerifyEmail}
+                disabled={!acceptedDisclosure || verifyingEmail}
+              >
+                {verifyingEmail ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  "Continue"
+                )}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -243,6 +407,7 @@ export default function InvestorApplication() {
                   value={formData.email}
                   onChange={(e) => handleChange("email", e.target.value)}
                   placeholder="john@example.com"
+                  disabled
                 />
                 <p className="text-xs text-muted-foreground">
                   The stock purchase agreement will be sent to this email

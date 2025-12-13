@@ -13530,6 +13530,36 @@ export type Database = {
         }
         Relationships: []
       }
+      investor_application_settings: {
+        Row: {
+          allowed_emails: string[] | null
+          confidentiality_notice: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          price_per_share: number
+          updated_at: string
+        }
+        Insert: {
+          allowed_emails?: string[] | null
+          confidentiality_notice?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          price_per_share?: number
+          updated_at?: string
+        }
+        Update: {
+          allowed_emails?: string[] | null
+          confidentiality_notice?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          price_per_share?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       investor_emails: {
         Row: {
           body: string | null
