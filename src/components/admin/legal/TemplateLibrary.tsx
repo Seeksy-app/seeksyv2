@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Upload, FileText, Loader2, CheckCircle, Trash2, Download, FolderOpen, Plus, MoreVertical } from "lucide-react";
+import { Upload, FileText, Loader2, CheckCircle, Trash2, Download, FolderOpen, Plus, MoreVertical, Wand2 } from "lucide-react";
 import { format } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info } from "lucide-react";
@@ -46,6 +46,7 @@ export default function TemplateLibrary({
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [newTemplateName, setNewTemplateName] = useState("");
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -190,6 +191,48 @@ export default function TemplateLibrary({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
   };
 
+  const handleGenerateDefaultTemplate = async () => {
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-stock-agreement-template");
+      
+      if (error) throw error;
+      
+      if (data?.document) {
+        // Convert base64 to blob
+        const binaryString = atob(data.document);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { 
+          type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
+        });
+        
+        // Upload to storage
+        const fileName = data.filename || "stock-purchase-agreement-template.docx";
+        const filePath = `investment-documents/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from("legal-templates")
+          .upload(filePath, blob, {
+            upsert: true,
+            contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          });
+        
+        if (uploadError) throw uploadError;
+        
+        toast.success("Default template generated and uploaded");
+        await fetchTemplates();
+      }
+    } catch (err: any) {
+      console.error("Error generating template:", err);
+      toast.error(err.message || "Failed to generate template");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -242,10 +285,25 @@ export default function TemplateLibrary({
           <div className="text-center py-8 border-2 border-dashed rounded-lg">
             <FileText className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
             <p className="text-muted-foreground mb-3">No templates uploaded yet</p>
-            <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
-              <Upload className="h-4 w-4 mr-2" />
-              Upload First Template
-            </Button>
+            <div className="flex items-center justify-center gap-2">
+              <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+                <Upload className="h-4 w-4 mr-2" />
+                Upload First Template
+              </Button>
+              <Button onClick={handleGenerateDefaultTemplate} disabled={generating}>
+                {generating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="h-4 w-4 mr-2" />
+                    Generate Default Template
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="space-y-2">
