@@ -9,6 +9,49 @@ const corsHeaders = {
 // Only admins and editors can generate master blog posts
 const ALLOWED_ROLES = ['admin', 'super_admin', 'editor'];
 
+// Generate an image using Lovable AI
+async function generateImage(prompt: string, lovableApiKey: string): Promise<string | null> {
+  try {
+    console.log('Generating image with prompt:', prompt.substring(0, 100) + '...');
+    
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash-image-preview',
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        modalities: ['image', 'text']
+      })
+    });
+
+    if (!response.ok) {
+      console.error('Image generation failed:', response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    
+    if (imageUrl) {
+      console.log('Image generated successfully');
+      return imageUrl;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error generating image:', error);
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -98,16 +141,22 @@ serve(async (req) => {
 3. Full blog content in markdown format (500-800 words)
 4. SEO meta description (max 160 characters)
 5. 5-7 relevant keywords
+6. A short image prompt for a featured header image (describe a professional, abstract illustration suitable for a blog header)
+7. 2-3 inline image prompts that should be placed within the content (describe specific visuals that enhance the article)
 
 Topic categories to choose from: social media strategy, content creation tips, monetization, personal branding, productivity, technology for creators, marketing insights.
+
+IMPORTANT: In the content, include markdown image placeholders where inline images should go, using the format: ![Image description](INLINE_IMAGE_1), ![Image description](INLINE_IMAGE_2), etc.
 
 Return ONLY a JSON object with this exact structure:
 {
   "title": "string",
   "excerpt": "string",
-  "content": "string (markdown)",
+  "content": "string (markdown with image placeholders)",
   "seo_description": "string",
-  "seo_keywords": ["keyword1", "keyword2"]
+  "seo_keywords": ["keyword1", "keyword2"],
+  "featured_image_prompt": "string (short prompt for header image)",
+  "inline_image_prompts": ["prompt1", "prompt2"]
 }`
             }
           ],
@@ -136,6 +185,30 @@ Return ONLY a JSON object with this exact structure:
         continue;
       }
 
+      // Generate featured image
+      let featuredImageUrl = null;
+      if (blogData.featured_image_prompt) {
+        const imagePrompt = `Professional blog header image: ${blogData.featured_image_prompt}. Modern, clean design with subtle blue tones (#053877, #2C6BED). Abstract and minimal, suitable for a SaaS blog. High quality, 16:9 aspect ratio.`;
+        featuredImageUrl = await generateImage(imagePrompt, lovableApiKey);
+      }
+
+      // Generate inline images and replace placeholders
+      let finalContent = blogData.content;
+      if (blogData.inline_image_prompts && Array.isArray(blogData.inline_image_prompts)) {
+        for (let j = 0; j < blogData.inline_image_prompts.length; j++) {
+          const inlinePrompt = `Blog illustration: ${blogData.inline_image_prompts[j]}. Clean, professional, modern style. Suitable for inline blog content.`;
+          const inlineImageUrl = await generateImage(inlinePrompt, lovableApiKey);
+          
+          if (inlineImageUrl) {
+            // Replace placeholder with actual image URL
+            finalContent = finalContent.replace(`INLINE_IMAGE_${j + 1}`, inlineImageUrl);
+          } else {
+            // Remove the placeholder if image generation failed
+            finalContent = finalContent.replace(new RegExp(`!\\[[^\\]]*\\]\\(INLINE_IMAGE_${j + 1}\\)`, 'g'), '');
+          }
+        }
+      }
+
       const slug = blogData.title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
@@ -145,11 +218,12 @@ Return ONLY a JSON object with this exact structure:
       const { data: insertedPost, error: insertError } = await supabase
         .from('blog_posts')
         .insert({
-          user_id: user.id, // Use authenticated user, not arbitrary first user
+          user_id: user.id,
           title: blogData.title,
           slug: slug,
           excerpt: blogData.excerpt,
-          content: blogData.content,
+          content: finalContent,
+          featured_image_url: featuredImageUrl,
           seo_title: blogData.title,
           seo_description: blogData.seo_description,
           seo_keywords: blogData.seo_keywords,
@@ -168,7 +242,7 @@ Return ONLY a JSON object with this exact structure:
       }
 
       posts.push(insertedPost);
-      console.log(`Successfully created post ${i + 1}: ${blogData.title}`);
+      console.log(`Successfully created post ${i + 1}: ${blogData.title} (with ${featuredImageUrl ? 'featured image' : 'no featured image'})`);
     }
 
     console.log(`Generated ${posts.length} blog posts successfully`);
@@ -177,7 +251,7 @@ Return ONLY a JSON object with this exact structure:
       JSON.stringify({ 
         success: true, 
         postsCreated: posts.length,
-        posts: posts.map(p => ({ id: p.id, title: p.title }))
+        posts: posts.map(p => ({ id: p.id, title: p.title, hasImage: !!p.featured_image_url }))
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
