@@ -246,7 +246,7 @@ export const NAVIGATION_CONFIG: {
     },
 
     {
-      "group": "Financials (CFO)",
+      "group": "Financials",
       "description": "Financial planning and analysis",
       "collapsible": true,
       "items": [
@@ -303,7 +303,7 @@ export const NAVIGATION_CONFIG: {
     },
 
     {
-      "group": "Marketing (CMO)",
+      "group": "Marketing",
       "description": "Marketing campaigns and growth",
       "collapsible": true,
       "items": [
@@ -368,7 +368,7 @@ export const NAVIGATION_CONFIG: {
     },
 
     {
-      "group": "Content Management (CCO)",
+      "group": "Content Management",
       "description": "Content and media administration",
       "collapsible": true,
       "items": [
