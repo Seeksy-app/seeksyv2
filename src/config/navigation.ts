@@ -425,6 +425,14 @@ export const NAVIGATION_CONFIG: {
           "description": "Board-ready demo videos for investors"
         },
         {
+          "id": "admin_video_pages",
+          "label": "Video Pages",
+          "icon": "film",
+          "path": "/admin/video-pages",
+          "roles": ["admin", "super_admin", "cco"],
+          "description": "Manage gated video collections"
+        },
+        {
           "id": "admin_personas",
           "label": "AI Personas",
           "icon": "bot",
