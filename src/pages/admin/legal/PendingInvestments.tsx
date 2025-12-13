@@ -263,7 +263,7 @@ export default function PendingInvestments() {
           name: newAppName.trim(),
           slug: slug,
           price_per_share: 0.20,
-          is_active: false,
+          is_active: true, // Default to active so investors can access
           allowed_emails: [],
           minimum_investment: 100,
         })
