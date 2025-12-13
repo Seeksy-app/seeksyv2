@@ -25,7 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { usePinnedHeaderItems, headerItems, HeaderItemId } from "@/hooks/usePinnedHeaderItems";
+import { usePinnedHeaderItems, getHeaderItems, HeaderItemId } from "@/hooks/usePinnedHeaderItems";
 
 export function TopNavBar() {
   const location = useLocation();
@@ -77,18 +77,19 @@ export function TopNavBar() {
     document.dispatchEvent(new Event('open-spark-assistant'));
   };
 
-  const handleHeaderItemClick = (item: typeof headerItems[0]) => {
+  const isAdminRoute = location.pathname.startsWith('/admin') || location.pathname.startsWith('/cfo');
+  const isBoardRoute = location.pathname.startsWith('/board');
+  
+  // Get context-aware header items based on current route
+  const headerItems = getHeaderItems(isAdminRoute);
+
+  const handleHeaderItemClick = (item: ReturnType<typeof getHeaderItems>[0]) => {
     if (item.action === 'glossary') {
       document.dispatchEvent(new Event('open-glossary'));
-    } else if (item.action === 'daily-brief') {
-      document.dispatchEvent(new CustomEvent('open-daily-brief', { detail: { audienceType: 'ceo' } }));
     } else if (item.route) {
       navigate(item.route);
     }
   };
-
-  const isAdminRoute = location.pathname.startsWith('/admin') || location.pathname.startsWith('/cfo');
-  const isBoardRoute = location.pathname.startsWith('/board');
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

@@ -34,9 +34,12 @@ export function usePinnedHeaderItems() {
   return { pinnedItems, togglePin, isPinned };
 }
 
-export const headerItems: HeaderItem[] = [
-  { id: 'knowledge-hub', label: 'Knowledge Hub', route: '/admin/knowledge-base' },
-  { id: 'daily-brief', label: 'Daily Brief', action: 'daily-brief' },
+export const getHeaderItems = (isAdmin: boolean): HeaderItem[] => [
+  { id: 'knowledge-hub', label: 'Knowledge Hub', route: isAdmin ? '/admin/knowledge-base' : '/knowledge-hub' },
+  { id: 'daily-brief', label: 'Daily Brief', route: isAdmin ? '/admin/daily-brief' : '/daily-brief' },
   { id: 'docs', label: 'Docs', route: '/board/docs' },
   { id: 'glossary', label: 'Glossary', action: 'glossary' },
 ];
+
+// Keep backward compatibility
+export const headerItems: HeaderItem[] = getHeaderItems(false);
