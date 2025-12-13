@@ -133,6 +133,7 @@ import CreateBlogPost from "./pages/CreateBlogPost";
 import PublicBlogPost from "./pages/PublicBlogPost";
 import UserBlog from "./pages/UserBlog";
 import MasterBlog from "./pages/MasterBlog";
+import PublicBlog from "./pages/PublicBlog";
 import SeeksyAIBoostHelp from "./pages/SeeksyAIBoostHelp";
 import PodcastDetail from "./pages/PodcastDetail";
 import EditPodcast from "./pages/EditPodcast";
@@ -1004,11 +1005,10 @@ const AppContent = () => {
               <Route path="/v/:username/voice-credential" element={<VoiceCredentialPublic />} />
               <Route path="/c/:id" element={<ContentCredentialPublic />} />
               <Route path="/ad/click/:adId" element={<AdClickRedirect />} />
-              <Route path="/blog" element={<BlogLibrary />} />
-              <Route path="/blog/new" element={<BlogEditor />} />
-              <Route path="/blog/:id/edit" element={<BlogEditor />} />
-              <Route path="/blog/:id/certify" element={<BlogCertify />} />
               <Route path="/blog-library" element={<BlogLibrary />} />
+              <Route path="/blog-library/new" element={<BlogEditor />} />
+              <Route path="/blog-library/:id/edit" element={<BlogEditor />} />
+              <Route path="/blog-library/:id/certify" element={<BlogCertify />} />
               <Route path="/transcripts" element={<TranscriptLibrary />} />
               <Route path="/transcripts/:id" element={<TranscriptDetailPage />} />
               <Route path="/marketing" element={<Marketing />} />
@@ -1116,7 +1116,7 @@ const AppContent = () => {
               <Route path="/my-blog" element={<Blog />} />
               <Route path="/my-blog/create" element={<CreateBlogPost />} />
               <Route path="/my-blog/edit/:id" element={<CreateBlogPost />} />
-              <Route path="/blog" element={<MasterBlog />} />
+              <Route path="/blog" element={<PublicBlog />} />
               <Route path="/blog/create" element={<CreateBlogPost />} />
               <Route path="/blog/:slug" element={<PublicBlogPost />} />
               <Route path="/seeksy-ai-boost-help" element={<SeeksyAIBoostHelp />} />
