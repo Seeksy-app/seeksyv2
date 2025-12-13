@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import * as docx from "https://esm.sh/docx@8.2.0";
+import docx from "https://esm.sh/docx@8.2.0?bundle";
 
-const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, Table, TableRow, TableCell, WidthType, BorderStyle } = docx;
+const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, Table, TableRow, TableCell, WidthType } = docx;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
