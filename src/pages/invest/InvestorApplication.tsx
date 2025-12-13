@@ -13,6 +13,7 @@ interface InvestorSettings {
   price_per_share: number;
   allowed_emails: string[];
   is_active: boolean;
+  minimum_investment: number;
   confidentiality_notice: string;
 }
 
@@ -59,6 +60,7 @@ export default function InvestorApplication() {
           allowed_emails: data.allowed_emails || [],
           is_active: data.is_active ?? true,
           confidentiality_notice: data.confidentiality_notice || "",
+          minimum_investment: Number(data.minimum_investment) || 100,
         });
       }
     } catch (err) {
@@ -140,8 +142,15 @@ export default function InvestorApplication() {
     }
     
     const shares = calculateShares();
+    const totalAmount = parseFloat(calculateTotal());
     if (shares <= 0) {
       toast.error("Please enter a valid investment amount or number of shares");
+      return;
+    }
+    
+    const minInvestment = settings?.minimum_investment || 100;
+    if (totalAmount < minInvestment) {
+      toast.error(`Minimum investment amount is $${minInvestment.toLocaleString()}`);
       return;
     }
 
@@ -192,7 +201,7 @@ export default function InvestorApplication() {
   if (!settings?.is_active) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md text-center">
+        <Card className="w-full max-w-lg text-center">
           <CardContent className="pt-8 pb-8 space-y-4">
             <Lock className="h-16 w-16 text-muted-foreground mx-auto" />
             <h2 className="text-2xl font-bold">Applications Closed</h2>
@@ -230,7 +239,7 @@ export default function InvestorApplication() {
   if (!emailVerified) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-xl">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 p-3 rounded-full bg-primary/10">
               <Shield className="h-8 w-8 text-primary" />
@@ -300,7 +309,7 @@ export default function InvestorApplication() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-lg">
+      <Card className="w-full max-w-2xl">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Invest in Seeksy</CardTitle>
           <CardDescription>

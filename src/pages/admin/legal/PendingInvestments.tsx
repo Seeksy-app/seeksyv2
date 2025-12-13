@@ -59,6 +59,7 @@ interface InvestorSettings {
   allowed_emails: string[];
   is_active: boolean;
   confidentiality_notice: string;
+  minimum_investment: number;
 }
 
 export default function PendingInvestments() {
@@ -115,6 +116,7 @@ export default function PendingInvestments() {
           allowed_emails: data.allowed_emails || [],
           is_active: data.is_active ?? true,
           confidentiality_notice: data.confidentiality_notice || "",
+          minimum_investment: Number(data.minimum_investment) || 100,
         });
       }
     } catch (err) {
@@ -139,6 +141,7 @@ export default function PendingInvestments() {
           allowed_emails: settings.allowed_emails,
           is_active: settings.is_active,
           confidentiality_notice: settings.confidentiality_notice,
+          minimum_investment: settings.minimum_investment,
         })
         .eq("id", settings.id);
 
@@ -446,6 +449,23 @@ export default function PendingInvestments() {
                 />
                 <p className="text-xs text-muted-foreground">
                   This will be displayed to investors on the application form
+                </p>
+              </div>
+
+              {/* Minimum Investment */}
+              <div className="space-y-2">
+                <Label htmlFor="minInvestment">Minimum Investment ($)</Label>
+                <Input
+                  id="minInvestment"
+                  type="number"
+                  step="1"
+                  min="1"
+                  value={settings?.minimum_investment || ""}
+                  onChange={(e) => setSettings(prev => prev ? { ...prev, minimum_investment: parseFloat(e.target.value) || 0 } : null)}
+                  className="max-w-xs"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Investors must invest at least this amount
                 </p>
               </div>
 
