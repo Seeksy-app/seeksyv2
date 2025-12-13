@@ -105,6 +105,7 @@ export default function PendingInvestments() {
   const [loadingLogs, setLoadingLogs] = useState(false);
   
   // Admin signature info
+  const [sellerName, setSellerName] = useState("Seeksy, Inc.");
   const [sellerEmail, setSellerEmail] = useState("");
   const [chairmanName, setChairmanName] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState("");
@@ -336,7 +337,7 @@ export default function PendingInvestments() {
             purchaserName,
             purchaserAddress,
             purchaserEmail,
-            sellerName: "Seeksy, Inc.",
+            sellerName: sellerName || "Seeksy, Inc.",
             sellerEmail,
             chairmanName: chairmanName || "Chairman",
             numberOfShares,
@@ -373,7 +374,7 @@ export default function PendingInvestments() {
               {
                 id: "seller",
                 email: sellerEmail,
-                name: "Seeksy, Inc.",
+                name: sellerName || "Seeksy, Inc.",
                 role: "Seller",
               },
               {
@@ -389,6 +390,8 @@ export default function PendingInvestments() {
                 role: "Chairman of the Board",
               },
             ],
+            sellerName: sellerName || "Seeksy, Inc.",
+            sellerEmail,
           },
         }
       );
@@ -891,7 +894,16 @@ export default function PendingInvestments() {
               {/* Signature Party Emails */}
               <div className="space-y-3">
                 <div className="space-y-2">
-                  <Label htmlFor="sellerEmail">Seller Email (Seeksy, Inc.) *</Label>
+                  <Label htmlFor="sellerName">Seller Name *</Label>
+                  <Input
+                    id="sellerName"
+                    value={sellerName}
+                    onChange={(e) => setSellerName(e.target.value)}
+                    placeholder="Seeksy, Inc."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sellerEmail">Seller Email *</Label>
                   <Input
                     id="sellerEmail"
                     type="email"

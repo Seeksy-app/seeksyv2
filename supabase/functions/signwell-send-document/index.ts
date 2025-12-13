@@ -19,6 +19,8 @@ interface SignWellRequest {
   subject?: string;
   message?: string;
   instanceId?: string;
+  sellerName?: string;
+  sellerEmail?: string;
 }
 
 serve(async (req) => {
@@ -39,7 +41,7 @@ serve(async (req) => {
     }
 
     const body: SignWellRequest = await req.json();
-    const { documentBase64, documentName, recipients, subject, message, instanceId } = body;
+    const { documentBase64, documentName, recipients, subject, message, instanceId, sellerName, sellerEmail } = body;
 
     console.log("Creating SignWell document:", documentName);
     console.log("Recipients:", recipients.map(r => r.email));
@@ -69,8 +71,8 @@ serve(async (req) => {
       // Use auto signature page instead of placing fields manually
       with_signature_page: true,
       apply_signing_order: true, // Enforce sequential signing
-      custom_requester_name: "Seeksy Legal",
-      custom_requester_email: "legal@seeksy.io",
+      custom_requester_name: sellerName || "Seeksy Legal",
+      custom_requester_email: sellerEmail || "legal@seeksy.io",
       redirect_url: `${Deno.env.get("SITE_URL") || "https://seeksy.io"}/legal/signed?instance=${instanceId || ""}`,
       decline_redirect_url: `${Deno.env.get("SITE_URL") || "https://seeksy.io"}/legal/declined?instance=${instanceId || ""}`,
       expires_in: 30,
