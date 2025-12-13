@@ -541,36 +541,100 @@ export default function PendingInvestments() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Pending Investments</CardTitle>
+                <CardTitle>Investment Applications</CardTitle>
                 <CardDescription>
-                  Review and approve investor applications for stock purchase
+                  Manage investment offerings and investor submissions
                 </CardDescription>
               </div>
-              <Button variant="outline" size="sm" onClick={fetchInvestments}>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => { fetchInvestments(); fetchSettings(); }}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setShowCreateModal(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Application
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
-              {investments.length === 0 ? (
+              {allSettings.length === 0 && investments.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  No pending investment applications
+                  No investment applications. Create one to get started.
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>Application</TableHead>
                       <TableHead>Investor</TableHead>
                       <TableHead>Shares</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Submitted</TableHead>
+                      <TableHead>Date</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
+                    {/* Show application settings as "Ready to Share" */}
+                    {allSettings.map((app) => (
+                      <TableRow key={`setting-${app.id}`} className="bg-muted/30">
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{app.name}</p>
+                            <p className="text-xs text-muted-foreground">/invest/apply/{app.slug}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">—</TableCell>
+                        <TableCell className="text-muted-foreground">—</TableCell>
+                        <TableCell>${app.price_per_share.toFixed(2)}/share</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            <FileText className="h-3 w-3 mr-1" /> Ready to Share
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">—</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                navigator.clipboard.writeText(`${window.location.origin}/invest/apply/${app.slug}`);
+                                toast.success("Link copied to clipboard");
+                              }}
+                              title="Copy application link"
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                setSelectedSettingsId(app.id);
+                                setActiveTab("settings");
+                              }}
+                              title="Edit settings"
+                            >
+                              <Settings className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => deleteApplication(app.id, app.name)}
+                              title="Delete application"
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {/* Show investor submissions */}
                     {investments.map((inv) => (
                       <TableRow key={inv.id}>
+                        <TableCell className="text-muted-foreground">—</TableCell>
                         <TableCell>
                           <div>
                             <p className="font-medium">{inv.recipient_name || inv.field_values_json.purchaser_name}</p>
