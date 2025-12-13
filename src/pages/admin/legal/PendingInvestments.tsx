@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Send, Eye, Clock, CheckCircle, XCircle, RefreshCw, Settings, Plus, X, Activity, FileText } from "lucide-react";
+import { Loader2, Send, Eye, Clock, CheckCircle, XCircle, RefreshCw, Settings, Plus, X, Activity, FileText, Copy, Share2, FileX } from "lucide-react";
 import { format } from "date-fns";
 import {
   Table,
@@ -292,7 +292,7 @@ export default function PendingInvestments() {
 
   const getStatusBadge = (status: string, signwellStatus?: string) => {
     if (signwellStatus === "sent" || status === "pending_signatures") {
-      return <Badge variant="secondary"><Send className="h-3 w-3 mr-1" /> Awaiting Signatures</Badge>;
+      return <Badge className="bg-amber-100 text-amber-700 border-amber-200"><Send className="h-3 w-3 mr-1" /> Awaiting Signatures</Badge>;
     }
     if (signwellStatus === "partially_signed") {
       return <Badge variant="outline"><Clock className="h-3 w-3 mr-1" /> Partially Signed</Badge>;
@@ -303,7 +303,14 @@ export default function PendingInvestments() {
     if (status === "declined") {
       return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" /> Declined</Badge>;
     }
-    return <Badge variant="outline"><Clock className="h-3 w-3 mr-1" /> Pending Review</Badge>;
+    // Pending status = Not Shared yet
+    return <Badge variant="outline" className="bg-muted/50 text-muted-foreground"><FileX className="h-3 w-3 mr-1" /> Not Shared</Badge>;
+  };
+
+  const handleCopyLink = (investment: PendingInvestment) => {
+    const link = `${window.location.origin}/invest/view/${investment.id}`;
+    navigator.clipboard.writeText(link);
+    toast.success("Link copied to clipboard");
   };
 
   const handleApprove = (investment: PendingInvestment) => {
@@ -512,25 +519,37 @@ export default function PendingInvestments() {
                           {format(new Date(inv.created_at), "MMM d, yyyy")}
                         </TableCell>
                         <TableCell className="text-right">
-                          {inv.status === "pending" && (
-                            <Button
-                              size="sm"
-                              onClick={() => handleApprove(inv)}
-                            >
-                              <Send className="h-4 w-4 mr-2" />
-                              Approve & Send
-                            </Button>
-                          )}
-                          {inv.status !== "pending" && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => setSelectedInvestment(inv)}
-                            >
-                              <Eye className="h-4 w-4 mr-2" />
-                              View
-                            </Button>
-                          )}
+                          <div className="flex items-center justify-end gap-2">
+                            {inv.status === "pending" && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleCopyLink(inv)}
+                                  title="Copy link"
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleApprove(inv)}
+                                >
+                                  <Share2 className="h-4 w-4 mr-2" />
+                                  Share
+                                </Button>
+                              </>
+                            )}
+                            {inv.status !== "pending" && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setSelectedInvestment(inv)}
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                View
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
