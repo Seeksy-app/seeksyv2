@@ -5,9 +5,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, CheckCircle, DollarSign, Hash, Lock, Shield } from "lucide-react";
+import { format } from "date-fns";
+import { Loader2, CheckCircle, DollarSign, Hash, Lock, Shield, Clock, AlertTriangle } from "lucide-react";
 
 interface InvestorSettings {
   price_per_share: number;
@@ -43,9 +45,42 @@ export default function InvestorApplication() {
     investmentAmount: "",
   });
 
+  // Countdown state
+  const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
   useEffect(() => {
     fetchSettings();
   }, []);
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (!settings?.tier2_start_date) return;
+    
+    const tier2Date = new Date(settings.tier2_start_date);
+    const today = new Date();
+    if (today >= tier2Date) return; // Already past tier 2 date
+    
+    const updateCountdown = () => {
+      const now = new Date();
+      const diff = tier2Date.getTime() - now.getTime();
+      
+      if (diff <= 0) {
+        setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+      
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      setCountdown({ days, hours, minutes, seconds });
+    };
+    
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [settings?.tier2_start_date]);
 
   const fetchSettings = async () => {
     try {
@@ -336,6 +371,18 @@ export default function InvestorApplication() {
     );
   }
 
+  // Check if we're still in tier 1 pricing
+  const isTier1Active = () => {
+    if (!settings?.tier2_start_date || !settings?.price_per_share_tier2) return true;
+    const tier2Date = new Date(settings.tier2_start_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    tier2Date.setHours(0, 0, 0, 0);
+    return today < tier2Date;
+  };
+
+  const showCountdown = isTier1Active() && settings?.tier2_start_date && settings?.price_per_share_tier2;
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl">
@@ -348,6 +395,70 @@ export default function InvestorApplication() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Pricing Tiers Display */}
+            {settings?.price_per_share_tier2 && settings?.tier2_start_date && (
+              <div className="rounded-lg border-2 border-primary/20 bg-primary/5 p-4 space-y-4">
+                <div className="flex items-center gap-2 text-primary font-medium">
+                  <AlertTriangle className="h-4 w-4" />
+                  Limited Time Pricing
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className={`rounded-lg p-3 ${isTier1Active() ? 'bg-green-500/10 border-2 border-green-500' : 'bg-muted border border-muted'}`}>
+                    <div className="text-xs text-muted-foreground mb-1">Current Price</div>
+                    <div className={`text-2xl font-bold ${isTier1Active() ? 'text-green-600' : 'text-muted-foreground line-through'}`}>
+                      ${settings.price_per_share.toFixed(2)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">per share</div>
+                    {isTier1Active() && (
+                      <Badge className="mt-2 bg-green-500">Active Now</Badge>
+                    )}
+                  </div>
+                  
+                  <div className={`rounded-lg p-3 ${!isTier1Active() ? 'bg-amber-500/10 border-2 border-amber-500' : 'bg-muted border border-muted'}`}>
+                    <div className="text-xs text-muted-foreground mb-1">
+                      {isTier1Active() ? 'After ' + format(new Date(settings.tier2_start_date), 'MMM d') : 'Current Price'}
+                    </div>
+                    <div className={`text-2xl font-bold ${!isTier1Active() ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                      ${settings.price_per_share_tier2.toFixed(2)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">per share</div>
+                    {!isTier1Active() && (
+                      <Badge className="mt-2 bg-amber-500">Active Now</Badge>
+                    )}
+                  </div>
+                </div>
+
+                {/* Countdown Timer */}
+                {showCountdown && (countdown.days > 0 || countdown.hours > 0 || countdown.minutes > 0) && (
+                  <div className="text-center space-y-2">
+                    <div className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      Price increases in:
+                    </div>
+                    <div className="flex justify-center gap-2">
+                      <div className="bg-background rounded-lg p-2 min-w-[60px] text-center border">
+                        <div className="text-xl font-bold">{countdown.days}</div>
+                        <div className="text-xs text-muted-foreground">days</div>
+                      </div>
+                      <div className="bg-background rounded-lg p-2 min-w-[60px] text-center border">
+                        <div className="text-xl font-bold">{countdown.hours}</div>
+                        <div className="text-xs text-muted-foreground">hours</div>
+                      </div>
+                      <div className="bg-background rounded-lg p-2 min-w-[60px] text-center border">
+                        <div className="text-xl font-bold">{countdown.minutes}</div>
+                        <div className="text-xs text-muted-foreground">min</div>
+                      </div>
+                      <div className="bg-background rounded-lg p-2 min-w-[60px] text-center border">
+                        <div className="text-xl font-bold">{countdown.seconds}</div>
+                        <div className="text-xs text-muted-foreground">sec</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Investment Type Selection */}
             <div className="space-y-3">
               <Label>How would you like to invest?</Label>
