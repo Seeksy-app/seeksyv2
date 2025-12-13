@@ -177,6 +177,8 @@ function WorkspaceLayoutInner({
           </main>
         </div>
         {isAdminRouteForNotes && <AdminNotesFloatingButton />}
+        {/* Portal-scoped Help Drawer - opens without navigation */}
+        <HelpDrawer />
       </div>
     );
   }
