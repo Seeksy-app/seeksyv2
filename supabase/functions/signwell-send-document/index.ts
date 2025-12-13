@@ -66,29 +66,32 @@ serve(async (req) => {
         placeholder_name: r.role || `Signer ${index + 1}`,
         signing_order: index + 1, // Sequential: Seller=1, Purchaser=2, Chairman=3
       })),
-      // Add fields for each recipient - signature and date (flat array format)
-      fields: recipients.flatMap((r, index) => [
-        {
-          type: "signature",
-          required: true,
-          recipient_id: r.id,
-          page: 1,
-          x: 10,
-          y: 80 + (index * 6),
-          width: 30,
-          height: 5,
-        },
-        {
-          type: "date",
-          required: true,
-          recipient_id: r.id,
-          page: 1,
-          x: 45,
-          y: 80 + (index * 6),
-          width: 15,
-          height: 5,
-        }
-      ]),
+      // Add fields for each recipient - signature and date
+      // SignWell expects fields as array of arrays (one per file)
+      fields: [
+        recipients.flatMap((r, index) => [
+          {
+            type: "signature",
+            required: true,
+            recipient_id: r.id,
+            page: 1,
+            x: 10,
+            y: 80 + (index * 6),
+            width: 30,
+            height: 5,
+          },
+          {
+            type: "date",
+            required: true,
+            recipient_id: r.id,
+            page: 1,
+            x: 45,
+            y: 80 + (index * 6),
+            width: 15,
+            height: 5,
+          }
+        ])
+      ],
       apply_signing_order: true, // Enforce sequential signing
       custom_requester_name: "Seeksy Legal",
       custom_requester_email: "legal@seeksy.io",
