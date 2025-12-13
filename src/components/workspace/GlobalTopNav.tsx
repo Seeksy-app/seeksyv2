@@ -76,7 +76,7 @@ export function GlobalTopNav() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-[hsl(var(--header-background))] border-b border-white/10 shadow-lg">
+      <header className="sticky top-0 z-50 bg-[hsl(var(--header-background))] border-b border-white/10 shadow-lg">
         {/* Taller header with more vertical breathing room */}
         <div className="flex items-center justify-between h-16 px-4">
           {/* Left section - Spark Mascot & Logo */}

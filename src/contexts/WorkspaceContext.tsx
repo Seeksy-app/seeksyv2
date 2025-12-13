@@ -38,7 +38,7 @@ interface WorkspaceContextType {
   toggleStandalone: (moduleId: string) => Promise<void>;
   togglePinned: (moduleId: string) => Promise<void>;
   reorderModules: (moduleIds: string[]) => Promise<void>;
-  refreshWorkspaces: () => Promise<void>;
+  refreshWorkspaces: (forceFetch?: boolean) => Promise<void>;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
@@ -50,8 +50,9 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const queryClient = useQueryClient();
 
-  const fetchWorkspaces = useCallback(async () => {
+  const fetchWorkspaces = useCallback(async (forceFetch = false) => {
     // Skip workspace fetching for admin, board, advertiser, and CFO routes - they don't need workspace context
+    // Unless forceFetch is true (e.g., when admin switches to creator view)
     const currentPath = window.location.pathname;
     const isNonWorkspaceRoute = 
       currentPath.startsWith('/admin') ||
@@ -59,7 +60,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       currentPath.startsWith('/advertiser') ||
       currentPath.startsWith('/cfo');
     
-    if (isNonWorkspaceRoute) {
+    if (isNonWorkspaceRoute && !forceFetch) {
       setIsLoading(false);
       return;
     }
@@ -519,7 +520,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         toggleStandalone,
         togglePinned,
         reorderModules,
-        refreshWorkspaces: fetchWorkspaces,
+        refreshWorkspaces: (forceFetch = false) => fetchWorkspaces(forceFetch),
       }}
     >
       {children}

@@ -8,6 +8,7 @@ import { RoleBasedSidebar } from "@/components/navigation/RoleBasedSidebar";
 import { AdvertiserSidebarNav } from "@/components/advertiser/AdvertiserSidebarNav";
 import { TopNavBar } from "@/components/TopNavBar";
 import { useUserRoles } from "@/hooks/useUserRoles";
+import { useAdminViewMode } from "@/hooks/useAdminViewMode";
 
 interface WorkspaceLayoutProps {
   user: User | null;
@@ -30,11 +31,17 @@ const LEGACY_NAV_ROUTES = [
 function useShouldUseLegacyNav() {
   const location = useLocation();
   const { isAdmin, isBoardMember, isAdvertiser } = useUserRoles();
+  const { viewMode } = useAdminViewMode();
   
   // Check if on a legacy route
   const isLegacyRoute = LEGACY_NAV_ROUTES.some(route => 
     location.pathname.startsWith(route)
   );
+  
+  // If admin is in creator view mode, don't force legacy nav
+  if (isAdmin && viewMode === 'creator') {
+    return isLegacyRoute; // Only use legacy if actually on legacy route
+  }
   
   // Also use legacy nav if user has admin/board/advertiser role
   // This ensures they get the correct navigation even if they navigate to a creator route
@@ -46,6 +53,7 @@ function useRoleBasedRouting(user: User | null) {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAdmin, isBoardMember, isAdvertiser, isLoading } = useUserRoles();
+  const { viewMode } = useAdminViewMode();
 
   useEffect(() => {
     // Skip if no user or still loading roles
@@ -55,11 +63,18 @@ function useRoleBasedRouting(user: User | null) {
     const skipRoutes = ['/auth', '/onboarding', '/public', '/pricing', '/about', '/terms', '/privacy', '/apps-and-tools'];
     if (skipRoutes.some(r => location.pathname.startsWith(r))) return;
 
-    // Admin users should be redirected to /admin if on creator routes
-    if (isAdmin) {
+    // If admin has chosen a view mode other than 'admin', respect that choice
+    if (isAdmin && viewMode !== 'admin') {
+      // Don't redirect - let them stay on their chosen view
+      return;
+    }
+
+    // Admin users should be redirected to /admin if on creator routes (only if not in another view mode)
+    if (isAdmin && viewMode === 'admin') {
       const isCreatorRoute = !location.pathname.startsWith('/admin') && 
                              !location.pathname.startsWith('/board') && 
-                             !location.pathname.startsWith('/cfo');
+                             !location.pathname.startsWith('/cfo') &&
+                             !location.pathname.startsWith('/advertiser');
       if (isCreatorRoute && !location.pathname.startsWith('/settings') && !location.pathname.startsWith('/email-settings') && !location.pathname.startsWith('/signatures')) {
         console.log('[WorkspaceLayout] Admin on creator route, redirecting to /admin');
         navigate('/admin', { replace: true });
@@ -81,7 +96,7 @@ function useRoleBasedRouting(user: User | null) {
         navigate('/advertiser', { replace: true });
       }
     }
-  }, [user, isAdmin, isBoardMember, isAdvertiser, isLoading, location.pathname, navigate]);
+  }, [user, isAdmin, isBoardMember, isAdvertiser, isLoading, location.pathname, navigate, viewMode]);
 }
 
 function WorkspaceLayoutInner({ 
@@ -91,13 +106,22 @@ function WorkspaceLayoutInner({
   shouldShowTopNav 
 }: WorkspaceLayoutProps) {
   const location = useLocation();
-  const { workspaces, isLoading, currentWorkspace } = useWorkspace();
+  const { workspaces, isLoading, currentWorkspace, refreshWorkspaces } = useWorkspace();
   const useLegacyNav = useShouldUseLegacyNav();
   const isAdvertiserRoute = location.pathname.startsWith('/advertiser');
   const { isAdmin } = useUserRoles();
+  const { viewMode } = useAdminViewMode();
 
   // Enforce role-based routing
   useRoleBasedRouting(user);
+
+  // When admin switches to creator view mode, force refresh workspaces
+  useEffect(() => {
+    if (isAdmin && viewMode === 'creator' && workspaces.length === 0) {
+      console.log('[WorkspaceLayout] Admin in creator mode, forcing workspace fetch');
+      refreshWorkspaces(true);
+    }
+  }, [isAdmin, viewMode, workspaces.length, refreshWorkspaces]);
 
   // Public routes that don't need workspace check
   const isPublicRoute = [
@@ -153,7 +177,7 @@ function WorkspaceLayoutInner({
   return (
     <div className="min-h-screen flex w-full bg-background">
       {shouldShowSidebar && <WorkspaceSidebar />}
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
         {shouldShowTopNav && <GlobalTopNav />}
         <main className="flex-1 flex flex-col bg-background overflow-auto">
           {children}
