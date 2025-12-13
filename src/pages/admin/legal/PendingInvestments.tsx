@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Send, Eye, Clock, CheckCircle, XCircle, RefreshCw, Settings, Plus, X } from "lucide-react";
+import { Loader2, Send, Eye, Clock, CheckCircle, XCircle, RefreshCw, Settings, Plus, X, Activity } from "lucide-react";
 import { format } from "date-fns";
 import {
   Table,
@@ -64,6 +64,19 @@ interface InvestorSettings {
   minimum_investment: number;
 }
 
+interface AccessLog {
+  id: string;
+  email: string;
+  accessed_at: string;
+  user_agent: string | null;
+}
+
+interface AccessSummary {
+  email: string;
+  access_count: number;
+  last_accessed: string;
+}
+
 export default function PendingInvestments() {
   const [investments, setInvestments] = useState<PendingInvestment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,6 +89,11 @@ export default function PendingInvestments() {
   const [settings, setSettings] = useState<InvestorSettings | null>(null);
   const [savingSettings, setSavingSettings] = useState(false);
   const [newEmail, setNewEmail] = useState("");
+  
+  // Activity log state
+  const [accessLogs, setAccessLogs] = useState<AccessLog[]>([]);
+  const [accessSummary, setAccessSummary] = useState<AccessSummary[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
   
   // Admin signature info
   const [sellerEmail, setSellerEmail] = useState("");
@@ -129,9 +147,43 @@ export default function PendingInvestments() {
     }
   };
 
+  const fetchAccessLogs = async () => {
+    setLoadingLogs(true);
+    try {
+      const { data, error } = await supabase
+        .from("investor_application_access_logs")
+        .select("*")
+        .order("accessed_at", { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+      setAccessLogs((data as AccessLog[]) || []);
+      
+      // Calculate summary by email
+      const summary: Record<string, AccessSummary> = {};
+      (data || []).forEach((log: AccessLog) => {
+        if (!summary[log.email]) {
+          summary[log.email] = {
+            email: log.email,
+            access_count: 0,
+            last_accessed: log.accessed_at,
+          };
+        }
+        summary[log.email].access_count++;
+      });
+      setAccessSummary(Object.values(summary).sort((a, b) => b.access_count - a.access_count));
+    } catch (err) {
+      console.error("Error fetching access logs:", err);
+      toast.error("Failed to load access logs");
+    } finally {
+      setLoadingLogs(false);
+    }
+  };
+
   useEffect(() => {
     fetchInvestments();
     fetchSettings();
+    fetchAccessLogs();
   }, []);
 
   const saveSettings = async () => {
@@ -329,6 +381,10 @@ export default function PendingInvestments() {
           </div>
           <TabsList>
             <TabsTrigger value="applications">Applications</TabsTrigger>
+            <TabsTrigger value="activity">
+              <Activity className="h-4 w-4 mr-2" />
+              Activity
+            </TabsTrigger>
             <TabsTrigger value="settings">
               <Settings className="h-4 w-4 mr-2" />
               Settings
@@ -416,6 +472,100 @@ export default function PendingInvestments() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="activity">
+          <div className="space-y-6">
+            {/* Access Summary */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Access Summary</CardTitle>
+                  <CardDescription>
+                    Number of times each email accessed the application link
+                  </CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={fetchAccessLogs} disabled={loadingLogs}>
+                  <RefreshCw className={`h-4 w-4 mr-2 ${loadingLogs ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {loadingLogs ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : accessSummary.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No access logs yet
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Email</TableHead>
+                        <TableHead className="text-center">Access Count</TableHead>
+                        <TableHead>Last Accessed</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {accessSummary.map((item) => (
+                        <TableRow key={item.email}>
+                          <TableCell className="font-medium">{item.email}</TableCell>
+                          <TableCell className="text-center">
+                            <Badge variant="secondary">{item.access_count}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            {format(new Date(item.last_accessed), "MMM d, yyyy h:mm a")}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Recent Access Logs */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Access Log</CardTitle>
+                <CardDescription>
+                  Individual access events (last 100)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {accessLogs.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No access logs yet
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Accessed At</TableHead>
+                        <TableHead>Browser</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {accessLogs.map((log) => (
+                        <TableRow key={log.id}>
+                          <TableCell className="font-medium">{log.email}</TableCell>
+                          <TableCell>
+                            {format(new Date(log.accessed_at), "MMM d, yyyy h:mm a")}
+                          </TableCell>
+                          <TableCell className="max-w-xs truncate text-muted-foreground text-sm">
+                            {log.user_agent?.split(' ').slice(0, 3).join(' ') || '-'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="settings">

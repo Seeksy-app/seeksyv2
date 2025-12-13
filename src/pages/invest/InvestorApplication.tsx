@@ -133,6 +133,12 @@ export default function InvestorApplication() {
       const allowedEmails = (settings?.allowed_emails || []).map(e => e.toLowerCase());
       
       if (allowedEmails.length === 0 || allowedEmails.includes(normalizedEmail)) {
+        // Log access
+        await supabase.from("investor_application_access_logs").insert({
+          email: normalizedEmail,
+          user_agent: navigator.userAgent,
+        });
+        
         setEmailVerified(true);
         setFormData(prev => ({ ...prev, email: normalizedEmail }));
         toast.success("Email verified. Please continue with your application.");
