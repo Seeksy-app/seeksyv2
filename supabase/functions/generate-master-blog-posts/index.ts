@@ -141,8 +141,9 @@ serve(async (req) => {
 3. Full blog content in markdown format (500-800 words)
 4. SEO meta description (max 160 characters)
 5. 5-7 relevant keywords
-6. A short image prompt for a featured header image (describe a professional, abstract illustration suitable for a blog header)
-7. 2-3 inline image prompts that should be placed within the content (describe specific visuals that enhance the article)
+6. 2 additional topic tags related to the article content (e.g., "Content Strategy", "Audience Growth", "Podcast Tips")
+7. A short image prompt for a featured header image (describe a professional, abstract illustration suitable for a blog header)
+8. 2-3 inline image prompts that should be placed within the content (describe specific visuals that enhance the article)
 
 Topic categories to choose from: social media strategy, content creation tips, monetization, personal branding, productivity, technology for creators, marketing insights.
 
@@ -155,6 +156,7 @@ Return ONLY a JSON object with this exact structure:
   "content": "string (markdown with image placeholders)",
   "seo_description": "string",
   "seo_keywords": ["keyword1", "keyword2"],
+  "topic_tags": ["tag1", "tag2"],
   "featured_image_prompt": "string (short prompt for header image)",
   "inline_image_prompts": ["prompt1", "prompt2"]
 }`
@@ -214,7 +216,10 @@ Return ONLY a JSON object with this exact structure:
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '') + `-${Date.now()}-${i}`;
 
-      // Use the authenticated user as the author
+      // Combine AI Generated tag with topic tags
+      const allTags = ['AI Generated', ...(blogData.topic_tags || [])];
+
+      // Author is "Ask Seeksy" for AI posts (stored via is_ai_generated flag)
       const { data: insertedPost, error: insertError } = await supabase
         .from('blog_posts')
         .insert({
@@ -226,7 +231,7 @@ Return ONLY a JSON object with this exact structure:
           featured_image_url: featuredImageUrl,
           seo_title: blogData.title,
           seo_description: blogData.seo_description,
-          seo_keywords: blogData.seo_keywords,
+          seo_keywords: allTags,
           status: 'published',
           published_at: new Date().toISOString(),
           publish_to_master: true,

@@ -139,14 +139,20 @@ const PublicBlogPost = () => {
 
               <div className="flex items-center gap-4 mb-6">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={post.profile?.avatar_url} />
-                  <AvatarFallback>
-                    {post.profile?.full_name?.[0] || post.profile?.username?.[0] || "U"}
-                  </AvatarFallback>
+                  {post.is_ai_generated ? (
+                    <AvatarFallback className="bg-primary/10 text-primary font-semibold">AS</AvatarFallback>
+                  ) : (
+                    <>
+                      <AvatarImage src={post.profile?.avatar_url} />
+                      <AvatarFallback>
+                        {post.profile?.full_name?.[0] || post.profile?.username?.[0] || "U"}
+                      </AvatarFallback>
+                    </>
+                  )}
                 </Avatar>
                 <div>
                   <p className="font-medium text-sm">
-                    {post.profile?.full_name || post.profile?.username || "Anonymous"}
+                    {post.is_ai_generated ? "Ask Seeksy" : (post.profile?.full_name || post.profile?.username || "Anonymous")}
                   </p>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
@@ -161,10 +167,20 @@ const PublicBlogPost = () => {
                 </div>
               </div>
 
-              {post.is_ai_generated && (
-                <Badge variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-100">
-                  AI Generated from Podcast
-                </Badge>
+              {/* Tags - clickable to filter by tag */}
+              {post.seo_keywords && post.seo_keywords.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {post.seo_keywords.map((tag: string) => (
+                    <Badge 
+                      key={tag}
+                      variant="secondary" 
+                      className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                      onClick={() => navigate(`/blog?tag=${encodeURIComponent(tag)}`)}
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
               )}
             </header>
 
