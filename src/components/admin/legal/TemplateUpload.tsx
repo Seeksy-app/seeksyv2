@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Upload, FileText, Loader2, CheckCircle, AlertCircle, Info } from "lucide-react";
+import { Upload, FileText, Loader2, CheckCircle, AlertCircle, Info, Download } from "lucide-react";
 import { format } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -15,6 +15,7 @@ interface TemplateInfo {
 
 export default function TemplateUpload() {
   const [uploading, setUploading] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [templateInfo, setTemplateInfo] = useState<TemplateInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -24,7 +25,7 @@ export default function TemplateUpload() {
     try {
       const { data, error } = await supabase.storage
         .from("legal-templates")
-        .list("", { limit: 10 });
+        .list("investment-documents", { limit: 10 });
 
       if (error) throw error;
 
@@ -58,10 +59,9 @@ export default function TemplateUpload() {
 
     setUploading(true);
     try {
-      // Upload to storage (overwrite if exists)
       const { error } = await supabase.storage
         .from("legal-templates")
-        .upload("stock-purchase-agreement.docx", file, {
+        .upload("investment-documents/stock-purchase-agreement.docx", file, {
           upsert: true,
           contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         });
@@ -78,6 +78,45 @@ export default function TemplateUpload() {
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
+    }
+  };
+
+  const handleGenerateTemplate = async () => {
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-default-template");
+
+      if (error) throw error;
+
+      if (data?.document) {
+        // Download the generated template
+        const byteCharacters = atob(data.document);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { 
+          type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
+        });
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = data.filename || "Stock_Purchase_Agreement_Template.docx";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        toast.success("Template generated and downloaded! Also saved to storage.");
+        await fetchTemplateInfo();
+      }
+    } catch (err: any) {
+      console.error("Error generating template:", err);
+      toast.error(err.message || "Failed to generate template");
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -161,7 +200,7 @@ export default function TemplateUpload() {
               <div>
                 <p className="font-medium">No template uploaded</p>
                 <p className="text-sm text-muted-foreground">
-                  Upload your Word template to generate agreements
+                  Generate a default template or upload your own
                 </p>
               </div>
             </div>
@@ -176,23 +215,44 @@ export default function TemplateUpload() {
           className="hidden"
         />
 
-        <Button 
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
-          className="w-full"
-        >
-          {uploading ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Uploading...
-            </>
-          ) : (
-            <>
-              <Upload className="h-4 w-4 mr-2" />
-              {templateInfo ? "Upload New Template" : "Upload Template"}
-            </>
-          )}
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleGenerateTemplate}
+            disabled={generating}
+            variant="outline"
+            className="flex-1"
+          >
+            {generating ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4 mr-2" />
+                Generate Default Template
+              </>
+            )}
+          </Button>
+          
+          <Button 
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="flex-1"
+          >
+            {uploading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Upload className="h-4 w-4 mr-2" />
+                {templateInfo ? "Upload New" : "Upload Template"}
+              </>
+            )}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
