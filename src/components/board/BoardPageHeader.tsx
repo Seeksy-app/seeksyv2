@@ -7,6 +7,8 @@ import { BoardNotificationBell } from './BoardNotificationBell';
 import { DataModePill } from '@/components/data-mode/DataModePill';
 import { DailyBriefButton } from '@/components/daily-brief/DailyBriefButton';
 import { GlossaryButton } from './GlossaryModal';
+import { AdminViewSwitcher } from '@/components/admin/AdminViewSwitcher';
+import { useUserRoles } from '@/hooks/useUserRoles';
 
 interface BoardPageHeaderProps {
   icon?: ReactNode;
@@ -23,6 +25,8 @@ export function BoardPageHeader({
   actions,
   onOpenAIPanel 
 }: BoardPageHeaderProps) {
+  const { isAdmin } = useUserRoles();
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
@@ -31,8 +35,9 @@ export function BoardPageHeader({
       className="sticky top-0 z-40 bg-slate-50 border-b border-slate-200/60 -mx-6 lg:-mx-8 px-6 lg:px-8 py-3"
     >
       <div className="flex items-center justify-between gap-4">
-        {/* Left: Icon & Title */}
+        {/* Left: Admin View Switcher (for admins) or Icon & Title */}
         <div className="flex items-center gap-3 flex-shrink-0">
+          {isAdmin && <AdminViewSwitcher />}
           {icon && (
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
               {icon}
