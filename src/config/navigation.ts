@@ -154,6 +154,13 @@ export const NAVIGATION_CONFIG: {
           "icon": "file-signature",
           "path": "/admin/legal/generate-docx",
           "roles": ["admin", "super_admin", "cfo"]
+        },
+        {
+          "id": "admin_pending_investments",
+          "label": "Pending Investments",
+          "icon": "clock",
+          "path": "/admin/legal/pending-investments",
+          "roles": ["admin", "super_admin", "cfo"]
         }
       ]
     },

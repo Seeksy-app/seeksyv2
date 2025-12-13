@@ -147,8 +147,10 @@ import RSSMigrationPage from "./pages/RSSMigrationPage";
 import PaidAdsTerms from "./pages/legal/PaidAdsTerms";
 import StockAgreementGenerator from "./pages/admin/legal/StockAgreementGenerator";
 import LegalTemplatesLibrary from "./pages/admin/legal/LegalTemplatesLibrary";
+import PendingInvestments from "./pages/admin/legal/PendingInvestments";
 import SignedConfirmation from "./pages/legal/SignedConfirmation";
 import DeclinedConfirmation from "./pages/legal/DeclinedConfirmation";
+import InvestorApplication from "./pages/invest/InvestorApplication";
 import SubscriptionSettings from "./pages/SubscriptionSettings";
 // Holiday features completely disabled - removed all imports
 import { CommandPaletteProvider } from "./components/command/CommandPaletteProvider";
@@ -895,6 +897,9 @@ const AppContent = () => {
               {/* VenueOS Investor Page */}
               <Route path="/invest/venueos" element={<VenueOSInvestPage />} />
               
+              {/* Investor Application */}
+              <Route path="/invest/apply" element={<InvestorApplication />} />
+              
               <Route path="/personas" element={<Personas />} />
               <Route path="/voice-certification" element={<VoiceCertification />} />
               <Route path="/voice-tag" element={<VoiceTag />} />
@@ -1145,6 +1150,7 @@ const AppContent = () => {
             <Route path="/admin/legal" element={<AdminLegal />} />
             <Route path="/admin/legal/templates" element={<LegalTemplatesLibrary />} />
             <Route path="/admin/legal/generate-docx" element={<StockAgreementGenerator />} />
+            <Route path="/admin/legal/pending-investments" element={<PendingInvestments />} />
             <Route path="/admin/conversational-demo" element={<AdminConversationalDemo />} />
             <Route path="/admin/architecture" element={<SeeksyArchitecture />} />
             <Route path="/admin/master-blog" element={<AdminMasterBlog />} />
