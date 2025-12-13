@@ -113,6 +113,7 @@ import SecurityPublic from "./pages/SecurityPublic";
 import About from "./pages/marketing/About";
 import AppsAndTools from "./pages/marketing/AppsAndTools";
 import AdminSecurityOverview from "./pages/admin/AdminSecurityOverview";
+import AdminVideoPages from "./pages/admin/AdminVideoPages";
 import AdminTasks from "./pages/admin/AdminTasks";
 import AdminProjects from "./pages/admin/AdminProjects";
 import PartnersPage from "./pages/admin/PartnersPage";
@@ -1173,6 +1174,7 @@ const AppContent = () => {
               <Route path="/admin/users" element={<UserManagement />} />
           <Route path="/demo-videos" element={<DemoVideos />} />
           <Route path="/admin/demo-videos" element={<DemoVideos />} />
+          <Route path="/admin/video-pages" element={<AdminVideoPages />} />
           <Route path="/admin/seeksy-tv" element={<AdminSeeksyTV />} />
           <Route path="/admin/seeksy-tv/channels" element={<AdminTVChannels />} />
           <Route path="/admin/seeksy-tv/advertising" element={<SeeksyTVAdvertising />} />
