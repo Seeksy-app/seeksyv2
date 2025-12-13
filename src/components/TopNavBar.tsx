@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { DataModePill } from "@/components/data-mode/DataModePill";
