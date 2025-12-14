@@ -34,19 +34,19 @@ export function useNewsletterSubscribe() {
 
     setIsLoading(true);
 
-    // FIRE GTM EVENT FIRST - BEFORE any API call (non-blocking analytics)
     const emailDomain = email.split('@')[1] || 'unknown';
+    const eventPayload = {
+      email_domain: emailDomain,
+      source: source,
+      cta_id: ctaId || 'none',
+      page_path: typeof window !== 'undefined' ? window.location.pathname : '',
+      timestamp: new Date().toISOString()
+    };
+
+    // Fire subscription_started BEFORE API call (tracks attempt)
     if (typeof window !== 'undefined' && window.dataLayer) {
-      window.dataLayer.push({
-        event: 'subscription_completed',
-        email_domain: emailDomain,
-        source: source,
-        cta_id: ctaId || 'none',
-        page_path: window.location.pathname,
-        timestamp: new Date().toISOString()
-      });
+      window.dataLayer.push({ event: 'subscription_started', ...eventPayload });
     }
-    gtmEvents.subscriptionCompleted?.('', '', source);
 
     try {
       const response = await supabase.functions.invoke('subscribe-newsletter', {
@@ -60,15 +60,30 @@ export function useNewsletterSubscribe() {
 
       if (response.error) {
         console.warn('Subscription edge function error:', response.error);
-        // Return success anyway - analytics already fired
-        // This follows non-blocking analytics pattern
-        return { success: true, error: response.error.message };
+        if (typeof window !== 'undefined' && window.dataLayer) {
+          window.dataLayer.push({ event: 'subscription_error', ...eventPayload, error_message: response.error.message });
+        }
+        return { success: false, error: response.error.message };
       }
 
       if (!response.data?.success) {
         console.warn('Subscription failed:', response.data?.error);
-        return { success: true, error: response.data?.error };
+        if (typeof window !== 'undefined' && window.dataLayer) {
+          window.dataLayer.push({ event: 'subscription_error', ...eventPayload, error_message: response.data?.error || 'Unknown error' });
+        }
+        return { success: false, error: response.data?.error };
       }
+
+      // Fire subscription_completed ONLY on actual success
+      if (typeof window !== 'undefined' && window.dataLayer) {
+        window.dataLayer.push({ 
+          event: 'subscription_completed', 
+          ...eventPayload,
+          subscriber_id: response.data.subscriber_id,
+          tenant_id: response.data.tenant_id
+        });
+      }
+      gtmEvents.subscriptionCompleted?.('', '', source);
 
       return {
         success: true,
@@ -76,9 +91,11 @@ export function useNewsletterSubscribe() {
         tenantId: response.data.tenant_id
       };
     } catch (error) {
-      console.warn('Subscription error (non-blocking):', error);
-      // Return success - analytics already fired, non-blocking pattern
-      return { success: true, error: 'Backend error, but subscription recorded' };
+      console.warn('Subscription error:', error);
+      if (typeof window !== 'undefined' && window.dataLayer) {
+        window.dataLayer.push({ event: 'subscription_error', ...eventPayload, error_message: 'Network or server error' });
+      }
+      return { success: false, error: 'Backend error' };
     } finally {
       setIsLoading(false);
     }
