@@ -48,7 +48,10 @@ serve(async (req) => {
 
     // Create document in SignWell with sequential 3-party signing
     // Order: 1) Seller -> 2) Purchaser -> 3) Chairman
-    // Include fields directly in the document creation request
+    // Uses text tags in the document: [[s|seller]], [[s|purchaser]], [[s|chairman]]
+    
+    // Create a friendly document title (without .docx extension)
+    const friendlyDocName = documentName.replace(/\.docx$/i, '').replace(/_/g, ' ');
     
     const signWellPayload = {
       test_mode: false,
@@ -58,18 +61,19 @@ serve(async (req) => {
           file_base64: documentBase64,
         }
       ],
-      name: documentName,
-      subject: subject || `Please sign: ${documentName}`,
+      name: friendlyDocName, // Friendly name shown in SignWell
+      subject: subject || `Please sign: ${friendlyDocName}`,
       message: message || "Please review and sign this document at your earliest convenience.",
       recipients: recipients.map((r, index) => ({
         id: r.id,
         email: r.email,
         name: r.name,
-        placeholder_name: r.role || `Signer ${index + 1}`,
-        signing_order: index + 1, // Sequential: Purchaser=1, Seller=2, Chairman=3
+        placeholder_name: r.id, // Must match text tag: seller, purchaser, chairman
+        signing_order: index + 1, // Sequential: Seller=1, Purchaser=2, Chairman=3
       })),
-      // Use auto signature page instead of placing fields manually
-      with_signature_page: true,
+      // Use text tags for signature placement instead of auto signature page
+      // Document must contain: [[s|seller]], [[s|purchaser]], [[s|chairman]]
+      text_tags: true,
       apply_signing_order: true, // Enforce sequential signing
       custom_requester_name: sellerName || "Seeksy Legal",
       custom_requester_email: sellerEmail || "legal@seeksy.io",
