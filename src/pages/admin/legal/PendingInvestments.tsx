@@ -612,6 +612,32 @@ export default function PendingInvestments() {
         .update({ status: "pending_signatures" })
         .eq("id", selectedInvestment.id);
 
+      // Build dynamic message with tier breakdown
+      const buildEmailMessage = () => {
+        const parts: string[] = [];
+        if (tier1Shares > 0 && tier2Shares === 0 && addonShares === 0) {
+          // Single tier - simple message
+          return `Please review and sign the Stock Purchase Agreement for ${numberOfShares.toLocaleString()} shares at $${pricePerShare.toFixed(2)} per share (Total: $${computedValues.totalAmount}).`;
+        }
+        
+        // Multi-tier breakdown
+        if (tier1Shares > 0) {
+          parts.push(`${tier1Shares.toLocaleString()} shares at $${tier1Price.toFixed(2)}`);
+        }
+        if (tier2Shares > 0) {
+          parts.push(`${tier2Shares.toLocaleString()} shares at $${tier2Price.toFixed(2)}`);
+        }
+        if (addonShares > 0) {
+          parts.push(`${addonShares.toLocaleString()} add-on shares at $${addonPrice.toFixed(2)}`);
+        }
+        
+        const breakdown = parts.length > 1 
+          ? parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1]
+          : parts[0];
+          
+        return `Please review and sign the Stock Purchase Agreement for ${breakdown} (Total: $${computedValues.totalAmount}).`;
+      };
+
       // Send to SignWell
       const { data: signWellResult, error: signWellError } = await supabase.functions.invoke(
         "signwell-send-document",
@@ -621,7 +647,7 @@ export default function PendingInvestments() {
             documentName: `Stock_Purchase_Agreement_${purchaserName.replace(/\s+/g, "_")}.docx`,
             instanceId: selectedInvestment.id,
             subject: `Stock Purchase Agreement - ${purchaserName}`,
-            message: `Please review and sign the Stock Purchase Agreement for ${numberOfShares} shares at $${pricePerShare.toFixed(2)} per share (Total: $${computedValues.totalAmount}).`,
+            message: buildEmailMessage(),
             recipients: [
               {
                 id: "purchaser",
