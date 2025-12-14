@@ -178,48 +178,52 @@ serve(async (req) => {
     // We need to find these patterns and replace them with safe placeholders
     
     const protectSignWellTags = (content: string): string => {
-      // Known SignWell tag names we expect in the document
-      const signwellTags = ['seller', 'purchaser', 'chairman'];
+      // SignWell uses {{signature:N}} or {{s:N}} format with index numbers (1-based)
+      // Map: purchaser=1, seller=2, chairman=3 (based on our signing order)
+      const tagIndexMap: Record<string, number> = {
+        'purchaser': 1,  // Signs first
+        'seller': 2,     // Signs second
+        'chairman': 3    // Signs last
+      };
       
-      for (const tagName of signwellTags) {
-        // Build a pattern that matches [[s|tagname]] with potential XML fragments anywhere
-        // The characters of "[[s|" + tagName + "]]" may be split across XML tags
-        const chars = `[[s|${tagName}]]`.split('');
+      for (const [tagName, index] of Object.entries(tagIndexMap)) {
+        // Build a pattern that matches {{s:N}} or {{signature:N}} with potential XML fragments
+        // Also handle old [[s|tagname]] format for backwards compatibility
         
-        // Build regex pattern that allows optional XML tags between each character
-        // Pattern: \[ followed by optional XML, then [ followed by optional XML, etc.
+        // Pattern for old [[s|tagname]] format
+        const chars = `[[s|${tagName}]]`.split('');
         const xmlTagPattern = '(?:<[^>]*>)*';
         const escapedChars = chars.map(c => {
-          // Escape special regex characters
           if (['[', ']', '|'].includes(c)) {
             return '\\' + c;
           }
           return c;
         });
-        
-        // Join with pattern that allows XML tags between characters
         const fullPattern = escapedChars.join(xmlTagPattern);
         const regex = new RegExp(fullPattern, 'gi');
+        content = content.replace(regex, `__SIGNWELL_SIG_${index}__`);
         
-        content = content.replace(regex, `__SIGNWELL_S_${tagName}__`);
+        // Also handle {{s:N}} and {{signature:N}} formats (protect from docxtemplater)
+        const curlyPattern = new RegExp(`\\{\\{s(?:ignature)?:${index}\\}\\}`.split('').join(xmlTagPattern), 'gi');
+        content = content.replace(curlyPattern, `__SIGNWELL_SIG_${index}__`);
       }
       
-      // Also catch any clean tags that might exist
-      content = content.replace(/\[\[s\|([a-zA-Z_]+)\]\]/g, '__SIGNWELL_S_$1__');
+      // Catch any remaining old format tags
+      content = content.replace(/\[\[s\|([a-zA-Z_]+)\]\]/gi, (match, tagName) => {
+        const lowerTagName = tagName.toLowerCase();
+        const index = tagIndexMap[lowerTagName];
+        return index ? `__SIGNWELL_SIG_${index}__` : match;
+      });
       
       return content;
     };
     
     // Post-process: restore SignWell text tags with CORRECT SignWell syntax
-    // SignWell text_tags expects [[s|recipient_id]] format where recipient_id matches the "id" field
-    // in the recipients array sent to SignWell API
+    // SignWell uses {{signature:N}} format where N is 1-based signer index
     const restoreSignWellTags = (content: string): string => {
-      // Simply restore the original [[s|role]] format - these must match recipient ids
-      // sent to signwell-send-document: "seller", "purchaser", "chairman"
-      return content.replace(/__SIGNWELL_S_([a-zA-Z_]+)__/g, (match, tagName) => {
-        const lowerTagName = tagName.toLowerCase();
-        // Restore to [[s|role]] format that SignWell expects with text_tags: true
-        return `[[s|${lowerTagName}]]`;
+      // Restore to {{signature:N}} format that SignWell expects
+      return content.replace(/__SIGNWELL_SIG_(\d+)__/g, (match, index) => {
+        return `{{signature:${index}}}`;
       });
     };
     

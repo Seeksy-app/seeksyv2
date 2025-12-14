@@ -47,17 +47,18 @@ serve(async (req) => {
     console.log("Recipients:", recipients.map(r => r.email));
 
     // Create document in SignWell with sequential 3-party signing
-    // Order: 1) Seller -> 2) Purchaser -> 3) Chairman (Purchaser signs first in our flow)
-    // Uses text tags in the document: [[s|seller]], [[s|purchaser]], [[s|chairman]]
-    // The "id" field in recipients MUST match the tag names in the document
+    // Order: 1) Purchaser -> 2) Seller -> 3) Chairman
+    // Document uses {{signature:1}}, {{signature:2}}, {{signature:3}} text tags
+    // The index in the tag matches the recipient's position in the array (1-based)
     
     // Create a friendly document title (without .docx extension)
     const friendlyDocName = documentName.replace(/\.docx$/i, '').replace(/_/g, ' ');
     
-    // IMPORTANT: SignWell text_tags expects [[s|recipient_id]] format
-    // The recipient "id" must match what's in the document tags
-    // Our document has: [[s|seller]], [[s|purchaser]], [[s|chairman]]
-    // We want Purchaser to sign FIRST, then Seller, then Chairman
+    // Build recipients array in signing order:
+    // Index 1 = Purchaser (signs first)
+    // Index 2 = Seller (signs second)
+    // Index 3 = Chairman (signs last)
+    // The {{signature:N}} tags in document will match recipient at position N
     
     const signWellPayload = {
       test_mode: false,
@@ -67,18 +68,18 @@ serve(async (req) => {
           file_base64: documentBase64,
         }
       ],
-      name: friendlyDocName, // Friendly name shown in SignWell
+      name: friendlyDocName,
       subject: subject || `Please sign: ${friendlyDocName}`,
       message: message || "Please review and sign this document at your earliest convenience.",
       recipients: recipients.map((r, index) => ({
-        id: r.id,  // Must match [[s|id]] in document - e.g., "seller", "purchaser", "chairman"
+        id: (index + 1).toString(), // SignWell uses string IDs, match with {{signature:N}}
         email: r.email,
         name: r.name,
-        signing_order: index + 1, // Sequential based on order in array
+        signing_order: index + 1, // Sequential: 1, 2, 3
       })),
-      // Use text tags for signature placement - document must contain [[s|seller]], [[s|purchaser]], [[s|chairman]]
+      // Use text tags for signature placement - document contains {{signature:1}}, {{signature:2}}, {{signature:3}}
       text_tags: true,
-      apply_signing_order: true, // Enforce sequential signing
+      apply_signing_order: true,
       custom_requester_name: sellerName || "Seeksy Legal",
       custom_requester_email: sellerEmail || "legal@seeksy.io",
       redirect_url: `${Deno.env.get("SITE_URL") || "https://seeksy.io"}/legal/signed?instance=${instanceId || ""}`,
