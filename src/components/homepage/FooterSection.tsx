@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Sparkles, Twitter, Instagram, Youtube, Linkedin } from "lucide-react";
+import { FooterSubscribe } from "@/components/footer/FooterSubscribe";
 
 const footerLinks = {
   product: { title: "Product", links: [{ label: "Studio", href: "/studio" }, { label: "Analytics", href: "/analytics" }, { label: "Media Kit", href: "/media-kit" }, { label: "Booking", href: "/meetings" }, { label: "Pricing", href: "/pricing" }] },
@@ -19,6 +20,17 @@ export function FooterSection() {
   return (
     <footer className="relative bg-[#070A0F] border-t border-white/5">
       <div className="container mx-auto px-4 py-16">
+        {/* Newsletter Subscribe Section */}
+        <div className="mb-12 pb-12 border-b border-white/10">
+          <div className="max-w-2xl mx-auto text-center">
+            <h3 className="text-xl font-bold text-white mb-2">Stay in the loop</h3>
+            <p className="text-white/50 text-sm mb-6">Get the latest updates, tips, and exclusive content delivered to your inbox.</p>
+            <div className="flex justify-center">
+              <FooterSubscribe />
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-12">
           <div className="col-span-2">
             <Link to="/" className="flex items-center gap-2 mb-4">
