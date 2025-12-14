@@ -130,28 +130,28 @@ export function ModuleHeroShowcase() {
           </div>
 
           {/* Right Ribbons (Vertical Tabs) */}
-          <div className="flex flex-col gap-3 items-end">
+          <div className="flex gap-3 items-stretch h-[400px]">
             {modules.map((module) => {
               const isActive = module.key === activeKey;
               return (
                 <button
                   key={module.key}
                   onClick={() => setActiveKey(module.key)}
-                  className="relative cursor-pointer transition-all duration-200 hover:opacity-90"
+                  className="relative cursor-pointer transition-all duration-200 hover:opacity-90 flex-1"
                   style={{
-                    width: "64px",
-                    height: "180px",
+                    minWidth: "68px",
                     borderRadius: "22px",
                     background: isActive ? "#111111" : module.ribbonBg,
                   }}
                 >
                   <span
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap font-bold"
+                    className="absolute top-1/2 left-1/2 whitespace-nowrap font-bold"
                     style={{
-                      fontSize: "14px",
-                      letterSpacing: "0.02em",
-                      color: isActive ? "#FFFFFF" : "#111111",
+                      fontSize: "15px",
+                      letterSpacing: "0.03em",
+                      color: isActive ? "#FFFFFF" : "#0B0F1A",
                       transform: "translate(-50%, -50%) rotate(-90deg)",
+                      textShadow: isActive ? "none" : "0 1px 2px rgba(0,0,0,0.08)",
                     }}
                   >
                     {module.ribbonLabel}
