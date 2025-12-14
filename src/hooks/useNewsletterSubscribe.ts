@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { gtmEvents } from '@/utils/gtm';
+import { 
+  trackSubscriptionStarted, 
+  trackSubscriptionCompleted, 
+  trackSubscriptionError 
+} from '@/utils/gtm';
 
 interface SubscribeOptions {
   email: string;
@@ -21,6 +25,7 @@ interface SubscribeResult {
  * through the edge function for proper tenant scoping.
  * 
  * SECURITY: Never accepts tenant_id from client - derived from CTA only.
+ * ANALYTICS: Uses single GTM path via trackEvent functions.
  */
 export function useNewsletterSubscribe() {
   const [isLoading, setIsLoading] = useState(false);
@@ -39,14 +44,10 @@ export function useNewsletterSubscribe() {
       email_domain: emailDomain,
       source: source,
       cta_id: ctaId || 'none',
-      page_path: typeof window !== 'undefined' ? window.location.pathname : '',
-      timestamp: new Date().toISOString()
     };
 
     // Fire subscription_started BEFORE API call (tracks attempt)
-    if (typeof window !== 'undefined' && window.dataLayer) {
-      window.dataLayer.push({ event: 'subscription_started', ...eventPayload });
-    }
+    trackSubscriptionStarted(eventPayload);
 
     try {
       const response = await supabase.functions.invoke('subscribe-newsletter', {
@@ -60,29 +61,22 @@ export function useNewsletterSubscribe() {
 
       if (response.error) {
         console.warn('Subscription edge function error:', response.error);
-        if (typeof window !== 'undefined' && window.dataLayer) {
-          window.dataLayer.push({ event: 'subscription_error', ...eventPayload, error_message: response.error.message });
-        }
+        trackSubscriptionError({ ...eventPayload, error_message: response.error.message });
         return { success: false, error: response.error.message };
       }
 
       if (!response.data?.success) {
         console.warn('Subscription failed:', response.data?.error);
-        if (typeof window !== 'undefined' && window.dataLayer) {
-          window.dataLayer.push({ event: 'subscription_error', ...eventPayload, error_message: response.data?.error || 'Unknown error' });
-        }
+        trackSubscriptionError({ ...eventPayload, error_message: response.data?.error || 'Unknown error' });
         return { success: false, error: response.data?.error };
       }
 
       // Fire subscription_completed ONLY on actual success
-      if (typeof window !== 'undefined' && window.dataLayer) {
-        window.dataLayer.push({ 
-          event: 'subscription_completed', 
-          ...eventPayload,
-          subscriber_id: response.data.subscriber_id,
-          tenant_id: response.data.tenant_id
-        });
-      }
+      trackSubscriptionCompleted({
+        ...eventPayload,
+        subscriber_id: response.data.subscriber_id,
+        tenant_id: response.data.tenant_id
+      });
 
       return {
         success: true,
@@ -91,9 +85,7 @@ export function useNewsletterSubscribe() {
       };
     } catch (error) {
       console.warn('Subscription error:', error);
-      if (typeof window !== 'undefined' && window.dataLayer) {
-        window.dataLayer.push({ event: 'subscription_error', ...eventPayload, error_message: 'Network or server error' });
-      }
+      trackSubscriptionError({ ...eventPayload, error_message: 'Network or server error' });
       return { success: false, error: 'Backend error' };
     } finally {
       setIsLoading(false);
