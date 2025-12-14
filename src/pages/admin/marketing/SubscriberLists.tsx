@@ -61,6 +61,7 @@ interface Subscriber {
   name: string | null;
   status: string;
   created_at: string;
+  tenant_id: string;
   lists?: { id: string; name: string; slug: string }[];
 }
 
@@ -108,7 +109,7 @@ export default function SubscriberLists() {
     queryFn: async () => {
       let query = supabase
         .from("newsletter_subscribers")
-        .select("id, email, name, status, created_at")
+        .select("id, email, name, status, created_at, tenant_id")
         .order("created_at", { ascending: false });
 
       if (searchTerm) {
@@ -210,10 +211,10 @@ export default function SubscriberLists() {
 
   // Add subscriber to list mutation
   const addToListMutation = useMutation({
-    mutationFn: async ({ subscriberId, listId }: { subscriberId: string; listId: string }) => {
+    mutationFn: async ({ subscriberId, listId, tenantId }: { subscriberId: string; listId: string; tenantId: string }) => {
       const { error } = await supabase
         .from("subscriber_list_members")
-        .insert({ subscriber_id: subscriberId, list_id: listId });
+        .insert({ subscriber_id: subscriberId, list_id: listId, tenant_id: tenantId });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -500,10 +501,14 @@ export default function SubscriberLists() {
                           <Button
                             onClick={() => {
                               if (selectedListId && selectedSubscriberId) {
-                                addToListMutation.mutate({
-                                  subscriberId: selectedSubscriberId,
-                                  listId: selectedListId,
-                                });
+                                const subscriber = subscribers.find(s => s.id === selectedSubscriberId);
+                                if (subscriber) {
+                                  addToListMutation.mutate({
+                                    subscriberId: selectedSubscriberId,
+                                    listId: selectedListId,
+                                    tenantId: subscriber.tenant_id,
+                                  });
+                                }
                               }
                             }}
                             disabled={!selectedSubscriberId || addToListMutation.isPending}

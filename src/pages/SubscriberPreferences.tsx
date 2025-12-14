@@ -21,7 +21,7 @@ export default function SubscriberPreferences() {
   
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [subscriber, setSubscriber] = useState<{ id: string; email: string } | null>(null);
+  const [subscriber, setSubscriber] = useState<{ id: string; email: string; tenant_id: string } | null>(null);
   const [lists, setLists] = useState<SubscriberList[]>([]);
   const [selectedLists, setSelectedLists] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +40,7 @@ export default function SubscriberPreferences() {
       // Get subscriber by token
       const { data: sub, error: subError } = await (supabase
         .from('newsletter_subscribers')
-        .select('id, email') as any)
+        .select('id, email, tenant_id') as any)
         .eq('preferences_token', token)
         .single();
 
@@ -101,6 +101,7 @@ export default function SubscriberPreferences() {
         const memberships = selectedLists.map(listId => ({
           subscriber_id: subscriber.id,
           list_id: listId,
+          tenant_id: subscriber.tenant_id,
         }));
         await supabase.from('subscriber_list_members').insert(memberships);
       }

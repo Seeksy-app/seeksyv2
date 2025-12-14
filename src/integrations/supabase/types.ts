@@ -17585,7 +17585,7 @@ export type Database = {
           source: string | null
           status: string
           subscribed_at: string
-          tenant_id: string | null
+          tenant_id: string
           unsubscribed_at: string | null
           updated_at: string
           user_id: string | null
@@ -17600,7 +17600,7 @@ export type Database = {
           source?: string | null
           status?: string
           subscribed_at?: string
-          tenant_id?: string | null
+          tenant_id: string
           unsubscribed_at?: string | null
           updated_at?: string
           user_id?: string | null
@@ -17615,7 +17615,7 @@ export type Database = {
           source?: string | null
           status?: string
           subscribed_at?: string
-          tenant_id?: string | null
+          tenant_id?: string
           unsubscribed_at?: string | null
           updated_at?: string
           user_id?: string | null
@@ -23478,21 +23478,21 @@ export type Database = {
           id: string
           list_id: string
           subscriber_id: string
-          tenant_id: string | null
+          tenant_id: string
         }
         Insert: {
           created_at?: string
           id?: string
           list_id: string
           subscriber_id: string
-          tenant_id?: string | null
+          tenant_id: string
         }
         Update: {
           created_at?: string
           id?: string
           list_id?: string
           subscriber_id?: string
-          tenant_id?: string | null
+          tenant_id?: string
         }
         Relationships: [
           {
