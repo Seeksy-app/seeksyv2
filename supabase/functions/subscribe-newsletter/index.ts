@@ -54,7 +54,7 @@ serve(async (req) => {
       );
     }
 
-    const { email, source = 'blog_gate', name } = await req.json();
+    const { email, source = 'website', name, cta_id } = await req.json();
 
     // Validate email
     if (!email || typeof email !== 'string') {
@@ -88,32 +88,117 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Upsert subscriber (handles duplicates gracefully)
-    const { error } = await supabase
-      .from('newsletter_subscribers')
-      .upsert(
-        { 
-          email: trimmedEmail, 
-          name: name || null,
-          source,
-          status: 'active',
-          subscribed_at: new Date().toISOString()
-        }, 
-        { onConflict: 'email' }
-      );
+    // STEP 1: Resolve tenant_id from CTA (if provided)
+    let resolvedTenantId: string | null = null;
+    let autoLists: string[] = [];
 
-    if (error) {
-      console.error('Supabase upsert error:', error);
+    if (cta_id) {
+      console.log(`Looking up CTA: ${cta_id}`);
+      const { data: cta, error: ctaError } = await supabase
+        .from('cta_definitions')
+        .select('tenant_id, auto_lists, is_active')
+        .eq('id', cta_id)
+        .single();
+
+      if (ctaError) {
+        console.warn(`CTA lookup failed: ${ctaError.message}`);
+      } else if (cta && cta.is_active) {
+        resolvedTenantId = cta.tenant_id;
+        autoLists = cta.auto_lists || [];
+        console.log(`CTA found: tenant_id=${resolvedTenantId}, auto_lists=${JSON.stringify(autoLists)}`);
+      } else if (cta && !cta.is_active) {
+        console.warn(`CTA ${cta_id} is inactive`);
+      }
+    }
+
+    // STEP 2: Fallback to seeksy_platform tenant if no CTA or CTA has no tenant
+    if (!resolvedTenantId) {
+      console.log('No tenant from CTA, looking up seeksy_platform tenant...');
+      const { data: platformTenant } = await supabase
+        .from('tenants')
+        .select('id')
+        .eq('tenant_type', 'seeksy_platform')
+        .limit(1)
+        .single();
+      
+      if (platformTenant) {
+        resolvedTenantId = platformTenant.id;
+        console.log(`Using platform tenant: ${resolvedTenantId}`);
+      } else {
+        console.warn('No seeksy_platform tenant found, proceeding without tenant_id');
+      }
+    }
+
+    // STEP 3: Upsert subscriber with tenant_id
+    const subscriberData: Record<string, unknown> = { 
+      email: trimmedEmail, 
+      name: name || null,
+      source,
+      status: 'active',
+      subscribed_at: new Date().toISOString()
+    };
+
+    if (resolvedTenantId) {
+      subscriberData.tenant_id = resolvedTenantId;
+    }
+
+    const { data: subscriber, error: upsertError } = await supabase
+      .from('newsletter_subscribers')
+      .upsert(subscriberData, { onConflict: 'email' })
+      .select('id')
+      .single();
+
+    if (upsertError) {
+      console.error('Supabase upsert error:', upsertError);
       return new Response(
         JSON.stringify({ success: false, error: 'Failed to subscribe. Please try again.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Successfully subscribed: ${trimmedEmail} from ${source}`);
+    const subscriberId = subscriber?.id;
+    console.log(`Subscriber upserted: ${subscriberId}`);
+
+    // STEP 4: Attach to auto_lists from CTA (if any)
+    if (subscriberId && autoLists.length > 0 && resolvedTenantId) {
+      console.log(`Attaching subscriber to auto_lists: ${JSON.stringify(autoLists)}`);
+      
+      // Fetch list IDs by slug within the same tenant
+      const { data: lists, error: listsError } = await supabase
+        .from('subscriber_lists')
+        .select('id, slug')
+        .eq('tenant_id', resolvedTenantId)
+        .in('slug', autoLists);
+
+      if (listsError) {
+        console.warn(`Lists lookup failed: ${listsError.message}`);
+      } else if (lists && lists.length > 0) {
+        const memberships = lists.map(list => ({
+          subscriber_id: subscriberId,
+          list_id: list.id,
+          tenant_id: resolvedTenantId
+        }));
+
+        const { error: membershipError } = await supabase
+          .from('subscriber_list_members')
+          .upsert(memberships, { onConflict: 'subscriber_id,list_id' });
+
+        if (membershipError) {
+          console.warn(`List membership upsert failed: ${membershipError.message}`);
+        } else {
+          console.log(`Added subscriber to ${lists.length} lists`);
+        }
+      }
+    }
+
+    console.log(`Successfully subscribed: ${trimmedEmail} from ${source}, tenant: ${resolvedTenantId || 'none'}`);
     
     return new Response(
-      JSON.stringify({ success: true }),
+      JSON.stringify({ 
+        success: true, 
+        subscriber_id: subscriberId,
+        tenant_id: resolvedTenantId 
+      }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

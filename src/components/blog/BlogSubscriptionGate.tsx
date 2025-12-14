@@ -5,6 +5,7 @@ import { Mail, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { gtmEvents } from '@/utils/gtm';
+import { useNewsletterSubscribe, PLATFORM_CTA_IDS } from '@/hooks/useNewsletterSubscribe';
 
 interface BlogSubscriptionGateProps {
   postId: string;
@@ -25,10 +26,10 @@ export const BlogSubscriptionGate = ({
   const [dismissed, setDismissed] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
   const [email, setEmail] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [gateImpression, setGateImpression] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { subscribe, isLoading } = useNewsletterSubscribe();
 
   // Check if user is admin (skip gate)
   const [isAdmin, setIsAdmin] = useState(false);
@@ -100,23 +101,8 @@ export const BlogSubscriptionGate = ({
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
-
-    setIsSubmitting(true);
     
-    // FIRE GTM EVENT FIRST - BEFORE any API call (non-blocking analytics)
-    const emailDomain = email.split('@')[1] || 'unknown';
-    if (typeof window !== 'undefined' && window.dataLayer) {
-      window.dataLayer.push({
-        event: 'subscription_completed',
-        email_domain: emailDomain,
-        source: 'blog_subscription_gate',
-        page_path: window.location.pathname,
-        timestamp: new Date().toISOString()
-      });
-    }
-    gtmEvents.subscriptionCompleted(postId, postTitle, 'blog_gate');
-
-    // Always show success UI immediately - analytics is already tracked
+    // Always show success UI immediately - analytics fires in hook
     setSubscribed(true);
     setShowGate(false);
     toast({
@@ -124,22 +110,12 @@ export const BlogSubscriptionGate = ({
       description: 'You now have full access to all articles.',
     });
 
-    // Attempt backend insert (non-blocking, silent failure)
-    try {
-      const response = await supabase.functions.invoke('subscribe-newsletter', {
-        body: { email, source: 'blog_gate' }
-      });
-
-      if (response.error || !response.data?.success) {
-        // Log error but don't show to user - analytics already fired
-        console.warn('Backend subscription save failed:', response.error || response.data?.error);
-      }
-    } catch (error) {
-      // Silent failure - user already got success message, GTM already fired
-      console.warn('Backend subscription error (non-blocking):', error);
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Call edge function via hook (non-blocking, analytics already fired)
+    await subscribe({
+      email,
+      source: 'blog_gate',
+      ctaId: PLATFORM_CTA_IDS.BLOG_GATE
+    });
   };
 
   const handleDismiss = () => {
@@ -209,9 +185,9 @@ export const BlogSubscriptionGate = ({
                   <Button 
                     type="submit" 
                     className="w-full h-12"
-                    disabled={isSubmitting}
+                    disabled={isLoading}
                   >
-                    {isSubmitting ? 'Subscribing...' : 'Subscribe'}
+                    {isLoading ? 'Subscribing...' : 'Subscribe'}
                   </Button>
                 </form>
                 

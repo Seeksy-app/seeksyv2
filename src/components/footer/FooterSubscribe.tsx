@@ -1,59 +1,34 @@
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Mail, Loader2, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { trackSubscriptionStarted, trackSubscriptionCompleted, trackSubscriptionError } from '@/lib/analytics';
+import { useNewsletterSubscribe, PLATFORM_CTA_IDS } from '@/hooks/useNewsletterSubscribe';
+import { trackSubscriptionStarted } from '@/lib/analytics';
 
 export function FooterSubscribe() {
   const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const { subscribe, isLoading } = useNewsletterSubscribe();
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
 
     trackSubscriptionStarted();
-    setIsLoading(true);
 
-    try {
-      // Get lists that are included in general subscribe
-      const { data: lists } = await supabase
-        .from('subscriber_lists')
-        .select('id, slug')
-        .eq('include_in_general_subscribe', true as any);
+    const result = await subscribe({
+      email,
+      source: 'footer',
+      ctaId: PLATFORM_CTA_IDS.FOOTER
+    });
 
-      // Upsert subscriber
-      const { data: subscriber, error: subError } = await supabase
-        .from('newsletter_subscribers')
-        .upsert({ email: email.trim(), status: 'active' } as any, { onConflict: 'email' })
-        .select()
-        .single();
-
-      if (subError) throw subError;
-
-      // Add to all general subscribe lists
-      if (lists?.length && subscriber) {
-        const memberships = lists.map(list => ({
-          subscriber_id: subscriber.id,
-          list_id: list.id,
-        }));
-        await supabase
-          .from('subscriber_list_members')
-          .upsert(memberships as any, { onConflict: 'subscriber_id,list_id' });
-      }
-
-      trackSubscriptionCompleted({ source: 'footer' });
+    if (result.success) {
       setIsSuccess(true);
       setEmail('');
       toast.success("You're subscribed! Check your email for preferences.");
-    } catch (error) {
-      trackSubscriptionError({ error_type: 'api_error' });
+    } else {
       toast.error('Failed to subscribe. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
   };
 

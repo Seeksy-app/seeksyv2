@@ -1,15 +1,23 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail } from "lucide-react";
 import { toast } from "sonner";
+import { useNewsletterSubscribe, PLATFORM_CTA_IDS } from "@/hooks/useNewsletterSubscribe";
 
-export const NewsletterSignupForm = () => {
+interface NewsletterSignupFormProps {
+  ctaId?: string;
+  source?: string;
+}
+
+export const NewsletterSignupForm = ({ 
+  ctaId = PLATFORM_CTA_IDS.WEBSITE,
+  source = 'website' 
+}: NewsletterSignupFormProps) => {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { subscribe, isLoading } = useNewsletterSubscribe();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,35 +27,19 @@ export const NewsletterSignupForm = () => {
       return;
     }
 
-    setIsSubmitting(true);
+    const result = await subscribe({
+      email,
+      name: name || undefined,
+      source,
+      ctaId
+    });
 
-    try {
-      const { error } = await supabase
-        .from("newsletter_subscribers")
-        .insert({
-          email,
-          name: name || null,
-          status: "active",
-          source: "website",
-        });
-
-      if (error) {
-        if (error.code === "23505") {
-          toast.error("You're already subscribed!");
-        } else {
-          throw error;
-        }
-        return;
-      }
-
+    if (result.success) {
       toast.success("Successfully subscribed to our newsletter!");
       setEmail("");
       setName("");
-    } catch (error: any) {
-      console.error("Newsletter signup error:", error);
-      toast.error("Failed to subscribe. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+    } else {
+      toast.error(result.error || "Failed to subscribe. Please try again.");
     }
   };
 
@@ -81,8 +73,8 @@ export const NewsletterSignupForm = () => {
               required
             />
           </div>
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "Subscribing..." : "Subscribe"}
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Subscribing..." : "Subscribe"}
           </Button>
           <p className="text-xs text-muted-foreground text-center">
             We respect your privacy. Unsubscribe at any time.
