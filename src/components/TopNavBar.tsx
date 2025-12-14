@@ -28,6 +28,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { clearPortalStorage } from "@/contexts/PortalContext";
 import { usePinnedHeaderItems, HeaderItemId } from "@/hooks/usePinnedHeaderItems";
 import { useHelpMenuActions, HelpActionKey, PORTAL_LABELS } from "@/hooks/useHelpDrawer";
 
@@ -71,6 +72,8 @@ export function TopNavBar() {
 
   const handleLogout = async () => {
     try {
+      // Clear portal state before signing out
+      clearPortalStorage();
       await supabase.auth.signOut();
       toast.success("Logged out successfully");
       navigate('/auth');

@@ -18,7 +18,8 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { trackPortalChanged } from '@/utils/gtm';
+import { trackPortalChanged, trackEvent } from '@/utils/gtm';
+import { supabase } from '@/integrations/supabase/client';
 
 export type PortalMode = 'admin' | 'creator' | 'board' | 'advertiser' | 'subscriber' | 'public';
 
@@ -53,6 +54,21 @@ const ROUTE_PORTAL_MAP: Record<string, PortalMode> = {
   '/awards': 'creator',
   '/settings': 'creator',
   '/email-settings': 'creator',
+  '/apps': 'creator', // App store is creator context
+  '/clips': 'creator',
+  '/voice-cloning': 'creator',
+  '/media': 'creator',
+  '/campaigns': 'creator',
+  '/email': 'creator',
+  '/newsletters': 'creator',
+  '/automations': 'creator',
+  '/forms': 'creator',
+  '/polls': 'creator',
+  '/deals': 'creator',
+  '/proposals': 'creator',
+  '/projects': 'creator',
+  '/tasks': 'creator',
+  '/creator-hub': 'creator',
   '/subscriber': 'subscriber',
   '/s/': 'subscriber',
 };
@@ -96,15 +112,25 @@ function derivePortalFromPath(pathname: string): PortalMode {
     return 'public';
   }
   
-  // Check route prefix map
+  // Check route prefix map - ROUTE ALWAYS WINS
   for (const [prefix, portal] of Object.entries(ROUTE_PORTAL_MAP)) {
     if (pathname.startsWith(prefix)) {
       return portal;
     }
   }
   
-  // Default to creator for authenticated but unmatched routes
+  // For unmatched authenticated routes, derive from the path structure
+  // This prevents /apps or other generic routes from defaulting to stale stored portal
   return 'creator';
+}
+
+// Helper to clear all portal-related storage
+export function clearPortalStorage() {
+  sessionStorage.removeItem(PORTAL_STORAGE_KEY);
+  localStorage.removeItem('currentWorkspaceId');
+  if (import.meta.env.DEV) {
+    console.log('[PortalContext] Portal storage cleared');
+  }
 }
 
 export function PortalProvider({ children }: { children: React.ReactNode }) {
@@ -112,33 +138,63 @@ export function PortalProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   
-  // Derive initial portal from current route
+  // Derive initial portal from current route - ROUTE TAKES PRECEDENCE
   const [portal, setPortalState] = useState<PortalMode>(() => {
-    const stored = sessionStorage.getItem(PORTAL_STORAGE_KEY) as PortalMode | null;
     const routePortal = derivePortalFromPath(window.location.pathname);
     
-    // Route takes precedence over stored value
-    if (routePortal !== 'public' && routePortal !== 'creator') {
+    // Route ALWAYS takes precedence for non-public routes
+    if (routePortal !== 'public') {
+      sessionStorage.setItem(PORTAL_STORAGE_KEY, routePortal);
       return routePortal;
     }
     
+    // Only use stored value for public routes (homepage, blog, etc.)
+    const stored = sessionStorage.getItem(PORTAL_STORAGE_KEY) as PortalMode | null;
     return stored || routePortal;
   });
   
   const [previousPortal, setPreviousPortal] = useState<PortalMode | null>(null);
 
-  // Sync portal with route changes
+  // Listen for auth state changes - clear portal on logout
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') {
+        if (import.meta.env.DEV) {
+          console.log('[PortalContext] User signed out, clearing portal state');
+        }
+        clearPortalStorage();
+        setPortalState('public');
+        setPreviousPortal(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Sync portal with route changes - ROUTE ALWAYS WINS
   useEffect(() => {
     const routePortal = derivePortalFromPath(location.pathname);
     
-    // Only update if route definitively indicates a different portal
-    if (routePortal !== 'public' && routePortal !== portal) {
-      if (import.meta.env.DEV) {
-        console.log(`[PortalContext] Route change detected: ${portal} -> ${routePortal} (path: ${location.pathname})`);
+    // For non-public routes, route ALWAYS determines portal
+    if (routePortal !== 'public') {
+      if (routePortal !== portal) {
+        if (import.meta.env.DEV) {
+          console.log(`[PortalContext] Route change detected: ${portal} -> ${routePortal} (path: ${location.pathname})`);
+        }
+        
+        // Track mismatch for debugging
+        if (portal !== 'public' && portal !== routePortal) {
+          trackEvent('portal_route_mismatch', { 
+            expected_portal: routePortal, 
+            actual_portal: portal, 
+            pathname: location.pathname 
+          });
+        }
+        
+        setPreviousPortal(portal);
+        setPortalState(routePortal);
+        sessionStorage.setItem(PORTAL_STORAGE_KEY, routePortal);
       }
-      setPreviousPortal(portal);
-      setPortalState(routePortal);
-      sessionStorage.setItem(PORTAL_STORAGE_KEY, routePortal);
     }
   }, [location.pathname, portal]);
 

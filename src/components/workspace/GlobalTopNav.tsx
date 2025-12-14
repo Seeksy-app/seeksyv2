@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { clearPortalStorage } from "@/contexts/PortalContext";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -66,6 +67,7 @@ export function GlobalTopNav() {
 
   const handleLogout = async () => {
     try {
+      clearPortalStorage();
       await supabase.auth.signOut();
       navigate('/auth');
       toast.success("Logged out successfully");

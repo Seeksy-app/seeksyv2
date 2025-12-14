@@ -89,6 +89,7 @@ import {
   Trash2,
   FolderInput,
 } from "lucide-react";
+import { clearPortalStorage } from "@/contexts/PortalContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -378,6 +379,7 @@ export function RoleBasedSidebar({ user }: RoleBasedSidebarProps) {
   }, []);
   
   const handleLogout = async () => {
+    clearPortalStorage();
     await supabase.auth.signOut();
     navigate("/auth");
   };
