@@ -8,7 +8,7 @@ import { WorkspaceSelector } from "./WorkspaceSelector";
 import { MoveToSectionMenu } from "./MoveToSectionMenu";
 import { AddNewDropdown } from "./AddNewDropdown";
 import { CreateWorkspaceModal } from "./CreateWorkspaceModal";
-import { ModuleCenterModal } from "@/components/modules";
+import { ModuleCenterModal, SEEKSY_MODULES } from "@/components/modules";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -215,7 +215,7 @@ export function WorkspaceSidebar() {
     setForceUpdate(prev => prev + 1);
   }, [state]);
 
-  // Fetch module registry from database
+  // Fetch module registry from database and merge with SEEKSY_MODULES for comprehensive coverage
   useEffect(() => {
     const fetchModuleRegistry = async () => {
       try {
@@ -228,42 +228,55 @@ export function WorkspaceSidebar() {
           console.error('Error fetching module registry:', error);
         }
 
+        // Start with SEEKSY_MODULES as the comprehensive base
+        const moduleDataRegistry: ModuleRegistryItem[] = SEEKSY_MODULES.map((m, idx) => ({
+          id: m.id,
+          name: m.name,
+          description: m.description || '',
+          icon: m.icon?.name || 'default',
+          category: m.category || 'general',
+          scope: 'workspace',
+          route: m.route || `/${m.id}`,
+          display_order: idx,
+        }));
+
+        // Merge with DB data (DB takes precedence for name/description/route)
         if (data && data.length > 0) {
-          setModuleRegistry(data.map(m => ({
-            id: m.name,
-            name: m.display_name || m.name,
-            description: m.description || '',
-            icon: m.icon || 'default',
-            category: 'general',
-            scope: 'workspace',
-            route: m.route || `/${m.name}`,
-            display_order: 0,
-          })));
+          const dbModuleMap = new Map(data.map(m => [m.name, m]));
+          
+          const mergedRegistry = moduleDataRegistry.map(module => {
+            const dbModule = dbModuleMap.get(module.id);
+            if (dbModule) {
+              return {
+                ...module,
+                name: dbModule.display_name || module.name,
+                description: dbModule.description || module.description,
+                route: dbModule.route || module.route,
+                icon: dbModule.icon || module.icon,
+              };
+            }
+            return module;
+          });
+
+          // Add any DB modules not in SEEKSY_MODULES
+          data.forEach(m => {
+            if (!mergedRegistry.find(mr => mr.id === m.name)) {
+              mergedRegistry.push({
+                id: m.name,
+                name: m.display_name || m.name,
+                description: m.description || '',
+                icon: m.icon || 'default',
+                category: 'general',
+                scope: 'workspace',
+                route: m.route || `/${m.name}`,
+                display_order: mergedRegistry.length,
+              });
+            }
+          });
+
+          setModuleRegistry(mergedRegistry);
         } else {
-          // Fallback to hardcoded registry
-          setModuleRegistry([
-            { id: 'studio', name: 'Studio', description: 'Record content', icon: 'mic', category: 'media', scope: 'workspace', route: '/studio', display_order: 0 },
-            { id: 'studio-recording', name: 'Recording', description: 'Record audio/video', icon: 'mic', category: 'media', scope: 'workspace', route: '/studio/record', display_order: 1 },
-            { id: 'ai-clips', name: 'AI Clips', description: 'Generate clips', icon: 'scissors', category: 'media', scope: 'workspace', route: '/clips', display_order: 2 },
-            { id: 'ai-post-production', name: 'AI Post-Production', description: 'Edit with AI', icon: 'wand', category: 'media', scope: 'workspace', route: '/ai-post-production', display_order: 3 },
-            { id: 'podcasts', name: 'Podcasts', description: 'Manage podcasts', icon: 'podcast', category: 'media', scope: 'workspace', route: '/podcasts', display_order: 4 },
-            { id: 'media-library', name: 'Media Library', description: 'Manage media', icon: 'folder', category: 'media', scope: 'workspace', route: '/media', display_order: 5 },
-            { id: 'video-editor', name: 'Video Editor', description: 'Edit videos', icon: 'video', category: 'media', scope: 'workspace', route: '/video-editor', display_order: 6 },
-            { id: 'tasks', name: 'Tasks', description: 'Manage tasks', icon: 'check', category: 'business', scope: 'workspace', route: '/tasks', display_order: 7 },
-            { id: 'ai-agent', name: 'AI Agent', description: 'AI assistant', icon: 'bot', category: 'ai', scope: 'workspace', route: '/ai-agent', display_order: 8 },
-            { id: 'email', name: 'Email', description: 'Email inbox', icon: 'mail', category: 'communication', scope: 'workspace', route: '/inbox', display_order: 9 },
-            { id: 'email-signatures', name: 'Email Signatures', description: 'Manage signatures', icon: 'edit', category: 'communication', scope: 'workspace', route: '/email-signatures', display_order: 10 },
-            { id: 'broadcast-monitoring', name: 'Broadcast Monitoring', description: 'Content protection', icon: 'shield', category: 'identity', scope: 'workspace', route: '/broadcast-monitoring', display_order: 11 },
-            { id: 'blog', name: 'Blog', description: 'Write articles', icon: 'file', category: 'content', scope: 'workspace', route: '/blog', display_order: 12 },
-            { id: 'proposals', name: 'Proposals', description: 'Create proposals', icon: 'file', category: 'business', scope: 'workspace', route: '/proposals', display_order: 13 },
-            { id: 'crm', name: 'CRM', description: 'Manage contacts', icon: 'users', category: 'business', scope: 'workspace', route: '/crm', display_order: 14 },
-            { id: 'newsletter', name: 'Newsletter', description: 'Send newsletters', icon: 'mail', category: 'marketing', scope: 'workspace', route: '/newsletter', display_order: 15 },
-            { id: 'meetings', name: 'Meetings', description: 'Schedule meetings', icon: 'calendar', category: 'events', scope: 'workspace', route: '/meetings', display_order: 16 },
-            { id: 'events', name: 'Events', description: 'Manage events', icon: 'calendar', category: 'events', scope: 'workspace', route: '/events', display_order: 17 },
-            { id: 'awards', name: 'Awards', description: 'Create awards', icon: 'trophy', category: 'events', scope: 'workspace', route: '/awards', display_order: 18 },
-            { id: 'social-analytics', name: 'Social Analytics', description: 'Track performance', icon: 'chart', category: 'analytics', scope: 'workspace', route: '/social-analytics', display_order: 19 },
-            { id: 'social-connect', name: 'Social Connect', description: 'Connect accounts', icon: 'share', category: 'social', scope: 'workspace', route: '/social-connect', display_order: 20 },
-          ]);
+          setModuleRegistry(moduleDataRegistry);
         }
       } catch (err) {
         console.error('Error in fetchModuleRegistry:', err);
