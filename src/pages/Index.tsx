@@ -21,6 +21,7 @@ const DEFAULT_CREATOR_LANDING = '/my-day';
 
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const moduleBuilderRef = useRef<ModuleBuilderHandle>(null);
   
@@ -70,6 +71,8 @@ const Index = () => {
         // Use user's preferred landing route, or fallback to My Day
         const landingRoute = prefs?.default_landing_route || DEFAULT_CREATOR_LANDING;
         navigate(landingRoute);
+      } else {
+        setIsLoading(false);
       }
     });
 
@@ -79,6 +82,15 @@ const Index = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  // Show nothing while checking auth to prevent flash
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

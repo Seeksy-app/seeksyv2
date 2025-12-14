@@ -59,10 +59,10 @@ export function ModuleHeroShowcase() {
     <section className="w-full px-4 py-24 md:py-32">
       {/* Single container - fixed height, everything contained */}
       <div
-        className="mx-auto max-w-[1200px] rounded-[32px] overflow-hidden flex"
+        className="mx-auto max-w-[1300px] rounded-[32px] overflow-hidden flex"
         style={{
           background: "#E8D5CB",
-          height: "520px",
+          height: "640px",
         }}
       >
         {/* Desktop Layout */}
@@ -151,7 +151,7 @@ export function ModuleHeroShowcase() {
             </AnimatePresence>
           </div>
 
-          {/* Right: Vertical Tabs - Full height, larger text */}
+          {/* Right: Vertical Tabs - Full height, doubled text size */}
           <div className="flex-shrink-0 flex h-full">
             {modules.map((module, index) => {
               const isActive = module.key === activeKey;
@@ -160,9 +160,9 @@ export function ModuleHeroShowcase() {
                 <button
                   key={module.key}
                   onClick={() => setActiveKey(module.key)}
-                  className="relative cursor-pointer transition-all duration-200 hover:opacity-95 h-full"
+                  className="relative cursor-pointer transition-all duration-200 hover:opacity-95 h-full flex items-center justify-center"
                   style={{
-                    width: isActive ? "80px" : "64px",
+                    width: isActive ? "88px" : "72px",
                     background: isActive ? "#0A0A0A" : module.ribbonBg,
                     marginLeft: index === 0 ? 0 : "-2px",
                     zIndex: isActive ? 10 : (5 - index),
@@ -170,13 +170,13 @@ export function ModuleHeroShowcase() {
                   }}
                 >
                   <span
-                    className="absolute top-1/2 left-1/2 whitespace-nowrap"
+                    className="whitespace-nowrap text-center"
                     style={{
-                      fontSize: "18px",
-                      letterSpacing: "0.01em",
+                      fontSize: "28px",
+                      letterSpacing: "-0.01em",
                       color: isActive ? "#FFFFFF" : "rgba(11, 15, 26, 0.85)",
                       fontWeight: isActive ? 700 : 500,
-                      transform: "translate(-50%, -50%) rotate(-90deg)",
+                      transform: "rotate(-90deg)",
                     }}
                   >
                     {module.ribbonLabel}
