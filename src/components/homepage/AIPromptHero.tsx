@@ -2,7 +2,31 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Shuffle, Sparkles, ArrowRight, Coins } from "lucide-react";
+import { 
+  Shuffle, Sparkles, ArrowRight, Coins,
+  Bot, Cpu, Mic, Video, Calendar, Mail, 
+  Podcast, Users, BarChart3, Zap, Globe, 
+  MessageSquare, Camera, Headphones, Radio
+} from "lucide-react";
+
+// Floating background icons configuration
+const floatingIcons = [
+  { Icon: Bot, size: 24, x: 8, y: 15, delay: 0 },
+  { Icon: Cpu, size: 20, x: 85, y: 20, delay: 0.5 },
+  { Icon: Mic, size: 22, x: 12, y: 75, delay: 1 },
+  { Icon: Video, size: 18, x: 92, y: 65, delay: 1.5 },
+  { Icon: Calendar, size: 20, x: 5, y: 45, delay: 2 },
+  { Icon: Mail, size: 16, x: 95, y: 40, delay: 2.5 },
+  { Icon: Podcast, size: 26, x: 88, y: 85, delay: 0.3 },
+  { Icon: Users, size: 18, x: 15, y: 90, delay: 0.8 },
+  { Icon: BarChart3, size: 20, x: 78, y: 10, delay: 1.3 },
+  { Icon: Zap, size: 16, x: 3, y: 30, delay: 1.8 },
+  { Icon: Globe, size: 22, x: 90, y: 50, delay: 2.3 },
+  { Icon: MessageSquare, size: 18, x: 82, y: 75, delay: 0.6 },
+  { Icon: Camera, size: 20, x: 6, y: 60, delay: 1.1 },
+  { Icon: Headphones, size: 24, x: 94, y: 30, delay: 1.6 },
+  { Icon: Radio, size: 18, x: 10, y: 5, delay: 2.1 },
+];
 
 // The 4 main rotating statements
 const rotatingStatements = [
@@ -268,6 +292,34 @@ export function AIPromptHero() {
           <Coins className="h-4 w-4" />
           <span className="text-sm">Pay only for what you use • Start free with 100 credits</span>
         </motion.div>
+      </div>
+
+      {/* Floating tech icons background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {floatingIcons.map(({ Icon, size, x, y, delay }, i) => (
+          <motion.div
+            key={i}
+            className="absolute text-primary/10"
+            style={{
+              left: `${x}%`,
+              top: `${y}%`,
+            }}
+            animate={{
+              y: [0, -15, 0],
+              x: [0, 5, 0],
+              rotate: [0, 10, 0],
+              opacity: [0.08, 0.15, 0.08],
+            }}
+            transition={{
+              duration: 6 + (i % 3),
+              delay: delay,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          >
+            <Icon size={size} strokeWidth={1.5} />
+          </motion.div>
+        ))}
       </div>
 
       {/* Decorative dots */}
