@@ -94,11 +94,16 @@ serve(async (req) => {
       }
     }
 
+    // Parse sender info
+    const fromName = fromMatch ? fromString.split('<')[0].trim() : senderEmail;
+    const toAddress = Array.isArray(payload.to) ? payload.to[0] : payload.to;
+    
+    // Find the user who owns this receiving email address
+    let userId: string | null = null;
+    
     if (originalEmail) {
       console.log('Found original email:', originalEmail.id, 'from user:', originalEmail.user_id);
-      
-      // Parse sender info
-      const fromName = fromMatch ? fromString.split('<')[0].trim() : senderEmail;
+      userId = originalEmail.user_id;
       
       // Store the reply in email_replies table
       const { data: reply, error: insertError } = await supabase
@@ -119,15 +124,49 @@ serve(async (req) => {
       } else {
         console.log('Reply stored successfully:', reply?.id);
       }
+    } else {
+      console.log('No matching original email found - looking up user by email address');
       
-      // Also store in inbox_messages for Inbox view
+      // Try to find user by the receiving email address in gmail_connections
+      const { data: gmailConnection, error: gmailError } = await supabase
+        .from('gmail_connections')
+        .select('user_id, email_address')
+        .eq('email_address', toAddress)
+        .maybeSingle();
+      
+      if (gmailError) {
+        console.error('Error looking up gmail connection:', gmailError);
+      } else if (gmailConnection) {
+        userId = gmailConnection.user_id;
+        console.log('Found user from gmail_connections:', userId);
+      }
+      
+      // If not found in gmail_connections, try email_accounts
+      if (!userId) {
+        const { data: emailAccount, error: emailError } = await supabase
+          .from('email_accounts')
+          .select('user_id, email_address')
+          .eq('email_address', toAddress)
+          .maybeSingle();
+        
+        if (emailError) {
+          console.error('Error looking up email account:', emailError);
+        } else if (emailAccount) {
+          userId = emailAccount.user_id;
+          console.log('Found user from email_accounts:', userId);
+        }
+      }
+    }
+    
+    // Store in inbox_messages if we found a user
+    if (userId) {
       const { error: inboxError } = await supabase
         .from('inbox_messages')
         .insert({
-          user_id: originalEmail.user_id,
+          user_id: userId,
           from_address: senderEmail,
           from_name: fromName,
-          to_address: Array.isArray(payload.to) ? payload.to[0] : payload.to,
+          to_address: toAddress,
           subject: payload.subject,
           snippet: (payload.text || payload.html?.replace(/<[^>]*>/g, '') || '').substring(0, 500),
           body_text: payload.text || '',
@@ -141,38 +180,25 @@ serve(async (req) => {
       if (inboxError) {
         console.error('Error inserting to inbox_messages:', inboxError);
       } else {
-        console.log('Reply also added to inbox_messages');
+        console.log('Email stored in inbox_messages for user:', userId);
       }
       
       return new Response(
         JSON.stringify({ 
           success: true, 
-          matched: true,
-          original_email_id: originalEmail.id,
-          reply_id: reply?.id
+          matched: !!originalEmail,
+          user_id: userId,
+          original_email_id: originalEmail?.id
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } else {
-      console.log('No matching original email found - storing as new inbox message');
-      
-      // Parse sender info for orphan email
-      const fromName = fromMatch ? fromString.split('<')[0].trim() : senderEmail;
-      
-      // Store unmatched emails in inbox_messages so they show in Inbox
-      // We need to find any user associated with the receiving email address
-      const toAddress = Array.isArray(payload.to) ? payload.to[0] : payload.to;
-      
-      // For now, log it but we can't easily associate without knowing the user
-      // These are emails sent TO hello@seeksy.io which is our system sender
-      console.log('Orphan email from:', senderEmail, 'Subject:', payload.subject);
-      console.log('To address:', toAddress);
-      
+      console.log('Could not find user for email address:', toAddress);
       return new Response(
         JSON.stringify({ 
           success: true, 
           matched: false,
-          message: 'No matching original email found'
+          message: 'No user found for receiving email address: ' + toAddress
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
