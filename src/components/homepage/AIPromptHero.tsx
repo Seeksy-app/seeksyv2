@@ -1,18 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Shuffle, Sparkles, ArrowRight, Coins } from "lucide-react";
 
-const suggestionPrompts = [
+// The 4 main rotating statements
+const rotatingStatements = [
   "Send my podcast guest an invite and schedule a recording...",
   "Create clips from my latest episode and post to social...",
-  "Track my audience growth and send a newsletter update...",
-  "Set up a meeting link and share it with my community...",
   "Build a landing page for my upcoming live event...",
-  "Record a video episode with my co-host remotely...",
-  "Manage my sponsor relationships and track ad revenue...",
-  "Send SMS reminders to my event attendees...",
+  "Track my audience growth and send a newsletter update...",
 ];
 
 const modulePrompts: Record<string, string[]> = {
@@ -77,21 +74,26 @@ const promptToModules: Record<string, string[]> = {
   "Send my podcast guest an invite and schedule a recording...": ["meetings", "studio", "email"],
   "Create clips from my latest episode and post to social...": ["clips", "studio", "mypage"],
   "Track my audience growth and send a newsletter update...": ["crm", "email", "newsletter"],
-  "Set up a meeting link and share it with my community...": ["meetings", "mypage", "email"],
   "Build a landing page for my upcoming live event...": ["mypage", "events", "email"],
-  "Record a video episode with my co-host remotely...": ["studio", "meetings", "podcast"],
-  "Manage my sponsor relationships and track ad revenue...": ["crm", "monetize", "email"],
-  "Send SMS reminders to my event attendees...": ["sms", "events", "crm"],
 };
 
 export function AIPromptHero() {
   const navigate = useNavigate();
-  const [currentPrompt, setCurrentPrompt] = useState(suggestionPrompts[0]);
+  const [currentPrompt, setCurrentPrompt] = useState(rotatingStatements[0]);
   const [displayText, setDisplayText] = useState("");
   const [isTyping, setIsTyping] = useState(true);
-  const [promptIndex, setPromptIndex] = useState(0);
+  const [statementIndex, setStatementIndex] = useState(0);
+  const [isAutoRotating, setIsAutoRotating] = useState(true);
 
-  // Typewriter effect
+  const goToNextStatement = useCallback(() => {
+    const nextIndex = (statementIndex + 1) % rotatingStatements.length;
+    setStatementIndex(nextIndex);
+    setCurrentPrompt(rotatingStatements[nextIndex]);
+    setDisplayText("");
+    setIsTyping(true);
+  }, [statementIndex]);
+
+  // Typewriter effect + auto-rotate
   useEffect(() => {
     if (isTyping) {
       if (displayText.length < currentPrompt.length) {
@@ -100,19 +102,23 @@ export function AIPromptHero() {
         }, 35);
         return () => clearTimeout(timeout);
       } else {
-        // Pause at end
+        // Pause at end, then go to next if auto-rotating
         const timeout = setTimeout(() => {
           setIsTyping(false);
-        }, 2000);
+          if (isAutoRotating) {
+            goToNextStatement();
+          }
+        }, 2500);
         return () => clearTimeout(timeout);
       }
     }
-  }, [displayText, currentPrompt, isTyping]);
+  }, [displayText, currentPrompt, isTyping, isAutoRotating, goToNextStatement]);
 
   const shufflePrompt = () => {
-    const nextIndex = (promptIndex + 1) % suggestionPrompts.length;
-    setPromptIndex(nextIndex);
-    setCurrentPrompt(suggestionPrompts[nextIndex]);
+    setIsAutoRotating(false); // Stop auto-rotation when user interacts
+    const nextIndex = (statementIndex + 1) % rotatingStatements.length;
+    setStatementIndex(nextIndex);
+    setCurrentPrompt(rotatingStatements[nextIndex]);
     setDisplayText("");
     setIsTyping(true);
   };
