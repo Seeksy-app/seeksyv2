@@ -72,6 +72,7 @@ interface InvestorSettings {
   is_active: boolean;
   confidentiality_notice: string;
   minimum_investment: number;
+  maximum_investment: number | null;
   template_name: string | null; // Selected Word template for this application
   has_investor_access: boolean; // True if any investor verified email (activates the offer)
 }
@@ -172,6 +173,7 @@ export default function PendingInvestments() {
           is_active: d.is_active ?? true,
           confidentiality_notice: d.confidentiality_notice || "",
           minimum_investment: Number(d.minimum_investment) || 100,
+          maximum_investment: d.maximum_investment ? Number(d.maximum_investment) : null,
           template_name: d.template_name || null,
           has_investor_access: hasAccess,
         };
@@ -242,6 +244,7 @@ export default function PendingInvestments() {
           is_active: settings.is_active,
           confidentiality_notice: settings.confidentiality_notice,
           minimum_investment: settings.minimum_investment,
+          maximum_investment: settings.maximum_investment,
           template_name: settings.template_name,
         })
         .eq("id", settings.id);
@@ -1043,21 +1046,39 @@ export default function PendingInvestments() {
               </div>
 
               {/* Minimum Investment */}
-              <div className="space-y-2">
-                <Label htmlFor="minInvestment">Minimum Investment ($)</Label>
-                <Input
-                  id="minInvestment"
-                  type="number"
-                  step="1"
-                  min="1"
-                  value={settings?.minimum_investment || ""}
-                  onChange={(e) => updateSettings({ minimum_investment: parseFloat(e.target.value) || 0 })}
-                  className="max-w-xs"
-                  disabled={settings?.has_investor_access}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Investors must invest at least this amount
-                </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="minInvestment">Minimum Investment ($)</Label>
+                  <Input
+                    id="minInvestment"
+                    type="number"
+                    step="1"
+                    min="1"
+                    value={settings?.minimum_investment || ""}
+                    onChange={(e) => updateSettings({ minimum_investment: parseFloat(e.target.value) || 0 })}
+                    disabled={settings?.has_investor_access}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Investors must invest at least this amount
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="maxInvestment">Maximum Investment ($)</Label>
+                  <Input
+                    id="maxInvestment"
+                    type="number"
+                    step="1"
+                    min="0"
+                    value={settings?.maximum_investment || ""}
+                    onChange={(e) => updateSettings({ maximum_investment: e.target.value ? parseFloat(e.target.value) : null })}
+                    placeholder="No limit"
+                    disabled={settings?.has_investor_access}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Leave empty for no maximum (creates FOMO)
+                  </p>
+                </div>
               </div>
 
               {/* Allowed Emails */}

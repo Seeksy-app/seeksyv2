@@ -20,6 +20,7 @@ interface InvestorSettings {
   allowed_emails: string[];
   is_active: boolean;
   minimum_investment: number;
+  maximum_investment: number | null;
   confidentiality_notice: string;
 }
 
@@ -111,6 +112,7 @@ export default function InvestorApplication() {
           is_active: data.is_active ?? true,
           confidentiality_notice: data.confidentiality_notice || "",
           minimum_investment: Number(data.minimum_investment) || 100,
+          maximum_investment: data.maximum_investment ? Number(data.maximum_investment) : null,
         });
       }
     } catch (err) {
@@ -226,6 +228,12 @@ export default function InvestorApplication() {
     const minInvestment = settings?.minimum_investment || 100;
     if (totalAmount < minInvestment) {
       toast.error(`Minimum investment amount is $${minInvestment.toLocaleString()}`);
+      return;
+    }
+    
+    const maxInvestment = settings?.maximum_investment;
+    if (maxInvestment && totalAmount > maxInvestment) {
+      toast.error(`Maximum investment amount is $${maxInvestment.toLocaleString()} for this tier`);
       return;
     }
 
@@ -407,69 +415,101 @@ export default function InvestorApplication() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Pricing Tiers Display */}
-            {settings?.price_per_share_tier2 && settings?.tier2_start_date && (
-              <div className="rounded-lg border-2 border-primary/20 bg-primary/5 p-4 space-y-4">
-                <div className="flex items-center gap-2 text-primary font-medium">
-                  <AlertTriangle className="h-4 w-4" />
-                  Limited Time Pricing
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className={`rounded-lg p-3 ${isTier1Active() ? 'bg-green-500/10 border-2 border-green-500' : 'bg-muted border border-muted'}`}>
-                    <div className="text-xs text-muted-foreground mb-1">Current Price</div>
-                    <div className={`text-2xl font-bold ${isTier1Active() ? 'text-green-600' : 'text-muted-foreground line-through'}`}>
-                      ${settings.price_per_share.toFixed(2)}
-                    </div>
-                    <div className="text-xs text-muted-foreground">per share</div>
-                    {isTier1Active() && (
-                      <Badge className="mt-2 bg-green-500">Active Now</Badge>
-                    )}
-                  </div>
-                  
-                  <div className={`rounded-lg p-3 ${!isTier1Active() ? 'bg-amber-500/10 border-2 border-amber-500' : 'bg-muted border border-muted'}`}>
-                    <div className="text-xs text-muted-foreground mb-1">
-                      {isTier1Active() ? 'After ' + format(new Date(settings.tier2_start_date), 'MMM d') : 'Current Price'}
-                    </div>
-                    <div className={`text-2xl font-bold ${!isTier1Active() ? 'text-amber-600' : 'text-muted-foreground'}`}>
-                      ${settings.price_per_share_tier2.toFixed(2)}
-                    </div>
-                    <div className="text-xs text-muted-foreground">per share</div>
-                    {!isTier1Active() && (
-                      <Badge className="mt-2 bg-amber-500">Active Now</Badge>
-                    )}
-                  </div>
-                </div>
-
-                {/* Countdown Timer */}
-                {showCountdown && (countdown.days > 0 || countdown.hours > 0 || countdown.minutes > 0) && (
-                  <div className="text-center space-y-2">
-                    <div className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-                      <Clock className="h-4 w-4" />
-                      Price increases in:
-                    </div>
-                    <div className="flex justify-center gap-2">
-                      <div className="bg-background rounded-lg p-2 min-w-[60px] text-center border">
-                        <div className="text-xl font-bold">{countdown.days}</div>
-                        <div className="text-xs text-muted-foreground">days</div>
-                      </div>
-                      <div className="bg-background rounded-lg p-2 min-w-[60px] text-center border">
-                        <div className="text-xl font-bold">{countdown.hours}</div>
-                        <div className="text-xs text-muted-foreground">hours</div>
-                      </div>
-                      <div className="bg-background rounded-lg p-2 min-w-[60px] text-center border">
-                        <div className="text-xl font-bold">{countdown.minutes}</div>
-                        <div className="text-xs text-muted-foreground">min</div>
-                      </div>
-                      <div className="bg-background rounded-lg p-2 min-w-[60px] text-center border">
-                        <div className="text-xl font-bold">{countdown.seconds}</div>
-                        <div className="text-xs text-muted-foreground">sec</div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+            {/* Pricing Tiers Display with FOMO */}
+            <div className="rounded-lg border-2 border-primary/20 bg-primary/5 p-4 space-y-4">
+              <div className="flex items-center gap-2 text-primary font-medium">
+                <AlertTriangle className="h-4 w-4" />
+                {settings?.price_per_share_tier2 && settings?.tier2_start_date 
+                  ? "Limited Time Pricing" 
+                  : "Investment Opportunity"}
               </div>
-            )}
+              
+              {/* Investment Limits - FOMO Display */}
+              <div className="grid grid-cols-2 gap-3 p-3 bg-background rounded-lg border">
+                <div className="text-center">
+                  <div className="text-xs text-muted-foreground mb-1">Minimum Investment</div>
+                  <div className="text-xl font-bold text-green-600">
+                    ${(settings?.minimum_investment || 100).toLocaleString()}
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-muted-foreground mb-1">Maximum Investment</div>
+                  <div className="text-xl font-bold text-amber-600">
+                    {settings?.maximum_investment 
+                      ? `$${settings.maximum_investment.toLocaleString()}`
+                      : "No limit"}
+                  </div>
+                </div>
+              </div>
+              
+              {settings?.price_per_share_tier2 && settings?.tier2_start_date && (
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className={`rounded-lg p-3 ${isTier1Active() ? 'bg-green-500/10 border-2 border-green-500' : 'bg-muted border border-muted'}`}>
+                      <div className="text-xs text-muted-foreground mb-1">Current Price</div>
+                      <div className={`text-2xl font-bold ${isTier1Active() ? 'text-green-600' : 'text-muted-foreground line-through'}`}>
+                        ${settings.price_per_share.toFixed(2)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">per share</div>
+                      {isTier1Active() && (
+                        <Badge className="mt-2 bg-green-500">Active Now</Badge>
+                      )}
+                    </div>
+                    
+                    <div className={`rounded-lg p-3 ${!isTier1Active() ? 'bg-amber-500/10 border-2 border-amber-500' : 'bg-muted border border-muted'}`}>
+                      <div className="text-xs text-muted-foreground mb-1">
+                        {isTier1Active() ? 'After ' + format(new Date(settings.tier2_start_date), 'MMM d') : 'Current Price'}
+                      </div>
+                      <div className={`text-2xl font-bold ${!isTier1Active() ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                        ${settings.price_per_share_tier2.toFixed(2)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">per share</div>
+                      {!isTier1Active() && (
+                        <Badge className="mt-2 bg-amber-500">Active Now</Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Countdown Timer */}
+                  {showCountdown && (countdown.days > 0 || countdown.hours > 0 || countdown.minutes > 0) && (
+                    <div className="text-center space-y-2">
+                      <div className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        Price increases in:
+                      </div>
+                      <div className="flex justify-center gap-2">
+                        <div className="bg-background rounded-lg p-2 min-w-[60px] text-center border">
+                          <div className="text-xl font-bold">{countdown.days}</div>
+                          <div className="text-xs text-muted-foreground">days</div>
+                        </div>
+                        <div className="bg-background rounded-lg p-2 min-w-[60px] text-center border">
+                          <div className="text-xl font-bold">{countdown.hours}</div>
+                          <div className="text-xs text-muted-foreground">hours</div>
+                        </div>
+                        <div className="bg-background rounded-lg p-2 min-w-[60px] text-center border">
+                          <div className="text-xl font-bold">{countdown.minutes}</div>
+                          <div className="text-xs text-muted-foreground">min</div>
+                        </div>
+                        <div className="bg-background rounded-lg p-2 min-w-[60px] text-center border">
+                          <div className="text-xl font-bold">{countdown.seconds}</div>
+                          <div className="text-xs text-muted-foreground">sec</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+              
+              {/* Single tier - show current price prominently */}
+              {(!settings?.price_per_share_tier2 || !settings?.tier2_start_date) && (
+                <div className="text-center p-3 bg-green-500/10 border-2 border-green-500 rounded-lg">
+                  <div className="text-xs text-muted-foreground mb-1">Price Per Share</div>
+                  <div className="text-3xl font-bold text-green-600">
+                    ${pricePerShare.toFixed(2)}
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Investment Type Selection */}
             <div className="space-y-3">

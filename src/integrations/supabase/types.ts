@@ -13672,6 +13672,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean | null
+          maximum_investment: number | null
           minimum_investment: number | null
           name: string
           price_per_share: number
@@ -13687,6 +13688,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean | null
+          maximum_investment?: number | null
           minimum_investment?: number | null
           name?: string
           price_per_share?: number
@@ -13702,6 +13704,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean | null
+          maximum_investment?: number | null
           minimum_investment?: number | null
           name?: string
           price_per_share?: number
