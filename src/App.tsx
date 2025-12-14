@@ -17,6 +17,7 @@ import { User } from "@supabase/supabase-js";
 import { useTaskReminders } from "@/hooks/useTaskReminders";
 import { useAutoTheme } from "@/hooks/useAutoTheme";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
+import { useGTMTracking } from "@/hooks/useGTMTracking";
 import { RouteTransition } from "@/components/RouteTransition";
 import Index from "./pages/Index";
 import LogoAsset from "./pages/LogoAsset";
@@ -653,6 +654,9 @@ const AppContent = () => {
   
   // Restore scroll position on navigation
   useScrollRestoration();
+  
+  // GTM page tracking and scroll depth
+  useGTMTracking();
 
   // Listen for nav customization event from sidebar
   useEffect(() => {
