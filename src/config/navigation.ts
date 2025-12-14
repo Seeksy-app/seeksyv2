@@ -74,7 +74,7 @@ export const NAVIGATION_CONFIG: {
           "id": "admin_email_settings",
           "label": "Settings",
           "icon": "settings",
-          "path": "/email-settings",
+          "path": "/admin/email-settings",
           "roles": ["admin", "super_admin", "cmo", "cco"]
         }
       ]
@@ -450,7 +450,7 @@ export const NAVIGATION_CONFIG: {
           "id": "admin_help_desk",
           "label": "Help Desk",
           "icon": "headphones",
-          "path": "/helpdesk",
+          "path": "/admin/helpdesk",
           "roles": ["admin", "super_admin", "support_admin", "support_agent", "cco"],
           "description": "Customer support ticket management"
         }
@@ -626,7 +626,7 @@ export const NAVIGATION_CONFIG: {
           "id": "admin_help_center",
           "label": "Help Center",
           "icon": "help-circle",
-          "path": "/help",
+          "path": "/admin/help",
           "roles": ["admin", "super_admin", "cfo", "cmo", "cco", "manager"]
         }
       ]

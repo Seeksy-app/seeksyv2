@@ -265,7 +265,7 @@ export default function EmailSettings() {
                 Connect and manage the email addresses you send from in Seeksy
               </p>
             </div>
-            <Button variant="outline" onClick={() => navigate("/email")}>
+            <Button variant="outline" onClick={() => navigate(location.pathname.startsWith('/admin') ? "/admin/email-client" : "/email")}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Inbox
             </Button>
