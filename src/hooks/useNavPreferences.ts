@@ -140,6 +140,7 @@ export const NAV_ITEMS: NavItem[] = [
     subItems: [
       { id: 'marketing_blog', label: 'Blog', path: '/marketing/blog' },
       { id: 'marketing_newsletters', label: 'Newsletters', path: '/marketing/newsletters' },
+      { id: 'marketing_subscribers', label: 'Subscriber Lists', path: '/marketing/subscribers' },
       { id: 'marketing_audience', label: 'Contacts & Audience', path: '/contacts' },
       { id: 'marketing_segments', label: 'Segments', path: '/marketing/segments' },
       { id: 'marketing_campaigns', label: 'Campaigns', path: '/marketing/campaigns' },
