@@ -125,11 +125,15 @@ export default function NewsletterDashboard() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    // Use seeksy_platform tenant for admin-created subscribers
+    const SEEKSY_PLATFORM_TENANT_ID = 'a0000000-0000-0000-0000-000000000001';
+    
     const { error } = await supabase.from("newsletter_subscribers").insert({
       email: newSubscriberEmail.trim(),
       name: newSubscriberName.trim() || null,
       status: 'active',
       user_id: user.id,
+      tenant_id: SEEKSY_PLATFORM_TENANT_ID,
     });
 
     if (error) {
