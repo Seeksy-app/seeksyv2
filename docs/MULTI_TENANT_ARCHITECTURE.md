@@ -181,13 +181,64 @@ Returns the user's default tenant ID.
 | `/board/*` | `board` | Board org |
 | `/s/*` | `subscriber` | Individual subscriber |
 
+## Public Subscribe Flow (CTA-Driven Tenant Assignment)
+
+Anonymous users subscribing to newsletters **MUST** go through the edge function:
+
+```tsx
+import { useNewsletterSubscribe, PLATFORM_CTA_IDS } from '@/hooks/useNewsletterSubscribe';
+
+function SubscribeForm() {
+  const { subscribe, isLoading } = useNewsletterSubscribe();
+  
+  const handleSubmit = async (email: string) => {
+    // CTA ID determines tenant - NEVER accept tenant_id from client
+    const result = await subscribe({
+      email,
+      source: 'footer',
+      ctaId: PLATFORM_CTA_IDS.FOOTER // Bound to seeksy_platform tenant
+    });
+  };
+}
+```
+
+### Security Rules
+- ❌ **NEVER** accept `tenant_id` from client
+- ✅ Tenant is derived from `cta_definitions.tenant_id` in edge function
+- ✅ Edge function uses service_role to bypass RLS for inserts
+- ✅ Client-side direct INSERT is blocked by RLS
+
+### GTM Events
+- `subscription_completed` fires BEFORE API call (non-blocking analytics)
+- Payload includes: `email_domain`, `source`, `cta_id`, `page_path`, `timestamp`
+
+---
+
+## New Table Checklist
+
+When creating a new tenant-scoped table:
+
+- [ ] Add `tenant_id UUID NOT NULL REFERENCES tenants(id)`
+- [ ] Add index: `CREATE INDEX idx_{table}_tenant ON {table}(tenant_id)`
+- [ ] Add unique constraint where appropriate (e.g., `UNIQUE(tenant_id, email)`)
+- [ ] Enable RLS: `ALTER TABLE {table} ENABLE ROW LEVEL SECURITY`
+- [ ] Add platform admin policy
+- [ ] Add tenant member policies (viewer/editor)
+- [ ] Use `useTenantQuery` or `useTenantMutation` in app code
+- [ ] Never insert without `tenant_id`
+- [ ] Test: verify tenant isolation works
+
+---
+
 ## Anti-Patterns to Avoid
 
 ❌ **Don't** query shared tables without tenant filter  
 ❌ **Don't** insert without `tenant_id`  
 ❌ **Don't** use `user_id` for shared data (use `tenant_id` + `created_by`)  
 ❌ **Don't** create portal-specific tables when one tenant-scoped table works  
+❌ **Don't** accept `tenant_id` from anonymous clients (use CTA-driven assignment)
 
 ✅ **Do** use `requireTenantId()` to fail fast if no tenant  
 ✅ **Do** use RLS as the enforcement layer, UI checks as convenience  
 ✅ **Do** use one table with tenant scope for shared engines  
+✅ **Do** route public subscriptions through edge functions
