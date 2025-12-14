@@ -322,7 +322,7 @@ import AdminCreators from "./pages/admin/AdminCreators";
 import AdminIdentity from "./pages/admin/Identity";
 import AppAudioAdmin from "./pages/admin/AppAudioAdmin";
 import PersonaManagement from "./pages/admin/PersonaManagement";
-import OutboundCampaigns from "./pages/admin/marketing/OutboundCampaigns";
+import SubscriberLists from "./pages/admin/marketing/SubscriberLists";
 import FunnelsAttribution from "./pages/admin/marketing/FunnelsAttribution";
 import SeoBranding from "./pages/admin/marketing/SeoBranding";
 import KeysVault from "./pages/KeysVault";
@@ -1235,7 +1235,7 @@ const AppContent = () => {
               <Route path="/admin/sales-leads" element={<SalesLeads />} />
               <Route path="/admin/site-leads" element={<SiteVisitors />} />
               {/* Marketing CMO Routes */}
-              <Route path="/admin/marketing/campaigns" element={<OutboundCampaigns />} />
+              <Route path="/admin/marketing/subscribers" element={<SubscriberLists />} />
               <Route path="/admin/marketing/funnels" element={<FunnelsAttribution />} />
               <Route path="/admin/marketing/seo" element={<SeoBranding />} />
           <Route path="/advertiser" element={<AdvertiserServices />} />

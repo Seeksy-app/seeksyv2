@@ -329,12 +329,12 @@ export const NAVIGATION_CONFIG: {
           "roles": ["admin", "super_admin", "cfo", "cmo"]
         },
         {
-          "id": "admin_outbound_campaigns",
-          "label": "Outbound Campaigns",
-          "icon": "send",
-          "path": "/admin/marketing/campaigns",
+          "id": "admin_subscriber_lists",
+          "label": "Subscriber Lists",
+          "icon": "users",
+          "path": "/admin/marketing/subscribers",
           "roles": ["admin", "super_admin", "cmo"],
-          "description": "Email, social, influencer outreach"
+          "description": "Newsletter and email subscribers"
         },
         {
           "id": "admin_funnels",
