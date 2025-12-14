@@ -1,5 +1,6 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { Settings, User, Share2 } from 'lucide-react';
+import { clearPortalStorage } from "@/contexts/PortalContext";
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -20,6 +21,7 @@ export function BoardTopNav() {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
+    clearPortalStorage();
     await supabase.auth.signOut();
     navigate('/auth');
   };
