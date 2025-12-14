@@ -177,54 +177,27 @@ serve(async (req) => {
     // [[s|se</w:t></w:r><w:r><w:t>ller]] or even more fragmented
     // We need to find these patterns and replace them with safe placeholders
     
+    // SignWell signature tag mapping: purchaser=1, seller=2, chairman=3
+    const tagIndexMap: Record<string, number> = {
+      'purchaser': 1,
+      'seller': 2,
+      'chairman': 3
+    };
+    
     const protectSignWellTags = (content: string): string => {
-      // SignWell uses {{signature:N}} or {{s:N}} format with index numbers (1-based)
-      // Map: purchaser=1, seller=2, chairman=3 (based on our signing order)
-      const tagIndexMap: Record<string, number> = {
-        'purchaser': 1,  // Signs first
-        'seller': 2,     // Signs second
-        'chairman': 3    // Signs last
-      };
-      
+      // Protect [[s|tagname]] format - simple string replacement, no complex regex
       for (const [tagName, index] of Object.entries(tagIndexMap)) {
-        // Build a pattern that matches {{s:N}} or {{signature:N}} with potential XML fragments
-        // Also handle old [[s|tagname]] format for backwards compatibility
-        
-        // Pattern for old [[s|tagname]] format
-        const chars = `[[s|${tagName}]]`.split('');
-        const xmlTagPattern = '(?:<[^>]*>)*';
-        const escapedChars = chars.map(c => {
-          if (['[', ']', '|'].includes(c)) {
-            return '\\' + c;
-          }
-          return c;
-        });
-        const fullPattern = escapedChars.join(xmlTagPattern);
-        const regex = new RegExp(fullPattern, 'gi');
-        content = content.replace(regex, `__SIGNWELL_SIG_${index}__`);
-        
-        // Also handle {{s:N}} and {{signature:N}} formats (protect from docxtemplater)
-        const curlyPattern = new RegExp(`\\{\\{s(?:ignature)?:${index}\\}\\}`.split('').join(xmlTagPattern), 'gi');
-        content = content.replace(curlyPattern, `__SIGNWELL_SIG_${index}__`);
+        const tag = `[[s|${tagName}]]`;
+        content = content.split(tag).join(`__SIGNWELL_SIG_${index}__`);
+        // Also handle uppercase
+        content = content.split(tag.toUpperCase()).join(`__SIGNWELL_SIG_${index}__`);
       }
-      
-      // Catch any remaining old format tags
-      content = content.replace(/\[\[s\|([a-zA-Z_]+)\]\]/gi, (match, tagName) => {
-        const lowerTagName = tagName.toLowerCase();
-        const index = tagIndexMap[lowerTagName];
-        return index ? `__SIGNWELL_SIG_${index}__` : match;
-      });
-      
       return content;
     };
     
-    // Post-process: restore SignWell text tags with CORRECT SignWell syntax
-    // SignWell uses {{signature:N}} format where N is 1-based signer index
     const restoreSignWellTags = (content: string): string => {
-      // Restore to {{signature:N}} format that SignWell expects
-      return content.replace(/__SIGNWELL_SIG_(\d+)__/g, (match, index) => {
-        return `{{signature:${index}}}`;
-      });
+      // Restore to SignWell's {{signature:N}} format
+      return content.replace(/__SIGNWELL_SIG_(\d+)__/g, '{{signature:$1}}');
     };
     
     // Pre-process the document.xml to protect SignWell tags
