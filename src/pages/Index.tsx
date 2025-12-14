@@ -5,7 +5,7 @@ import { User } from "@supabase/supabase-js";
 import { CookieConsent } from "@/components/CookieConsent";
 import { TopNavigation } from "@/components/homepage/TopNavigation";
 import { AIPromptHero } from "@/components/homepage/AIPromptHero";
-import { SlidingFeatureTabs } from "@/components/homepage/SlidingFeatureTabs";
+
 import { BuildWorkspaceSection } from "@/components/homepage/BuildWorkspaceSection";
 import WorkspaceBuilderShowcase from "@/components/homepage/WorkspaceBuilderShowcase";
 import { PlatformPillars } from "@/components/homepage/PlatformPillars";
@@ -86,9 +86,6 @@ const Index = () => {
       <main>
         {/* AI Prompt Hero */}
         <AIPromptHero />
-        
-        {/* Sliding Feature Tabs - Podcasting, Meetings, Post-Production, etc. */}
-        <SlidingFeatureTabs />
         
         {/* Module Hero Showcase - Obvious.ly style */}
         <ModuleHeroShowcase />
