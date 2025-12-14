@@ -29,9 +29,9 @@ export function BoardLayout({ children }: BoardLayoutProps) {
           <BoardSidebar />
           
           {/* Light content area - fills all remaining space */}
-          <div className="flex-1 flex flex-col min-w-0 w-full bg-slate-50">
+          <div className="flex-1 flex flex-col min-w-0 w-full bg-slate-50 overflow-hidden">
             <main className="flex-1 overflow-y-auto w-full">
-              {/* Content container - no Suspense, no transitions, instant render */}
+              {/* Content container */}
               <div className="w-full px-6 lg:px-8 py-6 pb-20">
                 {children}
               </div>

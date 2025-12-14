@@ -167,13 +167,14 @@ function WorkspaceLayoutInner({
 
   if (useLegacyNav || isPublicRoute || !user) {
     return (
-      <div className="min-h-screen flex w-full bg-background">
-        {shouldShowSidebar && (
-          isAdvertiserRoute ? <AdvertiserSidebarNav /> : <RoleBasedSidebar user={user} />
-        )}
-        <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
-          {shouldShowTopNav && <TopNavBar />}
-          <main className="flex-1 flex flex-col bg-background overflow-auto">
+      <div className="min-h-screen flex flex-col w-full bg-background">
+        {/* Sticky TopNavBar - OUTSIDE scroll container */}
+        {shouldShowTopNav && <TopNavBar />}
+        <div className="flex-1 flex w-full overflow-hidden">
+          {shouldShowSidebar && (
+            isAdvertiserRoute ? <AdvertiserSidebarNav /> : <RoleBasedSidebar user={user} />
+          )}
+          <main className="flex-1 flex flex-col bg-background overflow-y-auto">
             {children}
           </main>
         </div>
@@ -187,11 +188,12 @@ function WorkspaceLayoutInner({
   // Use new workspace-based navigation for regular users (creators)
   // But use the same TopNavBar header for consistency
   return (
-    <div className="min-h-screen flex w-full bg-background">
-      {shouldShowSidebar && <WorkspaceSidebar />}
-      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
-        {shouldShowTopNav && <TopNavBar />}
-        <main className="flex-1 flex flex-col bg-background overflow-auto">
+    <div className="min-h-screen flex flex-col w-full bg-background">
+      {/* Sticky TopNavBar - OUTSIDE scroll container */}
+      {shouldShowTopNav && <TopNavBar />}
+      <div className="flex-1 flex w-full overflow-hidden">
+        {shouldShowSidebar && <WorkspaceSidebar />}
+        <main className="flex-1 flex flex-col bg-background overflow-y-auto">
           {children}
         </main>
       </div>
