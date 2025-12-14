@@ -251,7 +251,7 @@ export function TopNavBar() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/settings">
+                <Link to={isAdminRoute ? '/admin/settings' : '/settings'}>
                   <Settings className="h-4 w-4 mr-2" />
                   Settings
                 </Link>

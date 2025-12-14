@@ -27,6 +27,7 @@ const LEGACY_NAV_ROUTES = [
   '/advertiser',
   '/cfo',
   '/helpdesk',
+  '/admin/helpdesk',
   '/demo-videos',
 ];
 
@@ -78,7 +79,7 @@ function useRoleBasedRouting(user: User | null) {
                              !location.pathname.startsWith('/board') && 
                              !location.pathname.startsWith('/cfo') &&
                              !location.pathname.startsWith('/advertiser');
-      if (isCreatorRoute && !location.pathname.startsWith('/settings') && !location.pathname.startsWith('/email-settings') && !location.pathname.startsWith('/signatures')) {
+      if (isCreatorRoute && !location.pathname.startsWith('/settings') && !location.pathname.startsWith('/signatures')) {
         if (import.meta.env.DEV) {
           console.log('[WorkspaceLayout] Admin on creator route, redirecting to /admin');
         }

@@ -1377,7 +1377,7 @@ const AppContent = () => {
           {/* Support Desk CRM */}
           <Route path="/admin/support-desk" element={<SupportDeskCRM />} />
           
-          {/* Help Desk (Zendesk-style) */}
+          {/* Help Desk (Zendesk-style) - Creator paths */}
           <Route path="/helpdesk" element={<HelpDeskLayout />}>
             <Route index element={<TicketsInbox />} />
             <Route path="ticket/:id" element={<TicketDetail />} />
@@ -1388,6 +1388,21 @@ const AppContent = () => {
             <Route path="integrations" element={<HelpDeskIntegrations />} />
             <Route path="settings" element={<HelpDeskSettings />} />
           </Route>
+          
+          {/* Help Desk (Zendesk-style) - Admin paths */}
+          <Route path="/admin/helpdesk" element={<HelpDeskLayout />}>
+            <Route index element={<TicketsInbox />} />
+            <Route path="ticket/:id" element={<TicketDetail />} />
+            <Route path="automations" element={<HelpDeskAutomations />} />
+            <Route path="templates" element={<HelpDeskTemplates />} />
+            <Route path="users" element={<HelpDeskUserProfiles />} />
+            <Route path="analytics" element={<HelpDeskAnalytics />} />
+            <Route path="integrations" element={<HelpDeskIntegrations />} />
+            <Route path="settings" element={<HelpDeskSettings />} />
+          </Route>
+          
+          {/* Admin Help Center */}
+          <Route path="/admin/help" element={<Navigate to="/admin/helpdesk" replace />} />
           
           {/* Knowledge Base - Public */}
           <Route path="/kb" element={<KnowledgeBase />} />
