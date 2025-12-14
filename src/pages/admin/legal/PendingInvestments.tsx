@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Send, Eye, Clock, CheckCircle, XCircle, RefreshCw, Settings, Plus, X, Activity, FileText, Copy, Share2, FileX, Trash2, CopyPlus } from "lucide-react";
+import { Loader2, Send, Eye, Clock, CheckCircle, XCircle, RefreshCw, Settings, Plus, X, Activity, FileText, Copy, Share2, FileX, Trash2, CopyPlus, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import {
   Table,
@@ -135,7 +135,7 @@ export default function PendingInvestments() {
         .from("legal_doc_instances")
         .select("*")
         .eq("document_type", "stock_purchase_agreement")
-        .in("status", ["pending", "pending_signatures", "partially_signed"])
+        .in("status", ["draft", "pending", "pending_signatures", "partially_signed"])
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -370,6 +370,9 @@ export default function PendingInvestments() {
   const getStatusBadge = (investment: PendingInvestment) => {
     const { status, signwell_status, seller_signed_at, purchaser_signed_at, chairman_signed_at } = investment;
     
+    if (status === "draft") {
+      return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200"><Pencil className="h-3 w-3 mr-1" /> Draft</Badge>;
+    }
     if (status === "completed" || signwell_status === "completed") {
       return <Badge variant="default" className="bg-green-100 text-green-700 border-green-200"><CheckCircle className="h-3 w-3 mr-1" /> Fully Signed</Badge>;
     }
@@ -386,10 +389,10 @@ export default function PendingInvestments() {
       if (chairman_signed_at) signers.push("Chairman");
       
       if (signedCount === 0) {
-        return <Badge className="bg-purple-100 text-purple-700 border-purple-200"><Send className="h-3 w-3 mr-1" /> Awaiting Seller</Badge>;
+        return <Badge className="bg-purple-100 text-purple-700 border-purple-200"><Send className="h-3 w-3 mr-1" /> Awaiting Purchaser</Badge>;
       }
       
-      const nextSigner = !seller_signed_at ? "Seller" : !purchaser_signed_at ? "Purchaser" : "Chairman";
+      const nextSigner = !purchaser_signed_at ? "Purchaser" : !seller_signed_at ? "Seller" : "Chairman";
       return (
         <div className="flex flex-col gap-1">
           <Badge className="bg-purple-100 text-purple-700 border-purple-200">
@@ -447,7 +450,7 @@ export default function PendingInvestments() {
     try {
       const insertData: any = {
         document_type: "stock_purchase_agreement",
-        status: "pending",
+        status: "draft", // Clone to draft so it can be edited
         purchaser_email: investment.purchaser_email,
         recipient_name: investment.recipient_name,
         field_values_json: investment.field_values_json,
@@ -458,7 +461,7 @@ export default function PendingInvestments() {
         .from("legal_doc_instances")
         .insert(insertData);
       if (error) throw error;
-      toast.success("Application cloned");
+      toast.success("Application cloned to Draft - you can now edit it");
       fetchInvestments();
     } catch (err: any) {
       console.error("Error cloning application:", err);
@@ -760,8 +763,16 @@ export default function PendingInvestments() {
                             >
                               <CopyPlus className="h-4 w-4" />
                             </Button>
-                            {inv.status === "pending" && (
+                            {(inv.status === "draft" || inv.status === "pending") && (
                               <>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => setSelectedInvestment(inv)}
+                                  title="Edit application"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
                                 <Button
                                   size="sm"
                                   variant="ghost"
@@ -777,9 +788,18 @@ export default function PendingInvestments() {
                                   <Share2 className="h-4 w-4 mr-2" />
                                   Share
                                 </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleDelete(inv)}
+                                  title="Delete application"
+                                  className="text-destructive hover:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
                               </>
                             )}
-                            {inv.status !== "pending" && (
+                            {inv.status !== "draft" && inv.status !== "pending" && (
                               <Button
                                 size="sm"
                                 variant="ghost"
@@ -787,17 +807,6 @@ export default function PendingInvestments() {
                               >
                                 <Eye className="h-4 w-4 mr-2" />
                                 View
-                              </Button>
-                            )}
-                            {inv.status === "pending" && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleDelete(inv)}
-                                title="Delete application"
-                                className="text-destructive hover:text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4" />
                               </Button>
                             )}
                           </div>
