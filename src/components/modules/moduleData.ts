@@ -539,14 +539,14 @@ export const SEEKSY_MODULES: SeeksyModule[] = [
     iconColor: "text-amber-600",
   },
   
-  // Email Signatures
+  // Email Settings
   {
-    id: "email-signatures",
+    id: "email-settings",
     name: "Settings",
     description: "Email settings, signatures, and tracking configuration",
     icon: Mail,
     category: "campaigns",
-    route: "/signatures",
+    route: "/email-settings",
     isNew: true,
     bgGradient: "bg-gradient-to-br from-indigo-100 via-blue-50 to-cyan-100",
     iconBg: "bg-white shadow-lg",
