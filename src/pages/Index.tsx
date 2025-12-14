@@ -5,6 +5,8 @@ import { User } from "@supabase/supabase-js";
 import { CookieConsent } from "@/components/CookieConsent";
 import { TopNavigation } from "@/components/homepage/TopNavigation";
 import { AIPromptHero } from "@/components/homepage/AIPromptHero";
+import { SlidingFeatureTabs } from "@/components/homepage/SlidingFeatureTabs";
+import { BuildWorkspaceSection } from "@/components/homepage/BuildWorkspaceSection";
 import { PlatformPillars } from "@/components/homepage/PlatformPillars";
 import { VerticalFeatureTabs } from "@/components/homepage/VerticalFeatureTabs";
 import { ModuleBuilder, ModuleBuilderHandle } from "@/components/homepage/ModuleBuilder";
@@ -82,6 +84,12 @@ const Index = () => {
       <main>
         {/* AI Prompt Hero */}
         <AIPromptHero />
+        
+        {/* Sliding Feature Tabs - Podcasting, Meetings, Post-Production, etc. */}
+        <SlidingFeatureTabs />
+        
+        {/* Build Your Own Workspace */}
+        <BuildWorkspaceSection />
         
         {/* Platform Pillars - Create, Connect, Monetize */}
         <PlatformPillars />
