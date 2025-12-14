@@ -159,6 +159,23 @@ export function ModuleCard({
                   Open
                 </Button>
               )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs font-medium"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onInstall();
+                }}
+                disabled={isInstalling}
+              >
+                {isInstalling ? (
+                  <div className="h-3.5 w-3.5 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
+                ) : (
+                  <Plus className="h-3.5 w-3.5" />
+                )}
+                Re-add
+              </Button>
             </>
           ) : (
             <Button

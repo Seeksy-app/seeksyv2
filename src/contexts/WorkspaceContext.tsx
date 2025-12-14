@@ -272,10 +272,11 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     if (!currentWorkspace) return;
 
     try {
-      // Check if module already exists to prevent duplicates
+      // Check if module already exists in workspace_modules table
       const existingModule = workspaceModules.find(wm => wm.module_id === moduleId);
       if (existingModule) {
-        console.log('Module already exists in workspace');
+        // Module already in workspace - no action needed
+        console.log('Module already exists in workspace, skipping add');
         return;
       }
 
