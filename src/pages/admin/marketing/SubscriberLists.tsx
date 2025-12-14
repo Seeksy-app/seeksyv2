@@ -39,8 +39,10 @@ import {
   Users, 
   Mail,
   UserPlus,
-  UserMinus
+  UserMinus,
+  Globe
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -50,6 +52,7 @@ interface SubscriberList {
   slug: string;
   created_at: string;
   member_count?: number;
+  include_in_general_subscribe?: boolean;
 }
 
 interface Subscriber {
@@ -404,6 +407,23 @@ export default function SubscriberLists() {
                       >
                         View
                       </Button>
+                    </div>
+                    <div className="flex items-center gap-2 mt-3 pt-3 border-t">
+                      <Switch
+                        checked={list.include_in_general_subscribe || false}
+                        onCheckedChange={async (checked) => {
+                          await supabase
+                            .from('subscriber_lists')
+                            .update({ include_in_general_subscribe: checked } as any)
+                            .eq('id', list.id);
+                          queryClient.invalidateQueries({ queryKey: ['subscriber-lists'] });
+                          toast.success(checked ? 'Added to general subscribe' : 'Removed from general subscribe');
+                        }}
+                      />
+                      <Label className="text-xs flex items-center gap-1 cursor-pointer">
+                        <Globe className="w-3 h-3" />
+                        Include in footer subscribe
+                      </Label>
                     </div>
                   </CardContent>
                 </Card>

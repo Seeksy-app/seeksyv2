@@ -17528,6 +17528,7 @@ export type Database = {
           id: string
           metadata: Json | null
           name: string | null
+          preferences_token: string | null
           source: string | null
           status: string
           subscribed_at: string
@@ -17541,6 +17542,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           name?: string | null
+          preferences_token?: string | null
           source?: string | null
           status?: string
           subscribed_at?: string
@@ -17554,6 +17556,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           name?: string | null
+          preferences_token?: string | null
           source?: string | null
           status?: string
           subscribed_at?: string
@@ -23445,18 +23448,21 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          include_in_general_subscribe: boolean | null
           name: string
           slug: string
         }
         Insert: {
           created_at?: string
           id?: string
+          include_in_general_subscribe?: boolean | null
           name: string
           slug: string
         }
         Update: {
           created_at?: string
           id?: string
+          include_in_general_subscribe?: boolean | null
           name?: string
           slug?: string
         }

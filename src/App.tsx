@@ -153,6 +153,7 @@ import SignedConfirmation from "./pages/legal/SignedConfirmation";
 import DeclinedConfirmation from "./pages/legal/DeclinedConfirmation";
 import InvestorApplication from "./pages/invest/InvestorApplication";
 import SubscriptionSettings from "./pages/SubscriptionSettings";
+import SubscriberPreferences from "./pages/SubscriberPreferences";
 // Holiday features completely disabled - removed all imports
 import { CommandPaletteProvider } from "./components/command/CommandPaletteProvider";
 import { AIAssistantProvider } from "./components/ai/AIAssistantProvider";
@@ -1014,6 +1015,7 @@ const AppContent = () => {
           <Route path="/communication-history" element={<CommunicationHistory />} />
           <Route path="/newsletter" element={<Newsletter />} />
           <Route path="/unsubscribe" element={<Unsubscribe />} />
+          <Route path="/email-preferences" element={<SubscriberPreferences />} />
               <Route path="/v/:username/voice-credential" element={<VoiceCredentialPublic />} />
               <Route path="/c/:id" element={<ContentCredentialPublic />} />
               <Route path="/ad/click/:adId" element={<AdClickRedirect />} />
