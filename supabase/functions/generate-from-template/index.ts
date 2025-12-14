@@ -215,20 +215,22 @@ serve(async (req) => {
     // Our signing order: 1=purchaser, 2=seller, 3=chairman
     const restoreSignWellTags = (content: string): string => {
       // Map tag names to their SignWell signer index based on signing_order in signwell-send-document
+      // Order: Seller=1, Purchaser=2, Chairman=3 (matches recipient array order)
       const tagIndexMap: Record<string, number> = {
-        'purchaser': 1,  // signing_order: 1
-        'seller': 2,     // signing_order: 2  
-        'chairman': 3    // signing_order: 3
+        'seller': 1,     // signing_order: 1 - Seller signs first
+        'purchaser': 2,  // signing_order: 2 - Purchaser signs second
+        'chairman': 3    // signing_order: 3 - Chairman signs last
       };
       
       return content.replace(/__SIGNWELL_S_([a-zA-Z_]+)__/g, (match, tagName) => {
         const lowerTagName = tagName.toLowerCase();
         const index = tagIndexMap[lowerTagName];
         if (index) {
-          return `{{s:${index}}}`;
+          // Use full "signature" tag for better SignWell compatibility
+          return `{{signature:${index}}}`;
         }
         // Fallback - shouldn't happen but just in case
-        return `{{s:1}}`;
+        return `{{signature:1}}`;
       });
     };
     
