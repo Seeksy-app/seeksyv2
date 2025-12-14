@@ -12,7 +12,8 @@ import {
   Mic, Podcast, Image, Scissors, Video, Users, PieChart, Target, Mail, 
   Zap, MessageCircle, FormInput, FileText, CheckSquare, Calendar, Vote,
   Trophy, UserPlus, Layout, Shield, Star, Globe, CalendarClock, Grid3X3,
-  ChevronDown, LayoutGrid, List, Package, Layers
+  ChevronDown, LayoutGrid, List, Package, Layers, Share2, Copy, BrainCircuit,
+  Wand2, Clapperboard, Bot, Newspaper, Eye, SortAsc, ArrowDownAZ, FolderKanban
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -25,12 +26,22 @@ import {
 } from "@/components/ui/collapsible";
 import { useModuleActivation } from "@/hooks/useModuleActivation";
 import { useCustomPackages } from "@/hooks/useCustomPackages";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type ModuleStatus = "active" | "available" | "coming_soon";
+type ViewMode = "category" | "alphabetical" | "collection";
 
 interface Module extends Omit<ModuleCardProps, 'onClick' | 'compact' | 'onPreview' | 'tooltipData'> {
   category: string;
   creditEstimate?: number;
+  collection?: string;
+  isNew?: boolean;
+  isAIPowered?: boolean;
 }
 
 interface Category {
@@ -48,6 +59,19 @@ interface Category {
     exampleWorkflows: string;
   };
 }
+
+// Collections/Groups for modules
+const collections: Record<string, { name: string; icon: React.ElementType; description: string }> = {
+  "creator-studio": { name: "Creator Studio", icon: Mic, description: "Recording, editing, and content creation tools" },
+  "podcasting": { name: "Podcasting", icon: Podcast, description: "Podcast hosting and distribution" },
+  "campaigns": { name: "Campaigns & Marketing", icon: Megaphone, description: "Email, SMS, and marketing automation" },
+  "events": { name: "Events & Meetings", icon: Calendar, description: "Events, meetings, and scheduling" },
+  "crm-business": { name: "CRM & Business", icon: Users, description: "Contacts, deals, and business operations" },
+  "identity": { name: "Identity & Profile", icon: Shield, description: "Personal branding and verification" },
+  "ai-tools": { name: "AI Tools", icon: BrainCircuit, description: "AI-powered automation and assistance" },
+  "analytics": { name: "Analytics", icon: PieChart, description: "Insights and performance tracking" },
+  "integrations": { name: "Integrations", icon: Globe, description: "Third-party connections and sync" },
+};
 
 const categories: Category[] = [
   { id: "all", name: "All Modules", shortName: "All", icon: Grid3X3, description: "", bgClass: "", accentColor: "" },
@@ -144,7 +168,401 @@ const categories: Category[] = [
 ];
 
 const modules: Module[] = [
-  // Creator Tools
+  // Creator Studio Collection
+  {
+    id: "studio",
+    name: "Studio & Recording",
+    description: "Record podcasts, videos, livestreams with HD quality",
+    icon: Mic,
+    status: "active",
+    category: "media",
+    collection: "creator-studio",
+    route: "/studio",
+    recommendedWith: ["Media Library", "Podcasts"],
+    creditEstimate: 50,
+  },
+  {
+    id: "ai-clips",
+    name: "AI Clips Generator",
+    description: "Automatically generate viral clips from long-form content",
+    icon: Scissors,
+    status: "active",
+    category: "media",
+    collection: "creator-studio",
+    route: "/clips",
+    isNew: true,
+    isAIPowered: true,
+    recommendedWith: ["Studio & Recording"],
+    creditEstimate: 30,
+  },
+  {
+    id: "ai-post-production",
+    name: "AI Post-Production",
+    description: "Remove filler words, pauses, and enhance audio with AI",
+    icon: Wand2,
+    status: "active",
+    category: "media",
+    collection: "creator-studio",
+    route: "/studio/ai-post-production",
+    isAIPowered: true,
+    creditEstimate: 25,
+  },
+  {
+    id: "media-library",
+    name: "Media Library",
+    description: "Store audio, video, and images securely",
+    icon: Image,
+    status: "active",
+    category: "media",
+    collection: "creator-studio",
+    route: "/studio/media",
+    creditEstimate: 10,
+  },
+  {
+    id: "video-editor",
+    name: "Video Editor",
+    description: "Edit videos with timeline, transitions, and captions",
+    icon: Clapperboard,
+    status: "active",
+    category: "media",
+    collection: "creator-studio",
+    route: "/studio/editor",
+    creditEstimate: 30,
+  },
+  {
+    id: "voice-cloning",
+    name: "Voice Cloning Tools",
+    description: "Clone and manage AI voice profiles for content creation",
+    icon: Copy,
+    status: "active",
+    category: "media",
+    collection: "creator-studio",
+    route: "/voice-cloning",
+    isNew: true,
+    isAIPowered: true,
+    creditEstimate: 40,
+  },
+
+  // Podcasting Collection
+  {
+    id: "podcasts",
+    name: "Podcasts",
+    description: "Podcast hosting, RSS feeds, and distribution",
+    icon: Podcast,
+    status: "active",
+    category: "media",
+    collection: "podcasting",
+    route: "/podcasts",
+    recommendedWith: ["Studio & Recording"],
+    creditEstimate: 20,
+  },
+
+  // Campaigns & Marketing Collection
+  {
+    id: "campaigns",
+    name: "Marketing Campaigns",
+    description: "Multi-channel marketing campaigns",
+    icon: Megaphone,
+    status: "active",
+    category: "marketing",
+    collection: "campaigns",
+    route: "/marketing/campaigns",
+    recommendedWith: ["Email Templates", "Automations"],
+    creditEstimate: 25,
+  },
+  {
+    id: "email",
+    name: "Inbox",
+    description: "Full email inbox with multi-account support",
+    icon: Mail,
+    status: "active",
+    category: "marketing",
+    collection: "campaigns",
+    route: "/email/inbox",
+    recommendedWith: ["Campaigns", "Contacts"],
+    creditEstimate: 10,
+  },
+  {
+    id: "newsletter",
+    name: "Newsletter",
+    description: "Build and send beautiful newsletters with drag-and-drop editor",
+    icon: Share2,
+    status: "active",
+    category: "marketing",
+    collection: "campaigns",
+    route: "/newsletter",
+    creditEstimate: 15,
+  },
+  {
+    id: "sms",
+    name: "SMS Marketing",
+    description: "Text messaging and campaigns",
+    icon: MessageCircle,
+    status: "active",
+    category: "marketing",
+    collection: "campaigns",
+    route: "/sms",
+    creditEstimate: 20,
+  },
+  {
+    id: "automations",
+    name: "Workflow Automations",
+    description: "Automated workflows and sequences",
+    icon: Zap,
+    status: "active",
+    category: "marketing",
+    collection: "campaigns",
+    route: "/marketing/automations",
+    recommendedWith: ["Campaigns"],
+    creditEstimate: 15,
+  },
+  {
+    id: "email-templates",
+    name: "Email Templates",
+    description: "Design reusable email templates",
+    icon: Mail,
+    status: "active",
+    category: "marketing",
+    collection: "campaigns",
+    route: "/marketing/templates",
+    creditEstimate: 10,
+  },
+  {
+    id: "segments",
+    name: "Audience Segments",
+    description: "Create targeted audience segments",
+    icon: Target,
+    status: "active",
+    category: "marketing",
+    collection: "campaigns",
+    route: "/marketing/segments",
+    recommendedWith: ["Contacts & Audience"],
+    creditEstimate: 5,
+  },
+
+  // Events & Meetings Collection
+  {
+    id: "events",
+    name: "Events & Ticketing",
+    description: "Create events, sell tickets, and manage RSVPs",
+    icon: Calendar,
+    status: "active",
+    category: "business",
+    collection: "events",
+    route: "/events",
+    recommendedWith: ["Forms"],
+    creditEstimate: 15,
+  },
+  {
+    id: "meetings",
+    name: "Meetings & Scheduling",
+    description: "Book calls and appointments",
+    icon: CalendarClock,
+    status: "active",
+    category: "business",
+    collection: "events",
+    route: "/creator/meetings",
+    recommendedWith: ["Events"],
+    creditEstimate: 5,
+  },
+  {
+    id: "forms",
+    name: "Forms Builder",
+    description: "Build forms and collect submissions",
+    icon: FormInput,
+    status: "active",
+    category: "business",
+    collection: "events",
+    route: "/forms",
+    creditEstimate: 5,
+  },
+  {
+    id: "polls",
+    name: "Polls & Surveys",
+    description: "Collect audience feedback",
+    icon: Vote,
+    status: "active",
+    category: "business",
+    collection: "events",
+    route: "/polls",
+    creditEstimate: 5,
+  },
+  {
+    id: "awards",
+    name: "Awards Program",
+    description: "Award programs with nominations and voting",
+    icon: Trophy,
+    status: "active",
+    category: "business",
+    collection: "events",
+    route: "/awards",
+    creditEstimate: 10,
+  },
+
+  // CRM & Business Collection
+  {
+    id: "crm",
+    name: "CRM",
+    description: "Complete customer relationship management",
+    icon: Users,
+    status: "active",
+    category: "marketing",
+    collection: "crm-business",
+    route: "/crm",
+    creditEstimate: 15,
+  },
+  {
+    id: "contacts",
+    name: "Contacts & Audience",
+    description: "Manage contacts, leads, and subscribers",
+    icon: Users,
+    status: "active",
+    category: "marketing",
+    collection: "crm-business",
+    route: "/audience",
+    recommendedWith: ["Segments", "Campaigns"],
+    creditEstimate: 5,
+  },
+  {
+    id: "project-management",
+    name: "Project Management",
+    description: "Tasks, tickets, leads, and e-signatures",
+    icon: FolderOpen,
+    status: "active",
+    category: "business",
+    collection: "crm-business",
+    route: "/project-management",
+    recommendedWith: ["Tasks", "Contacts & Audience"],
+    creditEstimate: 15,
+  },
+  {
+    id: "tasks",
+    name: "Tasks & To-dos",
+    description: "Manage tasks and projects",
+    icon: CheckSquare,
+    status: "active",
+    category: "business",
+    collection: "crm-business",
+    route: "/tasks",
+    creditEstimate: 5,
+  },
+  {
+    id: "proposals",
+    name: "Proposals & Contracts",
+    description: "Create professional proposals with e-signatures",
+    icon: FileText,
+    status: "active",
+    category: "business",
+    collection: "crm-business",
+    route: "/proposals",
+    creditEstimate: 10,
+  },
+  {
+    id: "deals",
+    name: "Deals Pipeline",
+    description: "Track deals through your sales pipeline",
+    icon: DollarSign,
+    status: "active",
+    category: "business",
+    collection: "crm-business",
+    route: "/deals",
+    creditEstimate: 10,
+  },
+
+  // Identity & Profile Collection
+  {
+    id: "my-page",
+    name: "My Page Builder",
+    description: "Build your personal landing page",
+    icon: Layout,
+    status: "active",
+    category: "identity",
+    collection: "identity",
+    route: "/profile/edit",
+    recommendedWith: ["Identity & Verification"],
+    creditEstimate: 5,
+  },
+  {
+    id: "identity-verification",
+    name: "Identity & Verification",
+    description: "Verify voice and face on blockchain, manage rights",
+    icon: Shield,
+    status: "active",
+    category: "identity",
+    collection: "identity",
+    route: "/identity",
+    isNew: true,
+    recommendedWith: ["My Page Builder"],
+    creditEstimate: 20,
+  },
+  {
+    id: "broadcast-monitoring",
+    name: "Broadcast Monitoring",
+    description: "Monitor platforms for unauthorized use of your content",
+    icon: Eye,
+    status: "active",
+    category: "identity",
+    collection: "identity",
+    route: "/broadcast-monitoring",
+    isNew: true,
+    isAIPowered: true,
+    creditEstimate: 25,
+  },
+  {
+    id: "guest-appearances",
+    name: "Guest Appearances",
+    description: "Track and showcase your podcast and video appearances",
+    icon: Mic,
+    status: "active",
+    category: "identity",
+    collection: "identity",
+    route: "/my-appearances",
+    recommendedWith: ["Identity & Verification", "Social Connect"],
+    creditEstimate: 10,
+  },
+
+  // AI Tools Collection
+  {
+    id: "spark-ai",
+    name: "Spark AI Assistant",
+    description: "Your intelligent AI co-pilot for content and growth",
+    icon: BrainCircuit,
+    status: "active",
+    category: "creator",
+    collection: "ai-tools",
+    route: "/spark",
+    isNew: true,
+    isAIPowered: true,
+    creditEstimate: 30,
+  },
+  {
+    id: "ai-automation",
+    name: "AI Automation",
+    description: "Create intelligent automations powered by AI",
+    icon: Bot,
+    status: "active",
+    category: "creator",
+    collection: "ai-tools",
+    route: "/automations/ai",
+    isNew: true,
+    isAIPowered: true,
+    creditEstimate: 25,
+  },
+  {
+    id: "ai-agent",
+    name: "AI Agent",
+    description: "Your intelligent AI co-pilot for navigation and strategy",
+    icon: BrainCircuit,
+    status: "active",
+    category: "creator",
+    collection: "ai-tools",
+    route: "/assistant",
+    isNew: true,
+    isAIPowered: true,
+    creditEstimate: 20,
+  },
+
+  // Analytics Collection
   {
     id: "audience-insights",
     name: "Audience Insights",
@@ -152,6 +570,7 @@ const modules: Module[] = [
     icon: BarChart3,
     status: "active",
     category: "creator",
+    collection: "analytics",
     route: "/social-analytics",
     recommendedWith: ["Social Connect"],
     creditEstimate: 10,
@@ -163,10 +582,74 @@ const modules: Module[] = [
     icon: PieChart,
     status: "active",
     category: "creator",
+    collection: "analytics",
     route: "/social-analytics",
     recommendedWith: ["Social Connect"],
     creditEstimate: 10,
   },
+
+  // Content
+  {
+    id: "blog",
+    name: "Blog & Content",
+    description: "Write and publish blog posts with SEO optimization",
+    icon: Newspaper,
+    status: "active",
+    category: "media",
+    collection: "campaigns",
+    route: "/my-blog",
+    creditEstimate: 10,
+  },
+
+  // Integrations Collection
+  {
+    id: "social-connect",
+    name: "Social Connect",
+    description: "Connect Instagram, YouTube, TikTok, Facebook and import your data",
+    icon: Instagram,
+    status: "active",
+    category: "integrations",
+    collection: "integrations",
+    route: "/integrations",
+    recommendedWith: ["Audience Insights", "Social Analytics"],
+    creditEstimate: 5,
+  },
+  {
+    id: "qr-codes",
+    name: "QR Codes",
+    description: "Generate and track QR codes",
+    icon: Grid3X3,
+    status: "active",
+    category: "marketing",
+    collection: "campaigns",
+    route: "/qr-codes",
+    creditEstimate: 5,
+  },
+  {
+    id: "signups",
+    name: "Sign-up Sheets",
+    description: "Collect RSVPs and registrations",
+    icon: FormInput,
+    status: "active",
+    category: "business",
+    collection: "events",
+    route: "/signup-sheets",
+    recommendedWith: ["Events", "Forms"],
+    creditEstimate: 5,
+  },
+  {
+    id: "team",
+    name: "Team & Collaboration",
+    description: "Manage team members and collaborate",
+    icon: UserPlus,
+    status: "active",
+    category: "business",
+    collection: "crm-business",
+    route: "/team",
+    creditEstimate: 10,
+  },
+
+  // Coming Soon
   {
     id: "brand-campaigns",
     name: "Brand Campaigns",
@@ -174,6 +657,7 @@ const modules: Module[] = [
     icon: Megaphone,
     status: "coming_soon",
     category: "creator",
+    collection: "campaigns",
     recommendedWith: ["Monetization Hub"],
     creditEstimate: 15,
   },
@@ -184,6 +668,7 @@ const modules: Module[] = [
     icon: DollarSign,
     status: "coming_soon",
     category: "creator",
+    collection: "analytics",
     creditEstimate: 5,
   },
   {
@@ -193,6 +678,7 @@ const modules: Module[] = [
     icon: TrendingUp,
     status: "coming_soon",
     category: "creator",
+    collection: "ai-tools",
     creditEstimate: 20,
   },
   {
@@ -202,52 +688,8 @@ const modules: Module[] = [
     icon: FolderOpen,
     status: "coming_soon",
     category: "creator",
+    collection: "creator-studio",
     creditEstimate: 10,
-  },
-
-  // Media & Content
-  {
-    id: "studio",
-    name: "Studio & Recording",
-    description: "Record podcasts, videos, livestreams with HD quality",
-    icon: Mic,
-    status: "active",
-    category: "media",
-    route: "/studio",
-    recommendedWith: ["Media Library", "Podcasts"],
-    creditEstimate: 50,
-  },
-  {
-    id: "podcasts",
-    name: "Podcasts",
-    description: "Podcast hosting, RSS feeds, and distribution",
-    icon: Podcast,
-    status: "active",
-    category: "media",
-    route: "/podcasts",
-    recommendedWith: ["Studio & Recording"],
-    creditEstimate: 20,
-  },
-  {
-    id: "media-library",
-    name: "Media Library",
-    description: "Store audio, video, and images securely",
-    icon: Image,
-    status: "active",
-    category: "media",
-    route: "/studio/media",
-    creditEstimate: 10,
-  },
-  {
-    id: "clips-editing",
-    name: "Clips & Editing",
-    description: "AI-powered clipping and video editing",
-    icon: Scissors,
-    status: "active",
-    category: "media",
-    route: "/clips",
-    recommendedWith: ["Studio & Recording"],
-    creditEstimate: 30,
   },
   {
     id: "my-page-streaming",
@@ -256,226 +698,8 @@ const modules: Module[] = [
     icon: Video,
     status: "coming_soon",
     category: "media",
+    collection: "creator-studio",
     creditEstimate: 40,
-  },
-
-  // Email
-  {
-    id: "email",
-    name: "Email",
-    description: "Full email inbox with multi-account support",
-    icon: Mail,
-    status: "active",
-    category: "marketing",
-    route: "/email/inbox",
-    recommendedWith: ["Campaigns", "Contacts"],
-    creditEstimate: 10,
-  },
-
-  // Marketing & CRM
-  {
-    id: "contacts",
-    name: "Contacts & Audience",
-    description: "Manage contacts, leads, and subscribers",
-    icon: Users,
-    status: "active",
-    category: "marketing",
-    route: "/audience",
-    recommendedWith: ["Segments", "Campaigns"],
-    creditEstimate: 5,
-  },
-  {
-    id: "segments",
-    name: "Segments",
-    description: "Create targeted audience segments",
-    icon: Target,
-    status: "active",
-    category: "marketing",
-    route: "/marketing/segments",
-    recommendedWith: ["Contacts & Audience"],
-    creditEstimate: 5,
-  },
-  {
-    id: "campaigns",
-    name: "Campaigns",
-    description: "Multi-channel marketing campaigns",
-    icon: Megaphone,
-    status: "active",
-    category: "marketing",
-    route: "/marketing/campaigns",
-    recommendedWith: ["Email Templates", "Automations"],
-    creditEstimate: 25,
-  },
-  {
-    id: "email-templates",
-    name: "Email Templates",
-    description: "Design reusable email templates",
-    icon: Mail,
-    status: "active",
-    category: "marketing",
-    route: "/marketing/templates",
-    creditEstimate: 10,
-  },
-  {
-    id: "automations",
-    name: "Automations",
-    description: "Automated workflows and sequences",
-    icon: Zap,
-    status: "active",
-    category: "marketing",
-    route: "/marketing/automations",
-    recommendedWith: ["Campaigns"],
-    creditEstimate: 15,
-  },
-  {
-    id: "sms",
-    name: "SMS",
-    description: "Text messaging and campaigns",
-    icon: MessageCircle,
-    status: "active",
-    category: "marketing",
-    route: "/sms",
-    creditEstimate: 20,
-  },
-  {
-    id: "forms",
-    name: "Forms",
-    description: "Build forms and collect submissions",
-    icon: FormInput,
-    status: "active",
-    category: "marketing",
-    route: "/forms",
-    creditEstimate: 5,
-  },
-  {
-    id: "qr-codes",
-    name: "QR Codes",
-    description: "Generate and track QR codes",
-    icon: Grid3X3,
-    status: "active",
-    category: "marketing",
-    route: "/qr-codes",
-    creditEstimate: 5,
-  },
-
-  // Business Operations
-  {
-    id: "meetings",
-    name: "Meetings",
-    description: "Book calls and appointments",
-    icon: CalendarClock,
-    status: "active",
-    category: "business",
-    route: "/creator/meetings",
-    recommendedWith: ["Events"],
-    creditEstimate: 5,
-  },
-  {
-    id: "signups",
-    name: "Sign-ups",
-    description: "Collect RSVPs and registrations",
-    icon: FormInput,
-    status: "active",
-    category: "business",
-    route: "/signup-sheets",
-    recommendedWith: ["Events", "Forms"],
-    creditEstimate: 5,
-  },
-  {
-    id: "proposals",
-    name: "Proposals",
-    description: "Create professional proposals and contracts",
-    icon: FileText,
-    status: "active",
-    category: "business",
-    route: "/proposals",
-    creditEstimate: 10,
-  },
-  {
-    id: "tasks",
-    name: "Tasks",
-    description: "Manage tasks and projects",
-    icon: CheckSquare,
-    status: "active",
-    category: "business",
-    route: "/tasks",
-    creditEstimate: 5,
-  },
-  {
-    id: "project-management",
-    name: "Project Management",
-    description: "Tasks, tickets, leads, and e-signatures",
-    icon: FolderOpen,
-    status: "active",
-    category: "business",
-    route: "/project-management",
-    recommendedWith: ["Tasks", "Contacts & Audience"],
-    creditEstimate: 15,
-  },
-  {
-    id: "events",
-    name: "Events",
-    description: "Create events and manage RSVPs",
-    icon: Calendar,
-    status: "active",
-    category: "business",
-    route: "/events",
-    recommendedWith: ["Forms"],
-    creditEstimate: 15,
-  },
-  {
-    id: "polls",
-    name: "Polls & Surveys",
-    description: "Collect audience feedback",
-    icon: Vote,
-    status: "active",
-    category: "business",
-    route: "/polls",
-    creditEstimate: 5,
-  },
-  {
-    id: "awards",
-    name: "Awards",
-    description: "Award programs and nominations",
-    icon: Trophy,
-    status: "active",
-    category: "business",
-    route: "/awards",
-    creditEstimate: 10,
-  },
-  {
-    id: "team",
-    name: "Team & Collaboration",
-    description: "Manage team members and collaborate",
-    icon: UserPlus,
-    status: "active",
-    category: "business",
-    route: "/team",
-    creditEstimate: 10,
-  },
-
-  // Identity & Creator Profile
-  {
-    id: "my-page",
-    name: "My Page Builder",
-    description: "Build your personal landing page",
-    icon: Layout,
-    status: "active",
-    category: "identity",
-    route: "/profile/edit",
-    recommendedWith: ["Identity & Verification"],
-    creditEstimate: 5,
-  },
-  {
-    id: "identity-verification",
-    name: "Identity & Verification",
-    description: "Verify voice and face, manage rights",
-    icon: Shield,
-    status: "active",
-    category: "identity",
-    route: "/identity",
-    recommendedWith: ["My Page Builder"],
-    creditEstimate: 20,
   },
   {
     id: "influencer-profile",
@@ -484,41 +708,8 @@ const modules: Module[] = [
     icon: Star,
     status: "coming_soon",
     category: "identity",
+    collection: "identity",
     creditEstimate: 10,
-  },
-  {
-    id: "guest-appearances",
-    name: "Guest Appearances",
-    description: "Track and showcase your podcast and video appearances",
-    icon: Mic,
-    status: "active",
-    category: "identity",
-    route: "/my-appearances",
-    recommendedWith: ["Identity & Verification", "Social Connect"],
-    creditEstimate: 10,
-  },
-
-  // Integrations
-  {
-    id: "social-connect",
-    name: "Social Connect",
-    description: "Connect Instagram, YouTube, TikTok, Facebook and import your data",
-    icon: Instagram,
-    status: "active",
-    category: "integrations",
-    route: "/integrations",
-    recommendedWith: ["Audience Insights", "Social Analytics"],
-    creditEstimate: 5,
-  },
-  {
-    id: "social-integrations",
-    name: "Social Media Integrations",
-    description: "Connect social platforms for data sync",
-    icon: Instagram,
-    status: "active",
-    category: "integrations",
-    route: "/integrations",
-    creditEstimate: 5,
   },
   {
     id: "analytics-integrations",
@@ -527,6 +718,7 @@ const modules: Module[] = [
     icon: BarChart3,
     status: "coming_soon",
     category: "integrations",
+    collection: "integrations",
     creditEstimate: 10,
   },
   {
@@ -536,6 +728,7 @@ const modules: Module[] = [
     icon: CalendarClock,
     status: "coming_soon",
     category: "integrations",
+    collection: "integrations",
     creditEstimate: 5,
   },
 ];
@@ -547,7 +740,9 @@ export default function Apps() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [isCompact, setIsCompact] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("category");
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+  const [collapsedCollections, setCollapsedCollections] = useState<Set<string>>(new Set());
   const [showPackageBuilder, setShowPackageBuilder] = useState(false);
   const [editPackage, setEditPackage] = useState<typeof packages[0] | null>(null);
   const [previewModule, setPreviewModule] = useState<Module | null>(null);
@@ -580,8 +775,13 @@ export default function Apps() {
     });
   }, [searchTerm, activeCategory, isModuleActivated]);
 
-  const groupedModules = useMemo(() => {
-    // For "active" category, group by original module category so they display properly
+  // Alphabetically sorted modules
+  const alphabeticalModules = useMemo(() => {
+    return [...filteredModules].sort((a, b) => a.name.localeCompare(b.name));
+  }, [filteredModules]);
+
+  // Group by category
+  const groupedByCategory = useMemo(() => {
     if (activeCategory === "active") {
       return filteredModules.reduce((acc, module) => {
         if (!acc[module.category]) {
@@ -604,6 +804,18 @@ export default function Apps() {
       return acc;
     }, {} as Record<string, Module[]>);
   }, [filteredModules, activeCategory]);
+
+  // Group by collection
+  const groupedByCollection = useMemo(() => {
+    return filteredModules.reduce((acc, module) => {
+      const collectionId = module.collection || "other";
+      if (!acc[collectionId]) {
+        acc[collectionId] = [];
+      }
+      acc[collectionId].push(module);
+      return acc;
+    }, {} as Record<string, Module[]>);
+  }, [filteredModules]);
 
   const getCategoryData = (categoryId: string) => {
     return categories.find((c) => c.id === categoryId);
@@ -630,7 +842,20 @@ export default function Apps() {
     });
   };
 
+  const toggleCollection = (collectionId: string) => {
+    setCollapsedCollections((prev) => {
+      const next = new Set(prev);
+      if (next.has(collectionId)) {
+        next.delete(collectionId);
+      } else {
+        next.add(collectionId);
+      }
+      return next;
+    });
+  };
+
   const categoryOrder = ["creator", "media", "marketing", "business", "identity", "integrations"];
+  const collectionOrder = ["creator-studio", "podcasting", "campaigns", "events", "crm-business", "identity", "ai-tools", "analytics", "integrations", "other"];
 
   const packageModules = modules.map(m => ({
     id: m.id,
@@ -638,6 +863,8 @@ export default function Apps() {
     category: m.category,
     creditEstimate: m.creditEstimate || 10,
   }));
+
+  const viewModeLabel = viewMode === "alphabetical" ? "A-Z" : viewMode === "collection" ? "Collection" : "Category";
 
   return (
     <div className="min-h-screen bg-background">
@@ -671,6 +898,40 @@ export default function Apps() {
               className="pl-8 h-9 text-sm bg-card border-border/50"
             />
           </div>
+
+          {/* View Mode Toggle */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
+                <SortAsc className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">View:</span> {viewModeLabel}
+                <ChevronDown className="h-3 w-3 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-popover z-50">
+              <DropdownMenuItem 
+                onClick={() => setViewMode("category")}
+                className={cn(viewMode === "category" && "bg-accent")}
+              >
+                <FolderKanban className="h-4 w-4 mr-2" />
+                By Category
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setViewMode("collection")}
+                className={cn(viewMode === "collection" && "bg-accent")}
+              >
+                <Layers className="h-4 w-4 mr-2" />
+                By Collection
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setViewMode("alphabetical")}
+                className={cn(viewMode === "alphabetical" && "bg-accent")}
+              >
+                <ArrowDownAZ className="h-4 w-4 mr-2" />
+                Alphabetically
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <div className="flex items-center gap-1 p-0.5 bg-muted/50 rounded-lg">
             <Button
@@ -781,11 +1042,120 @@ export default function Apps() {
           />
         )}
 
-        {/* Module Grid by Category */}
-        {activeCategory !== "my-workspaces" && (
+        {/* Alphabetical View */}
+        {activeCategory !== "my-workspaces" && viewMode === "alphabetical" && (
+          <div className="rounded-2xl border p-5 sm:p-6 bg-card">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                <ArrowDownAZ className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold">All Modules (A-Z)</h2>
+                <p className="text-xs text-muted-foreground">{alphabeticalModules.length} modules</p>
+              </div>
+            </div>
+            <div className={cn(
+              "grid gap-3",
+              "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            )}>
+              {alphabeticalModules.map((module) => (
+                <ModuleCard
+                  key={module.id}
+                  {...module}
+                  status={getModuleStatus(module)}
+                  compact={isCompact}
+                  onClick={() => handleModuleClick(module)}
+                  onPreview={() => setPreviewModule(module)}
+                  tooltipData={{
+                    description: module.description,
+                    bestFor: "All creators",
+                    unlocks: [],
+                    creditEstimate: module.creditEstimate || 10,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Collection View */}
+        {activeCategory !== "my-workspaces" && viewMode === "collection" && (
+          <div className="space-y-8">
+            {collectionOrder.map((collectionId) => {
+              const collectionModules = groupedByCollection[collectionId];
+              if (!collectionModules || collectionModules.length === 0) return null;
+
+              const collection = collections[collectionId] || { 
+                name: collectionId === "other" ? "Other" : collectionId, 
+                icon: FolderOpen, 
+                description: "" 
+              };
+              const CollectionIcon = collection.icon;
+              const isCollapsed = collapsedCollections.has(collectionId);
+
+              return (
+                <Collapsible
+                  key={collectionId}
+                  open={!isCollapsed}
+                  onOpenChange={() => toggleCollection(collectionId)}
+                >
+                  <section className="rounded-2xl border p-5 sm:p-6 bg-card shadow-sm">
+                    <CollapsibleTrigger asChild>
+                      <button className="w-full flex items-center justify-between gap-3 group cursor-pointer">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                            <CollectionIcon className="h-5 w-5 text-foreground" />
+                          </div>
+                          <div className="text-left min-w-0">
+                            <h2 className="text-lg font-semibold">{collection.name}</h2>
+                            <p className="text-xs text-muted-foreground hidden sm:block mt-0.5">
+                              {collection.description} • {collectionModules.length} modules
+                            </p>
+                          </div>
+                        </div>
+                        <ChevronDown 
+                          className={cn(
+                            "h-5 w-5 text-muted-foreground transition-transform shrink-0",
+                            isCollapsed && "-rotate-90"
+                          )} 
+                        />
+                      </button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className={cn(
+                        "mt-5 grid gap-3",
+                        "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                      )}>
+                        {collectionModules.map((module) => (
+                          <ModuleCard
+                            key={module.id}
+                            {...module}
+                            status={getModuleStatus(module)}
+                            compact={isCompact}
+                            onClick={() => handleModuleClick(module)}
+                            onPreview={() => setPreviewModule(module)}
+                            tooltipData={{
+                              description: module.description,
+                              bestFor: "All creators",
+                              unlocks: [],
+                              creditEstimate: module.creditEstimate || 10,
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </section>
+                </Collapsible>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Category View (default) */}
+        {activeCategory !== "my-workspaces" && viewMode === "category" && (
         <div className="space-y-8">
           {categoryOrder.map((categoryId) => {
-            const categoryModules = groupedModules[categoryId];
+            const categoryModules = groupedByCategory[categoryId];
             if (!categoryModules || categoryModules.length === 0) return null;
 
             const category = getCategoryData(categoryId);
@@ -804,7 +1174,6 @@ export default function Apps() {
                   className={cn(
                     "rounded-2xl border p-5 sm:p-6 transition-all shadow-sm",
                     category.bgClass,
-                    // Darker backgrounds for each section
                     "bg-opacity-80 dark:bg-opacity-50"
                   )}
                   style={{
@@ -816,7 +1185,6 @@ export default function Apps() {
                                      categoryId === 'integrations' ? 'hsl(190 30% 96%)' : undefined
                   }}
                 >
-                  {/* Category Header */}
                   <CollapsibleTrigger asChild>
                     <button className="w-full flex items-center justify-between gap-3 group cursor-pointer sticky top-0 bg-inherit z-10 -mt-1 pt-1">
                       <div className="flex items-center gap-3 min-w-0">
@@ -843,7 +1211,6 @@ export default function Apps() {
                     </button>
                   </CollapsibleTrigger>
 
-                  {/* Module Grid */}
                   <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
                     <div 
                       className={cn(
