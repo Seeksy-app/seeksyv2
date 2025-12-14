@@ -298,7 +298,7 @@ export function AIPromptHero() {
         {floatingIcons.map(({ Icon, size, x, y, delay }, i) => (
           <motion.div
             key={i}
-            className="absolute text-primary/30"
+            className="absolute text-primary/60"
             style={{
               left: `${x}%`,
               top: `${y}%`,
@@ -307,7 +307,7 @@ export function AIPromptHero() {
               y: [0, -20, 0],
               x: [0, 8, 0],
               rotate: [0, 15, 0],
-              opacity: [0.2, 0.4, 0.2],
+              opacity: [0.4, 0.7, 0.4],
             }}
             transition={{
               duration: 5 + (i % 3),
@@ -316,7 +316,7 @@ export function AIPromptHero() {
               ease: "easeInOut",
             }}
           >
-            <Icon size={size * 1.5} strokeWidth={1.5} />
+            <Icon size={size * 2.5} strokeWidth={2} />
           </motion.div>
         ))}
       </div>

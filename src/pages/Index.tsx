@@ -9,7 +9,7 @@ import { AIPromptHero } from "@/components/homepage/AIPromptHero";
 import { BuildWorkspaceSection } from "@/components/homepage/BuildWorkspaceSection";
 import WorkspaceBuilderShowcase from "@/components/homepage/WorkspaceBuilderShowcase";
 import { PlatformPillars } from "@/components/homepage/PlatformPillars";
-import { VerticalFeatureTabs } from "@/components/homepage/VerticalFeatureTabs";
+
 import { ModuleBuilder, ModuleBuilderHandle } from "@/components/homepage/ModuleBuilder";
 import { ModuleHeroShowcase } from "@/components/homepage/ModuleHeroShowcase";
 import { CTASection } from "@/components/homepage/CTASection";
@@ -107,9 +107,6 @@ const Index = () => {
         
         {/* Platform Pillars - Create, Connect, Monetize */}
         <PlatformPillars />
-        
-        {/* Vertical Feature Tabs */}
-        <VerticalFeatureTabs />
         
         {/* Build Your Own Platform - Module Builder */}
         <ModuleBuilder ref={moduleBuilderRef} />

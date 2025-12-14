@@ -79,18 +79,18 @@ export function ModuleHeroShowcase() {
                   transition={{ duration: 0.25, ease: "easeOut" }}
                   className="flex flex-col gap-5"
                 >
-                  {/* Mixed-weight headline */}
+                  {/* Large headline like reference */}
                   <h2
-                    className="tracking-[-0.02em]"
+                    className="tracking-[-0.03em]"
                     style={{
-                      fontSize: "44px",
-                      lineHeight: 1.1,
+                      fontSize: "72px",
+                      lineHeight: 1.0,
                       color: "#0B0F1A",
                     }}
                   >
-                    <span className="font-normal">{activeModule.titleLight}</span>
+                    <span className="font-light">{activeModule.titleLight}</span>
                     <br />
-                    <span className="font-black underline decoration-2 underline-offset-4">{activeModule.titleBold}</span>
+                    <span className="font-black">{activeModule.titleBold}</span>
                   </h2>
                   <p
                     style={{
@@ -172,7 +172,7 @@ export function ModuleHeroShowcase() {
                   <span
                     className="whitespace-nowrap text-center"
                     style={{
-                      fontSize: "28px",
+                      fontSize: "20px",
                       letterSpacing: "-0.01em",
                       color: isActive ? "#FFFFFF" : "rgba(11, 15, 26, 0.85)",
                       fontWeight: isActive ? 700 : 500,
