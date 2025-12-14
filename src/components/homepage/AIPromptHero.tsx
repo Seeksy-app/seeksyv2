@@ -15,6 +15,64 @@ const suggestionPrompts = [
   "Send SMS reminders to my event attendees...",
 ];
 
+const modulePrompts: Record<string, string[]> = {
+  meetings: [
+    "Schedule a discovery call with a potential sponsor...",
+    "Set up recurring weekly team meetings...",
+    "Create a booking page for coaching sessions...",
+  ],
+  studio: [
+    "Record a solo episode with AI teleprompter...",
+    "Start a live recording session with 3 guests...",
+    "Edit my raw footage with AI noise reduction...",
+  ],
+  email: [
+    "Send a welcome sequence to new subscribers...",
+    "Draft a newsletter announcing my new course...",
+    "Reply to sponsor inquiries in my inbox...",
+  ],
+  clips: [
+    "Generate 5 vertical clips from my latest podcast...",
+    "Add captions and animations to my best moment...",
+    "Schedule clips to post across all platforms...",
+  ],
+  mypage: [
+    "Update my link-in-bio with new offerings...",
+    "Add a featured video to my creator page...",
+    "Customize my page theme and branding...",
+  ],
+  newsletter: [
+    "Create a weekly digest for my audience...",
+    "Set up automated welcome emails...",
+    "Design a premium newsletter template...",
+  ],
+  crm: [
+    "Import my email list and segment by interest...",
+    "Tag contacts who attended my last event...",
+    "Find my most engaged subscribers...",
+  ],
+  monetize: [
+    "Set up tipping for my live streams...",
+    "Create a paid membership tier...",
+    "Track my ad revenue this month...",
+  ],
+  podcast: [
+    "Upload my latest episode and generate show notes...",
+    "Submit my podcast to Apple and Spotify...",
+    "Check my download analytics by episode...",
+  ],
+  events: [
+    "Create a virtual workshop with ticket sales...",
+    "Send reminders to registered attendees...",
+    "Set up a hybrid in-person and streaming event...",
+  ],
+  sms: [
+    "Text my VIP list about an exclusive drop...",
+    "Send event reminders via SMS...",
+    "Create an SMS welcome message for new contacts...",
+  ],
+};
+
 const promptToModules: Record<string, string[]> = {
   "Send my podcast guest an invite and schedule a recording...": ["meetings", "studio", "email"],
   "Create clips from my latest episode and post to social...": ["clips", "studio", "mypage"],
@@ -59,12 +117,48 @@ export function AIPromptHero() {
     setIsTyping(true);
   };
 
+  const handleModuleClick = (moduleId: string) => {
+    const prompts = modulePrompts[moduleId];
+    if (prompts && prompts.length > 0) {
+      const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
+      setCurrentPrompt(randomPrompt);
+      setDisplayText("");
+      setIsTyping(true);
+    }
+  };
+
   const handleTryNow = () => {
-    // Could pass selected modules to onboarding
     navigate("/auth?mode=signup");
   };
 
-  const suggestedModules = promptToModules[currentPrompt] || [];
+  const suggestedModules = promptToModules[currentPrompt] || 
+    Object.keys(modulePrompts).filter(m => 
+      currentPrompt.toLowerCase().includes(m) || 
+      (m === "studio" && currentPrompt.toLowerCase().includes("record")) ||
+      (m === "clips" && currentPrompt.toLowerCase().includes("clip")) ||
+      (m === "email" && (currentPrompt.toLowerCase().includes("email") || currentPrompt.toLowerCase().includes("newsletter"))) ||
+      (m === "meetings" && (currentPrompt.toLowerCase().includes("meeting") || currentPrompt.toLowerCase().includes("schedule") || currentPrompt.toLowerCase().includes("call"))) ||
+      (m === "sms" && currentPrompt.toLowerCase().includes("text")) ||
+      (m === "events" && (currentPrompt.toLowerCase().includes("event") || currentPrompt.toLowerCase().includes("workshop"))) ||
+      (m === "mypage" && (currentPrompt.toLowerCase().includes("page") || currentPrompt.toLowerCase().includes("link"))) ||
+      (m === "crm" && (currentPrompt.toLowerCase().includes("contact") || currentPrompt.toLowerCase().includes("subscriber"))) ||
+      (m === "monetize" && (currentPrompt.toLowerCase().includes("revenue") || currentPrompt.toLowerCase().includes("tip") || currentPrompt.toLowerCase().includes("paid"))) ||
+      (m === "podcast" && (currentPrompt.toLowerCase().includes("podcast") || currentPrompt.toLowerCase().includes("episode")))
+    ).slice(0, 3);
+
+  const moduleLabels: Record<string, string> = {
+    meetings: "Meetings",
+    studio: "Studio",
+    email: "Email",
+    clips: "AI Clips",
+    mypage: "My Page",
+    newsletter: "Newsletter",
+    crm: "CRM",
+    monetize: "Monetize",
+    podcast: "Podcast",
+    events: "Events",
+    sms: "SMS",
+  };
 
   return (
     <section className="relative min-h-[90vh] flex flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-muted/30 to-background pt-24 pb-16">
@@ -108,7 +202,7 @@ export function AIPromptHero() {
               </p>
             </div>
 
-            {/* Suggested Modules Pills */}
+            {/* Suggested Modules Pills - Clickable */}
             <AnimatePresence mode="wait">
               {suggestedModules.length > 0 && (
                 <motion.div
@@ -118,15 +212,16 @@ export function AIPromptHero() {
                   exit={{ opacity: 0, y: -10 }}
                   className="px-6 md:px-8 pb-4"
                 >
-                  <p className="text-xs text-muted-foreground mb-2">Suggested modules:</p>
+                  <p className="text-xs text-muted-foreground mb-2">Click a module for more ideas:</p>
                   <div className="flex flex-wrap gap-2">
                     {suggestedModules.map((moduleId) => (
-                      <span
+                      <button
                         key={moduleId}
-                        className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium border border-primary/20"
+                        onClick={() => handleModuleClick(moduleId)}
+                        className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium border border-primary/20 hover:bg-primary/20 hover:scale-105 transition-all cursor-pointer"
                       >
-                        {moduleId.charAt(0).toUpperCase() + moduleId.slice(1)}
-                      </span>
+                        {moduleLabels[moduleId] || moduleId.charAt(0).toUpperCase() + moduleId.slice(1)}
+                      </button>
                     ))}
                   </div>
                 </motion.div>
