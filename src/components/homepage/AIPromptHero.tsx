@@ -316,7 +316,7 @@ export function AIPromptHero() {
               ease: "easeInOut",
             }}
           >
-            <Icon size={size * 2.5} strokeWidth={2} />
+            <Icon size={size * 1.6} strokeWidth={1.5} />
           </motion.div>
         ))}
       </div>
