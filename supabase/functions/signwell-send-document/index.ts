@@ -70,6 +70,7 @@ serve(async (req) => {
         name: r.name,
         placeholder_name: r.id, // Must match text tag: seller, purchaser, chairman
         signing_order: index + 1, // Sequential: Seller=1, Purchaser=2, Chairman=3
+        send_email: true, // Send email notification to recipient
       })),
       // Use text tags for signature placement instead of auto signature page
       // Document must contain: [[s|seller]], [[s|purchaser]], [[s|chairman]]
