@@ -23,6 +23,7 @@ interface RequestBody {
   companyName?: string;
   numberOfShares: number;
   pricePerShare: number;
+  purchaseAmount?: number; // Pre-calculated total (for add-on pricing)
   agreementDate?: string;
   investorCertification?: string;
   // Checkbox markers for investor certification
@@ -95,8 +96,9 @@ serve(async (req) => {
     console.log("Generating document from template for:", purchaserName);
     console.log("Template path:", templatePath);
 
-    // Calculate total amount
-    const totalAmount = numberOfShares * pricePerShare;
+    // Use pre-calculated purchaseAmount if provided (for add-on pricing), otherwise calculate
+    const purchaseAmountFromBody = body.purchaseAmount;
+    const totalAmount = purchaseAmountFromBody ? purchaseAmountFromBody : (numberOfShares * pricePerShare);
     const sharesInWords = numberToWords(numberOfShares);
 
     // Download template from storage

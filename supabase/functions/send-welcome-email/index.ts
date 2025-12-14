@@ -154,7 +154,7 @@ const handler = async (req: Request): Promise<Response> => {
               
               <div class="step">
                 <span class="step-number">1</span>
-                <strong>Application Review</strong> - Our team will review your application within 24-48 hours.
+                <strong>Application Review</strong> - Our team will review your application shortly.
               </div>
               
               <div class="step">
