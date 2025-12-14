@@ -4,27 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { CookieConsent } from "@/components/CookieConsent";
 import { TopNavigation } from "@/components/homepage/TopNavigation";
-import { HeroSectionNew } from "@/components/homepage/HeroSectionNew";
-import { PersonaSelector } from "@/components/homepage/PersonaSelector";
+import { AIPromptHero } from "@/components/homepage/AIPromptHero";
+import { PlatformPillars } from "@/components/homepage/PlatformPillars";
+import { VerticalFeatureTabs } from "@/components/homepage/VerticalFeatureTabs";
 import { ModuleBuilder, ModuleBuilderHandle } from "@/components/homepage/ModuleBuilder";
-import { GlobalStatsSection } from "@/components/homepage/GlobalStatsSection";
-import { FeatureShowcasePremium } from "@/components/homepage/FeatureShowcasePremium";
-import { TestimonialsSection } from "@/components/homepage/TestimonialsSection";
-import { FAQSection } from "@/components/homepage/FAQSection";
 import { CTASection } from "@/components/homepage/CTASection";
 import { FooterSection } from "@/components/homepage/FooterSection";
 import { LeadMagnetModal, useLeadMagnetPopup } from "@/components/lead-magnet";
 import { VisitorChatWidget } from "@/components/homepage/VisitorChatWidget";
-
-// Map persona IDs to module IDs in ModuleBuilder
-const personaModuleMapping: Record<string, string[]> = {
-  creator: ["studio", "clips", "mypage", "monetize", "email"],
-  podcaster: ["studio", "podcast", "rss", "clips", "mypage"],
-  speaker: ["meetings", "events", "studio", "mypage", "email"],
-  business: ["crm", "meetings", "email", "sms", "events"],
-  community: ["crm", "email", "events", "mypage", "sms"],
-  agency: ["crm", "email", "events", "sms", "monetize"],
-};
 
 const DEFAULT_CREATOR_LANDING = '/my-day';
 
@@ -89,40 +76,21 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const handlePersonaSelect = (personaId: string) => {
-    const modules = personaModuleMapping[personaId] || ["studio", "clips", "mypage"];
-    
-    // Scroll to module builder
-    moduleBuilderRef.current?.scrollIntoView();
-    
-    // Set the preset modules
-    moduleBuilderRef.current?.setModules(modules);
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <TopNavigation />
       <main>
-        {/* New Hero - Connection focused */}
-        <HeroSectionNew />
+        {/* AI Prompt Hero */}
+        <AIPromptHero />
         
-        {/* Who Are You? Persona Selector */}
-        <PersonaSelector onSelect={handlePersonaSelect} />
+        {/* Platform Pillars - Create, Connect, Monetize */}
+        <PlatformPillars />
+        
+        {/* Vertical Feature Tabs */}
+        <VerticalFeatureTabs />
         
         {/* Build Your Own Platform - Module Builder */}
         <ModuleBuilder ref={moduleBuilderRef} />
-        
-        {/* Stats & Social Proof */}
-        <GlobalStatsSection />
-        
-        {/* Feature Showcase */}
-        <FeatureShowcasePremium />
-        
-        {/* Testimonials */}
-        <TestimonialsSection />
-        
-        {/* FAQ */}
-        <FAQSection />
         
         {/* Final CTA */}
         <CTASection onGetFreeReport={openLeadMagnet} />

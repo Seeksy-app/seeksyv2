@@ -1,0 +1,196 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Shuffle, Sparkles, ArrowRight, Coins } from "lucide-react";
+
+const suggestionPrompts = [
+  "Send my podcast guest an invite and schedule a recording...",
+  "Create clips from my latest episode and post to social...",
+  "Track my audience growth and send a newsletter update...",
+  "Set up a meeting link and share it with my community...",
+  "Build a landing page for my upcoming live event...",
+  "Record a video episode with my co-host remotely...",
+  "Manage my sponsor relationships and track ad revenue...",
+  "Send SMS reminders to my event attendees...",
+];
+
+const promptToModules: Record<string, string[]> = {
+  "Send my podcast guest an invite and schedule a recording...": ["meetings", "studio", "email"],
+  "Create clips from my latest episode and post to social...": ["clips", "studio", "mypage"],
+  "Track my audience growth and send a newsletter update...": ["crm", "email", "newsletter"],
+  "Set up a meeting link and share it with my community...": ["meetings", "mypage", "email"],
+  "Build a landing page for my upcoming live event...": ["mypage", "events", "email"],
+  "Record a video episode with my co-host remotely...": ["studio", "meetings", "podcast"],
+  "Manage my sponsor relationships and track ad revenue...": ["crm", "monetize", "email"],
+  "Send SMS reminders to my event attendees...": ["sms", "events", "crm"],
+};
+
+export function AIPromptHero() {
+  const navigate = useNavigate();
+  const [currentPrompt, setCurrentPrompt] = useState(suggestionPrompts[0]);
+  const [displayText, setDisplayText] = useState("");
+  const [isTyping, setIsTyping] = useState(true);
+  const [promptIndex, setPromptIndex] = useState(0);
+
+  // Typewriter effect
+  useEffect(() => {
+    if (isTyping) {
+      if (displayText.length < currentPrompt.length) {
+        const timeout = setTimeout(() => {
+          setDisplayText(currentPrompt.slice(0, displayText.length + 1));
+        }, 35);
+        return () => clearTimeout(timeout);
+      } else {
+        // Pause at end
+        const timeout = setTimeout(() => {
+          setIsTyping(false);
+        }, 2000);
+        return () => clearTimeout(timeout);
+      }
+    }
+  }, [displayText, currentPrompt, isTyping]);
+
+  const shufflePrompt = () => {
+    const nextIndex = (promptIndex + 1) % suggestionPrompts.length;
+    setPromptIndex(nextIndex);
+    setCurrentPrompt(suggestionPrompts[nextIndex]);
+    setDisplayText("");
+    setIsTyping(true);
+  };
+
+  const handleTryNow = () => {
+    // Could pass selected modules to onboarding
+    navigate("/auth?mode=signup");
+  };
+
+  const suggestedModules = promptToModules[currentPrompt] || [];
+
+  return (
+    <section className="relative min-h-[90vh] flex flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-muted/30 to-background pt-24 pb-16">
+      <div className="container relative z-10 mx-auto px-4 text-center">
+        {/* Main Headline */}
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-4xl md:text-5xl lg:text-6xl font-black mb-4 leading-[1.1] tracking-tight text-foreground"
+        >
+          From idea to workflow
+          <br />
+          <span className="bg-gradient-to-r from-primary via-amber-500 to-primary bg-clip-text text-transparent">
+            in an instant
+          </span>
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto"
+        >
+          Build with AI that understands creators
+        </motion.p>
+
+        {/* AI Prompt Box */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.2 }}
+          className="max-w-3xl mx-auto"
+        >
+          <div className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden">
+            {/* Prompt Display Area */}
+            <div className="p-6 md:p-8 min-h-[140px] flex items-start">
+              <p className="text-xl md:text-2xl text-left text-foreground font-medium leading-relaxed">
+                {displayText}
+                <span className="inline-block w-0.5 h-6 bg-primary ml-1 animate-pulse" />
+              </p>
+            </div>
+
+            {/* Suggested Modules Pills */}
+            <AnimatePresence mode="wait">
+              {suggestedModules.length > 0 && (
+                <motion.div
+                  key={currentPrompt}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="px-6 md:px-8 pb-4"
+                >
+                  <p className="text-xs text-muted-foreground mb-2">Suggested modules:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {suggestedModules.map((moduleId) => (
+                      <span
+                        key={moduleId}
+                        className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium border border-primary/20"
+                      >
+                        {moduleId.charAt(0).toUpperCase() + moduleId.slice(1)}
+                      </span>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Action Bar */}
+            <div className="flex items-center justify-between px-6 md:px-8 py-4 border-t border-border bg-muted/30">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={shufflePrompt}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <Shuffle className="h-4 w-4 mr-2" />
+                New Suggestion
+              </Button>
+
+              <Button
+                onClick={handleTryNow}
+                className="bg-foreground hover:bg-foreground/90 text-background font-semibold px-6"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                Try it now
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Credits Mention */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="mt-8 flex items-center justify-center gap-2 text-muted-foreground"
+        >
+          <Coins className="h-4 w-4" />
+          <span className="text-sm">Pay only for what you use • Start free with 100 credits</span>
+        </motion.div>
+      </div>
+
+      {/* Decorative dots */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(6)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-2 h-2 rounded-full bg-primary/20"
+            style={{
+              left: `${15 + i * 15}%`,
+              top: `${20 + (i % 3) * 25}%`,
+            }}
+            animate={{
+              y: [0, -10, 0],
+              opacity: [0.3, 0.6, 0.3],
+            }}
+            transition={{
+              duration: 3,
+              delay: i * 0.3,
+              repeat: Infinity,
+            }}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
