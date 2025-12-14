@@ -127,12 +127,23 @@ serve(async (req) => {
     const zip = new PizZip(templateArray);
     
     // Create docxtemplater instance with square bracket delimiters
+    // and nullGetter to prevent undefined values from appearing
     const doc = new Docxtemplater(zip, {
       paragraphLoop: true,
       linebreaks: true,
       delimiters: {
         start: "[",
         end: "]"
+      },
+      // Handle any undefined placeholders gracefully - keep original text or show empty
+      nullGetter: function(part: any) {
+        // If the tag isn't found in data, keep the original placeholder text
+        // This prevents "undefined" from appearing in the document
+        if (!part.module) {
+          // Return the original tag so user can see which placeholder wasn't replaced
+          return `[${part.value}]`;
+        }
+        return "";
       }
     });
 
