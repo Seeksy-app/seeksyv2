@@ -27,8 +27,8 @@ const featureTabs: FeatureTab[] = [
     subtitle: "Studio",
     description: "Record, edit, and publish professional podcasts with our browser-based studio. Invite guests remotely, auto-generate transcripts, and distribute to all major platforms with one click.",
     image: podcastingImg,
-    bgColor: "bg-amber-100",
-    textColor: "text-amber-900",
+    bgColor: "bg-[#f5d5c8]", // Peach/salmon
+    textColor: "text-[#1a1a1a]",
   },
   {
     id: "meetings",
@@ -36,8 +36,8 @@ const featureTabs: FeatureTab[] = [
     subtitle: "Meetings",
     description: "Schedule and host video meetings with your team, guests, or clients. Integrated calendar, automatic recordings, and AI-powered meeting summaries to keep everyone on the same page.",
     image: meetingsImg,
-    bgColor: "bg-sky-100",
-    textColor: "text-sky-900",
+    bgColor: "bg-[#c8d9c5]", // Sage green
+    textColor: "text-[#1a1a1a]",
   },
   {
     id: "post-production",
@@ -45,8 +45,8 @@ const featureTabs: FeatureTab[] = [
     subtitle: "Production",
     description: "Transform raw recordings into polished content with AI-powered editing. Auto-remove filler words, enhance audio quality, add captions, and create clips optimized for every platform.",
     image: postProductionImg,
-    bgColor: "bg-slate-200",
-    textColor: "text-slate-900",
+    bgColor: "bg-[#bdd4e7]", // Light blue
+    textColor: "text-[#1a1a1a]",
   },
   {
     id: "live-streaming",
@@ -54,8 +54,8 @@ const featureTabs: FeatureTab[] = [
     subtitle: "Streaming",
     description: "Go live to multiple platforms simultaneously. Professional overlays, guest management, and real-time engagement tools to build your audience and monetize your content.",
     image: liveStreamingImg,
-    bgColor: "bg-emerald-100",
-    textColor: "text-emerald-900",
+    bgColor: "bg-[#e8dcc8]", // Cream/beige
+    textColor: "text-[#1a1a1a]",
   },
   {
     id: "audience-crm",
@@ -63,8 +63,8 @@ const featureTabs: FeatureTab[] = [
     subtitle: "& CRM",
     description: "Grow and understand your audience with powerful analytics and CRM tools. Track subscribers, segment your community, and send targeted newsletters to drive engagement.",
     image: audienceCrmImg,
-    bgColor: "bg-violet-100",
-    textColor: "text-violet-900",
+    bgColor: "bg-[#1a1a1a]", // Black
+    textColor: "text-white",
   },
 ];
 
@@ -82,7 +82,7 @@ export function SlidingFeatureTabs() {
         </p>
       </div>
 
-      <div className="relative h-[500px] md:h-[550px] lg:h-[600px] flex">
+      <div className="relative h-[600px] md:h-[700px] lg:h-[750px] flex mx-4 lg:mx-8">
         {featureTabs.map((tab, index) => {
           const isActive = activeTab === index;
           const isPast = index < activeTab;
