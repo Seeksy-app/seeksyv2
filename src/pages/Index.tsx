@@ -10,6 +10,7 @@ import { BuildWorkspaceSection } from "@/components/homepage/BuildWorkspaceSecti
 import { PlatformPillars } from "@/components/homepage/PlatformPillars";
 import { VerticalFeatureTabs } from "@/components/homepage/VerticalFeatureTabs";
 import { ModuleBuilder, ModuleBuilderHandle } from "@/components/homepage/ModuleBuilder";
+import { ModuleHeroShowcase } from "@/components/homepage/ModuleHeroShowcase";
 import { CTASection } from "@/components/homepage/CTASection";
 import { FooterSection } from "@/components/homepage/FooterSection";
 import { LeadMagnetModal, useLeadMagnetPopup } from "@/components/lead-magnet";
@@ -87,6 +88,9 @@ const Index = () => {
         
         {/* Sliding Feature Tabs - Podcasting, Meetings, Post-Production, etc. */}
         <SlidingFeatureTabs />
+        
+        {/* Module Hero Showcase - Obvious.ly style */}
+        <ModuleHeroShowcase />
         
         {/* Build Your Own Workspace */}
         <BuildWorkspaceSection />
