@@ -57,18 +57,19 @@ export function ModuleHeroShowcase() {
 
   return (
     <section className="w-full px-4 py-24 md:py-32">
-      {/* Single container - 32px radius, no overflow hidden so tabs can be seen */}
+      {/* Single container - fixed height, everything contained */}
       <div
-        className="mx-auto max-w-[1200px] rounded-[32px] overflow-hidden"
+        className="mx-auto max-w-[1200px] rounded-[32px] overflow-hidden flex"
         style={{
           background: "#E8D5CB",
+          height: "520px",
         }}
       >
-        {/* Desktop Layout - Single row, everything inside */}
-        <div className="hidden md:flex">
+        {/* Desktop Layout */}
+        <div className="hidden md:flex w-full h-full">
           {/* Left: Text Block */}
-          <div className="flex-shrink-0 w-[380px] p-12 flex flex-col justify-between">
-            <div className="flex flex-col gap-6">
+          <div className="flex-shrink-0 w-[340px] p-10 flex flex-col justify-between h-full">
+            <div className="flex flex-col gap-5">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeModule.key + "-text"}
@@ -76,26 +77,27 @@ export function ModuleHeroShowcase() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.25, ease: "easeOut" }}
-                  className="flex flex-col gap-6"
+                  className="flex flex-col gap-5"
                 >
-                  {/* Mixed-weight headline like "Share of Influence" */}
+                  {/* Mixed-weight headline */}
                   <h2
                     className="tracking-[-0.02em]"
                     style={{
-                      fontSize: "48px",
+                      fontSize: "44px",
                       lineHeight: 1.1,
                       color: "#0B0F1A",
                     }}
                   >
-                    <span className="font-normal">{activeModule.titleLight}</span>{" "}
+                    <span className="font-normal">{activeModule.titleLight}</span>
+                    <br />
                     <span className="font-black underline decoration-2 underline-offset-4">{activeModule.titleBold}</span>
                   </h2>
                   <p
                     style={{
                       fontSize: "15px",
                       lineHeight: 1.65,
-                      color: "rgba(11, 15, 26, 0.75)",
-                      maxWidth: "340px",
+                      color: "rgba(11, 15, 26, 0.7)",
+                      maxWidth: "320px",
                     }}
                   >
                     {activeModule.description}
@@ -104,9 +106,9 @@ export function ModuleHeroShowcase() {
               </AnimatePresence>
             </div>
 
-            {/* CTA - Restrained pill at bottom */}
+            {/* CTA */}
             <button
-              className="group w-fit flex items-center gap-2 px-6 py-3 rounded-full text-sm font-medium transition-all duration-[140ms] ease-out mt-8"
+              className="group w-fit flex items-center gap-2 px-6 py-3 rounded-full text-sm font-medium transition-all duration-[140ms] ease-out"
               style={{
                 background: "#0A0A0A",
                 color: "#FFFFFF",
@@ -117,8 +119,8 @@ export function ModuleHeroShowcase() {
             </button>
           </div>
 
-          {/* Center: Image - Fills container height */}
-          <div className="flex-1 relative">
+          {/* Center: Image - Fills full height */}
+          <div className="flex-1 relative h-full">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeModule.key + "-image"}
@@ -126,33 +128,31 @@ export function ModuleHeroShowcase() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className="absolute inset-0"
+                className="absolute inset-0 p-4 pr-0"
               >
-                <img
-                  src={activeModule.imageUrl}
-                  alt={activeModule.titleLight + " " + activeModule.titleBold}
-                  className="w-full h-full object-cover rounded-[16px]"
-                  style={{
-                    minHeight: "480px",
-                  }}
-                />
-                {/* Creator tag overlay */}
-                <div 
-                  className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-xs font-medium"
-                  style={{
-                    background: "rgba(0,0,0,0.5)",
-                    color: "#FFFFFF",
-                    backdropFilter: "blur(8px)",
-                  }}
-                >
-                  @seeksy
+                <div className="relative w-full h-full rounded-[20px] overflow-hidden">
+                  <img
+                    src={activeModule.imageUrl}
+                    alt={activeModule.titleLight + " " + activeModule.titleBold}
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Creator tag */}
+                  <div 
+                    className="absolute bottom-4 left-4 px-4 py-1.5 rounded-md text-sm font-medium"
+                    style={{
+                      background: "rgba(255,255,255,0.9)",
+                      color: "#0B0F1A",
+                    }}
+                  >
+                    @seeksy
+                  </div>
                 </div>
               </motion.div>
             </AnimatePresence>
           </div>
 
-          {/* Right: Vertical Tabs - Full height, inside container */}
-          <div className="flex-shrink-0 flex">
+          {/* Right: Vertical Tabs - Full height, larger text */}
+          <div className="flex-shrink-0 flex h-full">
             {modules.map((module, index) => {
               const isActive = module.key === activeKey;
               
@@ -160,21 +160,22 @@ export function ModuleHeroShowcase() {
                 <button
                   key={module.key}
                   onClick={() => setActiveKey(module.key)}
-                  className="relative cursor-pointer transition-all duration-200 hover:opacity-95"
+                  className="relative cursor-pointer transition-all duration-200 hover:opacity-95 h-full"
                   style={{
-                    width: isActive ? "72px" : "56px",
+                    width: isActive ? "80px" : "64px",
                     background: isActive ? "#0A0A0A" : module.ribbonBg,
-                    marginLeft: index === 0 ? 0 : "-3px",
+                    marginLeft: index === 0 ? 0 : "-2px",
                     zIndex: isActive ? 10 : (5 - index),
+                    borderRadius: index === modules.length - 1 ? "0 32px 32px 0" : "0",
                   }}
                 >
                   <span
                     className="absolute top-1/2 left-1/2 whitespace-nowrap"
                     style={{
-                      fontSize: "13px",
-                      letterSpacing: "0.02em",
+                      fontSize: "18px",
+                      letterSpacing: "0.01em",
                       color: isActive ? "#FFFFFF" : "rgba(11, 15, 26, 0.85)",
-                      fontWeight: isActive ? 600 : 500,
+                      fontWeight: isActive ? 700 : 500,
                       transform: "translate(-50%, -50%) rotate(-90deg)",
                     }}
                   >
@@ -187,7 +188,7 @@ export function ModuleHeroShowcase() {
         </div>
 
         {/* Mobile Layout */}
-        <div className="md:hidden p-6 flex flex-col gap-6">
+        <div className="md:hidden w-full p-6 flex flex-col gap-6 overflow-y-auto">
           {/* Text Block */}
           <AnimatePresence mode="wait">
             <motion.div
@@ -201,7 +202,7 @@ export function ModuleHeroShowcase() {
               <h2
                 className="tracking-[-0.02em]"
                 style={{
-                  fontSize: "36px",
+                  fontSize: "32px",
                   lineHeight: 1.1,
                   color: "#0B0F1A",
                 }}
@@ -213,7 +214,7 @@ export function ModuleHeroShowcase() {
                 style={{
                   fontSize: "15px",
                   lineHeight: 1.6,
-                  color: "rgba(11, 15, 26, 0.75)",
+                  color: "rgba(11, 15, 26, 0.7)",
                 }}
               >
                 {activeModule.description}
