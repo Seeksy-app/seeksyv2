@@ -52,6 +52,15 @@ interface PendingInvestment {
     totalAmount?: string | number;
     numberOfShares?: number;
     pricePerShare?: number;
+    // Tiered pricing breakdown
+    mainShares?: number;
+    addonShares?: number;
+    addonAmount?: number;
+    addonPricePerShare?: number;
+    tier1Shares?: number;
+    tier1Price?: number;
+    tier2Shares?: number;
+    tier2Price?: number;
   };
   created_at: string;
   signwell_status?: string;
@@ -550,6 +559,14 @@ export default function PendingInvestments() {
         `${fieldValues.purchaser_street}, ${fieldValues.purchaser_city}, ${fieldValues.purchaser_state} ${fieldValues.purchaser_zip}`;
       const numberOfShares = computedValues.numberOfShares || parseInt(fieldValues.numberOfShares || "0");
       const pricePerShare = computedValues.pricePerShare || parseFloat(fieldValues.pricePerShare || "0.20");
+      
+      // Extract tier breakdown for dynamic purchase summary
+      const tier1Shares = computedValues.tier1Shares || computedValues.mainShares || numberOfShares;
+      const tier1Price = computedValues.tier1Price || pricePerShare;
+      const tier2Shares = computedValues.tier2Shares || 0;
+      const tier2Price = computedValues.tier2Price || pricePerShare;
+      const addonShares = computedValues.addonShares || 0;
+      const addonPrice = computedValues.addonPricePerShare || pricePerShare;
 
       // Generate the document using template
       const { data: docData, error: docError } = await supabase.functions.invoke(
@@ -568,6 +585,14 @@ export default function PendingInvestments() {
             companyName: "Seeksy, Inc.",
             numberOfShares,
             pricePerShare,
+            // Pass tier breakdown for PURCHASE_BREAKDOWN placeholder
+            tier1Shares,
+            tier1Price,
+            tier2Shares,
+            tier2Price,
+            addonShares,
+            addonPrice,
+            purchaseAmount: typeof computedValues.totalAmount === 'string' ? parseFloat(computedValues.totalAmount) : (computedValues.totalAmount || numberOfShares * pricePerShare),
             agreementDate: new Date().toLocaleDateString("en-US", {
               month: "long",
               day: "numeric",

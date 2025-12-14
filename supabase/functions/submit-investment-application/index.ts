@@ -18,6 +18,16 @@ interface InvestmentApplication {
   totalAmount: number;
   investmentMode: "shares" | "amount";
   investorCertification?: string;
+  // Tiered pricing breakdown
+  mainShares?: number;
+  addonShares?: number;
+  addonAmount?: number;
+  addonPricePerShare?: number;
+  // Tier 2 pricing if applicable
+  tier1Shares?: number;
+  tier1Price?: number;
+  tier2Shares?: number;
+  tier2Price?: number;
 }
 
 serve(async (req) => {
@@ -33,9 +43,14 @@ serve(async (req) => {
     );
 
     const body: InvestmentApplication = await req.json();
-    const { name, email, street, city, state, zip, numberOfShares, pricePerShare, totalAmount, investorCertification } = body;
+    const { 
+      name, email, street, city, state, zip, 
+      numberOfShares, pricePerShare, totalAmount, investorCertification,
+      mainShares, addonShares, addonAmount, addonPricePerShare,
+      tier1Shares, tier1Price, tier2Shares, tier2Price
+    } = body;
 
-    console.log("Received investment application:", { name, email, numberOfShares, totalAmount });
+    console.log("Received investment application:", { name, email, numberOfShares, totalAmount, mainShares, addonShares });
 
     // Basic validation
     if (!name || !email || !street || !city || !state || !zip) {
@@ -90,7 +105,17 @@ serve(async (req) => {
           totalAmount: totalAmount.toFixed(2),
           numberOfShares: numberOfShares,
           pricePerShare: pricePerShare,
+          // Store tier breakdown for document generation
+          mainShares: mainShares || numberOfShares,
+          addonShares: addonShares || 0,
+          addonAmount: addonAmount || 0,
+          addonPricePerShare: addonPricePerShare || null,
+          tier1Shares: tier1Shares || mainShares || numberOfShares,
+          tier1Price: tier1Price || pricePerShare,
+          tier2Shares: tier2Shares || 0,
+          tier2Price: tier2Price || null,
         },
+        addon_amount: addonAmount || 0,
       })
       .select()
       .single();

@@ -26,6 +26,13 @@ interface RequestBody {
   purchaseAmount?: number; // Pre-calculated total (for add-on pricing)
   agreementDate?: string;
   investorCertification?: string;
+  // Tiered pricing breakdown for dynamic purchase summary
+  tier1Shares?: number;
+  tier1Price?: number;
+  tier2Shares?: number;
+  tier2Price?: number;
+  addonShares?: number;
+  addonPrice?: number;
   // Checkbox markers for investor certification
   certNetWorth?: string;
   certIncome?: string;
@@ -100,6 +107,45 @@ serve(async (req) => {
     const purchaseAmountFromBody = body.purchaseAmount;
     const totalAmount = purchaseAmountFromBody ? purchaseAmountFromBody : (numberOfShares * pricePerShare);
     const sharesInWords = numberToWords(numberOfShares);
+
+    // Extract tier pricing details
+    const tier1Shares = body.tier1Shares || 0;
+    const tier1Price = body.tier1Price || pricePerShare;
+    const tier2Shares = body.tier2Shares || 0;
+    const tier2Price = body.tier2Price || pricePerShare;
+    const addonShares = body.addonShares || 0;
+    const addonPrice = body.addonPrice || pricePerShare;
+
+    // Generate dynamic purchase breakdown text
+    // Example: "at a purchase price(s) of $0.20 (40,000 shares) and $0.25 (5,000 shares) (or an aggregate of $11,000.00)"
+    const buildPurchaseBreakdown = () => {
+      const parts: string[] = [];
+      
+      if (tier1Shares > 0) {
+        parts.push(`$${tier1Price.toFixed(2)} (${tier1Shares.toLocaleString()} shares)`);
+      }
+      if (tier2Shares > 0) {
+        parts.push(`$${tier2Price.toFixed(2)} (${tier2Shares.toLocaleString()} shares)`);
+      }
+      if (addonShares > 0) {
+        parts.push(`$${addonPrice.toFixed(2)} (${addonShares.toLocaleString()} add-on shares)`);
+      }
+      
+      // If no tiered pricing, use single price
+      if (parts.length === 0) {
+        return `at a purchase price of $${pricePerShare.toFixed(2)} per share (or an aggregate of $${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`;
+      }
+      
+      // Format: "at a purchase price(s) of X and Y (or an aggregate of $Z)"
+      const priceText = parts.length > 1 
+        ? `at a purchase price(s) of ${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`
+        : `at a purchase price of ${parts[0]}`;
+      
+      return `${priceText} (or an aggregate of $${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`;
+    };
+
+    const purchaseBreakdown = buildPurchaseBreakdown();
+    console.log("Purchase breakdown text:", purchaseBreakdown);
 
     // Download template from storage
     const { data: templateBlob, error: downloadError } = await supabase.storage
@@ -180,6 +226,7 @@ serve(async (req) => {
       PRICE_PER_SHARE: pricePerShare.toFixed(2),
       PURCHASE_AMOUNT: totalAmount.toFixed(2),
       TOTAL_AMOUNT: totalAmount.toFixed(2),
+      PURCHASE_BREAKDOWN: purchaseBreakdown,
       AGREEMENT_DATE: formattedDate,
       DATE: formattedDate,
       
