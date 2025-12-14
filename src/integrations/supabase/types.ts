@@ -23297,6 +23297,63 @@ export type Database = {
           },
         ]
       }
+      subscriber_list_members: {
+        Row: {
+          created_at: string
+          id: string
+          list_id: string
+          subscriber_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          list_id: string
+          subscriber_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          list_id?: string
+          subscriber_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriber_list_members_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "subscriber_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriber_list_members_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriber_lists: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean | null
