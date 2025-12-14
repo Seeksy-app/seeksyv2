@@ -68,12 +68,11 @@ serve(async (req) => {
         id: r.id,
         email: r.email,
         name: r.name,
-        placeholder_name: r.id, // Must match text tag: seller, purchaser, chairman
-        signing_order: index + 1, // Sequential: Seller=1, Purchaser=2, Chairman=3
-        // Note: Do NOT include send_email for non-embedded signing - emails are sent via /send/ endpoint
+        signing_order: index + 1, // Sequential: 1=first recipient, 2=second, 3=third
+        // Note: Do NOT include send_email or placeholder_name for non-embedded signing with numeric text tags
+        // Text tags use {{s:N}} format where N matches signing_order
       })),
-      // Use text tags for signature placement instead of auto signature page
-      // Document must contain: [[s|seller]], [[s|purchaser]], [[s|chairman]]
+      // Use text tags for signature placement - document must contain {{s:1}}, {{s:2}}, {{s:3}}
       text_tags: true,
       apply_signing_order: true, // Enforce sequential signing
       custom_requester_name: sellerName || "Seeksy Legal",
