@@ -173,20 +173,38 @@ serve(async (req) => {
     const zip = new PizZip(templateArray);
     
     // Pre-process: protect SignWell text tags from docxtemplater parsing
-    // The tags may be split across XML elements like [[s|se</w:t></w:r><w:r><w:t>ller]]
-    // So we need to find and consolidate them first
+    // SignWell tags like [[s|seller]] get split by Word across XML elements:
+    // [[s|se</w:t></w:r><w:r><w:t>ller]] or even more fragmented
+    // We need to find these patterns and replace them with safe placeholders
+    
     const protectSignWellTags = (content: string): string => {
-      // First, try to consolidate split tags by removing XML tags between [[ and ]]
-      // Match opening [[ followed by any content (including XML tags) until ]]
-      const consolidatePattern = /\[\[s\|([^\]]*(?:<[^>]*>[^\]]*)*)\]\]/g;
+      // Known SignWell tag names we expect in the document
+      const signwellTags = ['seller', 'purchaser', 'chairman'];
       
-      content = content.replace(consolidatePattern, (match, inner) => {
-        // Remove XML tags from the inner content to get the clean tag name
-        const cleanInner = inner.replace(/<[^>]*>/g, '');
-        return `__SIGNWELL_S_${cleanInner}__`;
-      });
+      for (const tagName of signwellTags) {
+        // Build a pattern that matches [[s|tagname]] with potential XML fragments anywhere
+        // The characters of "[[s|" + tagName + "]]" may be split across XML tags
+        const chars = `[[s|${tagName}]]`.split('');
+        
+        // Build regex pattern that allows optional XML tags between each character
+        // Pattern: \[ followed by optional XML, then [ followed by optional XML, etc.
+        const xmlTagPattern = '(?:<[^>]*>)*';
+        const escapedChars = chars.map(c => {
+          // Escape special regex characters
+          if (['[', ']', '|'].includes(c)) {
+            return '\\' + c;
+          }
+          return c;
+        });
+        
+        // Join with pattern that allows XML tags between characters
+        const fullPattern = escapedChars.join(xmlTagPattern);
+        const regex = new RegExp(fullPattern, 'gi');
+        
+        content = content.replace(regex, `__SIGNWELL_S_${tagName}__`);
+      }
       
-      // Also handle simpler cases where the tag isn't split
+      // Also catch any clean tags that might exist
       content = content.replace(/\[\[s\|([a-zA-Z_]+)\]\]/g, '__SIGNWELL_S_$1__');
       
       return content;
@@ -194,7 +212,6 @@ serve(async (req) => {
     
     // Post-process: restore SignWell text tags
     const restoreSignWellTags = (content: string): string => {
-      // Restore SignWell signature tags: __SIGNWELL_S_xxx__ -> [[s|xxx]]
       return content.replace(/__SIGNWELL_S_([a-zA-Z_]+)__/g, '[[s|$1]]');
     };
     
@@ -202,7 +219,10 @@ serve(async (req) => {
     const docXml = zip.files["word/document.xml"];
     if (docXml) {
       let content = docXml.asText();
+      console.log("Pre-processing document.xml for SignWell tags...");
+      const originalLength = content.length;
       content = protectSignWellTags(content);
+      console.log(`Pre-processing complete. Length changed: ${originalLength !== content.length}`);
       zip.file("word/document.xml", content);
     }
     
