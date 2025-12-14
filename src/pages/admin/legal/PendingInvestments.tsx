@@ -103,7 +103,15 @@ export default function PendingInvestments() {
   const [selectedInvestment, setSelectedInvestment] = useState<PendingInvestment | null>(null);
   const [sendingSignature, setSendingSignature] = useState(false);
   const [showApproveModal, setShowApproveModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [activeTab, setActiveTab] = useState("applications");
+  
+  // Edit modal state
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editShares, setEditShares] = useState("");
+  const [editPPS, setEditPPS] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
   
   // Settings state
   const [allSettings, setAllSettings] = useState<InvestorSettings[]>([]);
@@ -474,6 +482,56 @@ export default function PendingInvestments() {
     setShowApproveModal(true);
   };
 
+  const handleEdit = (investment: PendingInvestment) => {
+    setSelectedInvestment(investment);
+    setEditName(investment.recipient_name || investment.field_values_json.purchaser_name || "");
+    setEditEmail(investment.purchaser_email || investment.field_values_json.purchaser_email || "");
+    setEditShares(String(investment.computed_values_json.numberOfShares || investment.field_values_json.numberOfShares || ""));
+    setEditPPS(String(investment.computed_values_json.pricePerShare || investment.field_values_json.pricePerShare || "0.20"));
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedInvestment) return;
+    setSavingEdit(true);
+    try {
+      const numberOfShares = parseInt(editShares) || 0;
+      const pricePerShare = parseFloat(editPPS) || 0.20;
+      const totalAmount = numberOfShares * pricePerShare;
+
+      const { error } = await supabase
+        .from("legal_doc_instances")
+        .update({
+          recipient_name: editName,
+          purchaser_email: editEmail,
+          field_values_json: {
+            ...selectedInvestment.field_values_json,
+            purchaser_name: editName,
+            purchaser_email: editEmail,
+            numberOfShares: String(numberOfShares),
+            pricePerShare: String(pricePerShare),
+          },
+          computed_values_json: {
+            ...selectedInvestment.computed_values_json,
+            numberOfShares,
+            pricePerShare,
+            totalAmount,
+          },
+        })
+        .eq("id", selectedInvestment.id);
+
+      if (error) throw error;
+      toast.success("Application updated");
+      setShowEditModal(false);
+      fetchInvestments();
+    } catch (err: any) {
+      console.error("Error updating application:", err);
+      toast.error(err.message || "Failed to update application");
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
   const handleSendForSignature = async () => {
     if (!selectedInvestment) return;
     if (!sellerEmail || !chairmanEmail) {
@@ -768,7 +826,7 @@ export default function PendingInvestments() {
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  onClick={() => setSelectedInvestment(inv)}
+                                  onClick={() => handleEdit(inv)}
                                   title="Edit application"
                                 >
                                   <Pencil className="h-4 w-4" />
@@ -1462,6 +1520,89 @@ export default function PendingInvestments() {
             <Button onClick={createNewApplication}>
               <Plus className="mr-2 h-4 w-4" />
               Create Application
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Application Modal */}
+      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Application</DialogTitle>
+            <DialogDescription>
+              Update the investor details for this draft application
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="editName">Investor Name *</Label>
+              <Input
+                id="editName"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="John Doe"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editEmail">Investor Email *</Label>
+              <Input
+                id="editEmail"
+                type="email"
+                value={editEmail}
+                onChange={(e) => setEditEmail(e.target.value)}
+                placeholder="investor@example.com"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="editShares">Number of Shares</Label>
+                <Input
+                  id="editShares"
+                  type="number"
+                  value={editShares}
+                  onChange={(e) => setEditShares(e.target.value)}
+                  placeholder="50000"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="editPPS">Price Per Share ($)</Label>
+                <Input
+                  id="editPPS"
+                  type="number"
+                  step="0.01"
+                  value={editPPS}
+                  onChange={(e) => setEditPPS(e.target.value)}
+                  placeholder="0.20"
+                />
+              </div>
+            </div>
+            {editShares && editPPS && (
+              <div className="rounded-lg bg-muted p-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Total Amount:</span>
+                  <span className="font-semibold">
+                    ${(parseInt(editShares) * parseFloat(editPPS)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit} disabled={savingEdit || !editName || !editEmail}>
+              {savingEdit ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
