@@ -105,17 +105,7 @@ export function TopNavBar() {
             </div>
             <span className="font-medium text-foreground">Board Portal</span>
           </div>
-        ) : (
-          // Creator context - show workspace selector
-          <div className="flex items-center gap-2 font-medium text-foreground">
-            <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center">
-              <span className="text-xs font-bold text-primary">
-                {teamName[0]?.toUpperCase()}
-              </span>
-            </div>
-            <span className="hidden sm:inline">{teamName}</span>
-          </div>
-        )}
+        ) : null}
 
         {/* Center: Global Search - Firecrawl has search in sidebar, we keep it in top bar */}
         <div className="flex-1 max-w-xl mx-4">
