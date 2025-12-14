@@ -72,16 +72,73 @@ export function ModuleHeroShowcase() {
   const [activeKey, setActiveKey] = useState("quick_turn");
   const activeModule = modules.find((m) => m.key === activeKey) || modules[0];
 
-  const leftTabs = modules.filter((m) => m.side === "left");
-  const rightTabs = modules.filter((m) => m.side === "right");
+  // When a tab is selected, it flips to the opposite side
+  // Left tabs (when active) move to become the rightmost active tab
+  // Right tabs (when active) move to become the leftmost active tab
+  const getTabsForSide = (side: "left" | "right") => {
+    const inactiveTabs = modules.filter((m) => m.key !== activeKey && m.side === side);
+    
+    if (side === "left") {
+      // If active module was originally on left, it's now on right - show remaining left tabs
+      // If active module was originally on right, it flips to left - show it plus remaining left tabs
+      if (activeModule.side === "right") {
+        return [activeModule, ...inactiveTabs];
+      }
+      return inactiveTabs;
+    } else {
+      // If active module was originally on right, it's now on left - show remaining right tabs
+      // If active module was originally on left, it flips to right - show it plus remaining right tabs
+      if (activeModule.side === "left") {
+        return [...inactiveTabs, activeModule];
+      }
+      return inactiveTabs;
+    }
+  };
+
+  const leftTabs = getTabsForSide("left");
+  const rightTabs = getTabsForSide("right");
+
+  const renderTab = (module: ModuleData, index: number, isFirst: boolean, isLast: boolean, totalTabs: number) => {
+    const isActive = module.key === activeKey;
+    
+    return (
+      <motion.button
+        key={module.key}
+        layoutId={module.key}
+        onClick={() => setActiveKey(module.key)}
+        className="relative cursor-pointer transition-colors duration-200 hover:opacity-95 h-full flex items-center justify-center"
+        style={{
+          width: isActive ? "90px" : "70px",
+          background: isActive ? "#0A0A0A" : module.ribbonBg,
+          zIndex: isActive ? 10 : (totalTabs - index),
+          borderRadius: isFirst ? "32px 0 0 32px" : isLast ? "0 32px 32px 0" : "0",
+        }}
+        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+      >
+        <span
+          className="whitespace-nowrap text-center leading-none"
+          style={{
+            fontSize: "32px",
+            letterSpacing: "-0.02em",
+            color: isActive ? "#FFFFFF" : "rgba(11, 15, 26, 0.85)",
+            transform: "rotate(-90deg)",
+            transformOrigin: "center center",
+          }}
+        >
+          <span style={{ fontWeight: 400 }}>{module.titleLight}</span>{" "}
+          <span style={{ fontWeight: 700 }}>{module.titleBold}</span>
+        </span>
+      </motion.button>
+    );
+  };
 
   return (
     <section className="w-full px-4 py-24 md:py-32">
-      {/* Single container - 30% larger height */}
+      {/* Single container */}
       <div
         className="mx-auto max-w-[1400px] rounded-[32px] overflow-hidden flex"
         style={{
-          background: activeModule.side === "left" ? "#C4CFC0" : "#C4CFC0",
+          background: "#C4CFC0",
           height: "830px",
         }}
       >
@@ -89,39 +146,9 @@ export function ModuleHeroShowcase() {
         <div className="hidden md:flex w-full h-full">
           {/* Left: Vertical Tabs */}
           <div className="flex-shrink-0 flex h-full">
-            {leftTabs.map((module, index) => {
-              const isActive = module.key === activeKey;
-              const isFirst = index === 0;
-              
-              return (
-                <button
-                  key={module.key}
-                  onClick={() => setActiveKey(module.key)}
-                  className="relative cursor-pointer transition-all duration-200 hover:opacity-95 h-full flex items-center justify-center"
-                  style={{
-                    width: isActive ? "80px" : "64px",
-                    background: isActive ? "#0A0A0A" : module.ribbonBg,
-                    zIndex: isActive ? 10 : (5 - index),
-                    borderRadius: isFirst ? "32px 0 0 32px" : "0",
-                  }}
-                >
-                  <span
-                    className="whitespace-nowrap text-center"
-                    style={{
-                      fontSize: "24px",
-                      letterSpacing: "-0.01em",
-                      color: isActive ? "#FFFFFF" : "rgba(11, 15, 26, 0.85)",
-                      fontWeight: isActive ? 700 : 400,
-                      transform: "rotate(-90deg)",
-                      transformOrigin: "center center",
-                    }}
-                  >
-                    <span style={{ fontWeight: 400 }}>{module.titleLight}</span>{" "}
-                    <span style={{ fontWeight: 700 }}>{module.titleBold}</span>
-                  </span>
-                </button>
-              );
-            })}
+            {leftTabs.map((module, index) => 
+              renderTab(module, index, index === 0, false, leftTabs.length)
+            )}
           </div>
 
           {/* Center: Text + Image */}
@@ -213,39 +240,9 @@ export function ModuleHeroShowcase() {
 
           {/* Right: Vertical Tabs */}
           <div className="flex-shrink-0 flex h-full">
-            {rightTabs.map((module, index) => {
-              const isActive = module.key === activeKey;
-              const isLast = index === rightTabs.length - 1;
-              
-              return (
-                <button
-                  key={module.key}
-                  onClick={() => setActiveKey(module.key)}
-                  className="relative cursor-pointer transition-all duration-200 hover:opacity-95 h-full flex items-center justify-center"
-                  style={{
-                    width: isActive ? "80px" : "64px",
-                    background: isActive ? "#0A0A0A" : module.ribbonBg,
-                    zIndex: isActive ? 10 : (5 - index),
-                    borderRadius: isLast ? "0 32px 32px 0" : "0",
-                  }}
-                >
-                  <span
-                    className="whitespace-nowrap text-center"
-                    style={{
-                      fontSize: "24px",
-                      letterSpacing: "-0.01em",
-                      color: isActive ? "#FFFFFF" : "rgba(11, 15, 26, 0.85)",
-                      fontWeight: isActive ? 700 : 400,
-                      transform: "rotate(-90deg)",
-                      transformOrigin: "center center",
-                    }}
-                  >
-                    <span style={{ fontWeight: 400 }}>{module.titleLight}</span>{" "}
-                    <span style={{ fontWeight: 700 }}>{module.titleBold}</span>
-                  </span>
-                </button>
-              );
-            })}
+            {rightTabs.map((module, index) => 
+              renderTab(module, index, false, index === rightTabs.length - 1, rightTabs.length)
+            )}
           </div>
         </div>
 
