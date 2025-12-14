@@ -4,15 +4,15 @@ import { Check, ArrowRight, Podcast, Video, Calendar, Mail, Users, BarChart3, Me
 import { Button } from "@/components/ui/button";
 
 const modules = [
-  { key: "podcast", label: "Podcast Studio", icon: Podcast, color: "bg-orange-500" },
-  { key: "video", label: "Video Recording", icon: Video, color: "bg-rose-500" },
-  { key: "meetings", label: "Meetings", icon: Calendar, color: "bg-blue-500" },
-  { key: "email", label: "Email & Newsletter", icon: Mail, color: "bg-emerald-500" },
-  { key: "crm", label: "CRM & Contacts", icon: Users, color: "bg-amber-500" },
-  { key: "analytics", label: "Analytics", icon: BarChart3, color: "bg-cyan-500" },
-  { key: "sms", label: "SMS Marketing", icon: MessageSquare, color: "bg-violet-500" },
-  { key: "blog", label: "Blog", icon: FileText, color: "bg-teal-500" },
-  { key: "monetization", label: "Monetization", icon: DollarSign, color: "bg-pink-500" },
+  { key: "podcast", label: "Podcast Studio", icon: Podcast, color: "bg-orange-600" },
+  { key: "video", label: "Video Recording", icon: Video, color: "bg-rose-600" },
+  { key: "meetings", label: "Meetings", icon: Calendar, color: "bg-blue-600" },
+  { key: "email", label: "Email & Newsletter", icon: Mail, color: "bg-emerald-600" },
+  { key: "crm", label: "CRM & Contacts", icon: Users, color: "bg-amber-600" },
+  { key: "analytics", label: "Analytics", icon: BarChart3, color: "bg-cyan-600" },
+  { key: "sms", label: "SMS Marketing", icon: MessageSquare, color: "bg-violet-600" },
+  { key: "blog", label: "Blog", icon: FileText, color: "bg-teal-600" },
+  { key: "monetization", label: "Monetization", icon: DollarSign, color: "bg-pink-600" },
 ];
 
 const workspaceTemplates = [
@@ -154,8 +154,8 @@ export default function WorkspaceBuilderShowcase() {
                           </motion.div>
                         )}
                       </AnimatePresence>
-                      <div className={`w-10 h-10 rounded-xl ${module.color} flex items-center justify-center mb-2`}>
-                        <Icon className="w-5 h-5 text-white" />
+                      <div className={`w-12 h-12 rounded-xl ${module.color} flex items-center justify-center mb-2 shadow-lg`}>
+                        <Icon className="w-6 h-6 text-white" strokeWidth={2.5} />
                       </div>
                       <p className="text-xs font-medium text-foreground truncate">{module.label}</p>
                     </motion.div>
@@ -181,8 +181,8 @@ export default function WorkspaceBuilderShowcase() {
                           transition={{ duration: 0.25 }}
                           className="flex items-center gap-3 p-2.5 bg-card rounded-xl"
                         >
-                          <div className={`w-8 h-8 rounded-lg ${module.color} flex items-center justify-center`}>
-                            <Icon className="w-4 h-4 text-white" />
+                          <div className={`w-10 h-10 rounded-lg ${module.color} flex items-center justify-center shadow-md`}>
+                            <Icon className="w-5 h-5 text-white" strokeWidth={2.5} />
                           </div>
                           <span className="text-sm font-medium text-foreground">{module.label}</span>
                         </motion.div>
