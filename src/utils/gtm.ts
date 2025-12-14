@@ -19,15 +19,17 @@ if (typeof window !== 'undefined') {
 let lastPagePath: string | null = null;
 
 /**
- * Push event to GTM data layer
+ * Push event to GTM data layer - THE SINGLE PATH FOR ALL TRACKING
+ * All tracking must go through this function. Never call dataLayer.push directly.
  */
-export const pushEvent = (eventName: string, eventData?: Record<string, unknown>) => {
+export const trackEvent = (eventName: string, eventData?: Record<string, unknown>) => {
   if (typeof window === 'undefined') return;
   
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push({
     event: eventName,
     timestamp: new Date().toISOString(),
+    page_path: window.location.pathname,
     ...eventData,
   });
   
@@ -36,6 +38,9 @@ export const pushEvent = (eventName: string, eventData?: Record<string, unknown>
     console.log(`[GTM] ${eventName}`, eventData);
   }
 };
+
+// Alias for backward compatibility
+export const pushEvent = trackEvent;
 
 /**
  * Get current page path
@@ -110,8 +115,7 @@ export const gtmEvents = {
   },
   
   subscriptionGateShown: (postId: string, postTitle: string) => {
-    pushEvent('subscription_gate_shown', { 
-      page_path: getPagePath(),
+    trackEvent('subscription_gate_shown', { 
       gate_threshold: 40,
       post_id: postId, 
       post_title: postTitle,
@@ -119,14 +123,9 @@ export const gtmEvents = {
     });
   },
   
-  subscriptionCompleted: (postId: string, postTitle: string, source: string) => {
-    pushEvent('subscription_completed', { 
-      page_path: getPagePath(),
-      gate_threshold: 40,
-      post_id: postId, 
-      post_title: postTitle, 
-      source 
-    });
+  // DEPRECATED: Use trackSubscriptionCompleted directly
+  subscriptionCompleted: (_postId: string, _postTitle: string, _source: string) => {
+    console.warn('[GTM] gtmEvents.subscriptionCompleted is deprecated. Use trackSubscriptionCompleted.');
   },
   
   readMoreClicked: (postId: string, postTitle: string, targetPostId: string) => {
@@ -184,7 +183,53 @@ export const createScrollTracker = (
  * Call this on route changes to fire page_view
  */
 export const trackRouteChange = (path: string, title?: string) => {
-  // Reset to allow new page view
   gtmEvents.resetPageTracking();
   gtmEvents.pageView({ page_path: path, page_title: title });
 };
+
+// ============================================
+// STANDARD EVENT HELPERS
+// GA4 Conversion: subscription_completed only
+// ============================================
+
+export const trackSubscriptionStarted = (payload: {
+  email_domain: string;
+  source: string;
+  cta_id: string;
+}) => trackEvent('subscription_started', payload);
+
+export const trackSubscriptionCompleted = (payload: {
+  email_domain: string;
+  source: string;
+  cta_id: string;
+  subscriber_id?: string;
+  tenant_id?: string;
+}) => trackEvent('subscription_completed', payload);
+
+export const trackSubscriptionError = (payload: {
+  email_domain: string;
+  source: string;
+  cta_id: string;
+  error_message: string;
+}) => trackEvent('subscription_error', payload);
+
+export const trackLoginSuccess = (method: string = 'email') => 
+  trackEvent('login_success', { method });
+
+export const trackLogout = () => 
+  trackEvent('logout', {});
+
+export const trackModuleOpened = (moduleName: string) => 
+  trackEvent('module_opened', { module_name: moduleName });
+
+export const trackCampaignSent = (campaignId: string, channel: string) => 
+  trackEvent('campaign_sent', { campaign_id: campaignId, channel });
+
+// Scroll 70% - fires once per page
+let scroll70Fired = false;
+export const trackScroll70 = () => {
+  if (scroll70Fired) return;
+  scroll70Fired = true;
+  trackEvent('scroll_70', { scroll_depth: 70 });
+};
+export const resetScroll70 = () => { scroll70Fired = false; };
