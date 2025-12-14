@@ -83,7 +83,6 @@ export function useNewsletterSubscribe() {
           tenant_id: response.data.tenant_id
         });
       }
-      gtmEvents.subscriptionCompleted?.('', '', source);
 
       return {
         success: true,
