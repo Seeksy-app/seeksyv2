@@ -105,10 +105,16 @@ export function HeroWorkspaceBuilder() {
         </button>
       </div>
 
-      {/* Module Grid */}
+      {/* Module Grid - Available Seekies */}
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+          Seekies
+        </p>
+      </div>
       <div ref={gridRef} className="grid grid-cols-3 gap-2 mb-5 relative">
         {modules.map((module) => {
           const isActive = currentTemplate.activeModules.includes(module.key);
+          const isInSidebar = sidebarModules.includes(module.key);
           const isAnimating = animatingModule === module.key;
           const Icon = module.icon;
           
@@ -118,8 +124,10 @@ export function HeroWorkspaceBuilder() {
               layout
               transition={{ type: "spring", stiffness: 500, damping: 35 }}
               className={`relative p-3 rounded-t-2xl rounded-b-xl border transition-all duration-200 ${
-                isActive 
-                  ? "bg-card border-primary/30 shadow-md" 
+                isActive && !isInSidebar
+                  ? "bg-card border-primary/30 shadow-md ring-2 ring-primary/20" 
+                  : isInSidebar
+                  ? "bg-muted/30 border-border/50 opacity-40"
                   : "bg-muted/30 border-border/50 opacity-50"
               }`}
               style={{
@@ -127,7 +135,7 @@ export function HeroWorkspaceBuilder() {
               }}
             >
               <AnimatePresence>
-                {isActive && !isAnimating && (
+                {isActive && !isInSidebar && !isAnimating && (
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
@@ -147,12 +155,15 @@ export function HeroWorkspaceBuilder() {
           );
         })}
         
-        {/* Flying module animation overlay */}
+        {/* Flying module animation overlay - from grid to workspace */}
         <AnimatePresence>
           {animatingModule && animationPhase === 'flying' && (() => {
             const module = modules.find(m => m.key === animatingModule);
             if (!module) return null;
             const Icon = module.icon;
+            const moduleIndex = modules.findIndex(m => m.key === animatingModule);
+            const col = moduleIndex % 3;
+            const row = Math.floor(moduleIndex / 3);
             
             return (
               <motion.div
@@ -165,9 +176,9 @@ export function HeroWorkspaceBuilder() {
                 }}
                 animate={{ 
                   opacity: 1,
-                  scale: 0.8,
-                  x: 120,
-                  y: 180,
+                  scale: 0.85,
+                  x: col === 0 ? 40 : col === 1 ? 0 : -40,
+                  y: 220 - (row * 60),
                 }}
                 exit={{ opacity: 0, scale: 0.5 }}
                 transition={{ 
@@ -176,8 +187,8 @@ export function HeroWorkspaceBuilder() {
                 }}
                 className="absolute z-50 pointer-events-none"
                 style={{
-                  left: '50%',
-                  top: '30%',
+                  left: `${(col * 33.33) + 16}%`,
+                  top: `${(row * 33) + 10}%`,
                 }}
               >
                 <div className="p-3 rounded-xl bg-card border border-primary shadow-xl">
@@ -192,11 +203,11 @@ export function HeroWorkspaceBuilder() {
         </AnimatePresence>
       </div>
 
-      {/* Drag & Drop Sidebar Preview */}
+      {/* Workspace - where modules land */}
       <div ref={sidebarRef} className="bg-muted/50 rounded-xl p-3">
         <div className="flex items-center justify-between mb-2">
           <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-            Your Sidebar
+            Your Workspace
           </p>
           <p className="text-[9px] text-muted-foreground">
             ↕ Drag to reorder
