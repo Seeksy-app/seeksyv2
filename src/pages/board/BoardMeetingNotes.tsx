@@ -1124,7 +1124,7 @@ export default function BoardMeetingNotes() {
         <div className="lg:col-span-3 space-y-6">
           {selectedNote ? (
             <>
-              {/* Header with Timer */}
+              {/* Header with Timer + Host Controls */}
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div>
@@ -1143,9 +1143,62 @@ export default function BoardMeetingNotes() {
                       {selectedNote.duration_minutes} min
                     </p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    {/* Countdown Timer */}
-                    {selectedNote.status !== 'completed' && (
+                  <div className="flex items-center gap-2 flex-wrap justify-end">
+                    {/* Host-only action buttons */}
+                    {isHost && (
+                      <>
+                        {/* Invite button - always visible for host */}
+                        <Button variant="outline" size="sm" onClick={() => setIsInviteModalOpen(true)}>
+                          <Users className="w-4 h-4 mr-2" />
+                          Invite
+                        </Button>
+
+                        {/* Start Meeting - before host starts */}
+                        {!hostHasStarted && selectedNote.status !== 'completed' && (
+                          <Button size="sm" onClick={startMeeting}>
+                            <Play className="w-4 h-4 mr-2" />
+                            Start Meeting
+                          </Button>
+                        )}
+
+                        {/* Regenerate AI Pack - before host starts */}
+                        {!hostHasStarted && selectedNote.status !== 'completed' && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setIsGenerateAgendaModalOpen(true)}
+                            disabled={isGenerating}
+                          >
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            Regenerate AI Pack
+                          </Button>
+                        )}
+
+                        {/* End Meeting - after start, during active */}
+                        {hostHasStarted && selectedNote.status === 'active' && (
+                          <Button variant="destructive" size="sm" onClick={handleEndMeetingWithGuardrail}>
+                            <LogOut className="w-4 h-4 mr-2" />
+                            End Meeting
+                          </Button>
+                        )}
+
+                        {/* Carry Forward - after completed */}
+                        {selectedNote.status === 'completed' && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => carryForward(selectedNote.id)}
+                            disabled={isCarryingForward}
+                          >
+                            <ArrowRight className="w-4 h-4 mr-2" />
+                            {isCarryingForward ? 'Creating...' : 'Carry Forward'}
+                          </Button>
+                        )}
+                      </>
+                    )}
+
+                    {/* Timer display - visible during active meeting */}
+                    {selectedNote.status !== 'completed' && hostHasStarted && (
                       <div className="flex items-center gap-2 bg-muted px-3 py-2 rounded-lg">
                         {isCapturingAudio && (
                           <Badge variant="default" className="bg-green-600 animate-pulse text-xs">
@@ -1155,22 +1208,25 @@ export default function BoardMeetingNotes() {
                         <span className={`font-mono text-lg ${timerRunning ? 'text-primary' : ''}`}>
                           {getRemainingTime()}
                         </span>
-                        <div className="flex gap-1">
-                          {!timerRunning ? (
-                            <Button size="sm" variant="ghost" onClick={startMeeting} title="Start Timer & AI Listening">
-                              <Play className="w-4 h-4" />
+                        {isHost && (
+                          <div className="flex gap-1">
+                            {!timerRunning ? (
+                              <Button size="sm" variant="ghost" onClick={() => setTimerRunning(true)} title="Resume Timer">
+                                <Play className="w-4 h-4" />
+                              </Button>
+                            ) : (
+                              <Button size="sm" variant="ghost" onClick={() => setTimerRunning(false)}>
+                                <Pause className="w-4 h-4" />
+                              </Button>
+                            )}
+                            <Button size="sm" variant="ghost" onClick={() => { setTimerSeconds(0); setTimerRunning(false); }}>
+                              <RotateCcw className="w-4 h-4" />
                             </Button>
-                          ) : (
-                            <Button size="sm" variant="ghost" onClick={() => setTimerRunning(false)}>
-                              <Pause className="w-4 h-4" />
-                            </Button>
-                          )}
-                          <Button size="sm" variant="ghost" onClick={() => { setTimerSeconds(0); setTimerRunning(false); }}>
-                            <RotateCcw className="w-4 h-4" />
-                          </Button>
-                        </div>
+                          </div>
+                        )}
                       </div>
                     )}
+
                     <Button variant="outline" size="sm" onClick={() => exportToPdf(selectedNote)}>
                       <Download className="w-4 h-4 mr-2" />
                       Export PDF
@@ -1178,6 +1234,60 @@ export default function BoardMeetingNotes() {
                   </div>
                 </CardHeader>
               </Card>
+
+              {/* Non-host waiting screen (before host starts) */}
+              {!isHost && !hostHasStarted && selectedNote.status !== 'completed' && !isLoadingHost && (
+                <WaitingForHostScreen
+                  meeting={{
+                    id: selectedNote.id,
+                    title: selectedNote.title,
+                    meeting_date: selectedNote.meeting_date,
+                    start_time: selectedNote.start_time,
+                    duration_minutes: selectedNote.duration_minutes,
+                    agenda_items: selectedNote.agenda_items,
+                    memo: selectedNote.memo,
+                    member_questions: selectedNote.member_questions,
+                  }}
+                  currentUserName=""
+                  onAddQuestion={handleAddQuestionFromWaiting}
+                />
+              )}
+
+              {/* Host Meeting Tabs (for host during active meeting) */}
+              {isHost && hostHasStarted && selectedNote.status === 'active' && (
+                <HostMeetingTabs
+                  meetingId={selectedNote.id}
+                  isHost={isHost}
+                  onMediaPlayStateChange={handleMediaPlayStateChange}
+                >
+                  {/* Agenda content passed as children */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Agenda</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {selectedNote.agenda_items.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">No agenda items.</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {selectedNote.agenda_items.map((item, i) => (
+                            <div key={i} className="flex items-start gap-3 group">
+                              <Checkbox
+                                checked={item.checked}
+                                onCheckedChange={() => toggleAgendaItem(selectedNote.id, i)}
+                                className="mt-0.5"
+                              />
+                              <span className={`text-sm flex-1 ${item.checked ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                                {i + 1}. {item.text}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </HostMeetingTabs>
+              )}
 
               {isGenerating && (
                 <Card className="border-primary/20 bg-primary/5">
@@ -1188,26 +1298,35 @@ export default function BoardMeetingNotes() {
                 </Card>
               )}
 
-              {/* Video Meeting Panel - show for active/upcoming meetings */}
-              {selectedNote.status !== 'completed' && (
-                <BoardMeetingVideo
-                  isConnected={isVideoConnected}
-                  isConnecting={isVideoConnecting}
-                  isMuted={isMuted}
-                  isVideoOff={isVideoOff}
-                  isGeneratingNotes={isGeneratingNotes}
-                  isCapturingAudio={isCapturingAudio}
-                  participants={participants}
-                  localVideoRef={localVideoRef}
-                  hasActiveRoom={hasActiveRoom}
-                  guestToken={(selectedNote as any).guest_token}
-                  onToggleMute={toggleMute}
-                  onToggleVideo={toggleVideo}
-                  onStartMeeting={startVideoMeeting}
-                  onJoinMeeting={joinVideoMeeting}
-                  onStopAIAndGenerateNotes={stopAIAndGenerateNotes}
-                  onEndCall={handleEndMeetingWithGuardrail}
-                />
+              {/* Video Meeting Panel - only show after host starts (or for host before start) */}
+              {selectedNote.status !== 'completed' && (isHost || hostHasStarted) && (
+                <div className="sticky top-4 z-10">
+                  <BoardMeetingVideo
+                    isConnected={isVideoConnected}
+                    isConnecting={isVideoConnecting}
+                    isMuted={isMuted}
+                    isVideoOff={isVideoOff}
+                    isGeneratingNotes={isGeneratingNotes}
+                    isCapturingAudio={isCapturingAudio}
+                    participants={participants}
+                    localVideoRef={localVideoRef}
+                    hasActiveRoom={hasActiveRoom}
+                    guestToken={(selectedNote as any).guest_token}
+                    onToggleMute={toggleMute}
+                    onToggleVideo={toggleVideo}
+                    onStartMeeting={isHost ? startVideoMeeting : undefined}
+                    onJoinMeeting={hostHasStarted ? joinVideoMeeting : undefined}
+                    onStopAIAndGenerateNotes={isHost ? stopAIAndGenerateNotes : undefined}
+                    onEndCall={isHost ? handleEndMeetingWithGuardrail : undefined}
+                  />
+                  {/* Host gate message for non-host before start */}
+                  {!isHost && !hostHasStarted && (
+                    <div className="mt-2 p-3 bg-muted rounded-lg text-center text-sm text-muted-foreground">
+                      <Clock className="w-4 h-4 inline mr-2" />
+                      Video will be available once the host starts the meeting
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* Agenda with Checkboxes */}
