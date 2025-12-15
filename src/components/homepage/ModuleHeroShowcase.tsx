@@ -10,10 +10,8 @@ import heroPeople from "@/assets/homepage/hero-people.jpg";
 
 interface FeatureData {
   key: string;
-  tabLabel: string;
-  tabLabelBold: string;
+  label: string;
   title: string;
-  titleBold: string;
   description: string;
   imageUrl: string;
   tabBg: string;
@@ -21,201 +19,148 @@ interface FeatureData {
 
 const features: FeatureData[] = [
   {
-    key: "influence",
-    tabLabel: "Share of",
-    tabLabelBold: "Influence",
-    title: "Share of",
-    titleBold: "Influence",
-    description: "Build authentic influence with verified identity and audience trust. Track your reach, engagement, and brand value across all platforms.",
+    key: "podcast",
+    label: "Podcast Studio",
+    title: "Podcast Studio",
+    description: "Record, edit, and publish professional podcasts. Invite remote guests, auto-generate transcripts, and distribute to major platforms.",
     imageUrl: heroConversations,
-    tabBg: "#EAD6CC", // Warm sand/peach
+    tabBg: "#0B0B0B", // Active by default
   },
   {
-    key: "content",
-    tabLabel: "Quick-Turn",
-    tabLabelBold: "Content",
-    title: "Quick-Turn",
-    titleBold: "Content",
-    description: "Create professional content in minutes, not hours. AI-powered editing, transcription, and multi-format exports—all from your browser.",
+    key: "meetings",
+    label: "Virtual Meetings",
+    title: "Virtual Meetings",
+    description: "Create booking links, schedule guests, send confirmations and reminders, and keep everything synced.",
     imageUrl: heroCommunity,
-    tabBg: "#C4CFC4", // Sage green
+    tabBg: "#C9D7C8", // Tab green
   },
   {
-    key: "ambassador",
-    tabLabel: "Always-On",
-    tabLabelBold: "Ambassador Programs",
-    title: "Always-On",
-    titleBold: "Ambassador Programs",
-    description: "Manage long-term creator partnerships with automated payments, content tracking, and performance analytics built for scale.",
+    key: "post",
+    label: "AI Post Production",
+    title: "AI Post Production",
+    description: "Clean up audio/video, generate clips, captions, and polished exports—without complicated workflows.",
     imageUrl: heroContent,
-    tabBg: "#B8C9DC", // Light blue
+    tabBg: "#BFD1EA", // Tab blue
   },
   {
-    key: "seeding",
-    tabLabel: "Seeding",
-    tabLabelBold: "and Custom Boxes",
-    title: "Seeding and",
-    titleBold: "Custom Boxes",
-    description: "Send products to the right creators with curated seeding campaigns. Track unboxing content, measure impact, and build genuine advocacy.",
+    key: "stream",
+    label: "Live Streaming",
+    title: "Live Streaming",
+    description: "Go live, bring guests on screen, and repurpose streams into content with built-in production tools.",
     imageUrl: heroPeople,
-    tabBg: "#D4D0C8", // Warm gray/sand
-  },
-  {
-    key: "commerce",
-    tabLabel: "UGC For",
-    tabLabelBold: "Commerce",
-    title: "UGC For",
-    titleBold: "Commerce",
-    description: "Transform creator content into shoppable experiences. Connect authentic voices to your products and track ROI across every campaign.",
-    imageUrl: heroConversations,
-    tabBg: "#E8DDD4", // Light beige
+    tabBg: "#DED6C8", // Tab sand
   },
 ];
 
 export function ModuleHeroShowcase() {
-  const [activeKey, setActiveKey] = useState<string>("seeding");
+  const [activeKey, setActiveKey] = useState<string>("podcast");
 
-  const activeFeature = features.find((f) => f.key === activeKey) || features[3];
+  const activeFeature = features.find((f) => f.key === activeKey) || features[0];
 
   return (
-    <section className="w-full px-4 py-16 md:py-24">
-      <div className="mx-auto max-w-[1400px]">
-        {/* Desktop Layout - 3 columns: tabs | content | image */}
-        <div 
+    <section className="w-full px-4 py-16 md:py-20">
+      <div className="mx-auto max-w-[1280px]">
+        {/* Desktop Layout - 3 columns: copy | image | vertical tabs */}
+        <div
           className="hidden md:grid rounded-[32px] overflow-hidden"
-          style={{ 
-            gridTemplateColumns: "auto 1fr auto",
-            minHeight: "580px",
-            background: "#F5F0EB",
+          style={{
+            gridTemplateColumns: "1.05fr 1.35fr 0.6fr",
+            minHeight: "560px",
+            padding: "52px",
+            gap: "36px",
+            background: "#E7D6CC",
+            border: "1px solid rgba(230,234,242,0.8)",
+            boxShadow: "0 24px 60px rgba(16,24,40,0.12)",
           }}
         >
-          {/* LEFT: Vertical Tab Rail */}
-          <div className="flex h-full">
-            {features.map((feature, index) => {
-              const isActive = feature.key === activeKey;
-              const isFirst = index === 0;
-              
-              return (
-                <button
-                  key={feature.key}
-                  onClick={() => setActiveKey(feature.key)}
-                  className="relative cursor-pointer transition-all duration-300 flex items-center justify-center"
-                  style={{
-                    width: isActive ? "75px" : "60px",
-                    height: "100%",
-                    background: isActive ? "#0A0A0A" : feature.tabBg,
-                    borderRadius: isFirst ? "0" : "0",
-                  }}
-                >
-                  <div
-                    className="whitespace-nowrap flex flex-col items-center gap-0.5"
-                    style={{
-                      transform: "rotate(-90deg)",
-                      transformOrigin: "center center",
-                    }}
-                  >
-                    <span
-                      className="font-normal"
-                      style={{
-                        fontSize: isActive ? "18px" : "16px",
-                        color: isActive ? "#FFFFFF" : "rgba(11, 18, 32, 0.75)",
-                        letterSpacing: "-0.01em",
-                      }}
-                    >
-                      {feature.tabLabel}
-                    </span>
-                    <span
-                      className="font-bold"
-                      style={{
-                        fontSize: isActive ? "18px" : "16px",
-                        color: isActive ? "#FFFFFF" : "rgba(11, 18, 32, 0.9)",
-                        letterSpacing: "-0.01em",
-                      }}
-                    >
-                      {feature.tabLabelBold}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+          {/* LEFT: Copy Area */}
+          <div className="flex flex-col justify-center">
+            <p
+              className="uppercase mb-4"
+              style={{
+                fontSize: "12px",
+                fontWeight: 600,
+                letterSpacing: "0.12em",
+                color: "#667085",
+              }}
+            >
+              Explore Features
+            </p>
 
-          {/* CENTER: Content Area */}
-          <div className="flex-1 p-12 flex flex-col justify-center">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeKey}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-                className="flex flex-col gap-6 max-w-[520px]"
+                transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+                className="flex flex-col gap-5"
               >
                 <h2
-                  className="tracking-[-0.02em]"
+                  className="font-extrabold tracking-[-0.02em]"
                   style={{
-                    fontSize: "48px",
-                    lineHeight: 1.05,
+                    fontSize: "56px",
+                    lineHeight: 1.0,
                     color: "#0B1220",
                   }}
                 >
-                  <span className="font-normal">{activeFeature.title}</span>{" "}
-                  <span className="font-black">{activeFeature.titleBold}</span>
+                  {activeFeature.title}
                 </h2>
                 <p
                   style={{
-                    fontSize: "17px",
-                    lineHeight: 1.7,
+                    fontSize: "16px",
+                    lineHeight: 1.6,
                     color: "#667085",
-                    maxWidth: "460px",
+                    maxWidth: "440px",
                   }}
                 >
                   {activeFeature.description}
                 </p>
                 <button
-                  className="group w-fit flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-medium transition-all duration-200 mt-4"
+                  className="group w-fit flex items-center gap-2 px-6 py-3.5 rounded-full text-sm font-medium transition-all duration-200 mt-2"
                   style={{
-                    background: "#0A0A0A",
+                    background: "#0B0B0B",
                     color: "#FFFFFF",
                   }}
                 >
-                  learn more
+                  Learn more
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
                 </button>
               </motion.div>
             </AnimatePresence>
           </div>
 
-          {/* RIGHT: Image Card */}
-          <div className="p-6 flex items-center">
+          {/* CENTER: Image Card */}
+          <div className="flex items-center justify-center">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeKey + "-image"}
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-                className="relative rounded-[24px] overflow-hidden"
+                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                className="relative rounded-[26px] overflow-hidden"
                 style={{
-                  width: "340px",
-                  height: "480px",
+                  width: "100%",
+                  maxWidth: "380px",
+                  aspectRatio: "4/5",
                   background: "#0A0A0A",
-                  padding: "12px",
-                  boxShadow: "0 24px 60px rgba(16,24,40,0.18)",
+                  padding: "10px",
+                  boxShadow: "0 18px 40px rgba(16,24,40,0.18)",
+                  border: "1px solid rgba(255,255,255,0.35)",
                 }}
               >
-                <div className="relative w-full h-full rounded-[16px] overflow-hidden">
+                <div className="relative w-full h-full rounded-[18px] overflow-hidden">
                   <img
                     src={activeFeature.imageUrl}
-                    alt={activeFeature.title + " " + activeFeature.titleBold}
+                    alt={activeFeature.title}
                     className="w-full h-full object-cover"
                   />
-                  <div 
-                    className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-sm font-medium"
+                  <div
+                    className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full text-sm font-medium"
                     style={{
-                      background: "rgba(255,255,255,0.92)",
+                      background: "rgba(255,255,255,0.82)",
                       color: "#0B1220",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                     }}
                   >
                     @seeksy
@@ -224,15 +169,71 @@ export function ModuleHeroShowcase() {
               </motion.div>
             </AnimatePresence>
           </div>
+
+          {/* RIGHT: Vertical Tab Rail */}
+          <div className="flex flex-col gap-3.5 h-full justify-center">
+            {features.map((feature) => {
+              const isActive = feature.key === activeKey;
+
+              return (
+                <button
+                  key={feature.key}
+                  onClick={() => setActiveKey(feature.key)}
+                  className="relative cursor-pointer transition-all duration-300 flex items-center justify-center"
+                  style={{
+                    width: "78px",
+                    height: "130px",
+                    background: isActive ? "#0B0B0B" : feature.tabBg,
+                    borderRadius: "26px",
+                  }}
+                >
+                  <div
+                    className="whitespace-nowrap"
+                    style={{
+                      transform: "rotate(-90deg)",
+                      transformOrigin: "center center",
+                    }}
+                  >
+                    <span
+                      className="font-bold"
+                      style={{
+                        fontSize: "14px",
+                        letterSpacing: "0.02em",
+                        color: isActive ? "#FFFFFF" : "#0B1220",
+                      }}
+                    >
+                      {feature.label}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Mobile Layout */}
-        <div 
+        <div
           className="md:hidden w-full rounded-[24px] overflow-hidden"
-          style={{ background: "#F5F0EB" }}
+          style={{
+            background: "#E7D6CC",
+            padding: "24px",
+          }}
         >
+          {/* Eyebrow */}
+          <p
+            className="uppercase mb-3"
+            style={{
+              fontSize: "11px",
+              fontWeight: 600,
+              letterSpacing: "0.1em",
+              color: "#667085",
+            }}
+          >
+            Explore Features
+          </p>
+
           {/* Horizontal Tab Scroll */}
-          <div className="flex gap-2 overflow-x-auto p-4 pb-2">
+          <div className="flex gap-2 overflow-x-auto pb-4 -mx-1 px-1">
             {features.map((feature) => {
               const isActive = feature.key === activeKey;
               return (
@@ -241,95 +242,92 @@ export function ModuleHeroShowcase() {
                   onClick={() => setActiveKey(feature.key)}
                   className="flex-shrink-0 px-4 py-2.5 rounded-full font-medium text-sm transition-all duration-200"
                   style={{
-                    background: isActive ? "#0A0A0A" : feature.tabBg,
+                    background: isActive ? "#0B0B0B" : feature.tabBg,
                     color: isActive ? "#FFFFFF" : "#0B1220",
                   }}
                 >
-                  {feature.tabLabelBold}
+                  {feature.label}
                 </button>
               );
             })}
           </div>
 
           {/* Content */}
-          <div className="p-6 pt-4">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeKey + "-mobile"}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.25 }}
-                className="flex flex-col gap-4"
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeKey + "-mobile"}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="flex flex-col gap-3"
+            >
+              <h2
+                className="font-extrabold tracking-[-0.01em]"
+                style={{
+                  fontSize: "28px",
+                  lineHeight: 1.1,
+                  color: "#0B1220",
+                }}
               >
-                <h2
-                  className="tracking-[-0.02em]"
+                {activeFeature.title}
+              </h2>
+              <p
+                style={{
+                  fontSize: "15px",
+                  lineHeight: 1.6,
+                  color: "#667085",
+                }}
+              >
+                {activeFeature.description}
+              </p>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Mobile Image */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeKey + "-mobile-image"}
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.2 }}
+              className="relative mt-4 rounded-[16px] overflow-hidden"
+              style={{
+                aspectRatio: "4/5",
+                background: "#0A0A0A",
+                padding: "8px",
+              }}
+            >
+              <div className="relative w-full h-full rounded-[12px] overflow-hidden">
+                <img
+                  src={activeFeature.imageUrl}
+                  alt={activeFeature.title}
+                  className="w-full h-full object-cover"
+                />
+                <div
+                  className="absolute bottom-3 left-3 px-2.5 py-1 rounded-full text-xs font-medium"
                   style={{
-                    fontSize: "28px",
-                    lineHeight: 1.1,
+                    background: "rgba(255,255,255,0.9)",
                     color: "#0B1220",
                   }}
                 >
-                  <span className="font-normal">{activeFeature.title}</span>{" "}
-                  <span className="font-black">{activeFeature.titleBold}</span>
-                </h2>
-                <p
-                  style={{
-                    fontSize: "15px",
-                    lineHeight: 1.6,
-                    color: "#667085",
-                  }}
-                >
-                  {activeFeature.description}
-                </p>
-              </motion.div>
-            </AnimatePresence>
-
-            {/* Mobile Image */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeKey + "-mobile-image"}
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.25 }}
-                className="relative mt-5 rounded-[16px] overflow-hidden"
-                style={{
-                  aspectRatio: "4/5",
-                  background: "#0A0A0A",
-                  padding: "8px",
-                }}
-              >
-                <div className="relative w-full h-full rounded-[12px] overflow-hidden">
-                  <img
-                    src={activeFeature.imageUrl}
-                    alt={activeFeature.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div 
-                    className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full text-xs font-medium"
-                    style={{
-                      background: "rgba(255,255,255,0.9)",
-                      color: "#0B1220",
-                    }}
-                  >
-                    @seeksy
-                  </div>
+                  @seeksy
                 </div>
-              </motion.div>
-            </AnimatePresence>
+              </div>
+            </motion.div>
+          </AnimatePresence>
 
-            <button
-              className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-full text-sm font-medium mt-5"
-              style={{
-                background: "#0A0A0A",
-                color: "#FFFFFF",
-              }}
-            >
-              learn more
-              <ArrowRight className="h-3.5 w-3.5" />
-            </button>
-          </div>
+          <button
+            className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-full text-sm font-medium mt-4"
+            style={{
+              background: "#0B0B0B",
+              color: "#FFFFFF",
+            }}
+          >
+            Learn more
+            <ArrowRight className="h-3.5 w-3.5" />
+          </button>
         </div>
       </div>
     </section>

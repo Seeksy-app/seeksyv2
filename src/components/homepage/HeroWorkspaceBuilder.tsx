@@ -1,21 +1,19 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Check, 
-  Podcast, 
-  Video, 
-  Calendar, 
-  Mail, 
-  Users, 
-  BarChart3, 
-  MessageSquare, 
-  FileText, 
-  DollarSign, 
+import {
+  Check,
+  Podcast,
+  Video,
+  Calendar,
+  Mail,
+  Users,
+  BarChart3,
+  MessageSquare,
+  FileText,
+  DollarSign,
   GripVertical,
-  Sparkles,
-  ChevronDown
+  ChevronRight,
 } from "lucide-react";
-
 import { LucideIcon } from "lucide-react";
 
 interface SeekieModule {
@@ -50,7 +48,7 @@ export function HeroWorkspaceBuilder() {
   const [workspaceModules, setWorkspaceModules] = useState<string[]>([]);
   const [animatingModule, setAnimatingModule] = useState<string | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
-  
+
   const currentTemplate = workspaceTemplates[currentTemplateIndex];
 
   // Auto-cycle templates
@@ -66,51 +64,53 @@ export function HeroWorkspaceBuilder() {
   // Animate modules being added when template changes
   useEffect(() => {
     const newActiveModules = currentTemplate.activeModules;
-    
+
     // Clear workspace first
     setWorkspaceModules([]);
     setIsAnimating(true);
-    
+
     // Animate each module one by one
     const animateModules = async () => {
       for (let i = 0; i < newActiveModules.length; i++) {
         const moduleKey = newActiveModules[i];
-        
+
         // Start flying animation
         setAnimatingModule(moduleKey);
-        
+
         // Wait for fly animation
-        await new Promise(resolve => setTimeout(resolve, 350));
-        
+        await new Promise((resolve) => setTimeout(resolve, 350));
+
         // Add to workspace
-        setWorkspaceModules(prev => [...prev, moduleKey]);
-        
+        setWorkspaceModules((prev) => [...prev, moduleKey]);
+
         // Small delay before next module
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         setAnimatingModule(null);
       }
       setIsAnimating(false);
     };
-    
+
     animateModules();
   }, [currentTemplate]);
 
   const workspaceItems = workspaceModules
-    .map(key => modules.find(m => m.key === key))
+    .map((key) => modules.find((m) => m.key === key))
     .filter((m): m is SeekieModule => Boolean(m));
 
   return (
-    <div 
-      className="rounded-3xl p-5"
+    <div
+      className="rounded-[28px] p-5"
       style={{
         background: "#FFFFFF",
         border: "1px solid #EEF2F7",
-        boxShadow: "0 20px 60px rgba(15,23,42,0.14)",
+        boxShadow: "0 24px 60px rgba(16,24,40,0.12)",
+        minWidth: "560px",
+        maxWidth: "640px",
       }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-4">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentTemplate.name}
@@ -127,7 +127,7 @@ export function HeroWorkspaceBuilder() {
             </p>
           </motion.div>
         </AnimatePresence>
-        <button 
+        <button
           className="text-sm font-bold flex items-center gap-1"
           style={{ color: "#2C6BED" }}
         >
@@ -135,242 +135,239 @@ export function HeroWorkspaceBuilder() {
         </button>
       </div>
 
-      {/* Instruction Bar */}
-      <div 
-        className="rounded-xl px-3 py-2.5 mb-4 flex items-center justify-between"
-        style={{ background: "#F8FAFC" }}
-      >
-        <p className="text-xs" style={{ color: "#6B7280" }}>
-          Drag a Seekie into your workspace
-        </p>
-        <div className="flex items-center gap-1">
-          <Sparkles className="w-3 h-3" style={{ color: "#2C6BED" }} />
-          <span className="text-xs font-medium" style={{ color: "#2C6BED" }}>
-            AI-powered
-          </span>
-        </div>
-      </div>
-
-      {/* Store Grid */}
-      <div className="mb-4">
-        <p 
-          className="text-[10px] font-bold uppercase tracking-wider mb-3"
-          style={{ color: "#9CA3AF" }}
+      {/* Two-column layout: Seekies Store | My Workplace */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* LEFT: Seekies Store */}
+        <div
+          className="rounded-2xl p-4"
+          style={{ background: "#F8FAFC", border: "1px solid #EEF2F7" }}
         >
-          Seekies
-        </p>
-        <div className="grid grid-cols-3 gap-3 relative">
-          {modules.map((module) => {
-            const isAdded = workspaceModules.includes(module.key);
-            const isFlying = animatingModule === module.key;
-            const Icon = module.icon;
-            
-            return (
-              <motion.div
-                key={module.key}
-                className="relative rounded-2xl p-4 transition-all duration-200 cursor-pointer flex flex-col items-center"
-                style={{
-                  background: "#FFFFFF",
-                  border: isAdded ? "2px solid #2C6BED" : "1px dashed #E5E7EB",
-                  opacity: isAdded ? 0.6 : 1,
-                  transform: isFlying ? "scale(0.95)" : "scale(1)",
-                }}
-                whileHover={!isAdded ? { 
-                  scale: 1.02, 
-                  borderColor: "#2C6BED",
-                  boxShadow: "0 8px 20px rgba(44,107,237,0.12)" 
-                } : {}}
-              >
-                {/* Icon bubble */}
-                <div 
-                  className="w-12 h-12 rounded-2xl flex items-center justify-center mb-2"
-                  style={{ background: module.tint }}
-                >
-                  <Icon 
-                    className="w-6 h-6" 
-                    color={module.iconColor}
-                    strokeWidth={2} 
-                  />
-                </div>
-                <p 
-                  className="text-sm font-medium text-center"
-                  style={{ color: isAdded ? "#9CA3AF" : "#374151" }}
-                >
-                  {module.label}
-                </p>
-              </motion.div>
-            );
-          })}
-          
-          {/* Flying module animation */}
-          <AnimatePresence>
-            {animatingModule && (() => {
-              const module = modules.find(m => m.key === animatingModule);
-              if (!module) return null;
+          <div className="flex items-center justify-between mb-3">
+            <p
+              className="text-[11px] font-bold uppercase tracking-wider"
+              style={{ color: "#9CA3AF" }}
+            >
+              Seekies Store
+            </p>
+          </div>
+          <p className="text-[10px] mb-3" style={{ color: "#9CA3AF" }}>
+            Pick what you need
+          </p>
+
+          <div className="grid grid-cols-3 gap-2 relative">
+            {modules.map((module) => {
+              const isAdded = workspaceModules.includes(module.key);
+              const isFlying = animatingModule === module.key;
               const Icon = module.icon;
-              const moduleIndex = modules.findIndex(m => m.key === animatingModule);
-              const col = moduleIndex % 3;
-              const row = Math.floor(moduleIndex / 3);
-              
+
               return (
                 <motion.div
-                  key={`flying-${animatingModule}`}
-                  initial={{ 
-                    opacity: 1, 
-                    scale: 1,
-                    x: 0,
-                    y: 0,
-                  }}
-                  animate={{ 
-                    opacity: 0.9,
-                    scale: 0.7,
-                    x: col === 0 ? 60 : col === 1 ? 0 : -60,
-                    y: 200,
-                  }}
-                  exit={{ opacity: 0 }}
-                  transition={{ 
-                    duration: 0.35, 
-                    ease: [0.25, 0.46, 0.45, 0.94],
-                  }}
-                  className="absolute z-50 pointer-events-none"
+                  key={module.key}
+                  className="relative rounded-xl p-2 transition-all duration-200 cursor-pointer flex flex-col items-center"
                   style={{
-                    left: `${(col * 33.33) + 5}%`,
-                    top: `${(row * 95) + 8}px`,
+                    background: "#FFFFFF",
+                    border: isAdded ? "2px solid #2C6BED" : "1px dashed #E5E7EB",
+                    opacity: isFlying ? 0.5 : 1,
+                    transform: isFlying ? "scale(0.95)" : "scale(1)",
                   }}
+                  whileHover={
+                    !isAdded
+                      ? {
+                          scale: 1.02,
+                          borderColor: "#2C6BED",
+                          boxShadow: "0 6px 16px rgba(44,107,237,0.12)",
+                        }
+                      : {}
+                  }
                 >
-                  <div 
-                    className="p-2.5 rounded-xl shadow-xl"
-                    style={{ 
-                      background: "#FFFFFF",
-                      border: "2px solid #2C6BED",
+                  {/* Added badge */}
+                  {isAdded && (
+                    <div
+                      className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center"
+                      style={{ background: "#2C6BED" }}
+                    >
+                      <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                    </div>
+                  )}
+
+                  {/* Icon bubble */}
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center mb-1"
+                    style={{
+                      background: module.tint,
+                      filter: isAdded ? "saturate(0.9)" : "saturate(1)",
                     }}
                   >
-                    <div 
-                      className="w-10 h-10 rounded-xl flex items-center justify-center"
-                      style={{ background: module.tint }}
-                    >
-                      <Icon 
-                        className="w-5 h-5" 
-                        color={module.iconColor}
-                        strokeWidth={2} 
-                      />
-                    </div>
+                    <Icon className="w-4 h-4" color={module.iconColor} strokeWidth={2} />
                   </div>
+                  <p
+                    className="text-[10px] font-medium text-center"
+                    style={{ color: isAdded ? "#9CA3AF" : "#374151" }}
+                  >
+                    {module.label}
+                  </p>
                 </motion.div>
               );
-            })()}
-          </AnimatePresence>
-        </div>
-      </div>
+            })}
 
-      {/* Arrow indicator */}
-      <div className="flex justify-center mb-3">
-        <motion.div
-          animate={{ y: [0, 4, 0] }}
-          transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+            {/* Flying module animation */}
+            <AnimatePresence>
+              {animatingModule &&
+                (() => {
+                  const module = modules.find((m) => m.key === animatingModule);
+                  if (!module) return null;
+                  const Icon = module.icon;
+                  const moduleIndex = modules.findIndex((m) => m.key === animatingModule);
+                  const col = moduleIndex % 3;
+                  const row = Math.floor(moduleIndex / 3);
+
+                  return (
+                    <motion.div
+                      key={`flying-${animatingModule}`}
+                      initial={{
+                        opacity: 1,
+                        scale: 1,
+                        x: 0,
+                        y: 0,
+                      }}
+                      animate={{
+                        opacity: 0.9,
+                        scale: 0.6,
+                        x: 180,
+                        y: row * 10 + 50,
+                      }}
+                      exit={{ opacity: 0 }}
+                      transition={{
+                        duration: 0.35,
+                        ease: [0.25, 0.46, 0.45, 0.94],
+                      }}
+                      className="absolute z-50 pointer-events-none"
+                      style={{
+                        left: `${col * 33.33 + 5}%`,
+                        top: `${row * 70 + 8}px`,
+                      }}
+                    >
+                      <div
+                        className="p-2 rounded-xl shadow-xl"
+                        style={{
+                          background: "#FFFFFF",
+                          border: "2px solid #2C6BED",
+                        }}
+                      >
+                        <div
+                          className="w-8 h-8 rounded-lg flex items-center justify-center"
+                          style={{ background: module.tint }}
+                        >
+                          <Icon className="w-4 h-4" color={module.iconColor} strokeWidth={2} />
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })()}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {/* RIGHT: My Workplace */}
+        <div
+          className="rounded-2xl p-4"
+          style={{ background: "#F0F4F8", border: "1px solid #E2E8F0" }}
         >
-          <ChevronDown className="w-5 h-5" style={{ color: "#D1D5DB" }} />
-        </motion.div>
-      </div>
-
-      {/* Workspace List */}
-      <div 
-        className="rounded-xl p-3"
-        style={{ background: "#F8FAFC", border: "1px solid #EEF2F7" }}
-      >
-        <div className="flex items-center justify-between mb-2">
-          <p 
-            className="text-[10px] font-bold uppercase tracking-wider"
-            style={{ color: "#9CA3AF" }}
-          >
-            My Workspace
-          </p>
-          <p className="text-[10px]" style={{ color: "#9CA3AF" }}>
-            ↕ Drag to reorder
-          </p>
-        </div>
-        <div className="space-y-1.5 min-h-[100px]">
-          <AnimatePresence mode="popLayout">
-            {workspaceItems.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex flex-col items-center justify-center py-6 text-center"
-              >
-                <p className="text-sm font-medium" style={{ color: "#9CA3AF" }}>
-                  Your workspace is empty
-                </p>
-                <p className="text-xs" style={{ color: "#D1D5DB" }}>
-                  Add Seekies from the store above
-                </p>
-              </motion.div>
-            ) : (
-              workspaceItems.map((module) => {
-                const Icon = module.icon;
-                return (
-                  <motion.div
-                    key={module.key}
-                    initial={{ opacity: 0, x: 20, scale: 0.9 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: -20, scale: 0.9 }}
-                    transition={{ 
-                      type: "spring", 
-                      stiffness: 400, 
-                      damping: 25,
-                    }}
-                    className="flex items-center gap-2.5 p-2.5 rounded-xl"
-                    style={{ 
-                      background: "#FFFFFF",
-                      border: "1px solid #EEF2F7",
-                      boxShadow: "0 6px 18px rgba(15,23,42,0.06)",
-                    }}
-                  >
-                    <GripVertical 
-                      className="w-3.5 h-3.5 cursor-grab" 
-                      style={{ color: "#D1D5DB" }} 
-                    />
-                    <div 
-                      className="w-8 h-8 rounded-full flex items-center justify-center"
-                      style={{ background: module.tint }}
-                    >
-                      <Icon 
-                        className="w-4 h-4" 
-                        color={module.iconColor}
-                        strokeWidth={2.5} 
-                      />
-                    </div>
-                    <span 
-                      className="text-sm font-bold flex-1"
-                      style={{ color: "#0B1220" }}
-                    >
-                      {module.label}
-                    </span>
-                    <div 
-                      className="w-2 h-2 rounded-full"
-                      style={{ background: "#2C6BED" }}
-                      title="Pinned"
-                    />
-                  </motion.div>
-                );
-              })
-            )}
-          </AnimatePresence>
-        </div>
-        
-        {/* Capacity bar */}
-        {workspaceItems.length > 0 && (
-          <div className="mt-3 pt-2 border-t border-gray-100">
-            <div className="flex items-center justify-between text-[10px]">
-              <span style={{ color: "#6B7280" }}>
-                {workspaceItems.length} active • {modules.length - workspaceItems.length} available
-              </span>
-              <span className="font-medium" style={{ color: "#2C6BED" }}>
-                Start with 3 free
-              </span>
+          <div className="flex items-center justify-between mb-3">
+            <p
+              className="text-[11px] font-bold uppercase tracking-wider"
+              style={{ color: "#9CA3AF" }}
+            >
+              My Workplace
+            </p>
+            <div className="flex items-center gap-1">
+              <ChevronRight className="w-3 h-3" style={{ color: "#2C6BED" }} />
             </div>
           </div>
-        )}
+          <p className="text-[10px] mb-3" style={{ color: "#9CA3AF" }}>
+            ↕ Drag to reorder
+          </p>
+
+          <div className="space-y-2 min-h-[180px]">
+            <AnimatePresence mode="popLayout">
+              {workspaceItems.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col items-center justify-center py-10 text-center"
+                >
+                  <p className="text-xs font-medium" style={{ color: "#9CA3AF" }}>
+                    Your workspace is empty
+                  </p>
+                  <p className="text-[10px]" style={{ color: "#D1D5DB" }}>
+                    Add Seekies from the store
+                  </p>
+                </motion.div>
+              ) : (
+                workspaceItems.map((module) => {
+                  const Icon = module.icon;
+                  return (
+                    <motion.div
+                      key={module.key}
+                      initial={{ opacity: 0, x: 20, scale: 0.9 }}
+                      animate={{ opacity: 1, x: 0, scale: 1 }}
+                      exit={{ opacity: 0, x: -20, scale: 0.9 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 25,
+                      }}
+                      className="flex items-center gap-2 p-2 rounded-xl"
+                      style={{
+                        background: "#FFFFFF",
+                        border: "1px solid #EEF2F7",
+                        boxShadow: "0 4px 12px rgba(15,23,42,0.05)",
+                      }}
+                    >
+                      <GripVertical
+                        className="w-3 h-3 cursor-grab"
+                        style={{ color: "#D1D5DB" }}
+                      />
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center"
+                        style={{ background: module.tint }}
+                      >
+                        <Icon className="w-3.5 h-3.5" color={module.iconColor} strokeWidth={2.5} />
+                      </div>
+                      <span
+                        className="text-xs font-bold flex-1"
+                        style={{ color: "#0B1220" }}
+                      >
+                        {module.label}
+                      </span>
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{ background: "#2C6BED" }}
+                        title="Active"
+                      />
+                    </motion.div>
+                  );
+                })
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Capacity bar */}
+          {workspaceItems.length > 0 && (
+            <div className="mt-3 pt-2 border-t border-gray-100">
+              <div className="flex items-center justify-between text-[10px]">
+                <span style={{ color: "#6B7280" }}>
+                  {workspaceItems.length} active • {modules.length - workspaceItems.length}{" "}
+                  available
+                </span>
+                <span className="font-medium" style={{ color: "#2C6BED" }}>
+                  Start with 3 free
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Template Indicator */}
