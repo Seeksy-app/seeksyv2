@@ -103,6 +103,8 @@ export default function BoardMeetingNotes() {
     localVideoRef,
     audioStream,
     hasActiveRoom,
+    isCapturingAudio,
+    isGeneratingNotes,
     startVideoMeeting,
     joinVideoMeeting,
     toggleMute,
@@ -110,6 +112,9 @@ export default function BoardMeetingNotes() {
     startRecording,
     stopRecording,
     leaveCall,
+    startAudioCapture,
+    stopAudioCapture,
+    endMeetingAndGenerateNotes,
   } = useBoardMeetingVideo(selectedNote?.id || '');
   
   const [createForm, setCreateForm] = useState<CreateMeetingForm>({
@@ -981,6 +986,8 @@ export default function BoardMeetingNotes() {
                   localVideoRef={localVideoRef}
                   hasActiveRoom={hasActiveRoom}
                   guestToken={(selectedNote as any).guest_token}
+                  isCapturingAudio={isCapturingAudio}
+                  isGeneratingNotes={isGeneratingNotes}
                   onToggleMute={toggleMute}
                   onToggleVideo={toggleVideo}
                   onStartRecording={startRecording}
@@ -988,6 +995,9 @@ export default function BoardMeetingNotes() {
                   onLeaveCall={leaveCall}
                   onStartMeeting={startVideoMeeting}
                   onJoinMeeting={joinVideoMeeting}
+                  onStartAudioCapture={startAudioCapture}
+                  onStopAudioCapture={stopAudioCapture}
+                  onEndMeetingAndGenerateNotes={endMeetingAndGenerateNotes}
                 />
               )}
 
