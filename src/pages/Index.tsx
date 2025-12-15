@@ -7,7 +7,7 @@ import { TopNavigation } from "@/components/homepage/TopNavigation";
 
 // Homepage sections
 import { HeroWorkspaceSection } from "@/components/homepage/HeroWorkspaceSection";
-import { LogoBar } from "@/components/homepage/LogoBar";
+
 import { InteractiveDemo } from "@/components/homepage/InteractiveDemo";
 import { PlatformPillars } from "@/components/homepage/PlatformPillars";
 import { ModuleHeroShowcase } from "@/components/homepage/ModuleHeroShowcase";
@@ -106,10 +106,7 @@ const Index = () => {
         {/* 3. Personas Section - Videos */}
         <PersonasSection />
         
-        {/* 4. Social Proof / Logo Bar */}
-        <LogoBar />
-        
-        {/* 5. Value Pillars - Create, Connect, Monetize */}
+        {/* 4. Value Pillars - Create, Connect, Monetize */}
         <PlatformPillars />
         
         {/* 6. Feature Panels - Obviously style with vertical tabs */}
