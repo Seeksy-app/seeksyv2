@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Plus, Calendar, ChevronDown, ChevronUp, Sparkles, Download, Lock, Play, Pause, RotateCcw, Check, Clock, MessageSquare, Send } from "lucide-react";
+import { Plus, Calendar, ChevronDown, ChevronUp, Sparkles, Download, Lock, Play, Pause, RotateCcw, Check, Clock, MessageSquare, Send, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -368,6 +368,42 @@ export default function BoardMeetingNotes() {
     },
   });
 
+  const deleteMeetingMutation = useMutation({
+    mutationFn: async (noteId: string) => {
+      const note = notes.find(n => n.id === noteId);
+      if (!note) throw new Error("Meeting not found");
+      if (note.status === "completed") {
+        throw new Error("Completed meetings cannot be deleted");
+      }
+      
+      const { error } = await supabase
+        .from("board_meeting_notes")
+        .delete()
+        .eq("id", noteId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["board-meeting-notes"] });
+      if (selectedNote) setSelectedNote(null);
+      toast.success("Meeting deleted");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to delete meeting");
+    },
+  });
+
+  const handleDeleteMeeting = (e: React.MouseEvent, noteId: string) => {
+    e.stopPropagation();
+    const note = notes.find(n => n.id === noteId);
+    if (note?.status === "completed") {
+      toast.error("Completed meetings are locked and cannot be deleted");
+      return;
+    }
+    if (confirm("Delete this meeting? This cannot be undone.")) {
+      deleteMeetingMutation.mutate(noteId);
+    }
+  };
+
   const handleDecisionChange = (noteId: string, rowIndex: number, value: string) => {
     const note = notes.find(n => n.id === noteId);
     if (!note) return;
@@ -573,9 +609,19 @@ export default function BoardMeetingNotes() {
                           {format(new Date(note.meeting_date), "MMM d, yyyy")}
                         </div>
                       </div>
-                      <Badge variant={note.status === 'active' ? 'default' : 'secondary'} className="text-[10px]">
-                        {note.status}
-                      </Badge>
+                      <div className="flex items-center gap-1">
+                        <Badge variant={note.status === 'active' ? 'default' : 'secondary'} className="text-[10px]">
+                          {note.status}
+                        </Badge>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                          onClick={(e) => handleDeleteMeeting(e, note.id)}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -601,9 +647,12 @@ export default function BoardMeetingNotes() {
                           {format(new Date(note.meeting_date), "MMM d, yyyy")}
                         </div>
                       </div>
-                      <Badge variant="outline" className="text-[10px]">
-                        completed
-                      </Badge>
+                      <div className="flex items-center gap-1">
+                        <Badge variant="outline" className="text-[10px]">
+                          completed
+                        </Badge>
+                        <Lock className="w-3 h-3 text-muted-foreground" />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
