@@ -10,8 +10,15 @@ import {
   Building2, Mic, Globe, PieChart, Target, ListTodo, ChevronDown, ChevronUp
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ArrowUpDown } from "lucide-react";
 
 interface Tool {
   icon: any;
@@ -224,11 +231,32 @@ function CategorySection({ category, id }: { category: Category; id: string }) {
 export default function AppsAndTools() {
   const navigate = useNavigate();
 
+  const [sortMode, setSortMode] = useState<'category' | 'alphabetical'>('category');
+
+  // Flatten all tools for alphabetical view
+  const allToolsAlphabetical = useMemo(() => {
+    const tools = categories.flatMap(cat => 
+      cat.tools.map(tool => ({ ...tool, categoryTitle: cat.title, categoryColor: cat.color }))
+    );
+    return tools.sort((a, b) => a.title.localeCompare(b.title));
+  }, []);
+
   const scrollToCategory = (categoryTitle: string) => {
     const id = categoryTitle.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const getStatusBadgeAlpha = (status?: string) => {
+    switch (status) {
+      case 'active':
+        return <Badge className="bg-emerald-900/50 text-emerald-300 border-emerald-700 text-xs">Active</Badge>;
+      case 'coming-soon':
+        return <Badge className="bg-slate-700/50 text-slate-400 border-slate-600 text-xs">Coming Soon</Badge>;
+      default:
+        return <Badge className="bg-blue-900/50 text-blue-300 border-blue-700 text-xs">Available</Badge>;
     }
   };
 
@@ -263,32 +291,103 @@ export default function AppsAndTools() {
               build their brand, engage their audience, and turn passion into profit.
             </p>
             
-            {/* Category Navigation */}
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              {categories.map((category) => (
-                <button
-                  key={category.title}
-                  onClick={() => scrollToCategory(category.title)}
-                  className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 hover:border-slate-600 rounded-full text-sm font-medium text-slate-300 hover:text-white transition-all"
-                >
-                  <category.icon className="w-4 h-4" />
-                  {category.title}
-                </button>
-              ))}
+            {/* Sort Dropdown + Category Navigation */}
+            <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white">
+                    <ArrowUpDown className="w-4 h-4 mr-2" />
+                    Sort: {sortMode === 'category' ? 'By Category' : 'A-Z'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-slate-800 border-slate-700 z-50">
+                  <DropdownMenuItem 
+                    onClick={() => setSortMode('category')}
+                    className={cn("text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer", sortMode === 'category' && "bg-slate-700 text-white")}
+                  >
+                    By Category
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setSortMode('alphabetical')}
+                    className={cn("text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer", sortMode === 'alphabetical' && "bg-slate-700 text-white")}
+                  >
+                    A-Z (Alphabetical)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
+
+            {/* Category Quick Nav - only show when in category mode */}
+            {sortMode === 'category' && (
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                {categories.map((category) => (
+                  <button
+                    key={category.title}
+                    onClick={() => scrollToCategory(category.title)}
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 hover:border-slate-600 rounded-full text-sm font-medium text-slate-300 hover:text-white transition-all"
+                  >
+                    <category.icon className="w-4 h-4" />
+                    {category.title}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
-        {/* Categories */}
+        {/* Categories or Alphabetical View */}
         <section className="container mx-auto px-4 py-8 pb-20">
           <div className="max-w-7xl mx-auto space-y-4">
-            {categories.map((category) => (
-              <CategorySection 
-                key={category.title} 
-                category={category} 
-                id={category.title.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and')}
-              />
-            ))}
+            {sortMode === 'category' ? (
+              categories.map((category) => (
+                <CategorySection 
+                  key={category.title} 
+                  category={category} 
+                  id={category.title.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and')}
+                />
+              ))
+            ) : (
+              <div className="bg-slate-900/50 rounded-2xl border border-slate-700 p-5">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                  {allToolsAlphabetical.map((tool) => (
+                    <button
+                      key={`${tool.categoryTitle}-${tool.title}`}
+                      onClick={() => tool.status !== 'coming-soon' && navigate(tool.href)}
+                      disabled={tool.status === 'coming-soon'}
+                      className={cn(
+                        "group relative bg-slate-800/50 hover:bg-slate-700/50 rounded-xl p-4 border border-slate-700 hover:border-slate-600 transition-all text-left",
+                        tool.status === 'coming-soon' && "opacity-60 cursor-not-allowed"
+                      )}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="w-10 h-10 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center group-hover:border-slate-600 transition-colors">
+                          <tool.icon className="w-5 h-5 text-slate-300" />
+                        </div>
+                        {getStatusBadgeAlpha(tool.status)}
+                      </div>
+                      
+                      <h3 className="font-semibold text-white mb-1 group-hover:text-amber-400 transition-colors text-sm">
+                        {tool.title}
+                      </h3>
+                      
+                      <p className="text-xs text-slate-400 leading-relaxed mb-2">
+                        {tool.description}
+                      </p>
+                      
+                      <p className="text-xs text-slate-500">
+                        {tool.categoryTitle}
+                      </p>
+                      
+                      {tool.status !== 'coming-soon' && (
+                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <ArrowRight className="w-4 h-4 text-amber-400" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
