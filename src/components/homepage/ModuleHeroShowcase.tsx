@@ -79,7 +79,7 @@ const modules: ModuleData[] = [
     description: "Connect with advertisers who value authentic voices. Browse opportunities, negotiate deals, and manage campaigns—all while maintaining creative control.",
     imageUrl: heroCommunity,
     ribbonLabel: "Brand Marketplace",
-    ribbonBg: "#1A1A1A",
+    ribbonBg: "#E8D5CB",
     side: "right",
   },
 ];

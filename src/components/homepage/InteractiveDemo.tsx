@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Shuffle, Sparkles, ArrowRight } from "lucide-react";
+import { Shuffle, Sparkles, ArrowRight, Coins } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const rotatingStatements = [
@@ -14,30 +14,15 @@ const rotatingStatements = [
 
 // Module-specific prompts for clickable chips
 const modulePrompts: Record<string, string[]> = {
-  studio: [
-    "Record a solo episode with AI teleprompter...",
-    "Start a live recording session with 3 guests...",
-    "Edit my raw footage with AI noise reduction...",
-  ],
-  clips: [
-    "Generate 5 vertical clips from my latest podcast...",
-    "Add captions and animations to my best moment...",
-    "Schedule clips to post across all platforms...",
-  ],
-  email: [
-    "Send a welcome sequence to new subscribers...",
-    "Draft a newsletter announcing my new course...",
-    "Reply to sponsor inquiries in my inbox...",
-  ],
   crm: [
     "Import my email list and segment by interest...",
     "Tag contacts who attended my last event...",
     "Find my most engaged subscribers...",
   ],
-  events: [
-    "Create a virtual workshop with ticket sales...",
-    "Send reminders to registered attendees...",
-    "Set up a hybrid in-person and streaming event...",
+  email: [
+    "Send a welcome sequence to new subscribers...",
+    "Draft a newsletter announcing my new course...",
+    "Reply to sponsor inquiries in my inbox...",
   ],
   newsletter: [
     "Create a weekly digest for my audience...",
@@ -47,194 +32,174 @@ const modulePrompts: Record<string, string[]> = {
 };
 
 const moduleChips = [
-  { key: "studio", label: "Studio", color: "#1A1A1A" },
-  { key: "clips", label: "Clips", color: "#C4CFC0" },
-  { key: "email", label: "Email", color: "#B8C9DC" },
-  { key: "crm", label: "CRM", color: "#D4C4A8" },
-  { key: "events", label: "Events", color: "#E8D5CB" },
-  { key: "newsletter", label: "Newsletter", color: "#DDD8CC" },
+  { key: "crm", label: "CRM" },
+  { key: "email", label: "Email" },
+  { key: "newsletter", label: "Newsletter" },
 ];
 
 export function InteractiveDemo() {
   const navigate = useNavigate();
-  const [currentPrompt, setCurrentPrompt] = useState(rotatingStatements[0]);
-  const [promptIndex, setPromptIndex] = useState(0);
-  const [isTyping, setIsTyping] = useState(false);
-  const [isManualSelect, setIsManualSelect] = useState(false);
+  const [displayText, setDisplayText] = useState("");
+  const [currentPromptIndex, setCurrentPromptIndex] = useState(0);
+  const [isTyping, setIsTyping] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
 
-  const cyclePrompt = useCallback(() => {
-    if (isManualSelect) return;
-    setIsTyping(true);
-    setTimeout(() => {
-      const nextIndex = (promptIndex + 1) % rotatingStatements.length;
-      setPromptIndex(nextIndex);
-      setCurrentPrompt(rotatingStatements[nextIndex]);
-      setIsTyping(false);
-    }, 100);
-  }, [promptIndex, isManualSelect]);
+  const currentPrompt = rotatingStatements[currentPromptIndex];
 
-  // Auto-rotate every 2 seconds (faster)
+  // Typewriter effect
   useEffect(() => {
-    if (isManualSelect) return;
-    const interval = setInterval(cyclePrompt, 2000);
-    return () => clearInterval(interval);
-  }, [cyclePrompt, isManualSelect]);
+    if (isPaused) return;
 
-  // Resume auto-rotation after 5 seconds of inactivity
-  useEffect(() => {
-    if (!isManualSelect) return;
-    const timeout = setTimeout(() => {
-      setIsManualSelect(false);
-    }, 5000);
-    return () => clearTimeout(timeout);
-  }, [isManualSelect, currentPrompt]);
+    if (isTyping) {
+      if (displayText.length < currentPrompt.length) {
+        const timeout = setTimeout(() => {
+          setDisplayText(currentPrompt.slice(0, displayText.length + 1));
+        }, 30); // Fast typing speed
+        return () => clearTimeout(timeout);
+      } else {
+        // Pause at end, then move to next
+        const timeout = setTimeout(() => {
+          setIsTyping(false);
+        }, 2000);
+        return () => clearTimeout(timeout);
+      }
+    } else {
+      // Move to next prompt
+      const nextIndex = (currentPromptIndex + 1) % rotatingStatements.length;
+      setCurrentPromptIndex(nextIndex);
+      setDisplayText("");
+      setIsTyping(true);
+    }
+  }, [displayText, currentPrompt, isTyping, currentPromptIndex, isPaused]);
 
   const handleModuleClick = (moduleKey: string) => {
     const prompts = modulePrompts[moduleKey];
     if (prompts && prompts.length > 0) {
       const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
-      setIsManualSelect(true);
+      setIsPaused(true);
+      setDisplayText("");
       setIsTyping(true);
-      setTimeout(() => {
-        setCurrentPrompt(randomPrompt);
-        setIsTyping(false);
-      }, 100);
+      
+      // Type out the new prompt
+      let i = 0;
+      const typeInterval = setInterval(() => {
+        if (i < randomPrompt.length) {
+          setDisplayText(randomPrompt.slice(0, i + 1));
+          i++;
+        } else {
+          clearInterval(typeInterval);
+          // Resume auto-rotation after 4 seconds
+          setTimeout(() => {
+            setIsPaused(false);
+            setDisplayText("");
+            setIsTyping(true);
+          }, 4000);
+        }
+      }, 30);
     }
   };
 
-  const handleShuffle = () => {
-    setIsManualSelect(true);
+  const handleNewSuggestion = () => {
+    setIsPaused(false);
+    const nextIndex = (currentPromptIndex + 1) % rotatingStatements.length;
+    setCurrentPromptIndex(nextIndex);
+    setDisplayText("");
     setIsTyping(true);
-    setTimeout(() => {
-      const nextIndex = (promptIndex + 1) % rotatingStatements.length;
-      setPromptIndex(nextIndex);
-      setCurrentPrompt(rotatingStatements[nextIndex]);
-      setIsTyping(false);
-    }, 100);
   };
 
   return (
-    <section className="w-full px-4 py-16 md:py-24">
-      <div className="mx-auto max-w-[1280px]">
-        {/* Headline */}
-        <div className="text-center mb-10">
-          <h2 
-            className="font-extrabold tracking-[-0.5px] mb-4"
-            style={{ 
-              fontSize: "clamp(28px, 4vw, 42px)",
-              color: "hsl(var(--foreground))",
-            }}
-          >
-            Tell Seeksy what you want to do.
-          </h2>
-          <p 
-            className="text-lg"
-            style={{ color: "hsl(var(--muted-foreground))" }}
-          >
-            We'll suggest the right tools for your workflow.
-          </p>
-        </div>
-
-        {/* Big Interactive Card */}
+    <section className="w-full px-4 py-16 md:py-24" style={{ background: "hsl(var(--background))" }}>
+      <div className="mx-auto max-w-[900px]">
+        {/* Main Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="mx-auto max-w-[1000px] rounded-[28px] p-8 md:p-12"
+          className="rounded-[24px] p-8 md:p-10"
           style={{
             background: "hsl(var(--card))",
             border: "1px solid hsl(var(--border))",
-            boxShadow: "0 20px 60px -15px hsl(var(--foreground)/0.08)",
+            boxShadow: "0 20px 60px -15px hsl(var(--foreground)/0.06)",
           }}
         >
-          {/* Prompt Display */}
-          <div className="mb-8">
-            <label 
-              className="block text-sm font-medium mb-3"
-              style={{ color: "hsl(var(--muted-foreground))" }}
+          {/* Typewriter Prompt Display */}
+          <div className="min-h-[80px] md:min-h-[100px] mb-8">
+            <p
+              className="text-2xl md:text-3xl font-medium leading-relaxed"
+              style={{ color: "hsl(var(--foreground))" }}
             >
-              Describe your goal
-            </label>
-            <div 
-              className="w-full min-h-[80px] p-5 rounded-2xl text-lg cursor-pointer transition-all duration-200 hover:shadow-md"
-              style={{
-                background: "hsl(var(--background))",
-                border: "2px solid hsl(var(--border))",
-                color: "hsl(var(--foreground))",
-              }}
-              onClick={handleShuffle}
-            >
-              <AnimatePresence mode="wait">
-                <motion.span
-                  key={currentPrompt}
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: isTyping ? 0.5 : 1, y: 0 }}
-                  exit={{ opacity: 0, y: -5 }}
-                  transition={{ duration: 0.1 }}
-                  className="block"
-                >
-                  {currentPrompt}
-                </motion.span>
-              </AnimatePresence>
-            </div>
-          </div>
-
-          {/* Module Chips - Clickable */}
-          <div className="mb-8">
-            <p 
-              className="text-sm mb-4"
-              style={{ color: "hsl(var(--muted-foreground))" }}
-            >
-              Click a module for ideas, or generate a suggested setup
+              {displayText}
+              <span
+                className="inline-block w-[2px] h-[1em] ml-1 align-middle animate-pulse"
+                style={{ background: "hsl(var(--primary))" }}
+              />
             </p>
-            <div className="flex flex-wrap gap-2">
-              {moduleChips.map((chip) => (
-                <button
-                  key={chip.key}
-                  onClick={() => handleModuleClick(chip.key)}
-                  className="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 hover:scale-105 hover:shadow-md"
-                  style={{
-                    background: chip.color,
-                    color: chip.color === "#1A1A1A" ? "#FFFFFF" : "#0B0F1A",
-                  }}
-                >
-                  {chip.label}
-                </button>
-              ))}
-            </div>
           </div>
 
-          {/* CTAs */}
-          <div className="flex flex-wrap gap-4">
+          {/* Module Chips Row */}
+          <div className="flex flex-wrap items-center gap-3 mb-8">
+            <span 
+              className="text-sm"
+              style={{ color: "hsl(var(--muted-foreground))" }}
+            >
+              Click a module for more ideas:
+            </span>
+            {moduleChips.map((chip) => (
+              <button
+                key={chip.key}
+                onClick={() => handleModuleClick(chip.key)}
+                className="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 hover:shadow-md"
+                style={{
+                  background: "transparent",
+                  border: "1.5px solid hsl(var(--primary))",
+                  color: "hsl(var(--primary))",
+                }}
+              >
+                {chip.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Divider */}
+          <div 
+            className="w-full h-px mb-6"
+            style={{ background: "hsl(var(--border))" }}
+          />
+
+          {/* Bottom Row - CTAs */}
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <Button
+              variant="ghost"
+              size="lg"
+              className="rounded-full px-5 h-11 text-sm font-medium"
+              onClick={handleNewSuggestion}
+            >
+              <Shuffle className="mr-2 h-4 w-4" />
+              New Suggestion
+            </Button>
             <Button
               size="lg"
-              className="rounded-full px-8 h-12 text-base font-semibold"
+              className="rounded-full px-6 h-11 text-sm font-semibold bg-foreground text-background hover:bg-foreground/90"
               onClick={() => navigate("/auth")}
             >
               <Sparkles className="mr-2 h-4 w-4" />
               Try it now
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="rounded-full px-8 h-12 text-base font-semibold"
-              onClick={() => navigate("/auth")}
-            >
-              Build my workspace
               <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-            <Button
-              size="lg"
-              variant="ghost"
-              className="rounded-full px-6 h-12 text-base"
-              onClick={handleShuffle}
-            >
-              <Shuffle className="mr-2 h-4 w-4" />
-              Shuffle
             </Button>
           </div>
         </motion.div>
+
+        {/* Credits Text */}
+        <div className="flex items-center justify-center gap-2 mt-6">
+          <Coins className="h-4 w-4" style={{ color: "hsl(var(--muted-foreground))" }} />
+          <p 
+            className="text-sm"
+            style={{ color: "hsl(var(--muted-foreground))" }}
+          >
+            Pay only for what you use • Start free with 100 credits
+          </p>
+        </div>
       </div>
     </section>
   );
