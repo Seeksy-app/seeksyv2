@@ -11,6 +11,7 @@ import {
   Link2,
   Check,
   Sparkles,
+  PhoneOff,
 } from 'lucide-react';
 import {
   Tooltip,
@@ -34,6 +35,7 @@ interface BoardMeetingVideoProps {
   isMuted: boolean;
   isVideoOff: boolean;
   isGeneratingNotes: boolean;
+  isCapturingAudio: boolean;
   participants: Participant[];
   localVideoRef: React.RefObject<HTMLVideoElement>;
   hasActiveRoom: boolean;
@@ -42,7 +44,8 @@ interface BoardMeetingVideoProps {
   onToggleVideo: () => void;
   onStartMeeting: () => void;
   onJoinMeeting: () => void;
-  onEndMeetingAndGenerateNotes: () => void;
+  onStopAIAndGenerateNotes: () => void;
+  onEndCall: () => void;
 }
 
 const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
@@ -51,6 +54,7 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
   isMuted,
   isVideoOff,
   isGeneratingNotes,
+  isCapturingAudio,
   participants,
   localVideoRef,
   hasActiveRoom,
@@ -59,7 +63,8 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
   onToggleVideo,
   onStartMeeting,
   onJoinMeeting,
-  onEndMeetingAndGenerateNotes,
+  onStopAIAndGenerateNotes,
+  onEndCall,
 }) => {
   const [linkCopied, setLinkCopied] = React.useState(false);
   const totalParticipants = participants.length + 1;
@@ -250,26 +255,44 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
             <TooltipContent>{isVideoOff ? 'Start Video' : 'Stop Video'}</TooltipContent>
           </Tooltip>
 
-          {/* End Meeting & Generate Notes - Single Action */}
-          <Button
-            variant="default"
-            size="sm"
-            className="ml-2 gap-2 bg-primary hover:bg-primary/90"
-            onClick={onEndMeetingAndGenerateNotes}
-            disabled={isGeneratingNotes}
-          >
-            {isGeneratingNotes ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-4 w-4" />
-                End Meeting & Generate Notes
-              </>
-            )}
-          </Button>
+          {/* Generate Notes Button - only shows when AI is listening */}
+          {isCapturingAudio && (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="ml-2 gap-2"
+              onClick={onStopAIAndGenerateNotes}
+              disabled={isGeneratingNotes}
+            >
+              {isGeneratingNotes ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  Generate Notes
+                </>
+              )}
+            </Button>
+          )}
+
+          {/* End Call Button */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="ml-2 gap-2"
+                onClick={onEndCall}
+              >
+                <PhoneOff className="h-4 w-4" />
+                End Call
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Leave video call</TooltipContent>
+          </Tooltip>
         </div>
       </TooltipProvider>
     </div>

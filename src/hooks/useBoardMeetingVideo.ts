@@ -441,18 +441,18 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
     }
   }, [meetingNoteId]);
 
-  // End meeting and trigger AI notes generation
-  const endMeetingAndGenerateNotes = useCallback(async () => {
+  // Stop AI capture and generate notes (without ending call)
+  const stopAIAndGenerateNotes = useCallback(async () => {
     if (!meetingNoteId) return;
     
     setIsGeneratingNotes(true);
     
     try {
       // Stop audio capture and save
-      let audioFilePath: string | null = null;
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         mediaRecorderRef.current.stop();
-        // Wait for onstop handler
+        setIsCapturingAudio(false);
+        // Wait for onstop handler to save audio
         await new Promise(resolve => setTimeout(resolve, 500));
       }
       
@@ -463,10 +463,9 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
         .eq('id', meetingNoteId)
         .single();
       
-      audioFilePath = meetingData?.audio_file_url;
+      const audioFilePath = meetingData?.audio_file_url;
       
       if (!audioFilePath) {
-        // If no audio was captured, we still allow generating notes from existing transcript
         const { data: existingData } = await supabase
           .from('board_meeting_notes')
           .select('audio_transcript')
@@ -474,14 +473,11 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
           .single();
         
         if (!existingData?.audio_transcript) {
-          toast.error('No audio recorded. Please record the meeting first.');
+          toast.error('No audio recorded. Please start the timer first to begin recording.');
           setIsGeneratingNotes(false);
           return;
         }
       }
-      
-      // Leave the video call
-      await leaveCall();
       
       // Step 1: Transcribe audio (if we have audio file)
       if (audioFilePath) {
@@ -517,13 +513,35 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
       toast.success('AI meeting notes generated! Review and publish when ready.');
       
     } catch (error: any) {
-      console.error('Error ending meeting:', error);
+      console.error('Error generating notes:', error);
       toast.error(error.message || 'Failed to generate meeting notes');
       setAiNotesStatus('error');
     } finally {
       setIsGeneratingNotes(false);
     }
-  }, [meetingNoteId, leaveCall]);
+  }, [meetingNoteId]);
+
+  // End call only (no note generation)
+  const endCall = useCallback(async () => {
+    if (!callObject) return;
+    
+    try {
+      // Stop audio capture if active
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+        setIsCapturingAudio(false);
+      }
+      await callObject.leave();
+      callObject.destroy();
+      setCallObject(null);
+      setIsConnected(false);
+      setParticipants([]);
+      setAudioStream(null);
+      toast.info('Left video meeting');
+    } catch (error) {
+      console.error('Error leaving call:', error);
+    }
+  }, [callObject]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -554,6 +572,7 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
     toggleMute,
     toggleVideo,
     startAudioCapture,
-    endMeetingAndGenerateNotes,
+    stopAIAndGenerateNotes,
+    endCall,
   };
 };
