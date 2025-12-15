@@ -123,15 +123,15 @@ export function InteractiveDemo() {
     <section
       className="w-full px-4 relative"
       style={{
-        background: "linear-gradient(180deg, rgba(44,107,237,0.06) 0%, rgba(255,255,255,0) 70%)",
-        paddingTop: "72px",
-        paddingBottom: "72px",
+        background: "#F7F9FE",
+        paddingTop: "80px",
+        paddingBottom: "80px",
       }}
     >
       {/* Subtle top divider */}
       <div
         className="absolute top-0 left-0 right-0"
-        style={{ height: "1px", background: "rgba(15,23,42,0.08)" }}
+        style={{ height: "1px", background: "rgba(15,23,42,0.06)" }}
       />
 
       <div className="mx-auto max-w-[900px]">
@@ -174,7 +174,7 @@ export function InteractiveDemo() {
           }}
         >
           {/* Typewriter Prompt Display */}
-          <div className="min-h-[80px] md:min-h-[100px] mb-8">
+          <div className="min-h-[90px] md:min-h-[110px] mb-8">
             <p
               className="text-2xl md:text-3xl font-medium leading-relaxed"
               style={{ color: "hsl(var(--foreground))" }}
@@ -219,18 +219,17 @@ export function InteractiveDemo() {
 
           {/* Bottom Row - CTAs */}
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <Button
-              variant="ghost"
-              size="lg"
-              className="rounded-full px-5 h-11 text-sm font-medium"
+            <button
+              className="rounded-full px-4 h-9 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors flex items-center gap-1.5"
               onClick={handleNewSuggestion}
             >
-              <Shuffle className="mr-2 h-4 w-4" />
+              <Shuffle className="h-3.5 w-3.5" />
               New Suggestion
-            </Button>
+            </button>
             <Button
               size="lg"
-              className="rounded-full px-6 h-11 text-sm font-semibold bg-foreground text-background hover:bg-foreground/90"
+              className="rounded-full px-8 h-12 text-base font-semibold shadow-lg"
+              style={{ background: "#2C6BED" }}
               onClick={() => navigate("/auth")}
             >
               <Sparkles className="mr-2 h-4 w-4" />

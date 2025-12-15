@@ -49,7 +49,9 @@ const pillars = [
 
 export function PlatformPillars() {
   return (
-    <section className="w-full px-4 py-16 md:py-24">
+    <section className="w-full px-4 py-20 md:py-24"
+      style={{ background: "hsl(var(--background))" }}
+    >
       <div className="mx-auto max-w-[1280px]">
         {/* Section Header */}
         <motion.div
@@ -96,8 +98,8 @@ export function PlatformPillars() {
                 }}
               >
                 {/* Icon */}
-                <div className={`w-14 h-14 rounded-2xl ${pillar.iconBg} flex items-center justify-center mb-6`}>
-                  <Icon className={`h-7 w-7 ${pillar.iconColor}`} />
+                <div className={`w-16 h-16 rounded-2xl ${pillar.iconBg} flex items-center justify-center mb-6`}>
+                  <Icon className={`h-8 w-8 ${pillar.iconColor}`} />
                 </div>
 
                 {/* Badge */}
@@ -118,8 +120,8 @@ export function PlatformPillars() {
 
                 {/* Description */}
                 <p 
-                  className="text-base leading-relaxed mb-8 flex-1"
-                  style={{ color: "hsl(var(--muted-foreground))" }}
+                  className="text-base mb-8 flex-1"
+                  style={{ color: "hsl(var(--muted-foreground))", lineHeight: 1.55 }}
                 >
                   {pillar.description}
                 </p>

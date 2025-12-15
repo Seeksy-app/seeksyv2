@@ -60,7 +60,7 @@ export const ModuleBuilder = forwardRef<ModuleBuilderHandle, ModuleBuilderProps>
     const selectedModuleData = availableModules.filter(m => selectedModules.includes(m.id));
 
     return (
-      <div ref={containerRef} className="py-16 px-4 bg-muted/30 scroll-mt-20">
+      <div ref={containerRef} className="py-20 md:py-24 px-4 scroll-mt-20" style={{ background: "hsl(var(--background))" }}>
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <motion.div 
