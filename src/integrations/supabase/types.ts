@@ -10330,6 +10330,135 @@ export type Database = {
         }
         Relationships: []
       }
+      doc_instances: {
+        Row: {
+          audit_json: Json | null
+          created_at: string
+          created_by: string | null
+          final_pdf_url: string | null
+          form_template_id: string
+          id: string
+          merged_docx_url: string | null
+          preview_pdf_url: string | null
+          status: string
+          submission_json: Json | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          audit_json?: Json | null
+          created_at?: string
+          created_by?: string | null
+          final_pdf_url?: string | null
+          form_template_id: string
+          id?: string
+          merged_docx_url?: string | null
+          preview_pdf_url?: string | null
+          status?: string
+          submission_json?: Json | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          audit_json?: Json | null
+          created_at?: string
+          created_by?: string | null
+          final_pdf_url?: string | null
+          form_template_id?: string
+          id?: string
+          merged_docx_url?: string | null
+          preview_pdf_url?: string | null
+          status?: string
+          submission_json?: Json | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doc_instances_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doc_instances_form_template_id_fkey"
+            columns: ["form_template_id"]
+            isOneToOne: false
+            referencedRelation: "form_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doc_instances_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      doc_signers: {
+        Row: {
+          access_token: string | null
+          created_at: string
+          doc_instance_id: string
+          email: string
+          id: string
+          ip_hash: string | null
+          name: string | null
+          role: string
+          signature_image_url: string | null
+          signature_type: string | null
+          signed_at: string | null
+          signing_order: number
+          status: string
+          token_expires_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_token?: string | null
+          created_at?: string
+          doc_instance_id: string
+          email: string
+          id?: string
+          ip_hash?: string | null
+          name?: string | null
+          role: string
+          signature_image_url?: string | null
+          signature_type?: string | null
+          signed_at?: string | null
+          signing_order?: number
+          status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string | null
+          created_at?: string
+          doc_instance_id?: string
+          email?: string
+          id?: string
+          ip_hash?: string | null
+          name?: string | null
+          role?: string
+          signature_image_url?: string | null
+          signature_type?: string | null
+          signed_at?: string | null
+          signing_order?: number
+          status?: string
+          token_expires_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doc_signers_doc_instance_id_fkey"
+            columns: ["doc_instance_id"]
+            isOneToOne: false
+            referencedRelation: "doc_instances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_templates: {
         Row: {
           created_at: string | null
@@ -12504,6 +12633,63 @@ export type Database = {
             columns: ["ticket_id"]
             isOneToOne: false
             referencedRelation: "client_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_templates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          docx_template_url: string
+          id: string
+          is_active: boolean
+          name: string
+          schema_json: Json
+          signer_config_json: Json
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          docx_template_url: string
+          id?: string
+          is_active?: boolean
+          name: string
+          schema_json: Json
+          signer_config_json: Json
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          docx_template_url?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          schema_json?: Json
+          signer_config_json?: Json
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
