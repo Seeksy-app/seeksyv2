@@ -2,6 +2,12 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 
+// Import hero images
+import heroConversations from "@/assets/homepage/hero-conversations.jpg";
+import heroCommunity from "@/assets/homepage/hero-community.jpg";
+import heroContent from "@/assets/homepage/hero-content.jpg";
+import heroPeople from "@/assets/homepage/hero-people.jpg";
+
 interface ModuleData {
   key: string;
   titleLight: string;
@@ -20,7 +26,7 @@ const modules: ModuleData[] = [
     titleLight: "Share of",
     titleBold: "Influence",
     description: "Track your reach and influence across platforms. Understand how your content performs and where your audience engages most.",
-    imageUrl: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&h=1000&fit=crop",
+    imageUrl: heroConversations,
     ribbonLabel: "Share of Influence",
     ribbonBg: "#D4C4A8",
     side: "left",
@@ -30,7 +36,7 @@ const modules: ModuleData[] = [
     titleLight: "Quick-Turn",
     titleBold: "Content",
     description: "Create and publish content in record time. Our AI-powered tools help you produce professional content faster than ever before.",
-    imageUrl: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&h=1000&fit=crop",
+    imageUrl: heroCommunity,
     ribbonLabel: "Quick-Turn Content",
     ribbonBg: "#C4CFC0",
     side: "left",
@@ -41,7 +47,7 @@ const modules: ModuleData[] = [
     titleLight: "Seeding and",
     titleBold: "Custom Boxes",
     description: "Send curated product packages to creators and influencers. Track unboxings, manage inventory, and measure campaign impact.",
-    imageUrl: "https://images.unsplash.com/photo-1607082349566-187342175e2f?w=800&h=1000&fit=crop",
+    imageUrl: heroContent,
     ribbonLabel: "Seeding and Custom Boxes",
     ribbonBg: "#C4CFC0",
     side: "right",
@@ -51,7 +57,7 @@ const modules: ModuleData[] = [
     titleLight: "UGC For",
     titleBold: "Commerce",
     description: "Turn user-generated content into shoppable experiences. Connect authentic creator content directly to your product pages.",
-    imageUrl: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=1000&fit=crop",
+    imageUrl: heroPeople,
     ribbonLabel: "UGC For Commerce",
     ribbonBg: "#B8C9DC",
     side: "right",
@@ -61,7 +67,7 @@ const modules: ModuleData[] = [
     titleLight: "Proprietary",
     titleBold: "Custom Reporting",
     description: "Get insights that matter with custom dashboards and reports. Track ROI, engagement, and campaign performance in real-time.",
-    imageUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=1000&fit=crop",
+    imageUrl: heroConversations,
     ribbonLabel: "Proprietary Custom Reporting",
     ribbonBg: "#1A1A1A",
     side: "right",
@@ -106,23 +112,29 @@ export function ModuleHeroShowcase() {
         key={module.key}
         layoutId={module.key}
         onClick={() => setActiveKey(module.key)}
-        className="relative cursor-pointer transition-colors duration-200 hover:opacity-95 h-full flex items-center justify-center"
+        className="relative cursor-pointer transition-colors duration-200 hover:opacity-95 h-full"
         style={{
           width: isActive ? "90px" : "70px",
           background: isActive ? "#0A0A0A" : module.ribbonBg,
           zIndex: isActive ? 10 : (totalTabs - index),
           borderRadius: isFirst ? "32px 0 0 32px" : isLast ? "0 32px 32px 0" : "0",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
       >
         <span
-          className="whitespace-nowrap text-center leading-none"
+          className="whitespace-nowrap leading-none"
           style={{
-            fontSize: "32px",
+            fontSize: "28px",
             letterSpacing: "-0.02em",
             color: isActive ? "#FFFFFF" : "rgba(11, 15, 26, 0.85)",
             transform: "rotate(-90deg)",
             transformOrigin: "center center",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
           <span style={{ fontWeight: 400 }}>{module.titleLight}</span>{" "}
@@ -139,7 +151,7 @@ export function ModuleHeroShowcase() {
         className="mx-auto max-w-[1400px] rounded-[32px] overflow-hidden flex"
         style={{
           background: "#C4CFC0",
-          height: "830px",
+          height: "705px",
         }}
       >
         {/* Desktop Layout */}
