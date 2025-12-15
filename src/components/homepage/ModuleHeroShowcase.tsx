@@ -22,60 +22,70 @@ interface ModuleData {
 const modules: ModuleData[] = [
   // Left side tabs
   {
-    key: "share_influence",
-    titleLight: "Share of",
-    titleBold: "Influence",
-    description: "Track your reach and influence across platforms. Understand how your content performs and where your audience engages most.",
+    key: "studio_creation",
+    titleLight: "AI-Powered",
+    titleBold: "Studio",
+    description: "Record, edit, and publish professional podcasts and videos in minutes. Our browser-based studio handles noise removal, transcription, and AI-assisted editing—so you can focus on creating.",
     imageUrl: heroConversations,
-    ribbonLabel: "Share of Influence",
-    ribbonBg: "#D4C4A8",
+    ribbonLabel: "AI-Powered Studio",
+    ribbonBg: "#E8D4B8",
     side: "left",
   },
   {
-    key: "quick_turn",
-    titleLight: "Quick-Turn",
-    titleBold: "Content",
-    description: "Create and publish content in record time. Our AI-powered tools help you produce professional content faster than ever before.",
+    key: "creator_monetization",
+    titleLight: "Creator",
+    titleBold: "Monetization",
+    description: "Turn your audience into revenue. From brand deals and dynamic ad insertion to tips, subscriptions, and digital products—we handle the business so you can get paid.",
     imageUrl: heroCommunity,
-    ribbonLabel: "Quick-Turn Content",
+    ribbonLabel: "Creator Monetization",
     ribbonBg: "#C4CFC0",
+    side: "left",
+  },
+  {
+    key: "identity_verification",
+    titleLight: "Voice & Face",
+    titleBold: "Verification",
+    description: "Protect your identity with blockchain-certified voice and face verification. Prove authenticity, prevent deepfakes, and build trust with your audience and brand partners.",
+    imageUrl: heroContent,
+    ribbonLabel: "Identity Verification",
+    ribbonBg: "#B8C9DC",
     side: "left",
   },
   // Right side tabs
   {
-    key: "seeding_boxes",
-    titleLight: "Seeding and",
-    titleBold: "Custom Boxes",
-    description: "Send curated product packages to creators and influencers. Track unboxings, manage inventory, and measure campaign impact.",
-    imageUrl: heroContent,
-    ribbonLabel: "Seeding and Custom Boxes",
+    key: "audience_crm",
+    titleLight: "Audience",
+    titleBold: "CRM",
+    description: "Own your relationships. Manage contacts, segment your audience, automate email campaigns, and track engagement—all in one unified inbox designed for creators.",
+    imageUrl: heroPeople,
+    ribbonLabel: "Audience CRM",
+    ribbonBg: "#D4C4A8",
+    side: "right",
+  },
+  {
+    key: "analytics_insights",
+    titleLight: "Analytics &",
+    titleBold: "Insights",
+    description: "Understand what's working. Track downloads, watch time, revenue, and audience growth across all your content with real-time dashboards and custom reports.",
+    imageUrl: heroConversations,
+    ribbonLabel: "Analytics & Insights",
     ribbonBg: "#C4CFC0",
     side: "right",
   },
   {
-    key: "ugc_commerce",
-    titleLight: "UGC For",
-    titleBold: "Commerce",
-    description: "Turn user-generated content into shoppable experiences. Connect authentic creator content directly to your product pages.",
-    imageUrl: heroPeople,
-    ribbonLabel: "UGC For Commerce",
-    ribbonBg: "#B8C9DC",
-    side: "right",
-  },
-  {
-    key: "custom_reporting",
-    titleLight: "Proprietary",
-    titleBold: "Custom Reporting",
-    description: "Get insights that matter with custom dashboards and reports. Track ROI, engagement, and campaign performance in real-time.",
-    imageUrl: heroConversations,
-    ribbonLabel: "Proprietary Custom Reporting",
+    key: "brand_marketplace",
+    titleLight: "Brand",
+    titleBold: "Marketplace",
+    description: "Connect with advertisers who value authentic voices. Browse opportunities, negotiate deals, and manage campaigns—all while maintaining creative control.",
+    imageUrl: heroCommunity,
+    ribbonLabel: "Brand Marketplace",
     ribbonBg: "#1A1A1A",
     side: "right",
   },
 ];
 
 export function ModuleHeroShowcase() {
-  const [activeKey, setActiveKey] = useState("quick_turn");
+  const [activeKey, setActiveKey] = useState("creator_monetization");
   const activeModule = modules.find((m) => m.key === activeKey) || modules[0];
 
   // When a tab is selected, it flips to the opposite side
@@ -122,7 +132,7 @@ export function ModuleHeroShowcase() {
           alignItems: "center",
           justifyContent: "center",
         }}
-        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+        transition={{ type: "spring", stiffness: 180, damping: 28, mass: 1.2 }}
       >
         <span
           className="whitespace-nowrap leading-none font-semibold text-center"
@@ -174,7 +184,7 @@ export function ModuleHeroShowcase() {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.25, ease: "easeOut" }}
+                    transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
                     className="flex flex-col gap-6"
                   >
                     {/* Large headline */}
@@ -225,7 +235,7 @@ export function ModuleHeroShowcase() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
+                  transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
                   className="h-full"
                 >
                   <div className="relative w-full h-full rounded-[24px] overflow-hidden">
