@@ -780,29 +780,42 @@ export default function Apps() {
     return [...filteredModules].sort((a, b) => a.name.localeCompare(b.name));
   }, [filteredModules]);
 
-  // Group by category
+  // Group by category (sorted A-Z within each category)
   const groupedByCategory = useMemo(() => {
+    const sortModules = (modules: Module[]) => 
+      [...modules].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+
     if (activeCategory === "active") {
-      return filteredModules.reduce((acc, module) => {
+      const grouped = filteredModules.reduce((acc, module) => {
         if (!acc[module.category]) {
           acc[module.category] = [];
         }
         acc[module.category].push(module);
         return acc;
       }, {} as Record<string, Module[]>);
+      // Sort within each category
+      Object.keys(grouped).forEach(key => {
+        grouped[key] = sortModules(grouped[key]);
+      });
+      return grouped;
     }
     
     if (activeCategory !== "all") {
-      return { [activeCategory]: filteredModules };
+      return { [activeCategory]: sortModules(filteredModules) };
     }
 
-    return filteredModules.reduce((acc, module) => {
+    const grouped = filteredModules.reduce((acc, module) => {
       if (!acc[module.category]) {
         acc[module.category] = [];
       }
       acc[module.category].push(module);
       return acc;
     }, {} as Record<string, Module[]>);
+    // Sort within each category
+    Object.keys(grouped).forEach(key => {
+      grouped[key] = sortModules(grouped[key]);
+    });
+    return grouped;
   }, [filteredModules, activeCategory]);
 
   // Group by collection
@@ -899,39 +912,6 @@ export default function Apps() {
             />
           </div>
 
-          {/* View Mode Toggle */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
-                <SortAsc className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">View:</span> {viewModeLabel}
-                <ChevronDown className="h-3 w-3 ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-popover z-50">
-              <DropdownMenuItem 
-                onClick={() => setViewMode("category")}
-                className={cn(viewMode === "category" && "bg-accent")}
-              >
-                <FolderKanban className="h-4 w-4 mr-2" />
-                By Category
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => setViewMode("collection")}
-                className={cn(viewMode === "collection" && "bg-accent")}
-              >
-                <Layers className="h-4 w-4 mr-2" />
-                By Collection
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => setViewMode("alphabetical")}
-                className={cn(viewMode === "alphabetical" && "bg-accent")}
-              >
-                <ArrowDownAZ className="h-4 w-4 mr-2" />
-                Alphabetically
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
 
           <div className="flex items-center gap-1 p-0.5 bg-muted/50 rounded-lg">
             <Button
@@ -961,8 +941,8 @@ export default function Apps() {
           </div>
         </div>
 
-        {/* Segmented Control Filter */}
-        <div className="mb-6">
+        {/* Segmented Control Filter + Sort Control */}
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="inline-flex items-center p-1 bg-muted/50 rounded-xl border border-border/50 flex-wrap">
             {/* My Workspaces Tab */}
             <button
@@ -1022,6 +1002,38 @@ export default function Apps() {
                 </button>
               );
             })}
+          </div>
+          
+          {/* Sort Control - Right side */}
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-9 gap-1.5 text-xs rounded-lg border-border/50">
+                  <SortAsc className="h-3.5 w-3.5" />
+                  <span>Sort:</span> {viewMode === "alphabetical" ? "A–Z" : viewMode === "collection" ? "Collection" : "Category"}
+                  <ChevronDown className="h-3 w-3 ml-0.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-popover z-50">
+                <DropdownMenuItem 
+                  onClick={() => setViewMode("category")}
+                  className={cn(viewMode === "category" && "bg-accent")}
+                >
+                  <FolderKanban className="h-4 w-4 mr-2" />
+                  Category (default)
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setViewMode("alphabetical")}
+                  className={cn(viewMode === "alphabetical" && "bg-accent")}
+                >
+                  <ArrowDownAZ className="h-4 w-4 mr-2" />
+                  A–Z (All Seekies)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {viewMode === "alphabetical" && (
+              <span className="text-xs text-muted-foreground hidden sm:inline">Showing all Seekies A–Z</span>
+            )}
           </div>
         </div>
 
