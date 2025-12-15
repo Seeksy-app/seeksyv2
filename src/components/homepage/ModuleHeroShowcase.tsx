@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 
 // Import hero images
@@ -155,12 +155,13 @@ export function ModuleHeroShowcase() {
         }}
       >
         {/* Desktop Layout */}
-        <div className="hidden md:flex w-full h-full">
-          {/* Left: Vertical Tabs */}
-          <div className="flex-shrink-0 flex h-full">
-            {leftTabs.map((module, index) => 
-              renderTab(module, index, index === 0, false, leftTabs.length)
-            )}
+        <LayoutGroup>
+          <div className="hidden md:flex w-full h-full">
+            {/* Left: Vertical Tabs */}
+            <div className="flex-shrink-0 flex h-full">
+              {leftTabs.map((module, index) => 
+                renderTab(module, index, index === 0, false, leftTabs.length)
+              )}
           </div>
 
           {/* Center: Text + Image */}
@@ -257,6 +258,7 @@ export function ModuleHeroShowcase() {
             )}
           </div>
         </div>
+        </LayoutGroup>
 
         {/* Mobile Layout */}
         <div className="md:hidden w-full p-6 flex flex-col gap-6 overflow-y-auto">
