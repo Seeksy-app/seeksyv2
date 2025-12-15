@@ -4158,6 +4158,63 @@ export type Database = {
         }
         Relationships: []
       }
+      board_agenda_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_checked: boolean
+          meeting_id: string
+          order_index: number
+          owner_user_id: string | null
+          tenant_id: string
+          timebox_minutes: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_checked?: boolean
+          meeting_id: string
+          order_index?: number
+          owner_user_id?: string | null
+          tenant_id: string
+          timebox_minutes?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_checked?: boolean
+          meeting_id?: string
+          order_index?: number
+          owner_user_id?: string | null
+          tenant_id?: string
+          timebox_minutes?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "board_agenda_items_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "board_meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "board_agenda_items_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       board_content: {
         Row: {
           content: string
@@ -4190,6 +4247,73 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: []
+      }
+      board_decisions: {
+        Row: {
+          agenda_item_id: string | null
+          created_at: string
+          decision: string | null
+          due_date: string | null
+          id: string
+          meeting_id: string
+          options_json: Json
+          owner_user_id: string | null
+          recommendation: string | null
+          tenant_id: string
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          agenda_item_id?: string | null
+          created_at?: string
+          decision?: string | null
+          due_date?: string | null
+          id?: string
+          meeting_id: string
+          options_json?: Json
+          owner_user_id?: string | null
+          recommendation?: string | null
+          tenant_id: string
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          agenda_item_id?: string | null
+          created_at?: string
+          decision?: string | null
+          due_date?: string | null
+          id?: string
+          meeting_id?: string
+          options_json?: Json
+          owner_user_id?: string | null
+          recommendation?: string | null
+          tenant_id?: string
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "board_decisions_agenda_item_id_fkey"
+            columns: ["agenda_item_id"]
+            isOneToOne: false
+            referencedRelation: "board_agenda_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "board_decisions_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "board_meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "board_decisions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       board_documents: {
         Row: {
@@ -4232,6 +4356,127 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      board_generated_outputs: {
+        Row: {
+          agenda_ai_json: Json | null
+          board_memo_md: string | null
+          carryover_items_json: Json | null
+          decisions_summary_md: string | null
+          followup_plan_md: string | null
+          generated_at: string | null
+          generated_by: string | null
+          id: string
+          meeting_id: string
+          meeting_notes_md: string | null
+          tenant_id: string
+        }
+        Insert: {
+          agenda_ai_json?: Json | null
+          board_memo_md?: string | null
+          carryover_items_json?: Json | null
+          decisions_summary_md?: string | null
+          followup_plan_md?: string | null
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          meeting_id: string
+          meeting_notes_md?: string | null
+          tenant_id: string
+        }
+        Update: {
+          agenda_ai_json?: Json | null
+          board_memo_md?: string | null
+          carryover_items_json?: Json | null
+          decisions_summary_md?: string | null
+          followup_plan_md?: string | null
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          meeting_id?: string
+          meeting_notes_md?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "board_generated_outputs_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: true
+            referencedRelation: "board_meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "board_generated_outputs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      board_item_comments: {
+        Row: {
+          agenda_item_id: string | null
+          author_user_id: string
+          body: string
+          comment_type: string
+          created_at: string
+          id: string
+          is_private: boolean
+          meeting_id: string
+          phase: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          agenda_item_id?: string | null
+          author_user_id: string
+          body: string
+          comment_type: string
+          created_at?: string
+          id?: string
+          is_private?: boolean
+          meeting_id: string
+          phase: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          agenda_item_id?: string | null
+          author_user_id?: string
+          body?: string
+          comment_type?: string
+          created_at?: string
+          id?: string
+          is_private?: boolean
+          meeting_id?: string
+          phase?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "board_item_comments_agenda_item_id_fkey"
+            columns: ["agenda_item_id"]
+            isOneToOne: false
+            referencedRelation: "board_agenda_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "board_item_comments_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "board_meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "board_item_comments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       board_meeting_attachments: {
         Row: {
@@ -4429,11 +4674,13 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string
+          duration_minutes: number
           ends_at: string | null
           id: string
           location: string | null
           starts_at: string
           status: string
+          tenant_id: string
           title: string
           updated_at: string
           virtual_link: string | null
@@ -4441,11 +4688,13 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by: string
+          duration_minutes?: number
           ends_at?: string | null
           id?: string
           location?: string | null
           starts_at: string
           status?: string
+          tenant_id: string
           title: string
           updated_at?: string
           virtual_link?: string | null
@@ -4453,16 +4702,26 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string
+          duration_minutes?: number
           ends_at?: string | null
           id?: string
           location?: string | null
           starts_at?: string
           status?: string
+          tenant_id?: string
           title?: string
           updated_at?: string
           virtual_link?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "board_meetings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       board_member_activity: {
         Row: {
@@ -29924,6 +30183,7 @@ export type Database = {
         }[]
       }
       get_user_tenant_ids: { Args: { _user_id?: string }; Returns: string[] }
+      has_board_access: { Args: { check_tenant_id: string }; Returns: boolean }
       has_multiple_roles: { Args: { _user_id: string }; Returns: boolean }
       has_permission: {
         Args: { _permission: string; _user_id: string }

@@ -85,6 +85,7 @@ export default function AdminBoardMeetingsPage() {
       const { data: meeting, error: meetingError } = await supabase
         .from("board_meetings")
         .insert({
+          tenant_id: 'a0000000-0000-0000-0000-000000000001', // Platform tenant
           title: form.title,
           starts_at: new Date(form.starts_at).toISOString(),
           ends_at: form.ends_at ? new Date(form.ends_at).toISOString() : null,
