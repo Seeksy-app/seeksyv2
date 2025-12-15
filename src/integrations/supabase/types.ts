@@ -4618,6 +4618,7 @@ export type Database = {
           meeting_date: string
           member_questions: Json | null
           memo: Json | null
+          start_time: string | null
           status: string
           title: string
           updated_at: string
@@ -4636,6 +4637,7 @@ export type Database = {
           meeting_date: string
           member_questions?: Json | null
           memo?: Json | null
+          start_time?: string | null
           status?: string
           title: string
           updated_at?: string
@@ -4654,6 +4656,7 @@ export type Database = {
           meeting_date?: string
           member_questions?: Json | null
           memo?: Json | null
+          start_time?: string | null
           status?: string
           title?: string
           updated_at?: string

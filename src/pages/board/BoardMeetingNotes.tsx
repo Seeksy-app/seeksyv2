@@ -168,6 +168,7 @@ export default function BoardMeetingNotes() {
       const newNote = {
         title: formData.title.trim(),
         meeting_date: formData.meeting_date,
+        start_time: formData.start_time,
         duration_minutes: formData.duration_minutes,
         agenda_items: [],
         memo: null,
@@ -488,7 +489,7 @@ export default function BoardMeetingNotes() {
                 onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="meeting_date">Meeting Date *</Label>
                 <Input
@@ -496,6 +497,15 @@ export default function BoardMeetingNotes() {
                   type="date"
                   value={createForm.meeting_date}
                   onChange={(e) => setCreateForm({ ...createForm, meeting_date: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="start_time">Start Time *</Label>
+                <Input
+                  id="start_time"
+                  type="time"
+                  value={createForm.start_time}
+                  onChange={(e) => setCreateForm({ ...createForm, start_time: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
