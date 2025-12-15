@@ -103,33 +103,6 @@ export const PersonaGrid = () => {
 
   return (
     <>
-      {/* Audience Pills - directly under header */}
-      <div className="text-center mb-10">
-        <p className="text-muted-foreground mb-4">Built for creators, agencies, and brands</p>
-        <div className="flex flex-wrap justify-center gap-3">
-          {[
-            { emoji: "🎨", label: "Creators" },
-            { emoji: "🎙️", label: "Podcasters" },
-            { emoji: "🏢", label: "Agencies" },
-            { emoji: "💼", label: "Brands" },
-            { emoji: "🎬", label: "Studios" },
-            { emoji: "🎪", label: "Event Hosts" },
-          ].map((item, idx) => (
-            <div
-              key={idx}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium"
-              style={{ 
-                background: "hsl(45 93% 70%)",
-                color: "hsl(var(--foreground))",
-              }}
-            >
-              <span>{item.emoji}</span>
-              <span>{item.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
       <div 
         className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
         onMouseMove={handleMouseMove}
@@ -194,6 +167,33 @@ export const PersonaGrid = () => {
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+
+      {/* Audience Pills - below videos */}
+      <div className="text-center mt-8">
+        <p className="text-muted-foreground mb-4">Built for creators, agencies, and brands</p>
+        <div className="flex flex-wrap justify-center gap-3">
+          {[
+            { emoji: "🎨", label: "Creators" },
+            { emoji: "🎙️", label: "Podcasters" },
+            { emoji: "🏢", label: "Agencies" },
+            { emoji: "💼", label: "Brands" },
+            { emoji: "🎬", label: "Studios" },
+            { emoji: "🎪", label: "Event Hosts" },
+          ].map((item, idx) => (
+            <div
+              key={idx}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium"
+              style={{ 
+                background: "hsl(45 93% 70%)",
+                color: "hsl(var(--foreground))",
+              }}
+            >
+              <span>{item.emoji}</span>
+              <span>{item.label}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       <PersonaModal
