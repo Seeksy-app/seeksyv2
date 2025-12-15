@@ -70,7 +70,7 @@ serve(async (req) => {
 
     console.log('Creating Daily board room:', roomName);
 
-    // Create Daily room with recording enabled
+    // Create Daily room (local recording only - cloud recording requires paid plan)
     const roomResponse = await fetch('https://api.daily.co/v1/rooms', {
       method: 'POST',
       headers: {
@@ -80,12 +80,11 @@ serve(async (req) => {
       body: JSON.stringify({
         name: roomName,
         properties: {
-          enable_recording: 'cloud',
-          enable_advanced_chat: true,
+          enable_chat: true,
           enable_screenshare: true,
-          enable_knocking: false, // No waiting room for board meetings
+          enable_knocking: false,
           max_participants: 15,
-          exp: Math.floor(Date.now() / 1000) + (8 * 60 * 60), // 8 hours
+          exp: Math.floor(Date.now() / 1000) + (8 * 60 * 60),
           start_video_off: false,
           start_audio_off: false,
         },
@@ -153,7 +152,6 @@ async function createHostToken(roomName: string, userId: string, apiKey?: string
         is_owner: true,
         user_id: userId,
         user_name: 'Host',
-        enable_recording: 'cloud',
         exp: Math.floor(Date.now() / 1000) + (8 * 60 * 60),
       },
     }),
