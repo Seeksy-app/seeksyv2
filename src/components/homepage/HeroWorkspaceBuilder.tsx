@@ -100,13 +100,14 @@ export function HeroWorkspaceBuilder() {
 
   return (
     <div
-      className="rounded-[28px] p-5"
       style={{
         background: "#FFFFFF",
         border: "1px solid #EEF2F7",
-        boxShadow: "0 24px 60px rgba(16,24,40,0.12)",
-        minWidth: "560px",
-        maxWidth: "640px",
+        boxShadow: "0 20px 60px rgba(15,23,42,0.12)",
+        borderRadius: "24px",
+        padding: "18px",
+        width: "660px",
+        minHeight: "520px",
       }}
     >
       {/* Header */}
@@ -136,21 +137,21 @@ export function HeroWorkspaceBuilder() {
       </div>
 
       {/* Two-column layout: Seekies Store | My Workplace */}
-      <div className="grid grid-cols-2 gap-4">
+      <div style={{ display: "grid", gridTemplateColumns: "52% 48%", gap: "14px" }}>
         {/* LEFT: Seekies Store */}
         <div
-          className="rounded-2xl p-4"
-          style={{ background: "#F8FAFC", border: "1px solid #EEF2F7" }}
+          className="rounded-2xl"
+          style={{ background: "#F8FAFC", border: "1px solid #EEF2F7", padding: "16px" }}
         >
           <div className="flex items-center justify-between mb-3">
             <p
-              className="text-[11px] font-bold uppercase tracking-wider"
-              style={{ color: "#9CA3AF" }}
+              className="font-bold uppercase"
+              style={{ fontSize: "11px", letterSpacing: "0.08em", color: "#9CA3AF" }}
             >
               Seekies Store
             </p>
           </div>
-          <p className="text-[10px] mb-3" style={{ color: "#9CA3AF" }}>
+          <p style={{ fontSize: "10px", color: "#9CA3AF", marginBottom: "12px" }}>
             Pick what you need
           </p>
 
@@ -163,19 +164,22 @@ export function HeroWorkspaceBuilder() {
               return (
                 <motion.div
                   key={module.key}
-                  className="relative rounded-xl p-2 transition-all duration-200 cursor-pointer flex flex-col items-center"
+                  className="relative cursor-pointer flex flex-col items-center"
                   style={{
-                    background: "#FFFFFF",
-                    border: isAdded ? "2px solid #2C6BED" : "1px dashed #E5E7EB",
+                    background: isAdded ? "rgba(44,107,237,0.04)" : "#FFFFFF",
+                    border: isAdded ? "2px solid rgba(44,107,237,0.60)" : "1px solid rgba(15,23,42,0.10)",
+                    borderRadius: "14px",
+                    padding: "10px",
+                    width: "106px",
                     opacity: isFlying ? 0.5 : 1,
                     transform: isFlying ? "scale(0.95)" : "scale(1)",
+                    transition: "all 0.2s ease",
                   }}
                   whileHover={
                     !isAdded
                       ? {
-                          scale: 1.02,
-                          borderColor: "#2C6BED",
-                          boxShadow: "0 6px 16px rgba(44,107,237,0.12)",
+                          borderColor: "rgba(44,107,237,0.35)",
+                          boxShadow: "0 10px 24px rgba(15,23,42,0.10)",
                         }
                       : {}
                   }
@@ -183,8 +187,15 @@ export function HeroWorkspaceBuilder() {
                   {/* Added badge */}
                   {isAdded && (
                     <div
-                      className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center"
-                      style={{ background: "#2C6BED" }}
+                      className="absolute flex items-center justify-center"
+                      style={{
+                        top: "-6px",
+                        right: "-6px",
+                        width: "18px",
+                        height: "18px",
+                        borderRadius: "999px",
+                        background: "#2C6BED",
+                      }}
                     >
                       <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
                     </div>
@@ -192,17 +203,20 @@ export function HeroWorkspaceBuilder() {
 
                   {/* Icon bubble */}
                   <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center mb-1"
+                    className="flex items-center justify-center"
                     style={{
+                      width: "44px",
+                      height: "44px",
+                      borderRadius: "12px",
                       background: module.tint,
-                      filter: isAdded ? "saturate(0.9)" : "saturate(1)",
+                      marginBottom: "6px",
                     }}
                   >
-                    <Icon className="w-4 h-4" color={module.iconColor} strokeWidth={2} />
+                    <Icon className="w-5 h-5" color={module.iconColor} strokeWidth={2} />
                   </div>
                   <p
-                    className="text-[10px] font-medium text-center"
-                    style={{ color: isAdded ? "#9CA3AF" : "#374151" }}
+                    className="font-medium text-center"
+                    style={{ fontSize: "13px", color: "#374151" }}
                   >
                     {module.label}
                   </p>
@@ -233,8 +247,8 @@ export function HeroWorkspaceBuilder() {
                       animate={{
                         opacity: 0.9,
                         scale: 0.6,
-                        x: 180,
-                        y: row * 10 + 50,
+                        x: 200,
+                        y: row * 10 + 60,
                       }}
                       exit={{ opacity: 0 }}
                       transition={{
@@ -244,19 +258,25 @@ export function HeroWorkspaceBuilder() {
                       className="absolute z-50 pointer-events-none"
                       style={{
                         left: `${col * 33.33 + 5}%`,
-                        top: `${row * 70 + 8}px`,
+                        top: `${row * 80 + 8}px`,
                       }}
                     >
                       <div
-                        className="p-2 rounded-xl shadow-xl"
+                        className="rounded-xl shadow-xl"
                         style={{
                           background: "#FFFFFF",
                           border: "2px solid #2C6BED",
+                          padding: "8px",
                         }}
                       >
                         <div
-                          className="w-8 h-8 rounded-lg flex items-center justify-center"
-                          style={{ background: module.tint }}
+                          className="flex items-center justify-center"
+                          style={{
+                            width: "36px",
+                            height: "36px",
+                            borderRadius: "10px",
+                            background: module.tint,
+                          }}
                         >
                           <Icon className="w-4 h-4" color={module.iconColor} strokeWidth={2} />
                         </div>
@@ -270,13 +290,13 @@ export function HeroWorkspaceBuilder() {
 
         {/* RIGHT: My Workplace */}
         <div
-          className="rounded-2xl p-4"
-          style={{ background: "#F0F4F8", border: "1px solid #E2E8F0" }}
+          className="rounded-2xl"
+          style={{ background: "#F0F4F8", border: "1px solid #E2E8F0", padding: "16px" }}
         >
           <div className="flex items-center justify-between mb-3">
             <p
-              className="text-[11px] font-bold uppercase tracking-wider"
-              style={{ color: "#9CA3AF" }}
+              className="font-bold uppercase"
+              style={{ fontSize: "11px", letterSpacing: "0.08em", color: "#9CA3AF" }}
             >
               My Workplace
             </p>
@@ -284,23 +304,23 @@ export function HeroWorkspaceBuilder() {
               <ChevronRight className="w-3 h-3" style={{ color: "#2C6BED" }} />
             </div>
           </div>
-          <p className="text-[10px] mb-3" style={{ color: "#9CA3AF" }}>
+          <p style={{ fontSize: "10px", color: "#9CA3AF", marginBottom: "12px" }}>
             ↕ Drag to reorder
           </p>
 
-          <div className="space-y-2 min-h-[180px]">
+          <div className="space-y-3" style={{ minHeight: "220px" }}>
             <AnimatePresence mode="popLayout">
               {workspaceItems.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flex flex-col items-center justify-center py-10 text-center"
+                  className="flex flex-col items-center justify-center py-12 text-center"
                 >
                   <p className="text-xs font-medium" style={{ color: "#9CA3AF" }}>
                     Your workspace is empty
                   </p>
-                  <p className="text-[10px]" style={{ color: "#D1D5DB" }}>
+                  <p style={{ fontSize: "10px", color: "#D1D5DB" }}>
                     Add Seekies from the store
                   </p>
                 </motion.div>
@@ -318,32 +338,34 @@ export function HeroWorkspaceBuilder() {
                         stiffness: 400,
                         damping: 25,
                       }}
-                      className="flex items-center gap-2 p-2 rounded-xl"
+                      className="flex items-center gap-3"
                       style={{
                         background: "#FFFFFF",
                         border: "1px solid #EEF2F7",
                         boxShadow: "0 4px 12px rgba(15,23,42,0.05)",
+                        borderRadius: "14px",
+                        height: "54px",
+                        padding: "0 12px",
                       }}
                     >
                       <GripVertical
-                        className="w-3 h-3 cursor-grab"
+                        className="w-3.5 h-3.5 cursor-grab"
                         style={{ color: "#D1D5DB" }}
                       />
                       <div
-                        className="w-7 h-7 rounded-full flex items-center justify-center"
-                        style={{ background: module.tint }}
+                        className="flex items-center justify-center rounded-full"
+                        style={{ width: "32px", height: "32px", background: module.tint }}
                       >
-                        <Icon className="w-3.5 h-3.5" color={module.iconColor} strokeWidth={2.5} />
+                        <Icon className="w-4 h-4" color={module.iconColor} strokeWidth={2.5} />
                       </div>
                       <span
-                        className="text-xs font-bold flex-1"
-                        style={{ color: "#0B1220" }}
+                        className="font-bold flex-1"
+                        style={{ fontSize: "13px", color: "#0B1220" }}
                       >
                         {module.label}
                       </span>
                       <div
-                        className="w-2 h-2 rounded-full"
-                        style={{ background: "#2C6BED" }}
+                        style={{ width: "8px", height: "8px", borderRadius: "999px", background: "#2C6BED" }}
                         title="Active"
                       />
                     </motion.div>
@@ -356,7 +378,7 @@ export function HeroWorkspaceBuilder() {
           {/* Capacity bar */}
           {workspaceItems.length > 0 && (
             <div className="mt-3 pt-2 border-t border-gray-100">
-              <div className="flex items-center justify-between text-[10px]">
+              <div className="flex items-center justify-between" style={{ fontSize: "10px" }}>
                 <span style={{ color: "#6B7280" }}>
                   {workspaceItems.length} active • {modules.length - workspaceItems.length}{" "}
                   available

@@ -64,59 +64,67 @@ export function HeroWorkspaceSection() {
 
   return (
     <section
-      className="w-full px-6 pt-28 pb-16 md:pt-36 md:pb-24"
+      className="w-full px-6"
       style={{
-        minHeight: "78vh",
-        background: "linear-gradient(180deg, hsl(var(--muted)/0.3) 0%, hsl(var(--background)) 100%)",
+        paddingTop: "72px",
+        paddingBottom: "64px",
+        minHeight: "82vh",
+        background: "linear-gradient(180deg, hsl(var(--muted)/0.25) 0%, hsl(var(--background)) 100%)",
       }}
     >
       <div className="mx-auto max-w-[1280px]">
-        {/* Desktop: Side by side */}
+        {/* Desktop: Side by side - Decoupled columns */}
         <div
-          className="hidden lg:grid gap-11 items-center"
-          style={{ gridTemplateColumns: "1.05fr 1.25fr" }}
+          className="hidden lg:grid items-center"
+          style={{
+            gridTemplateColumns: "minmax(520px, 1fr) minmax(560px, 680px)",
+            gap: "56px",
+          }}
         >
           {/* Left - Copy (independent sizing) */}
           <div className="text-left">
             <p
-              className="text-xs font-bold uppercase mb-5"
+              className="font-bold uppercase"
               style={{
-                letterSpacing: "0.14em",
+                fontSize: "12px",
+                letterSpacing: "2px",
                 color: "#2C6BED",
+                marginBottom: "18px",
               }}
             >
               More than just content creation
             </p>
             <h1
-              className="font-black tracking-[-2px] mb-5"
+              className="font-black"
               style={{
-                fontSize: "64px",
-                lineHeight: 1.0,
+                fontSize: "72px",
+                lineHeight: 1.02,
+                letterSpacing: "-2.5px",
                 color: "#0B1220",
-                maxWidth: "14ch",
+                maxWidth: "560px",
               }}
             >
               Build your creator{" "}
               <span style={{ color: "#2C6BED" }}>workspace.</span>
             </h1>
             <p
-              className="text-lg mb-6"
               style={{
-                lineHeight: 1.65,
+                fontSize: "20px",
+                lineHeight: 1.55,
                 color: "#667085",
-                maxWidth: "520px",
-                fontSize: "18px",
+                maxWidth: "540px",
+                marginTop: "18px",
               }}
             >
               Turn tools on as you need them. Pay only for what you use with credits. No lockouts—your work stays yours.
             </p>
 
             {/* CTA Row */}
-            <div className="flex flex-wrap items-center gap-4 mb-4">
+            <div className="flex flex-wrap items-center" style={{ gap: "16px", marginTop: "22px" }}>
               <Button
                 size="lg"
-                className="rounded-full px-6 h-12 text-base font-semibold"
-                style={{ background: "#2C6BED" }}
+                className="rounded-full font-semibold"
+                style={{ background: "#2C6BED", height: "52px", paddingLeft: "28px", paddingRight: "28px", fontSize: "16px" }}
                 onClick={() => navigate("/auth")}
               >
                 Start Free
@@ -125,8 +133,8 @@ export function HeroWorkspaceSection() {
               <Button
                 size="lg"
                 variant="outline"
-                className="rounded-full px-6 h-12 text-base font-medium bg-transparent"
-                style={{ border: "1px solid #E6EAF2", color: "#0B1220" }}
+                className="rounded-full font-medium bg-transparent"
+                style={{ border: "1px solid #E6EAF2", color: "#0B1220", height: "52px", paddingLeft: "24px", paddingRight: "24px", fontSize: "16px" }}
                 onClick={() => navigate("/auth")}
               >
                 <Play className="mr-2 h-4 w-4" />
@@ -134,20 +142,24 @@ export function HeroWorkspaceSection() {
               </Button>
             </div>
 
-            <p className="text-xs mb-6" style={{ color: "#6B7280" }}>
+            <p className="text-xs" style={{ color: "#6B7280", marginTop: "12px" }}>
               Start free with 100 credits • No credit card required
             </p>
 
             {/* Persona Switcher Pills */}
-            <div className="flex flex-wrap items-center gap-2 mb-5">
+            <div className="flex flex-wrap items-center" style={{ gap: "10px", marginTop: "28px" }}>
               {personas.map((persona) => {
                 const isActive = persona.key === activePersona;
                 return (
                   <button
                     key={persona.key}
                     onClick={() => setActivePersona(persona.key)}
-                    className="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200"
+                    className="rounded-full font-medium transition-all duration-200"
                     style={{
+                      height: "40px",
+                      paddingLeft: "16px",
+                      paddingRight: "16px",
+                      fontSize: "14px",
                       background: isActive ? "#0B0B0B" : "#FFFFFF",
                       color: isActive ? "#FFFFFF" : "#0B1220",
                       border: isActive ? "1px solid #0B0B0B" : "1px solid #E6EAF2",
@@ -167,20 +179,18 @@ export function HeroWorkspaceSection() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.2 }}
-                className="space-y-2.5"
+                style={{ marginTop: "18px" }}
+                className="space-y-3"
               >
                 {currentPersona.content.bullets.map((bullet, idx) => (
-                  <li key={idx} className="flex items-center gap-2.5">
+                  <li key={idx} className="flex items-center gap-3">
                     <div
                       className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
                       style={{ background: "#E8F0FF" }}
                     >
                       <Check className="w-3 h-3" style={{ color: "#2C6BED" }} />
                     </div>
-                    <span
-                      className="text-sm"
-                      style={{ color: "#4B5563" }}
-                    >
+                    <span style={{ fontSize: "16px", lineHeight: 1.5, color: "#4B5563" }}>
                       {bullet}
                     </span>
                   </li>
@@ -189,8 +199,8 @@ export function HeroWorkspaceSection() {
             </AnimatePresence>
           </div>
 
-          {/* Right - Workspace Builder */}
-          <div className="w-full" style={{ minWidth: "560px", maxWidth: "640px" }}>
+          {/* Right - Workspace Builder (wider) */}
+          <div className="flex justify-end">
             <HeroWorkspaceBuilder />
           </div>
         </div>
