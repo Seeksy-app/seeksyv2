@@ -4251,6 +4251,7 @@ export type Database = {
       board_decisions: {
         Row: {
           agenda_item_id: string | null
+          carried_from_meeting_id: string | null
           created_at: string
           decision: string | null
           due_date: string | null
@@ -4265,6 +4266,7 @@ export type Database = {
         }
         Insert: {
           agenda_item_id?: string | null
+          carried_from_meeting_id?: string | null
           created_at?: string
           decision?: string | null
           due_date?: string | null
@@ -4279,6 +4281,7 @@ export type Database = {
         }
         Update: {
           agenda_item_id?: string | null
+          carried_from_meeting_id?: string | null
           created_at?: string
           decision?: string | null
           due_date?: string | null
@@ -4297,6 +4300,13 @@ export type Database = {
             columns: ["agenda_item_id"]
             isOneToOne: false
             referencedRelation: "board_agenda_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "board_decisions_carried_from_meeting_id_fkey"
+            columns: ["carried_from_meeting_id"]
+            isOneToOne: false
+            referencedRelation: "board_meeting_notes"
             referencedColumns: ["id"]
           },
           {
@@ -4572,6 +4582,59 @@ export type Database = {
           },
         ]
       }
+      board_meeting_invites: {
+        Row: {
+          accepted_at: string | null
+          created_at: string | null
+          declined_at: string | null
+          id: string
+          invite_token: string
+          invitee_email: string
+          invitee_name: string | null
+          meeting_id: string
+          opened_at: string | null
+          role: string | null
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string | null
+          declined_at?: string | null
+          id?: string
+          invite_token?: string
+          invitee_email: string
+          invitee_name?: string | null
+          meeting_id: string
+          opened_at?: string | null
+          role?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string | null
+          declined_at?: string | null
+          id?: string
+          invite_token?: string
+          invitee_email?: string
+          invitee_name?: string | null
+          meeting_id?: string
+          opened_at?: string | null
+          role?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "board_meeting_invites_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "board_meeting_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       board_meeting_member_notes: {
         Row: {
           id: string
@@ -4620,6 +4683,7 @@ export type Database = {
           audio_file_path: string | null
           audio_file_url: string | null
           audio_transcript: string | null
+          carry_forward_source_id: string | null
           created_at: string
           created_by: string | null
           decision_table: Json
@@ -4627,7 +4691,10 @@ export type Database = {
           decisions_summary_generated_at: string | null
           decisions_summary_locked: boolean
           duration_minutes: number | null
+          ended_at: string | null
           guest_token: string | null
+          host_has_started: boolean | null
+          host_user_id: string | null
           id: string
           meeting_date: string
           member_questions: Json | null
@@ -4637,6 +4704,7 @@ export type Database = {
           room_name: string | null
           room_url: string | null
           start_time: string | null
+          started_at: string | null
           status: string
           title: string
           updated_at: string
@@ -4657,6 +4725,7 @@ export type Database = {
           audio_file_path?: string | null
           audio_file_url?: string | null
           audio_transcript?: string | null
+          carry_forward_source_id?: string | null
           created_at?: string
           created_by?: string | null
           decision_table?: Json
@@ -4664,7 +4733,10 @@ export type Database = {
           decisions_summary_generated_at?: string | null
           decisions_summary_locked?: boolean
           duration_minutes?: number | null
+          ended_at?: string | null
           guest_token?: string | null
+          host_has_started?: boolean | null
+          host_user_id?: string | null
           id?: string
           meeting_date: string
           member_questions?: Json | null
@@ -4674,6 +4746,7 @@ export type Database = {
           room_name?: string | null
           room_url?: string | null
           start_time?: string | null
+          started_at?: string | null
           status?: string
           title: string
           updated_at?: string
@@ -4694,6 +4767,7 @@ export type Database = {
           audio_file_path?: string | null
           audio_file_url?: string | null
           audio_transcript?: string | null
+          carry_forward_source_id?: string | null
           created_at?: string
           created_by?: string | null
           decision_table?: Json
@@ -4701,7 +4775,10 @@ export type Database = {
           decisions_summary_generated_at?: string | null
           decisions_summary_locked?: boolean
           duration_minutes?: number | null
+          ended_at?: string | null
           guest_token?: string | null
+          host_has_started?: boolean | null
+          host_user_id?: string | null
           id?: string
           meeting_date?: string
           member_questions?: Json | null
@@ -4711,12 +4788,20 @@ export type Database = {
           room_name?: string | null
           room_url?: string | null
           start_time?: string | null
+          started_at?: string | null
           status?: string
           title?: string
           updated_at?: string
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "board_meeting_notes_carry_forward_source_id_fkey"
+            columns: ["carry_forward_source_id"]
+            isOneToOne: false
+            referencedRelation: "board_meeting_notes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "board_meeting_notes_created_by_fkey"
             columns: ["created_by"]
@@ -4729,6 +4814,38 @@ export type Database = {
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      board_meeting_whiteboard: {
+        Row: {
+          blocks: Json | null
+          created_at: string | null
+          id: string
+          meeting_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          blocks?: Json | null
+          created_at?: string | null
+          id?: string
+          meeting_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          blocks?: Json | null
+          created_at?: string | null
+          id?: string
+          meeting_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "board_meeting_whiteboard_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "board_meeting_notes"
             referencedColumns: ["id"]
           },
         ]
