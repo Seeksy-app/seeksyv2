@@ -4233,6 +4233,72 @@ export type Database = {
         }
         Relationships: []
       }
+      board_meeting_notes: {
+        Row: {
+          agenda_items: Json
+          created_at: string
+          created_by: string | null
+          decision_table: Json
+          decisions_summary: string | null
+          decisions_summary_generated_at: string | null
+          decisions_summary_locked: boolean
+          id: string
+          meeting_date: string
+          memo: Json | null
+          status: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          agenda_items?: Json
+          created_at?: string
+          created_by?: string | null
+          decision_table?: Json
+          decisions_summary?: string | null
+          decisions_summary_generated_at?: string | null
+          decisions_summary_locked?: boolean
+          id?: string
+          meeting_date: string
+          memo?: Json | null
+          status?: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          agenda_items?: Json
+          created_at?: string
+          created_by?: string | null
+          decision_table?: Json
+          decisions_summary?: string | null
+          decisions_summary_generated_at?: string | null
+          decisions_summary_locked?: boolean
+          id?: string
+          meeting_date?: string
+          memo?: Json | null
+          status?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "board_meeting_notes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "board_meeting_notes_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       board_member_activity: {
         Row: {
           activity_data: Json | null
