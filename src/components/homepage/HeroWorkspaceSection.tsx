@@ -66,8 +66,8 @@ export function HeroWorkspaceSection() {
     <section
       className="w-full px-6"
       style={{
-        paddingTop: "72px",
-        paddingBottom: "64px",
+        paddingTop: "clamp(72px, 10vh, 128px)",
+        paddingBottom: "80px",
         minHeight: "82vh",
         background: "linear-gradient(180deg, hsl(var(--muted)/0.25) 0%, hsl(var(--background)) 100%)",
       }}
@@ -77,8 +77,8 @@ export function HeroWorkspaceSection() {
         <div
           className="hidden lg:grid items-center"
           style={{
-            gridTemplateColumns: "minmax(520px, 1fr) minmax(560px, 680px)",
-            gap: "56px",
+            gridTemplateColumns: "minmax(560px, 1.15fr) minmax(520px, 640px)",
+            gap: "48px",
           }}
         >
           {/* Left - Copy (independent sizing) */}

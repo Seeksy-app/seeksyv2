@@ -14,7 +14,7 @@ export function CreditsTeaser() {
   const navigate = useNavigate();
 
   return (
-    <section className="w-full px-4 py-16 md:py-24">
+    <section className="w-full px-4 py-20 md:py-24" style={{ background: "#F7F9FE" }}>
       <div className="mx-auto max-w-[1280px]">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

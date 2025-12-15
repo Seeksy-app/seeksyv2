@@ -10,7 +10,7 @@ import { HeroWorkspaceSection } from "@/components/homepage/HeroWorkspaceSection
 
 import { InteractiveDemo } from "@/components/homepage/InteractiveDemo";
 import { PlatformPillars } from "@/components/homepage/PlatformPillars";
-import { ModuleHeroShowcase } from "@/components/homepage/ModuleHeroShowcase";
+
 import { ModuleBuilder } from "@/components/homepage/ModuleBuilder";
 import { PersonasSection } from "@/components/homepage/PersonasSection";
 import { CreditsTeaser } from "@/components/homepage/CreditsTeaser";
@@ -109,10 +109,7 @@ const Index = () => {
         {/* 4. Value Pillars - Create, Connect, Monetize */}
         <PlatformPillars />
         
-        {/* 6. Feature Panels - Obviously style with vertical tabs */}
-        <ModuleHeroShowcase />
-        
-        {/* 7. Module Builder - Toggle version */}
+        {/* 5. Module Builder - Toggle version */}
         <ModuleBuilder />
         
         {/* 8. Credits/Pricing Teaser */}

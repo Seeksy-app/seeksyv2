@@ -2,7 +2,9 @@ import { PersonaGrid } from "@/components/personas/PersonaGrid";
 
 export function PersonasSection() {
   return (
-    <section className="w-full px-4 py-16 md:py-24">
+    <section className="w-full px-4 py-20 md:py-24"
+      style={{ background: "#F7F9FE" }}
+    >
       <div className="mx-auto max-w-[1280px]">
         {/* Header */}
         <div className="text-center mb-12 md:mb-16">
