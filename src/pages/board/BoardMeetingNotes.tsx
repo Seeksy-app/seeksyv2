@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Plus, Calendar, ChevronDown, ChevronUp, Sparkles, Download, Lock } from "lucide-react";
+import { Plus, Calendar, ChevronDown, ChevronUp, Sparkles, Download, Lock, Play, Pause, RotateCcw, Check, Clock, MessageSquare, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { BoardPageHeader } from "@/components/board/BoardPageHeader";
 import { toast } from "sonner";
 import { DecisionTable } from "@/components/board/DecisionTable";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -20,6 +21,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
 interface DecisionRow {
   Topic: string;
@@ -29,11 +33,24 @@ interface DecisionRow {
   Decision: string;
 }
 
+interface AgendaItem {
+  text: string;
+  checked: boolean;
+}
+
+interface MemberQuestion {
+  id: string;
+  author: string;
+  text: string;
+  created_at: string;
+}
+
 interface MeetingNote {
   id: string;
   title: string;
   meeting_date: string;
-  agenda_items: string[];
+  duration_minutes: number;
+  agenda_items: AgendaItem[];
   memo: {
     purpose?: string;
     current_state?: string[];
@@ -44,6 +61,7 @@ interface MeetingNote {
   decisions_summary: string | null;
   decisions_summary_generated_at: string | null;
   decisions_summary_locked: boolean;
+  member_questions: MemberQuestion[];
   status: string;
   created_at: string;
 }
@@ -53,6 +71,7 @@ interface CreateMeetingForm {
   meeting_date: string;
   start_time: string;
   duration_minutes: number;
+  agenda_notes: string;
 }
 
 export default function BoardMeetingNotes() {
@@ -60,12 +79,52 @@ export default function BoardMeetingNotes() {
   const [selectedNote, setSelectedNote] = useState<MeetingNote | null>(null);
   const [memoOpen, setMemoOpen] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [newQuestion, setNewQuestion] = useState("");
+  
+  // Timer state
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  
   const [createForm, setCreateForm] = useState<CreateMeetingForm>({
     title: "",
     meeting_date: format(new Date(), "yyyy-MM-dd"),
     start_time: "10:00",
-    duration_minutes: 60,
+    duration_minutes: 45,
+    agenda_notes: "",
   });
+
+  // Countdown timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (timerRunning && selectedNote) {
+      const totalSeconds = (selectedNote.duration_minutes || 45) * 60;
+      interval = setInterval(() => {
+        setTimerSeconds(prev => {
+          if (prev >= totalSeconds) {
+            setTimerRunning(false);
+            toast.warning("Meeting time is up!");
+            return totalSeconds;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timerRunning, selectedNote]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getRemainingTime = () => {
+    if (!selectedNote) return "00:00";
+    const totalSeconds = (selectedNote.duration_minutes || 45) * 60;
+    const remaining = Math.max(0, totalSeconds - timerSeconds);
+    return formatTime(remaining);
+  };
 
   const { data: notes = [], isLoading } = useQuery({
     queryKey: ["board-meeting-notes"],
@@ -76,54 +135,116 @@ export default function BoardMeetingNotes() {
         .order("meeting_date", { ascending: false })
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data || []) as unknown as MeetingNote[];
+      // Transform legacy string[] agenda_items to AgendaItem[]
+      return (data || []).map((note: any) => ({
+        ...note,
+        duration_minutes: note.duration_minutes || 45,
+        agenda_items: Array.isArray(note.agenda_items) 
+          ? note.agenda_items.map((item: any) => 
+              typeof item === 'string' ? { text: item, checked: false } : item
+            )
+          : [],
+        member_questions: note.member_questions || [],
+      })) as MeetingNote[];
     },
   });
+
+  // Update selected note when notes change
+  useEffect(() => {
+    if (selectedNote) {
+      const updated = notes.find(n => n.id === selectedNote.id);
+      if (updated) setSelectedNote(updated);
+    }
+  }, [notes]);
 
   const createNoteMutation = useMutation({
     mutationFn: async (formData: CreateMeetingForm) => {
       const { data: userData } = await supabase.auth.getUser();
       
-      // Create EMPTY meeting - no prefilled content
+      // Create meeting with user's agenda notes (will be processed by AI)
       const newNote = {
         title: formData.title.trim(),
         meeting_date: formData.meeting_date,
-        agenda_items: [], // Empty - no prefill
-        memo: null, // Empty - no prefill
-        decision_table: [], // Empty - no prefill
+        duration_minutes: formData.duration_minutes,
+        agenda_items: [], // Will be populated by AI
+        memo: null, // Will be populated by AI
+        decision_table: [], // Will be populated by AI
         decisions_summary: null,
         decisions_summary_generated_at: null,
         decisions_summary_locked: false,
-        status: "active",
+        member_questions: [],
+        status: "upcoming",
         created_by: userData.user?.id,
       };
 
-      // Let DB generate the UUID - do NOT pass id from client
       const { data, error } = await supabase
         .from("board_meeting_notes")
         .insert(newNote)
         .select()
         .single();
       if (error) throw error;
-      return data;
+      return { meeting: data, agendaNotes: formData.agenda_notes };
     },
-    onSuccess: (data) => {
+    onSuccess: async ({ meeting, agendaNotes }) => {
       queryClient.invalidateQueries({ queryKey: ["board-meeting-notes"] });
-      setSelectedNote(data as unknown as MeetingNote);
+      const typedMeeting = {
+        ...meeting,
+        duration_minutes: (meeting as any).duration_minutes || 45,
+        agenda_items: [],
+        member_questions: [],
+      } as unknown as MeetingNote;
+      setSelectedNote(typedMeeting);
       setIsCreateModalOpen(false);
       setCreateForm({
         title: "",
         meeting_date: format(new Date(), "yyyy-MM-dd"),
         start_time: "10:00",
-        duration_minutes: 60,
+        duration_minutes: 45,
+        agenda_notes: "",
       });
       toast.success("Meeting created");
+      
+      // Auto-generate AI content if agenda notes provided
+      if (agendaNotes.trim()) {
+        generateAIContent(meeting.id, meeting.title, agendaNotes);
+      }
     },
     onError: (error) => {
       toast.error("Failed to create meeting");
       console.error(error);
     },
   });
+
+  const generateAIContent = async (meetingId: string, title: string, agendaNotes: string) => {
+    setIsGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-board-meeting-content', {
+        body: { title, agendaNotes }
+      });
+      
+      if (error) throw error;
+      
+      // Update meeting with AI-generated content
+      const { error: updateError } = await supabase
+        .from("board_meeting_notes")
+        .update({
+          agenda_items: data.agenda.map((item: string) => ({ text: item, checked: false })) as unknown as any,
+          memo: data.memo,
+          decision_table: data.decisions as unknown as any,
+        })
+        .eq("id", meetingId);
+      
+      if (updateError) throw updateError;
+      
+      queryClient.invalidateQueries({ queryKey: ["board-meeting-notes"] });
+      toast.success("AI generated agenda, memo, and decision matrix");
+    } catch (error) {
+      console.error("AI generation failed:", error);
+      toast.error("AI generation failed - you can add content manually");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const handleCreateMeeting = () => {
     if (!createForm.title.trim()) {
@@ -137,13 +258,56 @@ export default function BoardMeetingNotes() {
     createNoteMutation.mutate(createForm);
   };
 
+  const toggleAgendaItem = async (noteId: string, itemIndex: number) => {
+    const note = notes.find(n => n.id === noteId);
+    if (!note) return;
+    
+    const updatedItems = note.agenda_items.map((item, i) => 
+      i === itemIndex ? { ...item, checked: !item.checked } : item
+    );
+    
+    const { error } = await supabase
+      .from("board_meeting_notes")
+      .update({ agenda_items: updatedItems as unknown as any })
+      .eq("id", noteId);
+    
+    if (!error) {
+      queryClient.invalidateQueries({ queryKey: ["board-meeting-notes"] });
+    }
+  };
+
+  const addMemberQuestion = async () => {
+    if (!selectedNote || !newQuestion.trim()) return;
+    
+    const { data: userData } = await supabase.auth.getUser();
+    const newQ: MemberQuestion = {
+      id: crypto.randomUUID(),
+      author: userData.user?.email?.split('@')[0] || "Member",
+      text: newQuestion.trim(),
+      created_at: new Date().toISOString(),
+    };
+    
+    const updatedQuestions = [...(selectedNote.member_questions || []), newQ];
+    
+    const { error } = await supabase
+      .from("board_meeting_notes")
+      .update({ member_questions: updatedQuestions as unknown as any })
+      .eq("id", selectedNote.id);
+    
+    if (!error) {
+      setNewQuestion("");
+      queryClient.invalidateQueries({ queryKey: ["board-meeting-notes"] });
+      toast.success("Question saved");
+    }
+  };
+
   const updateDecisionMutation = useMutation({
-    mutationFn: async ({ noteId, decisionTable }: { noteId: string; decisionTable: any[] }) => {
+    mutationFn: async ({ noteId, decisionTable }: { noteId: string; decisionTable: DecisionRow[] }) => {
       const { data: userData } = await supabase.auth.getUser();
       const { error } = await supabase
         .from("board_meeting_notes")
         .update({ 
-          decision_table: decisionTable,
+          decision_table: decisionTable as unknown as any,
           updated_by: userData.user?.id
         })
         .eq("id", noteId);
@@ -184,6 +348,7 @@ export default function BoardMeetingNotes() {
           decisions_summary: summary,
           decisions_summary_generated_at: new Date().toISOString(),
           decisions_summary_locked: true,
+          status: "completed",
           updated_by: userData.user?.id
         })
         .eq("id", noteId);
@@ -191,7 +356,7 @@ export default function BoardMeetingNotes() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["board-meeting-notes"] });
-      toast.success("Decisions summary generated and locked");
+      toast.success("Meeting completed and decisions summary generated");
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to generate summary");
@@ -212,9 +377,25 @@ export default function BoardMeetingNotes() {
     }
   };
 
+  const startMeeting = async () => {
+    if (!selectedNote) return;
+    setTimerSeconds(0);
+    setTimerRunning(true);
+    
+    await supabase
+      .from("board_meeting_notes")
+      .update({ status: "active" })
+      .eq("id", selectedNote.id);
+    
+    queryClient.invalidateQueries({ queryKey: ["board-meeting-notes"] });
+  };
+
   const exportToPdf = (note: MeetingNote) => {
     toast.info("PDF export coming soon");
   };
+
+  const upcomingMeetings = notes.filter(n => n.status === "upcoming" || n.status === "active");
+  const completedMeetings = notes.filter(n => n.status === "completed");
 
   if (isLoading) {
     return (
@@ -242,11 +423,11 @@ export default function BoardMeetingNotes() {
 
       {/* Create Meeting Modal */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Create Meeting</DialogTitle>
             <DialogDescription>
-              Add a new meeting. You can add agenda items and notes after creation.
+              Add meeting details and agenda notes. AI will generate the full agenda, memo, and decision matrix.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -254,41 +435,49 @@ export default function BoardMeetingNotes() {
               <Label htmlFor="title">Title *</Label>
               <Input
                 id="title"
-                placeholder="e.g., Portfolio Review & Next Steps"
+                placeholder="e.g., Q1 Portfolio Review & Strategy"
                 value={createForm.title}
                 onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="meeting_date">Meeting Date *</Label>
-              <Input
-                id="meeting_date"
-                type="date"
-                value={createForm.meeting_date}
-                onChange={(e) => setCreateForm({ ...createForm, meeting_date: e.target.value })}
-              />
-            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="start_time">Start Time</Label>
+                <Label htmlFor="meeting_date">Meeting Date *</Label>
                 <Input
-                  id="start_time"
-                  type="time"
-                  value={createForm.start_time}
-                  onChange={(e) => setCreateForm({ ...createForm, start_time: e.target.value })}
+                  id="meeting_date"
+                  type="date"
+                  value={createForm.meeting_date}
+                  onChange={(e) => setCreateForm({ ...createForm, meeting_date: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="duration_minutes">Duration (min)</Label>
-                <Input
+                <Label htmlFor="duration_minutes">Duration</Label>
+                <select
                   id="duration_minutes"
-                  type="number"
-                  min={15}
-                  step={15}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   value={createForm.duration_minutes}
-                  onChange={(e) => setCreateForm({ ...createForm, duration_minutes: parseInt(e.target.value) || 60 })}
-                />
+                  onChange={(e) => setCreateForm({ ...createForm, duration_minutes: parseInt(e.target.value) })}
+                >
+                  <option value={30}>30 minutes</option>
+                  <option value={45}>45 minutes</option>
+                  <option value={60}>60 minutes</option>
+                  <option value={90}>90 minutes</option>
+                  <option value={120}>2 hours</option>
+                </select>
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="agenda_notes">Agenda Notes</Label>
+              <Textarea
+                id="agenda_notes"
+                placeholder="Enter your agenda topics, key discussion points, and any context for the meeting. AI will structure this into a formal agenda, memo, and decision matrix."
+                rows={5}
+                value={createForm.agenda_notes}
+                onChange={(e) => setCreateForm({ ...createForm, agenda_notes: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                AI will generate the structured agenda, 1-page memo, and decision matrix from your notes.
+              </p>
             </div>
           </div>
           <DialogFooter>
@@ -296,53 +485,133 @@ export default function BoardMeetingNotes() {
               Cancel
             </Button>
             <Button onClick={handleCreateMeeting} disabled={createNoteMutation.isPending}>
-              {createNoteMutation.isPending ? "Creating..." : "Create"}
+              {createNoteMutation.isPending ? "Creating..." : "Create Meeting"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Notes List */}
-        <div className="space-y-3">
-          <h3 className="font-medium text-foreground">Recent Meetings</h3>
-          {notes.length === 0 ? (
-            <Card>
-              <CardContent className="p-6 text-center text-muted-foreground">
-                No meeting notes yet. Create your first one.
-              </CardContent>
-            </Card>
-          ) : (
-            notes.map(note => (
-              <Card 
-                key={note.id} 
-                className={`cursor-pointer transition-colors hover:bg-muted/50 ${selectedNote?.id === note.id ? 'ring-2 ring-primary' : ''}`}
-                onClick={() => setSelectedNote(note)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm truncate">{note.title}</h4>
-                      <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                        <Calendar className="w-3 h-3" />
-                        {format(new Date(note.meeting_date), "MMM d, yyyy")}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Left Panel: Member Questions & Notes */}
+        <div className="space-y-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                Pre-Meeting Questions
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {selectedNote ? (
+                <>
+                  <ScrollArea className="h-48">
+                    {(selectedNote.member_questions || []).length === 0 ? (
+                      <p className="text-xs text-muted-foreground">No questions yet. Add one below.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {selectedNote.member_questions.map((q) => (
+                          <div key={q.id} className="p-2 bg-muted/50 rounded text-xs">
+                            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                              <span className="font-medium text-foreground">Q</span>
+                              <span>{q.author}</span>
+                              <span>•</span>
+                              <span>{format(new Date(q.created_at), "MMM d")}</span>
+                            </div>
+                            <p>{q.text}</p>
+                          </div>
+                        ))}
                       </div>
-                    </div>
-                    <Badge variant={note.status === 'active' ? 'default' : 'secondary'}>
-                      {note.status}
-                    </Badge>
+                    )}
+                  </ScrollArea>
+                  <Separator />
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add a question..."
+                      value={newQuestion}
+                      onChange={(e) => setNewQuestion(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && addMemberQuestion()}
+                      className="text-sm"
+                    />
+                    <Button size="sm" onClick={addMemberQuestion}>
+                      <Send className="w-3 h-3" />
+                    </Button>
                   </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
+                </>
+              ) : (
+                <p className="text-xs text-muted-foreground">Select a meeting to add questions.</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Meetings List */}
+          <div className="space-y-3">
+            <h3 className="font-medium text-foreground text-sm">Upcoming</h3>
+            {upcomingMeetings.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No upcoming meetings.</p>
+            ) : (
+              upcomingMeetings.map(note => (
+                <Card 
+                  key={note.id} 
+                  className={`cursor-pointer transition-colors hover:bg-muted/50 ${selectedNote?.id === note.id ? 'ring-2 ring-primary' : ''}`}
+                  onClick={() => {
+                    setSelectedNote(note);
+                    setTimerSeconds(0);
+                    setTimerRunning(false);
+                  }}
+                >
+                  <CardContent className="p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-xs truncate">{note.title}</h4>
+                        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                          <Calendar className="w-3 h-3" />
+                          {format(new Date(note.meeting_date), "MMM d, yyyy")}
+                        </div>
+                      </div>
+                      <Badge variant={note.status === 'active' ? 'default' : 'secondary'} className="text-[10px]">
+                        {note.status}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+
+            <h3 className="font-medium text-foreground text-sm mt-4">Recent Meetings</h3>
+            {completedMeetings.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No completed meetings yet.</p>
+            ) : (
+              completedMeetings.map(note => (
+                <Card 
+                  key={note.id} 
+                  className={`cursor-pointer transition-colors hover:bg-muted/50 ${selectedNote?.id === note.id ? 'ring-2 ring-primary' : ''}`}
+                  onClick={() => setSelectedNote(note)}
+                >
+                  <CardContent className="p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-xs truncate">{note.title}</h4>
+                        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                          <Calendar className="w-3 h-3" />
+                          {format(new Date(note.meeting_date), "MMM d, yyyy")}
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="text-[10px]">
+                        completed
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
         </div>
 
-        {/* Selected Note Detail */}
-        <div className="lg:col-span-2 space-y-6">
+        {/* Center/Right Panel: Meeting Detail */}
+        <div className="lg:col-span-3 space-y-6">
           {selectedNote ? (
             <>
-              {/* Header */}
+              {/* Header with Timer */}
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div>
@@ -350,26 +619,81 @@ export default function BoardMeetingNotes() {
                     <p className="text-sm text-muted-foreground mt-1">
                       <Calendar className="w-4 h-4 inline mr-1" />
                       {format(new Date(selectedNote.meeting_date), "EEEE, MMMM d, yyyy")}
+                      <span className="mx-2">•</span>
+                      <Clock className="w-4 h-4 inline mr-1" />
+                      {selectedNote.duration_minutes} min
                     </p>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => exportToPdf(selectedNote)}>
-                    <Download className="w-4 h-4 mr-2" />
-                    Export PDF
-                  </Button>
+                  <div className="flex items-center gap-3">
+                    {/* Countdown Timer */}
+                    {selectedNote.status !== 'completed' && (
+                      <div className="flex items-center gap-2 bg-muted px-3 py-2 rounded-lg">
+                        <span className={`font-mono text-lg ${timerRunning ? 'text-primary' : ''}`}>
+                          {getRemainingTime()}
+                        </span>
+                        <div className="flex gap-1">
+                          {!timerRunning ? (
+                            <Button size="sm" variant="ghost" onClick={startMeeting}>
+                              <Play className="w-4 h-4" />
+                            </Button>
+                          ) : (
+                            <Button size="sm" variant="ghost" onClick={() => setTimerRunning(false)}>
+                              <Pause className="w-4 h-4" />
+                            </Button>
+                          )}
+                          <Button size="sm" variant="ghost" onClick={() => { setTimerSeconds(0); setTimerRunning(false); }}>
+                            <RotateCcw className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                    <Button variant="outline" size="sm" onClick={() => exportToPdf(selectedNote)}>
+                      <Download className="w-4 h-4 mr-2" />
+                      Export PDF
+                    </Button>
+                  </div>
                 </CardHeader>
               </Card>
 
-              {/* Agenda */}
+              {isGenerating && (
+                <Card className="border-primary/20 bg-primary/5">
+                  <CardContent className="p-6 text-center">
+                    <Sparkles className="w-8 h-8 mx-auto mb-2 text-primary animate-pulse" />
+                    <p className="text-sm">AI is generating your agenda, memo, and decision matrix...</p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Agenda with Checkboxes */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Board Meeting Agenda</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    Board Meeting Agenda
+                    {selectedNote.status === 'active' && (
+                      <Badge variant="default" className="ml-2">In Progress</Badge>
+                    )}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ol className="list-decimal list-inside space-y-2">
-                    {selectedNote.agenda_items.map((item, i) => (
-                      <li key={i} className="text-sm text-foreground">{item}</li>
-                    ))}
-                  </ol>
+                  {selectedNote.agenda_items.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No agenda items yet. Add agenda notes when creating a meeting to generate items.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {selectedNote.agenda_items.map((item, i) => (
+                        <div key={i} className="flex items-start gap-3 group">
+                          <Checkbox
+                            checked={item.checked}
+                            onCheckedChange={() => toggleAgendaItem(selectedNote.id, i)}
+                            className="mt-0.5"
+                          />
+                          <span className={`text-sm flex-1 ${item.checked ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                            {i + 1}. {item.text}
+                          </span>
+                          {item.checked && <Check className="w-4 h-4 text-green-500" />}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -426,28 +750,32 @@ export default function BoardMeetingNotes() {
               )}
 
               {/* Decision Table */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Decision Matrix</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <DecisionTable 
-                    rows={selectedNote.decision_table}
-                    onDecisionChange={(rowIndex, value) => handleDecisionChange(selectedNote.id, rowIndex, value)}
-                  />
-                </CardContent>
-              </Card>
+              {selectedNote.decision_table.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Decision Matrix</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <DecisionTable 
+                      rows={selectedNote.decision_table}
+                      onDecisionChange={(rowIndex, value) => handleDecisionChange(selectedNote.id, rowIndex, value)}
+                    />
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Generate Summary Button */}
-              <div className="flex justify-end">
-                <Button 
-                  onClick={() => generateSummaryMutation.mutate(selectedNote.id)}
-                  disabled={generateSummaryMutation.isPending || selectedNote.decisions_summary_locked}
-                >
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Generate Decisions Summary
-                </Button>
-              </div>
+              {selectedNote.status !== 'completed' && selectedNote.decision_table.length > 0 && (
+                <div className="flex justify-end">
+                  <Button 
+                    onClick={() => generateSummaryMutation.mutate(selectedNote.id)}
+                    disabled={generateSummaryMutation.isPending || selectedNote.decisions_summary_locked}
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Complete Meeting & Generate Summary
+                  </Button>
+                </div>
+              )}
 
               {/* Decisions Summary */}
               {selectedNote.decisions_summary && (
@@ -493,7 +821,7 @@ export default function BoardMeetingNotes() {
           ) : (
             <Card>
               <CardContent className="p-12 text-center text-muted-foreground">
-                Select a meeting note from the list to view details, or create a new one.
+                Select a meeting from the list to view details, or create a new one.
               </CardContent>
             </Card>
           )}

@@ -4613,8 +4613,10 @@ export type Database = {
           decisions_summary: string | null
           decisions_summary_generated_at: string | null
           decisions_summary_locked: boolean
+          duration_minutes: number | null
           id: string
           meeting_date: string
+          member_questions: Json | null
           memo: Json | null
           status: string
           title: string
@@ -4629,8 +4631,10 @@ export type Database = {
           decisions_summary?: string | null
           decisions_summary_generated_at?: string | null
           decisions_summary_locked?: boolean
+          duration_minutes?: number | null
           id?: string
           meeting_date: string
+          member_questions?: Json | null
           memo?: Json | null
           status?: string
           title: string
@@ -4645,8 +4649,10 @@ export type Database = {
           decisions_summary?: string | null
           decisions_summary_generated_at?: string | null
           decisions_summary_locked?: boolean
+          duration_minutes?: number | null
           id?: string
           meeting_date?: string
+          member_questions?: Json | null
           memo?: Json | null
           status?: string
           title?: string
