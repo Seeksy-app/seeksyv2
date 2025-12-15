@@ -125,12 +125,8 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
         setAudioStream(audioOnlyStream);
       }
       
-      // Auto-start audio capture for AI notes
-      setTimeout(() => {
-        startAudioCaptureInternal(daily);
-      }, 1000);
-      
-      toast.success('Joined video meeting - AI listening started');
+      // Audio capture will start when user clicks Start Timer
+      toast.success('Joined video meeting');
     });
 
     daily.on('left-meeting', () => {
@@ -548,6 +544,7 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
     isMuted,
     isVideoOff,
     isGeneratingNotes,
+    isCapturingAudio,
     participants,
     localVideoRef,
     audioStream,
@@ -556,6 +553,7 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
     joinVideoMeeting,
     toggleMute,
     toggleVideo,
+    startAudioCapture,
     endMeetingAndGenerateNotes,
   };
 };

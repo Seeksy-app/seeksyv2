@@ -99,6 +99,7 @@ export default function BoardMeetingNotes() {
     isMuted,
     isVideoOff,
     isGeneratingNotes,
+    isCapturingAudio,
     participants,
     localVideoRef,
     audioStream,
@@ -107,6 +108,7 @@ export default function BoardMeetingNotes() {
     joinVideoMeeting,
     toggleMute,
     toggleVideo,
+    startAudioCapture,
     endMeetingAndGenerateNotes,
   } = useBoardMeetingVideo(selectedNote?.id || '');
   
@@ -581,6 +583,11 @@ export default function BoardMeetingNotes() {
     setTimerSeconds(0);
     setTimerRunning(true);
     
+    // Start audio capture for AI notes when timer starts
+    if (isVideoConnected) {
+      startAudioCapture();
+    }
+    
     await supabase
       .from("board_meeting_notes")
       .update({ status: "active" })
@@ -931,12 +938,17 @@ export default function BoardMeetingNotes() {
                     {/* Countdown Timer */}
                     {selectedNote.status !== 'completed' && (
                       <div className="flex items-center gap-2 bg-muted px-3 py-2 rounded-lg">
+                        {isCapturingAudio && (
+                          <Badge variant="default" className="bg-green-600 animate-pulse text-xs">
+                            AI Listening
+                          </Badge>
+                        )}
                         <span className={`font-mono text-lg ${timerRunning ? 'text-primary' : ''}`}>
                           {getRemainingTime()}
                         </span>
                         <div className="flex gap-1">
                           {!timerRunning ? (
-                            <Button size="sm" variant="ghost" onClick={startMeeting}>
+                            <Button size="sm" variant="ghost" onClick={startMeeting} title="Start Timer & AI Listening">
                               <Play className="w-4 h-4" />
                             </Button>
                           ) : (
