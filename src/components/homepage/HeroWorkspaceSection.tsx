@@ -66,7 +66,7 @@ export function HeroWorkspaceSection() {
     <section
       className="w-full px-6"
       style={{
-        paddingTop: "clamp(72px, 10vh, 128px)",
+        paddingTop: "clamp(96px, 12vh, 160px)",
         paddingBottom: "80px",
         minHeight: "82vh",
         background: "linear-gradient(180deg, hsl(var(--muted)/0.25) 0%, hsl(var(--background)) 100%)",
