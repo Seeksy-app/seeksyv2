@@ -81,8 +81,8 @@ export function ExitGuardrailModal({
               <div key={decision.id} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{decision.topic}</p>
-                  {decision.decision_text ? (
-                    <p className="text-xs text-muted-foreground truncate">{decision.decision_text}</p>
+                  {decision.decision ? (
+                    <p className="text-xs text-muted-foreground truncate">{decision.decision}</p>
                   ) : (
                     <p className="text-xs text-amber-600">No decision entered</p>
                   )}

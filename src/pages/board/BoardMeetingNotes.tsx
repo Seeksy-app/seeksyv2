@@ -10,6 +10,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { BoardPageHeader } from "@/components/board/BoardPageHeader";
 import { toast } from "sonner";
 import { DecisionTable } from "@/components/board/DecisionTable";
+import { DecisionMatrixTable } from "@/components/board/DecisionMatrixTable";
+import { ExitGuardrailModal } from "@/components/board/ExitGuardrailModal";
+import { useBoardDecisions } from "@/hooks/useBoardDecisions";
 import { Checkbox } from "@/components/ui/checkbox";
 import BoardMeetingVideo from "@/components/board/BoardMeetingVideo";
 import { useBoardMeetingVideo } from "@/hooks/useBoardMeetingVideo";
@@ -98,6 +101,8 @@ export default function BoardMeetingNotes() {
   const [newAgendaItem, setNewAgendaItem] = useState("");
   const [isGenerateAgendaModalOpen, setIsGenerateAgendaModalOpen] = useState(false);
   const [generateAgendaNotes, setGenerateAgendaNotes] = useState("");
+  const [showExitGuardrail, setShowExitGuardrail] = useState(false);
+  const [pendingExitAction, setPendingExitAction] = useState<'exit' | 'endCall' | null>(null);
   
   // Timer state
   const [timerRunning, setTimerRunning] = useState(false);
@@ -123,6 +128,13 @@ export default function BoardMeetingNotes() {
     stopAIAndGenerateNotes,
     endCall,
   } = useBoardMeetingVideo(selectedNote?.id || '');
+
+  // Board decisions hook for exit guardrail
+  const {
+    unresolvedDecisions,
+    hasUnresolvedDecisions,
+    deferAllUnresolved,
+  } = useBoardDecisions(selectedNote?.id);
   
   const [createForm, setCreateForm] = useState<CreateMeetingForm>({
     title: "",
@@ -616,6 +628,19 @@ export default function BoardMeetingNotes() {
 
   const exitMeeting = async () => {
     if (!selectedNote) return;
+    
+    // Check for unresolved decisions before allowing exit
+    if (hasUnresolvedDecisions && selectedNote.status === 'active') {
+      setPendingExitAction('exit');
+      setShowExitGuardrail(true);
+      return;
+    }
+    
+    await performExit();
+  };
+
+  const performExit = async () => {
+    if (!selectedNote) return;
     setTimerRunning(false);
     setTimerSeconds(0);
     
@@ -626,6 +651,68 @@ export default function BoardMeetingNotes() {
     
     queryClient.invalidateQueries({ queryKey: ["board-meeting-notes"] });
     toast.success("Exited meeting - status reset to upcoming");
+  };
+
+  const handleEndMeetingWithGuardrail = async () => {
+    if (!selectedNote) return;
+    
+    // Check for unresolved decisions before ending
+    if (hasUnresolvedDecisions) {
+      setPendingExitAction('endCall');
+      setShowExitGuardrail(true);
+      return;
+    }
+    
+    await performEndMeeting();
+  };
+
+  const performEndMeeting = async () => {
+    if (!selectedNote) return;
+    
+    // 1. Stop AI capture if running
+    if (isCapturingAudio) {
+      await stopAIAndGenerateNotes();
+    }
+    
+    // 2. End video call
+    if (isVideoConnected) {
+      endCall();
+    }
+    
+    // 3. Stop timer
+    setTimerRunning(false);
+    setTimerSeconds(0);
+    
+    // 4. Mark meeting completed
+    await supabase
+      .from("board_meeting_notes")
+      .update({ status: "completed" })
+      .eq("id", selectedNote.id);
+    
+    queryClient.invalidateQueries({ queryKey: ["board-meeting-notes"] });
+    toast.success("Meeting ended and marked as completed");
+  };
+
+  const handleReviewDecisions = () => {
+    setShowExitGuardrail(false);
+    setPendingExitAction(null);
+    // Scroll to decision matrix (user can review)
+    const decisionSection = document.getElementById('decision-matrix-section');
+    if (decisionSection) {
+      decisionSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleDeferAllAndEnd = async (note: string) => {
+    await deferAllUnresolved.mutateAsync(note);
+    setShowExitGuardrail(false);
+    
+    if (pendingExitAction === 'exit') {
+      await performExit();
+    } else if (pendingExitAction === 'endCall') {
+      await performEndMeeting();
+    }
+    setPendingExitAction(null);
   };
 
   const exportToPdf = (note: MeetingNote) => {
@@ -1019,7 +1106,7 @@ export default function BoardMeetingNotes() {
                   onStartMeeting={startVideoMeeting}
                   onJoinMeeting={joinVideoMeeting}
                   onStopAIAndGenerateNotes={stopAIAndGenerateNotes}
-                  onEndCall={endCall}
+                  onEndCall={handleEndMeetingWithGuardrail}
                 />
               )}
 
@@ -1138,11 +1225,48 @@ export default function BoardMeetingNotes() {
                 </Collapsible>
               )}
 
-              {/* Decision Table */}
-              {selectedNote.decision_table.length > 0 && (
-                <Card>
+              {/* Decision Matrix - New component for active meetings */}
+              {selectedNote.status === 'active' && (
+                <Card id="decision-matrix-section">
                   <CardHeader>
                     <CardTitle className="text-lg">Decision Matrix</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <DecisionMatrixTable 
+                      meetingId={selectedNote.id}
+                      isHost={true}
+                      isCompleted={false}
+                      meetingStatus={selectedNote.status}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Decision Matrix - Read-only for completed meetings */}
+              {selectedNote.status === 'completed' && (
+                <Card id="decision-matrix-section">
+                  <CardHeader>
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-lg">Decision Matrix</CardTitle>
+                      <Lock className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <DecisionMatrixTable 
+                      meetingId={selectedNote.id}
+                      isHost={true}
+                      isCompleted={true}
+                      meetingStatus={selectedNote.status}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Legacy Decision Table for upcoming meetings (from AI generation) */}
+              {selectedNote.status === 'upcoming' && selectedNote.decision_table.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Decision Matrix (Preview)</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <DecisionTable 
@@ -1236,6 +1360,18 @@ export default function BoardMeetingNotes() {
           )}
         </div>
       </div>
+
+      {/* Exit Guardrail Modal */}
+      <ExitGuardrailModal
+        isOpen={showExitGuardrail}
+        onClose={() => {
+          setShowExitGuardrail(false);
+          setPendingExitAction(null);
+        }}
+        unresolvedDecisions={unresolvedDecisions}
+        onReviewDecisions={handleReviewDecisions}
+        onDeferAllAndEnd={handleDeferAllAndEnd}
+      />
     </div>
   );
 }
