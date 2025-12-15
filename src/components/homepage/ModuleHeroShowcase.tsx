@@ -16,11 +16,9 @@ interface ModuleData {
   imageUrl: string;
   ribbonLabel: string;
   ribbonBg: string;
-  side: "left" | "right";
 }
 
 const modules: ModuleData[] = [
-  // Left side tabs
   {
     key: "studio_creation",
     titleLight: "AI-Powered",
@@ -29,7 +27,6 @@ const modules: ModuleData[] = [
     imageUrl: heroConversations,
     ribbonLabel: "AI-Powered Studio",
     ribbonBg: "#E8D4B8",
-    side: "left",
   },
   {
     key: "creator_monetization",
@@ -39,7 +36,6 @@ const modules: ModuleData[] = [
     imageUrl: heroCommunity,
     ribbonLabel: "Creator Monetization",
     ribbonBg: "#C4CFC0",
-    side: "left",
   },
   {
     key: "identity_verification",
@@ -49,9 +45,7 @@ const modules: ModuleData[] = [
     imageUrl: heroContent,
     ribbonLabel: "Identity Verification",
     ribbonBg: "#B8C9DC",
-    side: "left",
   },
-  // Right side tabs
   {
     key: "audience_crm",
     titleLight: "Audience",
@@ -60,7 +54,6 @@ const modules: ModuleData[] = [
     imageUrl: heroPeople,
     ribbonLabel: "Audience CRM",
     ribbonBg: "#D4C4A8",
-    side: "right",
   },
   {
     key: "analytics_insights",
@@ -70,7 +63,6 @@ const modules: ModuleData[] = [
     imageUrl: heroConversations,
     ribbonLabel: "Analytics & Insights",
     ribbonBg: "#C4CFC0",
-    side: "right",
   },
   {
     key: "brand_marketplace",
@@ -80,71 +72,65 @@ const modules: ModuleData[] = [
     imageUrl: heroCommunity,
     ribbonLabel: "Brand Marketplace",
     ribbonBg: "#E8D5CB",
-    side: "right",
   },
 ];
 
 export function ModuleHeroShowcase() {
-  const [activeKey, setActiveKey] = useState("creator_monetization");
-  const activeModule = modules.find((m) => m.key === activeKey) || modules[0];
+  // Track which modules have been clicked (moved to left)
+  const [clickedKeys, setClickedKeys] = useState<Set<string>>(new Set());
+  const [activeKey, setActiveKey] = useState<string | null>(null);
 
-  // When a tab is selected, it flips to the opposite side
-  // Left tabs (when active) move to become the rightmost active tab
-  // Right tabs (when active) move to become the leftmost active tab
-  const getTabsForSide = (side: "left" | "right") => {
-    const inactiveTabs = modules.filter((m) => m.key !== activeKey && m.side === side);
-    
-    if (side === "left") {
-      // If active module was originally on left, it's now on right - show remaining left tabs
-      // If active module was originally on right, it flips to left - show it plus remaining left tabs
-      if (activeModule.side === "right") {
-        return [activeModule, ...inactiveTabs];
-      }
-      return inactiveTabs;
-    } else {
-      // If active module was originally on right, it's now on left - show remaining right tabs
-      // If active module was originally on left, it flips to right - show it plus remaining right tabs
-      if (activeModule.side === "left") {
-        return [...inactiveTabs, activeModule];
-      }
-      return inactiveTabs;
-    }
+  const activeModule = activeKey 
+    ? modules.find((m) => m.key === activeKey) 
+    : null;
+
+  const handleTabClick = (key: string) => {
+    setActiveKey(key);
+    setClickedKeys((prev) => new Set(prev).add(key));
   };
 
-  const leftTabs = getTabsForSide("left");
-  const rightTabs = getTabsForSide("right");
+  // Split modules: clicked ones on left, unclicked on right
+  const leftTabs = modules.filter((m) => clickedKeys.has(m.key));
+  const rightTabs = modules.filter((m) => !clickedKeys.has(m.key));
 
-  const renderTab = (module: ModuleData, index: number, isFirst: boolean, isLast: boolean, totalTabs: number) => {
+  const renderTab = (
+    module: ModuleData, 
+    index: number, 
+    isFirst: boolean, 
+    isLast: boolean,
+    side: "left" | "right"
+  ) => {
     const isActive = module.key === activeKey;
     
+    // Rounded corners: left-side first tab gets top-left rounded, right-side last tab gets top-right rounded
+    let borderRadius = "0";
+    if (side === "left" && isFirst) {
+      borderRadius = "24px 0 0 24px";
+    } else if (side === "right" && isLast) {
+      borderRadius = "0 24px 24px 0";
+    }
+
     return (
       <motion.button
         key={module.key}
         layoutId={module.key}
-        onClick={() => setActiveKey(module.key)}
-        className="relative cursor-pointer transition-colors duration-200 hover:opacity-95 h-full"
+        onClick={() => handleTabClick(module.key)}
+        className="relative cursor-pointer transition-colors duration-200 hover:opacity-90 h-full flex items-center justify-center"
         style={{
-          width: isActive ? "90px" : "70px",
+          width: isActive ? "85px" : "65px",
           background: isActive ? "#0A0A0A" : module.ribbonBg,
-          zIndex: isActive ? 10 : (totalTabs - index),
-          borderRadius: isFirst ? "32px 0 0 32px" : isLast ? "0 32px 32px 0" : "0",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          borderRadius,
         }}
-        transition={{ type: "spring", stiffness: 180, damping: 28, mass: 1.2 }}
+        transition={{ type: "spring", stiffness: 200, damping: 30 }}
       >
         <span
-          className="whitespace-nowrap leading-none font-semibold text-center"
+          className="whitespace-nowrap leading-none font-semibold"
           style={{
-            fontSize: "38px",
+            fontSize: isActive ? "32px" : "28px",
             letterSpacing: "-0.02em",
             color: isActive ? "#FFFFFF" : "rgba(11, 15, 26, 0.85)",
             transform: "rotate(-90deg)",
             transformOrigin: "center center",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
           }}
         >
           {module.ribbonLabel}
@@ -153,128 +139,135 @@ export function ModuleHeroShowcase() {
     );
   };
 
+  // Default content when nothing is selected
+  const defaultContent = {
+    titleLight: "Explore",
+    titleBold: "Features",
+    description: "Click on any tab to learn more about our powerful creator tools. Each module is designed to help you create, connect, and monetize your content.",
+    imageUrl: heroConversations,
+  };
+
+  const displayContent = activeModule || defaultContent;
+
   return (
     <section className="w-full px-4 py-24 md:py-32">
-      {/* Single container */}
       <div
         className="mx-auto max-w-[1400px] rounded-[32px] overflow-hidden flex"
         style={{
-          background: "#C4CFC0",
-          height: "705px",
+          background: "hsl(var(--muted)/0.5)",
+          minHeight: "680px",
         }}
       >
         {/* Desktop Layout */}
         <LayoutGroup>
-          <div className="hidden md:flex w-full h-full">
-            {/* Left: Vertical Tabs */}
+          <div className="hidden md:flex w-full h-full" style={{ minHeight: "680px" }}>
+            {/* Left: Clicked Tabs */}
             <div className="flex-shrink-0 flex h-full">
               {leftTabs.map((module, index) => 
-                renderTab(module, index, index === 0, false, leftTabs.length)
+                renderTab(module, index, index === 0, index === leftTabs.length - 1, "left")
               )}
-          </div>
+            </div>
 
-          {/* Center: Text + Image */}
-          <div className="flex-1 flex h-full">
-            {/* Text Block */}
-            <div className="flex-shrink-0 w-[380px] p-12 flex flex-col justify-between h-full">
-              <div className="flex flex-col gap-6 pt-8">
+            {/* Center: Content Area */}
+            <div 
+              className="flex-1 flex h-full rounded-[24px] mx-2 my-4"
+              style={{ background: "#0A0A0A" }}
+            >
+              {/* Text Block */}
+              <div className="flex-shrink-0 w-[400px] p-10 flex flex-col justify-between h-full">
+                <div className="flex flex-col gap-6 pt-6">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeKey || "default"}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                      className="flex flex-col gap-5"
+                    >
+                      <h2
+                        className="tracking-[-0.03em]"
+                        style={{
+                          fontSize: "48px",
+                          lineHeight: 1.1,
+                          color: "#FFFFFF",
+                        }}
+                      >
+                        <span className="font-light">{displayContent.titleLight}</span>{" "}
+                        <span className="font-black">{displayContent.titleBold}</span>
+                      </h2>
+                      <p
+                        style={{
+                          fontSize: "16px",
+                          lineHeight: 1.7,
+                          color: "rgba(255, 255, 255, 0.7)",
+                          maxWidth: "340px",
+                        }}
+                      >
+                        {displayContent.description}
+                      </p>
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+
+                <button
+                  className="group w-fit flex items-center gap-2 px-6 py-3 rounded-full text-sm font-medium transition-all duration-150"
+                  style={{
+                    background: "rgba(255,255,255,0.15)",
+                    color: "#FFFFFF",
+                  }}
+                >
+                  learn more
+                  <ArrowRight className="h-4 w-4 transition-transform duration-150 group-hover:translate-x-0.5" />
+                </button>
+              </div>
+
+              {/* Image */}
+              <div className="flex-1 relative h-full p-4">
                 <AnimatePresence mode="wait">
                   <motion.div
-                    key={activeModule.key + "-text"}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
+                    key={activeKey || "default-image"}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                     transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-                    className="flex flex-col gap-6"
+                    className="h-full"
                   >
-                    {/* Large headline */}
-                    <h2
-                      className="tracking-[-0.03em]"
-                      style={{
-                        fontSize: "56px",
-                        lineHeight: 1.05,
-                        color: "#0B0F1A",
-                      }}
-                    >
-                      <span className="font-medium">{activeModule.titleLight}</span>
-                      <br />
-                      <span className="font-black">{activeModule.titleBold}</span>
-                    </h2>
-                    <p
-                      style={{
-                        fontSize: "17px",
-                        lineHeight: 1.7,
-                        color: "rgba(11, 15, 26, 0.7)",
-                        maxWidth: "360px",
-                      }}
-                    >
-                      {activeModule.description}
-                    </p>
+                    <div className="relative w-full h-full rounded-[20px] overflow-hidden border-4 border-white/20">
+                      <img
+                        src={displayContent.imageUrl}
+                        alt={displayContent.titleLight + " " + displayContent.titleBold}
+                        className="w-full h-full object-cover"
+                      />
+                      <div 
+                        className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg text-sm font-medium"
+                        style={{
+                          background: "rgba(255,255,255,0.9)",
+                          color: "#0B0F1A",
+                        }}
+                      >
+                        @seeksy
+                      </div>
+                    </div>
                   </motion.div>
                 </AnimatePresence>
               </div>
-
-              {/* CTA */}
-              <button
-                className="group w-fit flex items-center gap-2 px-7 py-4 rounded-full text-base font-medium transition-all duration-[140ms] ease-out"
-                style={{
-                  background: "#0A0A0A",
-                  color: "#FFFFFF",
-                }}
-              >
-                learn more
-                <ArrowRight className="h-4 w-4 transition-transform duration-[140ms] ease-out group-hover:translate-x-0.5" />
-              </button>
             </div>
 
-            {/* Image */}
-            <div className="flex-1 relative h-full py-6 pr-4">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeModule.key + "-image"}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
-                  className="h-full"
-                >
-                  <div className="relative w-full h-full rounded-[24px] overflow-hidden">
-                    <img
-                      src={activeModule.imageUrl}
-                      alt={activeModule.titleLight + " " + activeModule.titleBold}
-                      className="w-full h-full object-cover"
-                    />
-                    {/* Creator tag */}
-                    <div 
-                      className="absolute bottom-5 left-1/2 -translate-x-1/2 px-5 py-2 rounded-lg text-base font-medium"
-                      style={{
-                        background: "rgba(255,255,255,0.85)",
-                        color: "#0B0F1A",
-                      }}
-                    >
-                      @seeksy
-                    </div>
-                  </div>
-                </motion.div>
-              </AnimatePresence>
+            {/* Right: Unclicked Tabs */}
+            <div className="flex-shrink-0 flex h-full">
+              {rightTabs.map((module, index) => 
+                renderTab(module, index, index === 0, index === rightTabs.length - 1, "right")
+              )}
             </div>
           </div>
-
-          {/* Right: Vertical Tabs */}
-          <div className="flex-shrink-0 flex h-full">
-            {rightTabs.map((module, index) => 
-              renderTab(module, index, false, index === rightTabs.length - 1, rightTabs.length)
-            )}
-          </div>
-        </div>
         </LayoutGroup>
 
         {/* Mobile Layout */}
         <div className="md:hidden w-full p-6 flex flex-col gap-6 overflow-y-auto">
-          {/* Text Block */}
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeModule.key + "-mobile-text"}
+              key={activeKey || "default-mobile"}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
@@ -286,28 +279,27 @@ export function ModuleHeroShowcase() {
                 style={{
                   fontSize: "32px",
                   lineHeight: 1.1,
-                  color: "#0B0F1A",
+                  color: "hsl(var(--foreground))",
                 }}
               >
-                <span className="font-normal">{activeModule.titleLight}</span>{" "}
-                <span className="font-black">{activeModule.titleBold}</span>
+                <span className="font-normal">{displayContent.titleLight}</span>{" "}
+                <span className="font-black">{displayContent.titleBold}</span>
               </h2>
               <p
                 style={{
                   fontSize: "15px",
                   lineHeight: 1.6,
-                  color: "rgba(11, 15, 26, 0.7)",
+                  color: "hsl(var(--muted-foreground))",
                 }}
               >
-                {activeModule.description}
+                {displayContent.description}
               </p>
             </motion.div>
           </AnimatePresence>
 
-          {/* Image */}
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeModule.key + "-mobile-image"}
+              key={activeKey || "default-mobile-image"}
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
@@ -315,25 +307,25 @@ export function ModuleHeroShowcase() {
               className="relative aspect-[4/5] rounded-[16px] overflow-hidden"
             >
               <img
-                src={activeModule.imageUrl}
-                alt={activeModule.titleLight + " " + activeModule.titleBold}
+                src={displayContent.imageUrl}
+                alt={displayContent.titleLight + " " + displayContent.titleBold}
                 className="w-full h-full object-cover"
               />
             </motion.div>
           </AnimatePresence>
 
-          {/* Horizontal Tabs */}
           <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
             {modules.map((module) => {
+              const isClicked = clickedKeys.has(module.key);
               const isActive = module.key === activeKey;
               return (
                 <button
                   key={module.key}
-                  onClick={() => setActiveKey(module.key)}
-                  className="flex-shrink-0 px-4 py-2 rounded-full font-medium text-sm transition-all duration-[140ms]"
+                  onClick={() => handleTabClick(module.key)}
+                  className="flex-shrink-0 px-4 py-2 rounded-full font-medium text-sm transition-all duration-150"
                   style={{
-                    background: isActive ? "#0A0A0A" : module.ribbonBg,
-                    color: isActive ? "#FFFFFF" : "rgba(11, 15, 26, 0.85)",
+                    background: isActive ? "#0A0A0A" : isClicked ? "hsl(var(--primary)/0.2)" : module.ribbonBg,
+                    color: isActive ? "#FFFFFF" : "hsl(var(--foreground))",
                   }}
                 >
                   {module.ribbonLabel}
@@ -342,7 +334,6 @@ export function ModuleHeroShowcase() {
             })}
           </div>
 
-          {/* CTA */}
           <button
             className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-full text-sm font-medium"
             style={{
