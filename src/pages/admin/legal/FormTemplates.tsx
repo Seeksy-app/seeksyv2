@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -244,6 +245,7 @@ function TemplateCard({
   onEdit: () => void;
 }) {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const signerConfig = template.signer_config_json as { roles?: { role: string }[] };
   const signerCount = signerConfig?.roles?.length || 0;
 
@@ -290,11 +292,9 @@ function TemplateCard({
             <Edit className="w-4 h-4 mr-1" />
             Edit
           </Button>
-          <Button size="sm" className="flex-1" asChild>
-            <a href={`/admin/legal/docs/new?template=${template.id}`}>
-              <Plus className="w-4 h-4 mr-1" />
-              Create Doc
-            </a>
+          <Button size="sm" className="flex-1" onClick={() => navigate(`/admin/legal/docs/new?template=${template.id}`)}>
+            <Plus className="w-4 h-4 mr-1" />
+            Create Doc
           </Button>
         </div>
       </CardContent>
