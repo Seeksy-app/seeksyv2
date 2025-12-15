@@ -4607,6 +4607,7 @@ export type Database = {
       board_meeting_notes: {
         Row: {
           agenda_items: Json
+          audio_transcript: string | null
           created_at: string
           created_by: string | null
           decision_table: Json
@@ -4618,6 +4619,10 @@ export type Database = {
           meeting_date: string
           member_questions: Json | null
           memo: Json | null
+          recording_status: string | null
+          recording_url: string | null
+          room_name: string | null
+          room_url: string | null
           start_time: string | null
           status: string
           title: string
@@ -4626,6 +4631,7 @@ export type Database = {
         }
         Insert: {
           agenda_items?: Json
+          audio_transcript?: string | null
           created_at?: string
           created_by?: string | null
           decision_table?: Json
@@ -4637,6 +4643,10 @@ export type Database = {
           meeting_date: string
           member_questions?: Json | null
           memo?: Json | null
+          recording_status?: string | null
+          recording_url?: string | null
+          room_name?: string | null
+          room_url?: string | null
           start_time?: string | null
           status?: string
           title: string
@@ -4645,6 +4655,7 @@ export type Database = {
         }
         Update: {
           agenda_items?: Json
+          audio_transcript?: string | null
           created_at?: string
           created_by?: string | null
           decision_table?: Json
@@ -4656,6 +4667,10 @@ export type Database = {
           meeting_date?: string
           member_questions?: Json | null
           memo?: Json | null
+          recording_status?: string | null
+          recording_url?: string | null
+          room_name?: string | null
+          room_url?: string | null
           start_time?: string | null
           status?: string
           title?: string
