@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Plus, Calendar, ChevronDown, ChevronUp, Sparkles, Download, Lock, Play, Pause, RotateCcw, Check, Clock, MessageSquare, Send, Trash2 } from "lucide-react";
+import { Plus, Calendar, ChevronDown, ChevronUp, Sparkles, Download, Lock, Play, Pause, RotateCcw, Check, Clock, MessageSquare, Send, Trash2, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,6 +49,7 @@ interface MeetingNote {
   id: string;
   title: string;
   meeting_date: string;
+  start_time: string | null;
   duration_minutes: number;
   agenda_items: AgendaItem[];
   memo: {
@@ -439,6 +440,20 @@ export default function BoardMeetingNotes() {
     queryClient.invalidateQueries({ queryKey: ["board-meeting-notes"] });
   };
 
+  const exitMeeting = async () => {
+    if (!selectedNote) return;
+    setTimerRunning(false);
+    setTimerSeconds(0);
+    
+    await supabase
+      .from("board_meeting_notes")
+      .update({ status: "upcoming" })
+      .eq("id", selectedNote.id);
+    
+    queryClient.invalidateQueries({ queryKey: ["board-meeting-notes"] });
+    toast.success("Exited meeting - status reset to upcoming");
+  };
+
   const exportToPdf = (note: MeetingNote) => {
     toast.info("PDF export coming soon");
   };
@@ -601,81 +616,103 @@ export default function BoardMeetingNotes() {
             </CardContent>
           </Card>
 
-          {/* Meetings List */}
-          <div className="space-y-3">
-            <h3 className="font-medium text-foreground text-sm">Upcoming</h3>
-            {upcomingMeetings.length === 0 ? (
-              <p className="text-xs text-muted-foreground">No upcoming meetings.</p>
-            ) : (
-              upcomingMeetings.map(note => (
-                <Card 
-                  key={note.id} 
-                  className={`cursor-pointer transition-colors hover:bg-muted/50 ${selectedNote?.id === note.id ? 'ring-2 ring-primary' : ''}`}
-                  onClick={() => {
-                    setSelectedNote(note);
-                    setTimerSeconds(0);
-                    setTimerRunning(false);
-                  }}
-                >
-                  <CardContent className="p-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-xs truncate">{note.title}</h4>
-                        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                          <Calendar className="w-3 h-3" />
-                          {format(new Date(note.meeting_date), "MMM d, yyyy")}
+          {/* Meetings List - hide when in active meeting */}
+          {(!selectedNote || selectedNote.status !== 'active') && (
+            <div className="space-y-3">
+              <h3 className="font-medium text-foreground text-sm">Upcoming</h3>
+              {upcomingMeetings.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No upcoming meetings.</p>
+              ) : (
+                upcomingMeetings.map(note => (
+                  <Card 
+                    key={note.id} 
+                    className={`cursor-pointer transition-colors hover:bg-muted/50 ${selectedNote?.id === note.id ? 'ring-2 ring-primary' : ''}`}
+                    onClick={() => {
+                      setSelectedNote(note);
+                      setTimerSeconds(0);
+                      setTimerRunning(false);
+                    }}
+                  >
+                    <CardContent className="p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-xs truncate">{note.title}</h4>
+                          <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                            <Calendar className="w-3 h-3" />
+                            {format(new Date(note.meeting_date), "MMM d, yyyy")}
+                            {note.start_time && (
+                              <>
+                                <span>•</span>
+                                <Clock className="w-3 h-3" />
+                                {note.start_time.slice(0, 5)}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Badge variant={note.status === 'active' ? 'default' : 'secondary'} className="text-[10px]">
+                            {note.status}
+                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                            onClick={(e) => handleDeleteMeeting(e, note.id)}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Badge variant={note.status === 'active' ? 'default' : 'secondary'} className="text-[10px]">
-                          {note.status}
-                        </Badge>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                          onClick={(e) => handleDeleteMeeting(e, note.id)}
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
+                    </CardContent>
+                  </Card>
+                ))
+              )}
 
-            <h3 className="font-medium text-foreground text-sm mt-4">Recent Meetings</h3>
-            {completedMeetings.length === 0 ? (
-              <p className="text-xs text-muted-foreground">No completed meetings yet.</p>
-            ) : (
-              completedMeetings.map(note => (
-                <Card 
-                  key={note.id} 
-                  className={`cursor-pointer transition-colors hover:bg-muted/50 ${selectedNote?.id === note.id ? 'ring-2 ring-primary' : ''}`}
-                  onClick={() => setSelectedNote(note)}
-                >
-                  <CardContent className="p-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-xs truncate">{note.title}</h4>
-                        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                          <Calendar className="w-3 h-3" />
-                          {format(new Date(note.meeting_date), "MMM d, yyyy")}
+              <h3 className="font-medium text-foreground text-sm mt-4">Recent Meetings</h3>
+              {completedMeetings.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No completed meetings yet.</p>
+              ) : (
+                completedMeetings.map(note => (
+                  <Card 
+                    key={note.id} 
+                    className={`cursor-pointer transition-colors hover:bg-muted/50 ${selectedNote?.id === note.id ? 'ring-2 ring-primary' : ''}`}
+                    onClick={() => setSelectedNote(note)}
+                  >
+                    <CardContent className="p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-xs truncate">{note.title}</h4>
+                          <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                            <Calendar className="w-3 h-3" />
+                            {format(new Date(note.meeting_date), "MMM d, yyyy")}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Badge variant="outline" className="text-[10px]">
+                            completed
+                          </Badge>
+                          <Lock className="w-3 h-3 text-muted-foreground" />
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Badge variant="outline" className="text-[10px]">
-                          completed
-                        </Badge>
-                        <Lock className="w-3 h-3 text-muted-foreground" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          )}
+
+          {/* Exit Meeting button when in active meeting */}
+          {selectedNote?.status === 'active' && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full"
+              onClick={exitMeeting}
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Exit Meeting
+            </Button>
+          )}
         </div>
 
         {/* Center/Right Panel: Meeting Detail */}
@@ -690,6 +727,12 @@ export default function BoardMeetingNotes() {
                     <p className="text-sm text-muted-foreground mt-1">
                       <Calendar className="w-4 h-4 inline mr-1" />
                       {format(new Date(selectedNote.meeting_date), "EEEE, MMMM d, yyyy")}
+                      {selectedNote.start_time && (
+                        <>
+                          <span className="mx-2">@</span>
+                          {selectedNote.start_time.slice(0, 5)}
+                        </>
+                      )}
                       <span className="mx-2">•</span>
                       <Clock className="w-4 h-4 inline mr-1" />
                       {selectedNote.duration_minutes} min
