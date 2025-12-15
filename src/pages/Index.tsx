@@ -4,16 +4,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { CookieConsent } from "@/components/CookieConsent";
 import { TopNavigation } from "@/components/homepage/TopNavigation";
-import { AIPromptHero } from "@/components/homepage/AIPromptHero";
 
-import { BuildWorkspaceSection } from "@/components/homepage/BuildWorkspaceSection";
-import WorkspaceBuilderShowcase from "@/components/homepage/WorkspaceBuilderShowcase";
+// New redesigned sections
+import { HeroStatic } from "@/components/homepage/HeroStatic";
+import { LogoBar } from "@/components/homepage/LogoBar";
+import { InteractiveDemo } from "@/components/homepage/InteractiveDemo";
 import { PlatformPillars } from "@/components/homepage/PlatformPillars";
-
-import { ModuleBuilder, ModuleBuilderHandle } from "@/components/homepage/ModuleBuilder";
 import { ModuleHeroShowcase } from "@/components/homepage/ModuleHeroShowcase";
-import { CTASection } from "@/components/homepage/CTASection";
+import { PersonasSection } from "@/components/homepage/PersonasSection";
+import { CreditsTeaser } from "@/components/homepage/CreditsTeaser";
+import { FinalCTA } from "@/components/homepage/FinalCTA";
 import { FooterSection } from "@/components/homepage/FooterSection";
+
 import { LeadMagnetModal, useLeadMagnetPopup } from "@/components/lead-magnet";
 import { VisitorChatWidget } from "@/components/homepage/VisitorChatWidget";
 
@@ -23,7 +25,6 @@ const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const moduleBuilderRef = useRef<ModuleBuilderHandle>(null);
   
   // Lead magnet popup - disabled
   const { isOpen: isLeadMagnetOpen, openModal: openLeadMagnet, closeModal: closeLeadMagnet } = useLeadMagnetPopup({
@@ -96,23 +97,29 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <TopNavigation />
       <main>
-        {/* AI Prompt Hero */}
-        <AIPromptHero />
+        {/* 1. Hero - Static, no prompt box */}
+        <HeroStatic />
         
-        {/* Module Hero Showcase - Obvious.ly style */}
-        <ModuleHeroShowcase />
+        {/* 2. Social Proof / Logo Bar */}
+        <LogoBar />
         
-        {/* Build Your Own Workspace - Animated Showcase */}
-        <WorkspaceBuilderShowcase />
+        {/* 3. Interactive Demo - Prompt box moved here */}
+        <InteractiveDemo />
         
-        {/* Platform Pillars - Create, Connect, Monetize */}
+        {/* 4. Value Pillars - Create, Connect, Monetize */}
         <PlatformPillars />
         
-        {/* Build Your Own Platform - Module Builder */}
-        <ModuleBuilder ref={moduleBuilderRef} />
+        {/* 5. Feature Panels - Obviously style with vertical tabs */}
+        <ModuleHeroShowcase />
         
-        {/* Final CTA */}
-        <CTASection onGetFreeReport={openLeadMagnet} />
+        {/* 6. Personas Section */}
+        <PersonasSection />
+        
+        {/* 7. Credits/Pricing Teaser */}
+        <CreditsTeaser />
+        
+        {/* 8. Final CTA */}
+        <FinalCTA />
         
         {/* Footer */}
         <FooterSection />
