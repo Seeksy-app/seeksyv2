@@ -806,19 +806,23 @@ export default function BoardMeetingNotes() {
                       </div>
                     )}
                   </ScrollArea>
-                  <Separator />
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Add a question..."
-                      value={newQuestion}
-                      onChange={(e) => setNewQuestion(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && addMemberQuestion()}
-                      className="text-sm"
-                    />
-                    <Button size="sm" onClick={addMemberQuestion}>
-                      <Send className="w-3 h-3" />
-                    </Button>
-                  </div>
+                  {selectedNote.status !== 'completed' && (
+                    <>
+                      <Separator />
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Add a question..."
+                          value={newQuestion}
+                          onChange={(e) => setNewQuestion(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && addMemberQuestion()}
+                          className="text-sm"
+                        />
+                        <Button size="sm" onClick={addMemberQuestion}>
+                          <Send className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </>
               ) : (
                 <p className="text-xs text-muted-foreground">Select a meeting to add questions.</p>
@@ -1053,6 +1057,7 @@ export default function BoardMeetingNotes() {
                             checked={item.checked}
                             onCheckedChange={() => toggleAgendaItem(selectedNote.id, i)}
                             className="mt-0.5"
+                            disabled={selectedNote.status === 'completed'}
                           />
                           <span className={`text-sm flex-1 ${item.checked ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                             {i + 1}. {item.text}
