@@ -28,7 +28,7 @@ export function HeroWorkspaceBuilder() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTemplateIndex((prev) => (prev + 1) % workspaceTemplates.length);
-    }, 3000);
+    }, 2500);
     return () => clearInterval(interval);
   }, []);
 
@@ -41,10 +41,10 @@ export function HeroWorkspaceBuilder() {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentTemplate.name}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
           >
             <h3 className="text-lg font-bold text-foreground">
               {currentTemplate.name} Workspace
@@ -69,7 +69,8 @@ export function HeroWorkspaceBuilder() {
             <motion.div
               key={module.key}
               layout
-              className={`relative p-3 rounded-xl border transition-all duration-300 ${
+              transition={{ type: "spring", stiffness: 500, damping: 35 }}
+              className={`relative p-3 rounded-t-2xl rounded-b-xl border transition-all duration-200 ${
                 isActive 
                   ? "bg-card border-primary/30 shadow-md" 
                   : "bg-muted/30 border-border/50 opacity-50"
@@ -81,6 +82,7 @@ export function HeroWorkspaceBuilder() {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     exit={{ scale: 0 }}
+                    transition={{ type: "spring", stiffness: 600, damping: 30 }}
                     className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center"
                   >
                     <Check className="w-2.5 h-2.5 text-primary-foreground" />
@@ -108,10 +110,10 @@ export function HeroWorkspaceBuilder() {
               return (
                 <motion.div
                   key={module.key}
-                  initial={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.25 }}
+                  exit={{ opacity: 0, x: 12 }}
+                  transition={{ duration: 0.18, ease: "easeOut" }}
                   className="flex items-center gap-2 p-2 bg-card rounded-lg"
                 >
                   <div className={`w-7 h-7 rounded-md ${module.color} flex items-center justify-center shadow-sm`}>
