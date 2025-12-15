@@ -14,10 +14,10 @@ export function HeroWorkspaceSection() {
         background: "linear-gradient(180deg, hsl(var(--muted)/0.3) 0%, hsl(var(--background)) 100%)",
       }}
     >
-      <div className="mx-auto max-w-[1280px]">
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <div className="mx-auto max-w-[1400px]">
+        <div className="grid lg:grid-cols-[1fr_480px] gap-12 lg:gap-20 items-center">
           {/* Left - Copy */}
-          <div className="text-left lg:max-w-none">
+          <div className="text-left">
             <p 
               className="text-sm font-semibold uppercase tracking-widest mb-6"
               style={{ color: "hsl(var(--primary))" }}
@@ -27,7 +27,7 @@ export function HeroWorkspaceSection() {
             <h1
               className="font-black tracking-[-2px] mb-6"
               style={{ 
-                fontSize: "clamp(40px, 6vw, 64px)",
+                fontSize: "clamp(44px, 6vw, 72px)",
                 lineHeight: 1.05,
                 color: "hsl(var(--foreground))",
               }}
@@ -39,7 +39,7 @@ export function HeroWorkspaceSection() {
               <span style={{ color: "hsl(var(--primary))" }}>workspace.</span>
             </h1>
             <p 
-              className="text-lg md:text-xl mb-8 max-w-md"
+              className="text-lg md:text-xl mb-8 max-w-lg"
               style={{ color: "hsl(var(--muted-foreground))" }}
             >
               Turn tools on as you need them. Pay only for what you use with credits. No lockouts—your work stays yours.
@@ -73,7 +73,7 @@ export function HeroWorkspaceSection() {
 
           {/* Right - Workspace Builder */}
           <div className="flex justify-center lg:justify-end">
-            <div className="w-full max-w-[520px]">
+            <div className="w-full max-w-[480px]">
               <HeroWorkspaceBuilder />
               {/* AI-powered workspace badge */}
               <div className="flex justify-center mt-4">

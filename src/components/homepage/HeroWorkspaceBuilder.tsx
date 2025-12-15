@@ -81,7 +81,7 @@ export function HeroWorkspaceBuilder() {
   const sidebarItems = sidebarModules.map(key => modules.find(m => m.key === key)).filter(Boolean);
 
   return (
-    <div className="bg-card rounded-3xl shadow-2xl border border-border/50 p-5 md:p-6">
+    <div className="bg-card rounded-3xl shadow-2xl border border-border/50 p-6 md:p-7">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <AnimatePresence mode="wait">
@@ -92,7 +92,7 @@ export function HeroWorkspaceBuilder() {
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
           >
-            <h3 className="text-lg font-bold text-foreground">
+            <h3 className="text-xl font-extrabold text-foreground">
               {currentTemplate.name} Workspace
             </h3>
             <p className="text-xs text-muted-foreground">
@@ -107,13 +107,12 @@ export function HeroWorkspaceBuilder() {
 
       {/* Module Grid - Available Seekies */}
       <div className="flex items-center justify-between mb-2">
-        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
           Seekies
         </p>
       </div>
-      <div ref={gridRef} className="grid grid-cols-3 gap-2 mb-5 relative">
+      <div ref={gridRef} className="grid grid-cols-3 gap-2.5 mb-5 relative">
         {modules.map((module) => {
-          const isActive = currentTemplate.activeModules.includes(module.key);
           const isInSidebar = sidebarModules.includes(module.key);
           const isAnimating = animatingModule === module.key;
           const Icon = module.icon;
@@ -123,34 +122,19 @@ export function HeroWorkspaceBuilder() {
               key={module.key}
               layout
               transition={{ type: "spring", stiffness: 500, damping: 35 }}
-              className={`relative p-3 rounded-t-2xl rounded-b-xl border transition-all duration-200 ${
-                isActive && !isInSidebar
-                  ? "bg-card border-primary/30 shadow-md ring-2 ring-primary/20" 
-                  : isInSidebar
+              className={`relative p-3.5 rounded-t-2xl rounded-b-xl border transition-all duration-200 ${
+                isInSidebar
                   ? "bg-muted/30 border-border/50 opacity-40"
-                  : "bg-muted/30 border-border/50 opacity-50"
+                  : "bg-card border-primary/20 shadow-md"
               }`}
               style={{
                 opacity: isAnimating ? 0.3 : undefined,
               }}
             >
-              <AnimatePresence>
-                {isActive && !isInSidebar && !isAnimating && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    exit={{ scale: 0 }}
-                    transition={{ type: "spring", stiffness: 600, damping: 30 }}
-                    className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center"
-                  >
-                    <Check className="w-2.5 h-2.5 text-primary-foreground" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              <div className={`w-9 h-9 rounded-lg ${module.color} flex items-center justify-center mb-1.5 shadow-md`}>
-                <Icon className="w-4 h-4 text-white" strokeWidth={2.5} />
+              <div className={`w-10 h-10 rounded-lg ${module.color} flex items-center justify-center mb-2 shadow-md`}>
+                <Icon className="w-5 h-5 text-white" strokeWidth={2.5} />
               </div>
-              <p className="text-[10px] font-medium text-foreground truncate">{module.label}</p>
+              <p className="text-[11px] font-medium text-foreground truncate">{module.label}</p>
             </motion.div>
           );
         })}
@@ -192,10 +176,10 @@ export function HeroWorkspaceBuilder() {
                 }}
               >
                 <div className="p-3 rounded-xl bg-card border border-primary shadow-xl">
-                  <div className={`w-9 h-9 rounded-lg ${module.color} flex items-center justify-center shadow-md`}>
-                    <Icon className="w-4 h-4 text-white" strokeWidth={2.5} />
+                  <div className={`w-10 h-10 rounded-lg ${module.color} flex items-center justify-center shadow-md`}>
+                    <Icon className="w-5 h-5 text-white" strokeWidth={2.5} />
                   </div>
-                  <p className="text-[10px] font-medium text-foreground truncate text-center mt-1">{module.label}</p>
+                  <p className="text-[11px] font-medium text-foreground truncate text-center mt-1">{module.label}</p>
                 </div>
               </motion.div>
             );
