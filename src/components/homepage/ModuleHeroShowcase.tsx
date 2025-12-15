@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 
 // Import hero images
@@ -8,345 +8,328 @@ import heroCommunity from "@/assets/homepage/hero-community.jpg";
 import heroContent from "@/assets/homepage/hero-content.jpg";
 import heroPeople from "@/assets/homepage/hero-people.jpg";
 
-interface ModuleData {
+interface FeatureData {
   key: string;
-  titleLight: string;
+  tabLabel: string;
+  tabLabelBold: string;
+  title: string;
   titleBold: string;
   description: string;
   imageUrl: string;
-  ribbonLabel: string;
-  ribbonBg: string;
+  tabBg: string;
 }
 
-const modules: ModuleData[] = [
+const features: FeatureData[] = [
   {
-    key: "studio_creation",
-    titleLight: "AI-Powered",
-    titleBold: "Studio",
-    description: "Record, edit, and publish professional podcasts and videos in minutes. Our browser-based studio handles noise removal, transcription, and AI-assisted editing—so you can focus on creating.",
+    key: "influence",
+    tabLabel: "Share of",
+    tabLabelBold: "Influence",
+    title: "Share of",
+    titleBold: "Influence",
+    description: "Build authentic influence with verified identity and audience trust. Track your reach, engagement, and brand value across all platforms.",
     imageUrl: heroConversations,
-    ribbonLabel: "AI-Powered Studio",
-    ribbonBg: "#E8D4B8",
+    tabBg: "#EAD6CC", // Warm sand/peach
   },
   {
-    key: "creator_monetization",
-    titleLight: "Creator",
-    titleBold: "Monetization",
-    description: "Turn your audience into revenue. From brand deals and dynamic ad insertion to tips, subscriptions, and digital products—we handle the business so you can get paid.",
+    key: "content",
+    tabLabel: "Quick-Turn",
+    tabLabelBold: "Content",
+    title: "Quick-Turn",
+    titleBold: "Content",
+    description: "Create professional content in minutes, not hours. AI-powered editing, transcription, and multi-format exports—all from your browser.",
     imageUrl: heroCommunity,
-    ribbonLabel: "Creator Monetization",
-    ribbonBg: "#C4CFC0",
+    tabBg: "#C4CFC4", // Sage green
   },
   {
-    key: "identity_verification",
-    titleLight: "Voice & Face",
-    titleBold: "Verification",
-    description: "Protect your identity with blockchain-certified voice and face verification. Prove authenticity, prevent deepfakes, and build trust with your audience and brand partners.",
+    key: "ambassador",
+    tabLabel: "Always-On",
+    tabLabelBold: "Ambassador Programs",
+    title: "Always-On",
+    titleBold: "Ambassador Programs",
+    description: "Manage long-term creator partnerships with automated payments, content tracking, and performance analytics built for scale.",
     imageUrl: heroContent,
-    ribbonLabel: "Identity Verification",
-    ribbonBg: "#B8C9DC",
+    tabBg: "#B8C9DC", // Light blue
   },
   {
-    key: "audience_crm",
-    titleLight: "Audience",
-    titleBold: "CRM",
-    description: "Own your relationships. Manage contacts, segment your audience, automate email campaigns, and track engagement—all in one unified inbox designed for creators.",
+    key: "seeding",
+    tabLabel: "Seeding",
+    tabLabelBold: "and Custom Boxes",
+    title: "Seeding and",
+    titleBold: "Custom Boxes",
+    description: "Send products to the right creators with curated seeding campaigns. Track unboxing content, measure impact, and build genuine advocacy.",
     imageUrl: heroPeople,
-    ribbonLabel: "Audience CRM",
-    ribbonBg: "#D4C4A8",
+    tabBg: "#D4D0C8", // Warm gray/sand
   },
   {
-    key: "analytics_insights",
-    titleLight: "Analytics &",
-    titleBold: "Insights",
-    description: "Understand what's working. Track downloads, watch time, revenue, and audience growth across all your content with real-time dashboards and custom reports.",
+    key: "commerce",
+    tabLabel: "UGC For",
+    tabLabelBold: "Commerce",
+    title: "UGC For",
+    titleBold: "Commerce",
+    description: "Transform creator content into shoppable experiences. Connect authentic voices to your products and track ROI across every campaign.",
     imageUrl: heroConversations,
-    ribbonLabel: "Analytics & Insights",
-    ribbonBg: "#C4CFC0",
-  },
-  {
-    key: "brand_marketplace",
-    titleLight: "Brand",
-    titleBold: "Marketplace",
-    description: "Connect with advertisers who value authentic voices. Browse opportunities, negotiate deals, and manage campaigns—all while maintaining creative control.",
-    imageUrl: heroCommunity,
-    ribbonLabel: "Brand Marketplace",
-    ribbonBg: "#E8D5CB",
+    tabBg: "#E8DDD4", // Light beige
   },
 ];
 
 export function ModuleHeroShowcase() {
-  // Track which modules have been clicked (moved to left)
-  const [clickedKeys, setClickedKeys] = useState<Set<string>>(new Set());
-  const [activeKey, setActiveKey] = useState<string | null>(null);
+  const [activeKey, setActiveKey] = useState<string>("seeding");
 
-  const activeModule = activeKey 
-    ? modules.find((m) => m.key === activeKey) 
-    : null;
-
-  const handleTabClick = (key: string) => {
-    setActiveKey(key);
-    setClickedKeys((prev) => new Set(prev).add(key));
-  };
-
-  // Split modules: clicked ones on left, unclicked on right
-  const leftTabs = modules.filter((m) => clickedKeys.has(m.key));
-  const rightTabs = modules.filter((m) => !clickedKeys.has(m.key));
-
-  const renderTab = (
-    module: ModuleData, 
-    index: number, 
-    isFirst: boolean, 
-    isLast: boolean,
-    side: "left" | "right"
-  ) => {
-    const isActive = module.key === activeKey;
-    
-    // Rounded corners: left-side first tab gets top-left rounded, right-side last tab gets top-right rounded
-    let borderRadius = "0";
-    if (side === "left" && isFirst) {
-      borderRadius = "24px 0 0 24px";
-    } else if (side === "right" && isLast) {
-      borderRadius = "0 24px 24px 0";
-    }
-
-    return (
-      <motion.button
-        key={module.key}
-        layoutId={module.key}
-        onClick={() => handleTabClick(module.key)}
-        className="relative cursor-pointer transition-colors duration-200 hover:opacity-90 h-full flex items-center justify-center"
-        style={{
-          width: isActive ? "85px" : "65px",
-          background: isActive ? "#0A0A0A" : module.ribbonBg,
-          borderRadius,
-        }}
-        transition={{ type: "spring", stiffness: 200, damping: 30 }}
-      >
-        <span
-          className="whitespace-nowrap leading-none font-semibold"
-          style={{
-            fontSize: isActive ? "32px" : "28px",
-            letterSpacing: "-0.02em",
-            color: isActive ? "#FFFFFF" : "rgba(11, 15, 26, 0.85)",
-            transform: "rotate(-90deg)",
-            transformOrigin: "center center",
-          }}
-        >
-          {module.ribbonLabel}
-        </span>
-      </motion.button>
-    );
-  };
-
-  // Default content when nothing is selected
-  const defaultContent = {
-    titleLight: "Explore",
-    titleBold: "Features",
-    description: "Click on any tab to learn more about our powerful creator tools. Each module is designed to help you create, connect, and monetize your content.",
-    imageUrl: heroConversations,
-  };
-
-  const displayContent = activeModule || defaultContent;
+  const activeFeature = features.find((f) => f.key === activeKey) || features[3];
 
   return (
-    <section className="w-full px-4 py-24 md:py-32 overflow-hidden">
+    <section className="w-full px-4 py-16 md:py-24">
       <div className="mx-auto max-w-[1400px]">
-        {/* Desktop Layout */}
-        <LayoutGroup>
-          <div 
-            className="hidden md:flex w-full rounded-[32px] overflow-hidden" 
-            style={{ 
-              minHeight: "680px",
-              background: "hsl(var(--muted)/0.5)",
-            }}
-          >
-            {/* Left: Clicked Tabs */}
-            <div className="flex-shrink-0 flex h-full">
-              {leftTabs.map((module, index) => 
-                renderTab(module, index, index === 0, index === leftTabs.length - 1, "left")
-              )}
-            </div>
-
-            {/* Center: Content Area */}
-            <div 
-              className="flex-1 flex h-full rounded-[24px] mx-2 my-4"
-              style={{ background: "#0A0A0A" }}
-            >
-              {/* Text Block */}
-              <div className="flex-shrink-0 w-[400px] p-10 flex flex-col justify-between h-full">
-                <div className="flex flex-col gap-6 pt-6">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={activeKey || "default"}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
-                      transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-                      className="flex flex-col gap-5"
-                    >
-                      <h2
-                        className="tracking-[-0.03em]"
-                        style={{
-                          fontSize: "48px",
-                          lineHeight: 1.1,
-                          color: "#FFFFFF",
-                        }}
-                      >
-                        <span className="font-light">{displayContent.titleLight}</span>{" "}
-                        <span className="font-black">{displayContent.titleBold}</span>
-                      </h2>
-                      <p
-                        style={{
-                          fontSize: "16px",
-                          lineHeight: 1.7,
-                          color: "rgba(255, 255, 255, 0.7)",
-                          maxWidth: "340px",
-                        }}
-                      >
-                        {displayContent.description}
-                      </p>
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-
-                <button
-                  className="group w-fit flex items-center gap-2 px-6 py-3 rounded-full text-sm font-medium transition-all duration-150"
-                  style={{
-                    background: "rgba(255,255,255,0.15)",
-                    color: "#FFFFFF",
-                  }}
-                >
-                  learn more
-                  <ArrowRight className="h-4 w-4 transition-transform duration-150 group-hover:translate-x-0.5" />
-                </button>
-              </div>
-
-              {/* Image */}
-              <div className="flex-1 relative h-full p-4">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeKey || "default-image"}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-                    className="h-full"
-                  >
-                    <div className="relative w-full h-full rounded-[20px] overflow-hidden border-4 border-white/20">
-                      <img
-                        src={displayContent.imageUrl}
-                        alt={displayContent.titleLight + " " + displayContent.titleBold}
-                        className="w-full h-full object-cover"
-                      />
-                      <div 
-                        className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg text-sm font-medium"
-                        style={{
-                          background: "rgba(255,255,255,0.9)",
-                          color: "#0B0F1A",
-                        }}
-                      >
-                        @seeksy
-                      </div>
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-            </div>
-
-            {/* Right: Unclicked Tabs */}
-            <div className="flex-shrink-0 flex h-full">
-              {rightTabs.map((module, index) => 
-                renderTab(module, index, index === 0, index === rightTabs.length - 1, "right")
-              )}
-            </div>
-          </div>
-        </LayoutGroup>
-
-        {/* Mobile Layout */}
+        {/* Desktop Layout - 3 columns: tabs | content | image */}
         <div 
-          className="md:hidden w-full p-6 flex flex-col gap-6 overflow-y-auto rounded-[32px]"
-          style={{ background: "hsl(var(--muted)/0.5)" }}
+          className="hidden md:grid rounded-[32px] overflow-hidden"
+          style={{ 
+            gridTemplateColumns: "auto 1fr auto",
+            minHeight: "580px",
+            background: "#F5F0EB",
+          }}
         >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeKey || "default-mobile"}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              className="flex flex-col gap-4"
-            >
-              <h2
-                className="tracking-[-0.02em]"
-                style={{
-                  fontSize: "32px",
-                  lineHeight: 1.1,
-                  color: "hsl(var(--foreground))",
-                }}
-              >
-                <span className="font-normal">{displayContent.titleLight}</span>{" "}
-                <span className="font-black">{displayContent.titleBold}</span>
-              </h2>
-              <p
-                style={{
-                  fontSize: "15px",
-                  lineHeight: 1.6,
-                  color: "hsl(var(--muted-foreground))",
-                }}
-              >
-                {displayContent.description}
-              </p>
-            </motion.div>
-          </AnimatePresence>
-
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeKey || "default-mobile-image"}
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              className="relative aspect-[4/5] rounded-[16px] overflow-hidden"
-            >
-              <img
-                src={displayContent.imageUrl}
-                alt={displayContent.titleLight + " " + displayContent.titleBold}
-                className="w-full h-full object-cover"
-              />
-            </motion.div>
-          </AnimatePresence>
-
-          <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
-            {modules.map((module) => {
-              const isClicked = clickedKeys.has(module.key);
-              const isActive = module.key === activeKey;
+          {/* LEFT: Vertical Tab Rail */}
+          <div className="flex h-full">
+            {features.map((feature, index) => {
+              const isActive = feature.key === activeKey;
+              const isFirst = index === 0;
+              
               return (
                 <button
-                  key={module.key}
-                  onClick={() => handleTabClick(module.key)}
-                  className="flex-shrink-0 px-4 py-2 rounded-full font-medium text-sm transition-all duration-150"
+                  key={feature.key}
+                  onClick={() => setActiveKey(feature.key)}
+                  className="relative cursor-pointer transition-all duration-300 flex items-center justify-center"
                   style={{
-                    background: isActive ? "#0A0A0A" : isClicked ? "hsl(var(--primary)/0.2)" : module.ribbonBg,
-                    color: isActive ? "#FFFFFF" : "hsl(var(--foreground))",
+                    width: isActive ? "75px" : "60px",
+                    height: "100%",
+                    background: isActive ? "#0A0A0A" : feature.tabBg,
+                    borderRadius: isFirst ? "0" : "0",
                   }}
                 >
-                  {module.ribbonLabel}
+                  <div
+                    className="whitespace-nowrap flex flex-col items-center gap-0.5"
+                    style={{
+                      transform: "rotate(-90deg)",
+                      transformOrigin: "center center",
+                    }}
+                  >
+                    <span
+                      className="font-normal"
+                      style={{
+                        fontSize: isActive ? "18px" : "16px",
+                        color: isActive ? "#FFFFFF" : "rgba(11, 18, 32, 0.75)",
+                        letterSpacing: "-0.01em",
+                      }}
+                    >
+                      {feature.tabLabel}
+                    </span>
+                    <span
+                      className="font-bold"
+                      style={{
+                        fontSize: isActive ? "18px" : "16px",
+                        color: isActive ? "#FFFFFF" : "rgba(11, 18, 32, 0.9)",
+                        letterSpacing: "-0.01em",
+                      }}
+                    >
+                      {feature.tabLabelBold}
+                    </span>
+                  </div>
                 </button>
               );
             })}
           </div>
 
-          <button
-            className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-full text-sm font-medium"
-            style={{
-              background: "#0A0A0A",
-              color: "#FFFFFF",
-            }}
-          >
-            learn more
-            <ArrowRight className="h-3.5 w-3.5" />
-          </button>
+          {/* CENTER: Content Area */}
+          <div className="flex-1 p-12 flex flex-col justify-center">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeKey}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                className="flex flex-col gap-6 max-w-[520px]"
+              >
+                <h2
+                  className="tracking-[-0.02em]"
+                  style={{
+                    fontSize: "48px",
+                    lineHeight: 1.05,
+                    color: "#0B1220",
+                  }}
+                >
+                  <span className="font-normal">{activeFeature.title}</span>{" "}
+                  <span className="font-black">{activeFeature.titleBold}</span>
+                </h2>
+                <p
+                  style={{
+                    fontSize: "17px",
+                    lineHeight: 1.7,
+                    color: "#667085",
+                    maxWidth: "460px",
+                  }}
+                >
+                  {activeFeature.description}
+                </p>
+                <button
+                  className="group w-fit flex items-center gap-2 px-7 py-3.5 rounded-full text-sm font-medium transition-all duration-200 mt-4"
+                  style={{
+                    background: "#0A0A0A",
+                    color: "#FFFFFF",
+                  }}
+                >
+                  learn more
+                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                </button>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* RIGHT: Image Card */}
+          <div className="p-6 flex items-center">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeKey + "-image"}
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                className="relative rounded-[24px] overflow-hidden"
+                style={{
+                  width: "340px",
+                  height: "480px",
+                  background: "#0A0A0A",
+                  padding: "12px",
+                  boxShadow: "0 24px 60px rgba(16,24,40,0.18)",
+                }}
+              >
+                <div className="relative w-full h-full rounded-[16px] overflow-hidden">
+                  <img
+                    src={activeFeature.imageUrl}
+                    alt={activeFeature.title + " " + activeFeature.titleBold}
+                    className="w-full h-full object-cover"
+                  />
+                  <div 
+                    className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-sm font-medium"
+                    style={{
+                      background: "rgba(255,255,255,0.92)",
+                      color: "#0B1220",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                    }}
+                  >
+                    @seeksy
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {/* Mobile Layout */}
+        <div 
+          className="md:hidden w-full rounded-[24px] overflow-hidden"
+          style={{ background: "#F5F0EB" }}
+        >
+          {/* Horizontal Tab Scroll */}
+          <div className="flex gap-2 overflow-x-auto p-4 pb-2">
+            {features.map((feature) => {
+              const isActive = feature.key === activeKey;
+              return (
+                <button
+                  key={feature.key}
+                  onClick={() => setActiveKey(feature.key)}
+                  className="flex-shrink-0 px-4 py-2.5 rounded-full font-medium text-sm transition-all duration-200"
+                  style={{
+                    background: isActive ? "#0A0A0A" : feature.tabBg,
+                    color: isActive ? "#FFFFFF" : "#0B1220",
+                  }}
+                >
+                  {feature.tabLabelBold}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Content */}
+          <div className="p-6 pt-4">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeKey + "-mobile"}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25 }}
+                className="flex flex-col gap-4"
+              >
+                <h2
+                  className="tracking-[-0.02em]"
+                  style={{
+                    fontSize: "28px",
+                    lineHeight: 1.1,
+                    color: "#0B1220",
+                  }}
+                >
+                  <span className="font-normal">{activeFeature.title}</span>{" "}
+                  <span className="font-black">{activeFeature.titleBold}</span>
+                </h2>
+                <p
+                  style={{
+                    fontSize: "15px",
+                    lineHeight: 1.6,
+                    color: "#667085",
+                  }}
+                >
+                  {activeFeature.description}
+                </p>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Mobile Image */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeKey + "-mobile-image"}
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.25 }}
+                className="relative mt-5 rounded-[16px] overflow-hidden"
+                style={{
+                  aspectRatio: "4/5",
+                  background: "#0A0A0A",
+                  padding: "8px",
+                }}
+              >
+                <div className="relative w-full h-full rounded-[12px] overflow-hidden">
+                  <img
+                    src={activeFeature.imageUrl}
+                    alt={activeFeature.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div 
+                    className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full text-xs font-medium"
+                    style={{
+                      background: "rgba(255,255,255,0.9)",
+                      color: "#0B1220",
+                    }}
+                  >
+                    @seeksy
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+
+            <button
+              className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-full text-sm font-medium mt-5"
+              style={{
+                background: "#0A0A0A",
+                color: "#FFFFFF",
+              }}
+            >
+              learn more
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
       </div>
     </section>
