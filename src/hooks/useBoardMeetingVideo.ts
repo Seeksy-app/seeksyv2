@@ -24,8 +24,13 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
   const [roomName, setRoomName] = useState<string>('');
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
   const [hasActiveRoom, setHasActiveRoom] = useState(false);
+  const [isCapturingAudio, setIsCapturingAudio] = useState(false);
+  const [aiNotesStatus, setAiNotesStatus] = useState<string>('none');
+  const [isGeneratingNotes, setIsGeneratingNotes] = useState(false);
   
   const localVideoRef = useRef<HTMLVideoElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   // Check if meeting has an active room
   useEffect(() => {
@@ -264,16 +269,215 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
       if (isRecording) {
         await callObject.stopRecording();
       }
+      // Stop audio capture if active
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      }
       await callObject.leave();
       callObject.destroy();
       setCallObject(null);
       setIsConnected(false);
       setParticipants([]);
       setAudioStream(null);
+      setIsCapturingAudio(false);
     } catch (error) {
       console.error('Error leaving call:', error);
     }
   }, [callObject, isRecording]);
+
+  // Start capturing audio from the meeting
+  const startAudioCapture = useCallback(async () => {
+    if (!callObject || isCapturingAudio) return;
+    
+    try {
+      // Get all audio tracks from participants
+      const allParticipants = callObject.participants();
+      const audioTracks: MediaStreamTrack[] = [];
+      
+      Object.values(allParticipants).forEach((p: any) => {
+        if (p.tracks?.audio?.track) {
+          audioTracks.push(p.tracks.audio.track);
+        }
+      });
+      
+      if (audioTracks.length === 0) {
+        toast.error('No audio tracks available');
+        return;
+      }
+      
+      // Create a combined audio stream
+      const combinedStream = new MediaStream(audioTracks);
+      
+      // Set up MediaRecorder
+      const recorder = new MediaRecorder(combinedStream, {
+        mimeType: 'audio/webm;codecs=opus',
+      });
+      
+      audioChunksRef.current = [];
+      
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+      
+      recorder.onstop = async () => {
+        console.log('Audio capture stopped, saving to storage...');
+        await saveAudioToStorage();
+      };
+      
+      recorder.start(1000); // Collect data every second
+      mediaRecorderRef.current = recorder;
+      setIsCapturingAudio(true);
+      
+      toast.success('Audio capture started');
+      console.log('Started audio capture with', audioTracks.length, 'tracks');
+    } catch (error) {
+      console.error('Error starting audio capture:', error);
+      toast.error('Failed to start audio capture');
+    }
+  }, [callObject, isCapturingAudio, meetingNoteId]);
+
+  // Stop audio capture
+  const stopAudioCapture = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+      setIsCapturingAudio(false);
+      toast.info('Audio capture stopped');
+    }
+  }, []);
+
+  // Save captured audio to Supabase Storage
+  const saveAudioToStorage = useCallback(async () => {
+    if (audioChunksRef.current.length === 0 || !meetingNoteId) {
+      console.log('No audio chunks to save');
+      return null;
+    }
+    
+    try {
+      const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+      const fileName = `${meetingNoteId}/${Date.now()}-meeting-audio.webm`;
+      
+      console.log('Saving audio file:', fileName, 'size:', audioBlob.size);
+      
+      const { data, error } = await supabase.storage
+        .from('meeting-recordings')
+        .upload(fileName, audioBlob, {
+          contentType: 'audio/webm',
+          upsert: false,
+        });
+      
+      if (error) {
+        console.error('Storage upload error:', error);
+        throw error;
+      }
+      
+      // Update meeting record with audio file URL
+      const { error: updateError } = await supabase
+        .from('board_meeting_notes')
+        .update({ 
+          audio_file_url: fileName,
+          ai_notes_status: 'audio_saved',
+        })
+        .eq('id', meetingNoteId);
+      
+      if (updateError) {
+        console.error('Update error:', updateError);
+      }
+      
+      toast.success('Meeting audio saved');
+      console.log('Audio saved to storage:', data?.path);
+      return fileName;
+    } catch (error) {
+      console.error('Error saving audio:', error);
+      toast.error('Failed to save meeting audio');
+      return null;
+    }
+  }, [meetingNoteId]);
+
+  // End meeting and trigger AI notes generation
+  const endMeetingAndGenerateNotes = useCallback(async () => {
+    if (!meetingNoteId) return;
+    
+    setIsGeneratingNotes(true);
+    
+    try {
+      // Stop audio capture and save
+      let audioFilePath: string | null = null;
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+        // Wait for onstop handler
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      // Get the saved audio file path
+      const { data: meetingData } = await supabase
+        .from('board_meeting_notes')
+        .select('audio_file_url')
+        .eq('id', meetingNoteId)
+        .single();
+      
+      audioFilePath = meetingData?.audio_file_url;
+      
+      if (!audioFilePath) {
+        // If no audio was captured, we still allow generating notes from existing transcript
+        const { data: existingData } = await supabase
+          .from('board_meeting_notes')
+          .select('audio_transcript')
+          .eq('id', meetingNoteId)
+          .single();
+        
+        if (!existingData?.audio_transcript) {
+          toast.error('No audio recorded. Please record the meeting first.');
+          setIsGeneratingNotes(false);
+          return;
+        }
+      }
+      
+      // Leave the video call
+      await leaveCall();
+      
+      // Step 1: Transcribe audio (if we have audio file)
+      if (audioFilePath) {
+        setAiNotesStatus('transcribing');
+        toast.info('Transcribing meeting audio...');
+        
+        const { data: transcribeData, error: transcribeError } = await supabase.functions.invoke(
+          'transcribe-meeting-audio',
+          { body: { meetingNoteId, audioFilePath } }
+        );
+        
+        if (transcribeError || transcribeData?.error) {
+          throw new Error(transcribeData?.error || 'Transcription failed');
+        }
+        
+        toast.success('Transcription complete');
+      }
+      
+      // Step 2: Generate AI notes
+      setAiNotesStatus('generating');
+      toast.info('Generating AI meeting notes...');
+      
+      const { data: notesData, error: notesError } = await supabase.functions.invoke(
+        'generate-board-ai-notes',
+        { body: { meetingNoteId } }
+      );
+      
+      if (notesError || notesData?.error) {
+        throw new Error(notesData?.error || 'AI notes generation failed');
+      }
+      
+      setAiNotesStatus('draft');
+      toast.success('AI meeting notes generated! Review and publish when ready.');
+      
+    } catch (error: any) {
+      console.error('Error ending meeting:', error);
+      toast.error(error.message || 'Failed to generate meeting notes');
+      setAiNotesStatus('error');
+    } finally {
+      setIsGeneratingNotes(false);
+    }
+  }, [meetingNoteId, leaveCall]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -281,6 +485,9 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
       if (callObject) {
         callObject.leave().catch(console.error);
         callObject.destroy();
+      }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
       }
     };
   }, [callObject]);
@@ -291,6 +498,9 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
     isMuted,
     isVideoOff,
     isRecording,
+    isCapturingAudio,
+    isGeneratingNotes,
+    aiNotesStatus,
     participants,
     localVideoRef,
     audioStream,
@@ -302,5 +512,8 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
     startRecording,
     stopRecording,
     leaveCall,
+    startAudioCapture,
+    stopAudioCapture,
+    endMeetingAndGenerateNotes,
   };
 };

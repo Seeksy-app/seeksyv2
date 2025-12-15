@@ -524,3 +524,9 @@ verify_jwt = true
 
 [functions.daily-guest-join]
 verify_jwt = false
+
+[functions.transcribe-meeting-audio]
+verify_jwt = true
+
+[functions.generate-board-ai-notes]
+verify_jwt = true

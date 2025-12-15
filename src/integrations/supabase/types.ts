@@ -4607,6 +4607,17 @@ export type Database = {
       board_meeting_notes: {
         Row: {
           agenda_items: Json
+          ai_action_items_draft: Json | null
+          ai_agenda_recap_draft: Json | null
+          ai_decisions_draft: Json | null
+          ai_next_meeting_prep_draft: string | null
+          ai_notes_generated_at: string | null
+          ai_notes_published: boolean | null
+          ai_notes_published_at: string | null
+          ai_notes_status: string | null
+          ai_risks_draft: string | null
+          ai_summary_draft: string | null
+          audio_file_url: string | null
           audio_transcript: string | null
           created_at: string
           created_by: string | null
@@ -4632,6 +4643,17 @@ export type Database = {
         }
         Insert: {
           agenda_items?: Json
+          ai_action_items_draft?: Json | null
+          ai_agenda_recap_draft?: Json | null
+          ai_decisions_draft?: Json | null
+          ai_next_meeting_prep_draft?: string | null
+          ai_notes_generated_at?: string | null
+          ai_notes_published?: boolean | null
+          ai_notes_published_at?: string | null
+          ai_notes_status?: string | null
+          ai_risks_draft?: string | null
+          ai_summary_draft?: string | null
+          audio_file_url?: string | null
           audio_transcript?: string | null
           created_at?: string
           created_by?: string | null
@@ -4657,6 +4679,17 @@ export type Database = {
         }
         Update: {
           agenda_items?: Json
+          ai_action_items_draft?: Json | null
+          ai_agenda_recap_draft?: Json | null
+          ai_decisions_draft?: Json | null
+          ai_next_meeting_prep_draft?: string | null
+          ai_notes_generated_at?: string | null
+          ai_notes_published?: boolean | null
+          ai_notes_published_at?: string | null
+          ai_notes_status?: string | null
+          ai_risks_draft?: string | null
+          ai_summary_draft?: string | null
+          audio_file_url?: string | null
           audio_transcript?: string | null
           created_at?: string
           created_by?: string | null

@@ -12,6 +12,9 @@ import {
   Loader2,
   Link2,
   Check,
+  Radio,
+  Sparkles,
+  Square,
 } from 'lucide-react';
 import {
   Tooltip,
@@ -35,6 +38,8 @@ interface BoardMeetingVideoProps {
   isMuted: boolean;
   isVideoOff: boolean;
   isRecording: boolean;
+  isCapturingAudio: boolean;
+  isGeneratingNotes: boolean;
   participants: Participant[];
   localVideoRef: React.RefObject<HTMLVideoElement>;
   hasActiveRoom: boolean;
@@ -46,6 +51,9 @@ interface BoardMeetingVideoProps {
   onLeaveCall: () => void;
   onStartMeeting: () => void;
   onJoinMeeting: () => void;
+  onStartAudioCapture: () => void;
+  onStopAudioCapture: () => void;
+  onEndMeetingAndGenerateNotes: () => void;
 }
 
 const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
@@ -54,6 +62,8 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
   isMuted,
   isVideoOff,
   isRecording,
+  isCapturingAudio,
+  isGeneratingNotes,
   participants,
   localVideoRef,
   hasActiveRoom,
@@ -65,6 +75,9 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
   onLeaveCall,
   onStartMeeting,
   onJoinMeeting,
+  onStartAudioCapture,
+  onStopAudioCapture,
+  onEndMeetingAndGenerateNotes,
 }) => {
   const [linkCopied, setLinkCopied] = React.useState(false);
   const totalParticipants = participants.length + 1;
@@ -115,6 +128,19 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
     );
   }
 
+  // Generating notes state
+  if (isGeneratingNotes) {
+    return (
+      <div className="bg-slate-800 rounded-lg p-6 flex flex-col items-center justify-center min-h-[200px]">
+        <Sparkles className="h-12 w-12 text-primary animate-pulse mb-4" />
+        <p className="text-lg font-medium text-foreground mb-2">Generating AI Notes</p>
+        <p className="text-sm text-muted-foreground text-center">
+          Transcribing audio and generating meeting notes...
+        </p>
+      </div>
+    );
+  }
+
   // Connected - show video grid
   return (
     <div className="bg-slate-900 rounded-lg overflow-hidden">
@@ -132,6 +158,12 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
               {linkCopied ? <Check className="h-3 w-3" /> : <Link2 className="h-3 w-3" />}
               {linkCopied ? 'Copied!' : 'Copy Guest Link'}
             </Button>
+          )}
+          {isCapturingAudio && (
+            <Badge variant="default" className="bg-green-600 animate-pulse">
+              <Radio className="h-2 w-2 fill-current mr-1" />
+              AI Listening
+            </Badge>
           )}
           {isRecording && (
             <Badge variant="destructive" className="animate-pulse">
@@ -213,7 +245,7 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
 
       {/* Controls */}
       <TooltipProvider>
-        <div className="bg-slate-800 px-4 py-3 flex items-center justify-center gap-2">
+        <div className="bg-slate-800 px-4 py-3 flex items-center justify-center gap-2 flex-wrap">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -242,6 +274,23 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
             <TooltipContent>{isVideoOff ? 'Start Video' : 'Stop Video'}</TooltipContent>
           </Tooltip>
 
+          {/* AI Audio Capture Toggle */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={isCapturingAudio ? 'default' : 'secondary'}
+                size="sm"
+                className={`rounded-full w-10 h-10 ${isCapturingAudio ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                onClick={isCapturingAudio ? onStopAudioCapture : onStartAudioCapture}
+              >
+                <Radio className={`h-4 w-4 ${isCapturingAudio ? 'animate-pulse' : ''}`} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {isCapturingAudio ? 'Stop AI Listening' : 'Start AI Listening'}
+            </TooltipContent>
+          </Tooltip>
+
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -256,18 +305,35 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
             <TooltipContent>{isRecording ? 'Stop Recording' : 'Start Recording'}</TooltipContent>
           </Tooltip>
 
+          {/* Simple Leave */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="destructive"
+                variant="secondary"
                 size="sm"
-                className="rounded-full w-10 h-10 ml-2"
+                className="rounded-full w-10 h-10"
                 onClick={onLeaveCall}
               >
                 <PhoneOff className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Leave Meeting</TooltipContent>
+            <TooltipContent>Leave Call</TooltipContent>
+          </Tooltip>
+
+          {/* End Meeting & Generate Notes */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="default"
+                size="sm"
+                className="ml-2 gap-2 bg-primary hover:bg-primary/90"
+                onClick={onEndMeetingAndGenerateNotes}
+              >
+                <Sparkles className="h-4 w-4" />
+                End & Generate Notes
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>End meeting and generate AI notes</TooltipContent>
           </Tooltip>
         </div>
       </TooltipProvider>
