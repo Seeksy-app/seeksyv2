@@ -9,241 +9,307 @@ import heroContent from "@/assets/homepage/hero-content.jpg";
 import heroPeople from "@/assets/homepage/hero-people.jpg";
 
 interface FeatureData {
-  key: string;
+  id: string;
   label: string;
-  title: string;
-  description: string;
+  headline: string;
+  body: string;
   imageUrl: string;
-  tabBg: string;
+  ctaLink: string;
 }
 
 const features: FeatureData[] = [
   {
-    key: "podcast",
+    id: "podcast",
     label: "Podcast Studio",
-    title: "Podcast Studio",
-    description: "Record, edit, and publish professional podcasts. Invite remote guests, auto-generate transcripts, and distribute to major platforms.",
+    headline: "Podcast Studio",
+    body: "Record, edit, and publish professional podcasts. Invite remote guests, auto-generate transcripts, and distribute to major platforms.",
     imageUrl: heroConversations,
-    tabBg: "#0B0B0B", // Active by default
+    ctaLink: "/features/podcast-studio",
   },
   {
-    key: "meetings",
+    id: "meetings",
     label: "Virtual Meetings",
-    title: "Virtual Meetings",
-    description: "Create booking links, schedule guests, send confirmations and reminders, and keep everything synced.",
+    headline: "Virtual Meetings",
+    body: "Create meeting types, share booking links, and automate confirmations and reminders across your calendar.",
     imageUrl: heroCommunity,
-    tabBg: "#C9D7C8", // Tab green
+    ctaLink: "/features/meetings",
   },
   {
-    key: "post",
+    id: "ai_post",
     label: "AI Post Production",
-    title: "AI Post Production",
-    description: "Clean up audio/video, generate clips, captions, and polished exports—without complicated workflows.",
+    headline: "AI Post Production",
+    body: "Turn raw recordings into polished content with transcripts, captions, highlights, and fast edits—without the complexity.",
     imageUrl: heroContent,
-    tabBg: "#BFD1EA", // Tab blue
+    ctaLink: "/features/ai-post-production",
   },
   {
-    key: "stream",
+    id: "live",
     label: "Live Streaming",
-    title: "Live Streaming",
-    description: "Go live, bring guests on screen, and repurpose streams into content with built-in production tools.",
+    headline: "Live Streaming",
+    body: "Go live, record sessions, and repurpose content for clips and distribution with a streamlined creator workflow.",
     imageUrl: heroPeople,
-    tabBg: "#DED6C8", // Tab sand
+    ctaLink: "/features/live-streaming",
+  },
+  {
+    id: "audience",
+    label: "Audience & CRM",
+    headline: "Audience & CRM",
+    body: "Manage contacts, send email + SMS, and track engagement—everything you need to grow and connect.",
+    imageUrl: heroConversations,
+    ctaLink: "/features/audience-crm",
   },
 ];
 
 export function ModuleHeroShowcase() {
-  const [activeKey, setActiveKey] = useState<string>("podcast");
+  const [activeId, setActiveId] = useState<string>("podcast");
 
-  const activeFeature = features.find((f) => f.key === activeKey) || features[0];
+  const activeFeature = features.find((f) => f.id === activeId) || features[0];
 
   return (
-    <section className="w-full px-4 py-16 md:py-20">
-      <div className="mx-auto max-w-[1280px]">
-        {/* Desktop Layout - 3 columns: copy | image | vertical tabs */}
+    <section
+      className="w-full px-4"
+      style={{ paddingTop: "72px", paddingBottom: "72px" }}
+    >
+      <div className="mx-auto max-w-[1200px]">
+        {/* Main Card */}
         <div
-          className="hidden md:grid rounded-[32px] overflow-hidden"
+          className="rounded-[28px]"
           style={{
-            gridTemplateColumns: "1.05fr 1.35fr 0.6fr",
-            minHeight: "560px",
-            padding: "52px",
-            gap: "36px",
-            background: "#E7D6CC",
-            border: "1px solid rgba(230,234,242,0.8)",
-            boxShadow: "0 24px 60px rgba(16,24,40,0.12)",
+            background: "#E7DAD1",
+            padding: "48px",
           }}
         >
-          {/* LEFT: Copy Area */}
-          <div className="flex flex-col justify-center">
-            <p
-              className="uppercase mb-4"
-              style={{
-                fontSize: "12px",
-                fontWeight: 600,
-                letterSpacing: "0.12em",
-                color: "#667085",
-              }}
-            >
-              Explore Features
-            </p>
-
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeKey}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-                className="flex flex-col gap-5"
+          {/* Desktop: Two columns */}
+          <div
+            className="hidden md:grid"
+            style={{
+              gridTemplateColumns: "5fr 7fr",
+              gap: "40px",
+              alignItems: "center",
+            }}
+          >
+            {/* LEFT: Copy */}
+            <div className="flex flex-col">
+              <p
+                className="font-bold uppercase"
+                style={{
+                  fontSize: "12px",
+                  letterSpacing: "0.18em",
+                  color: "#5570F6",
+                  marginBottom: "16px",
+                }}
               >
-                <h2
-                  className="font-extrabold tracking-[-0.02em]"
-                  style={{
-                    fontSize: "56px",
-                    lineHeight: 1.0,
-                    color: "#0B1220",
-                  }}
+                Explore Features
+              </p>
+
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeId}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                 >
-                  {activeFeature.title}
-                </h2>
-                <p
-                  style={{
-                    fontSize: "16px",
-                    lineHeight: 1.6,
-                    color: "#667085",
-                    maxWidth: "440px",
-                  }}
-                >
-                  {activeFeature.description}
-                </p>
+                  <h2
+                    className="font-extrabold"
+                    style={{
+                      fontSize: "56px",
+                      lineHeight: 1.05,
+                      color: "#0B1220",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    {activeFeature.headline}
+                  </h2>
+                  <p
+                    style={{
+                      fontSize: "16px",
+                      lineHeight: 1.6,
+                      color: "#3E4A5E",
+                      maxWidth: "420px",
+                      marginBottom: "28px",
+                    }}
+                  >
+                    {activeFeature.body}
+                  </p>
+                </motion.div>
+              </AnimatePresence>
+
+              {/* CTA Row */}
+              <div className="flex items-center gap-3.5">
                 <button
-                  className="group w-fit flex items-center gap-2 px-6 py-3.5 rounded-full text-sm font-medium transition-all duration-200 mt-2"
+                  className="group flex items-center gap-2 rounded-full font-bold transition-all duration-200"
                   style={{
-                    background: "#0B0B0B",
+                    height: "44px",
+                    paddingLeft: "18px",
+                    paddingRight: "18px",
+                    background: "#0B1220",
                     color: "#FFFFFF",
+                    fontSize: "14px",
                   }}
                 >
                   Learn more
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
                 </button>
-              </motion.div>
-            </AnimatePresence>
-          </div>
+                <span style={{ fontSize: "13px", color: "#6B7280" }}>
+                  Click a feature below to preview.
+                </span>
+              </div>
+            </div>
 
-          {/* CENTER: Image Card */}
-          <div className="flex items-center justify-center">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeKey + "-image"}
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-                className="relative rounded-[26px] overflow-hidden"
-                style={{
-                  width: "100%",
-                  maxWidth: "380px",
-                  aspectRatio: "4/5",
-                  background: "#0A0A0A",
-                  padding: "10px",
-                  boxShadow: "0 18px 40px rgba(16,24,40,0.18)",
-                  border: "1px solid rgba(255,255,255,0.35)",
-                }}
-              >
-                <div className="relative w-full h-full rounded-[18px] overflow-hidden">
+            {/* RIGHT: Preview Card */}
+            <div
+              className="rounded-[24px] p-3"
+              style={{
+                background: "rgba(0,0,0,0.06)",
+              }}
+            >
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeId + "-image"}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+                  className="relative rounded-[18px] overflow-hidden"
+                  style={{ aspectRatio: "4/3" }}
+                >
                   <img
                     src={activeFeature.imageUrl}
-                    alt={activeFeature.title}
+                    alt={activeFeature.headline}
                     className="w-full h-full object-cover"
                   />
                   <div
-                    className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full text-sm font-medium"
+                    className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full font-bold"
                     style={{
-                      background: "rgba(255,255,255,0.82)",
+                      background: "rgba(255,255,255,0.85)",
+                      color: "#0B1220",
+                      fontSize: "13px",
+                    }}
+                  >
+                    @seeksy
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Mobile: Stacked */}
+          <div className="md:hidden flex flex-col">
+            <p
+              className="font-bold uppercase"
+              style={{
+                fontSize: "11px",
+                letterSpacing: "0.15em",
+                color: "#5570F6",
+                marginBottom: "12px",
+              }}
+            >
+              Explore Features
+            </p>
+
+            {/* Preview Image */}
+            <div
+              className="rounded-[16px] p-2 mb-5"
+              style={{ background: "rgba(0,0,0,0.06)" }}
+            >
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeId + "-mobile-image"}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.2 }}
+                  className="relative rounded-[12px] overflow-hidden"
+                  style={{ aspectRatio: "4/3" }}
+                >
+                  <img
+                    src={activeFeature.imageUrl}
+                    alt={activeFeature.headline}
+                    className="w-full h-full object-cover"
+                  />
+                  <div
+                    className="absolute bottom-3 left-3 px-2.5 py-1 rounded-full font-bold text-xs"
+                    style={{
+                      background: "rgba(255,255,255,0.9)",
                       color: "#0B1220",
                     }}
                   >
                     @seeksy
                   </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
 
-          {/* RIGHT: Vertical Tab Rail */}
-          <div className="flex flex-col gap-3.5 h-full justify-center">
-            {features.map((feature) => {
-              const isActive = feature.key === activeKey;
-
-              return (
-                <button
-                  key={feature.key}
-                  onClick={() => setActiveKey(feature.key)}
-                  className="relative cursor-pointer transition-all duration-300 flex items-center justify-center"
+            {/* Copy */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeId + "-mobile-copy"}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.2 }}
+              >
+                <h2
+                  className="font-extrabold"
                   style={{
-                    width: "78px",
-                    height: "130px",
-                    background: isActive ? "#0B0B0B" : feature.tabBg,
-                    borderRadius: "26px",
+                    fontSize: "32px",
+                    lineHeight: 1.1,
+                    color: "#0B1220",
+                    marginBottom: "10px",
                   }}
                 >
-                  <div
-                    className="whitespace-nowrap"
-                    style={{
-                      transform: "rotate(-90deg)",
-                      transformOrigin: "center center",
-                    }}
-                  >
-                    <span
-                      className="font-bold"
-                      style={{
-                        fontSize: "14px",
-                        letterSpacing: "0.02em",
-                        color: isActive ? "#FFFFFF" : "#0B1220",
-                      }}
-                    >
-                      {feature.label}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
+                  {activeFeature.headline}
+                </h2>
+                <p
+                  style={{
+                    fontSize: "15px",
+                    lineHeight: 1.6,
+                    color: "#3E4A5E",
+                    marginBottom: "20px",
+                  }}
+                >
+                  {activeFeature.body}
+                </p>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* CTA */}
+            <button
+              className="w-full flex items-center justify-center gap-2 rounded-full font-bold mb-5"
+              style={{
+                height: "44px",
+                background: "#0B1220",
+                color: "#FFFFFF",
+                fontSize: "14px",
+              }}
+            >
+              Learn more
+              <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
-        </div>
 
-        {/* Mobile Layout */}
-        <div
-          className="md:hidden w-full rounded-[24px] overflow-hidden"
-          style={{
-            background: "#E7D6CC",
-            padding: "24px",
-          }}
-        >
-          {/* Eyebrow */}
-          <p
-            className="uppercase mb-3"
-            style={{
-              fontSize: "11px",
-              fontWeight: 600,
-              letterSpacing: "0.1em",
-              color: "#667085",
-            }}
+          {/* Feature Rail - Horizontal Tabs */}
+          <div
+            className="flex flex-wrap items-center"
+            style={{ marginTop: "28px", gap: "10px" }}
           >
-            Explore Features
-          </p>
-
-          {/* Horizontal Tab Scroll */}
-          <div className="flex gap-2 overflow-x-auto pb-4 -mx-1 px-1">
             {features.map((feature) => {
-              const isActive = feature.key === activeKey;
+              const isActive = feature.id === activeId;
               return (
                 <button
-                  key={feature.key}
-                  onClick={() => setActiveKey(feature.key)}
-                  className="flex-shrink-0 px-4 py-2.5 rounded-full font-medium text-sm transition-all duration-200"
+                  key={feature.id}
+                  onClick={() => setActiveId(feature.id)}
+                  className="font-bold transition-all duration-200"
                   style={{
-                    background: isActive ? "#0B0B0B" : feature.tabBg,
+                    height: "42px",
+                    paddingLeft: "14px",
+                    paddingRight: "14px",
+                    borderRadius: "999px",
+                    fontSize: "14px",
+                    background: isActive ? "#0B1220" : "rgba(255,255,255,0.55)",
                     color: isActive ? "#FFFFFF" : "#0B1220",
+                    border: isActive ? "none" : "1px solid rgba(0,0,0,0.08)",
                   }}
                 >
                   {feature.label}
@@ -251,83 +317,6 @@ export function ModuleHeroShowcase() {
               );
             })}
           </div>
-
-          {/* Content */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeKey + "-mobile"}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
-              className="flex flex-col gap-3"
-            >
-              <h2
-                className="font-extrabold tracking-[-0.01em]"
-                style={{
-                  fontSize: "28px",
-                  lineHeight: 1.1,
-                  color: "#0B1220",
-                }}
-              >
-                {activeFeature.title}
-              </h2>
-              <p
-                style={{
-                  fontSize: "15px",
-                  lineHeight: 1.6,
-                  color: "#667085",
-                }}
-              >
-                {activeFeature.description}
-              </p>
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Mobile Image */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeKey + "-mobile-image"}
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.2 }}
-              className="relative mt-4 rounded-[16px] overflow-hidden"
-              style={{
-                aspectRatio: "4/5",
-                background: "#0A0A0A",
-                padding: "8px",
-              }}
-            >
-              <div className="relative w-full h-full rounded-[12px] overflow-hidden">
-                <img
-                  src={activeFeature.imageUrl}
-                  alt={activeFeature.title}
-                  className="w-full h-full object-cover"
-                />
-                <div
-                  className="absolute bottom-3 left-3 px-2.5 py-1 rounded-full text-xs font-medium"
-                  style={{
-                    background: "rgba(255,255,255,0.9)",
-                    color: "#0B1220",
-                  }}
-                >
-                  @seeksy
-                </div>
-              </div>
-            </motion.div>
-          </AnimatePresence>
-
-          <button
-            className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-full text-sm font-medium mt-4"
-            style={{
-              background: "#0B0B0B",
-              color: "#FFFFFF",
-            }}
-          >
-            Learn more
-            <ArrowRight className="h-3.5 w-3.5" />
-          </button>
         </div>
       </div>
     </section>
