@@ -4615,6 +4615,7 @@ export type Database = {
           decisions_summary_generated_at: string | null
           decisions_summary_locked: boolean
           duration_minutes: number | null
+          guest_token: string | null
           id: string
           meeting_date: string
           member_questions: Json | null
@@ -4639,6 +4640,7 @@ export type Database = {
           decisions_summary_generated_at?: string | null
           decisions_summary_locked?: boolean
           duration_minutes?: number | null
+          guest_token?: string | null
           id?: string
           meeting_date: string
           member_questions?: Json | null
@@ -4663,6 +4665,7 @@ export type Database = {
           decisions_summary_generated_at?: string | null
           decisions_summary_locked?: boolean
           duration_minutes?: number | null
+          guest_token?: string | null
           id?: string
           meeting_date?: string
           member_questions?: Json | null
