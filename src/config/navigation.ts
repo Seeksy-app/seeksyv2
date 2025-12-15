@@ -380,6 +380,14 @@ export const NAVIGATION_CONFIG: {
       "collapsible": true,
       "items": [
         {
+          "id": "admin_style_guide",
+          "label": "Style Guide",
+          "icon": "palette",
+          "path": "/admin/content/style-guide",
+          "roles": ["admin", "super_admin"],
+          "description": "Brand tokens, typography, and component library"
+        },
+        {
           "id": "admin_seeksy_tv",
           "label": "Seeksy TV",
           "icon": "tv",

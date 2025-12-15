@@ -25,8 +25,9 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 10%;
+    /* Seeksy Brand Colors (HSL) */
+    --background: 210 40% 99%;          /* #F8FAFC - subtle */
+    --foreground: 222 47% 11%;          /* #0F172A - ink */
 
     /* Navigation theme tokens */
     --nav-bg: 220 40% 8%;
@@ -35,64 +36,79 @@ body {
     --nav-text-disabled: 0 0% 100%;
     --nav-item-active-bg: 0 0% 100%;
     --nav-item-hover-bg: 0 0% 100%;
-    --nav-item-radius: 8px;
+    --nav-item-radius: 10px;
     --nav-item-padding-x: 14px;
     --nav-item-padding-y: 10px;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card: 0 0% 100%;                  /* #FFFFFF */
+    --card-foreground: 222 47% 11%;     /* #0F172A */
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 207 100% 50%;
+    /* Seeksy Blue - Primary */
+    --primary: 220 84% 55%;             /* #2C6BED */
     --primary-foreground: 0 0% 100%;
-    
-    --primary-glow: 207 100% 60%;
+    --primary-glow: 220 84% 65%;
 
-    --secondary: 38 100% 60%;
-    --secondary-foreground: 0 0% 10%;
+    /* Warm CTA Gradient */
+    --secondary: 43 91% 64%;            /* #F6C453 */
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 0 0% 93%;
-    --muted-foreground: 0 0% 40%;
+    /* Slate for body text */
+    --muted: 210 40% 98%;               /* #F8FAFC */
+    --muted-foreground: 215 16% 47%;    /* #64748B - slate */
 
-    --accent: 45 100% 60%;
-    --accent-foreground: 0 0% 10%;
+    --accent: 43 91% 64%;               /* #F6C453 */
+    --accent-foreground: 222 47% 11%;
 
-    --destructive: 358 85% 52%;
+    --destructive: 0 72% 51%;           /* #DC2626 */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 85%;
-    --input: 0 0% 93%;
-    --ring: 207 100% 50%;
+    --border: 214 32% 91%;              /* #E2E8F0 */
+    --input: 210 40% 98%;
+    --ring: 220 84% 55%;                /* Seeksy Blue */
 
-    --brand-gold: 45 100% 60%;
-    --brand-green: 142 76% 55%;
-    --brand-orange: 25 95% 60%;
-    --brand-blue: 207 100% 50%;
-    --brand-navy: 208 93% 24%;
-    --brand-dark-red: 358 70% 44%;
-    --brand-red: 358 85% 52%;
+    /* Brand palette */
+    --brand-gold: 43 91% 64%;
+    --brand-green: 142 76% 36%;         /* #16A34A - success */
+    --brand-orange: 37 91% 52%;         /* #F59E0B - warning */
+    --brand-blue: 220 84% 55%;          /* #2C6BED */
+    --brand-navy: 222 47% 11%;
+    --brand-dark-red: 0 72% 51%;
+    --brand-red: 0 72% 51%;
+
+    /* Soft accent backgrounds */
+    --accent-create: 220 100% 95%;      /* #E8F0FF - soft blue */
+    --accent-connect: 152 40% 94%;      /* #EAF6F1 - soft mint */
+    --accent-monetize: 38 100% 94%;     /* #FFF3E1 - soft sand */
 
     /* Light Sidebar Theme (Monday-style) */
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 6% 25%;
-    --sidebar-primary: 207 100% 50%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 220 84% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 5% 91%;
-    --sidebar-accent-foreground: 240 6% 25%;
-    --sidebar-border: 240 6% 90%;
-    --sidebar-ring: 207 100% 50%;
+    --sidebar-accent: 214 32% 91%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 220 84% 55%;
 
-    /* Header/TopNav theme color - softer blue */
-    --header-background: 208 70% 45%;
+    /* Header/TopNav theme */
+    --header-background: 220 84% 55%;
     --header-foreground: 0 0% 100%;
 
-    --radius: 0.75rem;
+    /* Seeksy Radii */
+    --radius: 1rem;                     /* 16px - md */
+    --radius-sm: 0.625rem;              /* 10px */
+    --radius-lg: 1.5rem;                /* 24px */
+    --radius-xl: 2rem;                  /* 32px */
     
-    --shadow-soft: 0 8px 30px -4px hsl(0 0% 0% / 0.1);
-    --shadow-glow: 0 0 60px hsl(45 100% 60% / 0.4);
+    /* Seeksy Shadows */
+    --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.10);
+    --shadow-glow: 0 30px 70px rgba(15, 23, 42, 0.18);
     
+    /* Seeksy Gradients */
+    --gradient-warm-cta: linear-gradient(135deg, #F6C453, #F59E0B);
     --gradient-vibrant: linear-gradient(135deg, hsl(var(--brand-gold)), hsl(var(--brand-orange)));
   }
   
