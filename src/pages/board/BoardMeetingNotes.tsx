@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
-import { Plus, Calendar, ChevronDown, ChevronUp, Sparkles, Download, Lock, Play, Pause, RotateCcw, Check, Clock, MessageSquare, Send, Trash2, LogOut } from "lucide-react";
+import { Plus, Calendar, ChevronDown, ChevronUp, Sparkles, Download, Lock, Play, Pause, RotateCcw, Check, Clock, MessageSquare, Send, Trash2, LogOut, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,8 @@ import { BoardPageHeader } from "@/components/board/BoardPageHeader";
 import { toast } from "sonner";
 import { DecisionTable } from "@/components/board/DecisionTable";
 import { Checkbox } from "@/components/ui/checkbox";
+import BoardMeetingVideo from "@/components/board/BoardMeetingVideo";
+import { useBoardMeetingVideo } from "@/hooks/useBoardMeetingVideo";
 import {
   Dialog,
   DialogContent,
@@ -89,6 +91,24 @@ export default function BoardMeetingNotes() {
   // Timer state
   const [timerRunning, setTimerRunning] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(0);
+
+  // Video meeting hook
+  const {
+    isConnected: isVideoConnected,
+    isConnecting: isVideoConnecting,
+    isMuted,
+    isVideoOff,
+    isRecording,
+    participants,
+    localVideoRef,
+    audioStream,
+    startVideoMeeting,
+    toggleMute,
+    toggleVideo,
+    startRecording,
+    stopRecording,
+    leaveCall,
+  } = useBoardMeetingVideo(selectedNote?.id || '');
   
   const [createForm, setCreateForm] = useState<CreateMeetingForm>({
     title: "",
@@ -945,6 +965,25 @@ export default function BoardMeetingNotes() {
                     <p className="text-sm">AI is generating your agenda, memo, and decision matrix...</p>
                   </CardContent>
                 </Card>
+              )}
+
+              {/* Video Meeting Panel - show for active/upcoming meetings */}
+              {selectedNote.status !== 'completed' && (
+                <BoardMeetingVideo
+                  isConnected={isVideoConnected}
+                  isConnecting={isVideoConnecting}
+                  isMuted={isMuted}
+                  isVideoOff={isVideoOff}
+                  isRecording={isRecording}
+                  participants={participants}
+                  localVideoRef={localVideoRef}
+                  onToggleMute={toggleMute}
+                  onToggleVideo={toggleVideo}
+                  onStartRecording={startRecording}
+                  onStopRecording={stopRecording}
+                  onLeaveCall={leaveCall}
+                  onStartMeeting={startVideoMeeting}
+                />
               )}
 
               {/* Agenda with Checkboxes */}
