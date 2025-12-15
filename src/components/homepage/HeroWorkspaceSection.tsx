@@ -72,8 +72,8 @@ export function HeroWorkspaceSection() {
           </div>
 
           {/* Right - Workspace Builder */}
-          <div className="flex justify-center lg:justify-center">
-            <div className="w-full max-w-[480px]">
+          <div className="flex justify-center lg:justify-end">
+            <div className="w-full max-w-[520px]">
               <HeroWorkspaceBuilder />
               {/* AI-powered workspace badge */}
               <div className="flex justify-center mt-4">
