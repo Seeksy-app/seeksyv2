@@ -159,22 +159,25 @@ export default function BoardMeetingNotes() {
 
   const createNoteMutation = useMutation({
     mutationFn: async (formData: CreateMeetingForm) => {
-      const { data: userData } = await supabase.auth.getUser();
+      const { data: userData, error: authError } = await supabase.auth.getUser();
+      if (authError || !userData.user) {
+        throw new Error("You must be logged in to create a meeting");
+      }
       
       // Create meeting with user's agenda notes (will be processed by AI)
       const newNote = {
         title: formData.title.trim(),
         meeting_date: formData.meeting_date,
         duration_minutes: formData.duration_minutes,
-        agenda_items: [], // Will be populated by AI
-        memo: null, // Will be populated by AI
-        decision_table: [], // Will be populated by AI
+        agenda_items: [],
+        memo: null,
+        decision_table: [],
         decisions_summary: null,
         decisions_summary_generated_at: null,
         decisions_summary_locked: false,
         member_questions: [],
         status: "upcoming",
-        created_by: userData.user?.id,
+        created_by: userData.user.id,
       };
 
       const { data, error } = await supabase
@@ -182,7 +185,11 @@ export default function BoardMeetingNotes() {
         .insert(newNote)
         .select()
         .single();
-      if (error) throw error;
+      
+      if (error) {
+        console.error("Insert error:", error);
+        throw new Error(error.message || "Failed to insert meeting");
+      }
       return { meeting: data, agendaNotes: formData.agenda_notes };
     },
     onSuccess: async ({ meeting, agendaNotes }) => {
