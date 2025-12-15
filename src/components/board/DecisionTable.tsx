@@ -50,7 +50,7 @@ export function DecisionTable({ rows, onDecisionChange, readOnly = false }: Deci
                     value={row.Decision}
                     onChange={(e) => onDecisionChange(index, e.target.value)}
                     placeholder="Enter decision..."
-                    className="h-8 text-sm"
+                    className={`h-8 text-sm ${!row.Decision?.trim() ? 'border-destructive text-destructive placeholder:text-destructive/70' : ''}`}
                   />
                 )}
               </TableCell>

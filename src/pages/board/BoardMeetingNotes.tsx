@@ -1078,10 +1078,17 @@ export default function BoardMeetingNotes() {
 
               {/* Generate Summary Button */}
               {selectedNote.status !== 'completed' && selectedNote.decision_table.length > 0 && (
-                <div className="flex justify-end">
+                <div className="flex flex-col items-end gap-2">
+                  {selectedNote.decision_table.some(row => !row.Decision?.trim()) && (
+                    <p className="text-sm text-destructive">All decisions must be filled before generating summary</p>
+                  )}
                   <Button 
                     onClick={() => generateSummaryMutation.mutate(selectedNote.id)}
-                    disabled={generateSummaryMutation.isPending || selectedNote.decisions_summary_locked}
+                    disabled={
+                      generateSummaryMutation.isPending || 
+                      selectedNote.decisions_summary_locked ||
+                      selectedNote.decision_table.some(row => !row.Decision?.trim())
+                    }
                   >
                     <Sparkles className="w-4 h-4 mr-2" />
                     Complete Meeting & Generate Summary
