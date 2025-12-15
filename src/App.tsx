@@ -149,8 +149,12 @@ import RSSMigrationPage from "./pages/RSSMigrationPage";
 import PaidAdsTerms from "./pages/legal/PaidAdsTerms";
 import StockAgreementGenerator from "./pages/admin/legal/StockAgreementGenerator";
 import LegalTemplatesLibrary from "./pages/admin/legal/LegalTemplatesLibrary";
+import FormTemplates from "./pages/admin/legal/FormTemplates";
+import DocInstances from "./pages/admin/legal/DocInstances";
 import StyleGuidePage from "./pages/admin/StyleGuidePage";
 import PendingInvestments from "./pages/admin/legal/PendingInvestments";
+import SignerFormPage from "./pages/sign/SignerFormPage";
+import SignerReviewPage from "./pages/sign/SignerReviewPage";
 import SignedConfirmation from "./pages/legal/SignedConfirmation";
 import DeclinedConfirmation from "./pages/legal/DeclinedConfirmation";
 import InvestorApplication from "./pages/invest/InvestorApplication";
@@ -1300,7 +1304,12 @@ const AppContent = () => {
           <Route path="/admin/voice-certification" element={<VoiceCertificationPage />} />
           <Route path="/admin/voice-nft-certificates" element={<VoiceNFTCertificatesPage />} />
           <Route path="/admin/landing-pages" element={<LandingPagesAdmin />} />
+          <Route path="/admin/legal/form-templates" element={<FormTemplates />} />
+          <Route path="/admin/legal/docs" element={<DocInstances />} />
           
+          {/* Public Signer Pages */}
+          <Route path="/sign/:accessToken/form" element={<SignerFormPage />} />
+          <Route path="/sign/:accessToken/review" element={<SignerReviewPage />} />
           {/* Public Landing Pages */}
           <Route path="/p/:slug" element={<PublicLandingPage />} />
           

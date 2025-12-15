@@ -16,7 +16,6 @@ import {
   CheckCircle, Clock, AlertCircle, XCircle,
   ExternalLink, Users
 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 
 interface DocInstance {
@@ -65,7 +64,6 @@ export default function DocInstances() {
   const [selectedInstance, setSelectedInstance] = useState<DocInstance | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(searchParams.has("template"));
   const queryClient = useQueryClient();
-  const { user } = useAuth();
 
   // Fetch documents
   const { data: instances = [], isLoading } = useQuery({
@@ -263,7 +261,6 @@ function CreateDocDialog({
 }) {
   const [templateId, setTemplateId] = useState(defaultTemplateId || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user } = useAuth();
 
   const handleCreate = async () => {
     if (!templateId) {
@@ -273,6 +270,9 @@ function CreateDocDialog({
 
     setIsSubmitting(true);
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+
       // Get template to fetch tenant_id
       const { data: template, error: templateError } = await supabase
         .from("form_templates")

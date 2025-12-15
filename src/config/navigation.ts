@@ -142,6 +142,20 @@ export const NAVIGATION_CONFIG: {
       "collapsible": true,
       "items": [
         {
+          "id": "admin_form_templates",
+          "label": "Form Templates",
+          "icon": "file-text",
+          "path": "/admin/legal/form-templates",
+          "roles": ["admin", "super_admin", "cfo"]
+        },
+        {
+          "id": "admin_doc_instances",
+          "label": "Documents",
+          "icon": "file-signature",
+          "path": "/admin/legal/docs",
+          "roles": ["admin", "super_admin", "cfo"]
+        },
+        {
           "id": "admin_legal_library",
           "label": "Documents Library",
           "icon": "library",

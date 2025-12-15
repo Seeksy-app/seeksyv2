@@ -14,7 +14,6 @@ import {
   FileText, Plus, Search, Edit, Trash2, 
   Upload, FileSignature, Eye, Users, AlertCircle
 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 
 interface FormTemplate {
   id: string;
@@ -57,7 +56,6 @@ export default function FormTemplates() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<FormTemplate | null>(null);
   const queryClient = useQueryClient();
-  const { user } = useAuth();
   
   // Fetch templates
   const { data: templates = [], isLoading } = useQuery({
@@ -313,7 +311,6 @@ function CreateTemplateForm({ onSuccess }: { onSuccess: () => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [jsonErrors, setJsonErrors] = useState<{ schema?: string; signer?: string }>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { user } = useAuth();
 
   const validateJsonFields = () => {
     const errors: { schema?: string; signer?: string } = {};
@@ -363,6 +360,9 @@ function CreateTemplateForm({ onSuccess }: { onSuccess: () => void }) {
         .single();
 
       if (!tenant) throw new Error("No platform tenant found");
+
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
 
       // Insert template
       const { error: insertError } = await supabase
