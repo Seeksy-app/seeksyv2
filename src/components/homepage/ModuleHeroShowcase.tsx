@@ -125,9 +125,9 @@ export function ModuleHeroShowcase() {
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
       >
         <span
-          className="whitespace-nowrap leading-none"
+          className="whitespace-nowrap leading-none font-semibold text-center"
           style={{
-            fontSize: "28px",
+            fontSize: "38px",
             letterSpacing: "-0.02em",
             color: isActive ? "#FFFFFF" : "rgba(11, 15, 26, 0.85)",
             transform: "rotate(-90deg)",
@@ -137,8 +137,7 @@ export function ModuleHeroShowcase() {
             justifyContent: "center",
           }}
         >
-          <span style={{ fontWeight: 400 }}>{module.titleLight}</span>{" "}
-          <span style={{ fontWeight: 700 }}>{module.titleBold}</span>
+          {module.ribbonLabel}
         </span>
       </motion.button>
     );
