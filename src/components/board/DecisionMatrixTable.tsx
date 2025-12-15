@@ -159,7 +159,7 @@ export function DecisionMatrixTable({ meetingId, isHost, isCompleted, meetingSta
                   option_summary: decision.option_summary || "",
                   upside: decision.upside || "",
                   risk: decision.risk || "",
-                  decision_text: decision.decision_text || "",
+                  decision: decision.decision || "",
                   status: decision.status,
                   owner_name: decision.owner_name || "",
                   due_date: decision.due_date || "",
@@ -167,7 +167,7 @@ export function DecisionMatrixTable({ meetingId, isHost, isCompleted, meetingSta
                 const isFinalOrDeferred = row.status === 'final' || row.status === 'deferred';
                 const isEditable = canEditDecisions && !isFinalOrDeferred;
                 const statusInfo = statusConfig[row.status];
-                const isUnresolved = row.status === 'open' || row.status === 'needs_followup' || !row.decision_text?.trim();
+                const isUnresolved = row.status === 'open' || row.status === 'needs_followup' || !row.decision?.trim();
 
                 return (
                   <TableRow 
@@ -224,13 +224,13 @@ export function DecisionMatrixTable({ meetingId, isHost, isCompleted, meetingSta
                     <TableCell>
                       {isEditable ? (
                         <Input
-                          value={row.decision_text}
-                          onChange={(e) => handleFieldChange(decision.id, 'decision_text', e.target.value)}
+                          value={row.decision}
+                          onChange={(e) => handleFieldChange(decision.id, 'decision', e.target.value)}
                           placeholder="Enter decision..."
-                          className={`h-8 text-sm ${!row.decision_text?.trim() ? 'border-amber-400 focus:border-amber-500' : ''}`}
+                          className={`h-8 text-sm ${!row.decision?.trim() ? 'border-amber-400 focus:border-amber-500' : ''}`}
                         />
                       ) : (
-                        <span className="text-sm">{row.decision_text || "—"}</span>
+                        <span className="text-sm">{row.decision || "—"}</span>
                       )}
                     </TableCell>
                     <TableCell>
