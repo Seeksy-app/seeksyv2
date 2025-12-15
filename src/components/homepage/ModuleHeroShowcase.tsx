@@ -150,17 +150,17 @@ export function ModuleHeroShowcase() {
   const displayContent = activeModule || defaultContent;
 
   return (
-    <section className="w-full px-4 py-24 md:py-32">
-      <div
-        className="mx-auto max-w-[1400px] rounded-[32px] overflow-hidden flex"
-        style={{
-          background: "hsl(var(--muted)/0.5)",
-          minHeight: "680px",
-        }}
-      >
+    <section className="w-full px-4 py-24 md:py-32 overflow-hidden">
+      <div className="mx-auto max-w-[1400px]">
         {/* Desktop Layout */}
         <LayoutGroup>
-          <div className="hidden md:flex w-full h-full" style={{ minHeight: "680px" }}>
+          <div 
+            className="hidden md:flex w-full rounded-[32px] overflow-hidden" 
+            style={{ 
+              minHeight: "680px",
+              background: "hsl(var(--muted)/0.5)",
+            }}
+          >
             {/* Left: Clicked Tabs */}
             <div className="flex-shrink-0 flex h-full">
               {leftTabs.map((module, index) => 
@@ -264,7 +264,10 @@ export function ModuleHeroShowcase() {
         </LayoutGroup>
 
         {/* Mobile Layout */}
-        <div className="md:hidden w-full p-6 flex flex-col gap-6 overflow-y-auto">
+        <div 
+          className="md:hidden w-full p-6 flex flex-col gap-6 overflow-y-auto rounded-[32px]"
+          style={{ background: "hsl(var(--muted)/0.5)" }}
+        >
           <AnimatePresence mode="wait">
             <motion.div
               key={activeKey || "default-mobile"}
