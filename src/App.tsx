@@ -151,6 +151,7 @@ import StockAgreementGenerator from "./pages/admin/legal/StockAgreementGenerator
 import LegalTemplatesLibrary from "./pages/admin/legal/LegalTemplatesLibrary";
 import FormTemplates from "./pages/admin/legal/FormTemplates";
 import DocInstances from "./pages/admin/legal/DocInstances";
+import DocCreatePage from "./pages/admin/legal/DocCreatePage";
 import StyleGuidePage from "./pages/admin/StyleGuidePage";
 import PendingInvestments from "./pages/admin/legal/PendingInvestments";
 import SignerFormPage from "./pages/sign/SignerFormPage";
@@ -1166,6 +1167,7 @@ const AppContent = () => {
             <Route path="/admin/content/style-guide" element={<StyleGuidePage />} />
             <Route path="/admin/legal/generate-docx" element={<StockAgreementGenerator />} />
             <Route path="/admin/legal/pending-investments" element={<PendingInvestments />} />
+            <Route path="/admin/legal/docs/new" element={<DocCreatePage />} />
             <Route path="/admin/conversational-demo" element={<AdminConversationalDemo />} />
             <Route path="/admin/architecture" element={<SeeksyArchitecture />} />
             <Route path="/admin/master-blog" element={<AdminMasterBlog />} />
