@@ -1,62 +1,23 @@
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export function FinalCTA() {
   const navigate = useNavigate();
 
   return (
-    <section className="w-full px-4 py-20 md:py-24" style={{ background: "hsl(var(--background))" }}>
-      <div className="mx-auto max-w-[1280px]">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="rounded-[28px] p-10 md:p-16 lg:p-20 text-center"
-          style={{
-            background: "linear-gradient(135deg, #0B0F1A, #1A1F2E)",
-          }}
+    <section className="container mx-auto px-4 py-16 text-center">
+      <div className="max-w-xl mx-auto bg-gradient-to-br from-amber-900/30 to-orange-900/30 rounded-3xl p-8 border border-amber-700/50">
+        <h2 className="text-2xl font-bold mb-4 text-white">Ready to Get Started?</h2>
+        <p className="text-slate-400 mb-6">
+          Sign up free and unlock the full power of Seeksy's creator toolkit.
+        </p>
+        <Button
+          onClick={() => navigate("/auth?mode=signup")}
+          size="lg"
+          className="bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold hover:opacity-90"
         >
-          <h2 
-            className="font-extrabold tracking-[-0.5px] mb-4 text-white"
-            style={{ 
-              fontSize: "clamp(28px, 4vw, 48px)",
-            }}
-          >
-            Ready to transform your
-            <br />
-            creator journey?
-          </h2>
-          
-          <p 
-            className="text-lg mb-10 max-w-xl mx-auto"
-            style={{ color: "rgba(255,255,255,0.7)" }}
-          >
-            Start free, pick your tools, and build a workspace that grows with you.
-          </p>
-
-          <div className="flex flex-wrap justify-center gap-4">
-            <Button
-              size="lg"
-              className="rounded-full px-10 h-14 text-base font-semibold bg-white text-black hover:bg-white/90"
-              onClick={() => navigate("/auth")}
-            >
-              Get Started Free
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="rounded-full px-10 h-14 text-base font-semibold bg-white border-white/30 text-black hover:bg-white/90"
-              onClick={() => navigate("/schedule-demo")}
-            >
-              <Play className="mr-2 h-4 w-4" />
-              Book a Demo
-            </Button>
-          </div>
-        </motion.div>
+          Start Free Today
+        </Button>
       </div>
     </section>
   );
