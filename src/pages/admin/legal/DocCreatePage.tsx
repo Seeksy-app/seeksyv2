@@ -88,22 +88,32 @@ export default function DocCreatePage() {
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      if (!user?.id || !selectedTemplateId) throw new Error("Missing data");
+      if (!user?.id || !selectedTemplateId) {
+        throw new Error("Missing user or template selection");
+      }
 
-      // Create doc instance - store title in submission_json since table doesn't have title column
+      const insertPayload = {
+        tenant_id: "a0000000-0000-0000-0000-000000000001",
+        form_template_id: selectedTemplateId,
+        status: "draft",
+        submission_json: { document_title: documentTitle.trim() },
+        created_by: user.id,
+      };
+
+      console.log("Creating doc_instance with payload:", insertPayload);
+
       const { data: instance, error } = await supabase
         .from("doc_instances")
-        .insert({
-          tenant_id: "a0000000-0000-0000-0000-000000000001",
-          form_template_id: selectedTemplateId,
-          status: "draft",
-          submission_json: { document_title: documentTitle },
-          created_by: user.id,
-        })
+        .insert(insertPayload)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("doc_instances insert error:", error);
+        throw new Error(error.message || "Database insert failed");
+      }
+
+      console.log("Created doc_instance:", instance);
 
       // Create signer records
       const signerRecords = signers
@@ -123,18 +133,21 @@ export default function DocCreatePage() {
           .from("doc_signers")
           .insert(signerRecords);
 
-        if (signersError) throw signersError;
+        if (signersError) {
+          console.error("doc_signers insert error:", signersError);
+          throw new Error(signersError.message || "Failed to create signers");
+        }
       }
 
       return instance;
     },
     onSuccess: (instance) => {
-      toast.success("Document created");
+      toast.success("Document created successfully");
       navigate(`/admin/legal/docs`);
     },
-    onError: (error) => {
-      console.error(error);
-      toast.error("Failed to create document");
+    onError: (error: Error) => {
+      console.error("Create document failed:", error);
+      toast.error(`Failed: ${error.message}`);
     },
   });
 
