@@ -738,9 +738,13 @@ export default function BoardMeetingNotes() {
                     key={note.id} 
                     className={`cursor-pointer transition-colors hover:bg-muted/50 ${selectedNote?.id === note.id ? 'ring-2 ring-primary' : ''}`}
                     onClick={() => {
-                      setSelectedNote(note);
-                      setTimerSeconds(0);
-                      setTimerRunning(false);
+                      if (selectedNote?.id === note.id) {
+                        setSelectedNote(null);
+                      } else {
+                        setSelectedNote(note);
+                        setTimerSeconds(0);
+                        setTimerRunning(false);
+                      }
                     }}
                   >
                     <CardContent className="p-3">
@@ -786,7 +790,7 @@ export default function BoardMeetingNotes() {
                   <Card 
                     key={note.id} 
                     className={`cursor-pointer transition-colors hover:bg-muted/50 ${selectedNote?.id === note.id ? 'ring-2 ring-primary' : ''}`}
-                    onClick={() => setSelectedNote(note)}
+                    onClick={() => setSelectedNote(selectedNote?.id === note.id ? null : note)}
                   >
                     <CardContent className="p-3">
                       <div className="flex items-start justify-between gap-2">
