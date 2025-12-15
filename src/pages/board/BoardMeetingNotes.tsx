@@ -102,7 +102,9 @@ export default function BoardMeetingNotes() {
     participants,
     localVideoRef,
     audioStream,
+    hasActiveRoom,
     startVideoMeeting,
+    joinVideoMeeting,
     toggleMute,
     toggleVideo,
     startRecording,
@@ -977,12 +979,14 @@ export default function BoardMeetingNotes() {
                   isRecording={isRecording}
                   participants={participants}
                   localVideoRef={localVideoRef}
+                  hasActiveRoom={hasActiveRoom}
                   onToggleMute={toggleMute}
                   onToggleVideo={toggleVideo}
                   onStartRecording={startRecording}
                   onStopRecording={stopRecording}
                   onLeaveCall={leaveCall}
                   onStartMeeting={startVideoMeeting}
+                  onJoinMeeting={joinVideoMeeting}
                 />
               )}
 
