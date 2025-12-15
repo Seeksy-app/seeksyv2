@@ -10,6 +10,8 @@ import {
   Circle,
   Users,
   Loader2,
+  Link2,
+  Check,
 } from 'lucide-react';
 import {
   Tooltip,
@@ -17,6 +19,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { toast } from 'sonner';
 
 interface Participant {
   id: string;
@@ -35,6 +38,7 @@ interface BoardMeetingVideoProps {
   participants: Participant[];
   localVideoRef: React.RefObject<HTMLVideoElement>;
   hasActiveRoom: boolean;
+  guestToken?: string | null;
   onToggleMute: () => void;
   onToggleVideo: () => void;
   onStartRecording: () => void;
@@ -53,6 +57,7 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
   participants,
   localVideoRef,
   hasActiveRoom,
+  guestToken,
   onToggleMute,
   onToggleVideo,
   onStartRecording,
@@ -61,7 +66,17 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
   onStartMeeting,
   onJoinMeeting,
 }) => {
+  const [linkCopied, setLinkCopied] = React.useState(false);
   const totalParticipants = participants.length + 1;
+
+  const copyGuestLink = () => {
+    if (!guestToken) return;
+    const guestUrl = `${window.location.origin}/board/meeting-guest/${guestToken}`;
+    navigator.clipboard.writeText(guestUrl);
+    setLinkCopied(true);
+    toast.success("Guest link copied to clipboard");
+    setTimeout(() => setLinkCopied(false), 2000);
+  };
 
   // Not connected - show start or join button
   if (!isConnected && !isConnecting) {
@@ -111,12 +126,20 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
             {totalParticipants} participant{totalParticipants !== 1 ? 's' : ''}
           </span>
         </div>
-        {isRecording && (
-          <Badge variant="destructive" className="animate-pulse">
-            <Circle className="h-2 w-2 fill-current mr-1" />
-            Recording
-          </Badge>
-        )}
+        <div className="flex items-center gap-2">
+          {guestToken && (
+            <Button variant="ghost" size="sm" onClick={copyGuestLink} className="h-7 text-xs gap-1">
+              {linkCopied ? <Check className="h-3 w-3" /> : <Link2 className="h-3 w-3" />}
+              {linkCopied ? 'Copied!' : 'Copy Guest Link'}
+            </Button>
+          )}
+          {isRecording && (
+            <Badge variant="destructive" className="animate-pulse">
+              <Circle className="h-2 w-2 fill-current mr-1" />
+              Recording
+            </Badge>
+          )}
+        </div>
       </div>
 
       {/* Video thumbnails - horizontal layout */}

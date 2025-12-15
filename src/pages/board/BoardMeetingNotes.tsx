@@ -980,6 +980,7 @@ export default function BoardMeetingNotes() {
                   participants={participants}
                   localVideoRef={localVideoRef}
                   hasActiveRoom={hasActiveRoom}
+                  guestToken={(selectedNote as any).guest_token}
                   onToggleMute={toggleMute}
                   onToggleVideo={toggleVideo}
                   onStartRecording={startRecording}

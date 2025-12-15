@@ -103,7 +103,10 @@ serve(async (req) => {
     // Create host token
     const tokenResponse = await createHostToken(roomName, user.id, DAILY_API_KEY);
 
-    // Update meeting note with room info
+    // Generate guest token for shareable link
+    const guestToken = crypto.randomUUID().replace(/-/g, '').substring(0, 24);
+
+    // Update meeting note with room info and guest token
     const serviceClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -114,6 +117,7 @@ serve(async (req) => {
       .update({
         room_name: roomData.name,
         room_url: roomData.url,
+        guest_token: guestToken,
       })
       .eq('id', meetingNoteId);
 
@@ -124,6 +128,7 @@ serve(async (req) => {
         token: tokenResponse.token,
         isHost: true,
         meetingTitle: meetingNote.title,
+        guestToken: guestToken,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

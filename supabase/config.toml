@@ -515,3 +515,12 @@ verify_jwt = false
 
 [functions.legal-sign-and-finalize]
 verify_jwt = false
+
+[functions.daily-create-board-room]
+verify_jwt = true
+
+[functions.daily-join-board-room]
+verify_jwt = true
+
+[functions.daily-guest-join]
+verify_jwt = false

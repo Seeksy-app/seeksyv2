@@ -318,6 +318,7 @@ import CreatorKnowledgeArticle from "./pages/knowledge/CreatorKnowledgeArticle";
 import BoardKnowledgeBlog from "./pages/knowledge/BoardKnowledgeBlog";
 import BoardKnowledgeArticle from "./pages/knowledge/BoardKnowledgeArticle";
 import BoardMeetingNotes from "./pages/board/BoardMeetingNotes";
+import BoardMeetingGuest from "./pages/board/BoardMeetingGuest";
 import BlogManagement from "./pages/admin/BlogManagement";
 import SalesDesk from "./pages/admin/SalesDesk";
 import SWOTAnalysis from "./pages/admin/SWOTAnalysis";
@@ -1365,6 +1366,7 @@ const AppContent = () => {
             <Route path="sales-opportunities" element={<BoardSalesOpportunities />} />
             <Route path="meeting-notes" element={<BoardMeetingNotes />} />
           </Route>
+          <Route path="/board/meeting-guest/:token" element={<BoardMeetingGuest />} />
           <Route path="/investor/:token" element={<BoardInvestorPortal />} />
           <Route path="/invest/:slug" element={<InvestOpportunityPage />} />
           <Route path="/invest/veteran-benefits" element={<VeteranBenefitsOpportunity />} />
