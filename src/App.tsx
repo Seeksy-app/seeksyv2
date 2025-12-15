@@ -149,6 +149,7 @@ import RSSMigrationPage from "./pages/RSSMigrationPage";
 import PaidAdsTerms from "./pages/legal/PaidAdsTerms";
 import StockAgreementGenerator from "./pages/admin/legal/StockAgreementGenerator";
 import LegalTemplatesLibrary from "./pages/admin/legal/LegalTemplatesLibrary";
+import StyleGuidePage from "./pages/admin/StyleGuidePage";
 import PendingInvestments from "./pages/admin/legal/PendingInvestments";
 import SignedConfirmation from "./pages/legal/SignedConfirmation";
 import DeclinedConfirmation from "./pages/legal/DeclinedConfirmation";
@@ -1157,6 +1158,7 @@ const AppContent = () => {
             <Route path="/admin/brand-settings" element={<BrandSettings />} />
             <Route path="/admin/legal" element={<AdminLegal />} />
             <Route path="/admin/legal/templates" element={<LegalTemplatesLibrary />} />
+            <Route path="/admin/content/style-guide" element={<StyleGuidePage />} />
             <Route path="/admin/legal/generate-docx" element={<StockAgreementGenerator />} />
             <Route path="/admin/legal/pending-investments" element={<PendingInvestments />} />
             <Route path="/admin/conversational-demo" element={<AdminConversationalDemo />} />
