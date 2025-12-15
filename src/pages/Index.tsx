@@ -13,7 +13,7 @@ import { PlatformPillars } from "@/components/homepage/PlatformPillars";
 
 import { ModuleBuilder } from "@/components/homepage/ModuleBuilder";
 import { PersonasSection } from "@/components/homepage/PersonasSection";
-import { CreditsTeaser } from "@/components/homepage/CreditsTeaser";
+
 import { FinalCTA } from "@/components/homepage/FinalCTA";
 import { FooterSection } from "@/components/homepage/FooterSection";
 
@@ -112,10 +112,7 @@ const Index = () => {
         {/* 5. Module Builder - Toggle version */}
         <ModuleBuilder />
         
-        {/* 8. Credits/Pricing Teaser */}
-        <CreditsTeaser />
-        
-        {/* 8. Final CTA */}
+        {/* Final CTA */}
         <FinalCTA />
         
         {/* Footer */}
