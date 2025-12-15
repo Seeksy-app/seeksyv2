@@ -291,7 +291,10 @@ export default function BoardMeetingNotes() {
   };
 
   const addMemberQuestion = async () => {
-    if (!selectedNote || !newQuestion.trim()) return;
+    if (!selectedNote || !newQuestion.trim()) {
+      toast.error("Please enter a question");
+      return;
+    }
     
     const { data: userData } = await supabase.auth.getUser();
     const newQ: MemberQuestion = {
@@ -308,11 +311,15 @@ export default function BoardMeetingNotes() {
       .update({ member_questions: updatedQuestions as unknown as any })
       .eq("id", selectedNote.id);
     
-    if (!error) {
-      setNewQuestion("");
-      queryClient.invalidateQueries({ queryKey: ["board-meeting-notes"] });
-      toast.success("Question saved");
+    if (error) {
+      console.error("Failed to save question:", error);
+      toast.error(`Failed to save question: ${error.message}`);
+      return;
     }
+    
+    setNewQuestion("");
+    queryClient.invalidateQueries({ queryKey: ["board-meeting-notes"] });
+    toast.success("Question saved");
   };
 
   const updateDecisionMutation = useMutation({
@@ -644,7 +651,7 @@ export default function BoardMeetingNotes() {
                               <>
                                 <span>•</span>
                                 <Clock className="w-3 h-3" />
-                                {note.start_time.slice(0, 5)}
+                                {String(note.start_time).substring(0, 5)}
                               </>
                             )}
                           </div>
@@ -730,7 +737,7 @@ export default function BoardMeetingNotes() {
                       {selectedNote.start_time && (
                         <>
                           <span className="mx-2">@</span>
-                          {selectedNote.start_time.slice(0, 5)}
+                          {String(selectedNote.start_time).substring(0, 5)}
                         </>
                       )}
                       <span className="mx-2">•</span>
