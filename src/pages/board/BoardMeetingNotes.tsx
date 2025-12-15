@@ -13,6 +13,7 @@ import { DecisionTable } from "@/components/board/DecisionTable";
 import { Checkbox } from "@/components/ui/checkbox";
 import BoardMeetingVideo from "@/components/board/BoardMeetingVideo";
 import { useBoardMeetingVideo } from "@/hooks/useBoardMeetingVideo";
+import { AIMeetingNotes } from "@/components/board/AIMeetingNotes";
 import {
   Dialog,
   DialogContent,
@@ -67,6 +68,16 @@ interface MeetingNote {
   member_questions: MemberQuestion[];
   status: string;
   created_at: string;
+  // AI Notes fields
+  audio_transcript: string | null;
+  ai_summary_draft: string | null;
+  ai_decisions_draft: any[] | null;
+  ai_action_items_draft: any[] | null;
+  ai_agenda_recap_draft: any[] | null;
+  ai_risks_draft: string | null;
+  ai_next_meeting_prep_draft: string | null;
+  ai_notes_status: string | null;
+  ai_notes_generated_at: string | null;
 }
 
 interface CreateMeetingForm {
@@ -178,6 +189,9 @@ export default function BoardMeetingNotes() {
             )
           : [],
         member_questions: note.member_questions || [],
+        ai_decisions_draft: Array.isArray(note.ai_decisions_draft) ? note.ai_decisions_draft : [],
+        ai_action_items_draft: Array.isArray(note.ai_action_items_draft) ? note.ai_action_items_draft : [],
+        ai_agenda_recap_draft: Array.isArray(note.ai_agenda_recap_draft) ? note.ai_agenda_recap_draft : [],
       })) as MeetingNote[];
     },
   });
@@ -321,6 +335,9 @@ export default function BoardMeetingNotes() {
           member_questions: (freshMeeting.member_questions as unknown as MemberQuestion[]) || [],
           memo: freshMeeting.memo as MeetingNote['memo'] || null,
           decision_table: (freshMeeting.decision_table as unknown as DecisionRow[]) || [],
+          ai_decisions_draft: Array.isArray(freshMeeting.ai_decisions_draft) ? freshMeeting.ai_decisions_draft : [],
+          ai_action_items_draft: Array.isArray(freshMeeting.ai_action_items_draft) ? freshMeeting.ai_action_items_draft : [],
+          ai_agenda_recap_draft: Array.isArray(freshMeeting.ai_agenda_recap_draft) ? freshMeeting.ai_agenda_recap_draft : [],
         };
         console.log("Setting selectedNote with agenda_items:", typedMeeting.agenda_items.length);
         setSelectedNote(typedMeeting);
@@ -1130,6 +1147,19 @@ export default function BoardMeetingNotes() {
                   </CardContent>
                 </Card>
               )}
+
+              {/* AI Meeting Notes (from video meeting) */}
+              <AIMeetingNotes
+                aiSummary={selectedNote.ai_summary_draft}
+                aiDecisions={selectedNote.ai_decisions_draft}
+                aiActionItems={selectedNote.ai_action_items_draft}
+                aiAgendaRecap={selectedNote.ai_agenda_recap_draft}
+                aiRisks={selectedNote.ai_risks_draft}
+                aiNextMeetingPrep={selectedNote.ai_next_meeting_prep_draft}
+                transcript={selectedNote.audio_transcript}
+                aiNotesStatus={selectedNote.ai_notes_status}
+                generatedAt={selectedNote.ai_notes_generated_at}
+              />
 
               {/* Generate Summary Button */}
               {selectedNote.status !== 'completed' && selectedNote.decision_table.length > 0 && (
