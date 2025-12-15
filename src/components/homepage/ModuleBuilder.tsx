@@ -126,6 +126,7 @@ export const ModuleBuilder = forwardRef<ModuleBuilderHandle, ModuleBuilderProps>
                           <Switch 
                             checked={selectedModules.includes(module.id)}
                             onCheckedChange={() => toggleModule(module.id)}
+                            onClick={(e) => e.stopPropagation()}
                           />
                         </div>
                       </CardContent>
