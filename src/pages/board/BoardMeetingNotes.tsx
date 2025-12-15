@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { Plus, Calendar, ChevronDown, ChevronUp, Sparkles, Download, Lock, Play, Pause, RotateCcw, Check, Clock, MessageSquare, Send, Trash2, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -130,6 +130,12 @@ export default function BoardMeetingNotes() {
     return formatTime(remaining);
   };
 
+  // Helper to format date without timezone shift (YYYY-MM-DD -> local date)
+  const formatMeetingDate = (dateStr: string, formatStr: string = "MMM d, yyyy") => {
+    // Add T12:00:00 to treat as noon local time (avoids timezone issues)
+    return format(new Date(dateStr + "T12:00:00"), formatStr);
+  };
+
   const { data: notes = [], isLoading } = useQuery({
     queryKey: ["board-meeting-notes"],
     queryFn: async () => {
@@ -231,23 +237,39 @@ export default function BoardMeetingNotes() {
   const generateAIContent = async (meetingId: string, title: string, agendaNotes: string) => {
     setIsGenerating(true);
     try {
+      console.log("Calling generate-board-meeting-content with:", { title, agendaNotes: agendaNotes.substring(0, 100) + "..." });
+      
       const { data, error } = await supabase.functions.invoke('generate-board-meeting-content', {
         body: { title, agendaNotes }
       });
       
+      console.log("Edge function response:", { data, error });
+      
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (!data?.agenda || !Array.isArray(data.agenda)) {
+        console.error("Invalid AI response structure:", data);
+        throw new Error("AI returned invalid data structure");
+      }
       
       // Update meeting with AI-generated content
+      const updatePayload = {
+        agenda_items: data.agenda.map((item: string) => ({ text: item, checked: false })),
+        memo: data.memo || null,
+        decision_table: data.decisions || [],
+      };
+      
+      console.log("Updating meeting with:", updatePayload);
+      
       const { error: updateError } = await supabase
         .from("board_meeting_notes")
-        .update({
-          agenda_items: data.agenda.map((item: string) => ({ text: item, checked: false })) as unknown as any,
-          memo: data.memo,
-          decision_table: data.decisions as unknown as any,
-        })
+        .update(updatePayload as any)
         .eq("id", meetingId);
       
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error("Update error:", updateError);
+        throw updateError;
+      }
       
       queryClient.invalidateQueries({ queryKey: ["board-meeting-notes"] });
       toast.success("AI generated agenda, memo, and decision matrix");
@@ -753,7 +775,7 @@ export default function BoardMeetingNotes() {
                           <h4 className="font-medium text-xs truncate">{note.title}</h4>
                           <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                             <Calendar className="w-3 h-3" />
-                            {format(new Date(note.meeting_date), "MMM d, yyyy")}
+                            {formatMeetingDate(note.meeting_date)}
                             {note.start_time && (
                               <>
                                 <span>•</span>
@@ -798,7 +820,7 @@ export default function BoardMeetingNotes() {
                           <h4 className="font-medium text-xs truncate">{note.title}</h4>
                           <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                             <Calendar className="w-3 h-3" />
-                            {format(new Date(note.meeting_date), "MMM d, yyyy")}
+                            {formatMeetingDate(note.meeting_date)}
                           </div>
                         </div>
                         <div className="flex items-center gap-1">
@@ -840,7 +862,7 @@ export default function BoardMeetingNotes() {
                     <CardTitle className="text-xl">{selectedNote.title}</CardTitle>
                     <p className="text-sm text-muted-foreground mt-1">
                       <Calendar className="w-4 h-4 inline mr-1" />
-                      {format(new Date(selectedNote.meeting_date), "EEEE, MMMM d, yyyy")}
+                      {formatMeetingDate(selectedNote.meeting_date, "EEEE, MMMM d, yyyy")}
                       {selectedNote.start_time && (
                         <>
                           <span className="mx-2">@</span>
