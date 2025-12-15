@@ -6,12 +6,16 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log("generate-board-meeting-content called");
+  
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { title, agendaNotes } = await req.json();
+    const body = await req.json();
+    console.log("Request body received:", JSON.stringify(body).substring(0, 200));
+    const { title, agendaNotes } = body;
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -70,11 +74,15 @@ Guidelines:
     }
 
     const data = await response.json();
+    console.log("AI response received");
     const content = data.choices?.[0]?.message?.content;
     
     if (!content) {
+      console.error("No content in AI response:", JSON.stringify(data));
       throw new Error("No content generated");
     }
+
+    console.log("Raw content:", content.substring(0, 200));
 
     // Parse JSON from response (handle markdown code blocks)
     let jsonStr = content;
@@ -85,6 +93,7 @@ Guidelines:
     }
 
     const result = JSON.parse(jsonStr);
+    console.log("Parsed result, agenda items:", result.agenda?.length);
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
