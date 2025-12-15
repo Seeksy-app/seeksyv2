@@ -9,7 +9,42 @@ const rotatingStatements = [
   "Create clips from my latest episode and post to social...",
   "Build a landing page for my upcoming live event...",
   "Track my audience growth and send a newsletter update...",
+  "Set up a CRM to manage my brand partnerships...",
 ];
+
+// Module-specific prompts for clickable chips
+const modulePrompts: Record<string, string[]> = {
+  studio: [
+    "Record a solo episode with AI teleprompter...",
+    "Start a live recording session with 3 guests...",
+    "Edit my raw footage with AI noise reduction...",
+  ],
+  clips: [
+    "Generate 5 vertical clips from my latest podcast...",
+    "Add captions and animations to my best moment...",
+    "Schedule clips to post across all platforms...",
+  ],
+  email: [
+    "Send a welcome sequence to new subscribers...",
+    "Draft a newsletter announcing my new course...",
+    "Reply to sponsor inquiries in my inbox...",
+  ],
+  crm: [
+    "Import my email list and segment by interest...",
+    "Tag contacts who attended my last event...",
+    "Find my most engaged subscribers...",
+  ],
+  events: [
+    "Create a virtual workshop with ticket sales...",
+    "Send reminders to registered attendees...",
+    "Set up a hybrid in-person and streaming event...",
+  ],
+  newsletter: [
+    "Create a weekly digest for my audience...",
+    "Set up automated welcome emails...",
+    "Design a premium newsletter template...",
+  ],
+};
 
 const moduleChips = [
   { key: "studio", label: "Studio", color: "#1A1A1A" },
@@ -25,21 +60,58 @@ export function InteractiveDemo() {
   const [currentPrompt, setCurrentPrompt] = useState(rotatingStatements[0]);
   const [promptIndex, setPromptIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
+  const [isManualSelect, setIsManualSelect] = useState(false);
 
   const cyclePrompt = useCallback(() => {
+    if (isManualSelect) return;
     setIsTyping(true);
     setTimeout(() => {
       const nextIndex = (promptIndex + 1) % rotatingStatements.length;
       setPromptIndex(nextIndex);
       setCurrentPrompt(rotatingStatements[nextIndex]);
       setIsTyping(false);
-    }, 150);
-  }, [promptIndex]);
+    }, 100);
+  }, [promptIndex, isManualSelect]);
 
+  // Auto-rotate every 2 seconds (faster)
   useEffect(() => {
-    const interval = setInterval(cyclePrompt, 4000);
+    if (isManualSelect) return;
+    const interval = setInterval(cyclePrompt, 2000);
     return () => clearInterval(interval);
-  }, [cyclePrompt]);
+  }, [cyclePrompt, isManualSelect]);
+
+  // Resume auto-rotation after 5 seconds of inactivity
+  useEffect(() => {
+    if (!isManualSelect) return;
+    const timeout = setTimeout(() => {
+      setIsManualSelect(false);
+    }, 5000);
+    return () => clearTimeout(timeout);
+  }, [isManualSelect, currentPrompt]);
+
+  const handleModuleClick = (moduleKey: string) => {
+    const prompts = modulePrompts[moduleKey];
+    if (prompts && prompts.length > 0) {
+      const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
+      setIsManualSelect(true);
+      setIsTyping(true);
+      setTimeout(() => {
+        setCurrentPrompt(randomPrompt);
+        setIsTyping(false);
+      }, 100);
+    }
+  };
+
+  const handleShuffle = () => {
+    setIsManualSelect(true);
+    setIsTyping(true);
+    setTimeout(() => {
+      const nextIndex = (promptIndex + 1) % rotatingStatements.length;
+      setPromptIndex(nextIndex);
+      setCurrentPrompt(rotatingStatements[nextIndex]);
+      setIsTyping(false);
+    }, 100);
+  };
 
   return (
     <section className="w-full px-4 py-16 md:py-24">
@@ -91,7 +163,7 @@ export function InteractiveDemo() {
                 border: "2px solid hsl(var(--border))",
                 color: "hsl(var(--foreground))",
               }}
-              onClick={cyclePrompt}
+              onClick={handleShuffle}
             >
               <AnimatePresence mode="wait">
                 <motion.span
@@ -99,7 +171,7 @@ export function InteractiveDemo() {
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: isTyping ? 0.5 : 1, y: 0 }}
                   exit={{ opacity: 0, y: -5 }}
-                  transition={{ duration: 0.15 }}
+                  transition={{ duration: 0.1 }}
                   className="block"
                 >
                   {currentPrompt}
@@ -108,7 +180,7 @@ export function InteractiveDemo() {
             </div>
           </div>
 
-          {/* Module Chips */}
+          {/* Module Chips - Clickable */}
           <div className="mb-8">
             <p 
               className="text-sm mb-4"
@@ -120,7 +192,8 @@ export function InteractiveDemo() {
               {moduleChips.map((chip) => (
                 <button
                   key={chip.key}
-                  className="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 hover:scale-105"
+                  onClick={() => handleModuleClick(chip.key)}
+                  className="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 hover:scale-105 hover:shadow-md"
                   style={{
                     background: chip.color,
                     color: chip.color === "#1A1A1A" ? "#FFFFFF" : "#0B0F1A",
@@ -155,7 +228,7 @@ export function InteractiveDemo() {
               size="lg"
               variant="ghost"
               className="rounded-full px-6 h-12 text-base"
-              onClick={cyclePrompt}
+              onClick={handleShuffle}
             >
               <Shuffle className="mr-2 h-4 w-4" />
               Shuffle

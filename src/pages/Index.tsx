@@ -1,12 +1,12 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { CookieConsent } from "@/components/CookieConsent";
 import { TopNavigation } from "@/components/homepage/TopNavigation";
 
-// New redesigned sections
-import { HeroStatic } from "@/components/homepage/HeroStatic";
+// Homepage sections
+import { HeroWorkspaceSection } from "@/components/homepage/HeroWorkspaceSection";
 import { LogoBar } from "@/components/homepage/LogoBar";
 import { InteractiveDemo } from "@/components/homepage/InteractiveDemo";
 import { PlatformPillars } from "@/components/homepage/PlatformPillars";
@@ -17,7 +17,6 @@ import { FinalCTA } from "@/components/homepage/FinalCTA";
 import { FooterSection } from "@/components/homepage/FooterSection";
 
 import { LeadMagnetModal, useLeadMagnetPopup } from "@/components/lead-magnet";
-import { VisitorChatWidget } from "@/components/homepage/VisitorChatWidget";
 
 const DEFAULT_CREATOR_LANDING = '/my-day';
 
@@ -97,10 +96,10 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <TopNavigation />
       <main>
-        {/* 1. Hero - Static with Workspace Builder */}
-        <HeroStatic />
+        {/* 1. Hero - Workspace Builder (Image 1 style) */}
+        <HeroWorkspaceSection />
         
-        {/* 2. Interactive Demo - Chat/Prompt box */}
+        {/* 2. Interactive Demo - Chat/Prompt box with clickable modules */}
         <InteractiveDemo />
         
         {/* 3. Personas Section - Videos */}
@@ -125,9 +124,6 @@ const Index = () => {
         <FooterSection />
       </main>
       <CookieConsent />
-      
-      {/* Visitor AI Chat Widget */}
-      <VisitorChatWidget />
       
       {/* Lead Magnet Modal */}
       <LeadMagnetModal
