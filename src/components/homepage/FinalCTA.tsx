@@ -49,7 +49,7 @@ export function FinalCTA() {
             <Button
               size="lg"
               variant="outline"
-              className="rounded-full px-10 h-14 text-base font-semibold border-white/30 text-white hover:bg-white/10"
+              className="rounded-full px-10 h-14 text-base font-semibold bg-white border-white/30 text-black hover:bg-white/90"
               onClick={() => navigate("/schedule-demo")}
             >
               <Play className="mr-2 h-4 w-4" />
