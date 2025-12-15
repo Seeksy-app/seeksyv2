@@ -719,6 +719,20 @@ export default function BoardMeetingNotes() {
     toast.info("PDF export coming soon");
   };
 
+  // Beforeunload handler to prevent accidental navigation with unresolved decisions
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (selectedNote?.status === 'active' && hasUnresolvedDecisions) {
+        e.preventDefault();
+        e.returnValue = 'You have unresolved decisions. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [selectedNote?.status, hasUnresolvedDecisions]);
+
   const upcomingMeetings = notes.filter(n => n.status === "upcoming" || n.status === "active");
   const completedMeetings = notes.filter(n => n.status === "completed");
 
