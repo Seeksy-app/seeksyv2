@@ -506,3 +506,12 @@ verify_jwt = true
 
 [functions.subscribe-newsletter]
 verify_jwt = false
+
+[functions.legal-get-signer-context]
+verify_jwt = false
+
+[functions.legal-submit-form-and-generate]
+verify_jwt = false
+
+[functions.legal-sign-and-finalize]
+verify_jwt = false
