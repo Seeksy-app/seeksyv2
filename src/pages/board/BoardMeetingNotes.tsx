@@ -82,6 +82,9 @@ export default function BoardMeetingNotes() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [newQuestion, setNewQuestion] = useState("");
+  const [newAgendaItem, setNewAgendaItem] = useState("");
+  const [isGenerateAgendaModalOpen, setIsGenerateAgendaModalOpen] = useState(false);
+  const [generateAgendaNotes, setGenerateAgendaNotes] = useState("");
   
   // Timer state
   const [timerRunning, setTimerRunning] = useState(false);
@@ -287,6 +290,70 @@ export default function BoardMeetingNotes() {
     
     if (!error) {
       queryClient.invalidateQueries({ queryKey: ["board-meeting-notes"] });
+    }
+  };
+
+  const addManualAgendaItem = async () => {
+    if (!selectedNote || !newAgendaItem.trim()) {
+      toast.error("Please enter an agenda item");
+      return;
+    }
+    
+    const updatedItems = [
+      ...selectedNote.agenda_items,
+      { text: newAgendaItem.trim(), checked: false }
+    ];
+    
+    const { error } = await supabase
+      .from("board_meeting_notes")
+      .update({ agenda_items: updatedItems as unknown as any })
+      .eq("id", selectedNote.id);
+    
+    if (error) {
+      toast.error(`Failed to add agenda item: ${error.message}`);
+      return;
+    }
+    
+    setNewAgendaItem("");
+    queryClient.invalidateQueries({ queryKey: ["board-meeting-notes"] });
+    toast.success("Agenda item added");
+  };
+
+  const regenerateAgendaFromNotes = async () => {
+    if (!selectedNote || !generateAgendaNotes.trim()) {
+      toast.error("Please enter agenda notes");
+      return;
+    }
+    
+    setIsGenerating(true);
+    setIsGenerateAgendaModalOpen(false);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-board-meeting-content', {
+        body: { title: selectedNote.title, agendaNotes: generateAgendaNotes }
+      });
+      
+      if (error) throw error;
+      
+      const { error: updateError } = await supabase
+        .from("board_meeting_notes")
+        .update({
+          agenda_items: data.agenda.map((item: string) => ({ text: item, checked: false })) as unknown as any,
+          memo: data.memo,
+          decision_table: data.decisions as unknown as any,
+        })
+        .eq("id", selectedNote.id);
+      
+      if (updateError) throw updateError;
+      
+      queryClient.invalidateQueries({ queryKey: ["board-meeting-notes"] });
+      setGenerateAgendaNotes("");
+      toast.success("AI generated agenda, memo, and decision matrix");
+    } catch (error) {
+      console.error("AI generation failed:", error);
+      toast.error("AI generation failed");
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -571,6 +638,42 @@ export default function BoardMeetingNotes() {
         </DialogContent>
       </Dialog>
 
+      {/* Generate Agenda Modal */}
+      <Dialog open={isGenerateAgendaModalOpen} onOpenChange={setIsGenerateAgendaModalOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Generate Agenda with AI</DialogTitle>
+            <DialogDescription>
+              Enter your agenda notes and AI will generate a structured agenda, memo, and decision matrix.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="generate_agenda_notes">Agenda Notes</Label>
+              <Textarea
+                id="generate_agenda_notes"
+                placeholder="Enter your agenda topics, key discussion points, and any context..."
+                rows={6}
+                value={generateAgendaNotes}
+                onChange={(e) => setGenerateAgendaNotes(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsGenerateAgendaModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={regenerateAgendaFromNotes} 
+              disabled={!generateAgendaNotes.trim() || isGenerating}
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              Generate
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Left Panel: Member Questions & Notes */}
         <div className="space-y-4">
@@ -788,16 +891,29 @@ export default function BoardMeetingNotes() {
               {/* Agenda with Checkboxes */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    Board Meeting Agenda
-                    {selectedNote.status === 'active' && (
-                      <Badge variant="default" className="ml-2">In Progress</Badge>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      Board Meeting Agenda
+                      {selectedNote.status === 'active' && (
+                        <Badge variant="default" className="ml-2">In Progress</Badge>
+                      )}
+                    </CardTitle>
+                    {selectedNote.status !== 'completed' && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setIsGenerateAgendaModalOpen(true)}
+                        disabled={isGenerating}
+                      >
+                        <Sparkles className="w-4 h-4 mr-1" />
+                        Generate with AI
+                      </Button>
                     )}
-                  </CardTitle>
+                  </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   {selectedNote.agenda_items.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No agenda items yet. Add agenda notes when creating a meeting to generate items.</p>
+                    <p className="text-sm text-muted-foreground">No agenda items yet. Add items manually or use AI to generate from notes.</p>
                   ) : (
                     <div className="space-y-3">
                       {selectedNote.agenda_items.map((item, i) => (
@@ -813,6 +929,22 @@ export default function BoardMeetingNotes() {
                           {item.checked && <Check className="w-4 h-4 text-green-500" />}
                         </div>
                       ))}
+                    </div>
+                  )}
+                  
+                  {/* Add agenda item manually */}
+                  {selectedNote.status !== 'completed' && (
+                    <div className="flex gap-2 pt-2 border-t">
+                      <Input
+                        placeholder="Add agenda item..."
+                        value={newAgendaItem}
+                        onChange={(e) => setNewAgendaItem(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && addManualAgendaItem()}
+                        className="flex-1"
+                      />
+                      <Button size="sm" onClick={addManualAgendaItem} disabled={!newAgendaItem.trim()}>
+                        <Plus className="w-4 h-4" />
+                      </Button>
                     </div>
                   )}
                 </CardContent>
