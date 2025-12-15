@@ -34,12 +34,14 @@ interface BoardMeetingVideoProps {
   isRecording: boolean;
   participants: Participant[];
   localVideoRef: React.RefObject<HTMLVideoElement>;
+  hasActiveRoom: boolean;
   onToggleMute: () => void;
   onToggleVideo: () => void;
   onStartRecording: () => void;
   onStopRecording: () => void;
   onLeaveCall: () => void;
   onStartMeeting: () => void;
+  onJoinMeeting: () => void;
 }
 
 const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
@@ -50,28 +52,40 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
   isRecording,
   participants,
   localVideoRef,
+  hasActiveRoom,
   onToggleMute,
   onToggleVideo,
   onStartRecording,
   onStopRecording,
   onLeaveCall,
   onStartMeeting,
+  onJoinMeeting,
 }) => {
   const totalParticipants = participants.length + 1;
 
-  // Not connected - show start button
+  // Not connected - show start or join button
   if (!isConnected && !isConnecting) {
     return (
       <div className="bg-slate-800 rounded-lg p-6 flex flex-col items-center justify-center min-h-[200px]">
         <Video className="h-12 w-12 text-muted-foreground mb-4" />
         <h3 className="text-lg font-medium text-foreground mb-2">Video Meeting</h3>
         <p className="text-sm text-muted-foreground mb-4 text-center">
-          Start a video call with board members for this meeting
+          {hasActiveRoom 
+            ? 'A meeting is in progress. Join the video call with board members.'
+            : 'Start a video call with board members for this meeting'
+          }
         </p>
-        <Button onClick={onStartMeeting} className="gap-2">
-          <Video className="h-4 w-4" />
-          Start Video Meeting
-        </Button>
+        {hasActiveRoom ? (
+          <Button onClick={onJoinMeeting} className="gap-2">
+            <Users className="h-4 w-4" />
+            Join Meeting
+          </Button>
+        ) : (
+          <Button onClick={onStartMeeting} className="gap-2">
+            <Video className="h-4 w-4" />
+            Start Video Meeting
+          </Button>
+        )}
       </div>
     );
   }

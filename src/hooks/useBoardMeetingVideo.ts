@@ -23,10 +23,137 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [roomName, setRoomName] = useState<string>('');
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
+  const [hasActiveRoom, setHasActiveRoom] = useState(false);
   
   const localVideoRef = useRef<HTMLVideoElement>(null);
 
-  // Initialize Daily call and create/join room
+  // Check if meeting has an active room
+  useEffect(() => {
+    const checkActiveRoom = async () => {
+      if (!meetingNoteId) return;
+      
+      const { data } = await supabase
+        .from('board_meeting_notes')
+        .select('room_name, room_url')
+        .eq('id', meetingNoteId)
+        .single();
+      
+      setHasActiveRoom(!!(data?.room_name && data?.room_url));
+    };
+    
+    checkActiveRoom();
+  }, [meetingNoteId]);
+
+  // Common function to join a Daily room
+  const joinRoom = useCallback(async (roomUrl: string, token: string, roomNameVal: string) => {
+    setRoomName(roomNameVal);
+
+    // Create Daily call object
+    const daily = DailyIframe.createCallObject({
+      audioSource: true,
+      videoSource: true,
+    });
+
+    // Set up event handlers
+    daily.on('joined-meeting', () => {
+      setIsConnected(true);
+      setIsConnecting(false);
+      
+      // Get local video
+      if (localVideoRef.current) {
+        const localParticipant = daily.participants().local;
+        if (localParticipant?.tracks?.video?.track) {
+          const stream = new MediaStream([localParticipant.tracks.video.track]);
+          localVideoRef.current.srcObject = stream;
+        }
+      }
+      
+      // Capture audio stream for AI transcription
+      const localParticipant = daily.participants().local;
+      if (localParticipant?.tracks?.audio?.track) {
+        const audioOnlyStream = new MediaStream([localParticipant.tracks.audio.track]);
+        setAudioStream(audioOnlyStream);
+      }
+      
+      toast.success('Joined video meeting');
+    });
+
+    daily.on('left-meeting', () => {
+      setIsConnected(false);
+      setParticipants([]);
+      setAudioStream(null);
+    });
+
+    daily.on('participant-joined', (event: any) => {
+      if (!event?.participant || event.participant.local) return;
+      
+      const p = event.participant;
+      setParticipants(prev => [...prev, {
+        id: p.session_id,
+        name: p.user_name || 'Guest',
+        isVideoOff: !p.video,
+        isMuted: !p.audio,
+        isLocal: false,
+      }]);
+    });
+
+    daily.on('participant-left', (event: any) => {
+      if (!event?.participant) return;
+      setParticipants(prev => prev.filter(p => p.id !== event.participant.session_id));
+    });
+
+    daily.on('participant-updated', (event: any) => {
+      if (!event?.participant) return;
+      const p = event.participant;
+      
+      if (p.local) {
+        setIsMuted(!p.audio);
+        setIsVideoOff(!p.video);
+        
+        // Update local video
+        if (localVideoRef.current && p.tracks?.video?.track) {
+          const stream = new MediaStream([p.tracks.video.track]);
+          localVideoRef.current.srcObject = stream;
+        }
+      } else {
+        setParticipants(prev => prev.map(participant =>
+          participant.id === p.session_id
+            ? { ...participant, isVideoOff: !p.video, isMuted: !p.audio }
+            : participant
+        ));
+      }
+    });
+
+    daily.on('recording-started', () => {
+      setIsRecording(true);
+      toast.success('Recording started');
+    });
+
+    daily.on('recording-stopped', () => {
+      setIsRecording(false);
+      toast.info('Recording stopped');
+    });
+
+    daily.on('recording-error', (event: any) => {
+      console.error('Recording error:', event);
+      toast.error('Recording error occurred');
+    });
+
+    daily.on('error', (event: any) => {
+      console.error('Daily error:', event);
+      toast.error(event?.errorMsg || 'Meeting error occurred');
+    });
+
+    setCallObject(daily);
+
+    // Join the room
+    await daily.join({
+      url: roomUrl,
+      token: token,
+    });
+  }, []);
+
+  // Start a new video meeting (host)
   const startVideoMeeting = useCallback(async () => {
     if (!meetingNoteId || callObject) return;
     
@@ -42,118 +169,40 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
         throw new Error(data?.error || 'Failed to create meeting room');
       }
 
-      setRoomName(data.roomName);
-
-      // Create Daily call object
-      const daily = DailyIframe.createCallObject({
-        audioSource: true,
-        videoSource: true,
-      });
-
-      // Set up event handlers
-      daily.on('joined-meeting', () => {
-        setIsConnected(true);
-        setIsConnecting(false);
-        
-        // Get local video
-        if (localVideoRef.current) {
-          const localParticipant = daily.participants().local;
-          if (localParticipant?.tracks?.video?.track) {
-            const stream = new MediaStream([localParticipant.tracks.video.track]);
-            localVideoRef.current.srcObject = stream;
-          }
-        }
-        
-        // Capture audio stream for AI transcription
-        const localParticipant = daily.participants().local;
-        if (localParticipant?.tracks?.audio?.track) {
-          const audioOnlyStream = new MediaStream([localParticipant.tracks.audio.track]);
-          setAudioStream(audioOnlyStream);
-        }
-        
-        toast.success('Joined video meeting');
-      });
-
-      daily.on('left-meeting', () => {
-        setIsConnected(false);
-        setParticipants([]);
-        setAudioStream(null);
-      });
-
-      daily.on('participant-joined', (event: any) => {
-        if (!event?.participant || event.participant.local) return;
-        
-        const p = event.participant;
-        setParticipants(prev => [...prev, {
-          id: p.session_id,
-          name: p.user_name || 'Guest',
-          isVideoOff: !p.video,
-          isMuted: !p.audio,
-          isLocal: false,
-        }]);
-      });
-
-      daily.on('participant-left', (event: any) => {
-        if (!event?.participant) return;
-        setParticipants(prev => prev.filter(p => p.id !== event.participant.session_id));
-      });
-
-      daily.on('participant-updated', (event: any) => {
-        if (!event?.participant) return;
-        const p = event.participant;
-        
-        if (p.local) {
-          setIsMuted(!p.audio);
-          setIsVideoOff(!p.video);
-          
-          // Update local video
-          if (localVideoRef.current && p.tracks?.video?.track) {
-            const stream = new MediaStream([p.tracks.video.track]);
-            localVideoRef.current.srcObject = stream;
-          }
-        } else {
-          setParticipants(prev => prev.map(participant =>
-            participant.id === p.session_id
-              ? { ...participant, isVideoOff: !p.video, isMuted: !p.audio }
-              : participant
-          ));
-        }
-      });
-
-      daily.on('recording-started', () => {
-        setIsRecording(true);
-        toast.success('Recording started');
-      });
-
-      daily.on('recording-stopped', () => {
-        setIsRecording(false);
-        toast.info('Recording stopped');
-      });
-
-      daily.on('recording-error', (event: any) => {
-        console.error('Recording error:', event);
-        toast.error('Recording error occurred');
-      });
-
-      daily.on('error', (event: any) => {
-        console.error('Daily error:', event);
-        toast.error(event?.errorMsg || 'Meeting error occurred');
-      });
-
-      setCallObject(daily);
-
-      // Join the room
-      await daily.join({
-        url: data.roomUrl,
-        token: data.token,
-      });
+      setHasActiveRoom(true);
+      await joinRoom(data.roomUrl, data.token, data.roomName);
 
     } catch (error: any) {
       console.error('Error starting video meeting:', error);
       toast.error(error.message || 'Failed to start video meeting');
       setIsConnecting(false);
     }
-  }, [meetingNoteId, callObject]);
+  }, [meetingNoteId, callObject, joinRoom]);
+
+  // Join an existing video meeting (participant)
+  const joinVideoMeeting = useCallback(async () => {
+    if (!meetingNoteId || callObject) return;
+    
+    setIsConnecting(true);
+    
+    try {
+      // Get participant token via edge function
+      const { data, error } = await supabase.functions.invoke('daily-join-board-room', {
+        body: { meetingNoteId },
+      });
+
+      if (error || !data) {
+        throw new Error(data?.error || 'Failed to join meeting room');
+      }
+
+      await joinRoom(data.roomUrl, data.token, data.roomName);
+
+    } catch (error: any) {
+      console.error('Error joining video meeting:', error);
+      toast.error(error.message || 'Failed to join video meeting');
+      setIsConnecting(false);
+    }
+  }, [meetingNoteId, callObject, joinRoom]);
 
   // Toggle mute
   const toggleMute = useCallback(() => {
@@ -245,7 +294,9 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
     participants,
     localVideoRef,
     audioStream,
+    hasActiveRoom,
     startVideoMeeting,
+    joinVideoMeeting,
     toggleMute,
     toggleVideo,
     startRecording,
