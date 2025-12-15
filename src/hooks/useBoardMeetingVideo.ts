@@ -572,6 +572,7 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
     toggleMute,
     toggleVideo,
     startAudioCapture,
+    stopAudioCapture,
     stopAIAndGenerateNotes,
     endCall,
   };

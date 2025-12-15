@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
-import { Plus, Calendar, ChevronDown, ChevronUp, Sparkles, Download, Lock, Play, Pause, RotateCcw, Check, Clock, MessageSquare, Send, Trash2, LogOut, Video } from "lucide-react";
+import { Plus, Calendar, ChevronDown, ChevronUp, Sparkles, Download, Lock, Play, Pause, RotateCcw, Check, Clock, MessageSquare, Send, Trash2, LogOut, Video, Users, ArrowRight, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +16,12 @@ import { useBoardDecisions } from "@/hooks/useBoardDecisions";
 import { Checkbox } from "@/components/ui/checkbox";
 import BoardMeetingVideo from "@/components/board/BoardMeetingVideo";
 import { useBoardMeetingVideo } from "@/hooks/useBoardMeetingVideo";
+import { useBoardMeetingHost } from "@/hooks/useBoardMeetingHost";
+import { useCarryForwardMeeting } from "@/hooks/useCarryForwardMeeting";
 import { AIMeetingNotes } from "@/components/board/AIMeetingNotes";
+import { MeetingInviteManager } from "@/components/board/MeetingInviteManager";
+import { HostMeetingTabs } from "@/components/board/HostMeetingTabs";
+import { WaitingForHostScreen } from "@/components/board/WaitingForHostScreen";
 import {
   Dialog,
   DialogContent,
@@ -71,6 +76,11 @@ interface MeetingNote {
   member_questions: MemberQuestion[];
   status: string;
   created_at: string;
+  // Host gate fields
+  host_has_started: boolean;
+  host_user_id: string | null;
+  started_at: string | null;
+  ended_at: string | null;
   // AI Notes fields
   audio_transcript: string | null;
   ai_summary_draft: string | null;
@@ -107,6 +117,9 @@ export default function BoardMeetingNotes() {
   // Timer state
   const [timerRunning, setTimerRunning] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(0);
+  
+  // Invite modal state
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
   // Video meeting hook
   const {
@@ -125,9 +138,29 @@ export default function BoardMeetingNotes() {
     toggleMute,
     toggleVideo,
     startAudioCapture,
+    stopAudioCapture,
     stopAIAndGenerateNotes,
     endCall,
   } = useBoardMeetingVideo(selectedNote?.id || '');
+
+  // Host management hook
+  const {
+    isHost,
+    hostHasStarted,
+    isMediaPlaying,
+    aiEnabled,
+    isLoadingHost,
+    startMeetingAsHost,
+    handleMediaPlayStateChange,
+    toggleAI,
+  } = useBoardMeetingHost({
+    meetingId: selectedNote?.id,
+    onAudioCaptureStart: startAudioCapture,
+    onAudioCaptureStop: stopAudioCapture,
+  });
+
+  // Carry forward hook
+  const { carryForward, isCarryingForward } = useCarryForwardMeeting();
 
   // Board decisions hook for exit guardrail
   const {
@@ -195,6 +228,10 @@ export default function BoardMeetingNotes() {
       return (data || []).map((note: any) => ({
         ...note,
         duration_minutes: note.duration_minutes || 45,
+        host_has_started: note.host_has_started || false,
+        host_user_id: note.host_user_id || null,
+        started_at: note.started_at || null,
+        ended_at: note.ended_at || null,
         agenda_items: Array.isArray(note.agenda_items) 
           ? note.agenda_items.map((item: any) => 
               typeof item === 'string' ? { text: item, checked: false } : item
@@ -610,20 +647,50 @@ export default function BoardMeetingNotes() {
 
   const startMeeting = async () => {
     if (!selectedNote) return;
+    
+    // Use host hook to start meeting properly
+    const started = await startMeetingAsHost();
+    if (!started) return;
+    
     setTimerSeconds(0);
     setTimerRunning(true);
     
-    // Start audio capture for AI notes when timer starts
+    // Enable AI and start audio capture for AI notes when timer starts
+    toggleAI(true);
     if (isVideoConnected) {
       startAudioCapture();
     }
     
-    await supabase
+    queryClient.invalidateQueries({ queryKey: ["board-meeting-notes"] });
+  };
+
+  // Handle adding question from WaitingForHostScreen
+  const handleAddQuestionFromWaiting = async (questionText: string) => {
+    if (!selectedNote) return;
+    
+    const { data: userData } = await supabase.auth.getUser();
+    const newQ: MemberQuestion = {
+      id: crypto.randomUUID(),
+      author: userData.user?.email?.split('@')[0] || "Member",
+      text: questionText,
+      created_at: new Date().toISOString(),
+    };
+    
+    const updatedQuestions = [...(selectedNote.member_questions || []), newQ];
+    
+    const { error } = await supabase
       .from("board_meeting_notes")
-      .update({ status: "active" })
+      .update({ member_questions: updatedQuestions as unknown as any })
       .eq("id", selectedNote.id);
     
+    if (error) {
+      console.error("Failed to save question:", error);
+      toast.error(`Failed to save question: ${error.message}`);
+      return;
+    }
+    
     queryClient.invalidateQueries({ queryKey: ["board-meeting-notes"] });
+    toast.success("Question added");
   };
 
   const exitMeeting = async () => {
@@ -874,6 +941,25 @@ export default function BoardMeetingNotes() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Invite Members Modal */}
+      {selectedNote && (
+        <MeetingInviteManager
+          meetingId={selectedNote.id}
+          meetingTitle={selectedNote.title}
+          isOpen={isInviteModalOpen}
+          onClose={() => setIsInviteModalOpen(false)}
+        />
+      )}
+
+      {/* Exit Guardrail Modal */}
+      <ExitGuardrailModal
+        isOpen={showExitGuardrail}
+        onClose={() => setShowExitGuardrail(false)}
+        unresolvedDecisions={unresolvedDecisions}
+        onReviewDecisions={handleReviewDecisions}
+        onDeferAllAndEnd={handleDeferAllAndEnd}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Left Panel: Member Questions & Notes */}

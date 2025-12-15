@@ -533,3 +533,6 @@ verify_jwt = true
 
 [functions.board-send-meeting-invite]
 verify_jwt = true
+
+[functions.board-carry-forward-meeting]
+verify_jwt = true
