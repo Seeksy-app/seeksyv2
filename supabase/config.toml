@@ -530,3 +530,6 @@ verify_jwt = true
 
 [functions.generate-board-ai-notes]
 verify_jwt = true
+
+[functions.board-send-meeting-invite]
+verify_jwt = true
