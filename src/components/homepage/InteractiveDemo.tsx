@@ -120,14 +120,52 @@ export function InteractiveDemo() {
   };
 
   return (
-    <section className="w-full px-4 py-16 md:py-24" style={{ background: "hsl(var(--background))" }}>
+    <section
+      className="w-full px-4 relative"
+      style={{
+        background: "linear-gradient(180deg, rgba(44,107,237,0.06) 0%, rgba(255,255,255,0) 70%)",
+        paddingTop: "72px",
+        paddingBottom: "72px",
+      }}
+    >
+      {/* Subtle top divider */}
+      <div
+        className="absolute top-0 left-0 right-0"
+        style={{ height: "1px", background: "rgba(15,23,42,0.08)" }}
+      />
+
       <div className="mx-auto max-w-[900px]">
+        {/* Section Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4 }}
+          className="text-center mb-10"
+        >
+          <p
+            className="font-bold uppercase mb-3"
+            style={{ fontSize: "12px", letterSpacing: "2px", color: "#2C6BED" }}
+          >
+            How it works
+          </p>
+          <h2
+            className="font-extrabold"
+            style={{ fontSize: "44px", lineHeight: 1.1, color: "#0B1220", marginBottom: "12px" }}
+          >
+            Pick your Seekies. Build your workspace.
+          </h2>
+          <p style={{ fontSize: "18px", lineHeight: 1.6, color: "#667085", maxWidth: "600px", margin: "0 auto" }}>
+            Turn tools on when you need them. Pay with credits. No lockouts.
+          </p>
+        </motion.div>
+
         {/* Main Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
           className="rounded-[24px] p-8 md:p-10"
           style={{
             background: "hsl(var(--card))",
@@ -151,7 +189,7 @@ export function InteractiveDemo() {
 
           {/* Module Chips Row - Dynamic based on current prompt */}
           <div className="flex flex-wrap items-center gap-3 mb-8">
-            <span 
+            <span
               className="text-sm"
               style={{ color: "hsl(var(--muted-foreground))" }}
             >
@@ -174,7 +212,7 @@ export function InteractiveDemo() {
           </div>
 
           {/* Divider */}
-          <div 
+          <div
             className="w-full h-px mb-6"
             style={{ background: "hsl(var(--border))" }}
           />
@@ -205,7 +243,7 @@ export function InteractiveDemo() {
         {/* Credits Text */}
         <div className="flex items-center justify-center gap-2 mt-6">
           <Coins className="h-4 w-4" style={{ color: "hsl(var(--muted-foreground))" }} />
-          <p 
+          <p
             className="text-sm"
             style={{ color: "hsl(var(--muted-foreground))" }}
           >
