@@ -197,6 +197,50 @@ serve(async (req) => {
           .update({ call_log_id: callLog.id })
           .eq('id', lead_id);
       }
+
+      // Send SMS notification to admin
+      try {
+        const accountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
+        const authToken = Deno.env.get('TWILIO_AUTH_TOKEN');
+        const fromNumber = Deno.env.get('TWILIO_PHONE_NUMBER');
+        const adminPhone = '+12026695354'; // Admin phone number
+
+        if (accountSid && authToken && fromNumber) {
+          const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
+          const credentials = btoa(`${accountSid}:${authToken}`);
+
+          // Build SMS message with call details
+          let smsMessage = `🚚 Trucking AI Call\n`;
+          smsMessage += `Outcome: ${callOutcome}\n`;
+          if (callerPhone) smsMessage += `From: ${callerPhone}\n`;
+          if (callDuration) smsMessage += `Duration: ${Math.round(callDuration / 60)}m ${callDuration % 60}s\n`;
+          if (company_name) smsMessage += `Company: ${company_name}\n`;
+          if (lead_id) smsMessage += `Lead created ✓`;
+
+          const smsResponse = await fetch(twilioUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Basic ${credentials}`,
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+              To: adminPhone,
+              From: fromNumber,
+              Body: smsMessage,
+            }),
+          });
+
+          if (smsResponse.ok) {
+            console.log('SMS notification sent to admin');
+          } else {
+            console.log('SMS send failed:', await smsResponse.text());
+          }
+        } else {
+          console.log('Twilio credentials not configured, skipping SMS');
+        }
+      } catch (smsError) {
+        console.log('SMS notification error (non-blocking):', smsError);
+      }
     }
 
   } catch (error: unknown) {
