@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Mic,
   MicOff,
@@ -14,6 +17,18 @@ import {
   PhoneOff,
   AlertTriangle,
   FileText,
+  MonitorPlay,
+  Film,
+  StickyNote,
+  X,
+  Play,
+  Pause,
+  Square,
+  Upload,
+  Library,
+  Search,
+  Plus,
+  Trash2,
 } from 'lucide-react';
 import {
   Tooltip,
@@ -23,6 +38,9 @@ import {
 } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { MeetingStatusBadge } from './MeetingStatusBadge';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface Participant {
   id: string;
@@ -30,6 +48,25 @@ interface Participant {
   isVideoOff?: boolean;
   isMuted?: boolean;
   isLocal?: boolean;
+}
+
+interface MediaItem {
+  id: string;
+  title: string;
+  media_type: string;
+  url: string;
+  thumbnail_url?: string;
+  duration_seconds?: number;
+  size_bytes?: number;
+  created_at: string;
+}
+
+interface WhiteboardBlock {
+  id: string;
+  type: 'text' | 'heading' | 'bullet';
+  content: string;
+  x: number;
+  y: number;
 }
 
 interface BoardMeetingVideoProps {
@@ -46,6 +83,7 @@ interface BoardMeetingVideoProps {
   screenShareParticipantId?: string | null;
   hasActiveRoom: boolean;
   guestToken?: string | null;
+  isHost?: boolean;
   onToggleMute: () => void;
   onToggleVideo: () => void;
   onStartMeeting?: () => void;
@@ -54,6 +92,7 @@ interface BoardMeetingVideoProps {
   onEndCall?: () => void;
   videoUnavailable?: boolean;
   onNotesOnlyMode?: () => void;
+  onMediaPlayStateChange?: (isPlaying: boolean) => void;
 }
 
 const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
@@ -70,6 +109,7 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
   screenShareParticipantId,
   hasActiveRoom,
   guestToken,
+  isHost = false,
   onToggleMute,
   onToggleVideo,
   onStartMeeting,
@@ -78,6 +118,7 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
   onEndCall,
   videoUnavailable = false,
   onNotesOnlyMode,
+  onMediaPlayStateChange,
 }) => {
   const [linkCopied, setLinkCopied] = useState(false);
   const [isStartingMeeting, setIsStartingMeeting] = useState(false);
@@ -85,6 +126,60 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
   const [isEndingCall, setIsEndingCall] = useState(false);
   const totalParticipants = participants.length + 1;
   const isScreenSharing = !!screenShareTrack;
+  
+  // Host control panel state
+  const [activePanel, setActivePanel] = useState<'screen' | 'media' | 'notes' | null>(null);
+  const [isLocalScreenSharing, setIsLocalScreenSharing] = useState(false);
+  const [localScreenStream, setLocalScreenStream] = useState<MediaStream | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
+  const [isMediaPlaying, setIsMediaPlaying] = useState(false);
+  const [mediaSource, setMediaSource] = useState<'library' | 'upload'>('library');
+  const [mediaSearch, setMediaSearch] = useState("");
+  const [selectedLibraryItem, setSelectedLibraryItem] = useState<MediaItem | null>(null);
+  const [whiteboardBlocks, setWhiteboardBlocks] = useState<WhiteboardBlock[]>([]);
+  const [newBlockContent, setNewBlockContent] = useState("");
+  
+  const screenVideoRef = useRef<HTMLVideoElement>(null);
+  const mediaVideoRef = useRef<HTMLVideoElement>(null);
+  const { activeTenantId } = useTenant();
+
+  // Fetch media library
+  const { data: mediaLibrary = [], isLoading: mediaLoading } = useQuery({
+    queryKey: ['admin-media-library', activeTenantId, mediaSearch],
+    queryFn: async () => {
+      let query = supabase
+        .from('media_files')
+        .select('id, title, media_type, file_url, thumbnail_url, duration, file_size, created_at')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      
+      if (mediaSearch) {
+        query = query.ilike('title', `%${mediaSearch}%`);
+      }
+      
+      const { data, error } = await query;
+      if (error) return [];
+      
+      return (data || []).map((item: any) => ({
+        id: item.id,
+        title: item.title || 'Untitled',
+        media_type: item.media_type || 'video',
+        url: item.file_url,
+        thumbnail_url: item.thumbnail_url,
+        duration_seconds: item.duration,
+        size_bytes: item.file_size,
+        created_at: item.created_at,
+      }));
+    },
+    enabled: mediaSource === 'library' && activePanel === 'media',
+  });
+
+  // Attach local screen share stream to video element
+  useEffect(() => {
+    if (localScreenStream && screenVideoRef.current) {
+      screenVideoRef.current.srcObject = localScreenStream;
+    }
+  }, [localScreenStream]);
 
   const copyGuestLink = () => {
     if (!guestToken) return;
@@ -123,6 +218,104 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
     } finally {
       setIsEndingCall(false);
     }
+  };
+
+  // Screen sharing handlers
+  const handleStartScreenShare = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: true,
+      });
+      
+      setLocalScreenStream(stream);
+      setIsLocalScreenSharing(true);
+      toast.success("Screen sharing started");
+      
+      stream.getVideoTracks()[0].onended = () => {
+        setIsLocalScreenSharing(false);
+        setLocalScreenStream(null);
+        toast.info("Screen sharing stopped");
+      };
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        toast.error("Failed to start screen sharing");
+      }
+    }
+  };
+
+  const handleStopScreenShare = () => {
+    if (localScreenStream) {
+      localScreenStream.getTracks().forEach(track => track.stop());
+    }
+    setIsLocalScreenSharing(false);
+    setLocalScreenStream(null);
+    toast.info("Screen sharing stopped");
+  };
+
+  // Media handlers
+  const handleMediaPlay = () => {
+    if (mediaVideoRef.current) {
+      mediaVideoRef.current.play();
+      setIsMediaPlaying(true);
+      onMediaPlayStateChange?.(true);
+    }
+  };
+
+  const handleMediaPause = () => {
+    if (mediaVideoRef.current) {
+      mediaVideoRef.current.pause();
+      setIsMediaPlaying(false);
+      onMediaPlayStateChange?.(false);
+    }
+  };
+
+  const handleLibrarySelect = (item: MediaItem) => {
+    setSelectedLibraryItem(item);
+    setSelectedMedia(item.url);
+  };
+
+  const handleClearMedia = () => {
+    handleMediaPause();
+    setSelectedMedia(null);
+    setSelectedLibraryItem(null);
+  };
+
+  // Notes handlers
+  const addWhiteboardBlock = (type: WhiteboardBlock['type']) => {
+    if (!newBlockContent.trim()) return;
+    
+    const newBlock: WhiteboardBlock = {
+      id: crypto.randomUUID(),
+      type,
+      content: newBlockContent,
+      x: 50 + Math.random() * 200,
+      y: 50 + whiteboardBlocks.length * 60,
+    };
+    
+    setWhiteboardBlocks([...whiteboardBlocks, newBlock]);
+    setNewBlockContent("");
+  };
+
+  const removeBlock = (id: string) => {
+    setWhiteboardBlocks(whiteboardBlocks.filter(b => b.id !== id));
+  };
+
+  const formatDuration = (seconds?: number) => {
+    if (!seconds) return '';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const formatSize = (bytes?: number) => {
+    if (!bytes) return '';
+    const mb = bytes / (1024 * 1024);
+    return `${mb.toFixed(1)} MB`;
+  };
+
+  const togglePanel = (panel: 'screen' | 'media' | 'notes') => {
+    setActivePanel(activePanel === panel ? null : panel);
   };
 
   // Video unavailable fallback
@@ -227,7 +420,7 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
     );
   }
 
-  // Connected - show video grid (or screen share layout)
+  // Connected - show video grid
   return (
     <div className="bg-slate-900 rounded-lg overflow-hidden">
       {/* Header with participant count and recording indicator */}
@@ -237,13 +430,12 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
           <span className="text-sm text-muted-foreground">
             {totalParticipants} participant{totalParticipants !== 1 ? 's' : ''}
           </span>
-          {/* Live status badges */}
           <MeetingStatusBadge 
             status="active" 
             isCapturingAudio={isCapturingAudio} 
             isGeneratingNotes={isGeneratingNotes} 
           />
-          {isScreenSharing && (
+          {(isScreenSharing || isLocalScreenSharing) && (
             <Badge variant="secondary" className="text-xs gap-1">
               <Video className="h-3 w-3" />
               Screen Sharing
@@ -260,7 +452,7 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
         </div>
       </div>
 
-      {/* Persistent Attendee Thumbnails Strip - Always visible */}
+      {/* Persistent Attendee Thumbnails Strip */}
       <div className="p-3 flex gap-2 overflow-x-auto bg-slate-900/50 border-b border-slate-700/50">
         {/* Local video thumbnail */}
         <div className="relative flex-shrink-0 w-32 h-24 bg-slate-700 rounded-lg overflow-hidden">
@@ -332,8 +524,8 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
         )}
       </div>
 
-      {/* Screen Share Area - Only visible when screen sharing is active */}
-      {isScreenSharing && screenShareRef && (
+      {/* Screen Share Area - visible when screen sharing */}
+      {(isScreenSharing && screenShareRef) && (
         <div className="p-3 bg-slate-950">
           <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
             <video
@@ -346,6 +538,232 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
               <Video className="h-3 w-3" />
               Shared Screen
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Host Content Panel - Screen/Media/Notes */}
+      {isHost && activePanel && (
+        <div className="p-4 bg-slate-950 border-t border-slate-700">
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-0 right-0 h-6 w-6 z-10"
+              onClick={() => setActivePanel(null)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+
+            {/* Screen Share Panel */}
+            {activePanel === 'screen' && (
+              <div className="space-y-4">
+                <h4 className="font-medium text-sm text-foreground">Screen Share</h4>
+                {!isLocalScreenSharing ? (
+                  <div className="text-center py-6">
+                    <MonitorPlay className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Share your screen with meeting participants
+                    </p>
+                    <Button onClick={handleStartScreenShare} size="sm">
+                      <MonitorPlay className="w-4 h-4 mr-2" />
+                      Start Screen Share
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden max-h-[200px]">
+                      <video
+                        ref={screenVideoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="w-full h-full object-contain"
+                      />
+                      <div className="absolute top-2 left-2 bg-black/60 px-2 py-1 rounded text-xs text-white flex items-center gap-1">
+                        <MonitorPlay className="h-3 w-3" />
+                        Your Screen (Preview)
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <Badge variant="default" className="mb-2 animate-pulse">
+                        Screen Sharing Active
+                      </Badge>
+                      <Button variant="destructive" size="sm" onClick={handleStopScreenShare}>
+                        <Square className="w-4 h-4 mr-2" />
+                        Stop Sharing
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Media Panel */}
+            {activePanel === 'media' && (
+              <div className="space-y-4">
+                <h4 className="font-medium text-sm text-foreground">Media Player</h4>
+                {!selectedMedia ? (
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <Button
+                        variant={mediaSource === 'library' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setMediaSource('library')}
+                        className="flex-1"
+                      >
+                        <Library className="w-4 h-4 mr-2" />
+                        Library
+                      </Button>
+                      <Button
+                        variant={mediaSource === 'upload' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setMediaSource('upload')}
+                        className="flex-1"
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Upload
+                      </Button>
+                    </div>
+
+                    {mediaSource === 'library' ? (
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="Search media library..."
+                            value={mediaSearch}
+                            onChange={(e) => setMediaSearch(e.target.value)}
+                            className="pl-10 h-8 text-sm"
+                          />
+                        </div>
+                        <ScrollArea className="h-[150px]">
+                          {mediaLoading ? (
+                            <p className="text-center text-muted-foreground py-4 text-sm">Loading...</p>
+                          ) : mediaLibrary.length === 0 ? (
+                            <div className="text-center py-6">
+                              <Film className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                              <p className="text-muted-foreground text-sm">No media in library</p>
+                            </div>
+                          ) : (
+                            <div className="space-y-1">
+                              {mediaLibrary.map((item) => (
+                                <div
+                                  key={item.id}
+                                  className={`p-2 border rounded cursor-pointer hover:bg-muted/50 transition-colors ${
+                                    selectedLibraryItem?.id === item.id ? 'border-primary bg-primary/5' : ''
+                                  }`}
+                                  onClick={() => handleLibrarySelect(item)}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 bg-muted rounded flex items-center justify-center flex-shrink-0">
+                                      {item.thumbnail_url ? (
+                                        <img src={item.thumbnail_url} alt="" className="w-full h-full object-cover rounded" />
+                                      ) : (
+                                        <Film className="w-4 h-4 text-muted-foreground" />
+                                      )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-xs font-medium truncate">{item.title}</p>
+                                      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                        {item.duration_seconds && <span>{formatDuration(item.duration_seconds)}</span>}
+                                        {item.size_bytes && <span>• {formatSize(item.size_bytes)}</span>}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </ScrollArea>
+                        {selectedLibraryItem && (
+                          <Button onClick={() => setSelectedMedia(selectedLibraryItem.url)} size="sm" className="w-full">
+                            <Play className="w-4 h-4 mr-2" />
+                            Play "{selectedLibraryItem.title}"
+                          </Button>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4">
+                        <Upload className="w-10 h-10 mx-auto mb-2 text-muted-foreground" />
+                        <Input
+                          type="file"
+                          accept="video/*,audio/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) setSelectedMedia(URL.createObjectURL(file));
+                          }}
+                          className="max-w-xs mx-auto text-sm"
+                        />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <video
+                      ref={mediaVideoRef}
+                      src={selectedMedia}
+                      className="w-full rounded-lg bg-black max-h-[200px]"
+                      onEnded={() => { setIsMediaPlaying(false); onMediaPlayStateChange?.(false); }}
+                      onPause={() => { setIsMediaPlaying(false); onMediaPlayStateChange?.(false); }}
+                      onPlay={() => { setIsMediaPlaying(true); onMediaPlayStateChange?.(true); }}
+                    />
+                    <div className="flex items-center justify-center gap-2">
+                      {!isMediaPlaying ? (
+                        <Button onClick={handleMediaPlay} size="sm">
+                          <Play className="w-4 h-4 mr-2" />
+                          Play
+                        </Button>
+                      ) : (
+                        <Button onClick={handleMediaPause} size="sm">
+                          <Pause className="w-4 h-4 mr-2" />
+                          Pause
+                        </Button>
+                      )}
+                      <Button variant="outline" size="sm" onClick={handleClearMedia}>
+                        <X className="w-4 h-4 mr-2" />
+                        Clear
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Notes Panel */}
+            {activePanel === 'notes' && (
+              <div className="space-y-4">
+                <h4 className="font-medium text-sm text-foreground">Quick Notes</h4>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Add a note..."
+                    value={newBlockContent}
+                    onChange={(e) => setNewBlockContent(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && addWhiteboardBlock('text')}
+                    className="h-8 text-sm"
+                  />
+                  <Button size="sm" onClick={() => addWhiteboardBlock('text')}>
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+                <ScrollArea className="h-[150px]">
+                  {whiteboardBlocks.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-4">No notes yet. Add one above.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {whiteboardBlocks.map((block) => (
+                        <div key={block.id} className="flex items-start gap-2 p-2 bg-muted/50 rounded text-sm">
+                          <span className="flex-1">{block.content}</span>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => removeBlock(block.id)}>
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -380,6 +798,53 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
             </TooltipTrigger>
             <TooltipContent>{isVideoOff ? 'Start Video' : 'Stop Video'}</TooltipContent>
           </Tooltip>
+
+          {/* Host-only buttons: Screen, Media, Notes */}
+          {isHost && (
+            <>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={activePanel === 'screen' || isLocalScreenSharing ? 'default' : 'secondary'}
+                    size="sm"
+                    className={`rounded-full w-10 h-10 ${isLocalScreenSharing ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                    onClick={() => togglePanel('screen')}
+                  >
+                    <MonitorPlay className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Screen Share</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={activePanel === 'media' || isMediaPlaying ? 'default' : 'secondary'}
+                    size="sm"
+                    className={`rounded-full w-10 h-10 ${isMediaPlaying ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+                    onClick={() => togglePanel('media')}
+                  >
+                    <Film className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Media</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={activePanel === 'notes' ? 'default' : 'secondary'}
+                    size="sm"
+                    className="rounded-full w-10 h-10"
+                    onClick={() => togglePanel('notes')}
+                  >
+                    <StickyNote className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Notes</TooltipContent>
+              </Tooltip>
+            </>
+          )}
 
           {/* Generate Notes Button - only shows when AI is listening */}
           {isCapturingAudio && (

@@ -1382,15 +1382,7 @@ export default function BoardMeetingNotes() {
                   memberNotes={(selectedNote as any).member_notes?.[currentUserId || ''] || ''}
                 />
               )}
-              {/* Host Meeting Tabs (always visible for host, disabled before meeting starts) */}
-              {isHost && (
-                <HostMeetingTabs
-                  meetingId={selectedNote.id}
-                  isHost={isHost}
-                  onMediaPlayStateChange={handleMediaPlayStateChange}
-                  disabled={selectedNote.status !== 'active'}
-                />
-              )}
+              {/* Host Meeting Tabs moved to video control panel */}
 
               {isGenerating && (
                 <Card className="border-primary/20 bg-primary/5">
@@ -1418,12 +1410,14 @@ export default function BoardMeetingNotes() {
                     screenShareParticipantId={screenShareParticipantId}
                     hasActiveRoom={hasActiveRoom}
                     guestToken={(selectedNote as any).guest_token}
+                    isHost={isHost}
                     onToggleMute={toggleMute}
                     onToggleVideo={toggleVideo}
                     onStartMeeting={isHost ? startVideoMeeting : undefined}
                     onJoinMeeting={hostHasStarted ? joinVideoMeeting : undefined}
                     onStopAIAndGenerateNotes={isHost ? stopAIAndGenerateNotes : undefined}
                     onEndCall={isHost ? handleEndMeetingWithGuardrail : undefined}
+                    onMediaPlayStateChange={handleMediaPlayStateChange}
                   />
                   {/* Host gate message for non-host before start */}
                   {!isHost && !hostHasStarted && (
