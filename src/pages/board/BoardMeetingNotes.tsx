@@ -113,11 +113,20 @@ export default function BoardMeetingNotes() {
   const [generateAgendaNotes, setGenerateAgendaNotes] = useState("");
   const [showExitGuardrail, setShowExitGuardrail] = useState(false);
   const [pendingExitAction, setPendingExitAction] = useState<'exit' | 'endCall' | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   
   // Timer state
   const [timerRunning, setTimerRunning] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(0);
   
+  // Fetch current user ID on mount
+  useEffect(() => {
+    const fetchUserId = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    };
+    fetchUserId();
+  }, []);
   // Invite modal state
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
@@ -694,6 +703,51 @@ export default function BoardMeetingNotes() {
     toast.success("Question added");
   };
 
+  // Handle adding agenda item from WaitingForHostScreen
+  const handleAddAgendaItemFromWaiting = async (itemText: string) => {
+    if (!selectedNote) return;
+    
+    const { data: userData } = await supabase.auth.getUser();
+    const newItem: AgendaItem = {
+      text: `[Suggested by ${userData.user?.email?.split('@')[0] || 'Member'}] ${itemText}`,
+      checked: false,
+    };
+    
+    const updatedItems = [...(selectedNote.agenda_items || []), newItem];
+    
+    const { error } = await supabase
+      .from("board_meeting_notes")
+      .update({ agenda_items: updatedItems as unknown as any })
+      .eq("id", selectedNote.id);
+    
+    if (error) {
+      console.error("Failed to save agenda item:", error);
+      toast.error(`Failed to save agenda item: ${error.message}`);
+      return;
+    }
+    
+    queryClient.invalidateQueries({ queryKey: ["board-meeting-notes"] });
+    toast.success("Agenda item suggested");
+  };
+
+  // Handle saving member notes from WaitingForHostScreen
+  const handleSaveMemberNotes = async (notesText: string) => {
+    if (!selectedNote) return;
+    
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) return;
+    
+    // Store notes in a member_notes JSONB field keyed by user_id
+    const currentMemberNotes = (selectedNote as any).member_notes || {};
+    const updatedMemberNotes = { ...currentMemberNotes, [userId]: notesText };
+    
+    await supabase
+      .from("board_meeting_notes")
+      .update({ member_notes: updatedMemberNotes } as any)
+      .eq("id", selectedNote.id);
+  };
+
   const exitMeeting = async () => {
     if (!selectedNote) return;
     
@@ -1247,6 +1301,9 @@ export default function BoardMeetingNotes() {
                   }}
                   currentUserName=""
                   onAddQuestion={handleAddQuestionFromWaiting}
+                  onAddAgendaItem={handleAddAgendaItemFromWaiting}
+                  onSaveNotes={handleSaveMemberNotes}
+                  memberNotes={(selectedNote as any).member_notes?.[currentUserId || ''] || ''}
                 />
               )}
 

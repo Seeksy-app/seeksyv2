@@ -213,52 +213,73 @@ serve(async (req: Request): Promise<Response> => {
       minute: '2-digit',
     });
 
+    // Tutorial video link (placeholder)
+    const tutorialUrl = `${baseUrl}/board/help/meeting-guide`;
+
     // Send email with ICS attachment
     const { error: emailError } = await resend.emails.send({
       from: Deno.env.get("SENDER_EMAIL") || "Seeksy Board <noreply@seeksy.io>",
       to: [invitee_email],
-      subject: `Board Meeting Invitation: ${meeting.title}`,
+      subject: `Board Meeting Invitation — ${meeting.title}`,
       html: `
         <!DOCTYPE html>
         <html>
         <head>
           <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1a2e; background: #f4f4f8; margin: 0; padding: 0; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: #053877; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
-            .content { background: #f8f9fa; padding: 20px; border-radius: 0 0 8px 8px; }
-            .button { display: inline-block; background: #2C6BED; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 10px 0; }
-            .details { background: white; padding: 15px; border-radius: 6px; margin: 15px 0; }
-            .footer { text-align: center; color: #666; font-size: 12px; margin-top: 20px; }
+            .header { background: linear-gradient(135deg, #053877 0%, #2C6BED 100%); color: white; padding: 32px 24px; border-radius: 12px 12px 0 0; text-align: center; }
+            .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
+            .content { background: white; padding: 32px 24px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+            .greeting { font-size: 16px; margin-bottom: 20px; }
+            .meeting-card { background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2C6BED; }
+            .meeting-card h3 { margin: 0 0 12px 0; color: #053877; font-size: 18px; }
+            .meeting-detail { display: flex; margin: 8px 0; font-size: 14px; }
+            .meeting-detail strong { color: #64748b; min-width: 80px; }
+            .buttons { text-align: center; margin: 28px 0; }
+            .btn-primary { display: inline-block; background: #2C6BED; color: white !important; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 6px; }
+            .btn-secondary { display: inline-block; background: white; color: #2C6BED !important; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; border: 2px solid #2C6BED; margin: 6px; }
+            .info-box { background: #eff6ff; padding: 16px; border-radius: 8px; margin: 20px 0; font-size: 14px; color: #1e40af; }
+            .info-box strong { display: block; margin-bottom: 4px; }
+            .tutorial-link { background: #f0fdf4; padding: 16px; border-radius: 8px; margin: 20px 0; text-align: center; }
+            .tutorial-link a { color: #15803d; font-weight: 600; text-decoration: none; }
+            .tutorial-link p { margin: 4px 0 0 0; font-size: 13px; color: #166534; }
+            .footer { text-align: center; color: #94a3b8; font-size: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
           </style>
         </head>
         <body>
           <div class="container">
             <div class="header">
-              <h1 style="margin: 0;">Board Meeting Invitation</h1>
+              <h1>Board Meeting Invitation</h1>
             </div>
             <div class="content">
-              <p>Hello${invitee_name ? ` ${invitee_name}` : ''},</p>
-              <p>You have been invited to a board meeting.</p>
+              <p class="greeting">Hello${invitee_name ? ` ${invitee_name}` : ''},</p>
+              <p>You have been invited to an upcoming board meeting.</p>
               
-              <div class="details">
-                <h3 style="margin-top: 0;">${meeting.title}</h3>
-                <p><strong>Date:</strong> ${formattedDate}</p>
-                <p><strong>Time:</strong> ${formattedTime}</p>
-                <p><strong>Duration:</strong> ${meeting.duration_minutes || 60} minutes</p>
+              <div class="meeting-card">
+                <h3>${meeting.title}</h3>
+                <div class="meeting-detail"><strong>Date:</strong> ${formattedDate}</div>
+                <div class="meeting-detail"><strong>Time:</strong> ${formattedTime} ET</div>
+                <div class="meeting-detail"><strong>Duration:</strong> ${meeting.duration_minutes || 60} minutes</div>
               </div>
               
-              <p>
-                <a href="${joinUrl}" class="button">Join Meeting</a>
-              </p>
+              <div class="buttons">
+                <a href="${joinUrl}" class="btn-primary">Join Meeting</a>
+                <a href="data:text/calendar;base64,${icsBase64}" download="board-meeting.ics" class="btn-secondary">Add to Calendar</a>
+              </div>
               
-              <p style="font-size: 14px; color: #666;">
-                The meeting link will become active when the host starts the meeting.
-                You can add pre-meeting questions before the meeting begins.
-              </p>
+              <div class="info-box">
+                <strong>Before the meeting:</strong>
+                You can review the agenda, add questions, and prepare notes before the meeting begins. All changes are saved automatically.
+              </div>
+              
+              <div class="tutorial-link">
+                <a href="${tutorialUrl}">📺 Watch a 2-minute walkthrough</a>
+                <p>Learn how to use the agenda, notes, decisions, and AI summaries.</p>
+              </div>
               
               <div class="footer">
-                <p>This invitation was sent by Seeksy Board Portal</p>
+                <p>This invitation was sent via Seeksy Board Portal</p>
               </div>
             </div>
           </div>

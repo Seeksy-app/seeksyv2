@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { Clock, MessageSquare, Send, CalendarDays, Users } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Clock, MessageSquare, Send, CalendarDays, ListPlus, FileText, ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 interface AgendaItem {
   text: string;
@@ -31,19 +34,53 @@ interface WaitingForHostScreenProps {
   };
   currentUserName: string;
   onAddQuestion: (question: string) => void;
+  onAddAgendaItem?: (item: string) => void;
+  onSaveNotes?: (notes: string) => void;
+  memberNotes?: string;
 }
 
 export function WaitingForHostScreen({
   meeting,
   currentUserName,
   onAddQuestion,
+  onAddAgendaItem,
+  onSaveNotes,
+  memberNotes = "",
 }: WaitingForHostScreenProps) {
+  const navigate = useNavigate();
   const [newQuestion, setNewQuestion] = useState("");
+  const [newAgendaItem, setNewAgendaItem] = useState("");
+  const [notes, setNotes] = useState(memberNotes);
+  const [showAgendaInput, setShowAgendaInput] = useState(false);
 
   const handleSubmitQuestion = () => {
     if (!newQuestion.trim()) return;
     onAddQuestion(newQuestion.trim());
     setNewQuestion("");
+  };
+
+  const handleSubmitAgendaItem = () => {
+    if (!newAgendaItem.trim() || !onAddAgendaItem) return;
+    onAddAgendaItem(newAgendaItem.trim());
+    setNewAgendaItem("");
+    setShowAgendaInput(false);
+  };
+
+  const handleNotesChange = (value: string) => {
+    setNotes(value);
+    // Auto-save notes after typing stops
+    if (onSaveNotes) {
+      onSaveNotes(value);
+    }
+  };
+
+  const handleSaveAndExit = () => {
+    // Save notes one final time if callback exists
+    if (onSaveNotes && notes) {
+      onSaveNotes(notes);
+    }
+    toast.success("Your inputs have been saved. The host will review them before the meeting.");
+    navigate("/board/meetings");
   };
 
   const formatMeetingDate = (dateStr: string) => {
@@ -52,17 +89,33 @@ export function WaitingForHostScreen({
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 p-6">
+      {/* Header with Save & Exit */}
+      <div className="flex items-center justify-between">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/board/meetings")}
+          className="text-muted-foreground"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Meetings
+        </Button>
+        <Button variant="secondary" onClick={handleSaveAndExit}>
+          Save & Exit
+        </Button>
+      </div>
+
       {/* Waiting banner */}
-      <Card className="border-amber-200 bg-amber-50">
+      <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
         <CardContent className="p-6 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full mb-4">
-            <Clock className="w-8 h-8 text-amber-600 animate-pulse" />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full mb-4">
+            <Clock className="w-8 h-8 text-amber-600 dark:text-amber-400 animate-pulse" />
           </div>
-          <h2 className="text-xl font-semibold text-amber-800 mb-2">
+          <h2 className="text-xl font-semibold text-amber-800 dark:text-amber-200 mb-2">
             Waiting for Host to Start
           </h2>
-          <p className="text-amber-700">
-            The meeting will begin when the host starts it. You can review the agenda and add pre-meeting questions below.
+          <p className="text-amber-700 dark:text-amber-300">
+            The meeting will begin when the host starts it. You can review the agenda, add questions, suggest agenda items, and prepare notes below.
           </p>
         </CardContent>
       </Card>
@@ -92,14 +145,28 @@ export function WaitingForHostScreen({
         </CardContent>
       </Card>
 
-      {/* Agenda (read-only) */}
-      {meeting.agenda_items.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Agenda</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2">
+      {/* Agenda with ability to suggest items */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ListPlus className="w-5 h-5" />
+              Agenda
+            </CardTitle>
+            {onAddAgendaItem && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAgendaInput(!showAgendaInput)}
+              >
+                Suggest Item
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {meeting.agenda_items.length > 0 ? (
+            <ul className="space-y-2 mb-4">
               {meeting.agenda_items.map((item, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <span className="text-muted-foreground font-mono text-sm">
@@ -109,9 +176,26 @@ export function WaitingForHostScreen({
                 </li>
               ))}
             </ul>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <p className="text-muted-foreground text-sm mb-4">No agenda items yet.</p>
+          )}
+
+          {/* Add agenda item input */}
+          {showAgendaInput && onAddAgendaItem && (
+            <div className="flex gap-2 pt-2 border-t">
+              <Input
+                placeholder="Suggest an agenda item..."
+                value={newAgendaItem}
+                onChange={(e) => setNewAgendaItem(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSubmitAgendaItem()}
+              />
+              <Button onClick={handleSubmitAgendaItem} disabled={!newAgendaItem.trim()}>
+                Add
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Board Memo (read-only) */}
       {meeting.memo && (
@@ -142,6 +226,30 @@ export function WaitingForHostScreen({
                 </ul>
               </div>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Pre-meeting notes */}
+      {onSaveNotes && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <FileText className="w-5 h-5" />
+              My Notes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Textarea
+              placeholder="Add your personal notes for this meeting..."
+              value={notes}
+              onChange={(e) => handleNotesChange(e.target.value)}
+              rows={4}
+              className="resize-none"
+            />
+            <p className="text-xs text-muted-foreground mt-2">
+              Notes are saved automatically and visible only to you.
+            </p>
           </CardContent>
         </Card>
       )}
