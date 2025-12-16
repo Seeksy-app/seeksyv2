@@ -118,6 +118,10 @@ serve(async (req) => {
         room_name: roomData.name,
         room_url: roomData.url,
         guest_token: guestToken,
+        host_has_started: true,
+        host_user_id: user.id,
+        status: 'active',
+        started_at: new Date().toISOString(),
       })
       .eq('id', meetingNoteId);
 

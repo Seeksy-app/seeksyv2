@@ -91,15 +91,21 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
           }
         </p>
         {hasActiveRoom ? (
-          <Button onClick={onJoinMeeting} className="gap-2">
+          <Button 
+            onClick={onJoinMeeting} 
+            className="gap-2"
+            disabled={!onJoinMeeting}
+          >
             <Users className="h-4 w-4" />
-            Join Meeting
+            {onJoinMeeting ? 'Join Meeting' : 'Waiting for host...'}
           </Button>
-        ) : (
+        ) : onStartMeeting ? (
           <Button onClick={onStartMeeting} className="gap-2">
             <Video className="h-4 w-4" />
             Start Video Meeting
           </Button>
+        ) : (
+          <p className="text-sm text-muted-foreground">Waiting for host to start...</p>
         )}
       </div>
     );
