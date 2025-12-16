@@ -117,7 +117,8 @@ export default function BoardMeetingNotes() {
   const [selectedNote, setSelectedNote] = useState<MeetingNote | null>(null);
   const [memoOpen, setMemoOpen] = useState(true); // Meeting Agenda - expanded by default
   const [agendaOpen, setAgendaOpen] = useState(true); // Key Topics - expanded by default
-  const [decisionMatrixOpen, setDecisionMatrixOpen] = useState(true); // Decision Matrix - expanded by default
+  const [decisionMatrixOpen, setDecisionMatrixOpen] = useState(false); // Decision Matrix - collapsed by default
+  const [questionsOpen, setQuestionsOpen] = useState(false); // Pre-Meeting Questions - collapsed by default
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [newQuestion, setNewQuestion] = useState("");
@@ -1160,56 +1161,65 @@ export default function BoardMeetingNotes() {
         {/* Left Panel: Member Questions & Notes */}
         <div className="space-y-4">
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <MessageSquare className="w-4 h-4" />
-                Pre-Meeting Questions
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {selectedNote ? (
-                <>
-                  <ScrollArea className="h-48">
-                    {(selectedNote.member_questions || []).length === 0 ? (
-                      <p className="text-xs text-muted-foreground">No questions yet. Add one below.</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {selectedNote.member_questions.map((q) => (
-                          <div key={q.id} className="p-2 bg-muted/50 rounded text-xs">
-                            <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                              <span className="font-medium text-foreground">Q</span>
-                              <span>{q.author}</span>
-                              <span>•</span>
-                              <span>{format(new Date(q.created_at), "MMM d")}</span>
-                            </div>
-                            <p>{q.text}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </ScrollArea>
-                  {selectedNote.status !== 'completed' && (
+            <Collapsible open={questionsOpen} onOpenChange={setQuestionsOpen}>
+              <CollapsibleTrigger asChild>
+                <CardHeader className="pb-3 cursor-pointer hover:bg-muted/50 transition-colors rounded-t-lg">
+                  <CardTitle className="text-sm flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4" />
+                      Pre-Meeting Questions
+                    </div>
+                    {questionsOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </CardTitle>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent className="space-y-3">
+                  {selectedNote ? (
                     <>
-                      <Separator />
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Add a question..."
-                          value={newQuestion}
-                          onChange={(e) => setNewQuestion(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && addMemberQuestion()}
-                          className="text-sm"
-                        />
-                        <Button size="sm" onClick={addMemberQuestion}>
-                          <Send className="w-3 h-3" />
-                        </Button>
-                      </div>
+                      <ScrollArea className="h-48">
+                        {(selectedNote.member_questions || []).length === 0 ? (
+                          <p className="text-xs text-muted-foreground">No questions yet. Add one below.</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {selectedNote.member_questions.map((q) => (
+                              <div key={q.id} className="p-2 bg-muted/50 rounded text-xs">
+                                <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                                  <span className="font-medium text-foreground">Q</span>
+                                  <span>{q.author}</span>
+                                  <span>•</span>
+                                  <span>{format(new Date(q.created_at), "MMM d")}</span>
+                                </div>
+                                <p>{q.text}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </ScrollArea>
+                      {selectedNote.status !== 'completed' && (
+                        <>
+                          <Separator />
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Add a question..."
+                              value={newQuestion}
+                              onChange={(e) => setNewQuestion(e.target.value)}
+                              onKeyDown={(e) => e.key === 'Enter' && addMemberQuestion()}
+                              className="text-sm"
+                            />
+                            <Button size="sm" onClick={addMemberQuestion}>
+                              <Send className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </>
+                      )}
                     </>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Select a meeting to add questions.</p>
                   )}
-                </>
-              ) : (
-                <p className="text-xs text-muted-foreground">Select a meeting to add questions.</p>
-              )}
-            </CardContent>
+                </CardContent>
+              </CollapsibleContent>
+            </Collapsible>
           </Card>
 
           {/* Meetings List - hide when in active meeting */}
@@ -1291,7 +1301,14 @@ export default function BoardMeetingNotes() {
                           <Badge variant="outline" className="text-[10px]">
                             completed
                           </Badge>
-                          <Lock className="w-3 h-3 text-muted-foreground" />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                            onClick={(e) => handleDeleteMeeting(e, note.id)}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
                         </div>
                       </div>
                     </CardContent>

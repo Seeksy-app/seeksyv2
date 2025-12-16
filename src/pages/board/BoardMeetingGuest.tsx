@@ -481,22 +481,13 @@ export default function BoardMeetingGuest() {
   if (!hasEnteredName) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-        {/* Fun background image */}
+        {/* Full-page fun background image */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${meetingDog})` }}
+          style={{ backgroundImage: `url(${deerInSnow})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-slate-900/60 to-slate-900/80 backdrop-blur-sm" />
-        <Card className="w-full max-w-lg overflow-hidden relative z-10 shadow-2xl">
-          {/* Snow deer image */}
-          <div className="relative w-full h-48 overflow-hidden">
-            <img 
-              src={deerInSnow} 
-              alt="Deer in snow" 
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-card/80" />
-          </div>
+        <div className="absolute inset-0 bg-white/30 backdrop-blur-[2px]" />
+        <Card className="w-full max-w-md relative z-10 shadow-2xl bg-card/95 backdrop-blur-sm">
           
           <CardHeader className="text-center pt-4">
             <CardTitle className="text-xl">{meetingInfo?.title || "Board Meeting"}</CardTitle>
