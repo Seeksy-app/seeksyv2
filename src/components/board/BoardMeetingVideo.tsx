@@ -471,10 +471,10 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
         </div>
       </div>
 
-      {/* Persistent Attendee Thumbnails Strip */}
-      <div className="p-3 flex gap-2 overflow-x-auto bg-slate-900/50 border-b border-slate-700/50">
+      {/* Persistent Attendee Thumbnails Strip - larger for better visibility */}
+      <div className="p-4 flex gap-3 overflow-x-auto bg-slate-900/50 border-b border-slate-700/50">
         {/* Local video thumbnail */}
-        <div className="relative flex-shrink-0 w-32 h-24 bg-slate-700 rounded-lg overflow-hidden">
+        <div className="relative flex-shrink-0 w-48 h-36 bg-slate-700 rounded-lg overflow-hidden">
           {!isVideoOff ? (
             <video
               ref={localVideoRef}
@@ -485,8 +485,8 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <div className="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center">
-                <VideoOff className="h-5 w-5 text-slate-400" />
+              <div className="w-14 h-14 rounded-full bg-slate-600 flex items-center justify-center">
+                <VideoOff className="h-7 w-7 text-slate-400" />
               </div>
             </div>
           )}
@@ -504,22 +504,22 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
         {participants.map((participant) => (
           <div
             key={participant.id}
-            className={`relative flex-shrink-0 w-32 h-24 bg-slate-700 rounded-lg overflow-hidden ${
+            className={`relative flex-shrink-0 w-48 h-36 bg-slate-700 rounded-lg overflow-hidden ${
               participant.id === screenShareParticipantId ? 'ring-2 ring-primary' : ''
             }`}
           >
             {!participant.isVideoOff ? (
               <div className="w-full h-full bg-slate-600 flex items-center justify-center">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                  <span className="text-lg font-medium text-primary">
+                <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
+                  <span className="text-xl font-medium text-primary">
                     {participant.name.charAt(0).toUpperCase()}
                   </span>
                 </div>
               </div>
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <div className="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center">
-                  <VideoOff className="h-5 w-5 text-slate-400" />
+                <div className="w-14 h-14 rounded-full bg-slate-600 flex items-center justify-center">
+                  <VideoOff className="h-7 w-7 text-slate-400" />
                 </div>
               </div>
             )}
@@ -537,8 +537,8 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
 
         {/* Empty slot indicator */}
         {participants.length === 0 && (
-          <div className="flex-shrink-0 w-32 h-24 bg-slate-700/50 rounded-lg border-2 border-dashed border-slate-600 flex items-center justify-center">
-            <span className="text-xs text-slate-500">Waiting...</span>
+          <div className="flex-shrink-0 w-48 h-36 bg-slate-700/50 rounded-lg border-2 border-dashed border-slate-600 flex items-center justify-center">
+            <span className="text-sm text-slate-500">Waiting...</span>
           </div>
         )}
       </div>
