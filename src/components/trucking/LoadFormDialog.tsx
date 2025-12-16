@@ -50,7 +50,7 @@ export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingL
     special_instructions: "",
   });
 
-  // Auto-fill load number on new load creation
+  // Auto-fill next load number on new load creation
   useEffect(() => {
     const fetchNextLoadNumber = async () => {
       if (open && !editingLoadId) {
@@ -67,8 +67,14 @@ export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingL
           if (numericMatch) {
             const nextNumber = parseInt(numericMatch[1]) + 1;
             const prefix = lastNumber.replace(/\d+.*$/, '');
-            setFormData(prev => ({ ...prev, load_number: `${prefix}${nextNumber}` }));
+            setFormData(prev => ({ ...prev, load_number: prefix ? `${prefix}${nextNumber}` : String(nextNumber) }));
+          } else {
+            // No numeric part found, start at 1001
+            setFormData(prev => ({ ...prev, load_number: "1001" }));
           }
+        } else {
+          // No loads exist yet, start at 1001
+          setFormData(prev => ({ ...prev, load_number: "1001" }));
         }
       }
     };
@@ -233,11 +239,11 @@ export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingL
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh]">
+      <DialogContent className="max-w-4xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>{editingLoadId ? "Edit Load" : "Add New Load"}</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="max-h-[70vh] pr-4">
+        <ScrollArea className="max-h-[75vh] pr-4">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Load Number */}
             <div>
