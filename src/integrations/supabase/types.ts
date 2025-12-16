@@ -4697,6 +4697,7 @@ export type Database = {
           host_user_id: string | null
           id: string
           meeting_date: string
+          member_notes: Json | null
           member_questions: Json | null
           memo: Json | null
           recording_status: string | null
@@ -4739,6 +4740,7 @@ export type Database = {
           host_user_id?: string | null
           id?: string
           meeting_date: string
+          member_notes?: Json | null
           member_questions?: Json | null
           memo?: Json | null
           recording_status?: string | null
@@ -4781,6 +4783,7 @@ export type Database = {
           host_user_id?: string | null
           id?: string
           meeting_date?: string
+          member_notes?: Json | null
           member_questions?: Json | null
           memo?: Json | null
           recording_status?: string | null
