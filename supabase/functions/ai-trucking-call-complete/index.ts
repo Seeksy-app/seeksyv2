@@ -144,25 +144,29 @@ serve(async (req) => {
     }
 
     // Build call log entry - THIS ALWAYS GETS CREATED
-    const callLogData = {
+    // Using actual schema columns: id, owner_id, carrier_phone, load_id, call_direction, 
+    // summary, transcript_url, recording_url, call_started_at, call_ended_at, created_at,
+    // language, outcome, lead_id, duration_seconds, failure_reason, total_characters,
+    // estimated_cost_usd, is_demo, call_outcome, routed_to_voicemail, voicemail_transcript
+    const callLogData: Record<string, unknown> = {
       owner_id,
       load_id: actualLoadId,
-      caller_number: callerPhone,
+      carrier_phone: callerPhone,
       call_started_at: started_at || new Date().toISOString(),
       call_ended_at: ended_at || new Date().toISOString(),
       duration_seconds: callDuration || 0,
       outcome: callOutcome,
-      transcript: transcript || null,
-      ai_summary: summary || callNotes || null,
-      elevenlabs_conversation_id: conversation_id || call_id || null,
+      call_outcome: callOutcome,
+      summary: summary || callNotes || null,
       is_demo: false,
       total_characters: transcript ? transcript.length : null,
-      estimated_cost_usd: null,
-      confirmed_load_number: confirmed_load_number || null,
-      final_rate: final_rate ? parseFloat(String(final_rate).replace(/[^0-9.]/g, '')) : null,
-      phone_captured: !!callerPhone,
-      lead_created: lead_status === 'created' || !!lead_id
+      call_direction: 'inbound'
     };
+
+    // Only add lead_id if we have one
+    if (lead_id) {
+      callLogData.lead_id = lead_id;
+    }
 
     console.log('Creating call log:', JSON.stringify(callLogData, null, 2));
 
@@ -179,14 +183,12 @@ serve(async (req) => {
       callLogId = callLog.id;
       console.log('Call logged successfully:', callLog.id);
 
-      // Update the lead with the call_log_id if we found one
-      if (actualLoadId && callerPhone) {
-        const cleanPhone = callerPhone.replace(/[^0-9]/g, '');
+      // Update the lead with the call_log_id if we have a lead_id
+      if (lead_id) {
         await supabase
           .from('trucking_carrier_leads')
           .update({ call_log_id: callLog.id })
-          .or(`phone.eq.${cleanPhone},phone.ilike.%${cleanPhone}%`)
-          .gte('created_at', new Date(Date.now() - 10 * 60 * 1000).toISOString());
+          .eq('id', lead_id);
       }
     }
 
