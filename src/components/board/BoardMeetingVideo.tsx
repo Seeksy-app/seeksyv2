@@ -149,12 +149,13 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
     queryFn: async () => {
       let query = supabase
         .from('media_files')
-        .select('id, title, media_type, file_url, thumbnail_url, duration, file_size, created_at')
+        .select('id, file_name, media_type, file_url, thumbnail_url, duration_seconds, file_size_bytes, created_at')
+        .eq('media_type', 'video')
         .order('created_at', { ascending: false })
         .limit(50);
       
       if (mediaSearch) {
-        query = query.ilike('title', `%${mediaSearch}%`);
+        query = query.ilike('file_name', `%${mediaSearch}%`);
       }
       
       const { data, error } = await query;
@@ -162,12 +163,12 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
       
       return (data || []).map((item: any) => ({
         id: item.id,
-        title: item.title || 'Untitled',
+        title: item.file_name || 'Untitled',
         media_type: item.media_type || 'video',
         url: item.file_url,
         thumbnail_url: item.thumbnail_url,
-        duration_seconds: item.duration,
-        size_bytes: item.file_size,
+        duration_seconds: item.duration_seconds,
+        size_bytes: item.file_size_bytes,
         created_at: item.created_at,
       }));
     },
@@ -572,7 +573,7 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden max-h-[200px]">
+                    <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
                       <video
                         ref={screenVideoRef}
                         autoPlay
@@ -585,11 +586,11 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
                         Your Screen (Preview)
                       </div>
                     </div>
-                    <div className="text-center">
-                      <Badge variant="default" className="mb-2 animate-pulse">
+                    <div className="flex items-center justify-center gap-3">
+                      <Badge variant="default" className="animate-pulse">
                         Screen Sharing Active
                       </Badge>
-                      <Button variant="destructive" size="sm" onClick={handleStopScreenShare}>
+                      <Button variant="destructive" size="sm" onClick={() => { handleStopScreenShare(); setActivePanel(null); }}>
                         <Square className="w-4 h-4 mr-2" />
                         Stop Sharing
                       </Button>
@@ -700,19 +701,21 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <video
-                      ref={mediaVideoRef}
-                      src={selectedMedia}
-                      className="w-full rounded-lg bg-black max-h-[200px]"
-                      onEnded={() => { setIsMediaPlaying(false); onMediaPlayStateChange?.(false); }}
-                      onPause={() => { setIsMediaPlaying(false); onMediaPlayStateChange?.(false); }}
-                      onPlay={() => { setIsMediaPlaying(true); onMediaPlayStateChange?.(true); }}
-                    />
+                    <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
+                      <video
+                        ref={mediaVideoRef}
+                        src={selectedMedia}
+                        className="w-full h-full object-contain"
+                        onEnded={() => { setIsMediaPlaying(false); onMediaPlayStateChange?.(false); }}
+                        onPause={() => { setIsMediaPlaying(false); onMediaPlayStateChange?.(false); }}
+                        onPlay={() => { setIsMediaPlaying(true); onMediaPlayStateChange?.(true); }}
+                      />
+                    </div>
                     <div className="flex items-center justify-center gap-2">
                       {!isMediaPlaying ? (
                         <Button onClick={handleMediaPlay} size="sm">
                           <Play className="w-4 h-4 mr-2" />
-                          Play
+                          Play for Participants
                         </Button>
                       ) : (
                         <Button onClick={handleMediaPause} size="sm">
@@ -720,9 +723,9 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
                           Pause
                         </Button>
                       )}
-                      <Button variant="outline" size="sm" onClick={handleClearMedia}>
+                      <Button variant="destructive" size="sm" onClick={() => { handleClearMedia(); setActivePanel(null); }}>
                         <X className="w-4 h-4 mr-2" />
-                        Clear
+                        Stop & Close
                       </Button>
                     </div>
                   </div>

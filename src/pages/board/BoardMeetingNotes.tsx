@@ -1270,12 +1270,19 @@ export default function BoardMeetingNotes() {
                           Invite
                         </Button>
 
-                        {/* Start Meeting - before host starts */}
-                        {!hostHasStarted && selectedNote.status !== 'completed' && (
-                          <Button size="sm" onClick={startMeeting}>
-                            <Play className="w-4 h-4 mr-2" />
-                            Start Meeting
-                          </Button>
+                        {/* Start/Stop Meeting button */}
+                        {selectedNote.status !== 'completed' && (
+                          hostHasStarted ? (
+                            <Button size="sm" variant="outline" className="bg-green-600/20 border-green-600 text-green-600 hover:bg-green-600/30">
+                              <Play className="w-4 h-4 mr-2" />
+                              Active
+                            </Button>
+                          ) : (
+                            <Button size="sm" onClick={startMeeting}>
+                              <Play className="w-4 h-4 mr-2" />
+                              Start Meeting
+                            </Button>
+                          )
                         )}
 
                         {/* Regenerate AI Pack - before host starts */}
