@@ -20,6 +20,8 @@ import {
   ListChecks,
   MessageSquare,
   Send,
+  PanelRightClose,
+  PanelRightOpen,
 } from "lucide-react";
 import { toast } from "sonner";
 import DailyIframe from "@daily-co/daily-js";
@@ -69,6 +71,7 @@ export default function BoardMeetingGuest() {
   const [participantCount, setParticipantCount] = useState(1);
   const [isLoadingMeeting, setIsLoadingMeeting] = useState(true);
   const [pollingForRoom, setPollingForRoom] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const callFrameRef = useRef<ReturnType<typeof DailyIframe.createCallObject> | null>(null);
   const localVideoRef = useRef<HTMLVideoElement>(null);
@@ -81,6 +84,13 @@ export default function BoardMeetingGuest() {
     meetingId: meetingInfo?.id || '',
     isHost: false,
   });
+
+  // Auto-collapse sidebar when video connects
+  useEffect(() => {
+    if (isConnected) {
+      setSidebarOpen(false);
+    }
+  }, [isConnected]);
 
   useEffect(() => {
     if (!token) return;
@@ -364,45 +374,86 @@ export default function BoardMeetingGuest() {
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col">
-      {/* Header */}
-      <div className="bg-slate-800 px-4 py-3 flex items-center justify-between border-b border-slate-700">
-        <div>
-          <h1 className="text-white font-medium">{meetingInfo?.title || "Board Meeting"}</h1>
-          <p className="text-sm text-slate-400">
-            {meetingInfo?.meeting_date 
-              ? format(new Date(meetingInfo.meeting_date), "MMMM d, yyyy")
-              : "Guest: " + guestName}
-          </p>
-        </div>
-        {isConnected && (
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-slate-400" />
-            <span className="text-sm text-slate-400">{participantCount}</span>
+      {/* Compact Header with Controls */}
+      <div className="bg-slate-800 px-4 py-2 flex items-center justify-between border-b border-slate-700">
+        <div className="flex items-center gap-4">
+          <div>
+            <h1 className="text-white font-medium text-sm">{meetingInfo?.title || "Board Meeting"}</h1>
+            <p className="text-xs text-slate-400">
+              {meetingInfo?.meeting_date 
+                ? format(new Date(meetingInfo.meeting_date), "MMM d, yyyy")
+                : guestName}
+            </p>
           </div>
-        )}
+          {isConnected && (
+            <div className="flex items-center gap-1.5 text-slate-400">
+              <Users className="h-3.5 w-3.5" />
+              <span className="text-xs">{participantCount}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Inline Controls when connected */}
+        <div className="flex items-center gap-2">
+          {isConnected && (
+            <>
+              <Button
+                variant={isMuted ? "destructive" : "ghost"}
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={toggleMute}
+              >
+                {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </Button>
+              <Button
+                variant={isVideoOff ? "destructive" : "ghost"}
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={toggleVideo}
+              >
+                {isVideoOff ? <VideoOff className="h-4 w-4" /> : <Video className="h-4 w-4" />}
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                className="h-8 px-3"
+                onClick={leaveCall}
+              >
+                <PhoneOff className="h-4 w-4 mr-1.5" />
+                Leave
+              </Button>
+              <div className="w-px h-6 bg-slate-700 mx-1" />
+            </>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 text-slate-400 hover:text-white"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
+            {sidebarOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
+          </Button>
+        </div>
       </div>
 
       {/* Meeting not started banner */}
       {!meetingStarted && (
-        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-3 flex items-center gap-3">
-          <Clock className="h-5 w-5 text-amber-500" />
-          <div>
-            <p className="text-amber-500 font-medium">Meeting hasn't started yet</p>
-            <p className="text-sm text-amber-500/80">
-              {pollingForRoom 
-                ? "Waiting for host to start... You can review the agenda below."
-                : "Review the agenda below while waiting for the host."}
-            </p>
-          </div>
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 flex items-center gap-3">
+          <Clock className="h-4 w-4 text-amber-500" />
+          <p className="text-sm text-amber-500">
+            {pollingForRoom 
+              ? "Waiting for host to start..."
+              : "Meeting hasn't started yet"}
+          </p>
         </div>
       )}
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col lg:flex-row">
-        {/* Video area */}
-        <div className="lg:flex-1 p-4">
+      <div className="flex-1 flex overflow-hidden">
+        {/* Presentation Area - Full width when sidebar collapsed */}
+        <div className={`flex-1 p-4 transition-all duration-200 ${sidebarOpen ? '' : 'pr-4'}`}>
           {isConnected ? (
-            <div className="relative w-full aspect-video bg-slate-800 rounded-lg overflow-hidden">
+            <div className="relative w-full h-full bg-slate-800 rounded-lg overflow-hidden">
               {!isVideoOff ? (
                 <video
                   ref={localVideoRef}
@@ -423,7 +474,7 @@ export default function BoardMeetingGuest() {
               </Badge>
             </div>
           ) : (
-            <div className="w-full aspect-video bg-slate-800 rounded-lg flex items-center justify-center">
+            <div className="w-full h-full min-h-[400px] bg-slate-800 rounded-lg flex items-center justify-center">
               {meetingStarted ? (
                 <div className="text-center">
                   <Video className="h-12 w-12 text-slate-500 mx-auto mb-3" />
@@ -466,112 +517,88 @@ export default function BoardMeetingGuest() {
           )}
         </div>
 
-        {/* Sidebar - Agenda & Questions */}
-        <div className="w-full lg:w-96 bg-slate-800/50 border-l border-slate-700 flex flex-col">
-          {/* Agenda Section */}
-          <div className="p-4 border-b border-slate-700">
-            <div className="flex items-center gap-2 mb-3">
-              <ListChecks className="h-5 w-5 text-primary" />
-              <h2 className="text-white font-medium">Agenda</h2>
+        {/* Collapsible Sidebar - Agenda & Questions */}
+        <div 
+          className={`bg-slate-800/50 border-l border-slate-700 flex flex-col transition-all duration-200 overflow-hidden ${
+            sidebarOpen ? 'w-80' : 'w-0'
+          }`}
+        >
+          <div className={`w-80 h-full flex flex-col ${sidebarOpen ? 'opacity-100' : 'opacity-0'}`}>
+            {/* Agenda Section */}
+            <div className="p-3 border-b border-slate-700">
+              <div className="flex items-center gap-2 mb-2">
+                <ListChecks className="h-4 w-4 text-primary" />
+                <h2 className="text-white font-medium text-sm">Agenda</h2>
+              </div>
+              <ScrollArea className="h-36">
+                {agendaItems.length > 0 ? (
+                  <div className="space-y-1.5">
+                    {agendaItems.map((item, idx) => (
+                      <div
+                        key={item.id || idx}
+                        className={`p-2 rounded text-xs ${
+                          item.is_checked 
+                            ? 'bg-slate-700/50 text-slate-400 line-through' 
+                            : 'bg-slate-700 text-white'
+                        }`}
+                      >
+                        <span className="text-slate-500 mr-1.5">{idx + 1}.</span>
+                        {item.title}
+                        {item.timebox_minutes > 0 && (
+                          <span className="text-slate-500 ml-1">({item.timebox_minutes}m)</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-slate-500 text-xs">No agenda items yet</p>
+                )}
+              </ScrollArea>
             </div>
-            <ScrollArea className="h-48">
-              {agendaItems.length > 0 ? (
-                <div className="space-y-2">
-                  {agendaItems.map((item, idx) => (
-                    <div
-                      key={item.id || idx}
-                      className={`p-2 rounded text-sm ${
-                        item.is_checked 
-                          ? 'bg-slate-700/50 text-slate-400 line-through' 
-                          : 'bg-slate-700 text-white'
-                      }`}
-                    >
-                      <span className="text-slate-500 mr-2">{idx + 1}.</span>
-                      {item.title}
-                      {item.timebox_minutes > 0 && (
-                        <span className="text-slate-500 ml-2">({item.timebox_minutes}m)</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-slate-500 text-sm">No agenda items yet</p>
-              )}
-            </ScrollArea>
-          </div>
 
-          {/* Questions Section */}
-          <div className="p-4 flex-1 flex flex-col">
-            <div className="flex items-center gap-2 mb-3">
-              <MessageSquare className="h-5 w-5 text-primary" />
-              <h2 className="text-white font-medium">Questions & Notes</h2>
-            </div>
-            <ScrollArea className="flex-1 min-h-32">
-              {guestQuestions.length > 0 ? (
-                <div className="space-y-3">
-                  {guestQuestions.map((q, idx) => (
-                    <div key={idx} className="bg-slate-700 rounded p-2">
-                      <p className="text-sm text-white">{q.content}</p>
-                      <p className="text-xs text-slate-500 mt-1">
-                        {q.name} • {format(new Date(q.timestamp), "h:mm a")}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-slate-500 text-sm">No questions yet. Add one below.</p>
-              )}
-            </ScrollArea>
-            
-            <div className="mt-3 flex gap-2">
-              <Textarea
-                placeholder="Add a question or note..."
-                value={newQuestion}
-                onChange={(e) => setNewQuestion(e.target.value)}
-                className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500 min-h-[60px] resize-none"
-              />
-              <Button 
-                size="icon" 
-                onClick={handleAddQuestion}
-                disabled={isAddingQuestion || !newQuestion.trim()}
-                className="self-end"
-              >
-                {isAddingQuestion ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              </Button>
+            {/* Questions Section */}
+            <div className="p-3 flex-1 flex flex-col min-h-0">
+              <div className="flex items-center gap-2 mb-2">
+                <MessageSquare className="h-4 w-4 text-primary" />
+                <h2 className="text-white font-medium text-sm">Questions & Notes</h2>
+              </div>
+              <ScrollArea className="flex-1 min-h-24">
+                {guestQuestions.length > 0 ? (
+                  <div className="space-y-2">
+                    {guestQuestions.map((q, idx) => (
+                      <div key={idx} className="bg-slate-700 rounded p-2">
+                        <p className="text-xs text-white">{q.content}</p>
+                        <p className="text-[10px] text-slate-500 mt-1">
+                          {q.name} • {format(new Date(q.timestamp), "h:mm a")}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-slate-500 text-xs">No questions yet. Add one below.</p>
+                )}
+              </ScrollArea>
+              
+              <div className="mt-2 flex gap-2">
+                <Textarea
+                  placeholder="Add a question..."
+                  value={newQuestion}
+                  onChange={(e) => setNewQuestion(e.target.value)}
+                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500 min-h-[50px] resize-none text-xs"
+                />
+                <Button 
+                  size="icon" 
+                  onClick={handleAddQuestion}
+                  disabled={isAddingQuestion || !newQuestion.trim()}
+                  className="self-end h-8 w-8"
+                >
+                  {isAddingQuestion ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Video Controls */}
-      {isConnected && (
-        <div className="bg-slate-800 px-4 py-4 flex items-center justify-center gap-3 border-t border-slate-700">
-          <Button
-            variant={isMuted ? "destructive" : "secondary"}
-            size="lg"
-            className="rounded-full w-14 h-14"
-            onClick={toggleMute}
-          >
-            {isMuted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
-          </Button>
-          <Button
-            variant={isVideoOff ? "destructive" : "secondary"}
-            size="lg"
-            className="rounded-full w-14 h-14"
-            onClick={toggleVideo}
-          >
-            {isVideoOff ? <VideoOff className="h-6 w-6" /> : <Video className="h-6 w-6" />}
-          </Button>
-          <Button
-            variant="destructive"
-            size="lg"
-            className="rounded-full w-14 h-14"
-            onClick={leaveCall}
-          >
-            <PhoneOff className="h-6 w-6" />
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
