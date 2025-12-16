@@ -29,13 +29,15 @@ serve(async (req) => {
       return await handleCreateLead(supabase, body);
     } else if (action === "negotiate_rate") {
       return await handleNegotiateRate(supabase, body);
+    } else if (action === "save_transcript") {
+      return await handleSaveTranscript(supabase, body);
     } else {
       // Legacy format or unknown action
       console.log("[ai-trucking-call-router] Unknown action:", action);
       return new Response(
         JSON.stringify({ 
           error: "Unknown action", 
-          available_actions: ["lookup_load", "create_lead", "negotiate_rate"] 
+          available_actions: ["lookup_load", "create_lead", "negotiate_rate", "save_transcript"] 
         }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -405,6 +407,89 @@ async function handleCreateLead(supabase: any, body: any) {
       success: true,
       lead_id: lead.id,
       message: `Great! I've notified our broker about your interest in load ${load.load_number}. They will call you right back at ${phone} to confirm the booking. Is there anything else I can help you with?`
+    }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
+// Save call transcript for learning and analytics
+async function handleSaveTranscript(supabase: any, body: any) {
+  const { 
+    owner_id,
+    load_id, 
+    call_log_id,
+    caller_phone,
+    transcript_text, 
+    summary,
+    sentiment,
+    key_topics,
+    negotiation_outcome,
+    rate_discussed,
+    duration_seconds
+  } = body;
+
+  console.log("[save_transcript] Saving transcript:", { owner_id, load_id, caller_phone, duration_seconds });
+
+  if (!transcript_text) {
+    return new Response(
+      JSON.stringify({ success: false, message: "Transcript text is required." }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  // If no owner_id provided but we have load_id, get owner from load
+  let finalOwnerId = owner_id;
+  if (!finalOwnerId && load_id) {
+    const { data: load } = await supabase
+      .from('trucking_loads')
+      .select('owner_id')
+      .eq('id', load_id)
+      .single();
+    finalOwnerId = load?.owner_id;
+  }
+
+  if (!finalOwnerId) {
+    console.error("[save_transcript] No owner_id could be determined");
+    return new Response(
+      JSON.stringify({ success: false, message: "Could not determine owner for transcript." }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  // Save the transcript
+  const { data: transcript, error: transcriptError } = await supabase
+    .from('trucking_call_transcripts')
+    .insert({
+      owner_id: finalOwnerId,
+      load_id: load_id || null,
+      call_log_id: call_log_id || null,
+      caller_phone: caller_phone,
+      transcript_text: transcript_text,
+      summary: summary || null,
+      sentiment: sentiment || null,
+      key_topics: key_topics || null,
+      negotiation_outcome: negotiation_outcome || null,
+      rate_discussed: rate_discussed ? Math.round(rate_discussed) : null,
+      duration_seconds: duration_seconds || null,
+    })
+    .select()
+    .single();
+
+  if (transcriptError) {
+    console.error("[save_transcript] Error saving transcript:", transcriptError);
+    return new Response(
+      JSON.stringify({ success: false, message: "Error saving transcript." }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  console.log("[save_transcript] Transcript saved:", transcript.id);
+
+  return new Response(
+    JSON.stringify({
+      success: true,
+      transcript_id: transcript.id,
+      message: "Transcript saved successfully for learning and analytics."
     }),
     { headers: { ...corsHeaders, "Content-Type": "application/json" } }
   );

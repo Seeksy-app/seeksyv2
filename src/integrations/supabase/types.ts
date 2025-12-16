@@ -26043,6 +26043,69 @@ export type Database = {
           },
         ]
       }
+      trucking_call_transcripts: {
+        Row: {
+          call_log_id: string | null
+          caller_phone: string | null
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          key_topics: string[] | null
+          load_id: string | null
+          negotiation_outcome: string | null
+          owner_id: string
+          rate_discussed: number | null
+          sentiment: string | null
+          summary: string | null
+          transcript_text: string
+        }
+        Insert: {
+          call_log_id?: string | null
+          caller_phone?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          key_topics?: string[] | null
+          load_id?: string | null
+          negotiation_outcome?: string | null
+          owner_id: string
+          rate_discussed?: number | null
+          sentiment?: string | null
+          summary?: string | null
+          transcript_text: string
+        }
+        Update: {
+          call_log_id?: string | null
+          caller_phone?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          key_topics?: string[] | null
+          load_id?: string | null
+          negotiation_outcome?: string | null
+          owner_id?: string
+          rate_discussed?: number | null
+          sentiment?: string | null
+          summary?: string | null
+          transcript_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trucking_call_transcripts_call_log_id_fkey"
+            columns: ["call_log_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_call_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trucking_call_transcripts_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_loads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trucking_carrier_leads: {
         Row: {
           call_log_id: string | null
@@ -30345,6 +30408,10 @@ export type Database = {
         Args: { p_nominee_id: string }
         Returns: number
       }
+      can_edit_shared_load: {
+        Args: { _load_id: string; _user_id: string }
+        Returns: boolean
+      }
       cleanup_expired_autosaves: { Args: never; Returns: number }
       cleanup_old_rate_limit_logs: { Args: never; Returns: undefined }
       create_meeting_public: {
@@ -30431,6 +30498,10 @@ export type Database = {
         Returns: undefined
       }
       is_adm: { Args: never; Returns: boolean }
+      is_load_shared_with_user: {
+        Args: { _load_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_meeting_host: {
         Args: { _meeting_id: string; _user_id: string }
         Returns: boolean
