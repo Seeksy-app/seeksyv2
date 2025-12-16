@@ -26124,6 +26124,7 @@ export type Database = {
           is_confirmed: boolean | null
           load_id: string | null
           mc_number: string | null
+          mc_pending: boolean | null
           notes: string | null
           owner_id: string | null
           phone: string | null
@@ -26152,6 +26153,7 @@ export type Database = {
           is_confirmed?: boolean | null
           load_id?: string | null
           mc_number?: string | null
+          mc_pending?: boolean | null
           notes?: string | null
           owner_id?: string | null
           phone?: string | null
@@ -26180,6 +26182,7 @@ export type Database = {
           is_confirmed?: boolean | null
           load_id?: string | null
           mc_number?: string | null
+          mc_pending?: boolean | null
           notes?: string | null
           owner_id?: string | null
           phone?: string | null

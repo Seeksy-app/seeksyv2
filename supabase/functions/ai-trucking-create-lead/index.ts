@@ -71,31 +71,53 @@ serve(async (req) => {
       });
     }
 
-    // Use load_id from ElevenLabs (this is actually the load_number string)
-    const searchLoadNumber = load_id || load_number;
+    // Use load_id from ElevenLabs (could be UUID or load_number string)
+    const searchLoadIdentifier = load_id || load_number;
     
-    // Find the load by load_number to get the actual UUID and owner_id
+    // Find the load - check if it's a UUID or load_number
     let actualLoadId = null;
     let owner_id = null;
     
-    if (searchLoadNumber) {
-      // Normalize the load number by removing dashes, spaces, and other non-alphanumeric chars
-      const normalizedLoadNumber = String(searchLoadNumber).replace(/[^a-zA-Z0-9]/g, '');
-      console.log('Searching for load with normalized number:', normalizedLoadNumber);
+    if (searchLoadIdentifier) {
+      // Check if it's a valid UUID (36 chars with dashes)
+      const isUUID = typeof searchLoadIdentifier === 'string' && 
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(searchLoadIdentifier);
       
-      const { data: loadData, error: loadError } = await supabase
-        .from('trucking_loads')
-        .select('id, owner_id, load_number')
-        .ilike('load_number', `%${normalizedLoadNumber}%`)
-        .limit(1)
-        .single();
-      
-      if (loadData) {
-        actualLoadId = loadData.id;
-        owner_id = loadData.owner_id;
-        console.log('Found load:', loadData);
+      if (isUUID) {
+        // Search by UUID directly
+        console.log('Searching for load by UUID:', searchLoadIdentifier);
+        const { data: loadData, error: loadError } = await supabase
+          .from('trucking_loads')
+          .select('id, owner_id, load_number')
+          .eq('id', searchLoadIdentifier)
+          .maybeSingle();
+        
+        if (loadData) {
+          actualLoadId = loadData.id;
+          owner_id = loadData.owner_id;
+          console.log('Found load by UUID:', loadData);
+        } else {
+          console.log('Load not found by UUID:', searchLoadIdentifier, loadError?.message);
+        }
       } else {
-        console.log('Load not found for:', searchLoadNumber, loadError?.message);
+        // Search by load_number (normalize by removing non-alphanumeric chars)
+        const normalizedLoadNumber = String(searchLoadIdentifier).replace(/[^a-zA-Z0-9]/g, '');
+        console.log('Searching for load by load_number:', normalizedLoadNumber);
+        
+        const { data: loadData, error: loadError } = await supabase
+          .from('trucking_loads')
+          .select('id, owner_id, load_number')
+          .ilike('load_number', `%${normalizedLoadNumber}%`)
+          .limit(1)
+          .maybeSingle();
+        
+        if (loadData) {
+          actualLoadId = loadData.id;
+          owner_id = loadData.owner_id;
+          console.log('Found load by load_number:', loadData);
+        } else {
+          console.log('Load not found by load_number:', normalizedLoadNumber, loadError?.message);
+        }
       }
     }
 
