@@ -36,6 +36,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { PresenterControls } from './PresenterControls';
+import { usePresenterMode } from '@/hooks/usePresenterMode';
 import { toast } from 'sonner';
 import { MeetingStatusBadge } from './MeetingStatusBadge';
 import { useQuery } from '@tanstack/react-query';
@@ -84,6 +86,8 @@ interface BoardMeetingVideoProps {
   hasActiveRoom: boolean;
   guestToken?: string | null;
   isHost?: boolean;
+  meetingId?: string;
+  hostName?: string;
   onToggleMute: () => void;
   onToggleVideo: () => void;
   onStartMeeting?: () => void;
@@ -110,6 +114,8 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
   hasActiveRoom,
   guestToken,
   isHost = false,
+  meetingId,
+  hostName = "Host",
   onToggleMute,
   onToggleVideo,
   onStartMeeting,
@@ -142,6 +148,18 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
   const screenVideoRef = useRef<HTMLVideoElement>(null);
   const mediaVideoRef = useRef<HTMLVideoElement>(null);
   const { activeTenantId } = useTenant();
+
+  // Presenter mode hook
+  const {
+    presenterState,
+    startPresenting,
+    stopPresenting,
+    navigateToSection,
+  } = usePresenterMode({
+    meetingId: meetingId || '',
+    isHost,
+    hostName,
+  });
 
   // Fetch media library
   const { data: mediaLibrary = [], isLoading: mediaLoading } = useQuery({
@@ -846,6 +864,19 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
                 </TooltipTrigger>
                 <TooltipContent>Notes</TooltipContent>
               </Tooltip>
+
+              {/* Presenter Mode Controls */}
+              {meetingId && (
+                <div className="ml-2 border-l border-slate-600 pl-2">
+                  <PresenterControls
+                    isPresenting={presenterState.isPresenting}
+                    currentSection={presenterState.currentSection}
+                    onStartPresenting={startPresenting}
+                    onStopPresenting={stopPresenting}
+                    onNavigateToSection={navigateToSection}
+                  />
+                </div>
+              )}
             </>
           )}
 
