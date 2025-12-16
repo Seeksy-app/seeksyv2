@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Video,
   VideoOff,
@@ -24,6 +25,11 @@ import {
   PanelRightOpen,
   MonitorPlay,
   Film,
+  CalendarDays,
+  FileText,
+  ChevronDown,
+  ChevronUp,
+  ListPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import DailyIframe from "@daily-co/daily-js";
@@ -32,35 +38,37 @@ import { GuestPresenterView } from "@/components/board/GuestPresenterView";
 import { format } from "date-fns";
 
 interface AgendaItem {
-  id: string;
-  title: string;
-  timebox_minutes: number;
-  is_checked: boolean;
-  order_index: number;
+  text: string;
+  checked: boolean;
 }
 
-interface GuestQuestion {
-  name: string;
-  content: string;
-  timestamp: string;
+interface MemberQuestion {
+  id: string;
+  author: string;
+  text: string;
+  created_at: string;
+}
+
+interface MeetingMemo {
+  purpose?: string;
+  objective?: string;
+  current_state?: string[];
+  key_questions?: string[];
 }
 
 interface MeetingInfo {
   id: string;
   title: string;
   meeting_date: string;
+  start_time: string | null;
+  duration_minutes: number;
   room_name: string | null;
   room_url: string | null;
   status: string;
-  member_questions: GuestQuestion[] | null;
-  agenda_items: any;
-}
-
-interface RemoteParticipant {
-  id: string;
-  name: string;
-  isScreenSharing: boolean;
-  screenTrack?: MediaStreamTrack;
+  agenda_items: AgendaItem[];
+  memo: MeetingMemo | null;
+  member_questions: MemberQuestion[];
+  host_has_started: boolean;
 }
 
 export default function BoardMeetingGuest() {
@@ -72,15 +80,20 @@ export default function BoardMeetingGuest() {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [meetingInfo, setMeetingInfo] = useState<MeetingInfo | null>(null);
-  const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([]);
-  const [guestQuestions, setGuestQuestions] = useState<GuestQuestion[]>([]);
   const [newQuestion, setNewQuestion] = useState("");
+  const [newAgendaItem, setNewAgendaItem] = useState("");
+  const [personalNotes, setPersonalNotes] = useState("");
   const [isAddingQuestion, setIsAddingQuestion] = useState(false);
+  const [showAgendaInput, setShowAgendaInput] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [participantCount, setParticipantCount] = useState(1);
   const [isLoadingMeeting, setIsLoadingMeeting] = useState(true);
-  const [pollingForRoom, setPollingForRoom] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  // Collapsible sections
+  const [memoOpen, setMemoOpen] = useState(true);
+  const [agendaOpen, setAgendaOpen] = useState(true);
+  const [questionsOpen, setQuestionsOpen] = useState(true);
   
   // Screen share and media state
   const [remoteScreenShare, setRemoteScreenShare] = useState<MediaStreamTrack | null>(null);
@@ -119,11 +132,33 @@ export default function BoardMeetingGuest() {
     }
   }, [remoteScreenShare]);
 
-  // Subscribe to host media broadcast
+  // Subscribe to meeting updates and host media broadcast
   useEffect(() => {
     if (!meetingInfo?.id) return;
 
-    const channel = supabase
+    const meetingChannel = supabase
+      .channel(`meeting-updates:${meetingInfo.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'board_meeting_notes',
+          filter: `id=eq.${meetingInfo.id}`,
+        },
+        (payload) => {
+          console.log("[GuestView] Meeting updated:", payload);
+          const updated = payload.new as any;
+          setMeetingInfo(prev => prev ? { ...prev, ...updated } : null);
+          
+          if (updated.host_has_started && !meetingInfo.host_has_started) {
+            toast.success("Host has started the meeting!");
+          }
+        }
+      )
+      .subscribe();
+
+    const mediaChannel = supabase
       .channel(`meeting-media:${meetingInfo.id}`)
       .on('broadcast', { event: 'media-play' }, (payload) => {
         console.log("[GuestView] Media broadcast received:", payload);
@@ -133,7 +168,8 @@ export default function BoardMeetingGuest() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(meetingChannel);
+      supabase.removeChannel(mediaChannel);
     };
   }, [meetingInfo?.id]);
 
@@ -141,20 +177,6 @@ export default function BoardMeetingGuest() {
     if (!token) return;
     fetchMeetingInfo();
   }, [token]);
-
-  useEffect(() => {
-    if (!meetingInfo || meetingInfo.room_url || !hasEnteredName) return;
-    
-    setPollingForRoom(true);
-    const interval = setInterval(async () => {
-      await fetchMeetingInfo();
-    }, 5000);
-
-    return () => {
-      clearInterval(interval);
-      setPollingForRoom(false);
-    };
-  }, [meetingInfo?.id, hasEnteredName, meetingInfo?.room_url]);
 
   const fetchMeetingInfo = async () => {
     try {
@@ -191,7 +213,7 @@ export default function BoardMeetingGuest() {
 
       const { data: meetingData, error: meetingError } = await supabase
         .from('board_meeting_notes')
-        .select('id, title, meeting_date, room_name, room_url, status, member_questions, agenda_items')
+        .select('id, title, meeting_date, start_time, duration_minutes, room_name, room_url, status, agenda_items, memo, member_questions, host_has_started')
         .eq('id', meetingId)
         .single();
 
@@ -201,15 +223,12 @@ export default function BoardMeetingGuest() {
         return;
       }
 
-      setMeetingInfo(meetingData as unknown as MeetingInfo);
-
-      if (meetingData.agenda_items && Array.isArray(meetingData.agenda_items)) {
-        setAgendaItems(meetingData.agenda_items as unknown as AgendaItem[]);
-      }
-
-      if (meetingData.member_questions && Array.isArray(meetingData.member_questions)) {
-        setGuestQuestions(meetingData.member_questions as unknown as GuestQuestion[]);
-      }
+      setMeetingInfo({
+        ...meetingData,
+        agenda_items: (meetingData.agenda_items as unknown as AgendaItem[]) || [],
+        memo: meetingData.memo as unknown as MeetingMemo | null,
+        member_questions: (meetingData.member_questions as unknown as MemberQuestion[]) || [],
+      } as MeetingInfo);
 
       setIsLoadingMeeting(false);
     } catch (err) {
@@ -365,13 +384,14 @@ export default function BoardMeetingGuest() {
     
     setIsAddingQuestion(true);
     try {
-      const newQ: GuestQuestion = {
-        name: guestName,
-        content: newQuestion.trim(),
-        timestamp: new Date().toISOString(),
+      const newQ: MemberQuestion = {
+        id: crypto.randomUUID(),
+        author: guestName,
+        text: newQuestion.trim(),
+        created_at: new Date().toISOString(),
       };
 
-      const updatedQuestions = [...guestQuestions, newQ];
+      const updatedQuestions = [...(meetingInfo.member_questions || []), newQ];
 
       const { error } = await supabase
         .from('board_meeting_notes')
@@ -380,7 +400,7 @@ export default function BoardMeetingGuest() {
 
       if (error) throw error;
 
-      setGuestQuestions(updatedQuestions);
+      setMeetingInfo(prev => prev ? { ...prev, member_questions: updatedQuestions } : null);
       setNewQuestion("");
       toast.success("Question added");
     } catch (err) {
@@ -388,6 +408,34 @@ export default function BoardMeetingGuest() {
       toast.error("Failed to add question");
     } finally {
       setIsAddingQuestion(false);
+    }
+  };
+
+  const handleAddAgendaItem = async () => {
+    if (!newAgendaItem.trim() || !meetingInfo?.id) return;
+    
+    try {
+      const newItem: AgendaItem = {
+        text: `[Suggested by ${guestName}] ${newAgendaItem.trim()}`,
+        checked: false,
+      };
+
+      const updatedItems = [...(meetingInfo.agenda_items || []), newItem];
+
+      const { error } = await supabase
+        .from('board_meeting_notes')
+        .update({ agenda_items: updatedItems as unknown as any })
+        .eq('id', meetingInfo.id);
+
+      if (error) throw error;
+
+      setMeetingInfo(prev => prev ? { ...prev, agenda_items: updatedItems } : null);
+      setNewAgendaItem("");
+      setShowAgendaInput(false);
+      toast.success("Agenda item suggested");
+    } catch (err) {
+      console.error("Error adding agenda item:", err);
+      toast.error("Failed to add agenda item");
     }
   };
 
@@ -400,9 +448,16 @@ export default function BoardMeetingGuest() {
     };
   }, []);
 
+  const formatMeetingDateTime = () => {
+    if (!meetingInfo) return "";
+    const date = format(new Date(meetingInfo.meeting_date + "T12:00:00"), "EEEE, MMMM d, yyyy");
+    const time = meetingInfo.start_time ? meetingInfo.start_time.substring(0, 5) : null;
+    return time ? `${date} at ${time}` : date;
+  };
+
   if (isLoadingMeeting) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -410,7 +465,7 @@ export default function BoardMeetingGuest() {
 
   if (error && !meetingInfo) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6 text-center">
             <p className="text-destructive">{error}</p>
@@ -420,9 +475,10 @@ export default function BoardMeetingGuest() {
     );
   }
 
+  // Name entry screen
   if (!hasEnteredName) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
@@ -430,7 +486,7 @@ export default function BoardMeetingGuest() {
             </div>
             <CardTitle>{meetingInfo?.title || "Board Meeting"}</CardTitle>
             <CardDescription>
-              Enter your name to view the agenda and join when ready
+              Enter your name to join the meeting
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -453,58 +509,42 @@ export default function BoardMeetingGuest() {
     );
   }
 
-  const meetingStarted = !!meetingInfo?.room_url;
-  const hasPresentation = remoteScreenShare || hostMediaUrl || presenterState.isPresenting;
+  const meetingStarted = meetingInfo?.host_has_started || !!meetingInfo?.room_url;
+  const hasPresentation = isConnected && (remoteScreenShare || hostMediaUrl || presenterState.isPresenting);
 
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col">
-      {/* Compact Header with Controls */}
-      <div className="bg-slate-800 px-4 py-2 flex items-center justify-between border-b border-slate-700">
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
+      <div className="bg-card border-b px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div>
-            <h1 className="text-white font-medium text-sm">{meetingInfo?.title || "Board Meeting"}</h1>
-            <p className="text-xs text-slate-400">
-              {meetingInfo?.meeting_date 
-                ? format(new Date(meetingInfo.meeting_date), "MMM d, yyyy")
-                : guestName}
+            <h1 className="font-semibold">{meetingInfo?.title || "Board Meeting"}</h1>
+            <p className="text-sm text-muted-foreground">
+              {formatMeetingDateTime()}
             </p>
           </div>
           {isConnected && (
-            <div className="flex items-center gap-1.5 text-slate-400">
-              <Users className="h-3.5 w-3.5" />
-              <span className="text-xs">{participantCount}</span>
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Users className="h-4 w-4" />
+              <span className="text-sm">{participantCount}</span>
             </div>
-          )}
-          {remoteScreenShare && (
-            <Badge variant="secondary" className="text-xs gap-1">
-              <MonitorPlay className="h-3 w-3" />
-              {screenSharerName} sharing
-            </Badge>
-          )}
-          {hostMediaUrl && (
-            <Badge variant="secondary" className="text-xs gap-1">
-              <Film className="h-3 w-3" />
-              Media playing
-            </Badge>
           )}
         </div>
 
-        {/* Inline Controls when connected */}
+        {/* Controls */}
         <div className="flex items-center gap-2">
           {isConnected && (
             <>
               <Button
-                variant={isMuted ? "destructive" : "ghost"}
+                variant={isMuted ? "destructive" : "secondary"}
                 size="sm"
-                className="h-8 w-8 p-0"
                 onClick={toggleMute}
               >
                 {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
               </Button>
               <Button
-                variant={isVideoOff ? "destructive" : "ghost"}
+                variant={isVideoOff ? "destructive" : "secondary"}
                 size="sm"
-                className="h-8 w-8 p-0"
                 onClick={toggleVideo}
               >
                 {isVideoOff ? <VideoOff className="h-4 w-4" /> : <Video className="h-4 w-4" />}
@@ -512,251 +552,331 @@ export default function BoardMeetingGuest() {
               <Button
                 variant="destructive"
                 size="sm"
-                className="h-8 px-3"
                 onClick={leaveCall}
               >
                 <PhoneOff className="h-4 w-4 mr-1.5" />
                 Leave
               </Button>
-              <div className="w-px h-6 bg-slate-700 mx-1" />
             </>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 text-slate-400 hover:text-white"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-          >
-            {sidebarOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
-          </Button>
         </div>
       </div>
 
-      {/* Meeting not started banner */}
-      {!meetingStarted && (
-        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 flex items-center gap-3">
-          <Clock className="h-4 w-4 text-amber-500" />
-          <p className="text-sm text-amber-500">
-            {pollingForRoom 
-              ? "Waiting for host to start..."
-              : "Meeting hasn't started yet"}
-          </p>
-        </div>
-      )}
-
       {/* Main content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Presentation Area - Full width when sidebar collapsed */}
-        <div className={`flex-1 flex flex-col p-4 gap-4 transition-all duration-200`}>
+      <div className="flex-1 overflow-auto">
+        <div className="max-w-4xl mx-auto p-6 space-y-6">
           
-          {/* Screen Share Display - Priority 1 */}
-          {remoteScreenShare && (
-            <div className="flex-1 relative bg-black rounded-lg overflow-hidden min-h-[300px]">
-              <video
-                ref={screenShareVideoRef}
-                autoPlay
-                playsInline
-                className="w-full h-full object-contain"
-              />
-              <div className="absolute top-3 left-3 bg-black/70 px-3 py-1.5 rounded-md flex items-center gap-2">
-                <MonitorPlay className="h-4 w-4 text-green-400" />
-                <span className="text-sm text-white">{screenSharerName}'s Screen</span>
-              </div>
-            </div>
-          )}
+          {/* Meeting Status Banner */}
+          {!meetingStarted ? (
+            <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
+              <CardContent className="p-6 text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full mb-4">
+                  <Clock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+                </div>
+                <h2 className="text-xl font-semibold text-amber-800 dark:text-amber-200 mb-2">
+                  Meeting starts {meetingInfo?.start_time ? `at ${meetingInfo.start_time.substring(0, 5)}` : 'soon'}
+                </h2>
+                <p className="text-amber-700 dark:text-amber-300">
+                  Review the agenda, add questions, and prepare notes below while waiting for the host.
+                </p>
+                <Badge variant="outline" className="mt-3 border-amber-300 text-amber-700">
+                  <Clock className="w-3 h-3 mr-1" />
+                  Waiting for host
+                </Badge>
+              </CardContent>
+            </Card>
+          ) : !isConnected ? (
+            <Card className="border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800">
+              <CardContent className="p-6 text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full mb-4">
+                  <Video className="w-8 h-8 text-green-600 dark:text-green-400" />
+                </div>
+                <h2 className="text-xl font-semibold text-green-800 dark:text-green-200 mb-2">
+                  Meeting is Live — Join Now
+                </h2>
+                <p className="text-green-700 dark:text-green-300 mb-4">
+                  The host has started the meeting. Click below to join the video call.
+                </p>
+                <Button onClick={handleJoinVideo} disabled={isJoining} className="gap-2">
+                  {isJoining ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Joining...
+                    </>
+                  ) : (
+                    <>
+                      <Video className="h-4 w-4" />
+                      Join Video Call
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          ) : null}
 
-          {/* Media Playback Display - Priority 2 */}
-          {hostMediaUrl && !remoteScreenShare && (
-            <div className="flex-1 relative bg-black rounded-lg overflow-hidden min-h-[300px]">
-              <video
-                ref={mediaVideoRef}
-                src={hostMediaUrl}
-                autoPlay={isMediaPlaying}
-                controls
-                className="w-full h-full object-contain"
-              />
-              <div className="absolute top-3 left-3 bg-black/70 px-3 py-1.5 rounded-md flex items-center gap-2">
-                <Film className="h-4 w-4 text-primary" />
-                <span className="text-sm text-white">Host Media</span>
-              </div>
-            </div>
-          )}
-
-          {/* Presenter Mode Content - Priority 3 */}
-          {presenterState.isPresenting && !remoteScreenShare && !hostMediaUrl && meetingInfo?.id && (
-            <div className="flex-1">
-              <GuestPresenterView
-                meetingId={meetingInfo.id}
-                presenterState={presenterState}
-                isFollowing={isFollowing}
-                onToggleFollowing={toggleFollowing}
-              />
-            </div>
-          )}
-
-          {/* Default Video View when no presentation */}
-          {!hasPresentation && (
-            <div className="flex-1 relative bg-slate-800 rounded-lg overflow-hidden min-h-[300px]">
-              {isConnected ? (
-                <>
-                  {!isVideoOff ? (
+          {/* Video Area (when connected) */}
+          {isConnected && (
+            <Card className="overflow-hidden">
+              <CardContent className="p-0">
+                {/* Screen Share / Media / Presenter */}
+                {remoteScreenShare && (
+                  <div className="relative w-full aspect-video bg-black">
                     <video
-                      ref={localVideoRef}
+                      ref={screenShareVideoRef}
                       autoPlay
                       playsInline
-                      muted
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                     />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className="w-24 h-24 rounded-full bg-slate-600 flex items-center justify-center">
-                        <VideoOff className="h-12 w-12 text-slate-400" />
+                    <div className="absolute top-3 left-3 bg-black/70 px-3 py-1.5 rounded-md flex items-center gap-2">
+                      <MonitorPlay className="h-4 w-4 text-green-400" />
+                      <span className="text-sm text-white">{screenSharerName}'s Screen</span>
+                    </div>
+                  </div>
+                )}
+
+                {hostMediaUrl && !remoteScreenShare && (
+                  <div className="relative w-full aspect-video bg-black">
+                    <video
+                      ref={mediaVideoRef}
+                      src={hostMediaUrl}
+                      autoPlay={isMediaPlaying}
+                      controls
+                      className="w-full h-full object-contain"
+                    />
+                    <div className="absolute top-3 left-3 bg-black/70 px-3 py-1.5 rounded-md flex items-center gap-2">
+                      <Film className="h-4 w-4 text-primary" />
+                      <span className="text-sm text-white">Host Media</span>
+                    </div>
+                  </div>
+                )}
+
+                {presenterState.isPresenting && !remoteScreenShare && !hostMediaUrl && meetingInfo?.id && (
+                  <GuestPresenterView
+                    meetingId={meetingInfo.id}
+                    presenterState={presenterState}
+                    isFollowing={isFollowing}
+                    onToggleFollowing={toggleFollowing}
+                  />
+                )}
+
+                {/* Video thumbnails */}
+                <div className="p-4 bg-muted/50 flex gap-3 overflow-x-auto">
+                  <div className="relative flex-shrink-0 w-40 h-28 bg-slate-800 rounded-lg overflow-hidden">
+                    {!isVideoOff ? (
+                      <video
+                        ref={localVideoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-slate-600 flex items-center justify-center">
+                          <VideoOff className="h-6 w-6 text-slate-400" />
+                        </div>
                       </div>
+                    )}
+                    <div className="absolute bottom-1 left-1 bg-black/60 px-1.5 py-0.5 rounded text-xs text-white">
+                      You ({guestName})
                     </div>
-                  )}
-                  <Badge className="absolute bottom-4 left-4 bg-black/60">
-                    {guestName} (You)
-                  </Badge>
-                </>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  {meetingStarted ? (
-                    <div className="text-center">
-                      <Video className="h-16 w-16 text-slate-500 mx-auto mb-4" />
-                      <p className="text-slate-400 mb-4">Ready to join video?</p>
-                      <Button onClick={handleJoinVideo} disabled={isJoining} size="lg">
-                        {isJoining ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Joining...
-                          </>
-                        ) : (
-                          <>
-                            <Video className="h-4 w-4 mr-2" />
-                            Join Video Call
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="text-center">
-                      <Clock className="h-16 w-16 text-slate-500 mx-auto mb-4" />
-                      <p className="text-slate-400 text-lg">Waiting for host to start the meeting...</p>
-                      {pollingForRoom && (
-                        <p className="text-xs text-slate-500 mt-2">Checking every few seconds</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Meeting Agenda */}
+          <Collapsible open={memoOpen} onOpenChange={setMemoOpen}>
+            <Card>
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <CalendarDays className="w-5 h-5" />
+                      Meeting Details
+                    </CardTitle>
+                    {memoOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                  </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent className="space-y-4">
+                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                    <span><strong>Date:</strong> {formatMeetingDateTime()}</span>
+                    <span><strong>Duration:</strong> {meetingInfo?.duration_minutes || 45} minutes</span>
+                  </div>
+
+                  {meetingInfo?.memo && (
+                    <div className="space-y-3 pt-4 border-t">
+                      {meetingInfo.memo.purpose && (
+                        <div>
+                          <h4 className="font-medium text-sm text-muted-foreground mb-1">Purpose</h4>
+                          <p>{meetingInfo.memo.purpose}</p>
+                        </div>
+                      )}
+                      {meetingInfo.memo.objective && (
+                        <div>
+                          <h4 className="font-medium text-sm text-muted-foreground mb-1">Objective</h4>
+                          <p>{meetingInfo.memo.objective}</p>
+                        </div>
+                      )}
+                      {meetingInfo.memo.key_questions && meetingInfo.memo.key_questions.length > 0 && (
+                        <div>
+                          <h4 className="font-medium text-sm text-muted-foreground mb-1">Key Questions</h4>
+                          <ul className="list-disc list-inside space-y-1">
+                            {meetingInfo.memo.key_questions.map((q, i) => (
+                              <li key={i}>{q}</li>
+                            ))}
+                          </ul>
+                        </div>
                       )}
                     </div>
                   )}
-                </div>
-              )}
-            </div>
-          )}
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
-          {/* Video thumbnail when showing presentation */}
-          {hasPresentation && isConnected && (
-            <div className="relative w-48 h-36 bg-slate-800 rounded-lg overflow-hidden flex-shrink-0">
-              {!isVideoOff ? (
-                <video
-                  ref={localVideoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="w-12 h-12 rounded-full bg-slate-600 flex items-center justify-center">
-                    <VideoOff className="h-6 w-6 text-slate-400" />
-                  </div>
-                </div>
-              )}
-              <div className="absolute bottom-1 left-1 bg-black/60 px-1.5 py-0.5 rounded text-xs text-white">
-                You
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Collapsible Sidebar - Agenda & Questions */}
-        <div 
-          className={`bg-slate-800/50 border-l border-slate-700 flex flex-col transition-all duration-200 overflow-hidden ${
-            sidebarOpen ? 'w-80' : 'w-0'
-          }`}
-        >
-          <div className={`w-80 h-full flex flex-col ${sidebarOpen ? 'opacity-100' : 'opacity-0'}`}>
-            {/* Agenda Section */}
-            <div className="p-3 border-b border-slate-700">
-              <div className="flex items-center gap-2 mb-2">
-                <ListChecks className="h-4 w-4 text-primary" />
-                <h2 className="text-white font-medium text-sm">Agenda</h2>
-              </div>
-              <ScrollArea className="h-36">
-                {agendaItems.length > 0 ? (
-                  <div className="space-y-1.5">
-                    {agendaItems.map((item, idx) => (
-                      <div
-                        key={item.id || idx}
-                        className={`p-2 rounded text-xs ${
-                          item.is_checked 
-                            ? 'bg-slate-700/50 text-slate-400 line-through' 
-                            : 'bg-slate-700 text-white'
-                        }`}
+          {/* Agenda Items */}
+          <Collapsible open={agendaOpen} onOpenChange={setAgendaOpen}>
+            <Card>
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <ListChecks className="w-5 h-5" />
+                      Agenda
+                    </CardTitle>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowAgendaInput(!showAgendaInput);
+                        }}
                       >
-                        <span className="text-slate-500 mr-1.5">{idx + 1}.</span>
-                        {item.title}
-                        {item.timebox_minutes > 0 && (
-                          <span className="text-slate-500 ml-1">({item.timebox_minutes}m)</span>
-                        )}
-                      </div>
-                    ))}
+                        <ListPlus className="w-4 h-4 mr-1" />
+                        Suggest Item
+                      </Button>
+                      {agendaOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                    </div>
                   </div>
-                ) : (
-                  <p className="text-slate-500 text-xs">No agenda items yet</p>
-                )}
-              </ScrollArea>
-            </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent>
+                  {meetingInfo?.agenda_items && meetingInfo.agenda_items.length > 0 ? (
+                    <ul className="space-y-2 mb-4">
+                      {meetingInfo.agenda_items.map((item, i) => (
+                        <li key={i} className={`flex items-start gap-2 ${item.checked ? 'text-muted-foreground line-through' : ''}`}>
+                          <span className="text-muted-foreground font-mono text-sm">{i + 1}.</span>
+                          <span>{item.text}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-muted-foreground text-sm mb-4">No agenda items yet.</p>
+                  )}
 
-            {/* Questions Section */}
-            <div className="p-3 flex-1 flex flex-col min-h-0">
-              <div className="flex items-center gap-2 mb-2">
-                <MessageSquare className="h-4 w-4 text-primary" />
-                <h2 className="text-white font-medium text-sm">Questions & Notes</h2>
-              </div>
-              <ScrollArea className="flex-1 min-h-24">
-                {guestQuestions.length > 0 ? (
-                  <div className="space-y-2">
-                    {guestQuestions.map((q, idx) => (
-                      <div key={idx} className="bg-slate-700 rounded p-2">
-                        <p className="text-xs text-white">{q.content}</p>
-                        <p className="text-[10px] text-slate-500 mt-1">
-                          {q.name} • {format(new Date(q.timestamp), "h:mm a")}
-                        </p>
-                      </div>
-                    ))}
+                  {showAgendaInput && (
+                    <div className="flex gap-2 pt-2 border-t">
+                      <Input
+                        placeholder="Suggest an agenda item..."
+                        value={newAgendaItem}
+                        onChange={(e) => setNewAgendaItem(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleAddAgendaItem()}
+                      />
+                      <Button onClick={handleAddAgendaItem} disabled={!newAgendaItem.trim()}>
+                        Add
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
+
+          {/* Pre-Meeting Questions */}
+          <Collapsible open={questionsOpen} onOpenChange={setQuestionsOpen}>
+            <Card>
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <MessageSquare className="w-5 h-5" />
+                      Questions & Notes
+                      {meetingInfo?.member_questions && meetingInfo.member_questions.length > 0 && (
+                        <Badge variant="secondary" className="ml-2">
+                          {meetingInfo.member_questions.length}
+                        </Badge>
+                      )}
+                    </CardTitle>
+                    {questionsOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                   </div>
-                ) : (
-                  <p className="text-slate-500 text-xs">No questions yet. Add one below.</p>
-                )}
-              </ScrollArea>
-              
-              <div className="mt-2 flex gap-2">
-                <Textarea
-                  placeholder="Add a question..."
-                  value={newQuestion}
-                  onChange={(e) => setNewQuestion(e.target.value)}
-                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500 min-h-[50px] resize-none text-xs"
-                />
-                <Button 
-                  size="icon" 
-                  onClick={handleAddQuestion}
-                  disabled={isAddingQuestion || !newQuestion.trim()}
-                  className="self-end h-8 w-8"
-                >
-                  {isAddingQuestion ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
-                </Button>
-              </div>
-            </div>
-          </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent className="space-y-4">
+                  {/* Existing questions */}
+                  {meetingInfo?.member_questions && meetingInfo.member_questions.length > 0 && (
+                    <div className="space-y-2">
+                      {meetingInfo.member_questions.map((q) => (
+                        <div key={q.id} className="p-3 bg-muted/50 rounded-lg">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant="outline" className="text-xs">{q.author}</Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {format(new Date(q.created_at), "MMM d, h:mm a")}
+                            </span>
+                          </div>
+                          <p className="text-sm">{q.text}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Add new question */}
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add a question or note..."
+                      value={newQuestion}
+                      onChange={(e) => setNewQuestion(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleAddQuestion()}
+                    />
+                    <Button onClick={handleAddQuestion} disabled={isAddingQuestion || !newQuestion.trim()}>
+                      {isAddingQuestion ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Your questions will be visible to all participants.
+                  </p>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
+
+          {/* Personal Notes */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                My Notes
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                placeholder="Add your personal notes for this meeting..."
+                value={personalNotes}
+                onChange={(e) => setPersonalNotes(e.target.value)}
+                rows={4}
+                className="resize-none"
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                Notes are saved locally and visible only to you.
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
