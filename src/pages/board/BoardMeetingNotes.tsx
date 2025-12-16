@@ -5,6 +5,7 @@ import { format, parseISO } from "date-fns";
 import { Plus, Calendar, ChevronDown, ChevronUp, Sparkles, Download, Lock, Play, Pause, RotateCcw, Clock, MessageSquare, Send, Trash2, LogOut, Video, Users, ArrowRight, RefreshCw, PanelLeftClose, PanelLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useTenant } from "@/contexts/TenantContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -108,6 +109,7 @@ export default function BoardMeetingNotes() {
   const queryClient = useQueryClient();
   const location = useLocation();
   const { user, loading: authLoading } = useAuth();
+  const { activeTenantId, isLoading: tenantLoading } = useTenant();
   const [selectedNote, setSelectedNote] = useState<MeetingNote | null>(null);
   const [memoOpen, setMemoOpen] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -236,11 +238,19 @@ export default function BoardMeetingNotes() {
   };
 
   const { data: notes = [], isLoading, refetch } = useQuery({
-    queryKey: ["board-meeting-notes", user?.id],
+    queryKey: ["board-meeting-notes", activeTenantId, user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("board_meeting_notes")
-        .select("*")
+        .select("*");
+      
+      // Filter by tenant if available (board_meeting_notes may not have tenant_id column yet)
+      // Uncomment once tenant_id column is added to board_meeting_notes:
+      // if (activeTenantId) {
+      //   query = query.eq("tenant_id", activeTenantId);
+      // }
+      
+      const { data, error } = await query
         .order("meeting_date", { ascending: false })
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -263,15 +273,15 @@ export default function BoardMeetingNotes() {
         ai_agenda_recap_draft: Array.isArray(note.ai_agenda_recap_draft) ? note.ai_agenda_recap_draft : [],
       })) as MeetingNote[];
     },
-    enabled: !!user && !authLoading,
+    enabled: !!user?.id && !!activeTenantId && !authLoading && !tenantLoading,
   });
 
   // Refetch on route focus/navigation
   useEffect(() => {
-    if (user && !authLoading) {
+    if (user && activeTenantId && !authLoading && !tenantLoading) {
       refetch();
     }
-  }, [location.pathname, user, authLoading]);
+  }, [location.pathname, user, activeTenantId, authLoading, tenantLoading]);
 
   // Update selected note when notes change
   useEffect(() => {
@@ -318,7 +328,7 @@ export default function BoardMeetingNotes() {
       return { meeting: data, agendaNotes: formData.agenda_notes };
     },
     onSuccess: async ({ meeting, agendaNotes }) => {
-      queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", activeTenantId] });
       const typedMeeting = {
         ...meeting,
         duration_minutes: (meeting as any).duration_minutes || 45,
@@ -421,7 +431,7 @@ export default function BoardMeetingNotes() {
       }
       
       // Refresh the meetings list
-      await queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", user?.id] });
+      await queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", activeTenantId] });
       toast.success("AI generated agenda, memo, and decision matrix");
     } catch (error) {
       console.error("AI generation failed:", error);
@@ -456,7 +466,7 @@ export default function BoardMeetingNotes() {
     );
     
     // Optimistic update - immediately update local state
-    queryClient.setQueryData(["board-meeting-notes", user?.id], (oldNotes: MeetingNote[] | undefined) => 
+    queryClient.setQueryData(["board-meeting-notes", activeTenantId, user?.id], (oldNotes: MeetingNote[] | undefined) => 
       oldNotes?.map(n => n.id === noteId ? { ...n, agenda_items: updatedItems } : n)
     );
     
@@ -467,7 +477,7 @@ export default function BoardMeetingNotes() {
     
     if (error) {
       // Revert on error
-      queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", activeTenantId] });
       toast.error("Failed to update agenda item");
     }
   };
@@ -494,7 +504,7 @@ export default function BoardMeetingNotes() {
     }
     
     setNewAgendaItem("");
-    queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", user?.id] });
+    queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", activeTenantId] });
     toast.success("Agenda item added");
   };
 
@@ -525,7 +535,7 @@ export default function BoardMeetingNotes() {
       
       if (updateError) throw updateError;
       
-      queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", activeTenantId] });
       setGenerateAgendaNotes("");
       toast.success("AI generated agenda, memo, and decision matrix");
     } catch (error) {
@@ -564,7 +574,7 @@ export default function BoardMeetingNotes() {
     }
     
     setNewQuestion("");
-    queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", user?.id] });
+    queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", activeTenantId] });
     toast.success("Question saved");
   };
 
@@ -581,7 +591,7 @@ export default function BoardMeetingNotes() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", activeTenantId] });
     },
   });
 
@@ -622,7 +632,7 @@ export default function BoardMeetingNotes() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", activeTenantId] });
       toast.success("Meeting completed and decisions summary generated");
     },
     onError: (error: Error) => {
@@ -645,7 +655,7 @@ export default function BoardMeetingNotes() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", activeTenantId] });
       if (selectedNote) setSelectedNote(null);
       toast.success("Meeting deleted");
     },
@@ -696,7 +706,7 @@ export default function BoardMeetingNotes() {
       startAudioCapture();
     }
     
-    queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", user?.id] });
+    queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", activeTenantId] });
   };
 
   // Handle adding question from WaitingForHostScreen
@@ -724,7 +734,7 @@ export default function BoardMeetingNotes() {
       return;
     }
     
-    queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", user?.id] });
+    queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", activeTenantId] });
     toast.success("Question added");
   };
 
@@ -751,7 +761,7 @@ export default function BoardMeetingNotes() {
       return;
     }
     
-    queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", user?.id] });
+    queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", activeTenantId] });
     toast.success("Agenda item suggested");
   };
 
@@ -796,7 +806,7 @@ export default function BoardMeetingNotes() {
       .update({ status: "upcoming" })
       .eq("id", selectedNote.id);
     
-    queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", user?.id] });
+    queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", activeTenantId] });
     toast.success("Exited meeting - status reset to upcoming");
   };
 
@@ -833,7 +843,7 @@ export default function BoardMeetingNotes() {
     // 4. Mark meeting completed using host hook (sets ended_at + status)
     await endMeetingAsHost();
     
-    queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", user?.id] });
+    queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", activeTenantId] });
   };
 
   const handleReviewDecisions = () => {
@@ -879,14 +889,14 @@ export default function BoardMeetingNotes() {
   const upcomingMeetings = notes.filter(n => n.status === "upcoming" || n.status === "active");
   const completedMeetings = notes.filter(n => n.status === "completed");
 
-  // Show loading state while auth or data is loading
-  if (authLoading || isLoading) {
+  // Show loading state while auth, tenant, or data is loading
+  if (authLoading || tenantLoading || isLoading) {
     return (
       <div className="space-y-6">
         <BoardPageHeader title="Meeting Notes" subtitle="Board meeting agendas, memos, and decisions" />
         <div className="flex items-center justify-center h-64">
           <div className="animate-pulse text-muted-foreground">
-            {authLoading ? "Authenticating..." : "Loading meetings..."}
+            {authLoading ? "Authenticating..." : tenantLoading ? "Loading workspace..." : "Loading meetings..."}
           </div>
         </div>
       </div>
