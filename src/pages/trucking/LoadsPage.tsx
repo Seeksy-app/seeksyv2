@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit, Trash2, MapPin, Check, Copy, CheckCircle2, Truck, Flag, Phone, MoreHorizontal, Calculator, Loader2, Archive, ArchiveRestore, Clock } from "lucide-react";
+import { Plus, Edit, Trash2, MapPin, Check, Copy, CheckCircle2, Truck, Flag, Phone, MoreHorizontal, Calculator, Loader2, Archive, ArchiveRestore, Clock, Upload } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,6 +38,7 @@ import { useTruckingRecentValues } from "@/hooks/useTruckingRecentValues";
 import { useTruckingFieldLabels } from "@/hooks/useTruckingFieldLabels";
 import { formatPhoneNumber } from "@/utils/phoneFormat";
 import AddLoadModal from "@/components/trucking/AddLoadModal";
+import { LoadCSVUploadForm } from "@/components/trucking/LoadCSVUploadForm";
 
 const US_STATES = [
   "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL",
@@ -1617,6 +1618,10 @@ export default function LoadsPage() {
             Archived
             <Badge variant="secondary">{archivedLoads.length}</Badge>
           </TabsTrigger>
+          <TabsTrigger value="import" className="gap-2">
+            <Upload className="h-4 w-4" />
+            Import CSV
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="open">
@@ -1673,6 +1678,10 @@ export default function LoadsPage() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="import">
+          <LoadCSVUploadForm onUploadSuccess={() => { fetchLoads(); setActiveTab("open"); }} />
         </TabsContent>
       </Tabs>
 
