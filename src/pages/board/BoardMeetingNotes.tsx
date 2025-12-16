@@ -450,13 +450,20 @@ export default function BoardMeetingNotes() {
       i === itemIndex ? { ...item, checked: !item.checked } : item
     );
     
+    // Optimistic update - immediately update local state
+    queryClient.setQueryData(["board-meeting-notes"], (oldNotes: MeetingNote[] | undefined) => 
+      oldNotes?.map(n => n.id === noteId ? { ...n, agenda_items: updatedItems } : n)
+    );
+    
     const { error } = await supabase
       .from("board_meeting_notes")
       .update({ agenda_items: updatedItems as unknown as any })
       .eq("id", noteId);
     
-    if (!error) {
+    if (error) {
+      // Revert on error
       queryClient.invalidateQueries({ queryKey: ["board-meeting-notes"] });
+      toast.error("Failed to update agenda item");
     }
   };
 
@@ -1339,34 +1346,7 @@ export default function BoardMeetingNotes() {
                   meetingId={selectedNote.id}
                   isHost={isHost}
                   onMediaPlayStateChange={handleMediaPlayStateChange}
-                >
-                  {/* Agenda content passed as children */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Agenda</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {selectedNote.agenda_items.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">No agenda items.</p>
-                      ) : (
-                        <div className="space-y-3">
-                          {selectedNote.agenda_items.map((item, i) => (
-                            <div key={i} className="flex items-start gap-3 group">
-                              <Checkbox
-                                checked={item.checked}
-                                onCheckedChange={() => toggleAgendaItem(selectedNote.id, i)}
-                                className="mt-0.5"
-                              />
-                              <span className={`text-sm flex-1 ${item.checked ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-                                {i + 1}. {item.text}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </HostMeetingTabs>
+                />
               )}
 
               {isGenerating && (
@@ -1437,19 +1417,27 @@ export default function BoardMeetingNotes() {
                     <p className="text-sm text-muted-foreground">No agenda items yet. Add items manually or use AI to generate from notes.</p>
                   ) : (
                     <div className="space-y-3">
-                      {selectedNote.agenda_items.map((item, i) => (
-                        <div key={i} className="flex items-start gap-3 group">
-                          <Checkbox
-                            checked={item.checked}
-                            onCheckedChange={() => toggleAgendaItem(selectedNote.id, i)}
-                            className="mt-0.5"
-                            disabled={selectedNote.status === 'completed' || (selectedNote.status === 'active' && !isHost)}
-                          />
-                          <span className={`text-sm flex-1 ${item.checked ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-                            {i + 1}. {item.text}
-                          </span>
-                        </div>
-                      ))}
+                      {selectedNote.agenda_items.map((item, i) => {
+                        const isDisabled = selectedNote.status === 'completed' || (selectedNote.status === 'active' && !isHost);
+                        const checkboxId = `agenda-checkbox-${selectedNote.id}-${i}`;
+                        return (
+                          <div key={`agenda-${selectedNote.id}-${i}`} className="flex items-start gap-3 group">
+                            <Checkbox
+                              id={checkboxId}
+                              checked={item.checked}
+                              onCheckedChange={() => toggleAgendaItem(selectedNote.id, i)}
+                              className="mt-0.5"
+                              disabled={isDisabled}
+                            />
+                            <label 
+                              htmlFor={checkboxId}
+                              className={`text-sm flex-1 ${item.checked ? 'line-through text-muted-foreground' : 'text-foreground'} ${isDisabled ? 'cursor-default' : 'cursor-pointer'}`}
+                            >
+                              {i + 1}. {item.text}
+                            </label>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                   

@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
-  ListChecks, 
   MonitorPlay, 
   Film, 
   StickyNote,
@@ -22,7 +21,6 @@ interface HostMeetingTabsProps {
   meetingId: string;
   isHost: boolean;
   onMediaPlayStateChange?: (isPlaying: boolean) => void;
-  children?: React.ReactNode; // Agenda content
 }
 
 interface WhiteboardBlock {
@@ -37,9 +35,8 @@ export function HostMeetingTabs({
   meetingId, 
   isHost, 
   onMediaPlayStateChange,
-  children 
 }: HostMeetingTabsProps) {
-  const [activeTab, setActiveTab] = useState("agenda");
+  const [activeTab, setActiveTab] = useState("screen");
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
   const [isMediaPlaying, setIsMediaPlaying] = useState(false);
@@ -121,7 +118,6 @@ export function HostMeetingTabs({
     // Non-host view - show what host is presenting
     return (
       <div className="space-y-4">
-        {children}
         {isScreenSharing && (
           <Card>
             <CardContent className="p-6 text-center">
@@ -136,11 +132,7 @@ export function HostMeetingTabs({
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="grid w-full grid-cols-4">
-        <TabsTrigger value="agenda" className="flex items-center gap-1">
-          <ListChecks className="w-4 h-4" />
-          <span className="hidden sm:inline">Agenda</span>
-        </TabsTrigger>
+      <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="screen" className="flex items-center gap-1">
           <MonitorPlay className="w-4 h-4" />
           <span className="hidden sm:inline">Screen</span>
@@ -156,10 +148,6 @@ export function HostMeetingTabs({
           <span className="hidden sm:inline">Notes</span>
         </TabsTrigger>
       </TabsList>
-
-      <TabsContent value="agenda" className="mt-4">
-        {children}
-      </TabsContent>
 
       <TabsContent value="screen" className="mt-4">
         <Card>
