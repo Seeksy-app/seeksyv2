@@ -30607,6 +30607,7 @@ export type Database = {
         | "cmo"
         | "cco"
         | "ad_manager"
+        | "board_admin"
       award_program_status:
         | "draft"
         | "nominations_open"
@@ -30802,6 +30803,7 @@ export const Constants = {
         "cmo",
         "cco",
         "ad_manager",
+        "board_admin",
       ],
       award_program_status: [
         "draft",
