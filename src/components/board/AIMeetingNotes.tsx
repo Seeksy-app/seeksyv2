@@ -75,7 +75,11 @@ export const AIMeetingNotes: React.FC<AIMeetingNotesProps> = ({
     if (aiDecisions && aiDecisions.length > 0) {
       content += "## Decisions\n";
       aiDecisions.forEach((d: any, i) => {
-        content += `${i + 1}. ${d.decision || d}\n`;
+        const text = typeof d === 'string' ? d : (d.statement || d.decision || JSON.stringify(d));
+        content += `${i + 1}. ${text}`;
+        if (d.owner) content += ` (Owner: ${d.owner})`;
+        if (d.status) content += ` [${d.status}]`;
+        content += "\n";
       });
       content += "\n";
     }
@@ -159,12 +163,26 @@ export const AIMeetingNotes: React.FC<AIMeetingNotesProps> = ({
               Decisions Made
             </h4>
             <ul className="space-y-2">
-              {aiDecisions.map((decision: any, i) => (
-                <li key={i} className="flex items-start gap-2 bg-background/50 rounded-lg p-3 text-sm">
-                  <span className="text-green-600 font-medium">{i + 1}.</span>
-                  <span className="text-muted-foreground">{decision.decision || decision}</span>
-                </li>
-              ))}
+              {aiDecisions.map((decision: any, i) => {
+                const text = typeof decision === 'string' ? decision : (decision.statement || decision.decision || '');
+                return (
+                  <li key={i} className="bg-background/50 rounded-lg p-3 text-sm">
+                    <div className="flex items-start gap-2">
+                      <span className="text-green-600 font-medium">{i + 1}.</span>
+                      <div className="flex-1">
+                        <p className="text-foreground">{text}</p>
+                        {(decision.owner || decision.status || decision.notes) && (
+                          <div className="flex gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
+                            {decision.owner && <span>Owner: <strong>{decision.owner}</strong></span>}
+                            {decision.status && <span>Status: <strong>{decision.status}</strong></span>}
+                            {decision.notes && <span className="text-muted-foreground/70 italic">{decision.notes}</span>}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}
