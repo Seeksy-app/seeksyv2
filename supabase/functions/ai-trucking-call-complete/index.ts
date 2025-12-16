@@ -30,6 +30,10 @@ serve(async (req) => {
     // Extract ALL possible fields - everything is OPTIONAL except we try to get call_outcome
     const params = body.parameters || body;
     const {
+      // OWNER ID - can be passed directly from ElevenLabs agent config
+      owner_id: direct_owner_id,
+      user_id,
+      account_id,
       // Call outcome fields
       call_outcome,
       outcome,
@@ -83,10 +87,13 @@ serve(async (req) => {
     }
 
     // Try to get owner_id and load_id
-    let owner_id = null;
+    // Priority: 1) Direct param, 2) From lead, 3) From recent lead by phone, 4) Fallback from loads
+    let owner_id = direct_owner_id || user_id || account_id || null;
     let actualLoadId = load_id || null;
     
-    // 1. Check if lead was created in this call
+    console.log('Direct owner_id from params:', owner_id);
+    
+    // 1. Check if lead was created in this call (also use to get owner if not passed)
     if (lead_id) {
       const { data: lead } = await supabase
         .from('trucking_carrier_leads')
@@ -95,9 +102,9 @@ serve(async (req) => {
         .maybeSingle();
       
       if (lead) {
-        owner_id = lead.owner_id;
+        owner_id = owner_id || lead.owner_id;
         actualLoadId = actualLoadId || lead.load_id;
-        console.log('Found lead:', lead_id);
+        console.log('Found lead:', lead_id, 'owner:', lead.owner_id);
       }
     }
     

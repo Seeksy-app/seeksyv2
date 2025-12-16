@@ -27,6 +27,11 @@ serve(async (req) => {
     
     // Extract all possible fields - accept multiple phone field names
     const { 
+      // OWNER ID - can be passed directly from ElevenLabs agent config
+      owner_id: direct_owner_id,
+      user_id,
+      account_id,
+      // Load identification
       load_id,
       load_number,
       company_name,
@@ -81,7 +86,9 @@ serve(async (req) => {
     
     // Find the load - check if it's a UUID or load_number
     let actualLoadId = null;
-    let owner_id = null;
+    // Use direct owner_id first if passed
+    let owner_id = direct_owner_id || user_id || account_id || null;
+    console.log('Direct owner_id from params:', owner_id);
     
     if (searchLoadIdentifier) {
       // Check if it's a valid UUID (36 chars with dashes)
@@ -98,7 +105,7 @@ serve(async (req) => {
         
         if (loadData) {
           actualLoadId = loadData.id;
-          owner_id = loadData.owner_id;
+          owner_id = owner_id || loadData.owner_id; // Keep direct owner_id if provided
           console.log('Found load by UUID:', loadData);
         } else {
           console.log('Load not found by UUID:', searchLoadIdentifier, loadError?.message);
@@ -117,7 +124,7 @@ serve(async (req) => {
         
         if (loadData) {
           actualLoadId = loadData.id;
-          owner_id = loadData.owner_id;
+          owner_id = owner_id || loadData.owner_id; // Keep direct owner_id if provided
           console.log('Found load by load_number:', loadData);
         } else {
           console.log('Load not found by load_number:', normalizedLoadNumber, loadError?.message);
