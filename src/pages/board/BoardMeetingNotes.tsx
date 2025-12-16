@@ -459,6 +459,12 @@ export default function BoardMeetingNotes() {
       
       // Refresh the meetings list
       await queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", activeTenantId] });
+      
+      // Sync decision_table to board_decisions table
+      if (data.decisions && data.decisions.length > 0) {
+        await syncDecisionTableToBoardDecisions(meetingId, data.decisions);
+      }
+      
       toast.success("AI generated agenda, memo, and decision matrix");
     } catch (error) {
       console.error("AI generation failed:", error);
@@ -467,6 +473,61 @@ export default function BoardMeetingNotes() {
       setIsGenerating(false);
     }
   };
+
+  // Sync decision_table JSON to board_decisions table
+  const syncDecisionTableToBoardDecisions = async (meetingId: string, decisionTable: DecisionRow[]) => {
+    if (!decisionTable || decisionTable.length === 0) return;
+    
+    try {
+      // Check if decisions already exist for this meeting
+      const { data: existingDecisions } = await supabase
+        .from("board_decisions")
+        .select("id, topic")
+        .eq("meeting_id", meetingId);
+      
+      // Only sync if no decisions exist yet
+      if (existingDecisions && existingDecisions.length > 0) {
+        console.log("Board decisions already exist, skipping sync");
+        return;
+      }
+      
+      // Create board_decisions from decision_table
+      const decisionsToInsert = decisionTable.map(row => ({
+        meeting_id: meetingId,
+        tenant_id: 'a0000000-0000-0000-0000-000000000001', // Platform tenant
+        topic: row.Topic || 'Untitled Decision',
+        options_json: {
+          option_summary: row.Option || '',
+          upside: row.Upside || '',
+          risk: row.Risk || '',
+          status: 'open',
+          owner_name: '',
+        },
+        decision: row.Decision || null,
+      }));
+      
+      const { error } = await supabase
+        .from("board_decisions")
+        .insert(decisionsToInsert);
+      
+      if (error) {
+        console.error("Failed to sync decisions:", error);
+      } else {
+        console.log(`Synced ${decisionsToInsert.length} decisions to board_decisions`);
+        // Invalidate the board-decisions query to refresh the table
+        queryClient.invalidateQueries({ queryKey: ["board-decisions", meetingId] });
+      }
+    } catch (err) {
+      console.error("Error syncing decisions:", err);
+    }
+  };
+
+  // Auto-sync decision_table to board_decisions when meeting is selected
+  useEffect(() => {
+    if (selectedNote?.id && selectedNote.decision_table && selectedNote.decision_table.length > 0) {
+      syncDecisionTableToBoardDecisions(selectedNote.id, selectedNote.decision_table);
+    }
+  }, [selectedNote?.id]);
 
   const handleCreateMeeting = () => {
     if (!createForm.title.trim()) {
@@ -942,8 +1003,8 @@ export default function BoardMeetingNotes() {
     );
   }
 
-  // Check if we're in focus mode (active meeting)
-  const isFocusMode = selectedNote?.status === 'active';
+  // Check if we're in focus mode (when video is actually connected, not just status)
+  const isFocusMode = isVideoConnected;
 
   return (
     <div className={isFocusMode ? "space-y-2" : "space-y-6"}>
@@ -1297,7 +1358,7 @@ export default function BoardMeetingNotes() {
                           ) : (
                             <Button size="sm" onClick={startMeeting}>
                               <Play className="w-4 h-4 mr-2" />
-                              Start Meeting
+                              Start Recording
                             </Button>
                           )
                         )}
@@ -1381,10 +1442,13 @@ export default function BoardMeetingNotes() {
                       </div>
                     )}
 
-                    <Button variant="outline" size="sm" onClick={() => exportToPdf(selectedNote)}>
-                      <Download className="w-4 h-4 mr-2" />
-                      Export PDF
-                    </Button>
+                    {/* Hide Export PDF during active meetings to save space */}
+                    {selectedNote.status !== 'active' && (
+                      <Button variant="outline" size="sm" onClick={() => exportToPdf(selectedNote)}>
+                        <Download className="w-4 h-4 mr-2" />
+                        Export PDF
+                      </Button>
+                    )}
                   </div>
                 </CardHeader>
               </Card>
