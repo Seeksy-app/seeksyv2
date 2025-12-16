@@ -302,11 +302,23 @@ serve(async (req: Request): Promise<Response> => {
                 <div class="meeting-detail"><strong>Duration:</strong> ${meeting.duration_minutes || 60} minutes</div>
               </div>
               
-              <div class="buttons">
+              <div class="info-box">
+                <strong>Before the meeting:</strong>
+                You can review the agenda, add questions, and prepare notes before the meeting begins. All changes are saved automatically.
+              </div>
+              
+              <div class="tutorial-link">
+                <a href="${tutorialUrl}">📺 Watch a 2-minute walkthrough</a>
+                <p>Learn how to use the agenda, notes, decisions, and AI summaries.</p>
+              </div>
+              
+              <div style="margin: 28px 0; text-align: center;">
+                <img src="https://images.unsplash.com/photo-1484406566174-9da000fda645?w=520&h=290&fit=crop&auto=format" alt="Deer at sunrise" style="width: 100%; max-width: 520px; border-radius: 12px; margin-bottom: 20px;" />
+              </div>
+              
+              <div class="buttons" style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
                 <a href="${joinUrl}" class="btn-primary">Join Meeting</a>
-                <span class="btn-divider">or</span>
-                <a href="${agendaUrl}" class="btn-secondary">Review Agenda</a>
-                <p class="login-note">Agenda requires Board login</p>
+                <a href="${joinUrl}" class="btn-secondary">Review Agenda</a>
               </div>
               
               <div class="calendar-options">
@@ -320,16 +332,6 @@ serve(async (req: Request): Promise<Response> => {
                   </a>
                 </div>
                 <p class="ics-note">Or download the attached .ics file for Apple Calendar / other apps</p>
-              </div>
-              
-              <div class="info-box">
-                <strong>Before the meeting:</strong>
-                You can review the agenda, add questions, and prepare notes before the meeting begins. All changes are saved automatically.
-              </div>
-              
-              <div class="tutorial-link">
-                <a href="${tutorialUrl}">📺 Watch a 2-minute walkthrough</a>
-                <p>Learn how to use the agenda, notes, decisions, and AI summaries.</p>
               </div>
               
               <div class="footer">
