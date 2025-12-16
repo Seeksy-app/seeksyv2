@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "react-router-dom";
 import { format, parseISO } from "date-fns";
-import { Plus, Calendar, ChevronDown, ChevronUp, Sparkles, Download, Lock, Play, Pause, RotateCcw, Clock, MessageSquare, Send, Trash2, LogOut, Video, Users, ArrowRight, RefreshCw, PanelLeftClose, PanelLeft } from "lucide-react";
+import { Plus, Calendar, ChevronDown, ChevronUp, Sparkles, Download, Lock, Play, Pause, RotateCcw, Clock, MessageSquare, Send, Trash2, LogOut, Video, Users, ArrowRight, RefreshCw, PanelLeftClose, PanelLeft, Square } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTenant } from "@/contexts/TenantContext";
@@ -899,6 +899,16 @@ export default function BoardMeetingNotes() {
     toast.success("Exited meeting - status reset to upcoming");
   };
 
+  // Stop Recording ONLY - does NOT end the call, meeting continues
+  const handleStopRecordingOnly = async () => {
+    if (!selectedNote) return;
+    
+    if (isCapturingAudio) {
+      await stopAIAndGenerateNotes();
+      toast.success("Recording stopped. AI notes are being generated. Meeting continues.");
+    }
+  };
+
   const handleEndMeetingWithGuardrail = async () => {
     if (!selectedNote) return;
     
@@ -915,7 +925,7 @@ export default function BoardMeetingNotes() {
   const performEndMeeting = async () => {
     if (!selectedNote) return;
     
-    // 1. Stop AI capture if running
+    // 1. Stop AI capture if still running
     if (isCapturingAudio) {
       await stopAIAndGenerateNotes();
     }
@@ -1407,9 +1417,15 @@ export default function BoardMeetingNotes() {
                                 {navCollapsed ? <PanelLeft className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
                               </Button>
                             )}
+                            {isCapturingAudio && (
+                              <Button variant="secondary" size="sm" onClick={handleStopRecordingOnly}>
+                                <Square className="w-4 h-4 mr-2" />
+                                Stop Recording
+                              </Button>
+                            )}
                             <Button variant="destructive" size="sm" onClick={handleEndMeetingWithGuardrail}>
                               <LogOut className="w-4 h-4 mr-2" />
-                              Stop Recording
+                              End Call
                             </Button>
                           </>
                         )}
