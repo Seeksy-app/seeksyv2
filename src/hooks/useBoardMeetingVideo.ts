@@ -164,36 +164,63 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
         setIsMuted(!p.audio);
         setIsVideoOff(!p.video);
         
-        // Update local video
-        if (localVideoRef.current && p.tracks?.video?.track) {
-          const stream = new MediaStream([p.tracks.video.track]);
-          localVideoRef.current.srcObject = stream;
+        // Update local video - only set if track exists
+        if (localVideoRef.current) {
+          if (p.tracks?.video?.track) {
+            const stream = new MediaStream([p.tracks.video.track]);
+            localVideoRef.current.srcObject = stream;
+            localVideoRef.current.play().catch(e => console.log('Local video play error:', e));
+          } else if (!p.video) {
+            // Clear srcObject when video is explicitly off
+            localVideoRef.current.srcObject = null;
+          }
         }
       } else {
         setParticipants(prev => prev.map(participant =>
           participant.id === p.session_id
-            ? { ...participant, isVideoOff: !p.video, isMuted: !p.audio }
+            ? { 
+                ...participant, 
+                isVideoOff: !p.video, 
+                isMuted: !p.audio,
+                videoTrack: p.tracks?.video?.track || undefined,
+              }
             : participant
         ));
       }
     });
 
-    // Handle screen share track events
+    // Handle video track events (camera + screen share)
     daily.on('track-started', (event: any) => {
       console.log('Track started:', event);
       if (event?.track?.kind === 'video' && event?.participant) {
-        // Check if this is a screen share track (not camera)
         const trackType = event.type || '';
+        
+        // Handle screen share
         if (trackType === 'screenVideo' || event.participant?.tracks?.screenVideo?.track === event.track) {
           console.log('Screen share started by:', event.participant.user_name);
           setScreenShareTrack(event.track);
           setScreenShareParticipantId(event.participant.session_id);
           
-          // Attach to video element
           if (screenShareRef.current) {
             const stream = new MediaStream([event.track]);
             screenShareRef.current.srcObject = stream;
           }
+        }
+        // Handle local camera video (when toggled back on)
+        else if (event.participant.local && localVideoRef.current) {
+          console.log('Local camera video track started');
+          const stream = new MediaStream([event.track]);
+          localVideoRef.current.srcObject = stream;
+          localVideoRef.current.play().catch(e => console.log('Local video play error:', e));
+        }
+        // Handle remote participant camera video
+        else if (!event.participant.local) {
+          const participantId = event.participant.session_id;
+          setParticipants(prev => prev.map(p => 
+            p.id === participantId 
+              ? { ...p, videoTrack: event.track, isVideoOff: false }
+              : p
+          ));
         }
       }
     });
