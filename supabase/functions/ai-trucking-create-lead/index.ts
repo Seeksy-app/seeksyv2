@@ -12,6 +12,7 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // ALWAYS return 200 with ok: true/false - never 500
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -24,17 +25,19 @@ serve(async (req) => {
     // ElevenLabs sends parameters at top level OR nested
     const params = body.parameters || body;
     
-    // Extract all possible fields from your ElevenLabs config
+    // Extract all possible fields - accept multiple phone field names
     const { 
-      load_id,           // From your config (required)
-      load_number,       // Alternative name
-      company_name,      // Required in your config
-      rate_offered,      // Required in your config  
-      contact_number,    // From your config
+      load_id,
+      load_number,
+      company_name,
+      rate_offered,
+      // Accept ALL variations of phone field names
+      callback_phone,    // PM preferred name
+      contact_number,    // ElevenLabs config name
+      phone,             // Alternative
+      // Other fields
       mc_number,
-      phone,
-      action,           // Constant value from your config
-      // Legacy fields for backwards compatibility
+      action,
       dot_number,
       contact_name,
       email,
@@ -48,25 +51,27 @@ serve(async (req) => {
       load_number,
       company_name, 
       rate_offered, 
+      callback_phone,
       contact_number, 
-      mc_number, 
       phone,
+      mc_number, 
       action 
     });
 
-    // Use contact_number or phone from ElevenLabs
-    const phoneValue = contact_number || phone;
+    // Map any phone field to one value - callback_phone takes priority
+    const phoneValue = callback_phone || contact_number || phone;
 
-    // CRITICAL: Phone number is REQUIRED
-    // If MC is missing, phone becomes mandatory for lead creation
+    // CRITICAL: Phone number is REQUIRED (MC is optional)
     if (!phoneValue) {
       console.error('Phone number is REQUIRED for lead creation');
       return new Response(JSON.stringify({
+        ok: false,
         success: false,
+        error: "callback_phone is required",
         requires_phone: true,
         message: "I need a callback number to proceed. What's the best number to reach you at?"
       }), {
-        status: 400,
+        status: 200, // Always 200
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
@@ -84,7 +89,6 @@ serve(async (req) => {
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(searchLoadIdentifier);
       
       if (isUUID) {
-        // Search by UUID directly
         console.log('Searching for load by UUID:', searchLoadIdentifier);
         const { data: loadData, error: loadError } = await supabase
           .from('trucking_loads')
@@ -143,9 +147,9 @@ serve(async (req) => {
       owner_id,
       load_id: actualLoadId,
       company_name: company_name || null,
-      mc_number: mc_number || null, // MC is nullable - don't fail if missing
+      mc_number: mc_number || null, // MC is optional
       dot_number: dot_number || null,
-      contact_name: contact_name || company_name || null, // Use company_name as fallback
+      contact_name: contact_name || company_name || null,
       phone: phoneValue, // REQUIRED
       email: email || null,
       truck_type: truck_type || null,
@@ -156,7 +160,7 @@ serve(async (req) => {
       is_confirmed: false,
       requires_callback: true,
       call_source: 'inbound',
-      mc_pending: !mc_number // Flag if MC needs to be collected on callback
+      mc_pending: !mc_number
     };
     
     console.log('Creating lead with data:', JSON.stringify(leadData, null, 2));
@@ -170,18 +174,19 @@ serve(async (req) => {
     if (error) {
       console.error('Database error:', error);
       return new Response(JSON.stringify({
+        ok: false,
         success: false,
-        message: "Error creating lead",
-        error: error.message
+        error: error.message,
+        message: "I couldn't save that lead. Let me get your callback number again."
       }), {
-        status: 500,
+        status: 200, // Always 200
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
     console.log('Lead created successfully:', lead.id);
 
-    // Build response message based on what info we have
+    // Build response message
     let responseMessage = `Great! I've recorded your interest`;
     if (actualLoadId) {
       responseMessage += ` in the load`;
@@ -193,24 +198,29 @@ serve(async (req) => {
     responseMessage += `. Is there anything else I can help you with?`;
 
     return new Response(JSON.stringify({
+      ok: true,
       success: true,
       message: responseMessage,
       lead_id: lead.id,
       mc_collected: !!mc_number,
       phone_collected: true
     }), {
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 
   } catch (error: unknown) {
     console.error('Error in ai-trucking-create-lead:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
+    // Never return 500 - always 200 with ok: false
     return new Response(JSON.stringify({
+      ok: false,
       success: false,
-      message: "An error occurred while creating the lead",
-      error: errorMessage
+      error: errorMessage,
+      message: "I ran into a technical issue. Let me confirm your callback number so our broker can reach you."
     }), {
-      status: 500,
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }

@@ -12,40 +12,14 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // This endpoint ALWAYS logs the call - never fail silently
+  // This endpoint ALWAYS returns 200 and ALWAYS logs the call
+  // It must accept partial data - all fields optional
   let callLogId: string | null = null;
   let logError: string | null = null;
 
   try {
-    // Log all headers for debugging
-    const headers: Record<string, string> = {};
-    req.headers.forEach((value, key) => {
-      headers[key] = key.toLowerCase().includes('auth') || key.toLowerCase().includes('secret') 
-        ? '[REDACTED]' 
-        : value;
-    });
-    console.log('=== CALL COMPLETE WEBHOOK ===');
-    console.log('Incoming headers:', JSON.stringify(headers, null, 2));
+    console.log('=== POST CALL WEBHOOK ===');
     
-    // Validate webhook secret if configured (optional - log warning but don't block)
-    const webhookSecret = Deno.env.get('ELEVENLABS_WEBHOOK_SECRET');
-    if (webhookSecret) {
-      const signature = req.headers.get('x-elevenlabs-signature') || 
-                        req.headers.get('x-webhook-secret') ||
-                        req.headers.get('authorization');
-      
-      const isValid = signature === webhookSecret || 
-                      signature === `Bearer ${webhookSecret}` ||
-                      signature?.includes(webhookSecret);
-      
-      if (!isValid) {
-        console.warn('Webhook signature mismatch - proceeding anyway. Signature:', 
-          signature ? 'present' : 'missing');
-      } else {
-        console.log('Webhook signature validated');
-      }
-    }
-
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -53,8 +27,22 @@ serve(async (req) => {
     const body = await req.json();
     console.log('Raw body:', JSON.stringify(body, null, 2));
 
-    // ElevenLabs sends call data in various formats
+    // Extract ALL possible fields - everything is OPTIONAL except we try to get call_outcome
+    const params = body.parameters || body;
     const {
+      // Call outcome fields
+      call_outcome,
+      outcome,
+      status,
+      // Partial lead data (if lead creation failed, still capture this)
+      company_name,
+      mc_number,
+      callback_phone,
+      contact_number,
+      phone,
+      load_id,
+      notes,
+      // ElevenLabs call metadata
       conversation_id,
       call_id,
       agent_id,
@@ -65,26 +53,26 @@ serve(async (req) => {
       duration,
       duration_seconds,
       call_duration,
-      status,
-      outcome,
       transcript,
       summary,
       metadata,
       started_at,
       ended_at,
-      // Tool call results
-      collected_data,
-      tool_results,
-      // Lead info if available
+      // Lead tracking
       lead_id,
-      load_id: provided_load_id,
+      lead_status, // "created", "failed", etc.
+      lead_error,  // Error message if lead creation failed
       // Confirmation tracking
       confirmed_load_number,
       final_rate
-    } = body;
+    } = params;
 
-    // Extract phone number from various possible fields
-    const callerPhone = caller_number || phone_number || from_number || caller_id || null;
+    // Normalize call outcome - use call_outcome first, then outcome, then status
+    const callOutcome = call_outcome || outcome || status || 'completed';
+
+    // Extract phone from various possible fields
+    const callerPhone = callback_phone || contact_number || phone || 
+                        caller_number || phone_number || from_number || caller_id || null;
     
     // Calculate duration from various possible sources
     let callDuration = duration_seconds || duration || call_duration;
@@ -94,34 +82,26 @@ serve(async (req) => {
       callDuration = Math.round((end.getTime() - start.getTime()) / 1000);
     }
 
-    // Determine call outcome
-    let callOutcome = outcome || status || 'completed';
-    
-    // Mark as incomplete if phone wasn't captured and no lead was created
-    if (!callerPhone && !lead_id) {
-      callOutcome = 'incomplete_no_phone';
-    }
-
-    // Try to get owner_id and load_id from various sources
+    // Try to get owner_id and load_id
     let owner_id = null;
-    let load_id = provided_load_id || null;
+    let actualLoadId = load_id || null;
     
-    // 1. Check if lead was created in this call (most reliable)
+    // 1. Check if lead was created in this call
     if (lead_id) {
       const { data: lead } = await supabase
         .from('trucking_carrier_leads')
         .select('owner_id, load_id')
         .eq('id', lead_id)
-        .single();
+        .maybeSingle();
       
       if (lead) {
         owner_id = lead.owner_id;
-        load_id = load_id || lead.load_id;
+        actualLoadId = actualLoadId || lead.load_id;
         console.log('Found lead:', lead_id);
       }
     }
     
-    // 2. Look for recently created lead from this caller (within last 10 minutes)
+    // 2. Look for recently created lead from this caller
     if (!owner_id && callerPhone) {
       const cleanPhone = callerPhone.replace(/[^0-9]/g, '');
       const { data: recentLead } = await supabase
@@ -131,22 +111,22 @@ serve(async (req) => {
         .gte('created_at', new Date(Date.now() - 10 * 60 * 1000).toISOString())
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
       
       if (recentLead) {
         owner_id = recentLead.owner_id;
-        load_id = load_id || recentLead.load_id;
+        actualLoadId = actualLoadId || recentLead.load_id;
         console.log('Found recent lead for caller:', recentLead.id);
       }
     }
 
-    // 3. If still no owner, get default from any load
+    // 3. If still no owner, get default
     if (!owner_id) {
       const { data: anyOwner } = await supabase
         .from('trucking_loads')
         .select('owner_id')
         .limit(1)
-        .single();
+        .maybeSingle();
       
       if (anyOwner) {
         owner_id = anyOwner.owner_id;
@@ -154,26 +134,34 @@ serve(async (req) => {
       }
     }
 
+    // Build notes with partial lead data if lead creation failed
+    let callNotes = notes || '';
+    if (lead_status === 'failed' || lead_error) {
+      callNotes += `\n[Lead creation failed: ${lead_error || 'unknown error'}]`;
+      if (company_name) callNotes += `\nCompany: ${company_name}`;
+      if (mc_number) callNotes += `\nMC: ${mc_number}`;
+      if (callerPhone) callNotes += `\nCallback: ${callerPhone}`;
+    }
+
     // Build call log entry - THIS ALWAYS GETS CREATED
     const callLogData = {
       owner_id,
-      load_id,
+      load_id: actualLoadId,
       caller_number: callerPhone,
       call_started_at: started_at || new Date().toISOString(),
       call_ended_at: ended_at || new Date().toISOString(),
       duration_seconds: callDuration || 0,
       outcome: callOutcome,
       transcript: transcript || null,
-      ai_summary: summary || null,
+      ai_summary: summary || callNotes || null,
       elevenlabs_conversation_id: conversation_id || call_id || null,
       is_demo: false,
       total_characters: transcript ? transcript.length : null,
       estimated_cost_usd: null,
-      // Additional tracking fields
       confirmed_load_number: confirmed_load_number || null,
-      final_rate: final_rate || null,
+      final_rate: final_rate ? parseFloat(String(final_rate).replace(/[^0-9.]/g, '')) : null,
       phone_captured: !!callerPhone,
-      lead_created: !!lead_id
+      lead_created: lead_status === 'created' || !!lead_id
     };
 
     console.log('Creating call log:', JSON.stringify(callLogData, null, 2));
@@ -182,17 +170,17 @@ serve(async (req) => {
       .from('trucking_call_logs')
       .insert(callLogData)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Database error creating call log:', error);
       logError = error.message;
-    } else {
+    } else if (callLog) {
       callLogId = callLog.id;
       console.log('Call logged successfully:', callLog.id);
 
       // Update the lead with the call_log_id if we found one
-      if (load_id && callerPhone) {
+      if (actualLoadId && callerPhone) {
         const cleanPhone = callerPhone.replace(/[^0-9]/g, '');
         await supabase
           .from('trucking_carrier_leads')
@@ -207,15 +195,15 @@ serve(async (req) => {
     logError = error instanceof Error ? error.message : 'Unknown error';
   }
 
-  // ALWAYS return success to ElevenLabs - we don't want to retry webhooks
-  // but include the actual status in the response
+  // ALWAYS return 200 with ok: true/false
   return new Response(JSON.stringify({
+    ok: !logError,
     success: !logError,
     message: logError ? `Call logged with error: ${logError}` : "Call logged successfully",
     call_log_id: callLogId,
     error: logError
   }), {
-    status: 200, // Always 200 to prevent webhook retries
+    status: 200,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' }
   });
 });
