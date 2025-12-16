@@ -55,27 +55,62 @@ async function handleLookupLoad(supabase: any, body: any) {
   
   console.log("[lookup_load] Searching for load:", { load_number, origin_city, destination_city });
 
+  // IMPORTANT: Many drivers don't speak English well and may not know the load number.
+  // They often only know the destination city. Be flexible in matching.
+  
   let query = supabase
     .from('trucking_loads')
     .select('*')
     .eq('is_active', true);
 
-  // Search by load number first
+  // Search by load number first (if provided)
   if (load_number) {
-    query = query.eq('load_number', load_number);
-  } else if (origin_city || destination_city) {
-    // Search by lane (origin/destination)
+    // Try exact match first, then partial
+    query = query.ilike('load_number', `%${load_number}%`);
+  } else if (destination_city) {
+    // Destination-only search is common for drivers shopping rates
+    query = query.ilike('destination_city', `%${destination_city}%`);
     if (origin_city) {
       query = query.ilike('origin_city', `%${origin_city}%`);
     }
-    if (destination_city) {
-      query = query.ilike('destination_city', `%${destination_city}%`);
-    }
+  } else if (origin_city) {
+    // Origin-only search
+    query = query.ilike('origin_city', `%${origin_city}%`);
   } else {
+    // No search criteria - list available loads to help driver find what they need
+    // This helps non-English speakers who might struggle to explain what they're looking for
+    const { data: availableLoads, error: listError } = await supabase
+      .from('trucking_loads')
+      .select('id, load_number, origin_city, origin_state, destination_city, destination_state, target_rate, pickup_date')
+      .eq('is_active', true)
+      .limit(5);
+    
+    if (listError || !availableLoads || availableLoads.length === 0) {
+      return new Response(
+        JSON.stringify({ 
+          found: false, 
+          message: "I don't have any loads available right now. Can I help you with something else?" 
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    // Format available loads as options for the driver
+    const loadOptions = availableLoads.map((l: any) => 
+      `${l.origin_city} to ${l.destination_city} - $${Math.round(l.target_rate || 0)}`
+    ).join('; ');
+    
     return new Response(
       JSON.stringify({ 
-        found: false, 
-        message: "Please provide a load number or origin/destination cities." 
+        found: false,
+        available_loads: availableLoads.map((l: any) => ({
+          load_id: l.id,
+          load_number: l.load_number,
+          lane: `${l.origin_city}, ${l.origin_state} to ${l.destination_city}, ${l.destination_state}`,
+          rate: Math.round(l.target_rate || 0),
+          pickup_date: l.pickup_date
+        })),
+        message: `I have a few loads available. Where are you trying to go? I have: ${loadOptions}. Just tell me the city you're heading to.`
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
@@ -86,7 +121,7 @@ async function handleLookupLoad(supabase: any, body: any) {
   if (error) {
     console.error("[lookup_load] Database error:", error);
     return new Response(
-      JSON.stringify({ found: false, message: "Error searching for loads." }),
+      JSON.stringify({ found: false, message: "I'm having trouble searching right now. Can you try again?" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
@@ -96,19 +131,45 @@ async function handleLookupLoad(supabase: any, body: any) {
     return new Response(
       JSON.stringify({ 
         found: false, 
-        message: "No loads found matching your criteria. Would you like to try a different search?" 
+        message: "I don't have any loads going there right now. What other cities are you interested in? Or do you have a load number?" 
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 
-  // Format load information for the agent
-  const load = loads[0]; // Return first match
+  // If multiple loads found, list them as options
+  if (loads.length > 1) {
+    const loadOptions = loads.map((l: any) => ({
+      load_id: l.id,
+      load_number: l.load_number,
+      lane: `${l.origin_city}, ${l.origin_state} to ${l.destination_city}, ${l.destination_state}`,
+      rate: Math.round(l.target_rate || 0),
+      pickup_date: l.pickup_date,
+      miles: l.miles
+    }));
+    
+    const optionsText = loads.map((l: any) => 
+      `Load ${l.load_number}: ${l.origin_city} to ${l.destination_city}, $${Math.round(l.target_rate || 0)}, pickup ${l.pickup_date || 'TBD'}`
+    ).join('. ');
+    
+    return new Response(
+      JSON.stringify({
+        found: true,
+        multiple_loads: true,
+        loads: loadOptions,
+        message: `I found ${loads.length} loads. ${optionsText}. Which one are you interested in? Just tell me the load number or the cities.`
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  // Single load found - provide full details
+  const load = loads[0];
   const rateText = formatRate(load);
   
-  // Calculate rate per mile if we have both values
-  const distanceMiles = load.miles || null;
-  const targetRate = load.target_rate || null;
+  // Calculate rate per mile if we have both values - round to nearest dollar
+  const distanceMiles = load.miles ? Math.round(load.miles) : null;
+  const targetRate = load.target_rate ? Math.round(load.target_rate) : null;
   let ratePerMile: number | null = null;
   if (distanceMiles && distanceMiles > 0 && targetRate && targetRate > 0) {
     ratePerMile = targetRate / distanceMiles;
@@ -132,8 +193,8 @@ async function handleLookupLoad(supabase: any, body: any) {
       miles: distanceMiles,
       rate: rateText,
       target_rate: targetRate,
-      floor_rate: load.floor_rate,
-      rate_per_mile: ratePerMile ? parseFloat(ratePerMile.toFixed(2)) : null,
+      floor_rate: load.floor_rate ? Math.round(load.floor_rate) : null,
+      rate_per_mile: ratePerMile ? Math.round(ratePerMile * 100) / 100 : null,
       notes: load.notes,
       message: buildLoadMessage(load, distanceMiles, targetRate, ratePerMile)
     }),
@@ -168,53 +229,54 @@ async function handleNegotiateRate(supabase: any, body: any) {
     );
   }
 
-  const targetRate = load.target_rate || 0;
-  const ceilingRate = load.floor_rate || targetRate; // floor_rate is the ceiling in DB
-  const INCREMENT = 25; // Always offer $25 more
+  // Round all rates to nearest dollar - never show decimals
+  const targetRate = Math.round(load.target_rate || 0);
+  const ceilingRate = Math.round(load.floor_rate || targetRate); // floor_rate is the ceiling in DB
+  const INCREMENT = 25; // Always offer $25 more when driver wants more
 
-  // Parse carrier's offer
-  const offerAmount = parseFloat(carrier_offer) || 0;
+  // Parse carrier's offer and round to nearest dollar
+  const offerAmount = Math.round(parseFloat(carrier_offer) || 0);
   
-  // Calculate our counter offer - start at target, increment by $25 toward ceiling
+  // NEGOTIATION LOGIC:
+  // 1. Start at target rate (our goal - maximize profit)
+  // 2. Counter with +$25 increments when driver wants more
+  // 3. Never go above ceiling rate
+  // 4. Accept immediately if driver accepts anything at or below ceiling
+  
   let counterOffer = targetRate;
   let shouldAccept = false;
   let message = "";
   let negotiationGuidance = "";
 
-  if (offerAmount >= targetRate) {
-    // Carrier offered at or above target - accept!
+  if (offerAmount > 0 && offerAmount <= ceilingRate) {
+    // ACCEPT - Driver accepted at or below our ceiling (any offer under ceiling is good!)
     shouldAccept = true;
     counterOffer = offerAmount;
-    message = `That rate of $${offerAmount} works for us. Let's book this load!`;
-    negotiationGuidance = "ACCEPT - Carrier met or exceeded target rate.";
-  } else if (offerAmount >= ceilingRate) {
-    // Carrier offered at or above ceiling but below target - accept
+    message = `$${offerAmount} works for us! Let's book this load right now.`;
+    negotiationGuidance = "ACCEPT - Carrier accepted at or below ceiling. Book immediately!";
+  } else if (offerAmount > ceilingRate && offerAmount <= targetRate) {
+    // ACCEPT - Driver accepted between ceiling and target (great deal for us!)
     shouldAccept = true;
     counterOffer = offerAmount;
-    message = `We can make $${offerAmount} work. Let's get this load booked.`;
-    negotiationGuidance = "ACCEPT - Carrier met ceiling rate.";
-  } else if (offerAmount > 0) {
-    // Carrier made an offer below ceiling - counter with $25 more than their offer
-    // But don't go below ceiling or above target
-    counterOffer = Math.min(offerAmount + INCREMENT, targetRate);
-    counterOffer = Math.max(counterOffer, ceilingRate); // Don't go below ceiling
-    
-    if (counterOffer <= ceilingRate) {
-      // We've hit our ceiling, this is our best offer
-      shouldAccept = false;
-      message = `The best we can do is $${ceilingRate}. That's our ceiling rate for this lane.`;
-      negotiationGuidance = `COUNTER at $${ceilingRate} (ceiling). This is our absolute minimum.`;
-    } else {
-      shouldAccept = false;
-      const difference = targetRate - offerAmount;
-      message = `I can come down a little. How about $${counterOffer}? That's $${INCREMENT} better than your offer.`;
-      negotiationGuidance = `COUNTER at $${counterOffer}. We're $${difference} below target. Room to negotiate: $${counterOffer - ceilingRate} until ceiling.`;
-    }
-  } else {
-    // No offer yet - quote target rate
+    message = `That rate of $${offerAmount} works for us. Let's get this load booked!`;
+    negotiationGuidance = "ACCEPT - Carrier accepted between ceiling and target. Good profit margin!";
+  } else if (offerAmount > targetRate) {
+    // Driver wants MORE than our target - counter down toward target
+    // Offer $25 less than their ask, but don't go below target
+    counterOffer = Math.max(offerAmount - INCREMENT, targetRate);
+    shouldAccept = false;
+    message = `I can do $${counterOffer}. That's a fair rate for this lane.`;
+    negotiationGuidance = `COUNTER DOWN at $${counterOffer}. Driver asking above target. Stay firm near target rate.`;
+  } else if (offerAmount === 0) {
+    // No offer yet - quote target rate (start high to maximize profit)
     counterOffer = targetRate;
     message = `The all-in rate for this load is $${targetRate}.`;
-    negotiationGuidance = "INITIAL QUOTE - Start at target rate.";
+    negotiationGuidance = "INITIAL QUOTE - Start at target rate to maximize profit margin.";
+  } else {
+    // This shouldn't happen but handle gracefully
+    counterOffer = targetRate;
+    message = `Our rate for this load is $${targetRate}.`;
+    negotiationGuidance = "RESTATE target rate.";
   }
 
   console.log("[negotiate_rate] Result:", { 
@@ -235,7 +297,7 @@ async function handleNegotiateRate(supabase: any, body: any) {
       target_rate: targetRate,
       ceiling_rate: ceilingRate,
       should_accept: shouldAccept,
-      room_to_negotiate: counterOffer - ceilingRate,
+      room_to_negotiate: ceilingRate - counterOffer, // How much we can still come up if needed
       increment_amount: INCREMENT,
       message: message,
       negotiation_guidance: negotiationGuidance
@@ -460,34 +522,53 @@ async function sendBrokerNotification(
 }
 
 function formatRate(load: any): string {
+  // Never show decimals - round to nearest dollar
   if (load.rate_unit === 'per_mile' && load.miles) {
-    const flatRate = load.target_rate * load.miles;
-    return `$${flatRate.toFixed(2)} flat ($${load.target_rate.toFixed(2)}/mile)`;
+    const flatRate = Math.round(load.target_rate * load.miles);
+    const perMile = Math.round(load.target_rate);
+    return `$${flatRate} flat ($${perMile}/mile)`;
   }
-  return `$${load.target_rate?.toFixed(2) || '0.00'} flat`;
+  return `$${Math.round(load.target_rate || 0)} flat`;
 }
 
 function buildLoadMessage(load: any, distanceMiles: number | null, targetRate: number | null, ratePerMile: number | null): string {
-  let msg = `Found load ${load.load_number} from ${load.origin_city}, ${load.origin_state} to ${load.destination_city}, ${load.destination_state}.`;
+  // Build a conversational message that helps non-English speakers identify the load
+  // Offer multiple ways to confirm: load number, cities, dates
+  let msg = `I found load ${load.load_number}. `;
+  msg += `It goes from ${load.origin_city}, ${load.origin_state} to ${load.destination_city}, ${load.destination_state}. `;
   
   if (distanceMiles) {
-    msg += ` It's about ${distanceMiles} miles.`;
+    msg += `About ${Math.round(distanceMiles)} miles. `;
   }
   
-  msg += ` Picks up ${load.pickup_date || 'TBD'}, delivers ${load.delivery_date || 'TBD'}.`;
+  msg += `Pickup is ${load.pickup_date || 'TBD'}`;
+  if (load.pickup_window_start) {
+    msg += ` between ${load.pickup_window_start} and ${load.pickup_window_end || 'TBD'}`;
+  }
+  msg += `. `;
+  
+  if (load.delivery_date) {
+    msg += `Delivery ${load.delivery_date}. `;
+  }
   
   if (load.weight_lbs) {
-    msg += ` ${load.weight_lbs.toLocaleString()} lbs,`;
+    msg += `Weight is ${load.weight_lbs.toLocaleString()} pounds. `;
   }
   
-  msg += ` ${load.equipment_type || 'Dry Van'}.`;
+  msg += `${load.equipment_type || 'Dry Van'}. `;
   
   if (targetRate) {
-    msg += ` The all-in rate is $${targetRate.toFixed(2)}.`;
-    if (ratePerMile) {
-      msg += ` That works out to about $${ratePerMile.toFixed(2)} per mile.`;
+    // Round to nearest dollar - never show decimals
+    const roundedRate = Math.round(targetRate);
+    msg += `The all-in rate is $${roundedRate}. `;
+    if (ratePerMile && distanceMiles) {
+      const roundedRpm = Math.round(ratePerMile * 100) / 100;
+      msg += `That's about $${roundedRpm.toFixed(2)} per mile. `;
     }
   }
+  
+  // Help non-English speakers confirm - offer multiple confirmation options
+  msg += `Does this sound like the load you're looking for? You can confirm by the cities or the load number.`;
   
   return msg;
 }

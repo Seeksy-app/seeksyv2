@@ -26293,6 +26293,41 @@ export type Database = {
         }
         Relationships: []
       }
+      trucking_load_shares: {
+        Row: {
+          can_edit: boolean
+          created_at: string
+          id: string
+          load_id: string
+          shared_by_user_id: string | null
+          shared_with_user_id: string
+        }
+        Insert: {
+          can_edit?: boolean
+          created_at?: string
+          id?: string
+          load_id: string
+          shared_by_user_id?: string | null
+          shared_with_user_id: string
+        }
+        Update: {
+          can_edit?: boolean
+          created_at?: string
+          id?: string
+          load_id?: string
+          shared_by_user_id?: string | null
+          shared_with_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trucking_load_shares_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_loads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trucking_loads: {
         Row: {
           auto_approve_band_flat: number | null
