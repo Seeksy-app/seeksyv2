@@ -13,6 +13,28 @@ serve(async (req) => {
   }
 
   try {
+    // Validate webhook secret if configured
+    const webhookSecret = Deno.env.get('ELEVENLABS_WEBHOOK_SECRET');
+    if (webhookSecret) {
+      const signature = req.headers.get('x-elevenlabs-signature') || 
+                        req.headers.get('x-webhook-secret') ||
+                        req.headers.get('authorization');
+      
+      // Check if the secret matches (ElevenLabs may send it in different formats)
+      const isValid = signature === webhookSecret || 
+                      signature === `Bearer ${webhookSecret}` ||
+                      signature?.includes(webhookSecret);
+      
+      if (!isValid) {
+        console.error('Invalid webhook signature');
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      console.log('Webhook signature validated successfully');
+    }
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
