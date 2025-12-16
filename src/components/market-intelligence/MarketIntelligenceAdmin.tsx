@@ -146,12 +146,12 @@ export function MarketIntelligenceAdmin() {
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               className="flex-1 bg-background"
             />
-            <Select value={searchCategory} onValueChange={setSearchCategory}>
+            <Select value={searchCategory} onValueChange={(val) => setSearchCategory(val === 'all' ? '' : val)}>
               <SelectTrigger className="w-[180px] bg-background">
                 <SelectValue placeholder="All categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All categories</SelectItem>
+                <SelectItem value="all">All categories</SelectItem>
                 <SelectItem value="competitor">Competitors</SelectItem>
                 <SelectItem value="industry_publication">Industry</SelectItem>
                 <SelectItem value="market_research">Research</SelectItem>
