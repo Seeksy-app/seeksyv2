@@ -1365,6 +1365,7 @@ const AppContent = () => {
             <Route path="knowledge/:slug" element={<BoardKnowledgeArticle />} />
             <Route path="sales-opportunities" element={<BoardSalesOpportunities />} />
             <Route path="meeting-notes" element={<BoardMeetingNotes />} />
+            <Route path="meeting-notes/:meetingId" element={<BoardMeetingNotes />} />
           </Route>
           <Route path="/board/meeting-guest/:token" element={<BoardMeetingGuest />} />
           <Route path="/investor/:token" element={<BoardInvestorPortal />} />

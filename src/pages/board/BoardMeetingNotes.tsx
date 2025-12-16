@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { format, parseISO } from "date-fns";
 import { Plus, Calendar, ChevronDown, ChevronUp, Sparkles, Download, Lock, Play, Pause, RotateCcw, Clock, MessageSquare, Send, Trash2, LogOut, Video, Users, ArrowRight, RefreshCw, PanelLeftClose, PanelLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -111,6 +111,7 @@ interface CreateMeetingForm {
 export default function BoardMeetingNotes() {
   const queryClient = useQueryClient();
   const location = useLocation();
+  const { meetingId: urlMeetingId } = useParams<{ meetingId?: string }>();
   const { user, loading: authLoading } = useAuth();
   const { activeTenantId, isLoading: tenantLoading } = useTenant();
   const [selectedNote, setSelectedNote] = useState<MeetingNote | null>(null);
@@ -298,6 +299,16 @@ export default function BoardMeetingNotes() {
       if (updated) setSelectedNote(updated);
     }
   }, [notes]);
+
+  // Auto-select meeting from URL parameter
+  useEffect(() => {
+    if (urlMeetingId && notes.length > 0 && !selectedNote) {
+      const meetingFromUrl = notes.find(n => n.id === urlMeetingId);
+      if (meetingFromUrl) {
+        setSelectedNote(meetingFromUrl);
+      }
+    }
+  }, [urlMeetingId, notes, selectedNote]);
 
   const createNoteMutation = useMutation({
     mutationFn: async (formData: CreateMeetingForm) => {
