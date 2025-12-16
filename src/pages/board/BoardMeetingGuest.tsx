@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import deerInSnow from "@/assets/deer-in-snow.jpg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -478,30 +479,44 @@ export default function BoardMeetingGuest() {
   // Name entry screen
   if (!hasEnteredName) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <Video className="h-6 w-6 text-primary" />
-            </div>
-            <CardTitle>{meetingInfo?.title || "Board Meeting"}</CardTitle>
-            <CardDescription>
-              Enter your name to join the meeting
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex items-center justify-center p-4">
+        <Card className="w-full max-w-lg overflow-hidden">
+          {/* Snow deer image */}
+          <div className="relative w-full h-48 overflow-hidden">
+            <img 
+              src={deerInSnow} 
+              alt="Deer in snow" 
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-card/80" />
+          </div>
+          
+          <CardHeader className="text-center pt-4">
+            <CardTitle className="text-xl">{meetingInfo?.title || "Board Meeting"}</CardTitle>
+            <CardDescription className="text-base">
+              {meetingInfo?.meeting_date && (
+                <span className="flex items-center justify-center gap-2 mt-2">
+                  <CalendarDays className="h-4 w-4" />
+                  {formatMeetingDateTime()}
+                </span>
+              )}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pb-6">
             <div className="space-y-2">
               <Label htmlFor="guestName">Your Name</Label>
               <Input
                 id="guestName"
-                placeholder="Enter your name"
+                placeholder="Enter your name to join"
                 value={guestName}
                 onChange={(e) => setGuestName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleEnterName()}
+                className="text-center"
               />
             </div>
             <Button onClick={handleEnterName} disabled={!guestName.trim()} className="w-full">
-              Continue
+              <Video className="h-4 w-4 mr-2" />
+              Join Meeting
             </Button>
           </CardContent>
         </Card>
