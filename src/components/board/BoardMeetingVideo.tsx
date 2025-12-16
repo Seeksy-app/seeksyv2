@@ -163,15 +163,28 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
     hostName,
   });
 
-  // Host broadcasts section but stays in meeting - only attendees navigate to Board Portal routes
+  // Track embedded portal view state
+  const [embeddedPortalPath, setEmbeddedPortalPath] = useState<string | null>(null);
+
+  // Wrap stopPresenting to also clear embedded view
+  const handleStopPresenting = useCallback(() => {
+    stopPresenting();
+    setEmbeddedPortalPath(null);
+  }, [stopPresenting]);
+
+  // Host broadcasts section and shows embedded view for Board Portal routes
   const navigateToSection = useCallback((section: PresenterSection) => {
     baseNavigateToSection(section);
     
-    // Host does NOT navigate away - they stay in the meeting room
-    // Attendees will auto-navigate via GuestPresenterView
+    // For Board Portal routes, show embedded view for host
     if (isBoardPortalRoute(section)) {
-      console.log("[BoardMeetingVideo] Host broadcasting Board Portal route to attendees:", section);
-      toast.info(`Navigating attendees to ${section.replace('board-', '').replace(/-/g, ' ')}`);
+      const path = getBoardPortalPath(section);
+      console.log("[BoardMeetingVideo] Host presenting Board Portal route:", path);
+      setEmbeddedPortalPath(path);
+      toast.success(`Presenting: ${section.replace('board-', '').replace(/-/g, ' ')}`);
+    } else {
+      // For meeting sections, clear embedded view
+      setEmbeddedPortalPath(null);
     }
   }, [baseNavigateToSection]);
 
@@ -575,6 +588,35 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
         </div>
       )}
 
+      {/* Embedded Board Portal View - visible when presenting portal routes */}
+      {isHost && presenterState.isPresenting && embeddedPortalPath && (
+        <div className="p-3 bg-slate-950 border-t border-slate-700">
+          <div className="relative w-full bg-white rounded-lg overflow-hidden shadow-lg" style={{ height: '60vh' }}>
+            <iframe
+              src={embeddedPortalPath}
+              className="w-full h-full border-0"
+              title="Board Portal Presentation"
+            />
+            <div className="absolute top-2 left-2 bg-primary/90 px-2 py-1 rounded text-xs text-white flex items-center gap-1">
+              <MonitorPlay className="h-3 w-3" />
+              Presenting to Attendees
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="absolute top-2 right-2"
+              onClick={() => setEmbeddedPortalPath(null)}
+            >
+              <X className="h-4 w-4 mr-1" />
+              Exit View
+            </Button>
+          </div>
+          <p className="text-xs text-center text-muted-foreground mt-2">
+            Navigate within this view - attendees see the same page
+          </p>
+        </div>
+      )}
+
       {/* Host Content Panel - Screen/Media/Notes */}
       {isHost && activePanel && (
         <div className="p-4 bg-slate-950 border-t border-slate-700">
@@ -886,7 +928,7 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
                     isPresenting={presenterState.isPresenting}
                     currentSection={presenterState.currentSection}
                     onStartPresenting={startPresenting}
-                    onStopPresenting={stopPresenting}
+                    onStopPresenting={handleStopPresenting}
                     onNavigateToSection={navigateToSection}
                   />
                 </div>
