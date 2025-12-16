@@ -733,9 +733,6 @@ export default function BoardMeetingNotes() {
     mutationFn: async (noteId: string) => {
       const note = notes.find(n => n.id === noteId);
       if (!note) throw new Error("Meeting not found");
-      if (note.status === "completed") {
-        throw new Error("Completed meetings cannot be deleted");
-      }
       
       const { error } = await supabase
         .from("board_meeting_notes")
@@ -755,11 +752,6 @@ export default function BoardMeetingNotes() {
 
   const handleDeleteMeeting = (e: React.MouseEvent, noteId: string) => {
     e.stopPropagation();
-    const note = notes.find(n => n.id === noteId);
-    if (note?.status === "completed") {
-      toast.error("Completed meetings are locked and cannot be deleted");
-      return;
-    }
     if (confirm("Delete this meeting? This cannot be undone.")) {
       deleteMeetingMutation.mutate(noteId);
     }
