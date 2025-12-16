@@ -148,7 +148,7 @@ export function DecisionMatrixTable({ meetingId, isHost, isCompleted, meetingSta
             {decisions.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={isHost && !isCompleted ? 9 : 8} className="text-center text-muted-foreground py-8">
-                  No decisions yet. Add a topic to start tracking decisions.
+                  No decisions recorded for this meeting.
                 </TableCell>
               </TableRow>
             ) : (

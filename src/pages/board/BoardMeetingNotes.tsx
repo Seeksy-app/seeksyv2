@@ -1670,25 +1670,7 @@ export default function BoardMeetingNotes() {
                 generatedAt={selectedNote.ai_notes_generated_at}
               />
 
-              {/* Generate Summary Button - only block if there ARE decisions with missing values */}
-              {selectedNote.status !== 'completed' && (
-                <div className="flex flex-col items-end gap-2">
-                  {selectedNote.decision_table.length > 0 && selectedNote.decision_table.some(row => !row.Decision?.trim()) && (
-                    <p className="text-sm text-destructive">All decisions must be filled before generating summary</p>
-                  )}
-                  <Button 
-                    onClick={() => generateSummaryMutation.mutate(selectedNote.id)}
-                    disabled={
-                      generateSummaryMutation.isPending || 
-                      selectedNote.decisions_summary_locked ||
-                      (selectedNote.decision_table.length > 0 && selectedNote.decision_table.some(row => !row.Decision?.trim()))
-                    }
-                  >
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Complete Meeting & Generate Summary
-                  </Button>
-                </div>
-              )}
+              {/* Bottom Complete Meeting button removed - duplicate with top End Meeting action */}
 
               {/* Decisions Summary */}
               {selectedNote.decisions_summary && (
