@@ -1392,7 +1392,7 @@ export default function BoardMeetingNotes() {
                             )}
                             <Button variant="destructive" size="sm" onClick={handleEndMeetingWithGuardrail}>
                               <LogOut className="w-4 h-4 mr-2" />
-                              End Meeting
+                              Stop Recording
                             </Button>
                           </>
                         )}

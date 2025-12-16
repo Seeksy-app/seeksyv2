@@ -895,28 +895,7 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
             </Tooltip>
           )}
 
-          {/* Generate Notes Button - only shows when AI is listening */}
-          {isCapturingAudio && (
-            <Button
-              variant="secondary"
-              size="sm"
-              className="ml-2 gap-2"
-              onClick={onStopAIAndGenerateNotes}
-              disabled={isGeneratingNotes}
-            >
-              {isGeneratingNotes ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4" />
-                  Generate Notes
-                </>
-              )}
-            </Button>
-          )}
+          {/* Generate Notes removed - AI notes generate when Stop Recording is clicked */}
 
           {/* End Call Button */}
           <Tooltip>
