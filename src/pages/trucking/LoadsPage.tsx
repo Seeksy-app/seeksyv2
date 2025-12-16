@@ -37,6 +37,7 @@ import FieldLabelsSettings from "@/components/trucking/FieldLabelsSettings";
 import { useTruckingRecentValues } from "@/hooks/useTruckingRecentValues";
 import { useTruckingFieldLabels } from "@/hooks/useTruckingFieldLabels";
 import { formatPhoneNumber } from "@/utils/phoneFormat";
+import AddLoadModal from "@/components/trucking/AddLoadModal";
 
 const US_STATES = [
   "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL",
@@ -107,6 +108,7 @@ export default function LoadsPage() {
   const [loads, setLoads] = useState<Load[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [newModalOpen, setNewModalOpen] = useState(false);
   const [editingLoad, setEditingLoad] = useState<Load | null>(null);
   const [activeTab, setActiveTab] = useState("open");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -346,6 +348,71 @@ export default function LoadsPage() {
     } catch (error) {
       console.error("Error upserting contact:", error);
     }
+  };
+
+  // Handler for the new AddLoadModal component
+  const handleNewModalSubmit = async (formData: any) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
+
+    const loadData = {
+      owner_id: user.id,
+      load_number: formData.load_number,
+      origin_city: formData.origin_city,
+      origin_state: formData.origin_state,
+      origin_zip: formData.origin_zip,
+      destination_city: formData.destination_city,
+      destination_state: formData.destination_state,
+      destination_zip: formData.destination_zip,
+      pickup_date: formData.pickup_date || null,
+      pickup_window_start: formData.pickup_window_start || null,
+      pickup_window_end: formData.pickup_window_end || null,
+      equipment_type: formData.equipment_type,
+      commodity: formData.commodity,
+      hazmat: formData.hazmat,
+      temp_required: formData.temp_required,
+      temp_min_f: formData.temp_min_f,
+      temp_max_f: formData.temp_max_f,
+      weight_lbs: formData.weight_lbs,
+      length_ft: formData.length_ft,
+      miles: formData.miles,
+      rate_type: formData.rate_type,
+      target_rate: formData.target_rate,
+      floor_rate: formData.floor_rate,
+      desired_rate_per_ton: formData.desired_rate_per_ton,
+      floor_rate_per_ton: formData.floor_rate_per_ton,
+      tons: formData.tons,
+      special_instructions: formData.special_instructions,
+      status: "open",
+      is_active: true,
+    };
+
+    if (editingLoad) {
+      const { error } = await supabase
+        .from("trucking_loads")
+        .update(loadData)
+        .eq("id", editingLoad.id);
+      if (error) throw error;
+      toast({ title: "Load updated" });
+    } else {
+      const { error } = await supabase
+        .from("trucking_loads")
+        .insert(loadData);
+      if (error) throw error;
+      toast({ title: "Load created" });
+    }
+
+    // Save recent values
+    addRecentValue("pickup_city", formData.origin_city);
+    addRecentValue("delivery_city", formData.destination_city);
+    
+    setEditingLoad(null);
+    fetchLoads();
+  };
+
+  const handleEditWithNewModal = (load: Load) => {
+    setEditingLoad(load);
+    setNewModalOpen(true);
   };
 
   const handleEdit = (load: Load) => {
@@ -810,7 +877,7 @@ export default function LoadsPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleEdit(load)}>
+                  <DropdownMenuItem onClick={() => handleEditWithNewModal(load)}>
                     <Edit className="h-4 w-4 mr-2" />
                     Edit load
                   </DropdownMenuItem>
@@ -885,13 +952,11 @@ export default function LoadsPage() {
         </div>
         <div className="flex items-center gap-2">
           <FieldLabelsSettings />
+          <Button onClick={() => { setEditingLoad(null); setNewModalOpen(true); }}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Load
+          </Button>
           <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Load
-              </Button>
-            </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingLoad ? "Edit Load" : "Add New Load"}</DialogTitle>
@@ -1628,6 +1693,14 @@ export default function LoadsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* New Add Load Modal */}
+      <AddLoadModal
+        open={newModalOpen}
+        onOpenChange={(open) => { setNewModalOpen(open); if (!open) setEditingLoad(null); }}
+        onSubmit={handleNewModalSubmit}
+        editingLoad={editingLoad}
+      />
     </div>
   );
 }
